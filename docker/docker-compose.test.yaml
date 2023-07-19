@@ -15,16 +15,15 @@ services:
 
   app:
     platform: linux/amd64
+    image: cll/os
     build:
-      context: .
-      dockerfile: ./test/app.Dockerfile
+      context: ..
+      dockerfile: ./docker/test/app.Dockerfile
       args:
         server_name: localhost
     restart: on-failure
     command: >
       sh -c "/home/config_cll/init-app.sh"
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
       - 8005:80
     expose:
@@ -49,32 +48,24 @@ services:
           - redis
 
   celery_worker:
-    build:
-      context: .
-      dockerfile: ./test/app.Dockerfile
+    image: cll/os
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/worker-start.sh"
     env_file:
       - ./test/env/app.compose.env
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     depends_on:
       - postgres
       - app
       - redis
 
   celery_beat:
-    build:
-      context: .
-      dockerfile: ./test/app.Dockerfile
+    image: cll/os
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/beat-start.sh"
     env_file:
       - ./test/env/app.compose.env
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     depends_on:
       - postgres
       - app

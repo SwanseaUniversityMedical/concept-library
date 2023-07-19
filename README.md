@@ -124,13 +124,9 @@ Within the `concept-library/docker/` directory you will find the following docke
     - It is recommended for use when developing the Docker images, or as a pre-production test when modifying build behaviour such as offline compression.
     - After building, the application can be located at http://localhost:8005
 3. `docker-compose.prod.yaml`
-    - This compose file manually builds the production container.
-    - It is exclusively used for deployment of feature branches that are not covered by CI/CD.
+    - This compose file builds the production container.
+    - It is used for both manual and automated deployment via CI/CD workflows
     - After building, the application can be located at https://conceptlibrary.some-demo-app.saildatabank.com where `some-demo-app` describes the development sub-domain
-4. `docker-compose.deploy.yaml`
-    - This compose file is used for automated deployment.
-    - It is exclusively used for deployment of production containers during CI/CD workflows.
-    - After building, the application can be located at https://conceptlibrary.saildatabank.com
 
 ### 2.3.2. Initial Build
 To perform the initial build and run of the application:
@@ -435,9 +431,9 @@ Optional arguments for this script include:
 
 - `-fp` | `--file-path` → [Defauts to `/root/deploy_DEV_DEMO_DT`] This determines the root path of your environment variable text file (see below) and where the Github repo will be cloned
 - `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
-- `-np` | `--no-pull` → [Defauts to `true`] Whether to pull the branch from the Git repository - can be used to avoid re-pulling branch if you are making changes to external factors, e.g. the environment variables
+- `-nd` | `--no-pull` → [Defauts to `true`] Whether to pull the branch from the Git repository - can be used to avoid re-pulling branch if you are making changes to external factors, e.g. the environment variables
 - `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
-- `-p` | `--prune` → [Defauts to `false`] Whether to prune the unused docker data before building the current image
+- `-np` | `--no-prune` → [Defauts to `true`] Whether to prune the unused docker data before building the current image
 - `-e` | `--env` → [Defauts to `env_vars-RO.txt`] The name of the environment variables text file - see below for more details
 - `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
 - `-n` | `--name` → [Defauts to `cllro_dev`] The name of the docker container
@@ -447,11 +443,9 @@ Optional arguments for this script include:
 #### Setting up your environment variables
 > **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
 
-Ensure you have an `env-vars` text file on your server. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers. The environment variables you define within this text file are applied to the `app.compose.env` file when deploying. 
+Ensure you have an `env-vars` text file on your server. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers. 
 
-Please see the `app.compose.env` files within the Concept Library's `./Docker` directory for the environment variables that are required.
-
-#### To deploy manually:
+#### To deploy manually
 1. SSH into the server
 2. If you haven't already created the `deploy-feature.sh` within this server, please clone the [Github repository](https://github.com/SwanseaUniversityMedical/concept-library) and copy/move it into a directory of your choosing (in this case, we will assume it's within /root/)
 3. Ensure the `deploy-feature.sh` script has the appropriate permissions
@@ -462,16 +456,18 @@ Please see the `app.compose.env` files within the Concept Library's `./Docker` d
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
 
 #### Files
+> **[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file
 If not already present on the machine, please ensure that the following files are within the root directory:
   - Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
-  - Copy `./docker/docker-compose.deploy.yaml` to `/root/`
+  - Copy `./docker/docker-compose.prod.yaml` to `/root/`
 
 #### Site Deployment Arguments
 Optional parameters for the `deploy-site.sh` script include:
+- `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
 - `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
-- `-p` | `--prune` → [Defauts to `false`] Whether to prune the unused docker data before building the current image
+- `-np` | `--no-prune` → [Defauts to `true`] Whether to prune the unused docker data before building the current image
 - `-a` | `--address` → [Defauts to `Null`] This parameter determines the registry we will try to pull the images from
-- `-f` | `--file` → [Defauts to `docker-compose.deploy.yaml`] The name of the docker-compose file you would like to deploy
+- `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
 
 #### Automated Deployment Pipeline
 

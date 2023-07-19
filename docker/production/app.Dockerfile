@@ -53,24 +53,26 @@ RUN \
 RUN \
   pip --proxy http://192.168.10.15:8080 install --upgrade pip
 
-# Copy & Install requirements
+# Copy project
 RUN mkdir -p /var/www/concept_lib_sites/v1
-COPY ./requirements /var/www/concept_lib_sites/v1/requirements
+COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
+COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
+# Install requirements
 RUN pip --proxy http://192.168.10.15:8080 --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
 # Utility scripts
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 
-COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
+COPY ./docker/development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
 
 # Deploy scripts
-COPY ./production/scripts/init-app.sh /home/config_cll/init-app.sh
-COPY ./production/scripts/worker-start.sh /home/config_cll/worker-start.sh
-COPY ./production/scripts/beat-start.sh /home/config_cll/beat-start.sh
+COPY ./docker/production/scripts/init-app.sh /home/config_cll/init-app.sh
+COPY ./docker/production/scripts/worker-start.sh /home/config_cll/worker-start.sh
+COPY ./docker/production/scripts/beat-start.sh /home/config_cll/beat-start.sh
 
 RUN ["chmod" , "+x" , "/home/config_cll/worker-start.sh"]
 RUN ["chmod" , "+x" , "/home/config_cll/beat-start.sh"]
@@ -79,7 +81,7 @@ RUN ["chmod", "a+x", "/home/config_cll/init-app.sh"]
 # Config apache and enable site
 RUN echo $(printf 'export SERVER_NAME=%s' "$SERVER_NAME") >> /etc/apache2/envvars
 RUN echo $(printf 'ServerName %s' "$SERVER_NAME") >> /etc/apache2/apache2.conf
-ADD ./production/cll.conf /etc/apache2/sites-available/cll.conf
+ADD ./docker/production/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN a2ensite \
     cll.conf && \

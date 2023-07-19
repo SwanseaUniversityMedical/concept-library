@@ -3,25 +3,19 @@ version: '3'
 services:
   app:
     platform: linux/amd64
-    build:
-      context: .
-      dockerfile: ./production/app.Dockerfile
-      args:
-        http_proxy: http://192.168.10.15:8080
-        https_proxy: http://192.168.10.15:8080
-        server_name: www.conceptlibrary.saildatabank.com
+    image: cll/os
     restart: on-failure
     command: >
       sh -c "/home/config_cll/init-app.sh"
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
     ports:
       - 8080:80
     expose:
       - 80
       - 443
     env_file:
-      - ./production/env/app.compose.env
+      - ./env_vars-FA.txt
+    volumes:
+      - ./cl_log/:/home/config_cll/cll_srvr_logs/
     depends_on:
       - redis
 
@@ -39,37 +33,23 @@ services:
           - redis
 
   celery_worker:
-    build:
-      context: .
-      dockerfile: ./production/app.Dockerfile
-      args:
-        http_proxy: http://192.168.10.15:8080
-        https_proxy: http://192.168.10.15:8080
+    image: cll/celery_worker
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/worker-start.sh"
     env_file:
-      - ./production/env/app.compose.env
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      - ./env_vars-FA.txt
     depends_on:
       - app
       - redis
 
   celery_beat:
-    build:
-      context: .
-      dockerfile: ./production/app.Dockerfile
-      args:
-        http_proxy: http://192.168.10.15:8080
-        https_proxy: http://192.168.10.15:8080
+    image: cll/celery_beat
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/beat-start.sh"
     env_file:
-      - ./production/env/app.compose.env
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+      - ./env_vars-FA.txt
     depends_on:
       - app
       - redis
