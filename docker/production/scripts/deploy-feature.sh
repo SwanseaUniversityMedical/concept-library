@@ -95,7 +95,7 @@ if [ "$ShouldPrune" = 'true' ]; then
 fi
 
 # Move env file to appropriate location
-cp "$RootPath/$EnvFileName" "$RootPath/concept-library/docker"
+cp "$RootPath/$EnvFileName" "$RootPath/concept-library/docker/env_vars-FA.txt"
 
 # Deploy new version
 echo "==========================================="

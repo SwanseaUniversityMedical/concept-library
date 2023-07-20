@@ -443,7 +443,7 @@ Optional arguments for this script include:
 #### Setting up your environment variables
 > **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
 
-Ensure you have an `env-vars` text file on your server. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers. 
+Ensure you have an `env-vars` text file on your server. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers. During manual deployment, the file will be moved and rename to `env_vars-FA` for use by `docker-compose.prod.yaml`
 
 #### To deploy manually
 1. SSH into the server
