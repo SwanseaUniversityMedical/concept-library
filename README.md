@@ -443,7 +443,7 @@ Optional arguments for this script include:
 #### Setting up your environment variables
 > **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
 
-Ensure you have an `env-vars` text file on your server. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers. During manual deployment, the file will be moved and rename to `env_vars-FA` for use by `docker-compose.prod.yaml`
+Ensure you have an `env-vars` text file on your server. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers. During manual deployment, the file will be copied and renamed to `env_vars.txt` for use by `docker-compose.prod.yaml` within `./concept-library/CodeListLibrary_project/docker/` after the repository is cloned.
 
 #### To deploy manually
 1. SSH into the server
@@ -461,6 +461,9 @@ If not already present on the machine, please ensure that the following files ar
   - Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
   - Copy `./docker/docker-compose.prod.yaml` to `/root/`
 
+### Environment Variables
+You need to ensure that there is an `env_vars.txt` within the same directory as the `/root/` directory where your `docker-compose.prod.yaml` is found. 
+
 #### Site Deployment Arguments
 Optional parameters for the `deploy-site.sh` script include:
 - `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
@@ -469,9 +472,21 @@ Optional parameters for the `deploy-site.sh` script include:
 - `-a` | `--address` → [Defauts to `Null`] This parameter determines the registry we will try to pull the images from
 - `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
 
-#### Automated Deployment Pipeline
+#### Deployment when automation is disabled
+> **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
 
-[Details]
+Images will be automatically built via Gitlab CI/CD from the `master` branch when a merge is committed. These images can be pulled using the `deploy-site.sh` script as described in [4.1.2. Automated Deployment](#4.1.2.-Automated-Deployment).
+
+When automated deployment is disabled but images are still being built by the CI/CD pipeline you can use the following steps to deploy the image.
+
+To manually deploy the built images hosted on Gitlab's registry, please do the following:
+
+1. Open the terminal and SSH into the server
+2. `cd` to the `/root/` directory of the server you are deploying (e.g. `/root/deploy_DEV_DEMO_DT`)
+3. Copy the `./docker/production/scripts/deploy-site.sh` and `./docker/docker-compose.prod.yaml` files to this directory (you can do this by pulling them from the Github repository)
+4. Ensure you have a `.txt` file named `env_vars.txt` within the same directory as these files
+5. Ensure you are logged in, e.g. `docker login {details}` - if you are SSHing into a live server, this step will have already been completed by our config(s)
+6. Run the following command `./root/{directory}/deploy-site.sh --address {registry_address}` where the `{registry_address}` describes the address where the Gitlab images are uploaded (check out `.gitlab-ci.yml` for more information)
 
 ## 4.2. Harbor-driven CI/CD
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor

@@ -13,7 +13,7 @@ services:
       - 80
       - 443
     env_file:
-      - ./env_vars-FA.txt
+      - ./env_vars.txt
     volumes:
       - ./cl_log/:/home/config_cll/cll_srvr_logs/
     depends_on:
@@ -38,7 +38,7 @@ services:
     command: >
       sh -c "/home/config_cll/worker-start.sh"
     env_file:
-      - ./env_vars-FA.txt
+      - ./env_vars.txt
     depends_on:
       - app
       - redis
@@ -49,7 +49,7 @@ services:
     command: >
       sh -c "/home/config_cll/beat-start.sh"
     env_file:
-      - ./env_vars-FA.txt
+      - ./env_vars.txt
     depends_on:
       - app
       - redis
