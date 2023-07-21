@@ -493,3 +493,29 @@ const isArrayEqual = (a, b, shouldSort = true) => {
   }
   return a.length == b.length && a.every((ti, i) => { return ti == b[i]; });
 }
+
+/**
+ * startLoadingSpinner
+ * @desc instantiate a loading spinner, either within an element or at the root <body/>
+ * @param {node|null} container the container - if null, uses the <body/>
+ * @returns {node} the spinner element or its container - whichever is topmost
+ */
+const startLoadingSpinner = (container) => {
+
+  let spinner;
+  if (isNullOrUndefined(container)) {
+    container = document.body;
+
+    spinner = createElement('div', {
+      className: 'loading-spinner',
+      innerHTML: '<div class="loading-spinner__icon"></div>'
+    });
+  } else {
+    spinner = createElement('div', {
+      className: 'loading-spinner__icon',
+    });
+  }
+  container.appendChild(spinner)
+
+  return spinner;
+}

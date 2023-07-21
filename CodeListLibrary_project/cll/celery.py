@@ -2,15 +2,13 @@ from __future__ import absolute_import
 
 import os
 from celery import Celery
-#from celery.schedules import crontab
 from django.conf import settings
-
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cll.settings')
 app = Celery('cll')
 app.config_from_object('django.conf:settings', namespace='CELERY')
-# Load tasks from all registered apps
 
+# Load tasks from all registered apps
 """
 Use schedule only for specific tasks that need to be forced to run at a specific time
 Example:
@@ -26,11 +24,10 @@ schedule = {
 
 # Any current debug tasks
 if settings.DEBUG:
-
     @app.task(bind=True)
     def debug_task(self):
         print(f'Request: {self.request!r}')
 
-#In order to register task in the Celery beat
-#app.conf.beat_schedule = schedule 
+# In order to register task in the Celery beat
+# app.conf.beat_schedule = schedule 
 app.autodiscover_tasks()

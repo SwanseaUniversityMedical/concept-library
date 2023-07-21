@@ -11,7 +11,6 @@ from collections import OrderedDict
 from collections import OrderedDict as ordr
 import datetime
 
-from clinicalcode.context_processors import clinicalcode
 from clinicalcode.models.WorkingSet import WorkingSet
 from django.contrib.auth.models import User
 from django.core import serializers

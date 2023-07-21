@@ -67,8 +67,9 @@ def run_daily_statistics(self):
     return True
 
 @shared_task(bind=True)
-def run_weekly_cleanup():
+def run_weekly_cleanup(self):
     '''
         Runs the clear_session.py management command
     '''
     management.call_command('clear_sessions')
+    return True

@@ -5,11 +5,13 @@
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
-{% block title %}| HDRUK_HOMEPAGE {% endblock title %}
+{% block title %}| HDRUK Home {% endblock title %}
 {% block container %}
 
 <!-- Page Stylesheets -->
-<link href="{% sass_src 'scss/pages/home/HDRUK.scss' %}" rel="stylesheet" type="text/css" />
+{% compress css %}
+  <link href="{% sass_src 'scss/pages/home/HDRUK.scss' %}" rel="stylesheet" type="text/css" />
+{% endcompress %}
 
 <!-- Main -->
 <header class="main-header banner image">

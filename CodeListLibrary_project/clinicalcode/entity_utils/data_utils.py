@@ -1,6 +1,4 @@
 from django.db import connection
-from django.apps import apps
-from django.conf import settings
 
 import traceback
 

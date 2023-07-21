@@ -1,98 +1,24 @@
+from django.conf import settings
+from django.contrib import auth, messages
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.shortcuts import redirect
+from django.urls import clear_url_caches, set_urlconf
+from django.utils.deprecation import MiddlewareMixin
+from rest_framework.reverse import reverse
+from importlib import import_module
+
 import distutils
 import importlib
 import os
 import sys
-from distutils import util
-#from cll import settings
-from importlib import import_module
 
 from clinicalcode.models import Brand
-from decouple import Config, Csv, RepositoryEnv
-from django.conf import settings
-#from django.conf.urls import include, url
-from django.urls import include
-from django.contrib import auth, messages
-#import json
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
-from django.urls import clear_url_caches, get_urlconf, set_urlconf
-from django.utils.deprecation import MiddlewareMixin
-from rest_framework.reverse import reverse
 
-from django.contrib.auth import logout
-from datetime import datetime
-from django.utils.timezone import now as timezone_now
-from datetime import timedelta
-
-class SessionExpiryMiddleware:
+class BrandMiddleware(MiddlewareMixin):
     '''
-        Middleware to det. whether a user session needs to expire
+        Brand related middleware
+            [ ...needs docs? ]
     '''
-    def __init__(self, get_response):
-        self.get_response = get_response
-        super().__init__()
-    
-    def __get_session_options(self, request):
-        if request.user.is_anonymous:
-            return
-
-        options = getattr(settings, 'SESSION_EXPIRY', None)
-        if options is None:
-            return
-        
-        return options
-    
-    def __session_is_expired(self, request, options):
-        current_time = timezone_now()
-        session_limit = options.get('SESSION_LIMIT')
-        if not isinstance(session_limit, timedelta):
-            return False
-
-        last_login = request.user.last_login
-        session_time = (last_login - current_time + session_limit).total_seconds()
-        return session_time < 0
-
-    def __session_reached_idle_limit(self, request, options):
-        current_time = timezone_now()
-        idle_limit = options.get('IDLE_LIMIT')
-        if not isinstance(idle_limit, timedelta):
-            return False
-
-        last_request = current_time
-        if 'last_session_request' in request.session:
-            last_request = datetime.fromisoformat(request.session.get('last_session_request'))
-
-        idle_time = (last_request - current_time + idle_limit).total_seconds()
-        request.session['last_session_request'] = current_time.isoformat()
-        return idle_time < 0
-
-    def __try_expire_session(self, request, options):
-        '''
-            [!] Options are defined within settings.py
-
-            Tries to expire a session if either:
-                - The session length has expired after X duration
-                - The user has idled between requests for X duration
-        '''
-        requires_logout = self.__session_is_expired(request, options) | self.__session_reached_idle_limit(request, options)
-        
-        if requires_logout:
-            if 'last_session_request' in request.session:
-                del request.session['last_session_request']
-
-            logout(request)
-    
-    def __call__(self, request):
-        options = self.__get_session_options(request)
-        if options is not None:
-            self.__try_expire_session(request, options)
-
-        return self.get_response(request)
-
-
-class brandMiddleware(MiddlewareMixin):
-
     def process_request(self, request):
         #---------------------------------
         # if the user is a member of  'ReadOnlyUsers' group, make READ-ONLY True
@@ -201,7 +127,6 @@ class brandMiddleware(MiddlewareMixin):
                 # # path_info does not change address bar urls
                 request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
 
-
 #                 print "-------"
 #                 print current_page_url
 #                 print current_page_url.split('/')[1:]
@@ -249,7 +174,6 @@ class brandMiddleware(MiddlewareMixin):
         return None
 
     def chkReadOnlyUsers(self, request):
-
         if not settings.CLL_READ_ONLY:
             if (request.user.groups.filter(name='ReadOnlyUsers').exists()):
                 messages.error(request, "You are assigned as a Read-Only-User. You can access only the ReadOnly website.")
@@ -270,5 +194,3 @@ class brandMiddleware(MiddlewareMixin):
         except KeyError:
             error_msg = 'Set the {} environment variable'.format(env_variable)
             raise ImproperlyConfigured(error_msg)
-        
-        

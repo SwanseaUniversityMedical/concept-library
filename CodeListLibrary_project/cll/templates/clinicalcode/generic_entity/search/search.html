@@ -15,9 +15,9 @@
 
 <!-- Include required components -->
 <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
-{% compress js file %}
-<script src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
-<script src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
+{% compress js %}
+<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
 {% endcompress %}
 
 <!-- Main search page -->
@@ -25,7 +25,7 @@
   <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
     <div class="search-page">
       <aside class="side-search-filters">
-        {% compress js file %}
+        {% compress js %}
           <script type="module" src="{% static 'js/clinicalcode/redesign/services/filterService.js' %}"></script>
         {% endcompress %}
         <div class="side-search-filters__header">
