@@ -49,6 +49,9 @@ class Component(TimeStampedModel):
 
     # Only used for rulesets
     source = models.CharField(max_length=250, blank=True, null=True)
+    used_wildcard = models.BooleanField(default=False)
+    used_description = models.BooleanField(default=False)
+    was_wildcard_sensitive = models.BooleanField(default=False)
 
     comment = models.TextField()
     component_type = models.IntegerField(choices=COMPONENT_TYPES)

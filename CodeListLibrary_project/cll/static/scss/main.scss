@@ -28,6 +28,10 @@
 @import 'components/_banner';
 @import 'components/_cookie_component';
 @import 'components/_loader';
+@import 'components/_scrollspy';
+@import 'components/_headline';
+@import 'components/_misc';
+
 // Need to add vendor's properties to brand map
 @import 'vendor/_lightpick';
 @import 'vendor/_datatables';
@@ -61,6 +65,14 @@ body {
 
 data {
   display: none;
+}
+
+// markdownify
+//  @desc shadow frames for markdownify
+.shadow-frame {
+  img {
+    max-width: 100%
+  }
 }
 
 // main-header

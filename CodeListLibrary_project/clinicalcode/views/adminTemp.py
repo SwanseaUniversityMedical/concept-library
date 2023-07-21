@@ -1010,6 +1010,11 @@ def admin_mig_phenotypes_dt(request):
                             (SELECT MAX(history_id) FROM public.clinicalcode_historicalpublishedgenericentity)
                         );""")
 
+                    with connection.cursor() as cursor:
+                        cursor.execute("""SELECT setval('clinicalcode_publishedgenericentity_id_seq',
+                                       (SELECT MAX(id) FROM public.clinicalcode_publishedgenericentity)+1);""")
+
+
                     ######################################
                     rowsAffected[1] = "phenotypes migrated."
             else:

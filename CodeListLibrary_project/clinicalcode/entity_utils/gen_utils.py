@@ -2,7 +2,6 @@ from django.conf import settings
 from django.http.response import JsonResponse
 from django.core.exceptions import BadRequest
 from django.http.multipartparser import MultiPartParser
-from django.utils.timezone import make_aware
 from functools import wraps
 from dateutil import parser as dateparser
 from json import JSONEncoder

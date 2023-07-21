@@ -175,6 +175,15 @@ const CONCEPT_CREATOR_FILE_UPLOAD = {
 }
 
 /**
+ * CONCEPT_CREATOR_SEARCH_METHODS
+ * @desc describes code-related search options
+ */
+const CONCEPT_CREATOR_SEARCH_METHODS = {
+  CODES: 'codes',
+  DESCRIPTION: 'description',
+}
+
+/**
  * CONCEPT_CREATOR_MIN_MSG_DURATION
  * @desc Min. message duration for toast notif popups
  */
@@ -254,6 +263,8 @@ const CONCEPT_CREATOR_TEXT = {
   REQUIRE_CONCEPT_NAME: 'You need to name your Concept before saving',
   // Toast for Concept CodingSystem validation
   REQUIRE_CODING_SYSTEM: 'You need to select a coding system before saving!',
+  // Toast to inform the user that no exclusionary codes were addded since they aren't present in an inclusionary rule
+  NO_LINKED_EXCLUSIONS: 'These codes can\'t be excluded when they aren\'t already included',
   // Toast to inform user that no code was matched
   NO_CODE_SEARCH_MATCH: 'No matches for "${value}..."',
   // Toast to inform user we exchanged codes for a null match
@@ -328,6 +339,7 @@ export default class ConceptCreator {
     const cleaned = [];
     for (let i = 0; i < this.data.length; ++i) {
       const concept = deepCopy(this.data[i]);
+      delete concept.aggregatedStateView;
 
       // Only consider Concepts that have a coding id
       if (isNullOrUndefined(concept?.coding_system?.id)) {
@@ -353,7 +365,6 @@ export default class ConceptCreator {
 
       // Clean prev. metadata for new concept(s)
       const codingSystem = concept.coding_system.id;
-      delete concept.aggregated_component_codes;
       delete concept.coding_system;
 
       concept.details = {
@@ -574,7 +585,7 @@ export default class ConceptCreator {
         ...{
           callback: (selected, files) => {
             if (!selected) {
-              return;
+              return reject();
             }
     
             const file = files[0];
@@ -628,14 +639,20 @@ export default class ConceptCreator {
    *       for codes that match the search term
    * @param {string} searchTerm the search term to match
    * @param {integer} codingSystemId the ID of the coding system to look up
+   * @param {boolean} useWildcard whether to search via wildcard
+   * @param {boolean} useDesc whether to use the description to search (rather than via code)
+   * @param {boolean} caseSensitive whether pattern matches are case sensitive - only applies to pattern search
    * @returns {promise} a promise that resolves with an object describing the results if successful
    */
-  tryQueryCodelist(searchTerm, codingSystemId) {
+  tryQueryCodelist(searchTerm, codingSystemId, useWildcard, useDesc, caseSensitive) {
     const encodedSearchterm = encodeURIComponent(searchTerm);
     const query = {
       'template': this.template?.id,
       'search': encodedSearchterm,
       'coding_system': codingSystemId,
+      'use_desc': useDesc ? 1 : 0,
+      'use_wildcard': useWildcard ? 1 : 0,
+      'case_sensitive': caseSensitive ? 1 : 0,
     }
     
     const parameters = new URLSearchParams(query);
@@ -785,6 +802,131 @@ export default class ConceptCreator {
   }
 
   /**
+   * recalculateExclusionaryRules
+   * @desc recalculates exclusionary rules after an inclusionary rule has been added,
+   *       such that exclusionary codes are either added or removed to reflect the
+   *       current codelist
+   */
+  async #recalculateExclusionaryRules() {
+    const components = this.state.data?.components;
+    const codingSystemId = this.state.data?.coding_system?.id;
+    if (isNullOrUndefined(components) || isNullOrUndefined(codingSystemId)) {
+      return;
+    }
+
+    for (let i = 0;  i < components.length; ++i) {
+      const component = components[i];
+      if (component.logical_type != CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE) {
+        continue;
+      }
+
+      if (isNullOrUndefined(component.source) || isStringEmpty(component.source)) {
+        continue;
+      }
+
+      switch (component.source_type) {
+        case CONCEPT_CREATOR_SOURCE_TYPES.SEARCH_TERM.name: {
+          let useDesc = component?.search_options?.useDesc;
+          useDesc = !isNullOrUndefined(useDesc) ? useDesc : false;
+          
+          let useWildcard = component?.search_options?.useWildcard;
+          useWildcard = !isNullOrUndefined(useDesc) ? useDesc : false;
+
+          let caseSensitive = component?.search_options?.caseSensitive;
+          caseSensitive = !isNullOrUndefined(caseSensitive) ? caseSensitive : true;
+
+          await this.tryQueryCodelist(component.source, codingSystemId, useWildcard, useDesc, caseSensitive)
+            .then(response => {
+              const codes = this.#sieveCodes(
+                component.logical_type,
+                response?.result,
+                true
+              );
+    
+              component.codes = codes.length > 0 ? codes : [ ];
+              component.code_count = codes.length;
+            })
+            .catch((e) => {
+              console.warn(`Failed to update exclusionary rule @ index ${e}`);
+            });
+        } break;
+
+        case CONCEPT_CREATOR_SOURCE_TYPES.CONCEPT_IMPORT.name: {
+          const source = component.source.substring(1, component.source.length).split('/');
+          if (source.length < 2) {
+            break;
+          }
+
+          const [ conceptId, historyId ] = source;
+          await this.#tryRetrieveRuleCodelist({ id: conceptId, history_id: historyId })
+            .then(result => {
+              const codes = this.#sieveCodes(component.logical_type, result?.codelist);
+              component.codes = codes;
+            })
+            .catch((e) => {
+              console.warn(`Failed to update exclusionary rule @ index ${e}`);
+            });
+        } break;
+
+        default: break;
+      }
+    }
+  }
+
+  /**
+   * sieveCodes
+   * @desc removes exclusionary codes if not present within an inclusionary rule
+   * @param {str} logicalType the rule logical type
+   * @param {array[object]} data the code list
+   * @param {boolean|null} applyNewAttribute whether to apply the `is_new` attribute
+   * @returns {object} the resulting codes 
+   */
+  #sieveCodes(logicalType, data, applyNewAttribute) {
+    if (!Array.isArray(data) || data.length < 1) {
+      return [ ];
+    }
+
+    const components = this.state.data?.components;
+    if (isNullOrUndefined(components) || logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
+      if (applyNewAttribute) {
+        return data.map(item => {
+          item.is_new = true;
+          return item;
+        });
+      }
+
+      return data;
+    }
+
+    return data.reduce((filtered, row) => {
+      let i;
+      let isIncluded = false;
+      for (i = 0; i < components.length; ++i) {
+        const component = components[i];
+        if (component?.logical_type == CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE || isNullOrUndefined(component?.codes) || component.codes.length <= 0) {
+          continue;
+        }
+
+        const index = component.codes.findIndex(item => row.code == item.code);
+        if (index >= 0) {
+          isIncluded = true;
+          break;
+        }
+      }
+
+      if (isIncluded) {
+        if (applyNewAttribute) {
+          row.is_new = true;
+        }
+
+        filtered.push(row);
+      }
+  
+      return filtered;
+    }, []);
+  }
+
+  /**
    * isConceptRuleImportDistinct
    * @desc ensures that the concept, imported as a rule in this case,
    *       is distinct for its logical type
@@ -862,7 +1004,7 @@ export default class ConceptCreator {
       const present = presence[i];
       if (!present) {
         continue;
-      }
+      } 
 
       const component = components[i];
       if (!isNullOrUndefined(component) && component.logical_type == CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE) {
@@ -871,31 +1013,6 @@ export default class ConceptCreator {
     }
 
     return true;
-  }
-
-  /**
-   * computeAggregatedCodelist
-   * @desc method to recompute the aggregated codelist for a concept, across all of its components
-   */
-  #computeAggregatedCodelist() {
-    if (!this.state.editing) {
-      return;
-    }
-
-    const codes = [ ];
-    this.state?.data?.components.map((component, index) => {
-      component?.codes.map(row => {
-        codes.push([
-          row.id,
-          row.code,
-          row.description
-        ]);
-      });
-
-      component.code_count = component.codes.length;
-    });
-
-    this.state.data.aggregated_component_codes = codes;
   }
 
   /*************************************
@@ -953,8 +1070,9 @@ export default class ConceptCreator {
    * toggleConcept
    * @desc given a concept group, it will toggle its expanded/collapsed state
    * @param {node} target the concept group element
+   * @param {boolean} forceUpdate whether to force update the codelist
    */
-  #toggleConcept(target) {
+  #toggleConcept(target, forceUpdate) {
     const conceptGroup = tryGetRootElement(target, 'concept-list__group');
     const conceptId = conceptGroup.getAttribute('data-concept-id');
     const historyId = conceptGroup.getAttribute('data-concept-history-id');
@@ -973,7 +1091,7 @@ export default class ConceptCreator {
     if (item.classList.contains('is-open')) {
       // Render codelist
       let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
-      dataset = deepCopy(dataset.shift());
+      dataset = dataset.shift();
 
       return this.#tryRenderCodelist(container, dataset);
     }
@@ -987,8 +1105,9 @@ export default class ConceptCreator {
    * @desc Renders the update concepts + components.
    * @param {integer|null|undefined} id optional parameter to toggle open a concept after rendering
    * @param {integer|null|undefined} historyId optional parameter to toggle open a concept after rendering
+   * @param {boolean} forceUpdate whether to force update the codelist
    */
-  #tryUpdateRenderConceptComponents(id, historyId) {
+  #tryUpdateRenderConceptComponents(id, historyId, forceUpdate) {
     const containerList = this.element.querySelector('#concept-content-list');
     containerList.innerHTML = '';
     
@@ -1008,7 +1127,7 @@ export default class ConceptCreator {
 
     const conceptGroup = containerList.querySelector(`[data-concept-id="${id}"][data-concept-history-id="${historyId}"]`)
     conceptGroup.scrollIntoView();
-    this.#toggleConcept(conceptGroup);
+    this.#toggleConcept(conceptGroup, forceUpdate);
   }
 
   /**
@@ -1048,42 +1167,55 @@ export default class ConceptCreator {
    * @desc given a Concept dataset, will render a codelist within the container
    * @param {node} container the container to render the elements within
    * @param {object} dataset the dataset to utilise when rendering the codelist (editor or init data)
+   * @param {boolean} forceUpdate whether to force update the view
    * @returns {simpleDatatables()} the datatable instance
    */
-  #tryRenderCodelist(container, dataset) {
-    if (!dataset.hasOwnProperty('aggregated_component_codes')) {
-      return;
+  #tryRenderCodelist(container, dataset, forceUpdate) {
+    const noCodes = container.parentNode.querySelector('#no-available-codelist');
+
+    let rows;
+    if (forceUpdate || !Array.isArray(dataset.aggregatedStateView)) {
+      rows = [ ];
+
+      const hashset = { };
+      const spinner = startLoadingSpinner();
+      dataset.components.map((component, index) => {
+        const columns = dataset.components.map(item => item.id == component.id);
+        component.codes.map(row => {
+          let related = hashset?.[row.code];
+          if (related) {
+            related = rows[related];
+            related[index + CONCEPT_CREATOR_OFFSET - 1] = true;
+            return;
+          }
+
+          hashset[row.code] = rows.length;
+          rows.push([
+            row.id,
+            row.code,
+            row.description,
+            ...columns
+          ]);
+        });
+
+        component.code_count = component?.codes ? component?.codes.length : 0;
+      });
+      dataset.aggregatedStateView = rows;
+      spinner.remove();
+    } else {
+      rows = dataset.aggregatedStateView || [ ];
     }
 
-    const noCodes = container.parentNode.querySelector('#no-available-codelist');
-    const codes = dataset.aggregated_component_codes;
-    if (codes.length < 1) {
+    if (rows.length < 1) {
       noCodes.classList.add('show');
       return;
     }
-    
+
     const table = container.appendChild(createElement('table', {
       'id': 'codelist-datatable',
       'class': 'constrained-codelist-table__wrapper',
     }));
     noCodes.classList.remove('show');
-
-    const rows = [ ];
-    dataset.components.map((component, index) => {
-      component.codes.map(row => {
-        const related = rows.find(item => item[1] == row.code);
-        if (!related) {
-          rows.push([
-            row.id,
-            row.code,
-            row.description,
-            ...dataset.components.map(item => item.id == component.id)
-          ]);
-        } else {
-          related[index + CONCEPT_CREATOR_OFFSET - 1] = true;
-        }
-      })
-    });
 
     return new window.simpleDatatables.DataTable(table, {
       perPage: CONCEPT_CREATOR_LIMITS.PER_PAGE,
@@ -1279,22 +1411,20 @@ export default class ConceptCreator {
       'index': index,
       'name': rule?.name,
       'source': (isNullOrUndefined(source) && sourceInfo.template == 'file-rule') ? 'Unknown File' : (source || ''),
+      'used_code': !rule?.used_description ? 'checked' : '',
+      'used_description': rule?.used_description ? 'checked' : '',
+      'used_wildcard': rule?.used_wildcard ? 'checked' : '',
+      'was_wildcard_sensitive': rule?.was_wildcard_sensitive ? 'checked' : '',
     });
 
     const doc = parseHTMLFromString(html);
     const item = ruleList.appendChild(doc.body.children[0]);
     const input = item.querySelector('input[data-item="rule"]');
-    const checkbox = item.querySelector('.fill-accordian__input');
 
     // Add handler for each rule type, otherwise disable element
     if (sourceInfo.disabled) {
       input.disabled = true;
     } else {
-      // Open those that are still unused
-      if (isNullOrUndefined(source)) {
-        checkbox.checked = true;
-      }
-
       // e.g. search, any future rules - can ignore file-rule because it should already be imported
       switch (sourceInfo.template) {
         case 'search-rule': {
@@ -1392,9 +1522,10 @@ export default class ConceptCreator {
   /**
    * tryRenderAggregatedCodelist
    * @desc attempts to render the aggregated codelist after considering its presence and logical type
+   * @param {boolean} forceUpdate whether to force an update of the rows e.g. in the case of adding codes
    * @returns {simpleDatatables()} the rendered aggregated codelist within the simpleDatatables class
    */
-  #tryRenderAggregatedCodelist() {
+  #tryRenderAggregatedCodelist(forceUpdate) {
     if (!this.state.editing) {
       return;
     }
@@ -1404,22 +1535,39 @@ export default class ConceptCreator {
     const container = editor.querySelector('#aggregated-codelist-table');
     container.innerHTML = '';
 
-    const codes = [ ];
-    this.state?.data?.components.map((component, index) => {
-      component?.codes.map(row => {
-        const related = codes.find(item => item[1] == row.code);
-        if (!related) {
+    let codes;
+    if (forceUpdate || !Array.isArray(this.state?.data?.aggregatedStateView)) {
+      codes = [ ];
+
+      const hashset = { };
+      for (let i = 0; i < this.state?.data?.components.length; ++i) {
+        let component = this.state?.data?.components[i];
+
+        const columns = this.state?.data?.components.map(item => item.id == component.id);
+        for (let j = 0; j < component?.codes.length; ++j) {
+          let row = component?.codes?.[j];
+          let related = hashset?.[row.code];
+          if (!isNullOrUndefined(related)) {
+            codes[related][i + CONCEPT_CREATOR_OFFSET - 1] = true;
+            continue;
+          }
+
+          hashset[row.code] = codes.length;
           codes.push([
             row.id,
             row.code,
             row.description,
-            ...this.state?.data?.components.map(item => item.id == component.id)
+            ...columns
           ]);
-        } else {
-          related[index + CONCEPT_CREATOR_OFFSET - 1] = true;
         }
-      })
-    });
+
+        component.code_count = component?.codes ? component?.codes.length : 0;
+      }
+
+      this.state.data.aggregatedStateView = codes;
+    } else {
+      codes = this.state?.data?.aggregatedStateView || [ ];
+    }
 
     if (codes.length < 1) {
       noCodes.classList.add('show');
@@ -1543,7 +1691,7 @@ export default class ConceptCreator {
    * @param {object} sourceType an object retrieved from the ConceptCreator's sourceType map
    * @param {object|null} data only required during file uploads, passed from the resolved promise after prompt
    */
-  #tryAddNewRule(logicalType, sourceType, data) {
+  async #tryAddNewRule(logicalType, sourceType, data) {
     if (!this.state.editing) {
       return;
     }
@@ -1551,9 +1699,10 @@ export default class ConceptCreator {
     // Create new rule
     const ruleIncrement = this.#getNextRuleCount(logicalType);
     const element = this.state.element;
+    const ruleArea = logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE ? 'inclusion' : 'exclusion'
     const rule = {
       id: generateUUID(),
-      name: `Rule ${ruleIncrement}`,
+      name: `${transformTitleCase(ruleArea)} ${ruleIncrement}`,
       code_count: 0,
       source_type: sourceType.name,
       logical_type: logicalType,
@@ -1581,9 +1730,11 @@ export default class ConceptCreator {
       default: break;
     }
 
-    const ruleArea = logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE ? 'inclusion' : 'exclusion'
     const ruleList = element.querySelector(`#${ruleArea}-rulesets #rules-list`);
     const index = this.state.data.components.push(rule) - 1;
+    if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
+      await this.#recalculateExclusionaryRules();
+    }
     this.#tryRenderRuleItem(index, rule, ruleList);
 
     // Toggle rule area
@@ -1602,10 +1753,17 @@ export default class ConceptCreator {
     this.#toggleRuleAreas(rules, area);
 
     if (rule.codes.length > 0) {
-      this.#tryRenderAggregatedCodelist();
-      this.#computeAggregatedCodelist();
+      this.#tryRenderAggregatedCodelist(true);
+      this.state.data.components[index].code_count = rule.codes.length;
     }
     this.#applyRulesetState({ id: this.state.data.coding_system.id, editor: this.state.editor });
+
+    // Open most relevant checkbox, hide the rest
+    const checkboxes = element.querySelectorAll(`.fill-accordian__input`);
+    for (let i = 0; i < checkboxes.length; ++i) {
+      let checkbox = checkboxes[i];
+      checkbox.checked = checkbox.matches(`#rule-${rule.id}`);
+    }
   }
 
   /*************************************
@@ -1631,14 +1789,16 @@ export default class ConceptCreator {
         .then(resolve)
         .catch(reject);
       })
-      .then(() => {
+      .then(async () => {
         this.state.data.components.splice(index, 1);
+        
+        await this.#recalculateExclusionaryRules();
         this.#tryRenderRulesets();
-        this.#tryRenderAggregatedCodelist();
+        this.#tryRenderAggregatedCodelist(true);
       })
       .catch((e) => {
         if (!isNullOrUndefined(e)) {
-          console.error(e);
+          console.warn(e);
         }
       });
     });
@@ -1673,18 +1833,18 @@ export default class ConceptCreator {
    * @param {node} item the ruleset element
    */
   #handleRuleNameChange(index, rule, item) {
-    const input = item.querySelector('input[type="text"]#rule-name');
+    const input = item.querySelector('input#rule-name');
     input.addEventListener('keyup', (e) => {
-      const value = input.value;
-      if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
-        return;
-      }
-
       e.preventDefault();
       e.stopPropagation();
 
-      const label = item.querySelector(`label[for="rule-${rule.id}"]`);
-      label.innerText = value;
+      const value = input.value;
+      if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
+        input.classList.add('fill-accordian__name-input--invalid');
+        return;
+      }
+
+      input.classList.remove('fill-accordian__name-input--invalid');
 
       this.state.data.components[index].name = value;
       this.#updateEditorCodelistColumns(index, value);
@@ -1719,27 +1879,59 @@ export default class ConceptCreator {
       e.preventDefault();
       e.stopPropagation();
 
-      this.tryQueryCodelist(value, this.state.data?.coding_system?.id)
-        .then(response => {
-          const codes = response?.result.map(item => {
-            item.is_new = true;
-            return item;
-          });
+      let useWildcard = input.parentNode.parentNode.querySelector('input[name="search-wildcard"]:checked');
+      useWildcard = !isNullOrUndefined(useWildcard);
+
+      let caseSensitive = input.parentNode.parentNode.querySelector('input[name="search-sensitive"]:checked');
+      caseSensitive = !isNullOrUndefined(caseSensitive);
+
+      let useDesc = input.parentNode.parentNode.querySelector('input[type="radio"]:checked');
+      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('x-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
+      useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES;
+
+      const spinner = startLoadingSpinner();
+      this.tryQueryCodelist(value, this.state.data?.coding_system?.id, useWildcard, useDesc, caseSensitive)
+        .then(async response => {
+          const logicalType = this.state.data.components[index].logical_type;
+          const codes = this.#sieveCodes(
+            logicalType,
+            response?.result,
+            true
+          );
 
           // Update row
-          const prevCodeLength = this.state.data.components?.[index]?.codes?.length;
-          this.state.data.components[index].codes = codes.length > 0 ? codes : [ ];
-          this.state.data.components[index].source = codes.length > 0 ? value : null;
-          
+          const component = this.state.data.components[index];
+          const prevCodeLength = component?.codes?.length;
+          component.codes = codes.length > 0 ? codes : [ ];
+          component.source = codes.length > 0 ? value : null;
+          component.code_count = codes.length;
+          component.used_description = useDesc;
+          component.used_wildcard = useWildcard;
+          component.was_wildcard_sensitive = caseSensitive;
+
+          if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
+            await this.#recalculateExclusionaryRules();
+          }
+
           // Blur the input focus
           input.blur();
 
           // Apply changes and recompute codelist
-          this.#tryRenderAggregatedCodelist();
-          this.#computeAggregatedCodelist();
+          this.#tryRenderAggregatedCodelist(true);
 
-          // Inform of null results (and inform of code loss if a prev. match was a success)
+          // Inform of null results 
           if (codes.length < 1) {
+            // Null as a result of there being no exclusionary matches
+            if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.EXCLUDE) {
+              this.#pushToast({
+                type: 'warning',
+                message: CONCEPT_CREATOR_TEXT.NO_LINKED_EXCLUSIONS
+              });
+
+              return;
+            }
+
+            // Either (a) inform of loss of codes or (b) that no codes were added
             if (prevCodeLength) {
               this.#pushToast({
                 type: 'danger',
@@ -1797,7 +1989,12 @@ export default class ConceptCreator {
             )
           });
         })
-        .catch(() => { /* SINK */ });
+        .catch((e) => {
+          console.warn(e);
+        })
+        .finally(() => {
+          spinner.remove();
+        });
     });
   }
 
@@ -1816,19 +2013,44 @@ export default class ConceptCreator {
     
     switch (sourceType.template) {
       case 'file-rule': {
+        let spinner;
         this.tryPromptFileUpload()
-          .then(content => {
+          .then(file => {
+            const codes = this.#sieveCodes(
+              logicalType,
+              file?.content?.data
+            );
+
+            if (codes.length > 0) {
+              spinner = startLoadingSpinner();
+              file.content.data = codes;
+  
+              this.#tryAddNewRule(logicalType, sourceType, file);
+              this.#pushToast({
+                type: 'success',
+                message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_FILE_CODES, {
+                  code_len: file?.content?.data.length.toLocaleString(),
+                })
+              });
+
+              return;
+            }
+
             this.#pushToast({
-              type: 'success',
-              message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_FILE_CODES, {
-                code_len: content?.content?.data.length.toLocaleString(),
-              })
+              type: 'warning',
+              message: CONCEPT_CREATOR_TEXT.NO_LINKED_EXCLUSIONS
             });
 
-            this.#tryAddNewRule(logicalType, sourceType, content);
+            return 
           })
           .catch(e => {
+            console.warn(e);
             this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.NO_CODE_FILE_MATCH});
+          })
+          .finally(() => {
+            if (!isNullOrUndefined(spinner)) {
+              spinner.remove();
+            }
           });
       } break;
 
@@ -1837,21 +2059,34 @@ export default class ConceptCreator {
       } break;
 
       case 'concept-rule': {
+        let spinner;
         this.tryPromptConceptRuleImport()
           .then(result => {
-
+            spinner = startLoadingSpinner();
             if (!this.#isConceptRuleImportDistinct(result, logicalType)) {
               this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT});
-            } else {
+              return;
+            }
+
+            const codes = this.#sieveCodes(logicalType, result?.codelist);
+            if (codes.length > 0) {
+              result.codelist = codes;
+
+              this.#tryAddNewRule(logicalType, sourceType, result);
               this.#pushToast({
                 type: 'success',
                 message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES, {
                   code_len: result?.codelist.length.toLocaleString(),
                 })
-              })
-  
-              this.#tryAddNewRule(logicalType, sourceType, result);
+              });
+
+              return;
             }
+
+            this.#pushToast({
+              type: 'warning',
+              message: CONCEPT_CREATOR_TEXT.NO_LINKED_EXCLUSIONS
+            });
           })
           .catch(e => {
             if (!isNullOrUndefined(e)) {
@@ -1860,6 +2095,11 @@ export default class ConceptCreator {
               return;
             }
           })
+          .finally(() => {
+            if (!isNullOrUndefined(spinner)) {
+              spinner.remove();
+            }
+          });
       } break;
 
       default: break;
@@ -1925,9 +2165,6 @@ export default class ConceptCreator {
       this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM});
       return;
     }
-
-    // Rebuild the aggregated codelist given the current edito rdata
-    this.#computeAggregatedCodelist();
     
     // Clean the data
     this.state.editing = null;
@@ -1945,7 +2182,7 @@ export default class ConceptCreator {
     }
 
     // Reset the interface
-    this.#tryUpdateRenderConceptComponents(data.concept_id, data.concept_version_id);
+    this.#tryUpdateRenderConceptComponents(data.concept_id, data.concept_version_id, true);
 
     // Inform the parent form we're dirty
     this.makeDirty(data?.concept_id, data?.concept_version_id);
@@ -2007,7 +2244,6 @@ export default class ConceptCreator {
           concept_id: generateUUID(),
           concept_version_id: generateUUID(),
           components: [ ],
-          aggregated_component_codes: [ ],
           details: {
             name: `Concept ${conceptIncrement}`,
             has_edit_access: true,
@@ -2028,8 +2264,9 @@ export default class ConceptCreator {
    */
   #handleEditing(target) {
     // If editing, prompt before continuing
-    this.tryCloseEditor()
+    return this.tryCloseEditor()
       .then((res) => {
+        const spinner = startLoadingSpinner();
         const [id, history_id] = res || [ ];
         const conceptGroup = tryGetRootElement(target, 'concept-list__group');
         const conceptId = conceptGroup.getAttribute('data-concept-id');
@@ -2037,6 +2274,7 @@ export default class ConceptCreator {
 
         // Don't edit this target if we are cancelling the same one
         if (conceptId == id && history_id == historyId) {
+          spinner.remove();
           return this.#toggleConcept(conceptGroup);
         }
 
@@ -2045,6 +2283,7 @@ export default class ConceptCreator {
         dataset = deepCopy(dataset.shift());
 
         this.#tryRenderEditor(conceptGroup, dataset);
+        spinner.remove();
       })
       .catch(() => { /* User does not want to lose progress, sink edit request */ })
   }

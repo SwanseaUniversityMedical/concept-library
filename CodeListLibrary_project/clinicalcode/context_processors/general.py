@@ -1,4 +1,3 @@
-#from cll import settings
 from clinicalcode.constants import *
 from django.conf import settings
 from clinicalcode.api.views.View import get_canonical_path
@@ -22,5 +21,3 @@ def general_var(request):
         'CANONICAL_PATH': get_canonical_path(request),
         'APPROVED_STATUS_DICT': {e.name: e.value for e in constants.APPROVAL_STATUS}
     }
-    
-  

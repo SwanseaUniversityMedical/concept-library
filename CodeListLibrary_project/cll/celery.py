@@ -4,8 +4,6 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 from django.conf import settings
-from datetime import timedelta
-
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cll.settings')
 app = Celery('cll')
@@ -16,23 +14,23 @@ schedule = {
     # Publication & Update emails
     'send_mail': {
         'task': 'clinicalcode.tasks.send_scheduled_email',
-        'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
+        'schedule': crontab(minute=0,hour='9,18')
     },
 
     # Sync sources
     'celery_run_data_sync':{
         'task': 'clinicalcode.views.Admin.run_celery_datasource',
-        'schedule': crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0, hour='9,18')
+        'schedule': crontab(minute=0, hour='9,18')
     },
 
     # Statistics job
-    'celery_run_daily_stats': {
+    'celery_run_stats': {
         'task': 'clinicalcode.tasks.run_daily_statistics',
         'schedule': crontab(minute=0, hour=0)
     },
 
     # Session cleanup task
-    'celery_run_weekly_clean': {
+    'celery_run_cleanup': {
         'task': 'clinicalcode.tasks.run_weekly_cleanup',
         'schedule': crontab(hour=0, minute=0, day_of_week='sunday'),
     },
@@ -43,7 +41,7 @@ if settings.DEBUG:
     schedule |= {
         'send_message_test': {
             'task': 'clinicalcode.tasks.send_message_test',
-            'schedule':crontab(minute='*/5') if settings.IS_DEVELOPMENT_PC else crontab(minute=0,hour='9,18')
+            'schedule': crontab(minute=0,hour='9,18')
         },
     }
 

@@ -3,29 +3,28 @@
     COMMON VIEW CODE
     ---------------------------------------------------------------------------
 '''
-import datetime
-import json
-import logging
-
-from clinicalcode import db_utils
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http.response import Http404
 from django.shortcuts import redirect, render
-
-from ..models import *
-
-from ..forms.ContactUsForm import ContactForm
-from ..permissions import allowed_to_edit, allowed_to_view
-
-import requests
 from django import forms
 from django.conf import settings
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.http import HttpResponse
 from django.db.models.functions import Lower
+
+import requests
+import datetime
+import json
+import logging
+
+from ..models import *
+from clinicalcode import db_utils
+from ..forms.ContactUsForm import ContactForm
+from ..permissions import allowed_to_edit, allowed_to_view
+
 
 logger = logging.getLogger(__name__)
 
@@ -49,14 +48,11 @@ def index_HDRUK(request):
     '''
         Display the HDR UK homepage.
     '''
-
-    from .Admin import save_statistics
-
     if Statistics.objects.all().filter(org__iexact='HDRUK', type__iexact='landing-page').exists():
         stat = Statistics.objects.get(org__iexact='HDRUK', type__iexact='landing-page')
         HDRUK_stat = stat.stat
-
     else:
+        from .Admin import save_statistics
         # update stat
         stat_obj = save_statistics(request)
         HDRUK_stat = stat_obj[0]

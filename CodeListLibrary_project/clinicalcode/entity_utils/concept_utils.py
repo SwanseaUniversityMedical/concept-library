@@ -63,7 +63,8 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
     return concept_data
 
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False,
-                                  include_codes=True, attribute_headers=None):
+                                  include_codes=True, attribute_headers=None,
+                                  include_source_data=False):
     '''
       [!] Note: This method ignores permissions - it should only be called from a
                 a method that has previously considered accessibility
@@ -83,6 +84,8 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
 
         attribute_headers {list}: If a non-null list is passed, the method will attempt to find the attributes
                                   associated with each code within every component (and codelist)
+        
+        include_source_data {boolean}: Flag to det. whether we should incl. source data e.g. wildcard, desc search etc
 
       Returns:
         A dict that describes the components and their details associated with this historical concept,
@@ -136,6 +139,13 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
             'source_type': CLINICAL_CODE_SOURCE(component.component_type).name,
             'source': component.source,
         }
+
+        if include_source_data:
+            component_data |= {
+                'used_description': component.used_description,
+                'used_wildcard': component.used_wildcard,
+                'was_wildcard_sensitive': component.was_wildcard_sensitive,
+            }
 
         # Find the codelist associated with this component
         codelist = CodeList.history.exclude(history_type='-') \
@@ -511,7 +521,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
                               aggregate_component_codes=False, include_component_codes=True,
                               include_attributes=False, strippable_fields=None,
                               remove_userdata=False, hide_user_details=False,
-                              derive_access_from=None, format_for_api=False):
+                              derive_access_from=None, format_for_api=False,
+                              include_source_data=False):
     '''
       [!] Note: This method ignores permissions to derive data - it should only be called from a
                 a method that has previously considered accessibility
@@ -541,6 +552,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         derive_access_from {RequestContext}: Using the RequestContext, determine whether a user can edit a Concept
 
         format_for_api {boolean}: Flag to format against legacy API
+
+        include_source_data {boolean}: Flag to det. whether we should incl. source data e.g. wildcard, desc search etc
 
       Returns:
         A dictionary that describes the concept, its components, and associated codes; constrained
@@ -627,7 +640,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         concept_history_id,
         aggregate_codes=aggregate_component_codes,
         include_codes=include_component_codes,
-        attribute_headers=attribute_headers
+        attribute_headers=attribute_headers,
+        include_source_data=include_source_data
     )
 
     # Only append header attribute if not null

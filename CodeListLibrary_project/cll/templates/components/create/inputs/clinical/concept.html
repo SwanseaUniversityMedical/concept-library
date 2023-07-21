@@ -41,7 +41,7 @@
           }
           <span tooltip="Delete Concept" direction="left">
             <span class="delete-icon" tabindex="0" aria-label="Delete Concept" role="button" data-target="delete"></span>
-          </span>          
+          </span>
         </span>
       </span>
 
@@ -129,7 +129,6 @@
               <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-excl-ruleset"></label>
               <ul class="dropdown-btn__menu fall-right">
                 <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
-                <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
                 <li aria-label="Add Concept Import Rule" role="button" tabindex="0" data-source="CONCEPT_IMPORT">Import from Concept</li>
               </ul>
             </label>
@@ -170,14 +169,20 @@
     <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
       <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
       <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span>${name}</span>
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
       <article class="fill-accordian__container">
         <div class="detailed-input-group fill">
-          <div class="detailed-input-group__header">
+          <div class="detailed-input-group__header detailed-input-group__header--nowrap">
             <div class="detailed-input-group__header-item">
-              <h3 class="detailed-input-group__title sm">Rule Name</h3>
-              <p class="detailed-input-group__description">The name of this Rule</p>
+              <h3 class="detailed-input-group__title sm">Searchterm Rule</h3>
+              <p class="detailed-input-group__description">
+                A searchterm rule attempts to include codes by their code or description.
+              </p>
+              <p class="detailed-input-group__description">
+                You can learn about to match patterns with Regex <a href="https://regexone.com/" target=”_blank”>here</a>.
+              </p>
             </div>
             <div class="detailed-input-group__header-item">
               <span tooltip="Remove Ruleset" direction="left">
@@ -188,16 +193,39 @@
               </span>
             </div>
           </div>
-          <input class="text-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${name}">
-        </div>
-        <div class="detailed-input-group fill">
-          <h3 class="detailed-input-group__title sm">Searchterm Rule</h3>
-          <p class="detailed-input-group__description">A searchterm rule attempts to include codes by their code or description, you can use regex by prepending the "wildcard:" prefix to your searchterm (e.g. "wildcard:U\\d+")</p>
           <fieldset class="code-search-group">
             <input class="code-text-input" aria-label="Ruleset Searchterm" type="text" 
                 id="searchterm" placeholder="Add searchterm..." minlength="3"
                 value="${source}" data-item="rule">
             <span class="code-text-input__icon" id="code-search-icon"></span>
+          </fieldset>
+          <fieldset class="search-options justify-content-end align-items-center">
+            <div class="search-options__container">
+              <p class="search-options__title"><strong>Fields:</strong></p>
+              <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option-${id}" x-target="codes" ${used_code}>
+              <label class="search-options__label" role="button" tabindex="0" for="search-codes-${id}">
+                <span class="search-options__label-icon"></span>
+                Code
+              </label>
+              <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option-${id}" x-target="description" ${used_description}>
+              <label class="search-options__label" role="button" tabindex="0" for="search-desc-${id}">
+                <span class="search-options__label-icon"></span>
+                Description
+              </label>
+            </div>
+            <div class="search-options__container">
+              <p class="search-options__title"><strong>Regex:</strong></p>
+              <input class="search-options__input" aria-label="Use Regex Wildcard" type="checkbox" id="search-wildcard-${id}" name="search-wildcard" data-target="wildcard" ${used_wildcard}>
+              <label class="search-options__label" role="button" tabindex="0" for="search-wildcard-${id}">
+                <span class="search-options__label-icon"></span>
+                Use Regex
+              </label>
+              <input class="search-options__input" aria-label="Case Sensitive" type="checkbox" id="search-sensitive-${id}" name="search-sensitive" ${was_wildcard_sensitive}>
+              <label class="search-options__label" role="button" tabindex="0" for="search-sensitive-${id}" data-follows="wildcard">
+                <span class="search-options__label-icon"></span>
+                Case Sensitive
+              </label>
+            </div>
           </fieldset>
         </div>
       </article>
@@ -208,14 +236,15 @@
     <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
       <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
       <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span>${name}</span>
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
       <article class="fill-accordian__container">
         <div class="detailed-input-group fill">
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
-              <h3 class="detailed-input-group__title sm">Rule Name</h3>
-              <p class="detailed-input-group__description">The name of this Rule</p>
+              <h3 class="detailed-input-group__title sm">File Import Rule</h3>
+              <p class="detailed-input-group__description">This rule describes any codes retrieved from a file</p>
             </div>
             <div class="detailed-input-group__header-item">
               <span tooltip="Remove Ruleset" direction="left">
@@ -226,11 +255,6 @@
               </span>
             </div>
           </div>
-          <input class="text-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${name}">
-        </div>
-        <div class="detailed-input-group fill">
-          <h3 class="detailed-input-group__title sm">File Import Rule</h3>
-          <p class="detailed-input-group__description">This rule describes any codes retrieved from a file</p>
           <input class="text-input" aria-label="Imported File" type="text"
               value="${source}" data-item="rule" disabled>
         </div>
@@ -242,13 +266,14 @@
     <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
       <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
       <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span>${name}</span>
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
       <article class="fill-accordian__container">
         <div class="detailed-input-group fill">
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
-              <h3 class="detailed-input-group__title sm">Rule Name</h3>
+              <h3 class="detailed-input-group__title sm">Concept Import Rule</h3>
               <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
             </div>
             <div class="detailed-input-group__header-item">
@@ -260,13 +285,8 @@
               </span>
             </div>
           </div>
-          <input class="text-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${name}">
-        </div>
-        <div class="detailed-input-group fill">
-          <h3 class="detailed-input-group__title sm">Concept Import Rule</h3>
-          <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-          <input class="text-input" aria-label="Imported Concept" type="text"
-              value="${source}" data-item="rule" disabled>
+          <input class="text-input" aria-label="Imported Concept"
+              type="text" value="${source}" data-item="rule" disabled>
         </div>
       </article>
     </div>

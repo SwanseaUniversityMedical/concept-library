@@ -1,12 +1,10 @@
-import time
-import datetime
-import json
-from celery import shared_task
-from django.conf import settings
-
+from django.db import connection
 from django.db.models import Q
 from functools import cmp_to_key
-from django.db import connection, connections  # , transaction
+
+import datetime
+import json
+
 from ..models import GenericEntity, Template, Statistics, Brand, CodingSystem, DataSource, PublishedGenericEntity
 from . import template_utils, constants, model_utils, entity_db_utils, concept_utils
 
