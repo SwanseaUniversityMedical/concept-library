@@ -400,9 +400,10 @@ def validate_concept_form(form, errors):
             return None
 
         component_codes = concept_component.get('codes')
-        if not isinstance(component_codes, list) or len(component_codes) < 1:
-            errors.append(f'Invalid concept with ID {concept_id} - Component codes is a non-nullable, list field')
-            return None
+        component_codes = list() if not isinstance(component_codes, list) else component_codes
+        # if len(component_codes) < 1:
+        #     errors.append(f'Invalid concept with ID {concept_id} - Component codes is a non-nullable, list field')
+        #     return None
         
         codes = [ ]
         for component_code in component_codes:

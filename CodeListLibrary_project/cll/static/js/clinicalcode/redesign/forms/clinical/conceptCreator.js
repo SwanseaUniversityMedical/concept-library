@@ -820,19 +820,19 @@ export default class ConceptCreator {
         continue;
       }
 
-      if (isNullOrUndefined(component.source) || isStringEmpty(component.source)) {
-        continue;
-      }
-
       switch (component.source_type) {
         case CONCEPT_CREATOR_SOURCE_TYPES.SEARCH_TERM.name: {
-          let useDesc = component?.search_options?.useDesc;
+          if (isNullOrUndefined(component.source) || isStringEmpty(component.source)) {
+            break;
+          }
+
+          let useDesc = component?.used_description;
           useDesc = !isNullOrUndefined(useDesc) ? useDesc : false;
           
-          let useWildcard = component?.search_options?.useWildcard;
-          useWildcard = !isNullOrUndefined(useDesc) ? useDesc : false;
+          let useWildcard = component?.used_wildcard;
+          useWildcard = !isNullOrUndefined(useWildcard) ? useWildcard : false;
 
-          let caseSensitive = component?.search_options?.caseSensitive;
+          let caseSensitive = component?.was_wildcard_sensitive;
           caseSensitive = !isNullOrUndefined(caseSensitive) ? caseSensitive : true;
 
           await this.tryQueryCodelist(component.source, codingSystemId, useWildcard, useDesc, caseSensitive)
