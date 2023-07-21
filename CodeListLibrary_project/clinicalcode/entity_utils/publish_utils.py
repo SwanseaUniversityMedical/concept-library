@@ -1,3 +1,5 @@
+from os import name
+import re
 from clinicalcode import db_utils
 from clinicalcode.entity_utils import entity_db_utils
 from django.contrib.auth.models import  User
@@ -26,17 +28,6 @@ def form_validation(request, data, entity_history_id, pk, entity,checks):
     """
     data['form_is_valid'] = True
     data['latest_history_ID'] = entity_history_id  # entity.history.latest().pk
-
-    # update history list
-    data['html_history_list'] = render_to_string(
-        'components/details/version_history.html',
-        {
-            'history': get_history_table_data(request, pk),  # entity.history.all(),
-            'current_entity_history_id': int(entity_history_id),  # entity.history.latest().pk,
-            'published_historical_ids':
-                list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=constants.APPROVAL_STATUS.APPROVED).values_list('entity_history_id', flat=True))
-        },
-        request=request)
     #send email message state and client side message
     data['message'] = send_message(pk, data, entity, entity_history_id, checks)['message']
 
@@ -52,53 +43,26 @@ def send_message(pk, data, entity, entity_history_id, checks):
     @param checks: additional checks of entity
     @return: updated data dictionary with client side message
     """
-    if data['approval_status'] == constants.APPROVAL_STATUS.APPROVED:
-        data['message'] = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('entity_history_detail',  args=(pk,entity_history_id)), pk=pk,history=entity_history_id)
+    # Message templates
+    approved_template = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
+    rejected_template = """The {entity_type} version has been rejected .<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
+    pending_template = """The {entity_type} version is going to be reviewed by the moderator.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
 
-        send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
-        return data
+    # Determine the appropriate message template and send email
+    approval_status = data['approval_status']
+    if approval_status == constants.APPROVAL_STATUS.APPROVED:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
+    elif approval_status == constants.APPROVAL_STATUS.REJECTED:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, rejected_template)
+    elif approval_status == constants.APPROVAL_STATUS.PENDING:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, pending_template)
+    elif approval_status is None and checks['is_moderator']:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
+    elif len(PublishedGenericEntity.objects.filter(
+            entity=GenericEntity.objects.get(pk=pk).id, 
+            approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0 and approval_status != constants.APPROVAL_STATUS.REJECTED:
+        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
 
-    #publish message if not declined
-    elif len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0 and not data['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
-        data['message'] = """The {entity_type} version has been successfully published.
-                                 <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'], url=reverse('entity_history_detail', args=(pk,entity_history_id)),
-                                                                                                         pk=pk,history=entity_history_id)
-        
-        send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
-
-        return data
-
-    #showing rejected message
-    elif data['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
-        data['message'] = """The {entity_type} version has been rejected .
-                                               <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
-            url=reverse('entity_history_detail', args=(pk,entity_history_id)),
-            pk=pk,history=entity_history_id)
-        
-        send_email_decision_entity(entity,checks['entity_type'],data['approval_status'])
-
-        return data
-
-    # ws is approved by moderator if moderator approved different version
-    elif data['approval_status'] is None and checks['is_moderator']:
-        data['message'] = """The {entity_type} version has been successfully published.
-                                                <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
-            url=reverse('entity_history_detail', args=(pk,entity_history_id)),
-            pk=pk,history=entity_history_id)
-
-        return data
-
-
-    #show pending message if user clicks to request review
-    elif data['approval_status'] == constants.APPROVAL_STATUS.PENDING:
-        data['message'] = """The {entity_type} version is going to be reviewed by the moderator.
-                                                      <a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>""".format(entity_type=checks['entity_type'],
-            url=reverse('entity_history_detail', args=(pk,entity_history_id)),
-            pk=pk,history=entity_history_id)
-        
-        send_email_decision_entity(entity,checks['entity_type'],0)
-
-        return data
 
 def check_entity_to_publish(request, pk, entity_history_id):
     '''
@@ -112,76 +76,70 @@ def check_entity_to_publish(request, pk, entity_history_id):
         @param entity_history_id: historical id of entity
         @return: dictionary containing all conditions to publish
     '''
-    allow_to_publish = True
-    entity_is_deleted = False
-    is_owner = True
-    is_moderator = False
-    is_latest_pending_version = False
+    # Fetch the required objects from the database only once
+    generic_entity = GenericEntity.objects.get(id=pk)
+    user_is_moderator = request.user.groups.filter(name="Moderators").exists()
+    user_is_owner = generic_entity.owner == request.user
+    latest_pending_version_exists = PublishedGenericEntity.objects.filter(
+        entity_id=pk, 
+        entity_history_id=entity_history_id, 
+        approval_status=constants.APPROVAL_STATUS.PENDING
+    ).exists()
 
-    if (GenericEntity.objects.get(id=pk).is_deleted == True):
-        allow_to_publish = False
-        entity_is_deleted = True
+    # Determine the status of the entity
+    entity_is_deleted = generic_entity.is_deleted
+    is_owner = not entity_is_deleted and user_is_owner
+    is_moderator = not entity_is_deleted and user_is_moderator
+    is_latest_pending_version = not entity_is_deleted and latest_pending_version_exists
 
-    #check if user is not owner
-    if (GenericEntity.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0):
-        allow_to_publish = False
-        is_owner = False
+    # Determine the final permission to publish
+    allow_to_publish = is_owner or is_moderator
+    
 
-    if (request.user.groups.filter(name="Moderators").exists()):
-        allow_to_publish = True
-        is_moderator = True
+    generic_entity = GenericEntity.objects.get(pk=pk)
+    published_entity_approved = PublishedGenericEntity.objects.filter(
+        entity=generic_entity.id, 
+        approval_status=constants.APPROVAL_STATUS.APPROVED
+    )
+    published_entity_pending = PublishedGenericEntity.objects.filter(
+        entity=generic_entity.id, 
+        approval_status=constants.APPROVAL_STATUS.PENDING
+    )
 
-    #check if either moderator or owner
-    if (request.user.groups.filter(name="Moderators").exists()
-            and not (GenericEntity.objects.filter(Q(id=pk), Q(owner=request.user)).count() == 0)):
-        allow_to_publish = True
-        is_owner = True
-        is_moderator = True
-
-    #check if current version of entity is the latest version to approve
-    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=entity_history_id, approval_status=constants.APPROVAL_STATUS.PENDING)) > 0:
-        is_latest_pending_version = True
-
-
+    # Initialize the status variables based on the fetched data
     entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
     is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
     approval_status = get_publish_approval_status(GenericEntity, pk, entity_history_id)
-    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
-    other_pending = len(PublishedGenericEntity.objects.filter(entity=GenericEntity.objects.get(pk=pk).id, approval_status=constants.APPROVAL_STATUS.PENDING)) > 0
-    
+    is_lastapproved = published_entity_approved.exists()
+    other_pending = published_entity_pending.exists()
 
-    # get historical version 
-    entity = entity_db_utils.get_historical_entity(pk, entity_history_id
-                                            , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
-                                            , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
-                                            )
-                                                                                                            
-    entity_class = entity.template.entity_class.name                                                          
+    # Get historical version
+    highlight_result = entity_db_utils.is_referred_from_search_page(request)
+    q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
+    entity = entity_db_utils.get_historical_entity(pk, entity_history_id, highlight_result, q_highlight)
 
-    if entity_class == "Phenotype" or entity_class == "Workingset":
-         has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        check_children(request, entity)
-    else: #???
-        has_childs, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors = \
-        checkChildConcept(request, entity_history_id)
-    
+    # Entity class
+    entity_class = entity.template.entity_class.name 
    
 
-    if not isOK:
-        allow_to_publish = False
+    # Check children
+    if is_valid_entity_class(entity_class):
+        is_ok, all_not_deleted, all_are_published, errors = check_children(request,entity,get_entity_class(entity_class))
 
-    #check if table is not empty
-    table_ofEntity = lambda entity_class:  'concept_information' if entity_class== "Phenotype"  else 'workingset_concept_information'
-    entity_has_data = len(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[table_ofEntity(entity_class)]) > 0
+        if not is_ok:
+            allow_to_publish = False
 
+    entity_has_data = bool(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[get_table_of_entity(entity_class)])
+
+    # Check entity data and class
     if not entity_has_data and entity_class == "Workingset":
         allow_to_publish = False
 
+    
     checks = {
-        'entity': entity,
         'entity_type': entity_class,
         'name': entity_ver.name,
-        'errors': errors,
+        'errors': errors or None,
         'allowed_to_publish': allow_to_publish,
         'entity_is_deleted': entity_is_deleted,
         'is_owner': is_owner,
@@ -192,22 +150,19 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'entity_has_data': entity_has_data,
         'is_published': is_published,
         'is_latest_pending_version': is_latest_pending_version,
-        'is_allowed_view_children': is_allowed_view_children, #to see if child phenotypes of ws is not deleted/not published etc
         'all_are_published': all_are_published,
         'all_not_deleted': all_not_deleted
     }
     return checks
 
-def check_children(request, entity):
+
+def check_children(request, entity, entity_class):
         """
         Check if entity child data is validated
         @param request: user request object
         @param entity: historical entity object
         @return: collection of boolean conditions
-        """
-
-        entity_class = entity.template.entity_class.name 
-         
+        """         
         if entity_class == "Phenotype":
             name_table = 'concept_information'
             child_id = 'concept_id'
@@ -219,10 +174,7 @@ def check_children(request, entity):
             child_version_id = 'phenotype_version_id'
             name_child = 'phenotype'
         
-
-
         if len(entity.template_data[name_table]) == 0:
-            has_child_entitys = False
             child_entitys_versions = ''
         else:
             child_entitys_versions = [(x[child_id], x[child_version_id]) for x in entity.template_data[name_table]]
@@ -230,46 +182,88 @@ def check_children(request, entity):
         # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
         # we check access(from live version) here.
 
-        errors = {}
-        has_child_entitys = False
+        errors = []
         all_not_deleted = True
-        is_allowed_view_children = True
         all_are_published = True
 
-        if child_entitys_versions:
-            has_child_entitys = True
+        # Collect all ids from child_entitys_versions
+        ids = [p[0] for p in child_entitys_versions]
+
+        # Query the database once for each model
+        deleted_objects = Concept.objects.filter(id__in=ids, is_deleted=True) if entity_class == "Phenotype" else GenericEntity.objects.filter(id__in=ids, is_deleted=True)
+
+        # Iterate through deleted objects and update errors dictionary
+        errors = [{obj.id: f'Child {name_child}({obj.id}) is deleted',"url_parent":None} for obj in deleted_objects]
+        # Check if all objects are not deleted
+        all_not_deleted = not bool(errors)
 
 
-        for p in child_entitys_versions:
-            isDeleted = (Concept.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) if entity_class == "Phenotype" else (GenericEntity.objects.filter(Q(id=p[0])).exclude(is_deleted=True).count() == 0) 
-            if isDeleted:
-                errors[p[0]] = 'Child ' + name_child + '(' + str(p[0]) + ') is deleted'
-                all_not_deleted = False
+        for entity_child in child_entitys_versions:
+            entity_child_id = entity_child[0]
+            entity_child_version = entity_child[1]
 
+            concept_owner_id = Concept.history.get(id=entity_child_id).phenotype_owner_id
+            if concept_owner_id != entity.id:
+                entity_from_concept = GenericEntity.history.filter(
+                id=concept_owner_id,
+                publish_status=constants.APPROVAL_STATUS.APPROVED.value)
+                if entity_from_concept.exists():
+                    inheritated_childs = [(i[child_id],i[child_version_id]) for i in entity_from_concept.values_list("template_data", flat=True)[0][name_table]]
+                    is_published = (entity_child_id,entity_child_version) in inheritated_childs
+                else:
+                    is_published = False
+                    
 
-        for p in child_entitys_versions:
-            is_published = checkIfPublished(Concept, p[0], p[1]) if entity_class == "Phenotype" else checkIfPublished(GenericEntity, p[0], p[1])
+            else:
+                is_published = True
             if not is_published:
-                errors[str(p[0]) + '/' + str(p[1])] = 'Child ' + name_child + '(' + str(p[0]) + '/' + str(p[1]) + ') is not published'
+                errors.append({str(entity_child_id) + '/' + str(entity_child_version):"""{name}({id}/{version}) is not published""".format(
+                    name=name_child.capitalize(),
+                    id=str(entity_child_id),
+                    version=str(entity_child_version)
+                ),"url_parent": reverse('entity_detail', kwargs={'pk': concept_owner_id})})
                 all_are_published = False
 
 
-        for p in child_entitys_versions: #??? update to new permission chk
-            permitted = allowed_to_view(request,
-                                        Concept,
-                                        set_id=p[0],
-                                        set_history_id=p[1]) if entity_class == "Phenotype" else allowed_to_view(request,
-                                                                                                        GenericEntity,
-                                                                                                        set_id=p[0],
-                                                                                                        set_history_id=p[1])
+        return all_not_deleted and all_are_published, all_not_deleted, all_are_published, errors
 
-            if not permitted:
-                errors[str(p[0]) + '_view'] = 'Child ' + name_child + '(' + str(p[0]) + ') is not permitted.'
-                is_allowed_view_children = False
 
-        isOK = (all_not_deleted and all_are_published and is_allowed_view_children)
 
-        return  has_child_entitys, isOK, all_not_deleted, all_are_published, is_allowed_view_children, errors
+def is_valid_entity_class(entity_class):
+    """
+    Regex function to check entity class name
+    @param entity_class: entity class to check
+    """
+    return bool(re.match(r"(?i)^(Phenotype|Workingset)$", entity_class))
+
+def get_entity_class(entity_class):
+    """
+    Decide either phenotype or workingset is present so that we can use only one word
+    @param entity_class: entity class to check
+    """
+    final_entity = lambda entity_class: 'Phenotype' if re.search(r"(?i)Phenotype", entity_class) else ('Workingset' if re.search(r"(?i)Workingset", entity_class) else None)
+    return final_entity(entity_class)
+
+def get_table_of_entity(entity_class):
+    """
+    Decide either table data from phenotype or workingset
+    @param entity_class: entity class to check
+    """
+    return 'concept_information' if entity_class == "Phenotype" else 'workingset_concept_information'
+
+
+def format_message_and_send_email(pk, data, entity, entity_history_id, checks, message_template):
+    """
+    Format the message, send an email, and update data with the new message
+    """
+    data['message'] = message_template.format(
+        entity_type=checks['entity_type'], 
+        url=reverse('entity_history_detail', args=(pk, entity_history_id)), 
+        pk=pk,
+        history=entity_history_id
+    )
+    #send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
+    return data
 
 
 def send_email_decision_entity(entity, entity_type, approved):
@@ -278,8 +272,6 @@ def send_email_decision_entity(entity, entity_type, approved):
     @param workingset: workingset object
     @param approved: approved status flag
     """
-    
-    
     if approved == 1:
         send_review_email.delay(entity.id, entity.name, entity.owner_id,
                                    "Published",

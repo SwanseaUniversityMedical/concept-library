@@ -495,6 +495,25 @@ const isArrayEqual = (a, b, shouldSort = true) => {
 }
 
 /**
+ * showing loader when fetching data
+ */
+const showLoader = () => {
+  const loader = document.querySelector('.loading');
+  loader.classList.add('display');
+  setTimeout(() => {
+    loader.classList.remove('display');
+  }, 2000);
+}
+
+/**
+ * hide loader when fetching data
+ */
+const hideLoader = () => {
+  const loader = document.querySelector('.loading');
+  loader.classList.remove('display');
+}
+
+/**
  * startLoadingSpinner
  * @desc instantiate a loading spinner, either within an element or at the root <body/>
  * @param {node|null} container the container - if null, uses the <body/>

@@ -1,0 +1,24 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.loading{
+    width: 2rem;
+    height: 2rem;
+    border: 5px solid #ccc;
+    border-top: 6px solid var(--color-accent-secondary);
+    border-radius: 100%;
+    margin: auto;
+    display: none;
+    animation: spin 1s linear infinite;
+
+    &.show{
+        display: block;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

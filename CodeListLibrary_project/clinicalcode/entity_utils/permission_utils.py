@@ -604,16 +604,15 @@ def allowed_to_permit(user, entity_id):
     return GenericEntity.objects.filter(Q(id=entity_id), Q(owner=user)).exists()
 
 class HasAccessToViewGenericEntityCheckMixin(object):
-    '''
-      Mixin to check if user has view access to a working set
-      this mixin is used within class based views and can be overridden
-    '''
-
-    def dispatch(self, request, *args, **kwargs):
-        if can_user_view_entity(request.user, self.kwargs['pk']):
-            raise PermissionDenied
-
-        return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
+  '''
+    Mixin to check if user has view access to a working set
+    this mixin is used within class based views and can be overridden
+  '''
+  def dispatch(self, request, *args, **kwargs):
+    if not can_user_view_entity(request, self.kwargs['pk']):
+      raise PermissionDenied
+    
+    return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
 
 def get_latest_entity_published(entity_id):
     '''
