@@ -109,3 +109,5 @@ wget==3.2
 wrapt==1.14.1
 wsproto==1.2.0
 zipp==3.8.1
+django-redis==5.3.0
+django-minify-html==1.6.0

@@ -1099,6 +1099,7 @@ class EntityCreator {
     }
     this.#locked = true;
 
+    const spinner = startLoadingSpinner();
     try {
       const token = getCookie('csrftoken');
       const request = {
@@ -1129,16 +1130,20 @@ class EntityCreator {
           this.#redirectFormClosure(content);
         })
         .catch(error => {
-          this.#locked = false;
           if (typeof error.json === 'function') {
             this.#handleAPIError(error);
           } else {
             this.#handleServerError(error);
           }
+          spinner.remove();
+        })
+        .finally(() => {
+          this.#locked = false;
         });
     }
     catch (e){
       this.#locked = false;
+      spinner.remove();
     }
   }
 

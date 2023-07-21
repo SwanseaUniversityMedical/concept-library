@@ -31,10 +31,13 @@ Often the definitions that are created are of interest to researchers for many s
     2.2.3. [Migration only](#2.2.3.-Migration-only)  
     2.2.1. [Restore from Local Backup](#2.2.1.-Restore-from-Local-Backup)  
   2.3. [Development](#2.3.-Development)  
-    2.3.1. [Initial Build](#2.3.1.-Initial-Build)  
-    2.3.2. [Stopping and Starting the Containers](#2.3.2.-Stopping-and-Starting-the-Containers)  
-    2.3.3. [Live Working](#2.3.3.-Live-Working)  
-    2.3.4. [Removing the Containers](#2.3.4.-Removing-the-Containers)  
+    2.3.1. [Docker Compose Files](#2.3.1.-Docker-Compose-Files)  
+    2.3.2. [Initial Build](#2.3.2.-Initial-Build)  
+    2.3.3. [Stopping and Starting the Containers](#2.3.3.-Stopping-and-Starting-the-Containers)  
+    2.3.4. [Live Working](#2.3.4.-Live-Working)  
+    2.3.5. [Removing the Containers](#2.3.5.-Removing-the-Containers)  
+    2.3.6. [Local Pre-production Builds](#2.3.6.-Local-Pre-production-Builds)  
+    2.3.7. [Impact of Environment Variables](#2.3.7.-Impact-of-Environment-Variables)  
   2.4. [Accessing and Exporting the Database](#2.4.-Accessing-and-Exporting-the-Database)  
     2.4.1. [Access/Export with PGAdmin4](#2.4.1.-Access/Export-with-PGAdmin4)  
     2.4.2. [Access/Export with CLI](#2.4.2.-Access/Export-with-CLI)  
@@ -42,13 +45,18 @@ Often the definitions that are created are of interest to researchers for many s
     2.5.1. [Django logging](#2.5.1.-Django-Logging)  
     2.5.2. [Debug Tools in Visual Studio Code](#2.5.2.-Debug-Tools-in-Visual-Studio-Code)  
     2.5.3. [Running Tests](#2.5.3.-Running-Tests)  
-  2.6. [Creating a Superuser](#2.6-Creating-a-Superuser)
+  2.6. [Creating a Superuser](#2.6.-Creating-a-Superuser)
 3. [Setup without Docker](#3.-Setup-without-Docker)  
   3.1. [Prerequisites](#3.1.-Prerequisites)  
   3.2. [Installing](#3.2.-Installing)  
-  3.3. [Running Tests](#3.3.-Running-Tests)  
+  3.3. [Using Eclipse](#3.3.-Using-Eclipse)  
+  3.4. [Running Tests](#3.4.-Running-Tests)  
 4. [Deployment](#4.-Deployment)  
-  4.1. [Running Tests](#4.1.-Running-Tests)  
+  4.1. [Deploy Scripts](#4.1.-Deploy-Scripts)  
+    4.1.1. [Manual Deployment](#4.1.1.-Manual-Deployment)  
+    4.1.2. [Automated Deployment](#4.1.2.-Automated-Deployment)  
+  4.2. [Harbor-driven CI/CD Pipeline](#4.2.-Harbor-driven-CI/CD-Pipeline)  
+  4.3. [Running Tests](#4.3.-Running-Tests)  
 
 # 1. Clone this Repository
 To download this repository:
@@ -74,14 +82,17 @@ The app container requires emulation for ARM CPUs, please install Rosetta 2:
 ## 2.2. Database setup
 
 ### 2.2.1. Restore from Local Backup
+>***[!] Note:** Do not share the backup files with anyone*
+
 To restore from a local backup:
 1. Navigate to the `concept-library/docker/development` folder
 2. Place a `.backup` file inside of the `db` folder  
->**Note: Do not share this file with anyone**
 3. Skip to [2.3. Development](#2.3.-Development)  
 
 ### 2.2.2. Restore from Git Repository
->*Note:  
+>***[!] Note:** Do not share these files with anyone*
+
+>***[!] Note:** 
 The initial run of the application may take a while if you are using this method, however, subsequent builds will be faster as the backup is saved locally in the `concept-library/docker/development/db/` folder*
 
 To restore from a Git repository:
@@ -90,8 +101,7 @@ To restore from a Git repository:
 3. Duplicate the `example.git.token` inside of `development/db/`
 4. Rename the duplicated file to `git.token`
 5. Delete the contents of the file and paste your personal access token
->**Note: Do not share this file with anyone**
-6. Open the `docker-compose.yaml` file inside of the `docker/` folder
+6. Open the `postgres.compose.env` file inside of the `docker/development/env` folder
 7. Ensure that the environment variable `POSTGRES_RESTORE_REPO` is set to the correct GitHub repository where your `.backup` file is stored
 8. Skip to [2.3. Development](#2.3.-Development)  
 
@@ -103,47 +113,106 @@ With an empty database, you will need to run statistics manually for the applcia
   2. Navigate to 127.0.0.1/admin/run-stats
 
 ## 2.3. Development
-### 2.3.1. Initial Build
+### 2.3.1. Docker Compose Files
+Within the `concept-library/docker/` directory you will find the following docker-compose files:
+
+1. `docker-compose.dev.yaml`
+    - This is the development docker container used to iterate on the Concept Library.
+    - After building, the application can be located at http://127.0.0.1:8000
+2. `docker-compose.test.yaml`
+    - This compose file builds an environment that better reflects the production environment, serving the application via Apache, and includes adjunct services like Redis and Celery.
+    - It is recommended for use when developing the Docker images, or as a pre-production test when modifying build behaviour such as offline compression.
+    - After building, the application can be located at http://localhost:8005
+3. `docker-compose.prod.yaml`
+    - This compose file builds the production container.
+    - It is used for both manual and automated deployment via CI/CD workflows
+    - After building, the application can be located at https://conceptlibrary.some-demo-app.saildatabank.com where `some-demo-app` describes the development sub-domain
+
+### 2.3.2. Initial Build
 To perform the initial build and run of the application:
 1. Open a terminal
 2. Navgiate to the `concept-library/docker/` folder
-3. In the terminal, run `docker compose up --build`
+3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml up --build` (append `-d` as an argument to run in background)
 
 The application and database will be available at:
  - Application: `127.0.0.1:8000`
  - Database: `127.0.0.1:5432`
 
-### 2.3.2. Stopping and Starting the Containers
+### 2.3.3. Stopping and Starting the Containers
 To stop the docker container:
 1. If you have a terminal open which is running the docker containers, press `ctrl+c`
 2. If you do not have a terminal open which is running the containers:  
 a. Open a terminal  
 b. Navigate to the `concept-library/docker/` folder  
-c. In the terminal, run `docker compose stop`  
+c. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml down`  
 
 To start the docker container (if it has already been built and has stopped for any reason):
 1. Open a terminal
 2. Navigate to the `concept-library/docker/` folder
-3. In the terminal, run `docker compose start`
+3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml start`
 
-### 2.3.3. Live Working
+### 2.3.4. Live Working
 Whilst working on the codebase, any changes should be automatically applied to the codebase stored in the app container after saving the file. 
 
 If you make any changes to the models you will need to:  
-1. Stop and start the containers again with `docker compose up`, the migrations will be automatically applied
+1. Stop and start the containers again with `docker-compose -p cll -f docker-compose.dev.yaml up --build`, the migrations will be automatically applied
 2. *OR*; execute the migration code from within the app container (see: https://docs.docker.com/engine/reference/commandline/exec/)
 
-### 2.3.4. Removing the Containers
+### 2.3.5. Removing the Containers
 To remove the containers:
 1. Open a terminal
 2. Navigate to the `concept-library/docker/` folder
 3. In the terminal, run:  
 a. `docker compose down`: removes networks and containers.  
-b. *OR;* `docker-compose down --rmi all -v`: removes networks, containers, images and volumes.
+b. *OR;* `docker-compose -p cll -f docker-compose.dev.yaml down --rmi all -v`: removes networks, containers, images and volumes.
+c. *OR;* to prune your docker, enter `docker system prune -a`
+
+### 2.3.6. Local Pre-production Builds
+>***[!] Note:**   
+To test the transpiling, minification or compression steps, OR; if you have made changes to the Docker container or its images it is recommended that you run a local, pre-production build*
+
+To build a local, pre-production build:
+1. Open a terminal
+2. Navgiate to the `concept-library/docker/` folder
+3. Set up the environment variables within `./test/app.compose.env`
+4. In the terminal, run `docker-compose -p cll -f docker-compose.test.yaml up --build` (append `-d` as an argument to run in background)
+5. Open a browser and navigate to `localhost:8005` to access the application
+
+### 2.3.7. Impact of Environment Variables
+
+>***[!] Note:**   
+To modify the environment variables, please navigate to `./docker/test/app.compose.env` (or the appropriate folder for the container you are building)*
+
+
+#### Impact on Application Behaviour
+Some environment variables modify the behaviour of the application.
+
+The following are important to consider when modifying `app.compose.env`:
+- `DEBUG` → When this flag is set to `True`:
+    - The application will expect a Redis service to be running for use as the cache backend, otherwise it will use a DummyCache
+    - The appplication will enable the compressor and precompilers, otherwise this will not take place (aside from HTML Minification)
+- `IS_DEVELOPMENT_PC` → When this flag is set to `False`:
+    - The application will use both LDAP and User model authentication, otherwise only the latter will be used
+    - The application will use a different logging backend - please see `settings.py` for more information
+
+#### Impact on Building
+Some environment variables modify the behaviour of the container when building, you should be aware of this behaviour when building `docker-compose.prod.yaml` and `docker-compose.test.yaml` - this behaviour is mostly defined within `init-app.sh`. 
+
+The following are important to consider when modifying `app.compose.env`:
+- `IS_DEVELOPMENT_PC` → When this flag is set to `True`:
+    - The application and celery services will await the postgres service to initialise before continuing
+- `CLL_READ_ONLY` → When this flag is set to `False`:
+    - The application will not run the `makemigrations` and `migrate` commands on startup
+- `DEBUG` → This flag determines static collection behaviour:
+    - If set to `True` it will compile, transpile and compress static resources
+    - If set to `False` it will only collect the static resources
+
+#### Other Variables
+To learn about the impact of the other environment variables, please open and examine `./cll/settings.py`. 
 
 ## 2.4. Accessing and Exporting the Database
->*Note:   
-If you have made changes to the environment variables in the docker-compose.yaml file you will need to match those changes when connecting through the CLI or PGAdmin4*
+>***[!] Note:**   
+If you have made changes to the environment variables in the docker-compose.dev.yaml file you will need to match those changes when connecting through the CLI or PGAdmin4*
 
 ### 2.4.1. Access/Export with PGAdmin4
 *To access the database:*  
@@ -167,17 +236,18 @@ Please ensure you have installed [PGAdmin4](https://www.pgadmin.org/download/pga
 6. Click the `Backup` button
 
 ### 2.4.2. Access/Export with CLI
-*To access the database:*  
+#### To access the database:
+> ***[!] Note:** The query will fail to retrieve results if you forget the semicolon, `;`, at the end of the query*
+
 1. Open a terminal
-2. In the terminal, run: `docker exec -it concept-library-development-postgres-1 /bin/bash`
+2. In the terminal, run: `docker exec -it cll_postgres_1 /bin/bash`
 3. Query the database:  
 a. Initiate an active session with `psql -U clluser concept_library` and then run queries directly, e.g. `SELECT * FROM CLINICALCODE_PHENOTYPES LIMIT 1;`  
 b. *OR;* run a query directly with `psql -U clluser -d concept_library 'SELECT * FROM CLINICALCODE_PHENOTYPES LIMIT 1;'`
-> *Note: The query will fail to retrieve results if you forget the semicolon, `;`, at the end of the query*
 
-*To export the database:*  
+#### To export the database:
 1. Open a terminal
-2. In the terminall, run: `docker exec -it concept-library-development-postgres-1 /bin/bash`
+2. In the terminall, run: `docker exec -it cll_postgres_1 /bin/bash`
 3. Replace `[filename]` with the file name desired and run:  
 `pg_dump -U postgres -F c concept_library > [filename].backup`
 
@@ -187,11 +257,11 @@ b. *OR;* run a query directly with `psql -U clluser -d concept_library 'SELECT *
 Django logging is enabled by default, you can view the logs in the terminal used to start the docker container. 
 
 To disable the verbose logging:
-1. In docker-compose.yaml set `tty: false` under the `app` service
-2. In docker-compose.yaml set `DEBUG: false` under the `environment` section of the `app` service
+1. In docker-compose.dev.yaml set `tty: false` under the `app` service
+2. In docker-compose.dev.yaml set `DEBUG: false` under the `environment` section of the `app` service
 
 ### 2.5.2. Debug Tools in Visual Studio Code
-Before continuing, open the `docker-compose.yaml` file and ensure the `DEBUG_TOOLS` variable in the `app` container definition is set to true.
+Before continuing, open the `docker-compose.dev.yaml` file and ensure the `DEBUG_TOOLS` variable in the `app` container definition is set to true.
 
 Create a run configuration for the project:
 1. Create a new folder and name it `.vscode`
@@ -219,7 +289,7 @@ Create a run configuration for the project:
 ```
 
 Now you're ready to start debugging:
-1. Build the container `docker compose up --build` and ensure it is running
+1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml up --build` and ensure it is running
 2. Add a breakpoint to the file that you are debugging
 3. In Visual Studio Code, open the `Run and Debug Menu` by clicking the icon on the left-hand side of the screen or using the hotkey `Ctrl+Shift+D`
 4. At the top of the debug menu, select the `Debug Application` option
@@ -229,30 +299,31 @@ Variables, Watch and Callstack can all be viewed in the `Run and Debug` menu pan
 
 ### 2.5.3. Running Tests
 To run tests on the container, you first need to:
-1. Build the container `docker compose up --build` and ensure it is running
+1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml up --build` and ensure it is running
 2. Open a terminal
-3. In the terminal, run: `docker exec -it concept-library-development-postgres-1 /bin/bash`
+3. In the terminal, run: `docker exec -it cll_postgres_1 /bin/bash`
 4. Navigate to the directory containing the codebase by running: `cd /var/www/CodeListLibrary_project`
 5. As described below, enter a command to run the tests
 
-*All tests*  
+#### All tests
 To run all tests except for read-only tests, run:  
-`python manage.py test --noinput`
+- `python manage.py test --noinput`
 
-*Read-only tests*  
-> **Note: Read-only tests must take the settings from read_only_test_settings.py otherwise they will fail**  
+#### Read-only tests
+> ***[!] Note:** Read-only tests must take the settings from read_only_test_settings.py otherwise they will fail*
 
-To run only the read-only functional tests, run:  
-`python manage.py test --noinput clinicalcode.tests.functional_tests.read_only`  
+Please see the following commands:
+- To run only the read-only functional tests, run:  
+`python manage.py test --noinput clinicalcode.tests.functional_tests.read_only`
 
-To run only the read-only unit tests, run:  
+- To run only the read-only unit tests, run:  
 `python manage.py test --noinput clinicalcode.tests.unit_tests.read_only`
 
 ## 2.6. Creating a Superuser
 
 To create a superuser:
 1. Ensure the docker container is running and open a new terminal
-2. Run `docker exec -it concept-library-development-app-1 /bin/bash`
+2. Run `docker exec -it cll_app_1 /bin/bash`
 3. Navigate to the CodeListLibrary_project directory by running: `cd /var/www/CodeListLibrary_project`
 4. Run `python manage.py createsuperuser` and follow the instructions in the terminal to create the user
 5. Verify that the user was created properly by navigating to the website and logging in with the credentials entered
@@ -268,193 +339,166 @@ Please ensure that you have the following installed:
 5. [PGAdmin4](https://www.pgadmin.org/download/pgadmin-4-windows/)
 
 ## 3.2. Installing
-**Get CodeListLibrary code from git**
 
-Open command window as administrator 
+#### Cloning the Concept Library
 
-Navigate to your folder where you store all of your code. For example:
+To clone the repository:
+1. Open the terminal
+2. Navigate to an appropriate directory
+3. Run the following command: `git clone https://github.com/SwanseaUniversityMedical/concept-library.git`
+4. Checkout the branch you would like to work on, e.g. run the following to work on Master: `git checkout master`
 
-c:/dev/
-
-Then type the following command:  
-
-*> git clone git-url*
-
-
-To begin with, you will want to work on the master branch so you will need to checkout the master branch by typing the following in the command window: 
-
-*> git checkout master*
-
-**Install virtualenv and virtualenvwrapper**
+#### Install virtualenv and virtualenvwrapper
 
 This will provide a dedicated environment for each project you create. It is considered best practice and will save time when you’re ready to deploy your project.
 
-Open your command window and type:
-
-*> pip install virtualenvwrapper-win*
-
-Now change directory to where you have downloaded the project e.g. C:\\Dev\\CodeListLibrary_root
-
-To create a virtualenv to install all of your packages for your project type:
-
-*> mkvirtualenv cclproject*
-
-Note:
-
-To work on a virtual environment to install packages then type:
-
-*> workon <virtualenv name>*
-
-To cancel working within a virtualenv type:
-
-*> deactivate <virtualenv name>*
-
-To install the required packages there is a txt file containing all the required packages, this makes it easy to install correct versions of each package, please enter the following into the command line:
-
-*> pip install –r requirements/local.txt*
-
-This is the equivalent of installing:
-
-*> pip install Django==1.11.3*
-
-*> pip install django-mathfilters==0.4.0*
-
-*> pip install django-simple-history==1.9.0*
-
-*> pip install djangorestframework==3.6.3*
-
-*> pip install pathlib==1.0.1*
-
-*> pip install psycopg2==2.7.1*
-
-*> pip install pytz==2017.2*
-
-Then install pandas
-
-*> pip2 install pandas*
-
-Note:
-
-Within the requirements folder there are more .txt for staging and production in case they ever did differentiate for each environment.
-
-**Database setup**
-
-Using PGAdmin3
-
-1. Create a role called clluser
-2. Create a database called code_list_library
-3. Create a read-only role
-
-When running the application it complains that you have unapplied migrations; your app may not work properly until they are applied. So in the command window type:
-*> python manage.py makemigrations*
-
-*> python manage.py migrate*
-
-To run the application from the command window you need to change directory to where the manage.py file exists and then type:
-
-*> python manage.py runserver*
-
-Press Ctrl + break to stop the server
-
-**Administration area**
-There are no users in your database. So we need to create a superuser in order to access the administration site to manage other users.
-
-Open the command line and execute:
-
-*> python manage.py createsuperuser*
-
-Fill in the desired username, email and password
-
-When the development server is running you can access the admin section by going to the following url:
-http://127.0.0.1:8000/admin/
-
-**Get it working within Eclipse**
-
-File -> Open projects from file system
-
-Browse to code e.g. C:\\Dev\\CodeListLibrary_root
-
-**Point your python interpreter to your VirtualEnv python Intepreter**
-
-Presuming you have created a virtualenv and installed all of your packages then you need to point your python interpreter to the virtualenv. So within Eclipse go to:
-
-Window -> Preferences
-
-Select PyDev -> Intepreters -> Python Interpreter
-
-Click New
-
-Enter Interpreter name e.g. CCLProjectPython
-
-And browse to the python executable e.g. C:\\Users\\\<user\>\\Envs\\cclproject\\Scripts\\python.exe and then click Ok.
-
-Select all folders to be added to the system pythonpath
-
-To run Right Click cll project and click debug as -> PyDev: Django
-
-You should see the that you have started the development server at http://127.0.0.1:8000/
-
-
-**Importing coding systems into the code list library**
-
-Concept library has 4 coding systems:
-
-1. Read cdde v2
-2. Read code v3
-3. ICD10
-4. OPCS4
-
-*Due to governance, coding system cannot be shared.*
-
-The coding systems/codes needs to be imported to the dataase.
-
-**Install ldap functionality**
-
-For windows machines I had to install Microsoft Visual C++ compiler for python 2.7
-
-https://www.microsoft.com/en-us/download/details.aspx?id=44266
-
-Download python_ldap 2.4.44 cp27 cp27m win_amd64 from the following location:
-
-https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap
-
-Within your virtualenv run the following command (change the <username> section):
-
-pip install C:\\Users\\<username>\\Downloads\\python_ldap-2.4.44-cp27-cp27m-win_amd64.whl
-
-Then run:
-
-pip install django-auth-ldap
-
-For reference see:
-
-https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html
-
-If we are to use ldap over ssl then we’ll need to follow this example:
-
-https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems
-
-## 3.3. Running Tests
-To run all the tests you need to run THREE commands:  
-- python manage.py test  --noinput  
-- python manage.py test  --noinput clinicalcode.tests.functional_tests.read_only  
-- python manage.py test  --noinput clinicalcode.tests.unit_tests.read_only  
-
-The first one will run all the tests except read only tests. It is necessary  because normal tests will take settings from settings.py
-The second one runs READ_ONLY tests. It takes settings from read_only_test_settings.py. Read_only tests must take settings from read_only_test_settings.py otherwise they will fail.
-
-manage.py manage which settings file is read. If a command contains read_only phrase then it reads read_only_test_settings.py otherwise settings.py
+1. Open the terminal
+2. Run the following command: `pip install virtualenvwrapper-win`
+3. Now navigate to the directory to where you have downloaded the project e.g. `cd C:/Dev/concept-library`
+4. To create a virtualenv you should run the following command: `mkvirtualenv cclproject`
+5. To work on this environment, run: `workon cclproject`
+6. To install the required packages, run the following command: `pip install -r docker/requirements/local.txt`
+7. To stop working on this environment, run: `deactivate cclproject`
+
+#### Database setup
+
+1. Install [Postgres](https://www.postgresql.org/download/) and [PGAdmin](https://www.pgadmin.org/) on your device.
+2. Within PGAdmin3, do the following:
+    - Create a role called `clluser``
+    - Create a database called `code_list_library``
+    - Create a read-only role
+3. When running the application it may complain that you have unapplied migrations; your app may not work properly until they are applied. To do this:
+    - Navigate to `concept-library/CodeListLibrary_project/cll`
+    - Run: `python manage.py makemigrations`
+    - Finally, run: `python manage.py migrate`
+4. To run the application:
+    - Navigate to `concept-library/CodeListLibrary_project/cll`
+    - Run the following: `python manage.py runserver 0.0.0.0:8000`
+5. You can now access the server on http://127.0.0.1:8000/admin/
+6. To stop the server, press `CTRL + C` within the terminal
+
+#### Installing LDAP functionality
+
+For windows machines:
+- You will need to install the Microsoft Visual C++ Compiler for Python. This can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
+- Download the `python_ldap` wheel, located [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap)
+- Once downloaded, activate your virtualenv and run the following `pip install path/to/the/file/python_ldap.whl`
+- Once installed, you can run the 'pip install django-auth-ldap' command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
+- If you intend to use LDAP over SSL, please take a look at the troubleshooting guide found [here](https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems)
+
+#### Administration area
+When you first start the application there will be no users within your database. You will first need to create a superuser account in order to access the administration site.
+
+1. Open the terminal and run the following: `python manage.py createsuperuser`
+2. Fill in the desired username, email and password
+3. When the development server is running you can access the admin section by going to the following url: http://127.0.0.1:8000/admin/
+
+## 3.3. Using Eclipse
+
+#### Set up
+1. Navigate to the `File` button within Eclipse's toolbar, then select `Open projects from file system`
+2. Browse to the Concept Library folder, e.g. `C:/Dev/concept-library`
+3. Assuming you have followed the previous steps to create a virtual env, you will need to point Eclipse's python interpreter to the virtual env:
+    - Select the `Window` button within your toolbar and open `Preferences`
+    - Select `PyDev -> Interpreters -> Python Interpreter` and select `New`
+    - Follow the interpreter wizard (e.g. enter the name), then browse to the Python executable (as set in your system environment %PATH% variable)
+    - Select each of the folders you want added to your python path
+    - Right click the Concept Library project and select `Debug as...` and choose the python development interpreter
+4. You should now see that the server is live at http://127.0.0.1:8000/admin/
+
+## 3.4. Running Tests
+> **[!] Note:** Please note that `manage.py` manages which settings file is read - if a command contains the `read_only` phrase then it will use `read_only_test_settings.py`, otherwise it will use `settings.py`
+
+To run all the tests you need to run THREE commands:
+- `python manage.py test  --noinput`  
+- `python manage.py test  --noinput clinicalcode.tests.functional_tests.read_only`  
+- `python manage.py test  --noinput clinicalcode.tests.unit_tests.read_only`  
+
+The first one will run all the tests except for read-only tests. This is necessary as the normal tests will take settings from `settings.py`
+The second one runs READ_ONLY tests, which takes its settings from read_only_test_settings.py. Read-only tests must take settings from `read_only_test_settings.py` otherwise they will fail.
 
 # 4. Deployment
-(TODO) Deployment is done through GIT CI and docker. 
 
-## 4.1. Running Tests
-first set REMOTE_TEST = True in both test_settings.py and read_only_settings.py
+## 4.1. Deploy Scripts
 
-Go into the webapp docker container: `docker exec -it concept-library-dev-db_webapp_1 /bin/bash`
+### 4.1.1. Manual Deployment
+> **[!] Note:** These instructions only pertain to feature branches which are not covered by the CI/CD workflow
 
-Load the environment: `source /var/www/concept_lib_sites/v1/cllvirenv_v1/bin/activate`
+#### Feature branch deployment with deploy-feature.sh
+This script can be used to manually deploy feature branches on the server. Please note that you will have to either (a) modify the script to use the appropriate directories and settings, or (b) pass arguments to the script to ensure it runs correctly.
 
-Go into the project folder: `cd /var/www/concept_lib_sites/v1/CodeListLibrary_project`
+Optional arguments for this script include:
 
-Execute the tests: `python manage.py test --noinput`
+- `-fp` | `--file-path` → [Defauts to `/root/deploy_DEV_DEMO_DT`] This determines the root path of your environment variable text file (see below) and where the Github repo will be cloned
+- `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
+- `-nd` | `--no-pull` → [Defauts to `true`] Whether to pull the branch from the Git repository - can be used to avoid re-pulling branch if you are making changes to external factors, e.g. the environment variables
+- `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
+- `-np` | `--no-prune` → [Defauts to `true`] Whether to prune the unused docker data before building the current image
+- `-e` | `--env` → [Defauts to `env_vars-RO.txt`] The name of the environment variables text file - see below for more details
+- `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
+- `-n` | `--name` → [Defauts to `cllro_dev`] The name of the docker container
+- `-r` | `--repo` → [Defauts to `https://github.com/SwanseaUniversityMedical/concept-library.git`] The Github repository you would like to pull from (if `--no-pull` hasn't been applied)
+- `-b` | `--branch` → [Defauts to `manual-feature-branch`] The branch you would like to pull from within the aforementioned Github repository
+
+#### Setting up your environment variables
+> **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
+
+Ensure you have an `env-vars` text file on your server. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers. During manual deployment, the file will be copied and renamed to `env_vars.txt` for use by `docker-compose.prod.yaml` within `./concept-library/CodeListLibrary_project/docker/` after the repository is cloned.
+
+#### To deploy manually
+1. SSH into the server
+2. If you haven't already created the `deploy-feature.sh` within this server, please clone the [Github repository](https://github.com/SwanseaUniversityMedical/concept-library) and copy/move it into a directory of your choosing (in this case, we will assume it's within /root/)
+3. Ensure the `deploy-feature.sh` script has the appropriate permissions
+4. Within your terminal, run the following: `/root/deploy-feature.sh`
+5. Await the successful build
+
+### 4.1.2. Automated Deployment
+> **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
+
+#### Files
+> **[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file
+If not already present on the machine, please ensure that the following files are within the root directory:
+  - Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
+  - Copy `./docker/docker-compose.prod.yaml` to `/root/`
+
+### Environment Variables
+You need to ensure that there is an `env_vars.txt` within the same directory as the `/root/` directory where your `docker-compose.prod.yaml` is found. 
+
+#### Site Deployment Arguments
+Optional parameters for the `deploy-site.sh` script include:
+- `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
+- `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
+- `-np` | `--no-prune` → [Defauts to `true`] Whether to prune the unused docker data before building the current image
+- `-a` | `--address` → [Defauts to `Null`] This parameter determines the registry we will try to pull the images from
+- `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
+
+#### What to do when automated deployment is disabled
+> **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
+
+Images will be automatically built via Gitlab CI/CD from the `master` branch when a merge is committed. These images can be pulled using the `deploy-site.sh` script as described in [4.1.2. Automated Deployment](#4.1.2.-Automated-Deployment).
+
+When automated deployment is disabled, which may be the case for certain servers, you can still deploy the images being built by the CI/CD pipeline.
+
+To do so manually, please do the following:
+
+1. Open the terminal and SSH into the server
+2. `cd` to the `/root/` directory of the server you are deploying (e.g. `/root/deploy_DEV_DEMO_DT`)
+3. Copy the `./docker/production/scripts/deploy-site.sh` and `./docker/docker-compose.prod.yaml` files to this directory (you can do this by pulling them from the Github repository)
+4. Ensure you have a `.txt` file named `env_vars.txt` within the same directory as these files
+5. Ensure you are logged in, e.g. `docker login {details}` - if you are SSHing into a live server, this step will have already been completed by our config(s)
+6. Run the following command `./root/{directory}/deploy-site.sh --address {registry_address}` where the `{registry_address}` describes the address where the Gitlab images are uploaded (check out `.gitlab-ci.yml` for more information)
+
+## 4.2. Harbor-driven CI/CD Pipeline
+> **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor and have set up automated deployment
+
+[Details]
+
+## 4.3. Running Tests
+> **[!] Todo:** Deployment is done through Harbor CI and Docker. 
+
+To run tests, please do the following:
+1. First set REMOTE_TEST = True in both test_settings.py and read_only_settings.py
+2. Go into the webapp docker container: `docker exec -it concept-library-dev-db_webapp_1 /bin/bash`
+3. Load the environment: `source /var/www/concept_lib_sites/v1/cllvirenv_v1/bin/activate`
+4. Go into the project folder: `cd /var/www/concept_lib_sites/v1/CodeListLibrary_project`
+5. Execute the tests: `python manage.py test --noinput`

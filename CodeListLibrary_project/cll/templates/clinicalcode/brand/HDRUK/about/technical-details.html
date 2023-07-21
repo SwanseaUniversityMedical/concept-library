@@ -9,10 +9,12 @@
 
 {% block container %}
 <!-- Page Stylesheets -->
-<link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
+{% compress css %}
+  <link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
+{% endcompress %}
 
 <!-- Dependencies -->
-{% compress js file %}
+{% compress js %}
   <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/templateDetailRenderer.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/scrollspy.js' %}"></script>
 {% endcompress %}

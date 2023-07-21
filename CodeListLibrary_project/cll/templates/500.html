@@ -1,13 +1,23 @@
-{% extends "base.html" %}
-
+{% extends "base_scss.html" %}
 {% load static %}
 
-{% block title %}Page unavailable{% endblock title %}
+{% block title %}| Page unavailable{% endblock title %}
 
 {% block container %}
-<h2>500: Page unavailable</h2>
-
-<p>We're sorry, but the requested page is currently unavailable.</p>
-
+  <header class="main-header search-banner">
+    <div
+      class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+      <div class="search-banner__header search-banner__header--pad-bottom-2">
+        <h2 class="search-banner__title">Concept Library</h2>
+      </div>
+    </div>
+  </header>
+  <main class="main-content main-content--inner-padding">
+    <div
+        class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <h2>500: Page unavailable</h2>
+      <p>We're sorry, but the requested page is currently unavailable.</p>
+      <p>Click <a href="javascript:history.back()">here</a> to go back.</p>
+    </div>
+  </main>
 {% endblock container %}
-

@@ -9,12 +9,14 @@
   <link href="{% sass_src 'scss/pages/select.scss' %}" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" type="text/css" href="{% static 'drf-yasg/style.css' %}"/>
   <link rel="stylesheet" type="text/css" href="{% static 'drf-yasg/swagger-ui-dist/swagger-ui.css' %}">
+  {% compress css %}
   <link href="{% sass_src 'scss/pages/swagger.scss' %}" rel="stylesheet" type="text/css" />
+  {% endcompress %}
 {% endblock %}
 
 {% block title %}| API Documentation {% endblock title %}
 
-{% compress js file %}
+{% compress js %}
   <script type="text/javascript" src="{% static "js/clinicalcode/redesign/utils.js" %}"></script>
 {% endcompress %}
 
