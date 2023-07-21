@@ -1696,6 +1696,8 @@ export default class ConceptCreator {
       return;
     }
 
+    this.makeDirty();
+
     // Create new rule
     const ruleIncrement = this.#getNextRuleCount(logicalType);
     const element = this.state.element;
@@ -1892,6 +1894,8 @@ export default class ConceptCreator {
       const spinner = startLoadingSpinner();
       this.tryQueryCodelist(value, this.state.data?.coding_system?.id, useWildcard, useDesc, caseSensitive)
         .then(async response => {
+          this.makeDirty();
+
           const logicalType = this.state.data.components[index].logical_type;
           const codes = this.#sieveCodes(
             logicalType,
