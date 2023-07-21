@@ -45,8 +45,6 @@ def is_layout_safe(layout):
         return False
 
     definition = try_get_content(layout, 'definition') if isinstance(layout, dict) else getattr(layout, 'definition')
-    if not isinstance(definition, dict):
-        print(definition, layout)
     return isinstance(definition, dict)
 
 def try_get_layout(template, default=None):
