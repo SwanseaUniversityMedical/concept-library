@@ -359,10 +359,6 @@ export default class ConceptCreator {
           })
 
           component.codes = codes;
-          if (component.hasOwnProperty('search_options')) {
-            delete component.search_options;
-          }
-
           return component;
         });
       }
@@ -654,9 +650,9 @@ export default class ConceptCreator {
       'template': this.template?.id,
       'search': encodedSearchterm,
       'coding_system': codingSystemId,
-      'use_desc': useDesc,
-      'use_wildcard': useWildcard,
-      'case_sensitive': caseSensitive,
+      'use_desc': useDesc ? 1 : 0,
+      'use_wildcard': useWildcard ? 1 : 0,
+      'case_sensitive': caseSensitive ? 1 : 0,
     }
     
     const parameters = new URLSearchParams(query);
@@ -831,13 +827,13 @@ export default class ConceptCreator {
       switch (component.source_type) {
         case CONCEPT_CREATOR_SOURCE_TYPES.SEARCH_TERM.name: {
           let useDesc = component?.search_options?.useDesc;
-          useDesc = !isNullOrUndefined(useDesc) ? useDesc : 0;
+          useDesc = !isNullOrUndefined(useDesc) ? useDesc : false;
           
           let useWildcard = component?.search_options?.useWildcard;
-          useWildcard = !isNullOrUndefined(useDesc) ? useDesc : 0;
+          useWildcard = !isNullOrUndefined(useDesc) ? useDesc : false;
 
           let caseSensitive = component?.search_options?.caseSensitive;
-          caseSensitive = !isNullOrUndefined(caseSensitive) ? caseSensitive : 1;
+          caseSensitive = !isNullOrUndefined(caseSensitive) ? caseSensitive : true;
 
           await this.tryQueryCodelist(component.source, codingSystemId, useWildcard, useDesc, caseSensitive)
             .then(response => {
@@ -1415,6 +1411,10 @@ export default class ConceptCreator {
       'index': index,
       'name': rule?.name,
       'source': (isNullOrUndefined(source) && sourceInfo.template == 'file-rule') ? 'Unknown File' : (source || ''),
+      'used_code': !rule?.used_description ? 'checked' : '',
+      'used_description': rule?.used_description ? 'checked' : '',
+      'used_wildcard': rule?.used_wildcard ? 'checked' : '',
+      'was_wildcard_sensitive': rule?.was_wildcard_sensitive ? 'checked' : '',
     });
 
     const doc = parseHTMLFromString(html);
@@ -1880,14 +1880,14 @@ export default class ConceptCreator {
       e.stopPropagation();
 
       let useWildcard = input.parentNode.parentNode.querySelector('input[name="search-wildcard"]:checked');
-      useWildcard = !isNullOrUndefined(useWildcard) ? 1 : 0;
+      useWildcard = !isNullOrUndefined(useWildcard);
 
       let caseSensitive = input.parentNode.parentNode.querySelector('input[name="search-sensitive"]:checked');
-      caseSensitive = !isNullOrUndefined(caseSensitive) ? 1 : 0;
+      caseSensitive = !isNullOrUndefined(caseSensitive);
 
-      let useDesc = input.parentNode.parentNode.querySelector('input[name="search-by-option"]:checked');
+      let useDesc = input.parentNode.parentNode.querySelector('input[type="radio"]:checked');
       useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('x-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
-      useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES ? 1 : 0;
+      useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES;
 
       const spinner = startLoadingSpinner();
       this.tryQueryCodelist(value, this.state.data?.coding_system?.id, useWildcard, useDesc, caseSensitive)
@@ -1905,11 +1905,9 @@ export default class ConceptCreator {
           component.codes = codes.length > 0 ? codes : [ ];
           component.source = codes.length > 0 ? value : null;
           component.code_count = codes.length;
-          component.search_options = {
-            useDesc: useDesc,
-            useWildcard: useWildcard,
-            caseSensitive: caseSensitive,
-          };
+          component.used_description = useDesc;
+          component.used_wildcard = useWildcard;
+          component.was_wildcard_sensitive = caseSensitive;
 
           if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
             await this.#recalculateExclusionaryRules();

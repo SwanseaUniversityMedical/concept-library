@@ -202,12 +202,12 @@
           <fieldset class="search-options justify-content-end align-items-center">
             <div class="search-options__container">
               <p class="search-options__title"><strong>Fields:</strong></p>
-              <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option" x-target="codes" checked>
+              <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option-${id}" x-target="codes" ${used_code}>
               <label class="search-options__label" role="button" tabindex="0" for="search-codes-${id}">
                 <span class="search-options__label-icon"></span>
                 Code
               </label>
-              <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option" x-target="description">
+              <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option-${id}" x-target="description" ${used_description}>
               <label class="search-options__label" role="button" tabindex="0" for="search-desc-${id}">
                 <span class="search-options__label-icon"></span>
                 Description
@@ -215,12 +215,12 @@
             </div>
             <div class="search-options__container">
               <p class="search-options__title"><strong>Regex:</strong></p>
-              <input class="search-options__input" aria-label="Use Regex Wildcard" type="checkbox" id="search-wildcard-${id}" name="search-wildcard" data-target="wildcard">
+              <input class="search-options__input" aria-label="Use Regex Wildcard" type="checkbox" id="search-wildcard-${id}" name="search-wildcard" data-target="wildcard" ${used_wildcard}>
               <label class="search-options__label" role="button" tabindex="0" for="search-wildcard-${id}">
                 <span class="search-options__label-icon"></span>
                 Use Regex
               </label>
-              <input class="search-options__input" aria-label="Case Sensitive" type="checkbox" id="search-sensitive-${id}" name="search-sensitive" checked>
+              <input class="search-options__input" aria-label="Case Sensitive" type="checkbox" id="search-sensitive-${id}" name="search-sensitive" ${was_wildcard_sensitive}>
               <label class="search-options__label" role="button" tabindex="0" for="search-sensitive-${id}" data-follows="wildcard">
                 <span class="search-options__label-icon"></span>
                 Case Sensitive

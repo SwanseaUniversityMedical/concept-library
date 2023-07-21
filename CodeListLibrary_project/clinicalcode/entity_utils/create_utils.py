@@ -73,7 +73,8 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 item['concept_id'],
                 item['concept_version_id'],
                 aggregate_component_codes=True,
-                derive_access_from=request
+                derive_access_from=request,
+                include_source_data=True
             )
 
             if value:
@@ -436,6 +437,17 @@ def validate_concept_form(form, errors):
             code['description'] = code_desc
             codes.append(code)
 
+        # validate and append search related options
+        used_wildcard = gen_utils.parse_int(concept_component.get('used_wildcard'), None)
+        component['used_wildcard'] = bool(used_wildcard) if used_wildcard is not None else False
+
+        was_wildcard_sensitive = gen_utils.parse_int(concept_component.get('was_wildcard_sensitive'), None)
+        component['was_wildcard_sensitive'] = bool(was_wildcard_sensitive) if was_wildcard_sensitive is not None else False
+
+        used_description = gen_utils.parse_int(concept_component.get('used_description'), None)
+        component['used_description'] = bool(used_description) if used_description is not None else False
+
+        # build component
         component['is_new'] = is_new_component
         component['name'] = component_name
         component['logical_type'] = component_logical_type
@@ -695,6 +707,15 @@ def try_update_concept(request, item, entity=None):
             new_components.append(component_data)
             continue
         codelist = CodeList.objects.get(component=component)
+        if codelist is None:
+            new_components.append(component_data)
+            continue
+        component.name = component_data.get('name')
+        component.used_wildcard = component_data.get('used_wildcard')
+        component.used_description = component_data.get('used_description')
+        component.was_wildcard_sensitive = component_data.get('was_wildcard_sensitive')
+        component.source = component_data.get('source')
+        component.save()
 
         new_codes = component_data.get('codes') or list()
         prev_codes = set(list(codelist.codes.values_list('code', flat=True)))
@@ -726,7 +747,10 @@ def try_update_concept(request, item, entity=None):
             component_type=obj.get('component_type'),
             source=obj.get('source'),
             created_by=request.user,
-            concept=concept
+            concept=concept,
+            used_wildcard=obj.get('used_wildcard'),
+            used_description=obj.get('used_description'),
+            was_wildcard_sensitive=obj.get('was_wildcard_sensitive'),
         )
 
         codelist = CodeList.objects.create(component=component, description='-')
@@ -783,7 +807,10 @@ def try_create_concept(request, item, entity=None):
             component_type=obj.get('component_type'),
             source=obj.get('source'),
             created_by=request.user,
-            concept=concept
+            concept=concept,
+            used_wildcard=obj.get('used_wildcard'),
+            used_description=obj.get('used_description'),
+            was_wildcard_sensitive=obj.get('was_wildcard_sensitive'),
         )
 
         codelist = CodeList.objects.create(component=component, description='-')
