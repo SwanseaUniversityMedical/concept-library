@@ -727,14 +727,15 @@ def try_get_template_statistics(field, brand='ALL', published=True, entity_type=
 
     return template_utils.try_get_content(stats, field)
 
-def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
+def search_codelist_by_pattern(coding_system, pattern, use_desc=False, case_sensitive=True):
     '''
         Tries to match a coding system's codes by a valid regex pattern
 
         Args:
             coding_system {obj}: The coding system of interest
             pattern {str}: The regex pattern
-            include_desc {boolean}: Whether to incl. the description in the match or not
+            use_desc {boolean}: Whether to search via desc instead of code
+            case_sensitive {boolean}: Whether we use __regex or __iregex
         
         Returns:
             A queryset containing all related codes of that particular coding system
@@ -768,16 +769,16 @@ def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
         codes = codes.extra(where=[select_filter])
 
     # Match by code/desc
-    code_query = {
-        f'{code_column}__regex': pattern
-    }
+    query_type = 'regex' if case_sensitive else 'iregex'
 
-    if include_desc:
-        codes = codes.filter(Q(**code_query) | Q(**{
-            f'{desc_column}__regex': pattern
-        }))
+    if use_desc:
+        codes = codes.filter(**{
+            f'{desc_column}__{query_type}': pattern
+        })
     else:
-        codes = codes.filter(**code_query)
+        codes = codes.filter(**{
+            f'{code_column}__{query_type}': pattern
+        })
     
     '''
         Required because:
@@ -794,14 +795,14 @@ def search_codelist_by_pattern(coding_system, pattern, include_desc=True):
     codes = codes.order_by(code_column).distinct(code_column)
     return codes
 
-def search_codelist_by_term(coding_system, search_term, include_desc=True):
+def search_codelist_by_term(coding_system, search_term, use_desc=True):
     '''
         Fuzzy match codes in a coding system by a search term
 
         Args:
             coding_system {obj}: The coding system of interest
             search_term {str}: The search term of interest
-            include_desc {boolean}: Whether to incl. the description in the search or not
+            use_desc {boolean}: Whether to search via desc instead of code
         
         Returns:
             A queryset containing all related codes of that particular coding system
@@ -823,25 +824,20 @@ def search_codelist_by_term(coding_system, search_term, include_desc=True):
         codes = codes.extra(where=[select_filter])
 
     # Search by code/desc
-    code_query = {
-        f'{code_column}__icontains': search_term 
-    }
-
-    if include_desc:
-        codes = codes.filter(Q(**code_query) | Q(**{
+    if use_desc:
+        codes = codes.filter(**{
             f'{desc_column}__icontains': search_term
-        })) \
+        }) \
         .annotate(
-            similarity=(
-                TrigramSimilarity(f'{code_column}', search_term) + \
-                TrigramSimilarity(f'{desc_column}', search_term)
-            )
+            similarity=TrigramSimilarity(f'{desc_column}', search_term)
         )
     else:
-        codes = codes.filter(**code_query) \
-                                .annotate(
-                                    similarity=TrigramSimilarity(f'{desc_column}', search_term)
-                                )
+        codes = codes.filter(**{
+            f'{code_column}__icontains': search_term 
+        }) \
+        .annotate(
+            similarity=TrigramSimilarity(f'{desc_column}', search_term)
+        )
 
     '''
         Required because:
@@ -858,7 +854,7 @@ def search_codelist_by_term(coding_system, search_term, include_desc=True):
     codes = codes.order_by(code_column, '-similarity').distinct(code_column)
     return codes
 
-def search_codelist(coding_system, search_term, include_desc=True, allow_wildcard=True):
+def search_codelist(coding_system, search_term, use_desc=True, case_sensitive=True, allow_wildcard=True):
     '''
         Attempts to search a codelist by a search term, given its coding system
 
@@ -867,7 +863,9 @@ def search_codelist(coding_system, search_term, include_desc=True, allow_wildcar
 
             search_term {str}: The search term used to query the table
             
-            include_desc {boolean}: Whether to search by description
+            use_desc {boolean}: Whether to search by description
+
+            case_sensitive {boolean}: Whether we use __regex or __iregex - only applies to pattern search
 
             allow_wildcard {boolean}: Whether to check for, and apply, regex patterns
                                     through the 'wildcard:' prefix
@@ -883,6 +881,6 @@ def search_codelist(coding_system, search_term, include_desc=True, allow_wildcar
     if allow_wildcard and search_term.lower().startswith('wildcard:'):
         matches = re.search('^wildcard:(.*)', search_term)
         matches = matches.group(1).lstrip()
-        return search_codelist_by_pattern(coding_system, matches, include_desc)
+        return search_codelist_by_pattern(coding_system, matches, use_desc, case_sensitive)
     
-    return search_codelist_by_term(coding_system, search_term, include_desc)
+    return search_codelist_by_term(coding_system, search_term, use_desc)

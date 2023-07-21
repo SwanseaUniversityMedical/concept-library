@@ -178,7 +178,12 @@
           <div class="detailed-input-group__header detailed-input-group__header--nowrap">
             <div class="detailed-input-group__header-item">
               <h3 class="detailed-input-group__title sm">Searchterm Rule</h3>
-              <p class="detailed-input-group__description">A searchterm rule attempts to include codes by their code or description, you can use regex by prepending the <em>"wildcard:"</em> prefix to your searchterm (e.g. <em>"wildcard:U\\d+"</em>)</p>
+              <p class="detailed-input-group__description">
+                A searchterm rule attempts to include codes by their code or description.
+              </p>
+              <p class="detailed-input-group__description">
+                To search by patterns using <a href="https://regexone.com/" target=”_blank”>Regex</a>, prepend the <em>"wildcard:"</em> prefix to your searchterm (e.g. <em>"wildcard:U\\d+"</em>)
+              </p>
             </div>
             <div class="detailed-input-group__header-item">
               <span tooltip="Remove Ruleset" direction="left">
@@ -195,10 +200,16 @@
                 value="${source}" data-item="rule">
             <span class="code-text-input__icon" id="code-search-icon"></span>
           </fieldset>
-          <fieldset class="hstack-checkbox-group hstack-checkbox-group--hang-right" id="search-methods">
-            <p class="hstack-checkbox-group__title">Search options:</p>
-            <input class="checkbox-input" aria-label="Include Description in search" type="checkbox" id="desc-rule-${id}" name="search-method">
-            <label for="desc-rule-${id}">Include Description</label>
+          <fieldset class="search-options justify-content-end align-items-center">
+            <p class="search-options__title"><strong>Search options:</strong></p>
+            <div class="search-options__container">
+              <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option" x-target="codes" checked>
+              <label class="search-options__label" for="search-codes-${id}"><span class="search-options__label-icon"></span>Search by Code</label>
+              <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option" x-target="description">
+              <label class="search-options__label" for="search-desc-${id}"><span class="search-options__label-icon"></span>Search by Description</label>
+              <input class="search-options__input" aria-label="Case Sensitive" type="checkbox" id="search-sensitive-${id}" name="search-sensitive" checked>
+              <label class="search-options__label" for="search-sensitive-${id}"><span class="search-options__label-icon"></span>Wildcard Case Sensitive</label>
+            </div>
           </fieldset>
         </div>
       </article>

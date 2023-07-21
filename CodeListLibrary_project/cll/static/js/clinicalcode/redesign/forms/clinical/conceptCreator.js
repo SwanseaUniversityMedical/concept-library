@@ -175,6 +175,15 @@ const CONCEPT_CREATOR_FILE_UPLOAD = {
 }
 
 /**
+ * CONCEPT_CREATOR_SEARCH_METHODS
+ * @desc describes code-related search options
+ */
+const CONCEPT_CREATOR_SEARCH_METHODS = {
+  CODES: 'codes',
+  DESCRIPTION: 'description',
+}
+
+/**
  * CONCEPT_CREATOR_MIN_MSG_DURATION
  * @desc Min. message duration for toast notif popups
  */
@@ -350,6 +359,10 @@ export default class ConceptCreator {
           })
 
           component.codes = codes;
+          if (component.hasOwnProperty('search_options')) {
+            delete component.search_options;
+          }
+
           return component;
         });
       }
@@ -630,16 +643,18 @@ export default class ConceptCreator {
    *       for codes that match the search term
    * @param {string} searchTerm the search term to match
    * @param {integer} codingSystemId the ID of the coding system to look up
-   * @param {boolean} includeDesc whether to incl. the description in the search or not
+   * @param {boolean} useDesc whether to use the description to search (rather than via code)
+   * @param {boolean} caseSensitive whether pattern matches are case sensitive - only applies to pattern search
    * @returns {promise} a promise that resolves with an object describing the results if successful
    */
-  tryQueryCodelist(searchTerm, codingSystemId, includeDesc) {
+  tryQueryCodelist(searchTerm, codingSystemId, useDesc, caseSensitive) {
     const encodedSearchterm = encodeURIComponent(searchTerm);
     const query = {
       'template': this.template?.id,
       'search': encodedSearchterm,
       'coding_system': codingSystemId,
-      'include_desc': includeDesc,
+      'use_desc': useDesc,
+      'case_sensitive': caseSensitive,
     }
     
     const parameters = new URLSearchParams(query);
@@ -813,7 +828,10 @@ export default class ConceptCreator {
 
       switch (component.source_type) {
         case CONCEPT_CREATOR_SOURCE_TYPES.SEARCH_TERM.name: {
-          await this.tryQueryCodelist(component.source, codingSystemId, true)
+          let useDesc = component?.search_options?.useDesc || 0;
+          let caseSensitive = component?.search_options?.caseSensitive || 1;
+
+          await this.tryQueryCodelist(component.source, codingSystemId, useDesc, caseSensitive)
             .then(response => {
               const codes = this.#sieveCodes(
                 component.logical_type,
@@ -1853,11 +1871,15 @@ export default class ConceptCreator {
       e.preventDefault();
       e.stopPropagation();
 
-      let includeDesc = input.parentNode.parentNode.querySelector('input[name="search-method"]:checked');
-      includeDesc = !isNullOrUndefined(includeDesc) ? 1 : 0;
+      let useDesc = input.parentNode.parentNode.querySelector('input[name="search-by-option"]:checked');
+      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('x-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
+      useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES ? 1 : 0;
+
+      let caseSensitive = input.parentNode.parentNode.querySelector('input[name="search-sensitive"]:checked');
+      caseSensitive = !isNullOrUndefined(caseSensitive) ? 1 : 0;
 
       const spinner = startLoadingSpinner();
-      this.tryQueryCodelist(value, this.state.data?.coding_system?.id, includeDesc)
+      this.tryQueryCodelist(value, this.state.data?.coding_system?.id, useDesc, caseSensitive)
         .then(async response => {
           const logicalType = this.state.data.components[index].logical_type;
           const codes = this.#sieveCodes(
@@ -1867,10 +1889,16 @@ export default class ConceptCreator {
           );
 
           // Update row
-          const prevCodeLength = this.state.data.components?.[index]?.codes?.length;
-          this.state.data.components[index].codes = codes.length > 0 ? codes : [ ];
-          this.state.data.components[index].source = codes.length > 0 ? value : null;
-          this.state.data.components[index].code_count = codes.length;
+          const component = this.state.data.components[index];
+          const prevCodeLength = component?.codes?.length;
+          component.codes = codes.length > 0 ? codes : [ ];
+          component.source = codes.length > 0 ? value : null;
+          component.code_count = codes.length;
+          component.search_options = {
+            useDesc: useDesc,
+            caseSensitive: caseSensitive,
+          };
+
           if (logicalType == CONCEPT_CREATOR_LOGICAL_TYPES.INCLUDE) {
             await this.#recalculateExclusionaryRules();
           }
@@ -1879,9 +1907,7 @@ export default class ConceptCreator {
           input.blur();
 
           // Apply changes and recompute codelist
-          if (codes.length > 0) {
-            this.#tryRenderAggregatedCodelist(true);
-          }
+          this.#tryRenderAggregatedCodelist(true);
 
           // Inform of null results 
           if (codes.length < 1) {

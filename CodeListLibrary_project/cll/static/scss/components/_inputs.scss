@@ -346,6 +346,15 @@
   &__title {
     margin: 0.5rem 0.5rem 0 0
   }
+
+  &--hang-right {
+    justify-content: flex-end;
+
+    @include media('<tablet', 'screen') {
+      justify-content: flex-start;
+      width: 100%;
+    }
+  }
 }
 
 // checkbox-item-container
@@ -364,6 +373,103 @@
 
   &.ignore-overflow {
     overflow: visible;
+  }
+}
+
+// search-options
+//  @desc defines a set of search options, example in create/concept.html
+.search-options {
+  @include flex-row();
+  position: relative;
+  padding: 0;
+  margin: 0 0 1rem 0;
+  border: 0;
+  outline: none;
+  width: 100%;
+  height: fit-content;
+
+  &__title {
+    padding: 0;
+    margin: 0 0.5rem 0 0;
+  }
+
+  &__container {
+    @include flex-row();
+    justify-content: flex-end;
+    width: fit-content;
+    height: fit-content;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+  }
+  
+  &__input {
+    display: none;
+  }
+
+  &__label {
+    --current-color: var(--color-bg);
+    --hover-color: var(--color-accent-bubble);
+
+    cursor: pointer;
+    display: inline-block;
+    border-radius: 0.25rem;
+    padding: 0.2rem 0.5rem 0.2rem 2rem;
+    background-color: var(--current-color);
+  }
+
+  &__input + &__label {
+    @include prefix(user-select, none, moz webkit o ms);
+    @include prefix(transition, all 150ms ease, moz webkit o ms);
+
+    border: 1px solid col(accent-washed);
+
+    &:hover {
+      background-color: var(--hover-color);
+      border: 1px solid transparent;
+    }
+
+    .search-options__label-icon:before {
+      content: '\f00d';
+      cursor: pointer;
+      position: absolute;
+      pointer-events: auto;
+      height: 100%;
+      top: 0;
+      right: 0.5rem;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      text-align: center;
+    }
+  }
+
+  &__input:checked + &__label {
+    @include prefix(transition, all 150ms ease, moz webkit o ms);
+    --current-color: var(--color-accent-bubble);
+    --hover-color: var(--color-bg);
+    border: 1px solid transparent;
+
+    &:hover {
+      background-color: var(--hover-color);
+      border: 1px solid col(accent-washed);
+    }
+
+    .search-options__label-icon:before {
+      content: '\f00c';
+      cursor: pointer;
+      position: absolute;
+      pointer-events: auto;
+      height: 100%;
+      top: 0;
+      right: 0.5rem;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      text-align: center;
+    }
   }
 }
 
