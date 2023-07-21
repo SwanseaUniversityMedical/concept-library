@@ -77,6 +77,9 @@ if [ "$ShouldPull" = true ]; then
   fi
 fi
 
+# Move env file to appropriate location
+cp "$RootPath/$EnvFileName" "$RootPath/concept-library/docker/env_vars.txt"
+
 # Parse environment variables
 SERVER_NAME=$(grep SERVER_NAME "$RootPath/$EnvFileName" | cut -d'=' -f 2-)
 
@@ -94,9 +97,6 @@ if [ "$ShouldPrune" = 'true' ]; then
   docker system prune -f -a --volumes
 fi
 
-# Move env file to appropriate location
-cp "$RootPath/$EnvFileName" "$RootPath/concept-library/docker/env_vars.txt"
-
 # Deploy new version
 echo "==========================================="
 echo "========== Deploying application =========="
@@ -104,12 +104,12 @@ echo "==========================================="
 echo $(printf '\nDeploying %s from %s | In foreground: %s' "$ContainerName" "$ComposeFile" "$DeployInForeground")
 
 ## Build the cll/os image
-docker build -f "$ComposeFile" -t cll/os \
+docker build -f production/app.Dockerfile -t cll/os \
   --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" --build-arg server_name="$SERVER_NAME" \
   ..
 
 ## Tag our image for other services
-docker tag cll/os cll_celery_worker
+docker tag cll/os cll/celery_worker
 docker tag cll/os cll/celery_beat
 
 ## Deploy the app

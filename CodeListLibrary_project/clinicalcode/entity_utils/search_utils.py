@@ -515,8 +515,8 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         id__in=entities.values_list('template', flat=True),
         template_version__in=entities.values_list('template_version', flat=True)
     ) \
-    .order_by('template_version', '-history_id') \
-    .distinct('template_version')
+    .order_by('id', 'template_version', '-history_id') \
+    .distinct('id', 'template_version')
 
     is_single_search = templates.count() > constants.MIN_SINGLE_SEARCH
     

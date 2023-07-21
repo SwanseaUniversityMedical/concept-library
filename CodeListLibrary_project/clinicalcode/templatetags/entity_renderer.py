@@ -281,7 +281,7 @@ class EntityCardsNode(template.Node):
 
         output = ''
         for entity in entities:
-            layout = template_utils.try_get_content(layouts, f'{entity.template.id}/{entity.template_data.get("version")}')
+            layout = template_utils.try_get_content(layouts, f'{entity.template.id}/{entity.template_version}')
             if not template_utils.is_layout_safe(layout):
                 continue
             card = template_utils.try_get_content(layout['definition'].get('template_details'), 'card_type', constants.DEFAULT_CARD)
@@ -295,7 +295,6 @@ class EntityCardsNode(template.Node):
                 raise
             else:
                 output += html
-        
         return output
 
 @register.tag(name='render_entity_filters')
