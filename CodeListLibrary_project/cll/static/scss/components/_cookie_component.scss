@@ -65,9 +65,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    
     button {
       width: calc(100% / 3 - 10px);
       padding: 8px 0;
+      background-color: var(--color-accent-secondary);
+      border-color: var(--color-accent-secondary);
+
+      
     }
+
   }
 }

@@ -108,8 +108,9 @@
       <!-- Scripts -->
 	  {% endblock scripts %}
 
-    {% if SHOW_COOKIE_ALERT %}
-      {% cookielaw_banner %}
-    {% endif %}		
+	{% if SHOW_COOKIE_ALERT %}
+	    {% include "components/cookies/banner.html" %}
+	{% endif %}		
+	
   </body>
 </html>
