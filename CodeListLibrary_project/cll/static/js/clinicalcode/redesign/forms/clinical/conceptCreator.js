@@ -643,17 +643,19 @@ export default class ConceptCreator {
    *       for codes that match the search term
    * @param {string} searchTerm the search term to match
    * @param {integer} codingSystemId the ID of the coding system to look up
+   * @param {boolean} useWildcard whether to search via wildcard
    * @param {boolean} useDesc whether to use the description to search (rather than via code)
    * @param {boolean} caseSensitive whether pattern matches are case sensitive - only applies to pattern search
    * @returns {promise} a promise that resolves with an object describing the results if successful
    */
-  tryQueryCodelist(searchTerm, codingSystemId, useDesc, caseSensitive) {
+  tryQueryCodelist(searchTerm, codingSystemId, useWildcard, useDesc, caseSensitive) {
     const encodedSearchterm = encodeURIComponent(searchTerm);
     const query = {
       'template': this.template?.id,
       'search': encodedSearchterm,
       'coding_system': codingSystemId,
       'use_desc': useDesc,
+      'use_wildcard': useWildcard,
       'case_sensitive': caseSensitive,
     }
     
@@ -828,10 +830,16 @@ export default class ConceptCreator {
 
       switch (component.source_type) {
         case CONCEPT_CREATOR_SOURCE_TYPES.SEARCH_TERM.name: {
-          let useDesc = component?.search_options?.useDesc || 0;
-          let caseSensitive = component?.search_options?.caseSensitive || 1;
+          let useDesc = component?.search_options?.useDesc;
+          useDesc = !isNullOrUndefined(useDesc) ? useDesc : 0;
+          
+          let useWildcard = component?.search_options?.useWildcard;
+          useWildcard = !isNullOrUndefined(useDesc) ? useDesc : 0;
 
-          await this.tryQueryCodelist(component.source, codingSystemId, useDesc, caseSensitive)
+          let caseSensitive = component?.search_options?.caseSensitive;
+          caseSensitive = !isNullOrUndefined(caseSensitive) ? caseSensitive : 1;
+
+          await this.tryQueryCodelist(component.source, codingSystemId, useWildcard, useDesc, caseSensitive)
             .then(response => {
               const codes = this.#sieveCodes(
                 component.logical_type,
@@ -1871,15 +1879,18 @@ export default class ConceptCreator {
       e.preventDefault();
       e.stopPropagation();
 
-      let useDesc = input.parentNode.parentNode.querySelector('input[name="search-by-option"]:checked');
-      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('x-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
-      useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES ? 1 : 0;
+      let useWildcard = input.parentNode.parentNode.querySelector('input[name="search-wildcard"]:checked');
+      useWildcard = !isNullOrUndefined(useWildcard) ? 1 : 0;
 
       let caseSensitive = input.parentNode.parentNode.querySelector('input[name="search-sensitive"]:checked');
       caseSensitive = !isNullOrUndefined(caseSensitive) ? 1 : 0;
 
+      let useDesc = input.parentNode.parentNode.querySelector('input[name="search-by-option"]:checked');
+      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('x-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
+      useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES ? 1 : 0;
+
       const spinner = startLoadingSpinner();
-      this.tryQueryCodelist(value, this.state.data?.coding_system?.id, useDesc, caseSensitive)
+      this.tryQueryCodelist(value, this.state.data?.coding_system?.id, useWildcard, useDesc, caseSensitive)
         .then(async response => {
           const logicalType = this.state.data.components[index].logical_type;
           const codes = this.#sieveCodes(
@@ -1896,6 +1907,7 @@ export default class ConceptCreator {
           component.code_count = codes.length;
           component.search_options = {
             useDesc: useDesc,
+            useWildcard: useWildcard,
             caseSensitive: caseSensitive,
           };
 

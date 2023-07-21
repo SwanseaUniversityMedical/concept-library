@@ -387,15 +387,17 @@
   outline: none;
   width: 100%;
   height: fit-content;
+  gap: 1rem;
 
   &__title {
     padding: 0;
-    margin: 0 0.5rem 0 0;
+    margin: 0 0.25rem 0 0rem;
   }
 
   &__container {
     @include flex-row();
     justify-content: flex-end;
+    align-items: center;
     width: fit-content;
     height: fit-content;
     gap: 0.5rem;
@@ -458,6 +460,35 @@
 
     .search-options__label-icon:before {
       content: '\f00c';
+      cursor: pointer;
+      position: absolute;
+      pointer-events: auto;
+      height: 100%;
+      top: 0;
+      right: 0.5rem;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      text-align: center;
+    }
+  }
+
+  &__input[data-target="wildcard"]:not(:checked) ~ &__label[data-follows="wildcard"] {
+    @include prefix(user-select, none, moz webkit o ms);
+    @include prefix(transition, all 150ms ease, moz webkit o ms);
+    --current-color: var(--color-bg);
+    --hover-color: var(--color-accent-bubble);
+
+    border: 1px solid col(accent-washed);
+
+    &:hover {
+      background-color: var(--hover-color);
+      border: 1px solid transparent;
+    }
+
+    .search-options__label-icon:before {
+      content: '\f00d';
       cursor: pointer;
       position: absolute;
       pointer-events: auto;

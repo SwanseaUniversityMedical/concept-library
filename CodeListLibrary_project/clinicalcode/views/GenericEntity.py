@@ -460,10 +460,13 @@ class CreateEntityView(TemplateView):
         use_desc = gen_utils.parse_int(gen_utils.try_get_param(request, 'use_desc'), None)
         use_desc = use_desc == 1
 
+        use_wildcard = gen_utils.parse_int(gen_utils.try_get_param(request, 'use_wildcard'), None)
+        use_wildcard = use_wildcard == 1
+
         case_sensitive = gen_utils.parse_int(gen_utils.try_get_param(request, 'case_sensitive'), None)
         case_sensitive = case_sensitive == 1
 
-        codelist = search_utils.search_codelist(coding_system, search_term, use_desc=use_desc, case_sensitive=case_sensitive)
+        codelist = search_utils.search_codelist(coding_system, search_term, use_desc=use_desc, use_wildcard=use_wildcard, case_sensitive=case_sensitive)
         if codelist is not None:
             codelist = list(codelist.values('id', 'code', 'description'))
         else:

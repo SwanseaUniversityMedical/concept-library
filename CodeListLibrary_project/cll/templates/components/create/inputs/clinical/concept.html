@@ -181,7 +181,7 @@
                 A searchterm rule attempts to include codes by their code or description.
               </p>
               <p class="detailed-input-group__description">
-                To search by patterns using <a href="https://regexone.com/" target=”_blank”>Regex</a>, prepend the <em>"wildcard:"</em> prefix to your searchterm (e.g. <em>"wildcard:U\\d+"</em>)
+                You can learn about to match patterns with Regex <a href="https://regexone.com/" target=”_blank”>here</a>.
               </p>
             </div>
             <div class="detailed-input-group__header-item">
@@ -200,22 +200,30 @@
             <span class="code-text-input__icon" id="code-search-icon"></span>
           </fieldset>
           <fieldset class="search-options justify-content-end align-items-center">
-            <p class="search-options__title"><strong>Search options:</strong></p>
             <div class="search-options__container">
+              <p class="search-options__title"><strong>Fields:</strong></p>
               <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option" x-target="codes" checked>
               <label class="search-options__label" role="button" tabindex="0" for="search-codes-${id}">
                 <span class="search-options__label-icon"></span>
-                Search by Code
+                Code
               </label>
               <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option" x-target="description">
               <label class="search-options__label" role="button" tabindex="0" for="search-desc-${id}">
                 <span class="search-options__label-icon"></span>
-                Search by Description
+                Description
+              </label>
+            </div>
+            <div class="search-options__container">
+              <p class="search-options__title"><strong>Regex:</strong></p>
+              <input class="search-options__input" aria-label="Use Regex Wildcard" type="checkbox" id="search-wildcard-${id}" name="search-wildcard" data-target="wildcard">
+              <label class="search-options__label" role="button" tabindex="0" for="search-wildcard-${id}">
+                <span class="search-options__label-icon"></span>
+                Use Regex
               </label>
               <input class="search-options__input" aria-label="Case Sensitive" type="checkbox" id="search-sensitive-${id}" name="search-sensitive" checked>
-              <label class="search-options__label" role="button" tabindex="0" for="search-sensitive-${id}">
+              <label class="search-options__label" role="button" tabindex="0" for="search-sensitive-${id}" data-follows="wildcard">
                 <span class="search-options__label-icon"></span>
-                Wildcard Case Sensitive
+                Case Sensitive
               </label>
             </div>
           </fieldset>

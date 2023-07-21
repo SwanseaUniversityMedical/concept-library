@@ -854,7 +854,7 @@ def search_codelist_by_term(coding_system, search_term, use_desc=True):
     codes = codes.order_by(code_column, '-similarity').distinct(code_column)
     return codes
 
-def search_codelist(coding_system, search_term, use_desc=True, case_sensitive=True, allow_wildcard=True):
+def search_codelist(coding_system, search_term, use_desc=False, use_wildcard=False, case_sensitive=True, allow_wildcard=True):
     '''
         Attempts to search a codelist by a search term, given its coding system
 
@@ -863,7 +863,9 @@ def search_codelist(coding_system, search_term, use_desc=True, case_sensitive=Tr
 
             search_term {str}: The search term used to query the table
             
-            use_desc {boolean}: Whether to search by description
+            use_desc {boolean}: Whether to search by description instead of code
+
+            use_wildcard {boolean}: Whether to search by wildcard
 
             case_sensitive {boolean}: Whether we use __regex or __iregex - only applies to pattern search
 
@@ -878,9 +880,13 @@ def search_codelist(coding_system, search_term, use_desc=True, case_sensitive=Tr
     if not isinstance(coding_system, CodingSystem) or not isinstance(search_term, str):
         return None
     
-    if allow_wildcard and search_term.lower().startswith('wildcard:'):
-        matches = re.search('^wildcard:(.*)', search_term)
-        matches = matches.group(1).lstrip()
+    has_wildcard_prefix = search_term.lower().startswith('wildcard:')
+    is_wildcard = use_wildcard or has_wildcard_prefix
+    if allow_wildcard and is_wildcard:
+        matches = search_term
+        if has_wildcard_prefix:
+            matches = re.search('^wildcard:(.*)', matches)
+            matches = matches.group(1).lstrip()
         return search_codelist_by_pattern(coding_system, matches, use_desc, case_sensitive)
     
     return search_codelist_by_term(coding_system, search_term, use_desc)
