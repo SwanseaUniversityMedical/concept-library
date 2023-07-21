@@ -203,11 +203,20 @@
             <p class="search-options__title"><strong>Search options:</strong></p>
             <div class="search-options__container">
               <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option" x-target="codes" checked>
-              <label class="search-options__label" for="search-codes-${id}"><span class="search-options__label-icon"></span>Search by Code</label>
+              <label class="search-options__label" role="button" tabindex="0" for="search-codes-${id}">
+                <span class="search-options__label-icon"></span>
+                Search by Code
+              </label>
               <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option" x-target="description">
-              <label class="search-options__label" for="search-desc-${id}"><span class="search-options__label-icon"></span>Search by Description</label>
+              <label class="search-options__label" role="button" tabindex="0" for="search-desc-${id}">
+                <span class="search-options__label-icon"></span>
+                Search by Description
+              </label>
               <input class="search-options__input" aria-label="Case Sensitive" type="checkbox" id="search-sensitive-${id}" name="search-sensitive" checked>
-              <label class="search-options__label" for="search-sensitive-${id}"><span class="search-options__label-icon"></span>Wildcard Case Sensitive</label>
+              <label class="search-options__label" role="button" tabindex="0" for="search-sensitive-${id}">
+                <span class="search-options__label-icon"></span>
+                Wildcard Case Sensitive
+              </label>
             </div>
           </fieldset>
         </div>
