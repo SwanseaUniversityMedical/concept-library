@@ -8,7 +8,7 @@ class PublishModal {
 
   async handleButtonClick(e) {
     e.preventDefault();
-    const ModalFactory = window.ModalFactory;
+    const spinner = startLoadingSpinner();
 
     try {
       const response = await fetch(this.publish_url, {
@@ -17,6 +17,7 @@ class PublishModal {
         },
       });
       const data = await response.json();
+      spinner.remove();
       //console.log(data); for debugging
 
       const publishButton = [
@@ -84,6 +85,7 @@ class PublishModal {
   }
 
   async postData(data, url) {
+    const spinner = startLoadingSpinner();
     try {
       const csrfToken = document.querySelector(
         "[name=csrfmiddlewaretoken]"
@@ -98,8 +100,17 @@ class PublishModal {
         },
         body: JSON.stringify(data),
       });
-      return response.json();
+      const responseData = await response.json();
+    if(response.ok) {
+      spinner.remove();
+      return responseData;
+    } else {
+      spinner.remove();
+      console.error(responseData);
+      throw new Error(`Request failed: ${response.status}`);
+    }
     } catch (error) {
+      spinner.remove();
       console.log(error);
     }
   }
