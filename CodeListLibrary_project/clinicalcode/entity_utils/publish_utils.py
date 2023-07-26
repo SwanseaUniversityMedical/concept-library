@@ -174,7 +174,7 @@ def check_children(request, entity, entity_class):
             child_version_id = 'phenotype_version_id'
             name_child = 'phenotype'
         
-        if len(entity.template_data[name_table]) == 0:
+        if len(entity.template_data[name_table]) == 0 and entity.template_data[name_table] is not None:
             child_entitys_versions = ''
         else:
             child_entitys_versions = [(x[child_id], x[child_version_id]) for x in entity.template_data[name_table]]
