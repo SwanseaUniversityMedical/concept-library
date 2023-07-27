@@ -18,7 +18,7 @@ class PublishModal {
       });
       const data = await response.json();
       spinner.remove();
-      //console.log(data); for debugging
+      console.log(data);
 
       const publishButton = [
         {
@@ -68,10 +68,8 @@ class PublishModal {
           const name = result.name;
           if (name == "Decline") {
             await this.postData(data, this.decline_url);
-            location.reload();
           } else {
             await this.postData(data, this.publish_url);
-            location.reload();
           }
         })
         .catch((result) => {
@@ -99,16 +97,16 @@ class PublishModal {
           "Cache-Control": "no-cache",
         },
         body: JSON.stringify(data),
+      }).then(response => {
+        if (!response.ok) {
+          return Promise.reject(response);
+        }
+        return response.json();
+      }).finally(() => {
+        spinner.remove();
+        window.location.reload();
       });
-      const responseData = await response.json();
-    if(response.ok) {
-      spinner.remove();
-      return responseData;
-    } else {
-      spinner.remove();
-      console.error(responseData);
-      throw new Error(`Request failed: ${response.status}`);
-    }
+
     } catch (error) {
       spinner.remove();
       console.log(error);
