@@ -12,7 +12,8 @@ class Brand(TimeStampedModel):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=250, unique=True)
     description = models.TextField(blank=True, null=True)
-    logo_path = models.CharField(max_length=250)
+    logo_path = models.CharField(max_length=250)  
+    index_path = models.CharField(max_length=250, blank=True, null=True)
     css_path = models.CharField(max_length=250, blank=True, null=True)
     website = models.URLField(max_length=1000, blank=True, null=True)  # http website url
     owner = models.ForeignKey(User,

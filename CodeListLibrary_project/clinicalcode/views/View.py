@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from django.db.models.functions import Lower
 
 import requests
+import sys
 import datetime
 import json
 import logging
@@ -31,20 +32,26 @@ logger = logging.getLogger(__name__)
 
 def index(request):
     '''
-        Display the index homepage.
+        Displays the index homepage.
+        Assigns brand defined in the Django Admin Portal under "index_path". 
+        If brand is not available it will rely on the default index path.
     '''
+    index_path = settings.INDEX_PATH
+    brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
-    if request.CURRENT_BRAND == "":
-        return render(request, 'clinicalcode/index.html')
-    elif request.CURRENT_BRAND == "BREATHE":
-        return index_BREATHE(request)
-    elif request.CURRENT_BRAND == "HDRUK":
-        return index_HDRUK(request)
-    else:
-        return render(request, 'clinicalcode/index.html')
+    # if the index_ function doesn't exist for the current brand force render of the default index_path
+    try:
+        if not brand.exists() :
+            return render(request, index_path)
+        brand = brand.first()
+        index_path = brand.index_path 
+        return getattr(sys.modules[__name__], "index_%s" % brand)(request, index_path)
+    except:
+        return render(request, index_path)
 
 
-def index_HDRUK(request):
+
+def index_HDRUK(request, index_path):
     '''
         Display the HDR UK homepage.
     '''
@@ -59,7 +66,7 @@ def index_HDRUK(request):
 
     return render(
         request,
-        'clinicalcode/brand/HDRUK/index_HDRUK.html',
+        index_path,
         {
             # ONLY PUBLISHED COUNTS HERE
             'published_concept_count': HDRUK_stat['published_concept_count'],
@@ -69,11 +76,10 @@ def index_HDRUK(request):
             'clinical_terminologies': HDRUK_stat['clinical_terminologies']
         })
 
-
-def index_BREATHE(request):
+def index_BREATHE(request, index_path):
     return render(
         request,
-        'clinicalcode/brand/BREATHE/index_BREATHE.html',
+        index_path
     )
 
 
