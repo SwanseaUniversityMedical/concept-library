@@ -10,11 +10,12 @@
 	</head>
 {% endif %}
 
+
 {% include "components/cookies/cookie_component.html" %}
 {% include "components/cookies/cookie_card.html" %}
 
-{% compress js file %}
-<script src="{% static 'js/clinicalcode/redesign/cookies/cookiealert.js' %}"></script>
-<script src="{% static 'js/clinicalcode/redesign/cookies/cookie-settings.js' %}"></script>
-<script src="{% static 'js/clinicalcode/redesign/cookies/generateGtag.js' %}"></script>
+{% compress js %}
+<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/cookies/cookiealert.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/cookies/cookie-settings.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/cookies/generateGtag.js' %}"></script>
 {% endcompress %}
