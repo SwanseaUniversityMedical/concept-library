@@ -43,7 +43,7 @@ class PublishModal {
         {
           name: "Decline",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btntext-accent-darkest bold danger-accent"  ${
+          html: `<button class="primary-btn text-accent-darkest bold danger-accent"  ${
             data.errors ? "disabled" : ""
           } id="decline-modal-button"></button>`,
         },
