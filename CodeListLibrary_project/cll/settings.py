@@ -248,29 +248,32 @@ INSTALLED_APPS = INSTALLED_APPS + [
 
 #==============================================================================#
 
+
 ''' Middleware '''
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Manage sessions across requests & Caching
-    'django.middleware.cache.UpdateCacheMiddleware',
+    # Manage caching
+    #'django.middleware.cache.UpdateCacheMiddleware',
+    # GZip
+    'django.middleware.gzip.GZipMiddleware',
+    # Manage sessions across requests
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     # Associates users with requests using sessions
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
-    # GZip
-    'django.middleware.gzip.GZipMiddleware',
     # Minify HTML
     'clinicalcode.middleware.Compression.HTMLCompressionMiddleware',
     # Handle brands
     'clinicalcode.middleware.Brands.BrandMiddleware',
     # Handle user session expiry
     'clinicalcode.middleware.Sessions.SessionExpiryMiddleware',
+    # Fetch from cache
+    #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 #==============================================================================#
