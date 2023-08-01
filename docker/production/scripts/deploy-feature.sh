@@ -129,6 +129,6 @@ else
 fi
 
 # Prune unused containers/images/volumes if we (1) want to cleanup and (2) haven't already done so
-if [ "$ShouldClean" = 'true' ] && [ "$ShouldPrune" != 'true' ]; then
+if [ "$ShouldClean" = 'true' ]; then
   docker system prune -f -a --volumes
 fi

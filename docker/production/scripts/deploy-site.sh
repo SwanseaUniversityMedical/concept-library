@@ -8,6 +8,7 @@
   [!] Arguments:
     -fg | --foreground - [Defaults to False] - determines whether we deploy in foreground
     -nc | --no-clean - [Defaults to True]    - determines whether we prune the workspace after deploying
+    -fp | --file-path  - [Defaults to $PWD]     - determines the /root/ file path (otherwise uses CWD)
      -a | --address  - [Defaults to None]    - the registry address we pull from
      -f | --file     - [Defaults to prod]    - the docker-compose file we use
      -p | --profile  - [Defaults to live]    - which docker profile to use
@@ -91,6 +92,6 @@ else
 fi
 
 # Prune unused containers/images/volumes if we (1) want to cleanup and (2) haven't already done so
-if [ "$ShouldClean" = 'true' ] && [ "$ShouldPrune" != 'true' ]; then
+if [ "$ShouldClean" = 'true' ]; then
   docker system prune -f -a --volumes
 fi
