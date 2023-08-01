@@ -33,7 +33,7 @@ ShouldPull=true;
 ShouldPrune=true;
 ShouldClean=true;
 
-RootPath=$(pwd);
+RootPath='/root/deploy_DEV_DEMO_DT/';
 EnvFileName='env_vars-RO.txt';
 
 ComposeFile='docker-compose.prod.yaml';
@@ -83,13 +83,28 @@ cp "$RootPath/$EnvFileName" "$RootPath/concept-library/docker/env_vars.txt"
 # Parse environment variables
 SERVER_NAME=$(grep SERVER_NAME "$RootPath/$EnvFileName" | cut -d'=' -f 2-)
 
+# Deploy new version
+echo "==========================================="
+echo "=========== Building application =========="
+echo "==========================================="
+echo $(printf '\nDeploying %s from %s | In foreground: %s' "$ContainerName" "$ComposeFile" "$DeployInForeground")
+
+cd "$RootPath/concept-library/docker"
+
+## Build the cll/app image
+docker build -f production/app.Dockerfile -t cll/app \
+  --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" --build-arg server_name="$SERVER_NAME" \
+  ..
+
+## Tag our image for other services
+docker tag cll/app cll/celery_worker
+docker tag cll/app cll/celery_beat
+
 # Kill current app and prune if required
 echo "==========================================="
 echo "=========== Cleaning workspace ============"
 echo "==========================================="
 echo $(printf '\nCleaning Container %s from %s | Will prune: %s' "$ContainerName" "$ComposeFile" "$ShouldPrune")
-
-cd "$RootPath/concept-library/docker"
 
 docker-compose -p "$ContainerName" -f "$ComposeFile" down
 
@@ -102,15 +117,6 @@ echo "==========================================="
 echo "========== Deploying application =========="
 echo "==========================================="
 echo $(printf '\nDeploying %s from %s | In foreground: %s' "$ContainerName" "$ComposeFile" "$DeployInForeground")
-
-## Build the cll/os image
-docker build -f production/app.Dockerfile -t cll/os \
-  --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" --build-arg server_name="$SERVER_NAME" \
-  ..
-
-## Tag our image for other services
-docker tag cll/os cll/celery_worker
-docker tag cll/os cll/celery_beat
 
 ## Deploy the app
 if [ "$DeployInForeground" = 'true' ]; then

@@ -161,13 +161,14 @@
           opacity: 0.5;
         }
 
-        &:focus {
-          outline: none;
-        }
-
         &:focus-visible {
           outline: 1px solid black;
           border-radius: 2pt;
+        }
+
+        &:focus {
+          outline: none;
+          border-radius: 0.25rem;
         }
 
         &:hover {
@@ -529,11 +530,13 @@
     &:focus {
       @include box-shadow(0px, 10px, 20px, var(--search-shadow-active-color));
       outline: none;
+      border-radius: 0.2rem;
     }
 
     &:focus-visible {
-      outline: 1px solid black;
-      border-radius: 2pt;
+      @include box-shadow(0px, 10px, 20px, var(--search-shadow-active-color));
+      outline: none;
+      border-radius: 0.2rem;
     }
 
     &:disabled {

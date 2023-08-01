@@ -41,7 +41,6 @@ $brand-map-none: (
   'color-text-danger': $pastel_red,
   'color-text-warning': $wax_flower,
 
-
   // Icons
   'icons-name': var(--fa-style-family-classic),
   'icons-style': var(--fa-font-solid),
@@ -59,7 +58,6 @@ $brand-map-none: (
   'navigation-item-selector': $soft_cyan,
   'navigation-scroll-shadow': 'inset 0px -1px 0px #f3f3f4',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
-
 
   //About_dropdown
   'dropdown-shadow':0px 10px 70px rgba(0, 0, 0, 0.15),
@@ -87,6 +85,7 @@ $brand-map-none: (
 
   // Main page
   'main-top-padding': 5rem,
+  'main-top-mobile-padding': 4rem,
   'main-gutter': 6rem,
   'main-mobile-gutter': 1.75rem,
 
@@ -104,7 +103,7 @@ $brand-map-none: (
   'item-list-odd-bg-color': $off_white02,
   'item-list-even-bg-color': $white,
 
-  /* Inputs */
+  // Inputs
   'switch-size': 50px,
   'switch-thumb-color': $off_white,
   'switch-bg-color': $lightest_grey,
@@ -113,19 +112,34 @@ $brand-map-none: (
   'search-shadow-inactive-color': $cow_black01,
   'search-shadow-active-color': $cow_black02,
 
-  /* Chips */
+  // Chips
   'base-metachip-bg-color': $pickled_bluewood,
 
-  /* Cards */
+  // Cards
   'card-shadow-color': $cow_black01,
   'card-border-radius': 0.1rem,
   'referral-card-anchor-color': $iris,
   'entity-card-anchor-color': $iris,
 
-  /* Pagination */
+  // Pagination controller
   'pagination-inactive-color': $white_smoke,
   'pagination-active-color': $platinum,
   'pagination-disabled-color': $boulder,
+
+  /* Homepage */
+
+  // Hero
+  'hero-area-bg-color': $ghost_white,
+  'hero-gutter': 0px,
+  'hero-mobile-gutter': 0px,
+  'hero-drop-shadow': 0 3rem 0.05rem $periwinkle,
+
+  // Feature
+  'feature-highlight-color': $indigo,
+  'feature-icon-color': $cornflower_blue,
+
+  // Brand cards
+  'brand-card-bg-color': $soft_blue20,
 
   /* Articles */
 
@@ -205,7 +219,6 @@ $brand-map-ADP: (
   'color-text-danger': $pastel_red,
   'color-text-warning': $wax_flower,
 
-
   // Icons
   'icons-name': var(--fa-style-family-classic),
   'icons-style': var(--fa-font-solid),
@@ -250,6 +263,7 @@ $brand-map-ADP: (
 
   // Main page
   'main-top-padding': 5rem,
+  'main-top-mobile-padding': 4rem,
   'main-gutter': 6rem,
   'main-mobile-gutter': 1.75rem,
 
@@ -375,7 +389,6 @@ $brand-map-HDRUK: (
   'color-text-danger': $pastel_red,
   'color-text-warning': $wax_flower,
 
-
   // Icons
   'icons-name': var(--fa-style-family-classic),
   'icons-style': var(--fa-font-solid),
@@ -420,6 +433,7 @@ $brand-map-HDRUK: (
 
   // Main page
   'main-top-padding': 5rem,
+  'main-top-mobile-padding': 4rem,
   'main-gutter': 6rem,
   'main-mobile-gutter': 1.75rem,
 
@@ -582,6 +596,7 @@ $brand-map-SAIL: (
 
   // Main page
   'main-top-padding': 5rem,
+  'main-top-mobile-padding': 4rem,
   'main-gutter': 6rem,
   'main-mobile-gutter': 1.75rem,
 
