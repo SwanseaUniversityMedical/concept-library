@@ -1,0 +1,27 @@
+{% load static %}
+{% load i18n %}
+
+{% load mathfilters %}
+{% load cl_extras %}
+
+{% block content %}
+
+<div class="email-notification">
+<div class="content">
+    <h2><img class="title-icon" src="https://via.placeholder.com/64" alt="Title Icon">Notification from Concept Library</h2>
+    {% include "components/email/email_card.html" %}
+    <div class="footer">
+        <div class="footer-icons">
+            <img src="https://via.placeholder.com/64" alt="Icon 1" />
+            <img src="https://via.placeholder.com/64" alt="Icon 2" />
+            <img src="https://via.placeholder.com/64" alt="Icon 3" />
+        </div>
+        <p>Copyright © 2023 - SAIL Databank - Swansea University. All rights reserved.</p>
+    </div>
+</div>
+
+</div>
+
+{% endblock content %}
+
+

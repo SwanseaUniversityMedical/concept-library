@@ -1,0 +1,74 @@
+.email-notification {
+  background-color: #ebebeb;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+
+  &__content {
+    margin: 0 auto;
+    padding: 2em;
+    max-width: 33.5rem;
+    background-color: #ffffff;
+    border-radius: 0.625rem;
+
+    h2 {
+      color: #525252; // Changed the color of the title here
+    }
+  }
+  
+  &__footer {
+    margin: 1.25em auto;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  
+    p {
+      color: #8c8c8c;
+    }
+  
+    &__footer-icons {
+      text-align: center;
+      width: 100%;
+  
+      img {
+        height: 64px;
+        width: 64px;
+      }
+    }
+  }
+}
+
+
+
+.status-button {
+  background-color: #ffcc00;
+  color: #ffffff;
+  padding: 0.625em;
+  border: none;
+  border-radius: 0.3125rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+
+
+.title-icon {
+  height: 64px;
+  width: 64px;
+  margin-right: 0.625em;
+  vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  .content {
+    width: 100%;
+    padding: 0;
+  }
+
+  .footer .footer-icons img,
+  .title-icon {
+    width: 100%;
+    height: auto;
+  }
+}
