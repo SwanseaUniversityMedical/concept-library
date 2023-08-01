@@ -21,11 +21,6 @@ A significant aspect of research using routinely collected health records is def
 
 Often the definitions that are created are of interest to researchers for many studies, but there are barriers to easily sharing them.  The definitions may be embedded within study-specific scripts, such that it is not easy to extract the part that may be of general interest.  Also, often researchers do not fully document how a concept was created, its precise meaning, limitations, etc.  Crucial information may be lost when passing it to other researchers, resulting in mistakes.  Often there simply is no mechanism to discover and share work that has been done previously, leading researchers to waste time and resources reinventing the wheel.  In theory, when research is published, information on the precise methods used should be included, but in reality this is often inadequate.
 
-### 2.6.1. Basics
-### 2.6.2. Debug build tasks
-### 2.6.3. Test build tasks
-### 2.6.4. How to handle cleaning
-
 # Table of contents
 1. [Clone this repository](#1.-Clone-this-Repository)  
 2. [Setup with Docker](#2.-Setup-with-Docker)  
