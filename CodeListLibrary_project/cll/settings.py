@@ -254,7 +254,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     # Manage caching
-    #'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
     # GZip
     'django.middleware.gzip.GZipMiddleware',
     # Manage sessions across requests
