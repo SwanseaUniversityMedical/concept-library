@@ -704,6 +704,7 @@
     @include flex-row($gap: 1rem);
 
     justify-content: center;
+    align-content: stretch;
   }
 
   &__item {
@@ -711,8 +712,9 @@
     @include box-shadow(0, 4px, 8px, 0px, rgba(0, 0, 0, 0.2));
     @include prefix(transition, all ease 250ms, webkit moz ms o);
     
+    display: flex;
+    flex-flow: column nowrap;
     width: 250px;
-    height: fit-content;
     background-color: col(bg);
     border-radius: 0.25rem;
     transition: all 0.4s;
@@ -733,12 +735,15 @@
       font-size: 1.1rem;
       color: col(text-darkest);
       padding: 0.5rem 0;
-      margin: 0;
+    }
+
+    &-text {
+      margin: 0 0 1rem 0;
     }
 
     a {
       @include clear-anchor();
-      margin-top: 1rem;
+      margin-top: auto;
       padding-top: 0.5rem;
       padding-bottom: 0.5rem;
     }
