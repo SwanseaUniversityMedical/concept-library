@@ -8,7 +8,6 @@
   [!] Arguments:
     -fg | --foreground - [Defaults to False] - determines whether we deploy in foreground
     -nc | --no-clean - [Defaults to True]    - determines whether we prune the workspace after deploying
-    -np | --no-prune - [Defaults to True]    - determines whether we prune after docker-compose down
      -a | --address  - [Defaults to None]    - the registry address we pull from
      -f | --file     - [Defaults to prod]    - the docker-compose file we use
      -p | --profile  - [Defaults to live]    - which docker profile to use
@@ -27,7 +26,6 @@ ContainerName='cll';
 # Default params
 DeployInForeground=false;
 ShouldClean=true;
-ShouldPrune=true;
 
 Profile='live';
 LibraryAddress='';
@@ -41,7 +39,6 @@ while [[ "$#" -gt 0 ]]
     case $1 in
       -fg|--foreground) DeployInForeground=true; shift;;
       -nc|--no-clean) ShouldClean=false; shift;;
-      -np|--no-prune) ShouldPrune=false; shift;;
       -fp|--file-path) RootPath="$2"; shift;;
       -a|--address) LibraryAddress="$2"; shift;;
       -f|--file) ComposeFile="$2"; shift;;
@@ -72,11 +69,7 @@ echo "==========================================="
 
 cd "$RootPath"
 
-docker-compose -p "$ContainerName" -f "$ComposeFile" down
-
-if [ "$ShouldPrune" = 'true' ]; then
-  docker system prune -f -a --volumes
-fi
+docker-compose -p "$ContainerName" -f "$ComposeFile" down --volumes
 
 # Deploy app
 echo "==========================================="

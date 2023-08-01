@@ -11,13 +11,13 @@
     -fg | --foreground - [Defaults to False]    - determines whether we deploy in foreground
     -nd | --no-pull    - [Defaults to True]     - determines whether we pull from the repo and remove legacy
     -nc | --no-clean   - [Defaults to True]     - determines whether we prune the workspace after deploying
-    -np | --no-prune   - [Defaults to True]     - determines whether we prune after docker-compose down
     -fp | --file-path  - [Defaults to $PWD]     - determines the /root/ file path (otherwise uses CWD)
      -e | --env        - [Defaults to $-FA]     - the environment file to use
      -f | --file       - [Defaults to prod]     - the docker-compose file we use
      -n | --name       - [Defaults to '.._dev'] - the name of the container
      -r | --repo       - [Defaults to cl.git]   - the repository URL
      -b | --branch     - [Defaults to '']       - the repository branch (uses master if null)
+     -p | --profile  - [Defaults to live]    - which docker profile to use
 '
 
 # Prepare env
@@ -30,12 +30,12 @@ export https_proxy
 # Default params
 DeployInForeground=false;
 ShouldPull=true;
-ShouldPrune=true;
 ShouldClean=true;
 
 RootPath='/root/deploy_DEV_DEMO_DT/';
 EnvFileName='env_vars-RO.txt';
 
+Profile='live';
 ComposeFile='docker-compose.prod.yaml';
 ContainerName='cllro_dev';
 
@@ -49,13 +49,13 @@ while [[ "$#" -gt 0 ]]
       -fg|--foreground) DeployInForeground=true; shift;;
       -nd|--no-pull) ShouldPull=false; shift;;
       -nc|--no-clean) ShouldClean=false; shift;;
-      -np|--no-prune) ShouldPrune=false; shift;;
       -fp|--file-path) RootPath="$2"; shift;;
       -e|--env) EnvFileName="$2"; shift;;
       -f|--file) ComposeFile="$2"; shift;;
       -n|--name) ContainerName="$2"; shift;;
       -r|--repo) RepoBase="$2"; shift;;
       -b|--branch) RepoBranch="$2"; shift;;
+      -p|--profile) Profile="$2"; shift;;
     esac
     shift
 done
@@ -100,17 +100,13 @@ docker build -f production/app.Dockerfile -t cll/app \
 docker tag cll/app cll/celery_worker
 docker tag cll/app cll/celery_beat
 
-# Kill current app and prune if required
+# Kill current app 
 echo "==========================================="
 echo "=========== Cleaning workspace ============"
 echo "==========================================="
 echo $(printf '\nCleaning Container %s from %s | Will prune: %s' "$ContainerName" "$ComposeFile" "$ShouldPrune")
 
-docker-compose -p "$ContainerName" -f "$ComposeFile" down
-
-if [ "$ShouldPrune" = 'true' ]; then
-  docker system prune -f -a --volumes
-fi
+docker-compose -p "$ContainerName" -f "$ComposeFile" down --volumes
 
 # Deploy new version
 echo "==========================================="
@@ -118,11 +114,18 @@ echo "========== Deploying application =========="
 echo "==========================================="
 echo $(printf '\nDeploying %s from %s | In foreground: %s' "$ContainerName" "$ComposeFile" "$DeployInForeground")
 
-## Deploy the app
 if [ "$DeployInForeground" = 'true' ]; then
-  docker-compose -p "$ContainerName" -f "$ComposeFile" up
+  if [ -z "$Profile" ]; then
+    docker-compose -p "$ContainerName" -f "$ComposeFile" --profile "$Profile" up
+  else
+    docker-compose -p "$ContainerName" -f "$ComposeFile" up
+  fi
 else
-  docker-compose -p "$ContainerName" -f "$ComposeFile" up -d
+  if [ -z "$Profile" ]; then
+    docker-compose -p "$ContainerName" -f "$ComposeFile" --profile "$Profile" up -d
+  else
+    docker-compose -p "$ContainerName" -f "$ComposeFile" up -d
+  fi
 fi
 
 # Prune unused containers/images/volumes if we (1) want to cleanup and (2) haven't already done so
