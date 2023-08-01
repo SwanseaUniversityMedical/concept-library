@@ -364,6 +364,7 @@ After opening the `tasks.json` file, you should configure the contents so it loo
 
 ### 2.6.2. Debug build tasks
 > ***[!] Note:** You can learn about the available options for tasks [here](https://code.visualstudio.com/docs/editor/tasks-appendix)*
+
 To set up your first debug task, configure your `tasks.json` file such that:
 ```json
 {
@@ -415,6 +416,7 @@ To set up a task for the `docker-compose.test.yaml` container, you append the fo
 
 ### 2.6.4. How to handle cleaning
 > ***[!] Note:** There will be some differences between Windows and other operating systems. The example below is set up to use PowerShell logical operators. On a Linux-based OS, you would need to use the '&&' and '||' operators instead of '-and' and '-or'*
+
 If you set up both the debug and test builds you will note that the docker container isn't cleaned between different tasks. It is possible to set up your tasks such that the containers will be cleaned.
 
 To set this up, you would need to append the following cleaning task to your `tasks` property:
@@ -597,8 +599,11 @@ Ensure you have an `env-vars` text file on your server. The name of this file us
 ### 4.1.2. Automated Deployment
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
 
+[Details]
+
 #### Files
 > **[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file
+
 If not already present on the machine, please ensure that the following files are within the root directory:
   - Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
   - Copy `./docker/docker-compose.prod.yaml` to `/root/`

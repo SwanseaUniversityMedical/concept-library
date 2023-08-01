@@ -125,7 +125,7 @@
       }
 
       &:focus-visible {
-        outline: 1px solid black;
+        outline: 1px solid col(accent-dark);
         border-radius: 2pt;
       }
     }

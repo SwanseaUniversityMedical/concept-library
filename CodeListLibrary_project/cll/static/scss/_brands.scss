@@ -193,24 +193,24 @@ $brand-map-ADP: (
   'color-bg': $white,
   'color-clear': $transparent,
   'color-accent-bright': $white,
-  'color-accent-lightest': $white_smoke,
+  'color-accent-lightest': $light_grayish_blue,
   'color-accent-darkish': $light_grey,
-  'color-accent-dark': $dark_grey,
-  'color-accent-washed': $lightest_grey,
-  'color-accent-primary': $soft_blue,
-  'color-accent-secondary': $soft_cyan,
-  'color-accent-tertiary': $pixie_green,
-  'color-accent-highlight': $royal_blue,
-  'color-accent-bubble': $solitude,
-  'color-accent-success': $light_grey_green,
-  'color-accent-danger': $pastel_red,
-  'color-accent-warning': $wax_flower,
+  'color-accent-dark': $very_dark_blue,
+  'color-accent-washed': $very_light_gray,
+  'color-accent-primary': $pale_blue,
+  'color-accent-secondary': $brighter_ghost_white,
+  'color-accent-tertiary': $bright_cyan,
+  'color-accent-highlight': $bright_blue,
+  'color-accent-bubble': $cyan_lime_green,
+  'color-accent-success': $soft_lime_green,
+  'color-accent-danger': $pale_red,
+  'color-accent-warning': $bright_orange,
   'color-accent-anchor': $bright_blue,
   'color-accent-transparent': $transparent,
   'color-accent-semi-transparent': rgba($black, 0.05),
 
   // Text accents
-  'color-text-darkest': $black,
+  'color-text-darkest': $dark_blue,
   'color-text-darker': $near-black,
   'color-text-dark': $blackish-grey,
   'color-text-washed': $dark_grey,
@@ -233,32 +233,32 @@ $brand-map-ADP: (
   'navigation-height': 2rem,
   'navigation-line-width': 0.15rem,
   'navigation-selection-box': $white,
-  'navigation-item-selector': $soft_cyan,
+  'navigation-item-selector': $brighter_ghost_white,
   'navigation-scroll-shadow': 'inset 0px -1px 0px #f3f3f4',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
   //About_dropdown
   'dropdown-shadow':0px 10px 70px rgba(0, 0, 0, 0.15),
-  'item-icon-color': $soft_cyan,
+  'item-icon-color': $brighter_ghost_white,
   'icon-width':40px,
   'icon-height':40px,
-  'icon-background-color':$light_red,
-  'stroke-icon':$blackish-grey,
-  'description-text-color':$lightblack-grey,
+  'icon-background-color': $brighter_ghost_white,
+  'stroke-icon': $blackish-grey,
+  'description-text-color': $lightblack-grey,
   
   // Loading spinner color
-  'loading-spinner-color': $solitude,
+  'loading-spinner-color': $mostly_blue,
   'loading-spinner-text-color': $white,
 
   // Scrollbars
-  'slim-scrollbar-inactive-color': $lightest_grey,
+  'slim-scrollbar-inactive-color': $light_grayish_blue,
   'slim-scrollbar-active-color': $transparent_black,
   'slim-scrollbar-radius': 6px,
   'slim-scrollbar-width': 6px,
 
   // Breadcrumbs
   'breadcrumb-color': $dark_grey,
-  'breadcrumb-hover-color': $black,
+  'breadcrumb-hover-color': $dark_blue,
   'breadcrumb-active-weight': bold,
 
   // Main page
@@ -279,12 +279,12 @@ $brand-map-ADP: (
 
   // Item lists
   'item-list-odd-bg-color': $off_white02,
-  'item-list-even-bg-color': $white,
+  'item-list-even-bg-color': $light_grayish_blue,
 
   /* Inputs */
   'switch-size': 50px,
-  'switch-thumb-color': $off_white,
-  'switch-bg-color': $lightest_grey,
+  'switch-thumb-color': $very_light_gray,
+  'switch-bg-color': $light_grayish_blue,
   'switch-bg-active-color': $soft_blue,
 
   'search-shadow-inactive-color': $cow_black01,
@@ -296,12 +296,12 @@ $brand-map-ADP: (
   /* Cards */
   'card-shadow-color': $cow_black01,
   'card-border-radius': 0.1rem,
-  'referral-card-anchor-color': $iris,
-  'entity-card-anchor-color': $iris,
+  'referral-card-anchor-color': $dark_cyan,
+  'entity-card-anchor-color': $dark_cyan,
 
   /* Pagination */
-  'pagination-inactive-color': $white_smoke,
-  'pagination-active-color': $platinum,
+  'pagination-inactive-color': $light_grayish_blue,
+  'pagination-active-color': $very_light_gray,
   'pagination-disabled-color': $boulder,
 
   /* Articles */
@@ -309,38 +309,38 @@ $brand-map-ADP: (
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
   'phenotype-article-lg-size': 90%,
-  'phenotype-article-header-border': $light_grey,
+  'phenotype-article-header-border': $light_grayish_blue,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
   'phenotype-max-codelist-size': 200px,
 
-  'wizard-step-color': $pixie_green,
+  'wizard-step-color': $light_pale_blue,
   'progress-item-min-step-height': 4rem,
   'progress-tracker-width': 2px,
   'progress-tracker-offset': -1.5rem,
   'progress-tracker-size': 26px,
   'progress-tracker-bg-color': $white,
   'progress-tracker-counter-weight': bold,
-  'progress-tracker-counter-color': black,
-  'progress-tracker-color': $light_grey,
-  'progress-tracker-active-color': $pixie_green,
-  'progress-tracker-off-color': $light_grey,
+  'progress-tracker-counter-color': $dark_blue,
+  'progress-tracker-color': $light_grayish_blue,
+  'progress-tracker-active-color': $light_pale_blue,
+  'progress-tracker-off-color': $light_grayish_blue,
   'progress-tracker-line-width': 2px,
 
   'progress-tracker-header-size': 28px,
   'progress-tracker-header-weight': bold,
-  'progress-tracker-header-color': black,
+  'progress-tracker-header-color': $dark_blue,
   'progress-tracker-description-size': 16px,
   
-  'ruleset-bg-color': $lightest_grey,
+  'ruleset-bg-color': $light_grayish_blue,
   'ruleset-icon-normal-color': $dark_grey,
-  'ruleset-include-icon-checked-color': $lime_green,
-  'ruleset-exclude-icon-checked-color': $pastel_red,
+  'ruleset-include-icon-checked-color': $dark_pale_blue,
+  'ruleset-exclude-icon-checked-color': $pale_red,
 
   // Phenotype search
-  'phenotype-banner-bg-color': $ghost_white,
+  'phenotype-banner-bg-color': $lighter_ghost_white,
   'phenotype-banner-title-size': 30px,
-  'phenotype-banner-title-color': $black,
+  'phenotype-banner-title-color': $dark_blue,
 );
 
 $brand-map-HDRUK: (
@@ -679,25 +679,25 @@ $brand-map-SAIL: (
 
 // Append all brand-specific variables
 :root[data-brand="none"],
-::after,
-::before {
+:root[data-brand="none"]::after,
+:root[data-brand="none"]::before {
   @include map-brand($brand-map-none);
 }
 
 :root[data-brand="ADP"],
-::after,
-::before {
+:root[data-brand="ADP"]::after,
+:root[data-brand="ADP"]::before {
   @include map-brand($brand-map-ADP);
 }
 
 :root[data-brand="HDRUK"],
-::after,
-::before {
+:root[data-brand="HDRUK"]::after,
+:root[data-brand="HDRUK"]::before {
   @include map-brand($brand-map-HDRUK);
 }
 
 :root[data-brand="SAIL"],
-::after,
-::before {
+:root[data-brand="SAIL"]::after,
+:root[data-brand="SAIL"]::before {
   @include map-brand($brand-map-SAIL);
 }

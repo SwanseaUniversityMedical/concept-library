@@ -1,4 +1,4 @@
-/// Helper color palette
+/* Base colour palette */
 $transparent: rgba(255, 255, 255, 0);
 $transparent_black: rgba(0, 0, 0, 0.4);
 $white: rgb(255, 255, 255);
@@ -40,7 +40,32 @@ $periwinkle: rgba(191, 216, 255, 1);
 $indigo: rgb(90, 103, 216);
 $cornflower_blue: rgb(102, 126, 234);
 
-/// Layout definitions
+/* ADP COLOURS */
+// Legacy
+  $dark_blue: rgb(0, 100, 148); // primary text
+    $darkish_blue: rgb(0, 121, 176);
+  $very_dark_blue: rgb(16, 43, 65); // used for borders
+  $moderate_cyan: rgb(72, 176, 205); // anchors
+  $bright_blue: rgb(126, 174, 251); // used for focus
+  $light_grayish_blue: rgb(206, 212, 218); // hover???
+  $very_light_gray: rgb(233,233,233); // washed
+  $lighter_ghost_white: rgb(240, 247, 247); // bg?
+// Generated gradient
+  $brighter_ghost_white: rgb(209, 239, 255); // bg?
+  $dark_cyan: rgb(0,136,172);
+  $darkish_cyan: rgb(0,171,174);
+  $cyan_lime_green: rgb(36,203,156);
+  $soft_lime_green: rgb(152,230,129);
+// Generated switch and complementary 
+  $pale_blue: rgb(189, 231, 255);
+  $dark_pale_blue:rgb(155,169,255);
+  $light_pale_blue:rgb(218, 223, 255);
+  $pale_red: rgb(255,155,169);
+  $mostly_blue: rgb(0,185,255);
+  $bright_orange: rgb(229,157,35);
+  $bright_cyan: rgb(221, 250, 255);
+
+/* Layout definitions */
 $column-min: 1;
 $column-max: 12;
 $column-grid: (
@@ -56,7 +81,7 @@ $column-scales: (
   lg: 992px,
 );
 
-/// Element modifiers
+/* Element modifiers */
 $modifiers: (
   'display': (
     property: display,
