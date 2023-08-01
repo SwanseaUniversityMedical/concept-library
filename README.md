@@ -608,6 +608,7 @@ You need to ensure that there is an `env_vars.txt` within the same directory as 
 
 #### Site Deployment Arguments
 Optional parameters for the `deploy-site.sh` script include:
+- `-fp` | `--file-path` → [Defauts to `/root/`] This determines the root path of where the `docker-compose.prod.yaml` file lives
 - `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
 - `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
 - `-a` | `--address` → [Defauts to `Null`] This parameter determines the registry we will try to pull the images from
