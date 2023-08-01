@@ -5,7 +5,7 @@ from functools import cmp_to_key
 import datetime
 import json
 
-from ..models import GenericEntity, Template, Statistics, Brand, CodingSystem, DataSource, PublishedGenericEntity
+from ..models import GenericEntity, Template, Statistics, Brand, CodingSystem, DataSource, PublishedGenericEntity, Tag
 from . import template_utils, constants, model_utils, entity_db_utils, concept_utils
 
 def sort_by_count(a, b):
@@ -274,131 +274,111 @@ def clear_statistics_history():
         cursor.execute(sql)
 
 
+def compute_homepage_stats(request, brand):
+    stat = get_homepage_stats(request, brand)
 
-def save_HDRUK_statistics(request):
-    stat = get_HDRUK_statistics(request)
-
-    if Statistics.objects.all().filter(org__iexact='HDRUK', type__iexact='landing-page').exists():
-        HDRUK_stat = Statistics.objects.get(org__iexact='HDRUK', type__iexact='landing-page')
-        HDRUK_stat.stat = stat
-        HDRUK_stat.updated_by = [None, request.user][request.user.is_authenticated]
-        HDRUK_stat.modified = datetime.datetime.now()
-        HDRUK_stat.save()
+    if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
+        stats = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
+        stats.stat = stat
+        stats.updated_by = [None, request.user][request.user.is_authenticated]
+        stats.modified = datetime.datetime.now()
+        stats.save()
 
         clear_statistics_history()
-        return [stat, HDRUK_stat.id]
+        return [stat, stats.id]
+
+    obj, created = Statistics.objects.get_or_create(
+        org=brand,
+        type='landing-page',
+        stat=stat,
+        created_by=[None, request.user][request.user.is_authenticated]
+    )
+
+    clear_statistics_history()
+    return [stat, obj.id]
+
+
+def save_homepage_stats(request, brand=None):
+    if brand is not None:
+        return compute_homepage_stats(request, brand)
+    
+    brands = Brand.objects.all()
+    result = [ ]
+    for brand in brands:
+        result.append(compute_homepage_stats(request, brand.name))
+    result.append(compute_homepage_stats(request, 'ALL'))
+    return result
+
+
+def get_homepage_stats(request, brand=None):
+    '''
+        get homepage statistics for display.
+    '''
+
+    if brand is None:
+        brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
+    
+    collection_ids = [ ]
+    if brand == 'ALL':
+        collection_ids = model_utils.get_brand_collection_ids('HDRUK')
+        collection_ids = [str(i) for i in collection_ids]
     else:
-        obj, created = Statistics.objects.get_or_create(org='HDRUK',
-                                                        type='landing-page',
-                                                        stat=stat,
-                                                        created_by=[None, request.user][request.user.is_authenticated]
-                                                        )
-
-        clear_statistics_history()
-        return [stat, obj.id]
-
-
-def get_HDRUK_statistics(request):
-    '''
-        get HDRUK statistics for display in the HDR UK homepage.
-    '''
-
-    HDRUK_brand_collection_ids = model_utils.get_brand_collection_ids('HDRUK')
-    HDRUK_brand_collection_ids = [str(i) for i in HDRUK_brand_collection_ids]
+        collection_ids = Tag.objects.filter(tag_type=2)
+        collection_ids = [str(i) for i in collection_ids]
     
-    
-    HDRUK_published_phenotypes = entity_db_utils.get_visible_live_or_published_generic_entity_versions(request,
-                                                                                            get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published
-                                                                                            exclude_deleted=True,
-                                                                                            show_top_version_only=False,
-                                                                                            force_brand='HDRUK',
-                                                                                            force_get_live_and_or_published_ver=2  # get published data
-                                                                                        )
+    published_phenotypes = entity_db_utils.get_visible_live_or_published_generic_entity_versions(
+        request,
+        get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published
+        exclude_deleted=True,
+        show_top_version_only=False,
+        force_brand=('' if brand == 'ALL' else brand),
+        force_get_live_and_or_published_ver=2  # get published data
+    )
 
+    published_phenotypes_id_version = entity_db_utils.get_list_of_visible_entity_ids(published_phenotypes, return_id_or_history_id="both")
+    published_phenotypes_ids = list(set([p[0] for p in published_phenotypes_id_version]))
 
-    HDRUK_published_phenotypes_id_version = entity_db_utils.get_list_of_visible_entity_ids(HDRUK_published_phenotypes, return_id_or_history_id="both")
-    #HDRUK_published_phenotypes_ids = entity_db_utils.get_list_of_visible_entity_ids(HDRUK_published_phenotypes, return_id_or_history_id="id")
-    HDRUK_published_phenotypes_ids = list(set([p[0] for p in HDRUK_published_phenotypes_id_version]))
+    published_concepts_id_version = entity_db_utils.get_concept_ids_from_phenotypes(published_phenotypes, return_id_or_history_id="both")
+    published_concepts_ids = list(set([c[0] for c in published_concepts_id_version]))
 
-  
-    #--------------------------
-    HDRUK_published_concepts_id_version = entity_db_utils.get_concept_ids_from_phenotypes(HDRUK_published_phenotypes, return_id_or_history_id="both")
-
-    HDRUK_published_concepts_ids = list(set([c[0] for c in HDRUK_published_concepts_id_version]))
-
-
-    #--------------------------
-
-
-    return {
-        # ONLY PUBLISHED COUNTS HERE (count original entity, not versions)
-        'published_concept_count': len(HDRUK_published_concepts_ids),
-        'published_phenotype_count': len(HDRUK_published_phenotypes_ids),
-        'published_clinical_codes': get_published_clinical_codes(HDRUK_published_phenotypes),
-        'datasources_component_count': get_dataSources_count(HDRUK_published_phenotypes),  
-        'clinical_terminologies': get_codingSystems_count(HDRUK_published_phenotypes)  # number of coding systems used in published phenotypes
+    return get_phenotype_data(published_phenotypes) | {
+        'published_concept_count': len(published_concepts_ids),
+        'published_phenotype_count': len(published_phenotypes_ids),
     }
 
 
-
-def get_codingSystems_count(published_phenotypes):
-    """
-        get only coding systems count used in (published) phenotypes
-    """
-
+def get_phenotype_data(published_phenotypes):
     coding_systems_ids = []
-
+    ds_ids = [] 
+    count = 0
     for p in published_phenotypes:
         if p['template_id'] == 1: # clinical-coded phenotype
             template_data = json.loads(p['template_data'])
             if template_data['coding_system'] is not None:
                 coding_systems_ids = list(set(coding_systems_ids + template_data['coding_system']))
-
-    unique_coding_systems_ids = list(set(coding_systems_ids))
-    # make sure coding system exists
-    unique_coding_systems_ids_list = list(CodingSystem.objects.filter(id__in=unique_coding_systems_ids).values_list('id', flat=True))
-
-    return len(unique_coding_systems_ids_list)
-
-
-def get_dataSources_count(published_phenotypes):
-    """
-        get only data-sources count used in (published) phenotypes
-    """
-
-    ds_ids = [] 
-    
-    for p in published_phenotypes:
-        if p['template_id'] == 1: # clinical-coded phenotype
-            template_data = json.loads(p['template_data'])
             if template_data['data_sources'] is not None:
                 ds_ids = list(set(ds_ids + template_data['data_sources']))
-            
-    unique_ds_ids = list(set(ds_ids))
-    # make sure data-source exists
-    unique_ds_ids_list = list(DataSource.objects.filter(id__in=unique_ds_ids).values_list('id', flat=True))
-
-    return len(unique_ds_ids_list)
-
-
-def get_published_clinical_codes(published_phenotypes):
-    """
-        count (none distinct) the clinical codes
-        in published phenotypes
-    """
-
-    count = 0
-
-    for p in published_phenotypes:
-        if p['template_id'] == 1: # clinical-coded phenotype
-            template_data = json.loads(p['template_data'])
             if template_data['concept_information']:
-                codecount = get_published_phenotype_code_count(phenotype_id=p['id'], 
-                                                               phenotype_history_id=p['history_id'], 
-                                                               concept_information=template_data['concept_information'])
+                codecount = get_published_phenotype_code_count(
+                    phenotype_id=p['id'], 
+                    phenotype_history_id=p['history_id'], 
+                    concept_information=template_data['concept_information']
+                )
                 count = count + codecount
 
-    return count
+    # make sure coding system exists
+    unique_coding_systems_ids = list(set(coding_systems_ids))
+    unique_coding_systems_ids_list = list(CodingSystem.objects.filter(id__in=unique_coding_systems_ids).values_list('id', flat=True))
+
+    # make sure data-source exists
+    unique_ds_ids = list(set(ds_ids))
+    unique_ds_ids_list = list(DataSource.objects.filter(id__in=unique_ds_ids).values_list('id', flat=True))
+
+    return {
+        'clinical_terminologies': len(unique_coding_systems_ids_list),
+        'published_clinical_codes': count,
+        'datasources_component_count': len(unique_ds_ids_list),  
+    }
 
 
 def get_published_phenotype_code_count(phenotype_id, phenotype_history_id, concept_information):
@@ -408,30 +388,24 @@ def get_published_phenotype_code_count(phenotype_id, phenotype_history_id, conce
     """
 
     codecount = 0
-    
     if concept_information:
         published_phenotype = PublishedGenericEntity.objects.get(entity_id=phenotype_id, entity_history_id=phenotype_history_id)
         saved_codecount = published_phenotype.code_count
-        if saved_codecount is None or saved_codecount == '':
+        if saved_codecount is None or saved_codecount == '' or saved_codecount == 0:
             # calc the code count (sum all concepts in this phenotype)
             for c in concept_information:
-                concept_data = concept_utils.get_clinical_concept_data(
-                                                                c['concept_id'],
-                                                                c['concept_version_id'],
-                                                                include_component_codes=False, 
-                                                                include_attributes=True, 
-                                                                include_reviewed_codes=True)
+                codelist = concept_utils.get_concept_codelist(
+                    c['concept_id'],
+                    c['concept_version_id'],
+                    incl_logical_types=[constants.CLINICAL_RULE_TYPE.INCLUDE.value],
+                    incl_attributes=False
+                )
                     
-                codecount += len(concept_data['codelist'])
-                
+                codecount += len(codelist)
+
             published_phenotype.code_count = codecount
             published_phenotype.save()
             return codecount
-        else:
-            return saved_codecount
-        
-    return 0
+        return saved_codecount
 
-
-
-
+    return codecount

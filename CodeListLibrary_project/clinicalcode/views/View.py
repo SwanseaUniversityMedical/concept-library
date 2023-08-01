@@ -35,39 +35,40 @@ def index(request):
     '''
 
     if request.CURRENT_BRAND == "":
-        return render(request, 'clinicalcode/index.html')
-    elif request.CURRENT_BRAND == "BREATHE":
-        return index_BREATHE(request)
+        return index_with_stats(request, 'clinicalcode/home.html')
     elif request.CURRENT_BRAND == "HDRUK":
-        return index_HDRUK(request)
+        return index_with_stats(request, 'clinicalcode/brand/HDRUK/index_HDRUK.html')
     else:
         return render(request, 'clinicalcode/index.html')
 
 
-def index_HDRUK(request):
+def index_with_stats(request, template):
     '''
         Display the HDR UK homepage.
     '''
-    if Statistics.objects.all().filter(org__iexact='HDRUK', type__iexact='landing-page').exists():
-        stat = Statistics.objects.get(org__iexact='HDRUK', type__iexact='landing-page')
-        HDRUK_stat = stat.stat
+    brand = request.CURRENT_BRAND
+    brand = brand if brand is not None and brand != '' else 'ALL'
+
+    if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
+        stat = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
+        stats = stat.stat
     else:
         from .Admin import save_statistics
         # update stat
-        stat_obj = save_statistics(request)
-        HDRUK_stat = stat_obj[0]
+        stat_obj = save_statistics(request, brand)
+        stats = stat_obj[0]
 
     return render(
         request,
-        'clinicalcode/brand/HDRUK/index_HDRUK.html',
+        template,
         {
-            # ONLY PUBLISHED COUNTS HERE
-            'published_concept_count': HDRUK_stat['published_concept_count'],
-            'published_phenotype_count': HDRUK_stat['published_phenotype_count'],
-            'published_clinical_codes': HDRUK_stat['published_clinical_codes'],
-            'datasources_component_count': HDRUK_stat['datasources_component_count'],
-            'clinical_terminologies': HDRUK_stat['clinical_terminologies']
-        })
+            'published_concept_count': stats['published_concept_count'],
+            'published_phenotype_count': stats['published_phenotype_count'],
+            'published_clinical_codes': stats['published_clinical_codes'],
+            'datasources_component_count': stats['datasources_component_count'],
+            'clinical_terminologies': stats['clinical_terminologies']
+        }
+    )
 
 
 def index_BREATHE(request):

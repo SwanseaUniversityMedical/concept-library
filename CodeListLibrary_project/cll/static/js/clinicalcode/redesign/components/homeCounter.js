@@ -33,10 +33,10 @@ const countup = (elem) => {
 
     const progress = quintInOut(frame / frames);
     const counted = Math.round(final * progress);
-    const current = parseInt(elem.innerHTML);
+    const current = parseInt(elem.innerText);
 
     if (current !== counted) {
-      elem.innerHTML = `${counted}+`;
+      elem.innerText = `${counted.toLocaleString()}+`;
     }
 
     if (frame >= frames) {
