@@ -273,7 +273,7 @@ MIDDLEWARE = [
     # Handle user session expiry
     'clinicalcode.middleware.Sessions.SessionExpiryMiddleware',
     # Fetch from cache
-    #'django.middleware.cache.FetchFromCacheMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 #==============================================================================#
