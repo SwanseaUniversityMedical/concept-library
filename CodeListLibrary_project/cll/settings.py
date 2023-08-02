@@ -266,11 +266,11 @@ MIDDLEWARE = [
     # GZip
     'django.middleware.gzip.GZipMiddleware',
     # Minify HTML
-    'clinicalcode.middleware.Compression.HTMLCompressionMiddleware',
+    'clinicalcode.middleware.compression.HTMLCompressionMiddleware',
     # Handle brands
-    'clinicalcode.middleware.Brands.BrandMiddleware',
+    'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
-    'clinicalcode.middleware.Sessions.SessionExpiryMiddleware',
+    'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
 ]
 
 #==============================================================================#
