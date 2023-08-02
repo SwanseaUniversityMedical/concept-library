@@ -80,13 +80,17 @@ data {
 //  @desc defines the main <header/> element
 .main-header {
   @include flex-col();
-  min-height: fit-content;
+  min-height: min-content;
   max-width: 100%;
   margin: var(--main-top-padding) 0 0 0;
 
+  @include media('<desktop', 'screen') {
+    margin: var(--main-top-mobile-padding) 0 0 0;
+  }
+
   &__inner-container {
     @include flex-col();
-    min-height: fit-content;
+    min-height: min-content;
     max-width: 100%;
     padding: 0 var(--main-gutter) 0 var(--main-gutter);
 
@@ -133,6 +137,10 @@ data {
     flex: 1;
     min-height: fit-content;
     max-width: 100%;
+
+    &--fill-width {
+      width: 100%;
+    }
 
     &--constrained {
       width: 100%;

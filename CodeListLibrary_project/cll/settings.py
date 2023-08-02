@@ -60,8 +60,8 @@ def get_env_value(env_variable, cast=None):
 APP_TITLE = 'Concept Library'
 APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
 APP_LOGO_PATH = 'img/'
-INDEX_PATH = 'clinicalcode/index.html'
 APP_EMBED_ICON = '{logo_path}embed_img.png'
+INDEX_PATH = 'clinicalcode/index.html'
 
 ADMIN = [
     ('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),

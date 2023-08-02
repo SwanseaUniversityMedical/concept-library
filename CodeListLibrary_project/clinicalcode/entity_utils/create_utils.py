@@ -1033,7 +1033,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.template_version = form_template.template_version
                 entity.template_data = template_data
                 entity.updated = make_aware(datetime.now())
-                entity.publish_status = constants.APPROVAL_STATUS.ANY
+                entity.publish_status = constants.APPROVAL_STATUS.ANY.value
                 entity.updated_by = user
                 entity.brands = related_brands
                 entity.save()
