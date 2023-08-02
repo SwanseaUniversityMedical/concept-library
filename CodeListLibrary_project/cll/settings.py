@@ -253,8 +253,6 @@ INSTALLED_APPS = INSTALLED_APPS + [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Manage caching
-    'django.middleware.cache.UpdateCacheMiddleware',
     # GZip
     'django.middleware.gzip.GZipMiddleware',
     # Manage sessions across requests
@@ -272,8 +270,6 @@ MIDDLEWARE = [
     'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
     'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
-    # Fetch from cache
-    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 #==============================================================================#
