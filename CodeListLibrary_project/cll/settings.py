@@ -423,7 +423,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
 
 WSGI_APPLICATION = 'cll.wsgi.application'
 
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
