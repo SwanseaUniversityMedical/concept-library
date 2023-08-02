@@ -21,6 +21,11 @@ A significant aspect of research using routinely collected health records is def
 
 Often the definitions that are created are of interest to researchers for many studies, but there are barriers to easily sharing them.  The definitions may be embedded within study-specific scripts, such that it is not easy to extract the part that may be of general interest.  Also, often researchers do not fully document how a concept was created, its precise meaning, limitations, etc.  Crucial information may be lost when passing it to other researchers, resulting in mistakes.  Often there simply is no mechanism to discover and share work that has been done previously, leading researchers to waste time and resources reinventing the wheel.  In theory, when research is published, information on the precise methods used should be included, but in reality this is often inadequate.
 
+### 2.6.1. Basics
+### 2.6.2. Debug build tasks
+### 2.6.3. Test build tasks
+### 2.6.4. How to handle cleaning
+
 # Table of contents
 1. [Clone this repository](#1.-Clone-this-Repository)  
 2. [Setup with Docker](#2.-Setup-with-Docker)  
@@ -45,7 +50,12 @@ Often the definitions that are created are of interest to researchers for many s
     2.5.1. [Django logging](#2.5.1.-Django-Logging)  
     2.5.2. [Debug Tools in Visual Studio Code](#2.5.2.-Debug-Tools-in-Visual-Studio-Code)  
     2.5.3. [Running Tests](#2.5.3.-Running-Tests)  
-  2.6. [Creating a Superuser](#2.6.-Creating-a-Superuser)
+  2.6. [Setting up VSCode Tasks](#2.6.-Setting-up-VSCode-Tasks)
+    2.6.1. [Basics](#2.6.1.-Basics)  
+    2.6.2. [Debug build tasks](#2.6.2.-Debug-build-tasks)  
+    2.6.3. [Test build tasks](#2.6.3.-Test-build-tasks)  
+    2.6.4. [How to handle cleaning](#2.6.4.-How-to-handle-cleaning)  
+  2.7. [Creating a Superuser](#2.7.-Creating-a-Superuser)
 3. [Setup without Docker](#3.-Setup-without-Docker)  
   3.1. [Prerequisites](#3.1.-Prerequisites)  
   3.2. [Installing](#3.2.-Installing)  
@@ -171,12 +181,20 @@ c. *OR;* to prune your docker, enter `docker system prune -a`
 >***[!] Note:**   
 To test the transpiling, minification or compression steps, OR; if you have made changes to the Docker container or its images it is recommended that you run a local, pre-production build*
 
+To replicate the server environment, you will have to build the Dockerfile images first:
+1. Open a terminal
+2. Navigate to the `concept-library/docker/` folder
+3. Build `./test/app.Dockerfile` and tag its resulting image as `cll/os` by running: `docker build -f test/app.Dockerfile -t cll/os --build-arg server_name=localhost ..`
+4. Clone and tag this image for the `celery_beat` service by running: `docker tag cll/os cll/celery_beat`
+5. Clone and tag this image for the `celery_worker` service by running: `docker tag cll/os cll/celery_worker`
+
 To build a local, pre-production build:
 1. Open a terminal
-2. Navgiate to the `concept-library/docker/` folder
-3. Set up the environment variables within `./test/app.compose.env`
-4. In the terminal, run `docker-compose -p cll -f docker-compose.test.yaml up --build` (append `-d` as an argument to run in background)
-5. Open a browser and navigate to `localhost:8005` to access the application
+2. Follow the steps above if you have not already built the images
+3. Navgiate to the `concept-library/docker/` folder
+4. Set up the environment variables within `./test/app.compose.env`
+5. In the terminal, run `docker-compose -p cll -f docker-compose.test.yaml up` (append `-d` as an argument to run in background)
+6. Open a browser and navigate to `localhost:8005` to access the application
 
 ### 2.3.7. Impact of Environment Variables
 
@@ -319,7 +337,128 @@ Please see the following commands:
 - To run only the read-only unit tests, run:  
 `python manage.py test --noinput clinicalcode.tests.unit_tests.read_only`
 
-## 2.6. Creating a Superuser
+## 2.6. Setting up VSCode Tasks
+
+### 2.6.1. Basics
+> ***[!] Note:** You can learn more about using external tools and VSCode's Tasks system [here](https://code.visualstudio.com/docs/editor/tasks)*
+
+#### Set up
+To start using tasks:
+1. Open your terminal
+2. Navigate to the root of the `concept-library` project
+3. Create a new `.vscode` directory within the project folder by running: `mkdir .vscode`
+4. Navigate into this directory by running: `cd .vscode`
+5. Create a new `tasks.json` file by running: `touch tasks.json`
+
+#### Basic file configration
+After opening the `tasks.json` file, you should configure the contents so it looks like this:
+```json
+{
+  "version": "2.0.0",
+  "tasks": []
+}
+```
+
+### 2.6.2. Debug build tasks
+> ***[!] Note:** You can learn about the available options for tasks [here](https://code.visualstudio.com/docs/editor/tasks-appendix)*
+To set up your first debug task, configure your `tasks.json` file such that:
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Debug",
+      "detail": "Builds the development container",
+      "type": "shell",
+      "command": "docker-compose -p cll -f docker-compose.dev.yaml up --build",
+      "options": {
+        "cwd": "${workspaceFolder}/docker/"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": false
+      }
+    }
+  ]
+}
+```
+
+### 2.6.3. Test build tasks
+To set up a task for the `docker-compose.test.yaml` container, you append the following to the `"tasks": []` property:
+```json
+{
+  "label": "Build Test",
+  "detail": "Builds the test container",
+  "type": "shell",
+  "command": "docker build -f test/app.Dockerfile -t cll/os --build-arg server_name=localhost ..; docker tag cll/os cll/celery_beat; docker tag cll/os cll/celery_worker; docker-compose -p cll -f docker-compose.test.yaml up",
+  "options": {
+    "cwd": "${workspaceFolder}/docker/"
+  },
+  "group": {
+    "kind": "test"
+  },
+  "presentation": {
+    "reveal": "always",
+    "panel": "new",
+    "focus": false
+  }
+}
+```
+
+### 2.6.4. How to handle cleaning
+> ***[!] Note:** There will be some differences between Windows and other operating systems. The example below is set up to use PowerShell logical operators. On a Linux-based OS, you would need to use the '&&' and '||' operators instead of '-and' and '-or'*
+If you set up both the debug and test builds you will note that the docker container isn't cleaned between different tasks. It is possible to set up your tasks such that the containers will be cleaned.
+
+To set this up, you would need to append the following cleaning task to your `tasks` property:
+```json
+{
+  "label": "Clean Containers",
+  "detail": "Cleans all cll related containers",
+  "type": "shell",
+  "command": "(docker ps -q --filter 'name=cll') -and (docker rm $(docker stop $(docker ps -q -f 'name=cll' -f 'name=redis'))) -or (echo 'Nothing to clean')",
+  "options": {
+    "cwd": "${workspaceFolder}/docker/"
+  },
+  "group": {
+    "kind": "build"
+  },
+  "presentation": {
+    "reveal": "never",
+    "panel": "shared"
+  },
+  "problemMatcher": []
+},
+```
+
+Using [Compound Tasks](https://code.visualstudio.com/docs/editor/tasks#_compound-tasks), you can modify your `Build Debug` and `Build Test` tasks to clean before starting by adding the `dependsOn` property. In the case of the `Build Debug` task, it would look like this:
+```json
+{
+  "label": "Build Debug",
+  "detail": "Builds the development container",
+  "type": "shell",
+  "command": "docker-compose -p cll -f docker-compose.dev.yaml up --build",
+  "options": {
+    "cwd": "${workspaceFolder}/docker/"
+  },
+  "group": {
+    "kind": "build",
+    "isDefault": true
+  },
+  "presentation": {
+    "reveal": "always",
+    "panel": "new",
+    "focus": false
+  },
+  "dependsOn": ["Clean Containers"]
+},
+```
+
+## 2.7. Creating a Superuser
 
 To create a superuser:
 1. Ensure the docker container is running and open a new terminal
