@@ -271,7 +271,7 @@ MIDDLEWARE = [
     # Handle brands
     'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
-    'clinicalcode.middleware.Sessions.SessionExpiryMiddleware',
+    'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
     # Fetch from cache
     'django.middleware.cache.FetchFromCacheMiddleware',
 ]
