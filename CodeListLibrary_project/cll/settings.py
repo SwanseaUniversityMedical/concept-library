@@ -60,6 +60,7 @@ def get_env_value(env_variable, cast=None):
 APP_TITLE = 'Concept Library'
 APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
 APP_LOGO_PATH = 'img/'
+INDEX_PATH = 'clinicalcode/index.html'
 APP_EMBED_ICON = '{logo_path}embed_img.png'
 
 ADMIN = [
@@ -248,29 +249,28 @@ INSTALLED_APPS = INSTALLED_APPS + [
 
 #==============================================================================#
 
+
 ''' Middleware '''
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Manage sessions across requests & Caching
-    'django.middleware.cache.UpdateCacheMiddleware',
+    # GZip
+    'django.middleware.gzip.GZipMiddleware',
+    # Manage sessions across requests
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     # Associates users with requests using sessions
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
-    # GZip
-    'django.middleware.gzip.GZipMiddleware',
     # Minify HTML
-    'clinicalcode.middleware.Compression.HTMLCompressionMiddleware',
+    'clinicalcode.middleware.compression.HTMLCompressionMiddleware',
     # Handle brands
-    'clinicalcode.middleware.Brands.BrandMiddleware',
+    'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
-    'clinicalcode.middleware.Sessions.SessionExpiryMiddleware',
+    'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
 ]
 
 #==============================================================================#
@@ -423,7 +423,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
 
 WSGI_APPLICATION = 'cll.wsgi.application'
 
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

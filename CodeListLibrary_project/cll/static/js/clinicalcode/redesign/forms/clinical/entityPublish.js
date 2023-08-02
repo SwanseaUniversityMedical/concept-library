@@ -1,14 +1,15 @@
 class PublishModal {
-  constructor(publish_url, decline_url) {
+  constructor(publish_url, decline_url,redirect_url) {
     this.publish_url = publish_url;
     this.decline_url = decline_url;
+    this.redirect_url = redirect_url;
     this.button = document.querySelector("#publish2");
     this.button.addEventListener("click", this.handleButtonClick.bind(this));
   }
 
   async handleButtonClick(e) {
     e.preventDefault();
-    const ModalFactory = window.ModalFactory;
+    const spinner = startLoadingSpinner();
 
     try {
       const response = await fetch(this.publish_url, {
@@ -17,7 +18,8 @@ class PublishModal {
         },
       });
       const data = await response.json();
-      //console.log(data); for debugging
+      spinner.remove();
+      console.log(data);
 
       const publishButton = [
         {
@@ -42,7 +44,7 @@ class PublishModal {
         {
           name: "Decline",
           type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btntext-accent-darkest bold danger-accent"  ${
+          html: `<button class="primary-btn text-accent-darkest bold danger-accent"  ${
             data.errors ? "disabled" : ""
           } id="decline-modal-button"></button>`,
         },
@@ -67,10 +69,10 @@ class PublishModal {
           const name = result.name;
           if (name == "Decline") {
             await this.postData(data, this.decline_url);
-            location.reload();
+            window.location.href = this.redirect_url+'?eraseCache=true';
           } else {
             await this.postData(data, this.publish_url);
-            location.reload();
+            window.location.href = this.redirect_url+'?eraseCache=true';
           }
         })
         .catch((result) => {
@@ -84,6 +86,7 @@ class PublishModal {
   }
 
   async postData(data, url) {
+    const spinner = startLoadingSpinner();
     try {
       const csrfToken = document.querySelector(
         "[name=csrfmiddlewaretoken]"
@@ -97,9 +100,17 @@ class PublishModal {
           "Cache-Control": "no-cache",
         },
         body: JSON.stringify(data),
+      }).then(response => {
+        if (!response.ok) {
+          return Promise.reject(response);
+        }
+        return response.json();
+      }).finally(() => {
+        spinner.remove();
       });
-      return response.json();
+
     } catch (error) {
+      spinner.remove();
       console.log(error);
     }
   }
@@ -176,8 +187,10 @@ class PublishModal {
 domReady.finally(() => {
   const url_publish = document.querySelector('data[id="publish-url"]');
   const url_decline = document.querySelector('data[id="decline-url"]');
+  const redirect_url = document.querySelector('data[id="redirect-url"]');
   window.entityForm = new PublishModal(
     url_publish.innerHTML,
-    url_decline.innerHTML
+    url_decline.innerHTML,
+    redirect_url.innerHTML
   );
 });

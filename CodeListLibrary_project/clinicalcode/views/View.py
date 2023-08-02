@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from django.db.models.functions import Lower
 
 import requests
+import sys
 import datetime
 import json
 import logging
@@ -31,18 +32,24 @@ logger = logging.getLogger(__name__)
 
 def index(request):
     '''
-        Display the index homepage.
+        Displays the index homepage.
+        Assigns brand defined in the Django Admin Portal under "index_path". 
+        If brand is not available it will rely on the default index path.
     '''
+    index_path = settings.INDEX_PATH
+    brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
     if request.CURRENT_BRAND == "":
-        return index_with_stats(request, 'clinicalcode/home.html')
+        return render(request, 'clinicalcode/index.html')
+    elif request.CURRENT_BRAND == "BREATHE":
+        return index_BREATHE(request)
     elif request.CURRENT_BRAND == "HDRUK":
-        return index_with_stats(request, 'clinicalcode/brand/HDRUK/index_HDRUK.html')
+        return index_HDRUK(request)
     else:
         return render(request, 'clinicalcode/index.html')
 
 
-def index_with_stats(request, template):
+def index_HDRUK(request):
     '''
         Display the HDR UK homepage.
     '''
@@ -60,7 +67,7 @@ def index_with_stats(request, template):
 
     return render(
         request,
-        template,
+        'clinicalcode/brand/HDRUK/index_HDRUK.html',
         {
             'published_concept_count': stats['published_concept_count'],
             'published_phenotype_count': stats['published_phenotype_count'],
@@ -70,11 +77,10 @@ def index_with_stats(request, template):
         }
     )
 
-
-def index_BREATHE(request):
+def index_BREATHE(request, index_path):
     return render(
         request,
-        'clinicalcode/brand/BREATHE/index_BREATHE.html',
+        index_path
     )
 
 

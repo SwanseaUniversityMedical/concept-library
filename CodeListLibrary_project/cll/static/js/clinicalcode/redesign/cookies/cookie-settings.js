@@ -1,8 +1,6 @@
 
 const cookieSettings = (privacyurl) => {
     
-const ModalFactory = window.ModalFactory;
-
   ModalFactory.create({
     id: 'cookie-dialog',
     title: 'Privacy Settings',

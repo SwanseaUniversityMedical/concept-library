@@ -3,7 +3,7 @@
 {% load compress %}
 {%load static%}
 
-{% compress js file %}
+{% compress js %}
 <script type="text/javascript" src="{% static "js/clinicalcode/redesign/forms/clinical/entityPublish.js" %}"></script>
 {%endcompress%}
 
@@ -11,3 +11,4 @@
 
 <data data-owner="publish-modal" id="publish-url" name="url" type="text/json">{{ url }}</data>
 <data data-owner="publish-modal" id="decline-url" name="url" type="text/json">{{ url_decline }}</data>
+<data data-owner="publish-modal" id="redirect-url" name="url" type="text/json">{{ url_redirect }}</data>
