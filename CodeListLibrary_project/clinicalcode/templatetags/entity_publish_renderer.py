@@ -45,7 +45,7 @@ def render_errors_approval(context, *args, **kwargs):
 def render_publish_button(context, *args, **kwargs):
     user_is_moderator = permission_utils.is_member(context['request'].user, "Moderators")
     user_is_owner = context['entity'].owner == context['request'].user
-    button_context = {'url_decline': reverse('generic_entity_decline', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id})}
+    button_context = {'url_decline': reverse('generic_entity_decline', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),'url_redirect': reverse('entity_history_detail', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id})}
     if user_is_moderator:
         if not context['live_ver_is_deleted']:
             if context["approval_status"]== constants.APPROVAL_STATUS.PENDING and context["is_latest_pending_version"]:
