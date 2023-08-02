@@ -266,11 +266,11 @@ MIDDLEWARE = [
     # GZip
     'django.middleware.gzip.GZipMiddleware',
     # Minify HTML
-    'clinicalcode.middleware.Compression.HTMLCompressionMiddleware',
+    'clinicalcode.middleware.compression.HTMLCompressionMiddleware',
     # Handle brands
-    'clinicalcode.middleware.Brands.BrandMiddleware',
+    'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
-    'clinicalcode.middleware.Sessions.SessionExpiryMiddleware',
+    'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
 ]
 
 #==============================================================================#
@@ -423,7 +423,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
 
 WSGI_APPLICATION = 'cll.wsgi.application'
 
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
