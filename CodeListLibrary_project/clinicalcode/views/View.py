@@ -53,9 +53,9 @@ def index_with_stats(request, template):
         stat = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
         stats = stat.stat
     else:
-        from .Admin import save_statistics
+        from ..entity_utils.stats_utils import save_homepage_stats
         # update stat
-        stat_obj = save_statistics(request, brand)
+        stat_obj = save_homepage_stats(request, brand)
         stats = stat_obj[0]
 
     return render(

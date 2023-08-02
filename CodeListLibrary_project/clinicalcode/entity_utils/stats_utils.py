@@ -389,10 +389,15 @@ def get_published_phenotype_code_count(phenotype_id, phenotype_history_id, conce
 
     codecount = 0
     if concept_information:
-        published_phenotype = PublishedGenericEntity.objects.get(entity_id=phenotype_id, entity_history_id=phenotype_history_id)
+        published_phenotype = PublishedGenericEntity.objects.filter(entity_id=phenotype_id, entity_history_id=phenotype_history_id)
+        if not published_phenotype.exists():
+            return codecount
+
+        published_phenotype = published_phenotype.first()
         saved_codecount = published_phenotype.code_count
+
+        # calc the code count (sum all concepts in this phenotype)
         if saved_codecount is None or saved_codecount == '' or saved_codecount == 0:
-            # calc the code count (sum all concepts in this phenotype)
             for c in concept_information:
                 codelist = concept_utils.get_concept_codelist(
                     c['concept_id'],
