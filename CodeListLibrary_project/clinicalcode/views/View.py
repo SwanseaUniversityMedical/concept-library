@@ -39,23 +39,17 @@ def index(request):
     index_path = settings.INDEX_PATH
     brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
-    if request.CURRENT_BRAND == "":
-        return render(request, 'clinicalcode/index.html')
-    elif request.CURRENT_BRAND == "BREATHE":
-        return index_BREATHE(request)
-    elif request.CURRENT_BRAND == "HDRUK":
-        return index_HDRUK(request)
-    else:
-        return render(request, 'clinicalcode/index.html')
+    # if the index_ function doesn't exist for the current brand force render of the default index_path
+    try:
+        if not brand.exists() :
+            return render(request, index_path)
+        brand = brand.first()
+        index_path = brand.index_path 
+        return getattr(sys.modules[__name__], "index_%s" % brand)(request, index_path)
+    except:
+        return render(request, index_path)
 
-
-def index_HDRUK(request):
-    '''
-        Display the HDR UK homepage.
-    '''
-    brand = request.CURRENT_BRAND
-    brand = brand if brand is not None and brand != '' else 'ALL'
-
+def get_brand_index_stats(request, brand):
     if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
         stat = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
         stats = stat.stat
@@ -64,6 +58,13 @@ def index_HDRUK(request):
         # update stat
         stat_obj = save_homepage_stats(request, brand)
         stats = stat_obj[0]
+    return stats
+
+def index_HDRUK(request):
+    '''
+        Display the HDR UK homepage.
+    '''
+    stats = get_brand_index_stats(request, 'HDRUK')
 
     return render(
         request,
