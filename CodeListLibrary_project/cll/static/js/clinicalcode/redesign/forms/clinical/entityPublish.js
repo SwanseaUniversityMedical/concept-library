@@ -69,10 +69,10 @@ class PublishModal {
           const name = result.name;
           if (name == "Decline") {
             await this.postData(data, this.decline_url);
-            window.location.href = this.redirect_url
+            window.location.href = this.redirect_url+'?eraseCache=true';
           } else {
             await this.postData(data, this.publish_url);
-            window.location.href = this.redirect_url
+            window.location.href = this.redirect_url+'?eraseCache=true';
           }
         })
         .catch((result) => {
@@ -107,7 +107,6 @@ class PublishModal {
         return response.json();
       }).finally(() => {
         spinner.remove();
-        window.location.reload();
       });
 
     } catch (error) {
