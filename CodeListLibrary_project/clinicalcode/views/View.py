@@ -60,7 +60,10 @@ def index(request):
 
 def index_home(request, index_path):
     stats = get_brand_index_stats(request, 'ALL')
+    brands = Brand.objects.all().values('name', 'description')
+
     return render(request, index_path, {
+        'known_brands': brands,
         'published_concept_count': stats['published_concept_count'],
         'published_phenotype_count': stats['published_phenotype_count'],
         'published_clinical_codes': stats['published_clinical_codes'],

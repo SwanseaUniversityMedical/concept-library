@@ -67,6 +67,7 @@
                 <p id="analytics-counter" x-value="{{ published_phenotype_count }}" x-init="countup">0</p>
               </header>
               <p class="homepage-statistics__card-text">
+                Lorem ipsum.
               </p>
             </div>
           </div>
@@ -79,6 +80,7 @@
                 <p id="analytics-counter" x-value="{{ published_concept_count }}" x-init="countup">0</p>
               </header>
               <p class="homepage-statistics__card-text">
+                Lorem ipsum.
               </p>
             </div>
           </div>
@@ -91,6 +93,7 @@
                 <p id="analytics-counter" x-value="{{ datasources_component_count }}" x-init="countup">0</p>
               </header>
               <p class="homepage-statistics__card-text">
+                Lorem ipsum.
               </p>
             </div>
           </div>
@@ -103,6 +106,7 @@
                 <p id="analytics-counter" x-value="{{ published_clinical_codes }}" x-init="countup">0</p>
               </header>
               <p class="homepage-statistics__card-text">
+                Lorem ipsum.
               </p>
             </div>
           </div>
@@ -115,6 +119,7 @@
                 <p id="analytics-counter" x-value="{{ clinical_terminologies }}" x-init="countup">0</p>
               </header>
               <p class="homepage-statistics__card-text">
+                Lorem ipsum.
               </p>
             </div>
           </div>
@@ -125,66 +130,29 @@
     <!-- Brands -->
     <section class="homepage-about homepage-about--inner-padding homepage-about--constrained">
       <div class="homepage-about__list">
-        <div class="homepage-about__brand">
-          <div class="homepage-about__brand-item">
-            <div class="homepage-about__brand-icon">
-              <img src="{% static 'img/brands/HDRUK/apple-touch-icon.png' %}" />
+        {% for obj in known_brands %}
+          <div class="homepage-about__brand">
+            <div class="homepage-about__brand-item">
+              <div class="homepage-about__brand-icon">
+                <img src="static/img/brands/{{ obj.name }}/apple-touch-icon.png" />
+              </div>
+              <div class="homepage-about__brand-details">
+                <h4>
+                  {{ obj.name }}
+                </h4>
+                <p>
+                  {{ obj.description }}
+                </p>
+              </div>
             </div>
-            <div class="homepage-about__brand-details">
-              <h4>
-                HDRUK
-              </h4>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              </p>
-            </div>
-          </div>
-          <div class="homepage-about__brand-footer">
-            <a class="homepage-about__brand-anchor" href="{{ create_url }}">
-              View Site <span class="homepage-about__brand-anchor-icon"></span>
-            </a>
-          </div>
-        </div>
-        <div class="homepage-about__brand">
-          <div class="homepage-about__brand-item">
-            <div class="homepage-about__brand-icon">
-              <img src="{% static 'img/brands/ADP/apple-touch-icon.png' %}" />
-            </div>
-            <div class="homepage-about__brand-details">
-              <h4>
-                ADP
-              </h4>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              </p>
+            <div class="homepage-about__brand-footer">
+              <a class="homepage-about__brand-anchor" href="/{{ obj.name }}">
+                View Site 
+                <span class="homepage-about__brand-anchor-icon"></span>
+              </a>
             </div>
           </div>
-          <div class="homepage-about__brand-footer">
-            <a class="homepage-about__brand-anchor" href="{{ create_url }}">
-              View Site <span class="homepage-about__brand-anchor-icon"></span>
-            </a>
-          </div>
-        </div>
-        <div class="homepage-about__brand">
-          <div class="homepage-about__brand-item">
-            <div class="homepage-about__brand-icon">
-              <img src="{% static 'img/brands/SAIL/apple-touch-icon.png' %}" />
-            </div>
-            <div class="homepage-about__brand-details">
-              <h4>
-                SAIL
-              </h4>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              </p>
-            </div>
-          </div>
-          <div class="homepage-about__brand-footer">
-            <a class="homepage-about__brand-anchor" href="{{ create_url }}">
-              View Site <span class="homepage-about__brand-anchor-icon"></span>
-            </a>
-          </div>
-        </div>
+        {% endfor %}
       </div>
       <div class="homepage-about__info">
         <h3 class="homepage-about__info-title">
