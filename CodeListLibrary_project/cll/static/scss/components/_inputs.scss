@@ -205,12 +205,13 @@
     margin: 0;
   }
 
-  &.fill-width {
-    width: 100%;
+  &.fill {
+    width: calc(100% - 1rem);
+    max-width: calc(100% - 1rem);
   }
 
   &.constrained {
-    max-width: 100%;
+    max-width: calc(100% - 1rem);
   }
 
   &__mandatory {
@@ -284,9 +285,14 @@
   border: 0;
   width: 100%;
 
-  &.wrapped {
+  &--wrapped {
     flex-wrap: wrap;
     max-width: 100%;
+  }
+
+  &--padding0_5 {
+    padding: 0 0.5rem;
+    max-width: calc(100% - 0.5rem);
   }
 
   &__label {
