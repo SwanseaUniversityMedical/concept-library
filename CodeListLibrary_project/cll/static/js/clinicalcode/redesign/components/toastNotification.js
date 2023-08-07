@@ -102,6 +102,7 @@ class ToastNotificationFactory {
     const toast = createElement('div', {
       'className': `toast toast--${type}`,
       'role': 'alert',
+      'aria-hidden': false,
       'aria-live': true,
     });
     

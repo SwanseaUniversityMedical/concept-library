@@ -1,9 +1,16 @@
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
-  <h3 class="detailed-input-group__title">{{ component.field_data.title }} {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
-  <p class="detailed-input-group__description">{{ component.description }}</p>
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+    <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
+  <p class="detailed-input-group__description">
+    {{ component.description }}
+  </p>
   {% endif %}
-  <fieldset class="date-range-field" id="entity-{{ component.field_name }}" data-class="daterange" data-field="{{ component.field_name }}" data-value="{{ component.value }}">
+  <fieldset class="date-range-field date-range-field--wrapped date-range-field--padding0_5" id="entity-{{ component.field_name }}" data-class="daterange" data-field="{{ component.field_name }}" data-value="{{ component.value }}">
     <span class="date-range-field__label">Start:</span>
     <input type="date" value=""
       aria-label="{{ component.field_data.title }} - Select start date" id="entity-{{ component.field_name }}-startdate">

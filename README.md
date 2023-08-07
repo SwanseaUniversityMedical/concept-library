@@ -45,7 +45,12 @@ Often the definitions that are created are of interest to researchers for many s
     2.5.1. [Django logging](#2.5.1.-Django-Logging)  
     2.5.2. [Debug Tools in Visual Studio Code](#2.5.2.-Debug-Tools-in-Visual-Studio-Code)  
     2.5.3. [Running Tests](#2.5.3.-Running-Tests)  
-  2.6. [Creating a Superuser](#2.6.-Creating-a-Superuser)
+  2.6. [Setting up VSCode Tasks](#2.6.-Setting-up-VSCode-Tasks)
+    2.6.1. [Basics](#2.6.1.-Basics)  
+    2.6.2. [Debug build tasks](#2.6.2.-Debug-build-tasks)  
+    2.6.3. [Test build tasks](#2.6.3.-Test-build-tasks)  
+    2.6.4. [How to handle cleaning](#2.6.4.-How-to-handle-cleaning)  
+  2.7. [Creating a Superuser](#2.7.-Creating-a-Superuser)
 3. [Setup without Docker](#3.-Setup-without-Docker)  
   3.1. [Prerequisites](#3.1.-Prerequisites)  
   3.2. [Installing](#3.2.-Installing)  
@@ -171,12 +176,23 @@ c. *OR;* to prune your docker, enter `docker system prune -a`
 >***[!] Note:**   
 To test the transpiling, minification or compression steps, OR; if you have made changes to the Docker container or its images it is recommended that you run a local, pre-production build*
 
-To build a local, pre-production build:
+To replicate the server environment, you will have to build the Dockerfile images first:
 1. Open a terminal
-2. Navgiate to the `concept-library/docker/` folder
-3. Set up the environment variables within `./test/app.compose.env`
-4. In the terminal, run `docker-compose -p cll -f docker-compose.test.yaml up --build` (append `-d` as an argument to run in background)
-5. Open a browser and navigate to `localhost:8005` to access the application
+2. Navigate to the `concept-library/docker/` folder
+3. Build `./test/app.Dockerfile` and tag its resulting image as `cll/app` by running: `docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..`
+4. Clone and tag this image for the `celery_beat` service by running: `docker tag cll/app cll/celery_beat`
+5. Clone and tag this image for the `celery_worker` service by running: `docker tag cll/app cll/celery_worker`
+
+To build a local, pre-production build:
+>***[!] Note:**
+If you do not want to start the celery services you can remove the "--profiles live" argument
+
+1. Open a terminal
+2. Follow the steps above if you have not already built the images
+3. Navgiate to the `concept-library/docker/` folder
+4. Set up the environment variables within `./test/app.compose.env`
+5. In the terminal, run `docker-compose -p cll -f docker-compose.test.yaml --profiles live up` (append `-d` as an argument to run in background)
+6. Open a browser and navigate to `localhost:8005` to access the application
 
 ### 2.3.7. Impact of Environment Variables
 
@@ -319,7 +335,130 @@ Please see the following commands:
 - To run only the read-only unit tests, run:  
 `python manage.py test --noinput clinicalcode.tests.unit_tests.read_only`
 
-## 2.6. Creating a Superuser
+## 2.6. Setting up VSCode Tasks
+
+### 2.6.1. Basics
+> ***[!] Note:** You can learn more about using external tools and VSCode's Tasks system [here](https://code.visualstudio.com/docs/editor/tasks)*
+
+#### Set up
+To start using tasks:
+1. Open your terminal
+2. Navigate to the root of the `concept-library` project
+3. Create a new `.vscode` directory within the project folder by running: `mkdir .vscode`
+4. Navigate into this directory by running: `cd .vscode`
+5. Create a new `tasks.json` file by running: `touch tasks.json`
+
+#### Basic file configration
+After opening the `tasks.json` file, you should configure the contents so it looks like this:
+```json
+{
+  "version": "2.0.0",
+  "tasks": []
+}
+```
+
+### 2.6.2. Debug build tasks
+> ***[!] Note:** You can learn about the available options for tasks [here](https://code.visualstudio.com/docs/editor/tasks-appendix)*
+
+To set up your first debug task, configure your `tasks.json` file such that:
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Debug",
+      "detail": "Builds the development container",
+      "type": "shell",
+      "command": "docker-compose -p cll -f docker-compose.dev.yaml up --build",
+      "options": {
+        "cwd": "${workspaceFolder}/docker/"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": false
+      }
+    }
+  ]
+}
+```
+
+### 2.6.3. Test build tasks
+To set up a task for the `docker-compose.test.yaml` container, you append the following to the `"tasks": []` property:
+```json
+{
+  "label": "Build Test",
+  "detail": "Builds the test container",
+  "type": "shell",
+  "command": "docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..; docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker; docker-compose -p cll -f docker-compose.test.yaml up",
+  "options": {
+    "cwd": "${workspaceFolder}/docker/"
+  },
+  "group": {
+    "kind": "test"
+  },
+  "presentation": {
+    "reveal": "always",
+    "panel": "new",
+    "focus": false
+  }
+}
+```
+
+### 2.6.4. How to handle cleaning
+> ***[!] Note:** There will be some differences between Windows and other operating systems. The example below is set up to use PowerShell logical operators. On a Linux-based OS, you would need to use the '&&' and '||' operators instead of '-and' and '-or'*
+
+If you set up both the debug and test builds you will note that the docker container isn't cleaned between different tasks. It is possible to set up your tasks such that the containers will be cleaned.
+
+To set this up, you would need to append the following cleaning task to your `tasks` property:
+```json
+{
+  "label": "Clean Containers",
+  "detail": "Cleans all cll related containers",
+  "type": "shell",
+  "command": "(docker ps -q --filter 'name=cll') -and (docker rm $(docker stop $(docker ps -q -f 'name=cll' -f 'name=redis'))) -or (echo 'Nothing to clean')",
+  "options": {
+    "cwd": "${workspaceFolder}/docker/"
+  },
+  "group": {
+    "kind": "build"
+  },
+  "presentation": {
+    "reveal": "never",
+    "panel": "shared"
+  },
+  "problemMatcher": []
+},
+```
+
+Using [Compound Tasks](https://code.visualstudio.com/docs/editor/tasks#_compound-tasks), you can modify your `Build Debug` and `Build Test` tasks to clean before starting by adding the `dependsOn` property. In the case of the `Build Debug` task, it would look like this:
+```json
+{
+  "label": "Build Debug",
+  "detail": "Builds the development container",
+  "type": "shell",
+  "command": "docker-compose -p cll -f docker-compose.dev.yaml up --build",
+  "options": {
+    "cwd": "${workspaceFolder}/docker/"
+  },
+  "group": {
+    "kind": "build",
+    "isDefault": true
+  },
+  "presentation": {
+    "reveal": "always",
+    "panel": "new",
+    "focus": false
+  },
+  "dependsOn": ["Clean Containers"]
+},
+```
+
+## 2.7. Creating a Superuser
 
 To create a superuser:
 1. Ensure the docker container is running and open a new terminal
@@ -433,12 +572,12 @@ Optional arguments for this script include:
 - `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
 - `-nd` | `--no-pull` → [Defauts to `true`] Whether to pull the branch from the Git repository - can be used to avoid re-pulling branch if you are making changes to external factors, e.g. the environment variables
 - `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
-- `-np` | `--no-prune` → [Defauts to `true`] Whether to prune the unused docker data before building the current image
 - `-e` | `--env` → [Defauts to `env_vars-RO.txt`] The name of the environment variables text file - see below for more details
 - `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
 - `-n` | `--name` → [Defauts to `cllro_dev`] The name of the docker container
 - `-r` | `--repo` → [Defauts to `https://github.com/SwanseaUniversityMedical/concept-library.git`] The Github repository you would like to pull from (if `--no-pull` hasn't been applied)
 - `-b` | `--branch` → [Defauts to `manual-feature-branch`] The branch you would like to pull from within the aforementioned Github repository
+- `-p` | `--profile` → [Defauts to `live`] The name of the docker profile to execute
 
 #### Setting up your environment variables
 > **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
@@ -455,8 +594,11 @@ Ensure you have an `env-vars` text file on your server. The name of this file us
 ### 4.1.2. Automated Deployment
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
 
+[Details]
+
 #### Files
 > **[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file
+
 If not already present on the machine, please ensure that the following files are within the root directory:
   - Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
   - Copy `./docker/docker-compose.prod.yaml` to `/root/`
@@ -466,11 +608,12 @@ You need to ensure that there is an `env_vars.txt` within the same directory as 
 
 #### Site Deployment Arguments
 Optional parameters for the `deploy-site.sh` script include:
+- `-fp` | `--file-path` → [Defauts to `/root/`] This determines the root path of where the `docker-compose.prod.yaml` file lives
 - `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
 - `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
-- `-np` | `--no-prune` → [Defauts to `true`] Whether to prune the unused docker data before building the current image
 - `-a` | `--address` → [Defauts to `Null`] This parameter determines the registry we will try to pull the images from
 - `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
+- `-p` | `--profile` → [Defauts to `live`] The name of the docker profile to execute
 
 #### What to do when automated deployment is disabled
 > **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
