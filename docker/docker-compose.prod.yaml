@@ -3,7 +3,7 @@ version: '3'
 services:
   app:
     platform: linux/amd64
-    image: cll/os
+    image: cll/app
     restart: on-failure
     command: >
       sh -c "/home/config_cll/init-app.sh"
@@ -39,6 +39,8 @@ services:
       sh -c "/home/config_cll/worker-start.sh"
     env_file:
       - ./env_vars.txt
+    profiles:
+      - live
     depends_on:
       - app
       - redis
@@ -50,6 +52,8 @@ services:
       sh -c "/home/config_cll/beat-start.sh"
     env_file:
       - ./env_vars.txt
+    profiles:
+      - live
     depends_on:
       - app
       - redis

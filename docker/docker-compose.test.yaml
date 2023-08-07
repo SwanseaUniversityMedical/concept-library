@@ -15,7 +15,7 @@ services:
 
   app:
     platform: linux/amd64
-    image: cll/os
+    image: cll/app
     build:
       context: ..
       dockerfile: ./docker/test/app.Dockerfile
@@ -48,24 +48,28 @@ services:
           - redis
 
   celery_worker:
-    image: cll/os
+    image: cll/app
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/worker-start.sh"
     env_file:
       - ./test/env/app.compose.env
+    profiles:
+      - live
     depends_on:
       - postgres
       - app
       - redis
 
   celery_beat:
-    image: cll/os
+    image: cll/app
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/beat-start.sh"
     env_file:
       - ./test/env/app.compose.env
+    profiles:
+      - live
     depends_on:
       - postgres
       - app

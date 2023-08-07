@@ -103,8 +103,6 @@ urlpatterns += [
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         url(r'^admin/run-datasource-sync/$', Admin.run_datasource_sync, name='datasource_sync'),# Datasource sync
-        url(r'^admin/run-stat/$',  Admin.run_statistics, name='HDRUK_run_statistics'),# HDRUK home page stat
-        #url(r'^admin/run-stat-filters/$', Admin.run_filter_statistics, name='collections_run_filters'),# filter stat
     ]
 
 # check concepts not associated with phenotypes

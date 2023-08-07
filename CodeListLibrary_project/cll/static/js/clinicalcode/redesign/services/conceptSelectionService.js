@@ -125,7 +125,7 @@ const CSEL_BUTTONS = {
 const CSEL_INTERFACE = {
   // Main dialogue modal
   DIALOGUE: ' \
-  <div class="target-modal target-modal-${promptSize}" id="${id}" aria-hidden="true"> \
+  <div class="target-modal target-modal-${promptSize}" id="${id}" aria-hidden="${hidden}"> \
     <div class="target-modal__container"> \
       <div class="target-modal__header"> \
         <h2 id="target-modal-title">${promptTitle}</h2> \
@@ -298,7 +298,7 @@ const CSEL_FILTER_COMPONENTS = {
       <h4>${title}</h4> \
     </label> \
     <article class="accordian__container"> \
-      <fieldset class="date-range-field wrapped" id="filter-${field}-fields" data-class="daterange" data-field="${field}"> \
+      <fieldset class="date-range-field date-range-field--wrapped" id="filter-${field}-fields" data-class="daterange" data-field="${field}"> \
         <div> \
           <span class="date-range-field__label">Start:</span> \
           <input type="date" value="" data-field="${field}" \
@@ -830,7 +830,8 @@ export class ConceptSelectionService {
     let html = interpolateHTML(CSEL_INTERFACE.DIALOGUE, {
       id: this.id,
       promptTitle: this.options?.promptTitle,
-      promptSize: this.options?.promptSize,      
+      promptSize: this.options?.promptSize,
+      hidden: 'false',
     });
   
     let doc = parseHTMLFromString(html);

@@ -116,8 +116,8 @@
   @include app-font-style();
   @include flex-col($gap: 1rem);
   position: relative;
-  width: 100%;
-  max-width: 100%;
+  width: calc(100% - 1rem);
+  max-width: calc(100% - 1rem);
   height: auto;
   margin-top: 1rem;
   padding: 0.5rem 1rem 0 1rem;
@@ -130,8 +130,8 @@
     @include flex-col();
     position: relative;
     padding: 0 0rem 0.5rem 0.5rem;
-    width: 100%;
-    max-width: 100%;
+    width: calc(100% - 1rem);
+    max-width: calc(100% - 1rem);
     min-height: var(--progress-item-min-step-height);
     counter-increment: item;
 

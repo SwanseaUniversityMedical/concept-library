@@ -1,7 +1,9 @@
 {% load static %}
 {% load entity_renderer %}
+
 <section class="concepts-view" id="concepts-view" data-field="{{ component.field_name }}" data-class="clinical-concept">
-  <data type="value" for="{{ component.field_name }}">{% if component.value %}{{ component.value|jsonify|safe }}{% endif %}</data>
+  <data aria-hidden="true" type="value" for="{{ component.field_name }}">{% if component.value %}{{ component.value|jsonify|safe }}{% endif %}</data>
+
   <section class="concepts-view__header">
     <div class="concepts-view__container">
       <p class="concepts-view__title">Your Concepts {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>

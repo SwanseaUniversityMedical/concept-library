@@ -21,11 +21,6 @@ A significant aspect of research using routinely collected health records is def
 
 Often the definitions that are created are of interest to researchers for many studies, but there are barriers to easily sharing them.  The definitions may be embedded within study-specific scripts, such that it is not easy to extract the part that may be of general interest.  Also, often researchers do not fully document how a concept was created, its precise meaning, limitations, etc.  Crucial information may be lost when passing it to other researchers, resulting in mistakes.  Often there simply is no mechanism to discover and share work that has been done previously, leading researchers to waste time and resources reinventing the wheel.  In theory, when research is published, information on the precise methods used should be included, but in reality this is often inadequate.
 
-### 2.6.1. Basics
-### 2.6.2. Debug build tasks
-### 2.6.3. Test build tasks
-### 2.6.4. How to handle cleaning
-
 # Table of contents
 1. [Clone this repository](#1.-Clone-this-Repository)  
 2. [Setup with Docker](#2.-Setup-with-Docker)  
@@ -184,16 +179,19 @@ To test the transpiling, minification or compression steps, OR; if you have made
 To replicate the server environment, you will have to build the Dockerfile images first:
 1. Open a terminal
 2. Navigate to the `concept-library/docker/` folder
-3. Build `./test/app.Dockerfile` and tag its resulting image as `cll/os` by running: `docker build -f test/app.Dockerfile -t cll/os --build-arg server_name=localhost ..`
-4. Clone and tag this image for the `celery_beat` service by running: `docker tag cll/os cll/celery_beat`
-5. Clone and tag this image for the `celery_worker` service by running: `docker tag cll/os cll/celery_worker`
+3. Build `./test/app.Dockerfile` and tag its resulting image as `cll/app` by running: `docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..`
+4. Clone and tag this image for the `celery_beat` service by running: `docker tag cll/app cll/celery_beat`
+5. Clone and tag this image for the `celery_worker` service by running: `docker tag cll/app cll/celery_worker`
 
 To build a local, pre-production build:
+>***[!] Note:**
+If you do not want to start the celery services you can remove the "--profiles live" argument
+
 1. Open a terminal
 2. Follow the steps above if you have not already built the images
 3. Navgiate to the `concept-library/docker/` folder
 4. Set up the environment variables within `./test/app.compose.env`
-5. In the terminal, run `docker-compose -p cll -f docker-compose.test.yaml up` (append `-d` as an argument to run in background)
+5. In the terminal, run `docker-compose -p cll -f docker-compose.test.yaml --profiles live up` (append `-d` as an argument to run in background)
 6. Open a browser and navigate to `localhost:8005` to access the application
 
 ### 2.3.7. Impact of Environment Variables
@@ -361,6 +359,7 @@ After opening the `tasks.json` file, you should configure the contents so it loo
 
 ### 2.6.2. Debug build tasks
 > ***[!] Note:** You can learn about the available options for tasks [here](https://code.visualstudio.com/docs/editor/tasks-appendix)*
+
 To set up your first debug task, configure your `tasks.json` file such that:
 ```json
 {
@@ -395,7 +394,7 @@ To set up a task for the `docker-compose.test.yaml` container, you append the fo
   "label": "Build Test",
   "detail": "Builds the test container",
   "type": "shell",
-  "command": "docker build -f test/app.Dockerfile -t cll/os --build-arg server_name=localhost ..; docker tag cll/os cll/celery_beat; docker tag cll/os cll/celery_worker; docker-compose -p cll -f docker-compose.test.yaml up",
+  "command": "docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..; docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker; docker-compose -p cll -f docker-compose.test.yaml up",
   "options": {
     "cwd": "${workspaceFolder}/docker/"
   },
@@ -412,6 +411,7 @@ To set up a task for the `docker-compose.test.yaml` container, you append the fo
 
 ### 2.6.4. How to handle cleaning
 > ***[!] Note:** There will be some differences between Windows and other operating systems. The example below is set up to use PowerShell logical operators. On a Linux-based OS, you would need to use the '&&' and '||' operators instead of '-and' and '-or'*
+
 If you set up both the debug and test builds you will note that the docker container isn't cleaned between different tasks. It is possible to set up your tasks such that the containers will be cleaned.
 
 To set this up, you would need to append the following cleaning task to your `tasks` property:
@@ -572,12 +572,12 @@ Optional arguments for this script include:
 - `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
 - `-nd` | `--no-pull` → [Defauts to `true`] Whether to pull the branch from the Git repository - can be used to avoid re-pulling branch if you are making changes to external factors, e.g. the environment variables
 - `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
-- `-np` | `--no-prune` → [Defauts to `true`] Whether to prune the unused docker data before building the current image
 - `-e` | `--env` → [Defauts to `env_vars-RO.txt`] The name of the environment variables text file - see below for more details
 - `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
 - `-n` | `--name` → [Defauts to `cllro_dev`] The name of the docker container
 - `-r` | `--repo` → [Defauts to `https://github.com/SwanseaUniversityMedical/concept-library.git`] The Github repository you would like to pull from (if `--no-pull` hasn't been applied)
 - `-b` | `--branch` → [Defauts to `manual-feature-branch`] The branch you would like to pull from within the aforementioned Github repository
+- `-p` | `--profile` → [Defauts to `live`] The name of the docker profile to execute
 
 #### Setting up your environment variables
 > **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
@@ -594,8 +594,11 @@ Ensure you have an `env-vars` text file on your server. The name of this file us
 ### 4.1.2. Automated Deployment
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
 
+[Details]
+
 #### Files
 > **[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file
+
 If not already present on the machine, please ensure that the following files are within the root directory:
   - Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
   - Copy `./docker/docker-compose.prod.yaml` to `/root/`
@@ -605,11 +608,12 @@ You need to ensure that there is an `env_vars.txt` within the same directory as 
 
 #### Site Deployment Arguments
 Optional parameters for the `deploy-site.sh` script include:
+- `-fp` | `--file-path` → [Defauts to `/root/`] This determines the root path of where the `docker-compose.prod.yaml` file lives
 - `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
 - `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
-- `-np` | `--no-prune` → [Defauts to `true`] Whether to prune the unused docker data before building the current image
 - `-a` | `--address` → [Defauts to `Null`] This parameter determines the registry we will try to pull the images from
 - `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
+- `-p` | `--profile` → [Defauts to `live`] The name of the docker profile to execute
 
 #### What to do when automated deployment is disabled
 > **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
