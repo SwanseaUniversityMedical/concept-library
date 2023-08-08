@@ -568,18 +568,18 @@ This script can be used to manually deploy feature branches on the server. Pleas
 
 Optional arguments for this script include:
 
-| Command                   | Default value                                                           | Description                                                                                                                                                               |
-|---------------------------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-fp` _or_ `--file-path`  | `/root/deploy_DEV_DEMO_DT`                                              | Determines the root path of your environment variable text file (see below) and where the Github repo will be cloned                                                      |
-| `-fg` _or_ `--foreground` | `false`                                                                 | Whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process    |
-| `-nd` _or_ `--no-pull`    | `true`                                                                  | Whether to pull the branch from the Git repository - can be used to avoid re-pulling branch if you are making changes to external factors, e.g. the environment variables |
-| `-nc` _or_ `--no-clean`   | `true`                                                                  | Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image                                                           |
-| `-e` _or_ `--env`         | `env_vars.txt`                                                          | The name of the environment variables text file - see below for more details                                                                                              |
-| `-f` _or_ `--file`        | `docker-compose.prod.yaml`                                              | The name of the docker-compose file you would like to deploy                                                                                                              |
-| `-n` _or_ `--name`        | `cllro_dev`                                                             | The name of the docker container                                                                                                                                          |
-| `-r` _or_ `--repo`        | [Repo](https://github.com/SwanseaUniversityMedical/concept-library.git) | The Github repository you would like to pull from (if `--no-pull` hasn't been applied)                                                                                    |
-| `-b` _or_ `--branch`      | `DFTM`                                                                  | The branch you would like to pull from within the aforementioned Github repository                                                                                        |
-| `-p` _or_ `--profile`     | `live`                                                                  | The name of the docker profile to execute                                                                                                                                 |
+| Command        | Shorthand | Default value                                                           | Description                                                                    |
+|----------------|-----------|-------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `--file-path`  | `-fp`     | `/root/deploy_DEV_DEMO_DT`                                              | Determines the root path of your environment variable text file (see below)    |
+| `--foreground` | `-fg`     | `false`                                                                 | Whether the containers will be built in the foreground                         |
+| `--no-pull`    | `-nd`     | `true`                                                                  | Whether to pull the branch from the Git repository                             |
+| `--no-clean`   | `-nc`     | `true`                                                                  | Whether to clean unused docker containers/images/networks/volumes/build caches |
+| `--env`        | `-e`      | `env_vars.txt`                                                          | Name of the environment variables text file                                    |
+| `--file`       | `-f`      | `docker-compose.prod.yaml`                                              | Name of the docker-compose file you would like to deploy                       |
+| `--name`       | `-n`      | `cllro_dev`                                                             | Name of the docker container                                                   |
+| `--repo`       | `-r`      | [Repo](https://github.com/SwanseaUniversityMedical/concept-library.git) | Github repository you would like to pull from                                  |
+| `--branch`     | `-b`      | `DFTM`                                                                  | Repo's branch you would like to pull from                                      |
+| `--profile`    | `-p`      | `live`                                                                  | Name of the docker profile to execute                                          |
 
 #### Setting up your environment variables
 > **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
@@ -611,14 +611,14 @@ You need to ensure that there is an `env_vars.txt` within the same directory as 
 #### Site Deployment Arguments
 Optional parameters for the `deploy-site.sh` script include:
 
-| Command                   | Default value              | Description                                                                                                                                                            |
-|---------------------------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-fp` _or_ `--file-path`  | `/root/deploy_DEV_DEMO_DT` | This determines the root path of where the `docker-compose.prod.yaml` file lives                                                                                       |
-| `-fg` _or_ `--foreground` | `false`                    | Whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process |
-| `-nc` _or_ `--no-clean`   | `true`                     | Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image                                                        |
-| `-a` _or_ `--address`     | `cllro_dev`                | This parameter determines the registry we will try to pull the images from                                                                                             |
-| `-f` _or_ `--file`        | `docker-compose.prod.yaml` | The name of the docker-compose file you would like to deploy                                                                                                           |
-| `-p` _or_ `--profile`     | `live`                     | The name of the docker profile to execute                                                                                                                              |
+| Command        | Shorthand | Default value              | Description                                                                    |
+|----------------|-----------|----------------------------|--------------------------------------------------------------------------------|
+| `--file-path`  | `-fp`     | `/root/deploy_DEV_DEMO_DT` | Determines the root path of where the `docker-compose.prod.yaml` file lives    |
+| `--foreground` | `-fg`     | `false`                    | Whether the containers will be built in the foreground                         |
+| `--no-clean`   | `-nc`     | `true`                     | Whether to clean unused docker containers/images/networks/volumes/build caches |
+| `--address`    | `-a`      | _Harbor registry URL_      | Determines the registry we will try to pull the images from                    |
+| `--file`       | `-f`      | `docker-compose.prod.yaml` | Name of the docker-compose file you would like to deploy                       |
+| `--profile`    | `-p`      | `live`                     | Name of the docker profile to execute                                          |
 
 #### What to do when automated deployment is disabled
 > **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
