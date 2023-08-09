@@ -4,18 +4,14 @@ on:
   project_card:
     types: [created, edited, moved]
 
-permissions:
-  repository-projects: read
-  issues: write
-  pull-requests: write
-
 jobs:
-  action:
+  closeIssue:
     runs-on: ubuntu-latest
     steps:
-      - uses: dessant/issue-states@v3
-        with:
-            github-token: ${{ github.token }}
-            open-issue-columns: ''
-            closed-issue-columns: 'Current Sprint: Deploy to Demo / Waiting Deployment to Live / In Production'
-            log-output: true
+      - name: Check if card status is 'Moved'
+        id: checkCardStatus
+        run: echo "::set-output name=status::${{ github.event.project_card.previous_column_name }}"
+
+      - name: Close Issue
+        if: ${{ steps.checkCardStatus.outputs.status == 'Deploy to Demo' || steps.checkCardStatus.outputs.status == 'Waiting Deployment to Live' || steps.checkCardStatus.outputs.status == 'In Production' }}
+        run: gh issue close ${{ github.event.project_card.content_url }} --comment 'Issue closed due to card being moved'
