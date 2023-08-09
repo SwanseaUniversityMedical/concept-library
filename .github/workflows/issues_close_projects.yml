@@ -18,4 +18,4 @@ jobs:
             github-token: ${{ github.token }}
             open-issue-columns: ''
             closed-issue-columns: 'Current Sprint: Deploy to Demo / Waiting Deployment to Live / In Production'
-            log-output: false
+            log-output: true
