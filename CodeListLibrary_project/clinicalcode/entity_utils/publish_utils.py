@@ -202,7 +202,7 @@ def check_children(request, entity, entity_class):
             entity_child_id = entity_child[0]
             entity_child_version = entity_child[1]
 
-            concept_owner_id = Concept.history.get(id=entity_child_id).phenotype_owner_id
+            concept_owner_id = Concept.history.get(id=entity_child_id,history_id=entity_child_version).phenotype_owner_id
             if concept_owner_id != entity.id:
                 entity_from_concept = GenericEntity.history.filter(
                 id=concept_owner_id,
