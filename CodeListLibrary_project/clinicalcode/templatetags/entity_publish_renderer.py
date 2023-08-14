@@ -45,42 +45,49 @@ def render_errors_approval(context, *args, **kwargs):
 def render_publish_button(context, *args, **kwargs):
     user_is_moderator = permission_utils.is_member(context['request'].user, "Moderators")
     user_is_owner = context['entity'].owner == context['request'].user
+    user_is_publisher = context['entity'].owner == context['request'].user and permission_utils.is_member(context['request'].user, "publishers")
     button_context = {'url_decline': reverse('generic_entity_decline', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),'url_redirect': reverse('entity_history_detail', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id})}
     if user_is_moderator:
         if not context['live_ver_is_deleted']:
             if context["approval_status"]== constants.APPROVAL_STATUS.PENDING and context["is_latest_pending_version"]:
                 button_context.update({'class_modal':"primary-btn dropdown-btn__label ",
+                                    'Button_type':"Approve",
                                   'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                   'title': "Needs to be approved"
-                                  })
-               
-                        
+                                  })            
             else:
                 if context['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
                      button_context.update({'class_modal':"primary-btn dropdown-btn__label",
                                       'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                                      'Button_type':"Publish",
                                       'title': "Approve declined entity"
                                       })
                 else:
                      button_context.update({'class_modal':"primary-btn dropdown-btn__label ",
                                       'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                                      'Button_type':"Publish",
                                       'title': "Publish immediately"
                                       })
         else:
-             button_context.update({'class_modal':"btn btn-primary",
-                               'title': "This version is already published" if context["is_published"] and context["approval_status"] == constants.APPROVAL_STATUS.APPROVED  
-                               else  "Deleted phenotypes cannot be published !!" if context["live_ver_is_deleted"] else ""
+            if context["is_published"] and context["approval_status"] == constants.APPROVAL_STATUS.APPROVED:
+                 button_context.update({'class_modal':"primary-btn__text-success dropdown-btn__label",
+                                'Button_type': constants.APPROVAL_STATUS.APPROVED.name.capitalize(),	
+                               'title': "This version is already published" 
+                               })
+            else:
+                button_context.update({'class_modal':"primary-btn text-danger dropdown-btn__label",
+                                 'disabled': 'true',
+                                 'Button_type':"Entity is deleted",
+                               'title':  "Deleted phenotypes cannot be published !!"
                                })
         
-        if context["approval_status"] == constants.APPROVAL_STATUS.PENDING and context["is_latest_pending_version"]:
-            button_context["Button_type"] = "Approve"
-            return button_context
-        else:
-            button_context["Button_type"] = "Publish"
-            return button_context
+    
+        return button_context
+   
     else:        
-        if not context["is_lastapproved"] and context["approval_status"] is None and user_is_owner:
+        if not context["is_lastapproved"] and context["approval_status"] is None and user_is_owner and not context["live_ver_is_deleted"]:
              button_context.update({'class_modal':"primary-btn dropdown-btn__label",
+                              'Button_type':"Submit",
                               'url': reverse('generic_entity_request_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                               'title': "Needs to be approved"
                               })
@@ -94,20 +101,26 @@ def render_publish_button(context, *args, **kwargs):
                  button_context.update({'class_modal':"primary-btn__text-success dropdown-btn__label",
                                   'title': f"This version is already {constants.APPROVAL_STATUS.APPROVED.name.lower()} "
                                   })
+                 
             elif context["live_ver_is_deleted"]:
-                 button_context.update({'class_modal':"primary-btn dropdown-btn__label",
-                                    'disabled': 'true',
-                                  'title': "Deleted phenotypes cannot be published !!"
-                                  })
+                  button_context.update({'class_modal':"primary-btn text-danger dropdown-btn__label",
+                                 'disabled': 'true',
+                                 'Button_type':"Entity is deleted",
+                               'title':  "Deleted phenotypes cannot be published !!"
+                               })
+                 
             elif context["approval_status"] == constants.APPROVAL_STATUS.REJECTED:
                  button_context.update({'class_modal':"primary-btn text-danger dropdown-btn__label",
                                   'disabled': 'true',
+                                  'Button_type': constants.APPROVAL_STATUS.REJECTED.name.capitalize(),	
                                   'title': f"This version has been {constants.APPROVAL_STATUS.REJECTED.name.lower()}"
                                   })
+                 
             elif context["approval_status"] == constants.APPROVAL_STATUS.PENDING:
                 if context["entity"].owner_id== context["request"].user.id:
                      button_context.update({'class_modal':"primary-btn text-warning dropdown-btn__label",
                                       'disabled': 'true',
+                                      'Button_type': constants.APPROVAL_STATUS.PENDING.name.capitalize(),
                                       'title': "This version is pending approval",
                                       'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                       })
@@ -118,13 +131,4 @@ def render_publish_button(context, *args, **kwargs):
                                       'title': "Unavailable to publish"
                                       })
 
-        
-        if context["approval_status"] == constants.APPROVAL_STATUS.REJECTED:
-            button_context["Button_type"] = constants.APPROVAL_STATUS.REJECTED.name.capitalize()
-            return button_context
-        elif context["approval_status"] == constants.APPROVAL_STATUS.PENDING:
-            button_context["Button_type"] = constants.APPROVAL_STATUS.PENDING.name.capitalize()
-            return button_context
-        else:
-            button_context["Button_type"] = "Publish"
-            return button_context
+        return button_context
