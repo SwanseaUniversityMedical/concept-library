@@ -69,15 +69,12 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                             self.moderator_publish(self.request,history_id,pk,checks,data)
                     
                     if checks['is_publisher']:
-                        if checks['is_lastapproved']:
-                            self.last_approved_publish(self.request,entity,history_id)
-                        else:
-                            published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
+                        published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
                                                         created_by_id=GenericEntity.objects.get(pk=pk).created_by.id,approval_status=constants.APPROVAL_STATUS.APPROVED)
-                            published_entity.save()
+                        published_entity.save()
                             
                     #Check if was already published by user only to filter entitys and take the moderator id
-                    if checks['is_lastapproved'] and not checks['is_moderator']:
+                    if checks['is_lastapproved'] and not checks['is_moderator'] and not checks['is_publisher']:
                         self.last_approved_publish(self.request,entity,history_id)
 
                     #Approve other pending entity if available to publish
