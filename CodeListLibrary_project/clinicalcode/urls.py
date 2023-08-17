@@ -53,7 +53,7 @@ urlpatterns += [
     url(r'^cookies-settings/$', View.cookies_settings, name='cookies_settings'),
     url(r'^reference-data/$', View.reference_data, name='reference_data'),
     # brand/main about pages
-    url(r'^about/(?P<pg_name>\w+)/$', View.about_pages, name='about_page'),
+    url(r'^about/(?P<pg_name>\w+)/$', View.brand_about_index_return, name='about_page'),
     ]
 
 # contact us page
