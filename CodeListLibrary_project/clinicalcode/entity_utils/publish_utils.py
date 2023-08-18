@@ -262,7 +262,7 @@ def format_message_and_send_email(pk, data, entity, entity_history_id, checks, m
         pk=pk,
         history=entity_history_id
     )
-    #send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
+    send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
     return data
 
 
