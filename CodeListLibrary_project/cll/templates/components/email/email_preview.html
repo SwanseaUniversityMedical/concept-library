@@ -1,0 +1,12 @@
+{% load static %} 
+{% load i18n %} 
+{% load svg %} 
+{% load mathfilters %} 
+{% load cl_extras %} 
+
+{% block content %}
+    <h2>{{ email_subject }}</h2>
+        {{ email_content | safe }}
+{% endblock content %}
+
+
