@@ -6,11 +6,14 @@
 '''
 import ast
 import datetime
+from decimal import Context
 import json
 import re
 from collections import OrderedDict
 from collections import OrderedDict as ordr
 from itertools import *
+from django.template.loader import get_template
+from django.template import Context
 
 import numpy as np
 import pandas as pd
@@ -4149,6 +4152,9 @@ def send_review_email_generic(id,name, owner_id, review_decision, review_message
     <strong>Reviewer message:</strong><br>{message}
     '''.format(Entity_name=name, id=id, name=name, decision=review_decision, message=review_message)
 
+    email_content = get_template("/components/email/email_content.html").render(Context({'id': id, 'name': name, 'decision': review_decision, 
+                                                                                         'message': review_message }))
+
     if not settings.IS_DEVELOPMENT_PC:
         try:
             msg = EmailMultiAlternatives(email_subject,
@@ -4165,6 +4171,7 @@ def send_review_email_generic(id,name, owner_id, review_decision, review_message
         #print(email_content) for testing
         return True
     
+
 def send_review_email(Entity_obj, review_decision, review_message):
 
     id = Entity_obj.id
