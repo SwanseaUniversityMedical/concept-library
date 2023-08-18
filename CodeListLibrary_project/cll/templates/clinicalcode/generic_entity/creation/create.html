@@ -10,9 +10,9 @@
 {% block title %}| {% if form_method.value == 1 %} Create your Phenotype {% else %} Update your Phenotype{% endif %}{% endblock title %}
 
 {% block cache_tags %}
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
 {% endblock cache_tags %}
 
 {% block indexing_robots %}
@@ -28,17 +28,18 @@
   <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
 
   {% compress js %}
-  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/tooltipFactory.js' %}"></script>
-  <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
-  <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
-  <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/tooltipFactory.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
   {% endcompress %}
 
   {% compress css %}
-  <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
+    <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
   {% endcompress %}
+
   <header class="main-header">
     <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
       {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
@@ -50,7 +51,7 @@
     {% render_wizard_navigation %}
     {% endrender_wizard_navigation %}
 
-    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred main-content__inner-container--pad-right-constrained">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
           {% if form_method.value == 1 %}
@@ -97,22 +98,26 @@
     </div>
   </main>
 
-  <data data-owner="entity-creator" id="referral-links" name="links" type="text/json" referral-url="{% url 'search_phenotypes' %}"></data>
-  <data data-owner="entity-creator" id="form-method" name="method" type="int">{{ form_method.value }}</data>
-  <data data-owner="entity-creator" id="historical-data" name="is_historical" type="int">
+  <data aria-hidden="true" data-owner="entity-creator" id="referral-links" name="links" type="text/json" referral-url="{% url 'search_phenotypes' %}"></data>
+  <data aria-hidden="true" data-owner="entity-creator" id="form-method" name="method" type="int">{{ form_method.value }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="historical-data" name="is_historical" type="int">
     {% if is_historical %}
       1
     {% else %}
       0
     {% endif %}
   </data>
-  <data data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|safe }}</data>
-  <data data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|safe }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|safe }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|safe }}</data>
+
   {% if entity is not None %}
-  <data data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|safe }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|safe }}</data>
   {% endif %}
+
   {% if object_reference is not None %}
-  <data data-owner="entity-creator"id="entity-object" name="object" type="text/json" referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
+  <data aria-hidden="true" data-owner="entity-creator"id="entity-object" name="object" type="text/json"
+    referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
+
     {{ object_reference|jsonify|safe }}
   </data>
   {% endif %}

@@ -61,6 +61,7 @@ APP_TITLE = 'Concept Library'
 APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
 APP_LOGO_PATH = 'img/'
 APP_EMBED_ICON = '{logo_path}embed_img.png'
+INDEX_PATH = 'clinicalcode/index.html'
 
 ADMIN = [
     ('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
@@ -253,8 +254,6 @@ INSTALLED_APPS = INSTALLED_APPS + [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Manage caching
-    #'django.middleware.cache.UpdateCacheMiddleware',
     # GZip
     'django.middleware.gzip.GZipMiddleware',
     # Manage sessions across requests
@@ -267,13 +266,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
     # Minify HTML
-    'clinicalcode.middleware.Compression.HTMLCompressionMiddleware',
+    'clinicalcode.middleware.compression.HTMLCompressionMiddleware',
     # Handle brands
-    'clinicalcode.middleware.Brands.BrandMiddleware',
+    'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
-    'clinicalcode.middleware.Sessions.SessionExpiryMiddleware',
-    # Fetch from cache
-    #'django.middleware.cache.FetchFromCacheMiddleware',
+    'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
 ]
 
 #==============================================================================#
@@ -426,7 +423,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
 
 WSGI_APPLICATION = 'cll.wsgi.application'
 
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

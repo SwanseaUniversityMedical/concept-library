@@ -1,7 +1,8 @@
 class PublishModal {
-  constructor(publish_url, decline_url) {
+  constructor(publish_url, decline_url,redirect_url) {
     this.publish_url = publish_url;
     this.decline_url = decline_url;
+    this.redirect_url = redirect_url;
     this.button = document.querySelector("#publish2");
     this.button.addEventListener("click", this.handleButtonClick.bind(this));
   }
@@ -68,8 +69,10 @@ class PublishModal {
           const name = result.name;
           if (name == "Decline") {
             await this.postData(data, this.decline_url);
+            window.location.href = this.redirect_url+'?eraseCache=true';
           } else {
             await this.postData(data, this.publish_url);
+            window.location.href = this.redirect_url+'?eraseCache=true';
           }
         })
         .catch((result) => {
@@ -104,7 +107,6 @@ class PublishModal {
         return response.json();
       }).finally(() => {
         spinner.remove();
-        window.location.reload();
       });
 
     } catch (error) {
@@ -185,8 +187,10 @@ class PublishModal {
 domReady.finally(() => {
   const url_publish = document.querySelector('data[id="publish-url"]');
   const url_decline = document.querySelector('data[id="decline-url"]');
+  const redirect_url = document.querySelector('data[id="redirect-url"]');
   window.entityForm = new PublishModal(
     url_publish.innerHTML,
-    url_decline.innerHTML
+    url_decline.innerHTML,
+    redirect_url.innerHTML
   );
 });

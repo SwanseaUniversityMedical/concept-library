@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from django.db.models.functions import Lower
 
 import requests
+import sys
 import datetime
 import json
 import logging
@@ -28,52 +29,76 @@ from ..permissions import allowed_to_edit, allowed_to_view
 
 logger = logging.getLogger(__name__)
 
+def get_brand_index_stats(request, brand):
+    if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
+        stat = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
+        stats = stat.stat
+    else:
+        from ..entity_utils.stats_utils import save_homepage_stats
+        # update stat
+        stat_obj = save_homepage_stats(request, brand)
+        stats = stat_obj[0]
+    return stats
 
 def index(request):
     '''
-        Display the index homepage.
+        Displays the index homepage.
+        Assigns brand defined in the Django Admin Portal under "index_path". 
+        If brand is not available it will rely on the default index path.
     '''
+    index_path = settings.INDEX_PATH
+    brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
-    if request.CURRENT_BRAND == "":
-        return render(request, 'clinicalcode/index.html')
-    elif request.CURRENT_BRAND == "BREATHE":
-        return index_BREATHE(request)
-    elif request.CURRENT_BRAND == "HDRUK":
-        return index_HDRUK(request)
-    else:
-        return render(request, 'clinicalcode/index.html')
+    # if the index_ function doesn't exist for the current brand force render of the default index_path
+    try:
+        if not brand.exists():
+            return index_home(request, index_path)
+        brand = brand.first()
+        return getattr(sys.modules[__name__], "index_%s" % brand)(request, brand.index_path)
+    except:
+        return index_home(request, index_path)
 
+def index_home(request, index_path):
+    stats = get_brand_index_stats(request, 'ALL')
+    brands = Brand.objects.all().values('name', 'description')
 
-def index_HDRUK(request):
+    return render(request, index_path, {
+        'known_brands': brands,
+        'published_concept_count': stats['published_concept_count'],
+        'published_phenotype_count': stats['published_phenotype_count'],
+        'published_clinical_codes': stats['published_clinical_codes'],
+        'datasources_component_count': stats['datasources_component_count'],
+        'clinical_terminologies': stats['clinical_terminologies']
+    })
+
+def index_ADP(request, index_path):
+    '''
+        Display the base page for ADP
+    '''
+    return render(request, index_path)
+
+def index_HDRUK(request, index_path):
     '''
         Display the HDR UK homepage.
     '''
-    if Statistics.objects.all().filter(org__iexact='HDRUK', type__iexact='landing-page').exists():
-        stat = Statistics.objects.get(org__iexact='HDRUK', type__iexact='landing-page')
-        HDRUK_stat = stat.stat
-    else:
-        from .Admin import save_statistics
-        # update stat
-        stat_obj = save_statistics(request)
-        HDRUK_stat = stat_obj[0]
+    stats = get_brand_index_stats(request, 'HDRUK')
 
     return render(
         request,
-        'clinicalcode/brand/HDRUK/index_HDRUK.html',
+        index_path,
         {
             # ONLY PUBLISHED COUNTS HERE
-            'published_concept_count': HDRUK_stat['published_concept_count'],
-            'published_phenotype_count': HDRUK_stat['published_phenotype_count'],
-            'published_clinical_codes': HDRUK_stat['published_clinical_codes'],
-            'datasources_component_count': HDRUK_stat['datasources_component_count'],
-            'clinical_terminologies': HDRUK_stat['clinical_terminologies']
+            'published_concept_count': stats['published_concept_count'],
+            'published_phenotype_count': stats['published_phenotype_count'],
+            'published_clinical_codes': stats['published_clinical_codes'],
+            'datasources_component_count': stats['datasources_component_count'],
+            'clinical_terminologies': stats['clinical_terminologies']
         })
 
-
-def index_BREATHE(request):
+def index_BREATHE(request, index_path):
     return render(
         request,
-        'clinicalcode/brand/BREATHE/index_BREATHE.html',
+        index_path
     )
 
 

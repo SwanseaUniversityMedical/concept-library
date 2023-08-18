@@ -73,7 +73,7 @@
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="reference-collection">
         <section class="reference-collection__inner-container" id="tags">
-          <data data-owner="reference-data-service" name="tags" type="text/json">
+          <data aria-hidden="true" data-owner="reference-data-service" name="tags" type="text/json">
             {% if tags %}
               {{ tags|jsonify|safe }}
             {% endif %}
@@ -85,7 +85,7 @@
           </div>
         </section>
         <section class="reference-collection__inner-container" id="collections">
-          <data data-owner="reference-data-service" name="collections" type="text/json">
+          <data aria-hidden="true" data-owner="reference-data-service" name="collections" type="text/json">
             {% if collections %}
               {{ collections|jsonify|safe }}
             {% endif %}
@@ -97,7 +97,7 @@
           </div>
         </section>
         <section class="reference-collection__inner-container" id="coding_system">
-          <data data-owner="reference-data-service" name="coding_system" type="text/json">
+          <data aria-hidden="true" data-owner="reference-data-service" name="coding_system" type="text/json">
             {% if coding_system %}
               {{ coding_system|jsonify|safe }}
             {% endif %}
@@ -109,7 +109,7 @@
           </div>
         </section>
         <section class="reference-collection__inner-container" id="data_sources">
-          <data data-owner="reference-data-service" name="data_sources" type="text/json">
+          <data aria-hidden="true" data-owner="reference-data-service" name="data_sources" type="text/json">
             {% if data_sources %}
               {{ data_sources|jsonify|safe }}
             {% endif %}

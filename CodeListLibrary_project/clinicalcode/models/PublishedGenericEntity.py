@@ -3,6 +3,8 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 from django.db import connection, transaction
 
+import enum
+
 from .GenericEntity import GenericEntity
 from ..entity_utils import constants
 
@@ -26,11 +28,14 @@ class PublishedGenericEntity(models.Model):
         '''
             update publish_status in historicalgenericentity
         '''
+        if isinstance(self.approval_status, enum.Enum):
+            self.approval_status = self.approval_status.value
+        
         with transaction.atomic():
             with connection.cursor() as cursor:
                 sql_publish_status = """
                                         UPDATE public.clinicalcode_historicalgenericentity 
-                                        SET publish_status = """ + str(self.approval_status.value) + """
+                                        SET publish_status = """ + str(self.approval_status) + """
                                         WHERE id = '""" + str(self.entity.id) + """'and history_id = """ + str(self.entity_history_id) + """ ;
                                     """
                 
@@ -41,7 +46,7 @@ class PublishedGenericEntity(models.Model):
                 with connection.cursor() as cursor:
                     sql_publish_status_2 = """
                                         UPDATE public.clinicalcode_genericentity 
-                                        SET publish_status = """ + str(self.approval_status.value) + """
+                                        SET publish_status = """ + str(self.approval_status) + """
                                         WHERE id = '"""+ str(self.entity.id)+"""' ;
                                     """
                     cursor.execute(sql_publish_status_2)                    
