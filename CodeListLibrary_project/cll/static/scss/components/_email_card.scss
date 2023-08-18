@@ -1,6 +1,10 @@
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
 
 
-card {
+.card {
     display: block;
     border: 0.0625rem solid #ddd;
     box-shadow: 0 0.1875rem 1.25rem rgba(0, 0, 0, 0.15);
