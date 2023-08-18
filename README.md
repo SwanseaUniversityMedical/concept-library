@@ -45,7 +45,7 @@ Often the definitions that are created are of interest to researchers for many s
     2.5.1. [Django logging](#2.5.1.-Django-Logging)  
     2.5.2. [Debug Tools in Visual Studio Code](#2.5.2.-Debug-Tools-in-Visual-Studio-Code)  
     2.5.3. [Running Tests](#2.5.3.-Running-Tests)  
-  2.6. [Setting up VSCode Tasks](#2.6.-Setting-up-VSCode-Tasks)
+  2.6. [Setting up VSCode Tasks](#2.6.-Setting-up-VSCode-Tasks)  
     2.6.1. [Basics](#2.6.1.-Basics)  
     2.6.2. [Debug build tasks](#2.6.2.-Debug-build-tasks)  
     2.6.3. [Test build tasks](#2.6.3.-Test-build-tasks)  
@@ -61,7 +61,6 @@ Often the definitions that are created are of interest to researchers for many s
     4.1.1. [Manual Deployment](#4.1.1.-Manual-Deployment)  
     4.1.2. [Automated Deployment](#4.1.2.-Automated-Deployment)  
   4.2. [Harbor-driven CI/CD Pipeline](#4.2.-Harbor-driven-CI/CD-Pipeline)  
-  4.3. [Running Tests](#4.3.-Running-Tests)  
 
 # 1. Clone this Repository
 To download this repository:
@@ -284,7 +283,7 @@ Create a run configuration for the project:
 2. Create a new file within that folder and name it `launch.json`
 3. Paste the json below into the new file and then save the file
 
-```
+```json
 {
   "configurations": [
     {
@@ -297,7 +296,7 @@ Create a run configuration for the project:
           "remoteRoot": "/var/www/CodeListLibrary_project"
         }
       ],
-      "port": 3000,
+      "port": 8000,
       "host": "127.0.0.1"
     }
   ]
@@ -321,19 +320,33 @@ To run tests on the container, you first need to:
 4. Navigate to the directory containing the codebase by running: `cd /var/www/CodeListLibrary_project`
 5. As described below, enter a command to run the tests
 
+#### Remote tests
+To run tests, please do the following:
+1. First set `REMOTE_TEST=True` in both `test_settings.py` and `read_only_settings.py`
+2. Go into the webapp docker container: `docker exec -it cll_app_1 /bin/bash`
+3. Load the environment: `source /var/www/concept_lib_sites/v1/cllvirenv_v1/bin/activate`
+4. Go into the project folder: `cd /var/www/concept_lib_sites/v1/CodeListLibrary_project`
+5. Execute the tests: `python manage.py test --noinput`
+
 #### All tests
 To run all tests except for read-only tests, run:  
-- `python manage.py test --noinput`
+```sh
+python manage.py test --noinput
+```
 
 #### Read-only tests
 > ***[!] Note:** Read-only tests must take the settings from read_only_test_settings.py otherwise they will fail*
 
 Please see the following commands:
 - To run only the read-only functional tests, run:  
-`python manage.py test --noinput clinicalcode.tests.functional_tests.read_only`
+```sh
+python manage.py test --noinput clinicalcode.tests.functional_tests.read_only
+```
 
 - To run only the read-only unit tests, run:  
-`python manage.py test --noinput clinicalcode.tests.unit_tests.read_only`
+```sh
+python manage.py test --noinput clinicalcode.tests.unit_tests.read_only
+```
 
 ## 2.6. Setting up VSCode Tasks
 
@@ -553,8 +566,10 @@ To run all the tests you need to run THREE commands:
 - `python manage.py test  --noinput clinicalcode.tests.functional_tests.read_only`  
 - `python manage.py test  --noinput clinicalcode.tests.unit_tests.read_only`  
 
-The first one will run all the tests except for read-only tests. This is necessary as the normal tests will take settings from `settings.py`
-The second one runs READ_ONLY tests, which takes its settings from read_only_test_settings.py. Read-only tests must take settings from `read_only_test_settings.py` otherwise they will fail.
+Please note:
+- The first command will run all the tests except for read-only tests. This is necessary as the normal tests will take settings from `settings.py`.
+- The second command runs `READ_ONLY` tests, which takes its settings from `read_only_test_settings.py`.
+- `READONLY` tests must take settings from `read_only_test_settings.py` - if not, these tests will fail.
 
 # 4. Deployment
 
@@ -568,28 +583,36 @@ This script can be used to manually deploy feature branches on the server. Pleas
 
 Optional arguments for this script include:
 
-- `-fp` | `--file-path` → [Defauts to `/root/deploy_DEV_DEMO_DT`] This determines the root path of your environment variable text file (see below) and where the Github repo will be cloned
-- `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
-- `-nd` | `--no-pull` → [Defauts to `true`] Whether to pull the branch from the Git repository - can be used to avoid re-pulling branch if you are making changes to external factors, e.g. the environment variables
-- `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
-- `-e` | `--env` → [Defauts to `env_vars-RO.txt`] The name of the environment variables text file - see below for more details
-- `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
-- `-n` | `--name` → [Defauts to `cllro_dev`] The name of the docker container
-- `-r` | `--repo` → [Defauts to `https://github.com/SwanseaUniversityMedical/concept-library.git`] The Github repository you would like to pull from (if `--no-pull` hasn't been applied)
-- `-b` | `--branch` → [Defauts to `manual-feature-branch`] The branch you would like to pull from within the aforementioned Github repository
-- `-p` | `--profile` → [Defauts to `live`] The name of the docker profile to execute
+| Command        | Shorthand | Default value                                                           | Description                                                                    |
+|----------------|-----------|-------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `--file-path`  | `-fp`     | `/root/deploy_DEV_DEMO_DT`                                              | Determines the root path of your environment variable text file (see below)    |
+| `--foreground` | `-fg`     | `false`                                                                 | Whether the containers will be built in the foreground                         |
+| `--no-pull`    | `-nd`     | `true`                                                                  | Whether to pull the branch from the Git repository                             |
+| `--no-clean`   | `-nc`     | `true`                                                                  | Whether to clean unused docker containers/images/networks/volumes/build caches |
+| `--env`        | `-e`      | `env_vars.txt`                                                          | Name of the environment variables text file                                    |
+| `--file`       | `-f`      | `docker-compose.prod.yaml`                                              | Name of the docker-compose file you would like to deploy                       |
+| `--name`       | `-n`      | `cllro_dev`                                                             | Name of the docker container                                                   |
+| `--repo`       | `-r`      | [Repo](https://github.com/SwanseaUniversityMedical/concept-library.git) | Github repository you would like to pull from                                  |
+| `--branch`     | `-b`      | `DFTM`                                                                  | Repo's branch you would like to pull from                                      |
+| `--profile`    | `-p`      | `live`                                                                  | Name of the docker profile to execute                                          |
 
 #### Setting up your environment variables
 > **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
 
-Ensure you have an `env-vars` text file on your server. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers. During manual deployment, the file will be copied and renamed to `env_vars.txt` for use by `docker-compose.prod.yaml` within `./concept-library/CodeListLibrary_project/docker/` after the repository is cloned.
+This process should be automatic assuming you have ensured that you have an `env-vars.txt` file in your server's directory. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers.
+
+During manual deployment, the file will be copied and renamed to `env_vars.txt` for use by `docker-compose.prod.yaml` within `./concept-library/CodeListLibrary_project/docker/` after the repository is cloned by the `deploy-feature.sh` script.
 
 #### To deploy manually
 1. SSH into the server
-2. If you haven't already created the `deploy-feature.sh` within this server, please clone the [Github repository](https://github.com/SwanseaUniversityMedical/concept-library) and copy/move it into a directory of your choosing (in this case, we will assume it's within /root/)
+2. Skip this step if you have already created the `deploy-feature.sh` within this server:
+    - Please clone the [Github repository](https://github.com/SwanseaUniversityMedical/concept-library) and copy/move it into a directory of your choosing (in this case, we will assume it's within /root/)
 3. Ensure the `deploy-feature.sh` script has the appropriate permissions
 4. Within your terminal, run the following: `/root/deploy-feature.sh`
+    - Apply any parameters you would like to add e.g. `/root/deploy-feature.sh --repo Dynamic-Template-Feature-Master`
+    - OR; simply edit the variables within the `deploy-feature.sh` script
 5. Await the successful build
+6. You should now be able to visit the site on the appropriate domain
 
 ### 4.1.2. Automated Deployment
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
@@ -597,23 +620,30 @@ Ensure you have an `env-vars` text file on your server. The name of this file us
 [Details]
 
 #### Files
-> **[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file
+> ***[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file*
+
+> ***[!] Note:** `/root/` in this case describes the the directory of your choosing* 
 
 If not already present on the machine, please ensure that the following files are within the root directory:
-  - Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
-  - Copy `./docker/docker-compose.prod.yaml` to `/root/`
+1. Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
+2. Copy `./docker/docker-compose.prod.yaml` to `/root/`
+
+If you wish, you can now edit the `deploy-site.sh` to set up any variables that may differ from the other servers. Please see the table below for more information regarding variables and commands that can be passed to `deploy-site.sh`.
 
 ### Environment Variables
 You need to ensure that there is an `env_vars.txt` within the same directory as the `/root/` directory where your `docker-compose.prod.yaml` is found. 
 
 #### Site Deployment Arguments
 Optional parameters for the `deploy-site.sh` script include:
-- `-fp` | `--file-path` → [Defauts to `/root/`] This determines the root path of where the `docker-compose.prod.yaml` file lives
-- `-fg` | `--foreground` → [Defauts to `false`] This determines whether the containers will be built in the foreground or the background - building in the foreground is only necessary if you would like to examine the build process
-- `-nc` | `--no-clean` → [Defauts to `true`] Whether to clean unused docker containers/images/networks/volumes/build caches after building the current image
-- `-a` | `--address` → [Defauts to `Null`] This parameter determines the registry we will try to pull the images from
-- `-f` | `--file` → [Defauts to `docker-compose.prod.yaml`] The name of the docker-compose file you would like to deploy
-- `-p` | `--profile` → [Defauts to `live`] The name of the docker profile to execute
+
+| Command        | Shorthand | Default value              | Description                                                                    |
+|----------------|-----------|----------------------------|--------------------------------------------------------------------------------|
+| `--file-path`  | `-fp`     | `/root/deploy_DEV_DEMO_DT` | Determines the root path of where the `docker-compose.prod.yaml` file lives    |
+| `--foreground` | `-fg`     | `false`                    | Whether the containers will be built in the foreground                         |
+| `--no-clean`   | `-nc`     | `true`                     | Whether to clean unused docker containers/images/networks/volumes/build caches |
+| `--address`    | `-a`      | _Harbor registry URL_      | Determines the registry we will try to pull the images from                    |
+| `--file`       | `-f`      | `docker-compose.prod.yaml` | Name of the docker-compose file you would like to deploy                       |
+| `--profile`    | `-p`      | `live`                     | Name of the docker profile to execute                                          |
 
 #### What to do when automated deployment is disabled
 > **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
@@ -635,13 +665,3 @@ To do so manually, please do the following:
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor and have set up automated deployment
 
 [Details]
-
-## 4.3. Running Tests
-> **[!] Todo:** Deployment is done through Harbor CI and Docker. 
-
-To run tests, please do the following:
-1. First set REMOTE_TEST = True in both test_settings.py and read_only_settings.py
-2. Go into the webapp docker container: `docker exec -it concept-library-dev-db_webapp_1 /bin/bash`
-3. Load the environment: `source /var/www/concept_lib_sites/v1/cllvirenv_v1/bin/activate`
-4. Go into the project folder: `cd /var/www/concept_lib_sites/v1/CodeListLibrary_project`
-5. Execute the tests: `python manage.py test --noinput`

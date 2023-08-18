@@ -7,6 +7,16 @@
     deployment of feature branches that
     are not covered by CI/CD
 
+    Your directory should look similar to this:
+
+      > /root/
+        - env_vars.txt
+        - deploy-feature.sh
+    
+    When running this script, the repository will be cloned into your
+    /root/ directory and the env_vars.txt will be cloned into the
+    appropriate folder
+
   [!] Arguments:
     -fg | --foreground - [Defaults to False]    - determines whether we deploy in foreground
     -nd | --no-pull    - [Defaults to True]     - determines whether we pull from the repo and remove legacy
@@ -17,7 +27,7 @@
      -n | --name       - [Defaults to '.._dev'] - the name of the container
      -r | --repo       - [Defaults to cl.git]   - the repository URL
      -b | --branch     - [Defaults to '']       - the repository branch (uses master if null)
-     -p | --profile  - [Defaults to live]    - which docker profile to use
+     -p | --profile    - [Defaults to live]     - which docker profile to use
 '
 
 # Prepare env

@@ -2,16 +2,27 @@
 
 : '
   [!] Note:
+
+    This file is intended for automated deployment via the Harbor CI/CD
+    pipeline
+
     The environment file should be located within the same directory as the
     docker-compose file
 
+    i.e. both should be in `/root/` or some other directory:
+
+      > /root/
+        - deploy-site.sh
+        - docker-compose.prod.yaml
+        - env_vars.txt
+
   [!] Arguments:
     -fg | --foreground - [Defaults to False] - determines whether we deploy in foreground
-    -nc | --no-clean - [Defaults to True]    - determines whether we prune the workspace after deploying
-    -fp | --file-path  - [Defaults to $PWD]     - determines the /root/ file path (otherwise uses CWD)
-     -a | --address  - [Defaults to None]    - the registry address we pull from
-     -f | --file     - [Defaults to prod]    - the docker-compose file we use
-     -p | --profile  - [Defaults to live]    - which docker profile to use
+    -nc | --no-clean   - [Defaults to True]  - determines whether we prune the workspace after deploying
+    -fp | --file-path  - [Defaults to $PWD]  - determines the /root/ file path (otherwise uses CWD)
+     -a | --address    - [Defaults to None]  - the registry address we pull from
+     -f | --file       - [Defaults to prod]  - the docker-compose file we use
+     -p | --profile    - [Defaults to live]  - which docker profile to use
 '
 
 # Prepare env
