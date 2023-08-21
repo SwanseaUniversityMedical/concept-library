@@ -6,12 +6,11 @@
 .email-notification {
   background-color: #ebebeb;
   margin: 0;
-  padding: 0;
+  padding: 1rem; 
   text-align: left;
 
   box-sizing: border-box;
-  padding-top: 20px; 
-
+  
   &__content {
     margin: 0 auto;
     padding: 2em;
