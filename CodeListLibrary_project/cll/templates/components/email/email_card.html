@@ -1,11 +1,16 @@
 
 {% load static %}
 {% load i18n static %}
-
+{% load compress %}
+{% load sass_tags %}
 {% load mathfilters %}
 {% load cl_extras %}
 
 {% block content %}
+
+{% compress css %}
+<link href="{% sass_src 'scss/components/_email_card.scss' %}" rel="stylesheet" type="text/css" />
+{% endcompress %}
 
 <a href="https://www.google.com" class="card">
     <h2>PH1 - Cardiovascular Disease (Psoriasis Association Study with CVD)</h2>
