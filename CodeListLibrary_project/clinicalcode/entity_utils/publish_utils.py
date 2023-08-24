@@ -1,6 +1,6 @@
 from os import name
 import re
-from clinicalcode import db_utils
+from clinicalcode.db_utils import send_review_email_generic
 from clinicalcode.entity_utils import entity_db_utils
 from django.contrib.auth.models import  User
 from django.urls import reverse, reverse_lazy
@@ -272,6 +272,8 @@ def send_email_decision_entity(entity, entity_type, approved):
     @param workingset: workingset object
     @param approved: approved status flag
     """
+
+    print(send_review_email_generic(2,name, entity.owner_id, "review_decision", "review_message"))
     if approved == 1:
         send_review_email.delay(entity.id, entity.name, entity.owner_id,
                                    "Published",

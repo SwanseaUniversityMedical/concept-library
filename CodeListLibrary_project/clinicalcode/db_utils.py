@@ -30,6 +30,7 @@ from simple_history.utils import update_change_reason
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.db.models.functions import Lower
 from string import ascii_letters
+from django.template.loader import render_to_string
 
 from . import utils, tasks
 from .models import *
@@ -4146,29 +4147,31 @@ def send_review_email_generic(id,name, owner_id, review_decision, review_message
         return False
 
     email_subject = 'Concept Library - Data %s has been %s' % (id, review_decision)
-    email_content = '''<strong>New Message from Concept Library Website</strong><br><br>
-    <strong>{Entity_name}:</strong><br>{id} - {name}<br><br>
-    <strong>Decision:</strong><br>{decision}<br><br>
-    <strong>Reviewer message:</strong><br>{message}
-    '''.format(Entity_name=name, id=id, name=name, decision=review_decision, message=review_message)
 
-    email_content = get_template("/components/email/email_content.html").render(Context({'id': id, 'name': name, 'decision': review_decision, 
-                                                                                         'message': review_message }))
+    email_content = render_to_string("components/email/email_content.html",
+            {
+                'id': 1,
+                'name': 'Phenotype',
+                'decision': "'review_decision'",
+                'message': "review_message"
+            })
 
-    if not settings.IS_DEVELOPMENT_PC:
+    if settings.IS_DEVELOPMENT_PC:
         try:
             msg = EmailMultiAlternatives(email_subject,
                                         email_content,
-                                        'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                                        settings.DEFAULT_FROM_EMAIL,
                                         to=[owner_email]
                                     )
             msg.content_subtype = 'html'
             msg.send()
             return True
-        except BadHeaderError:
+        except BadHeaderError as error:
+            print(error)
+
             return False
     else:
-        #print(email_content) for testing
+        print(email_content) 
         return True
     
 
