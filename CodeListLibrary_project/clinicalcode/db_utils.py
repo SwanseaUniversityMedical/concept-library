@@ -4152,7 +4152,7 @@ def send_review_email_generic(entity_id,name, owner_id, review_decision, generic
 
     email_subject = 'Concept Library - Data %s has been %s' % (id, review_decision)
 
-    email_content = render_to_string("components/email/email_content.html",
+    email_content = render_to_string("clinicalcode/email/email_content.html",
             {
                 'entity_id': entity_id,
                 'entity_name': name,

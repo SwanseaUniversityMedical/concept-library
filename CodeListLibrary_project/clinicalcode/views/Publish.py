@@ -244,7 +244,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
     
     def email_preview(request):
         email_subject = "Your Subject"
-        email_content = render_to_string("components/email/email_content.html",
+        email_content = render_to_string("clinicalcode/email/email_content.html",
             {
                 'id': 1,
                 'name': 'Phenotype',
@@ -252,7 +252,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
                 'message': "review_message"
             })
         
-        return render(request, 'components/email/email_preview.html', {
+        return render(request, 'clinicalcode/email/email_preview.html', {
             'email_subject': email_subject,
             'email_content': email_content
         })
