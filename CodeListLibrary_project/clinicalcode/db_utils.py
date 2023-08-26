@@ -4155,15 +4155,25 @@ def send_review_email_generic(id,name, owner_id, review_decision, review_message
                 'decision': "'review_decision'",
                 'message': "review_message"
             })
-
     if settings.IS_DEVELOPMENT_PC:
         try:
+            from email.mime.image import MIMEImage
+            import os
+            from django.contrib.staticfiles import finders
             msg = EmailMultiAlternatives(email_subject,
                                         email_content,
                                         settings.DEFAULT_FROM_EMAIL,
                                         to=[owner_email]
                                     )
-            msg.content_subtype = 'html'
+            msg.content_subtype = 'related'
+            msg.attach_alternative(email_content, "text/html")
+            image = "apple-touch-icon.png"
+            with open(finders.find('img/brands/HDRUK/apple-touch-icon.png'), 'rb') as f:
+                img = MIMEImage(f.read())
+                img.add_header('Content-ID', '<{name}>'.format(name=image))
+                img.add_header('Content-Disposition', 'inline', filename=image)
+                
+            msg.attach(img)
             msg.send()
             return True
         except BadHeaderError as error:
