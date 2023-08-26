@@ -7,25 +7,35 @@
 
 {% block content %}
 
-{% compress css %}
-<link href="{% sass_src 'scss/components/_email_content.scss' %}" rel="stylesheet" type="text/css" />
-{% endcompress %}
 
-<div class="email-notification">
-    <div class="email-notification__content">
-        <h2><img class="title-icon" src="{% static 'img/apple-touch-icon.png' %}" alt="Title Icon">Notification from Concept Library</h2>
-        {% include "components/email/email_card.html" %}
-        <div class="email-notification__footer">
-            <div class="email-notification__footer__footer-icons">
-                <img src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" alt="Icon 1" />
-                <img src="{% static 'img/Footer_logos/hdruk_logo.png' %}" alt="Icon 2" />
-                <img src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" alt="Icon 3" />
-            </div>
-            <p>Copyright © 2023 - SAIL Databank - Swansea University. All rights reserved.</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <style>@media (max-width: 600px) {
+    .content {
+        width: 100%;
+        padding: 0
+        }
+    a.card, .footer-icons img, .title-icon {
+        width: 100%;
+        height: auto
+        }
+    }</style>
+</head>
+<body style="background-color:#ebebeb; font-family:Arial, sans-serif; margin:0; padding:1em 0 1em  0; text-align:left" >
+    <div class="content" style="background-color:#fff; border-radius:0.625rem; margin:0 auto; max-width:38.5rem; padding:2em">
+        <h2 style="color:#525252">
+<img class="title-icon" src="cid:mainlogo" alt="Title Icon" style="height:60px; margin-right:0.625em; vertical-align:middle"  valign="middle">Notification from Concept Library</h2>
+{% include "components/email/email_card.html" %}
+        <div class="footer">
+        <div class="footer-icons" style="align-items:center; display:flex; flex-flow:row wrap; gap:1.5rem; justify-content:flex-start; margin-top:1rem">
+            <img src="cid:combined" alt="Icon 1" height="80">
         </div>
+        <p style="color:#8c8c8c">Copyright © 2023 - SAIL Databank - Swansea University. All rights reserved.</p>
     </div>
     </div>
 
+</body>
 {% endblock content %}
 
 

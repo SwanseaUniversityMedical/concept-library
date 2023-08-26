@@ -273,7 +273,7 @@ def send_email_decision_entity(entity, entity_type, approved):
     @param approved: approved status flag
     """
 
-    print(send_review_email_generic(2,name, entity.owner_id, "review_decision", "review_message"))
+    print(send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     if approved == 1:
         send_review_email.delay(entity.id, entity.name, entity.owner_id,
                                    "Published",
