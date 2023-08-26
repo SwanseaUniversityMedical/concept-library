@@ -4143,7 +4143,7 @@ def get_brand_associated_collections(request, concept_or_phenotype="concept", br
     
     return collections, sorted_order
 
-def send_review_email_generic(id,name, owner_id, review_decision, review_message):
+def send_review_email_generic(entity_id,name, owner_id, review_decision, generic_message,message_from_reviewer=None):
 
 
     owner_email = User.objects.get(id=owner_id).email
@@ -4154,10 +4154,10 @@ def send_review_email_generic(id,name, owner_id, review_decision, review_message
 
     email_content = render_to_string("components/email/email_content.html",
             {
-                'id': id,
-                'name': name,
+                'entity_id': entity_id,
+                'entity_name': name,
                 'decision': review_decision,
-                'message': review_message
+                'generic_message': generic_message
             })
     if settings.IS_DEVELOPMENT_PC:
         try:
