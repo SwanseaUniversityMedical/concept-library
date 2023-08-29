@@ -148,6 +148,39 @@ def about_pages(request, pg_name=None):
     raise Http404
 
 
+"""
+    Renders the appropriate about page index based on the provided page name.
+
+    Args:
+        request: The HTTP request object.
+        pg_name (str): The name of the requested about page.
+
+    Returns:
+        HttpResponse: The rendered template response.
+"""
+def brand_about_index_return(request, pg_name):
+
+    brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
+
+    try:
+        brand = brand.first()
+        # Retrieve the 'about_menu' JSON from Django
+        about_pages_dj_data = brand.about_menu 
+
+        # converts 'about_menu' django JSON into a dictionary with key as page_name and html index as value
+        about_page_templates = {item["page_name"]: item["index"] for item in about_pages_dj_data}
+
+        # Get the index associated with current page name
+        about_page_name = about_page_templates.get(pg_name.lower())
+
+        if about_page_name:
+            return render(request, about_page_name, {})
+        else:
+            raise Http404
+    except:
+        # force render of the current index_path for any occuring errors
+        return render(request, settings.INDEX_PATH)
+        
 def HDRUK_portal_redirect(request, unique_url):
     '''
         HDR-UK portal redirect to CL
