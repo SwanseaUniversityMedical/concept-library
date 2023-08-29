@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load markdownify %}
@@ -21,23 +21,20 @@
 
 {% block container %}
 <!-- Vendor -->
-  <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
-  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
 
   <!-- Dependencies -->
   {% compress js %}
-  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
   {% endcompress %}
 
   {% compress js %}
-  <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
-  <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
+  <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
+  <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
   {% endcompress %}
-
-  <!-- jQuery -->
-  <script src="{% static 'js/lib/jquery/jquery-3.1.1.min.js' %}" type="text/javascript"></script>
 
   <!-- Page Stylesheets -->
   {% compress css %}

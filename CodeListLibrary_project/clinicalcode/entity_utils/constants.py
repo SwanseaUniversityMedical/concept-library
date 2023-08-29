@@ -3,6 +3,21 @@ from django.contrib.auth.models import User, Group
 
 import enum
 
+class TypeStatus:
+    ''' Legacy type status - needs removal during cleanup '''
+    Disease = 0
+    Biomarker = 1
+    Drug = 2
+    Lifestyle_risk_factor = 3
+    Musculoskeletal = 4
+    Surgical_procedure = 5
+    Type_status = ((Disease, 'Disease or syndrome'),
+                (Biomarker,'Biomarker'),
+                (Drug,'Drug'),
+                (Lifestyle_risk_factor,'Lifestyle risk factor'),
+                (Musculoskeletal,'Musculoskeletal'),
+                (Surgical_procedure,'Surgical procedure'))
+
 class IterableMeta(enum.EnumMeta):
     def from_name(cls, name):
         if name in cls:

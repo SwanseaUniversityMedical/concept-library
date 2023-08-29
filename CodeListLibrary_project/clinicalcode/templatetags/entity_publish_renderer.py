@@ -1,11 +1,7 @@
-from cmath import e
-from email import message
-from pyexpat.errors import messages
-import re
 from django import template
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse
+
 from ..entity_utils import permission_utils, constants
 
 register = template.Library()

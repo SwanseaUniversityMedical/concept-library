@@ -3,13 +3,12 @@ from django import template
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from django.templatetags.static import static
 from django.conf import settings
 
 import re
 import json
 
-from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants, concept_utils
+from ..entity_utils import permission_utils, template_utils, model_utils, gen_utils, constants, concept_utils
 from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
@@ -441,4 +440,3 @@ class EntityWizardSections(template.Node):
     def render(self, context):
         request = self.request.resolve(context)
         return self.__generate_wizard(request, context)
-

@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load compress %}
@@ -22,18 +22,18 @@
 {% endblock indexing_robots %}
 
 {% block container %}
-  <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
-  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
 
   {% compress js %}
-    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/tooltipFactory.js' %}"></script>
-    <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
-    <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
-    <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/forms/entityCreator.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
   {% endcompress %}
 
   {% compress css %}

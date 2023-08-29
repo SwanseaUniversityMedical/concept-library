@@ -6,9 +6,9 @@
 {% load markdownify %}
 <!--   phenotype_clinical_code_lists   -->
 
-<script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+<script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/data/conceptUtils.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/data/conceptUtils.js' %}"></script>
 {% endcompress %}
 
 {% if component.value|length %}

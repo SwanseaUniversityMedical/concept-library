@@ -30,7 +30,7 @@ if [ ! -z $DEBUG ] && [ $DEBUG = "False" ]; then
   
   chown -R www-data:www-data /var/www/concept_lib_sites
 else
-  python manage.py compilescss
+  python manage.py compilescss --delete-files
   python manage.py collectstatic --clear --noinput
 
   chown -R www-data:www-data /var/www/concept_lib_sites

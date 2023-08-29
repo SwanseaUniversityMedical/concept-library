@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load compress %}
@@ -14,10 +14,10 @@
 {% include "components/search/search_banner.html" with query=False %}
 
 <!-- Include required components -->
-<script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+<script src="{% static 'js/lib/moment.min.js' %}"></script>
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
 {% endcompress %}
 
 <!-- Main search page -->
@@ -26,7 +26,7 @@
     <div class="search-page">
       <aside class="side-search-filters">
         {% compress js %}
-          <script type="module" src="{% static 'js/clinicalcode/redesign/services/filterService.js' %}"></script>
+          <script type="module" src="{% static 'js/clinicalcode/services/filterService.js' %}"></script>
         {% endcompress %}
         <div class="side-search-filters__header">
           <h3>Filter By</h3>

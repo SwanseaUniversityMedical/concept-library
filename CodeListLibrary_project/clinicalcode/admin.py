@@ -1,17 +1,15 @@
 from django.contrib import admin
-from django.contrib.auth.models import Group, User
 from django.utils import timezone
 
-from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
+import datetime
 
+from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
 from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
 
-import datetime
-# Register your models here.
 
 @admin.register(CodingSystemFilter)
 class CodingSystemFilterAdmin(admin.ModelAdmin):
@@ -25,7 +23,7 @@ class OperatorAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['id', 'description', 'display', 'tag_type', 'collection_brand']  #'updated_by' 'created_by' , 'created', 'modified'
+    list_display = ['id', 'description', 'display', 'tag_type', 'collection_brand']
     list_filter = ['collection_brand', 'tag_type', 'display']
     search_fields = ['description']
     exclude = ['created_by', 'updated_by']
@@ -45,7 +43,6 @@ class TagAdmin(admin.ModelAdmin):
         return instance
 
 
-#admin.site.register(Brand)
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):
     list_display = ['name', 'id', 'logo_path', 'owner', 'description']
@@ -61,12 +58,14 @@ class DataSourceAdmin(admin.ModelAdmin):
     search_fields = ['name', 'url', 'uid']
     exclude = []
 
+
 @admin.register(CodingSystem)
 class CodingSystemAdmin(admin.ModelAdmin):
     list_display = ['id', 'codingsystem_id', 'name', 'description'] 
     list_filter = ['name']
     search_fields = ['name', 'codingsystem_id', 'description']
     exclude = []
+
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
@@ -104,12 +103,14 @@ class TemplateAdmin(admin.ModelAdmin):
         obj.modified = datetime.datetime.now()
         
         obj.save()
-    
+
+
 @admin.register(GenericEntity)
 class GenericEntityAdmin(admin.ModelAdmin):
     readonly_fields = ['template_version']
     list_display = ['id', 'name', 'template', 'template_version']
     exclude = []
+
 
 @admin.register(EntityClass)
 class EntityClassAdmin(admin.ModelAdmin):
@@ -123,20 +124,3 @@ class EntityClassAdmin(admin.ModelAdmin):
         obj.modified_by = request.user
         obj.modified = timezone.now()
         obj.save()
-
-#admin.site.register(CodingSystem)
-
-# ############################################
-# # Unregister the original Group admin.
-# admin.site.unregister(Group)
-#
-# # Create a new Group admin.
-# class GroupAdmin(admin.ModelAdmin):
-#     # Use our custom form.
-#     form = GroupAdminForm
-#     #form_class = GroupAdminForm
-#     # Filter permissions horizontal as well.
-#     filter_horizontal = ['permissions']
-#
-# # Register the new Group ModelAdmin.
-# admin.site.register(Group, GroupAdmin)

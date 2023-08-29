@@ -1,19 +1,13 @@
-from os import name
-import re
-from clinicalcode import db_utils
-from clinicalcode.entity_utils import entity_db_utils
-from django.contrib.auth.models import  User
-from django.urls import reverse, reverse_lazy
-from django.template.loader import render_to_string
-from clinicalcode.tasks import send_review_email
-from ..models import *
-from ..permissions import *
-from clinicalcode.views.GenericEntity import get_history_table_data
-from clinicalcode.permissions import allowed_to_view, checkIfPublished, get_publish_approval_status
-from clinicalcode.entity_utils import constants, permission_utils
+from django.urls import reverse
 
-#from clinicalcode.constants import APPROVED_STATUS
-from . import constants
+import re
+
+from clinicalcode.tasks import send_review_email
+from clinicalcode.entity_utils import constants, permission_utils, entity_db_utils
+
+from clinicalcode.models.Concept import Concept
+from clinicalcode.models.GenericEntity import GenericEntity
+from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 
 def form_validation(request, data, entity_history_id, pk, entity,checks):
     """
@@ -110,8 +104,8 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     # Initialize the status variables based on the fetched data
     entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
-    is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
-    approval_status = get_publish_approval_status(GenericEntity, pk, entity_history_id)
+    is_published = permission_utils.check_if_published(GenericEntity, pk, entity_history_id)
+    approval_status = permission_utils.get_publish_approval_status(GenericEntity, pk, entity_history_id)
     is_lastapproved = published_entity_approved.exists()
     other_pending = published_entity_pending.exists()
 
@@ -294,5 +288,3 @@ def send_email_decision_entity(entity, entity_type, approved):
         send_review_email.delay(entity.id, entity.name, entity.owner_id,
                                    "Rejected",
                                    f"{entity_type} has been rejected by the moderator. Please consider update changes and try again")
-
-    

@@ -1,28 +1,26 @@
 {% load svg %}
 {% load cl_extras %}
-<li class="content-container">
-  
-    <a href="{{url}}" class="item-dropdown">
-      <div class="item-dropdown__icon">
-        {% svg icon %}
-        </div> 
-      <div class="item-dropdown__text">
-        <div class="item-dropdown__title">{{title}}</div>
-        <p class="item-dropdown__description">{{description}}</p>
-      </div>
-    </a>
-    
-    {% if list_pages %}
-    <ul class="nested-menu">
-      {% for lnk2 in list_pages %}
-        {% for header2, view_pg_name2 in lnk2.items %}
-            <li>
-            <a href="{% url 'about_page' pg_name=view_pg_name2 %}" >{{ header2 }}</a>
-          </li>
-        {% endfor %}
-      {% endfor %}
 
-    </ul>
-    {% endif %}
-  </li>
- 
+<li class="content-container">
+  <a href="{{url}}" class="item-dropdown">
+    <div class="item-dropdown__icon">
+      {% svg icon %}
+      </div> 
+    <div class="item-dropdown__text">
+      <div class="item-dropdown__title">{{title}}</div>
+      <p class="item-dropdown__description">{{description}}</p>
+    </div>
+  </a>
+  
+  {% if list_pages %}
+  <ul class="nested-menu">
+    {% for lnk2 in list_pages %}
+      {% for header2, view_pg_name2 in lnk2.items %}
+          <li>
+          <a href="{% url 'about_page' pg_name=view_pg_name2 %}" >{{ header2 }}</a>
+        </li>
+      {% endfor %}
+    {% endfor %}
+  </ul>
+  {% endif %}
+</li>

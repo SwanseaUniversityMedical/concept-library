@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load compress %}
@@ -11,12 +11,12 @@
 
 {% block container %}
   <!-- Vendor -->
-  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
 
   <!-- Dependencies -->
   {% compress js %}
-    <script type="module" src="{% static 'js/clinicalcode/redesign/services/referenceDataService.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/services/referenceDataService.js' %}"></script>
   {% endcompress %}
 
   <!-- Page Stylesheets -->

@@ -1,5 +1,5 @@
-from clinicalcode.constants import *
 from django.conf import settings
+
 from clinicalcode.api.views.View import get_canonical_path
 from clinicalcode.entity_utils import constants
 
@@ -9,8 +9,6 @@ def general_var(request):
         'CLL_READ_ONLY': settings.CLL_READ_ONLY,
         'SHOWADMIN': settings.SHOWADMIN,
         'BROWSABLEAPI': settings.BROWSABLEAPI,
-        'LOGICAL_TYPES': LOGICAL_TYPES,
-        'REGEX_TYPE_CHOICES': REGEX_TYPE_CHOICES,
         'DEV_PRODUCTION': settings.DEV_PRODUCTION,
         'IS_INSIDE_GATEWAY': settings.IS_INSIDE_GATEWAY,
         'IS_PRODUCTION_SERVER': (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC and not settings.IS_INSIDE_GATEWAY),  #  and not settings.DEBUG

@@ -4,7 +4,6 @@ from simple_history.models import HistoricalRecords
 
 from .Phenotype import Phenotype
 
-
 class PublishedPhenotype(models.Model):
     phenotype = models.ForeignKey(Phenotype, on_delete=models.CASCADE)
     phenotype_history_id = models.IntegerField(null=False)
@@ -19,7 +18,7 @@ class PublishedPhenotype(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name="published_phenotype_modified"
-    )  # user of the person who modified this row.
+    )
 
     approval_status = models.IntegerField(default=0)
     moderator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

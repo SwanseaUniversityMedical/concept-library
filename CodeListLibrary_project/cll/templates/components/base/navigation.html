@@ -4,8 +4,9 @@
 
 {% block content %}
 {% compress js %}
-<script type="module" src="{% static "js/clinicalcode/redesign/components/navigation.js" %}"></script>
+<script type="module" src="{% static "js/clinicalcode/components/navigation.js" %}"></script>
 {% endcompress %}
+
 <nav class="page-navigation">
   <div class="page-navigation__container">
     {% url 'concept_library_home' as home_url %}
@@ -22,7 +23,6 @@
           <a href="{{ entity_url }}" id="Phenotypes" data-root="search,update,create">Phenotypes</a>
         {% endif %}
 
-
         {% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}
           {% url 'api:root' as api_url %}
           <a href="{{ api_url }}" id="API">API</a>
@@ -37,10 +37,9 @@
           <!-- Need to change to profile later -->
           <a href="{{ login_url }}?next={{ request.path|urlencode }}" id="Login" role="login">Login</a>
         {% else %}
-        {% block profile_wrapper %}
-          {% include "components/base/profile_menu.html" %}
-        {% endblock profile_wrapper %}
-          
+          {% block profile_wrapper %}
+            {% include "components/base/profile_menu.html" %}
+          {% endblock profile_wrapper %}
         {% endif %}
       </div>
     </div>

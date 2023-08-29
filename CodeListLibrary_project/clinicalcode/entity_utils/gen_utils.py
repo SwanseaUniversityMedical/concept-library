@@ -1,11 +1,11 @@
-from django.conf import settings
-from django.http.response import JsonResponse
-from django.core.exceptions import BadRequest
-from django.http.multipartparser import MultiPartParser
 from functools import wraps
 from dateutil import parser as dateparser
 from json import JSONEncoder
 from uuid import UUID
+from django.conf import settings
+from django.http.response import JsonResponse
+from django.core.exceptions import BadRequest
+from django.http.multipartparser import MultiPartParser
 
 import re
 import time
@@ -14,6 +14,63 @@ import datetime
 import urllib
 
 from . import constants
+
+def is_datetime(x):
+    '''
+        Legacy method from ./utils.py
+
+        Desc:
+            - "Checks if a parameter can be parsed as a datetime"
+    '''
+    try:
+        dateparser(x)
+    except ValueError:
+        return False
+    else:
+        return True
+
+def is_float(x):
+    '''
+        Legacy method from ./utils.py
+
+        Desc:
+            - "Checks if a param can be parsed as a float"
+    '''
+    try:
+        a = float(x)
+    except ValueError:
+        return False
+    else:
+        return True
+
+def is_int(x):
+    '''
+        Legacy method from ./utils.py
+
+        Desc:
+            - "Checks if a number is an integer"
+    '''
+    try:
+        a = float(x)
+        b = int(a)
+    except ValueError:
+        return False
+    else:
+        return a == b
+
+def clean_str_as_db_col_name(txt):
+    '''
+        Legacy method from ./utils.py
+
+        Desc:
+            - "Clean string to be valid column name"
+    '''
+    s = txt.strip()
+    s = s.replace(' ', '_').replace('.', '_').replace('-', '_')
+    if is_int(s[0]):
+        s = '_' + s
+    s = re.sub('_+', '_', s)
+    return re.sub('[^A-Za-z0-9_]+', '', s)
 
 def try_parse_form(request):
     '''

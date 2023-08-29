@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 {% load static %}
 {% load compress %}
 {% load sass_tags %}
@@ -12,7 +12,7 @@
 {% endcompress %}
 
 {% compress js %}
-  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/homeCounter.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/components/homeCounter.js' %}"></script>
 {% endcompress %}
 
 <header class="main-header main-header--collapse homepage-hero-banner">

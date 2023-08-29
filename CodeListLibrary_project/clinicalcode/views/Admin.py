@@ -1,20 +1,65 @@
-
+from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.http.response import HttpResponse
 from django.core.exceptions import PermissionDenied
+from django.core.exceptions import BadRequest
 from django.test import RequestFactory
+from django.shortcuts import render
+from django.views.generic import TemplateView
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from celery import shared_task
 
 import json
-import csv
+import logging
+import requests
 
-from .. import db_utils, utils, tasks
-from ..models import *
-from ..permissions import *
-from .View import *
+from clinicalcode.models.DataSource import DataSource
+
+from ..entity_utils import permission_utils, stats_utils
 
 logger = logging.getLogger(__name__)
+
+### Entity Statistics
+class EntityStatisticsView(TemplateView):
+    '''
+        Admin job panel to save statistics for templates across entities
+    '''
+    @method_decorator([login_required, permission_utils.redirect_readonly])
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
+        stats_utils.collect_statistics(request)
+        context = {
+            'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
+        }
+
+        return render(request, 'clinicalcode/admin/run_statistics.html', context)
+
+
+def run_homepage_statistics(request):
+    """
+        save home page statistics
+    """
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if settings.CLL_READ_ONLY:
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        stat = stats_utils.save_homepage_stats(request)
+        return render(
+            request,
+            'clinicalcode/admin/run_statistics.html', 
+            {
+                'successMsg': ['Homepage statistics saved'],
+                'stat': stat
+            }
+        )
+
+    raise BadRequest
 
 ##### Datasources
 def get_hdruk_datasources():
@@ -138,65 +183,3 @@ def run_celery_datasource(self):
 
         return True,results
 
-
-@login_required
-def get_caliberresearch_url_source(request):
-    """
-        Return a csv file of HDRUK caliberresearch portal url source
-    """
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-
-    phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request,
-                                                                            get_live_and_or_published_ver=2,  # 1= live only, 2= published only, 3= live+published 
-                                                                            exclude_deleted=True,
-                                                                            force_brand='HDRUK',
-                                                                            force_get_live_and_or_published_ver=2  # get published data
-                                                                        )
-
-    phenotypes_ids = db_utils.get_list_of_visible_entity_ids(phenotypes, return_id_or_history_id="id")
-    
-    HDRUK_phenotypes = Phenotype.objects.filter(id__in = phenotypes_ids)
-    HDRUK_phenotypes.exclude(source_reference__isnull=True).exclude(source_reference__exact='')
-    
-    # collections
-    # 18    Phenotype Library    
-    # 25    ClinicalCodes Repository
-    #HDRUK_phenotypes.exclude(tags__contains = [18, 25] , tags__contained_by = [18, 25])
-    
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="HDRUK_caliberresearch_url_source.csv"'
-    writer = csv.writer(response)
-
-    titles = ['Phenotype_id', 'collections', 'portal.caliberresearch.org', 'is_Caliber' , 'phenotypes.healthdatagateway.org']
-    writer.writerow(titles)
-
-
-    HDRUK_phenotypes = HDRUK_phenotypes.order_by('id')
-    
-    tags = Tag.objects.all()
-    
-    for p in HDRUK_phenotypes:
-        #CL_url_base = "https://conceptlibrary.saildatabank.com/HDRUK/old/phenotypes/"
-        CL_url_base = "https://phenotypes.healthdatagateway.org/old/phenotypes/"
-        redirect_url = CL_url_base + p.source_reference.split('/')[-1]
-    
-        is_Caliber = 'Y'
-        #if set(p.tags) == set([18, 25]):
-        if (p.source_reference.lower().startswith('https://portal.caliberresearch.org/phenotypes/') 
-            and len(p.source_reference) > len('https://portal.caliberresearch.org/phenotypes/')):
-            is_Caliber = 'Y'
-        else:
-            is_Caliber = 'N'
-            
-        writer.writerow([
-                        p.id,
-                        list(tags.filter(id__in=p.collections).values_list('description', flat=True)),
-                        p.source_reference, 
-                        is_Caliber,
-                        redirect_url
-                        ]
-                    )
-
-    return response
