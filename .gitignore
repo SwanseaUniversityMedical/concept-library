@@ -15,6 +15,7 @@ CodeListLibrary_project/debug.log
 venv
 **/dump.rdb
 CodeListLibrary_project/staticroot/*
+CodeListLibrary_project/media/*
 docker/development/db/postgresql.conf
 docker/CodeListLibrary_project
 
