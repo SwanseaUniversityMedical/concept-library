@@ -80,6 +80,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
     generic_entity = GenericEntity.objects.get(id=pk)
     user_is_moderator = request.user.groups.filter(name="Moderators").exists()
     user_is_owner = generic_entity.owner == request.user
+
     latest_pending_version_exists = PublishedGenericEntity.objects.filter(
         entity_id=pk, 
         entity_history_id=entity_history_id, 
@@ -89,11 +90,12 @@ def check_entity_to_publish(request, pk, entity_history_id):
     # Determine the status of the entity
     entity_is_deleted = generic_entity.is_deleted
     is_owner = not entity_is_deleted and user_is_owner
+    is_publisher = not entity_is_deleted and generic_entity.owner == request.user and request.user.groups.filter(name="publishers").exists()
     is_moderator = not entity_is_deleted and user_is_moderator
     is_latest_pending_version = not entity_is_deleted and latest_pending_version_exists
 
     # Determine the final permission to publish
-    allow_to_publish = is_owner or is_moderator
+    allow_to_publish = is_owner or is_moderator or is_publisher
     
 
     generic_entity = GenericEntity.objects.get(pk=pk)
@@ -144,6 +146,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'entity_is_deleted': entity_is_deleted,
         'is_owner': is_owner,
         'is_moderator': is_moderator,
+        'is_publisher': is_publisher,
         'approval_status': approval_status,
         'is_lastapproved': is_lastapproved,
         'other_pending': other_pending,
@@ -202,7 +205,7 @@ def check_children(request, entity, entity_class):
             entity_child_id = entity_child[0]
             entity_child_version = entity_child[1]
 
-            concept_owner_id = Concept.history.get(id=entity_child_id).phenotype_owner_id
+            concept_owner_id = Concept.history.get(id=entity_child_id,history_id=entity_child_version).phenotype_owner_id
             if concept_owner_id != entity.id:
                 entity_from_concept = GenericEntity.history.filter(
                 id=concept_owner_id,
