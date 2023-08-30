@@ -17,8 +17,6 @@
 	<link rel="canonical" href="{{ page_canonical_path }}" />
 {% endblock canonical_path %}
 
-
-
 {% block container %}
 <!-- Vendor -->
   <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
@@ -64,14 +62,12 @@
   <main class="main-content">
     {% render_wizard_sidemenu %}
     {% endrender_wizard_sidemenu %}
-    
 
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="phenotype-creation">
 
         {% include './detail_buttons.html' %}
         
- 
           <section class="phenotype-creation__header">
             <h1>{{ entity.name }}</h1>
             <p><i>{{ entity.author }}</i></p>
@@ -99,13 +95,8 @@
       </article>
     </div>
   </main>
-
-
 {% endblock container %}
-
 
 {% block scripts %}
   <!-- script -->
 {% endblock scripts %}
-	
-	
