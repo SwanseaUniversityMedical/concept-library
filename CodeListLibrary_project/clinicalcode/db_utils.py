@@ -4143,21 +4143,23 @@ def get_brand_associated_collections(request, concept_or_phenotype="concept", br
     
     return collections, sorted_order
 
-def send_review_email_generic(entity_id,name, owner_id, review_decision, generic_message,message_from_reviewer=None):
+def send_review_email_generic(data,message_from_reviewer=None):
 
 
-    owner_email = User.objects.get(id=owner_id).email
+    owner_email = User.objects.get(id=data['owner_id']).email
     if owner_email == '':
         return False
 
-    email_subject = 'Concept Library - Data %s has been %s' % (id, review_decision)
+    email_subject = 'Concept Library - Data %s has been %s' % (data['id'], data['message'])
 
     email_content = render_to_string("clinicalcode/email/email_content.html",
             {
-                'entity_id': entity_id,
-                'entity_name': name,
-                'decision': review_decision,
-                'generic_message': generic_message
+                'entity_id': data['id'],
+                'history_id': data['history_id'],
+                'entity_name': data['entity_name'],
+                'decision': data['status'],
+                'url': data['url_redirect'],
+                'generic_message': data['message'],
             })
     if settings.IS_DEVELOPMENT_PC:
         try:
