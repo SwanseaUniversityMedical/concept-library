@@ -262,36 +262,39 @@ def format_message_and_send_email(pk, data, entity, entity_history_id, checks, m
         pk=pk,
         history=entity_history_id
     )
-    send_email_decision_entity(entity, checks['entity_type'], data['approval_status'])
+    send_email_decision_entity(entity, entity_history_id, checks['entity_type'], data['approval_status'])
     return data
 
 
-def send_email_decision_entity(entity, entity_type, approved):
+def send_email_decision_entity(entity,entity_history_id,entity_type,approved):
     """
     Call util function to send email decision
     @param workingset: workingset object
     @param approved: approved status flag
     """
     #print(send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
+    url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
+    data = {"id":entity.id,"history_id":entity_history_id, "entity_name":entity.name, "owner_id": entity.owner_id,"url_redirect":url_redirect}
     if approved == 1:
         "put delay when finish testing"
-        send_review_email(entity.id, entity.name, entity.owner_id,
-                                   "Published",
-                                   f"{entity_type} has been successfully approved and published on the website")
+        data["status"] = "Published"
+        data["message"] = f"{entity_type} has been successfully approved and published on the website"
+        send_review_email(data)
         
     elif approved == 0:
-        send_review_email(entity.id, entity.name, entity.owner_id,
-                                   "Pending",
-                                   f"{entity_type} has been submitted and waiting moderator to publish on the website")
+        data["status"] = "Pending"
+        data["message"] = f"{entity_type} has been submitted and waiting moderator to publish on the website"
+        send_review_email(data)
 
     elif approved == 2:
         # This line for the case when user want to get notification of same workingset id but different version
-        send_review_email(entity.id, entity.name, entity.owner_id,
-                                   "Published",
-                                   f"{entity_type} has been successfully approved and published on the website")
+        data["status"] = "Published"
+        data["message"] = f"{entity_type} has been successfully approved and published on the website"
+        send_review_email(data)
+        
     elif approved == 3:
-        send_review_email(entity.id, entity.name, entity.owner_id,
-                                   "Rejected",
-                                   f"{entity_type} has been rejected by the moderator. Please consider update changes and try again")
+        data["status"] = "Rejected"
+        data["message"] = f"{entity_type} has been rejected by the moderator. Please consider update changes and try again"
+        send_review_email(data)
 
     

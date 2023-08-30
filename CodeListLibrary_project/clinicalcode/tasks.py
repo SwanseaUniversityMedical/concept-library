@@ -14,10 +14,10 @@ def send_message_test(self):
     return 'test message'
 
 @shared_task(name="review_email_backgorund_task")
-def send_review_email(id,name,owner_id, review_decision, review_message):
+def send_review_email(data):
     time.sleep(20)
-    db_utils.send_review_email_generic(id,name, owner_id, review_decision, review_message)
-    return f"Email sent - {id} with name {name} and owner_id {owner_id}"
+    db_utils.send_review_email_generic(data)
+    return f"Email sent - {data['id']} with name {data['entity_name']} and owner_id {data['owner_id']}"
 
 @shared_task(bind=True)
 def send_scheduled_email(self):
