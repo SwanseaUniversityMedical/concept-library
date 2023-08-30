@@ -2,7 +2,7 @@
 {% block content %}
 
 <a href="https://www.google.com" class="card" style="border:0.0625rem solid #ddd; border-radius:0.625rem; box-shadow:0 0.1875rem 1.25rem rgba(0, 0, 0, 0.15); color:black; display:block; margin:1.25em 0; padding:1.25em; text-decoration:none">
-            <h2 style="color:#4e69c2">{{entity_id}} - {{entity_name}}</h2>
+            <h2 style="color:#4e69c2">{{entity_id}}/{{history_id}} - {{entity_name}}</h2>
             {% if decision == "Published" %}
                 <p style="color:#8c8c8c"><strong>Status:</strong> <span class="status-button-success" style="background-color:#13d601; border:none; border-radius:0.3125rem; color:#fff; cursor:pointer; padding:0.625em; text-decoration:none">Published</span></p>
             {% elif decision == "Pending" %}
