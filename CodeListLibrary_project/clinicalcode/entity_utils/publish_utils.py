@@ -272,25 +272,25 @@ def send_email_decision_entity(entity, entity_type, approved):
     @param workingset: workingset object
     @param approved: approved status flag
     """
-
-    print(send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
+    #print(send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     if approved == 1:
-        send_review_email.delay(entity.id, entity.name, entity.owner_id,
+        "put delay when finish testing"
+        send_review_email(entity.id, entity.name, entity.owner_id,
                                    "Published",
                                    f"{entity_type} has been successfully approved and published on the website")
         
     elif approved == 0:
-        send_review_email.delay(entity.id, entity.name, entity.owner_id,
+        send_review_email(entity.id, entity.name, entity.owner_id,
                                    "Pending",
                                    f"{entity_type} has been submitted and waiting moderator to publish on the website")
 
     elif approved == 2:
         # This line for the case when user want to get notification of same workingset id but different version
-        send_review_email.delay(entity.id, entity.name, entity.owner_id,
+        send_review_email(entity.id, entity.name, entity.owner_id,
                                    "Published",
                                    f"{entity_type} has been successfully approved and published on the website")
     elif approved == 3:
-        send_review_email.delay(entity.id, entity.name, entity.owner_id,
+        send_review_email(entity.id, entity.name, entity.owner_id,
                                    "Rejected",
                                    f"{entity_type} has been rejected by the moderator. Please consider update changes and try again")
 
