@@ -4161,7 +4161,8 @@ def send_review_email_generic(data,message_from_reviewer=None):
                 'url': data['url_redirect'],
                 'generic_message': data['message'],
             })
-    if settings.IS_DEVELOPMENT_PC:
+    "TODO put no is it is not development pc"
+    if settings.IS_DEVELOPMENT_PC: 
         try:
             msg = EmailMultiAlternatives(email_subject,
                                         email_content,
