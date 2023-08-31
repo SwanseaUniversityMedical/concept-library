@@ -45,8 +45,7 @@
     .item-dropdown {
       display: flex;
       justify-content: flex-start;
-      padding: 0.5em 0;
-      margin: 0 22px;
+      margin: 0 12px;
       text-decoration: none;
       flex-direction: row;
 
@@ -144,8 +143,7 @@
   .item-dropdown {
     display: flex;
     justify-content: flex-start;
-    padding: 0.5em 0;
-    margin: 0 22px;
+    margin: 0 12px;
     text-decoration: none;
     flex-direction: row;
 
@@ -177,7 +175,6 @@
       display: flex;
       align-items: center;
       font-size: 14px;
-      line-height: 14px;
       font-weight: 500;
     }
 
@@ -192,7 +189,7 @@
     &__description {
       word-break: break-word;
       color: var(--description-text-color);
-      line-height: 16px;
+      line-height: 3px;
       font-size: 12px;
       font-weight: 400;
     }
@@ -221,8 +218,6 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   @include app-font-style();
   @include prefix(transition, $navigation_btn_transition, webkit moz o);
   
-  background-image: linear-gradient($navigation_btn_gradient);
-  background-image: -webkit-linear-gradient($navigation_btn_gradient);
 
   cursor: pointer;
   pointer-events: auto;
@@ -268,7 +263,9 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 
     &.active {
       background-size: 100% 100%, auto;
-      border-radius: 0.25rem;
+      border-radius: 0.5rem;
+      border-style: solid;
+      border-color: var(--navigation-item-selector);
     }
 
     &:not(.active):not([role="login"]):not([role="profile"]):active {
