@@ -275,13 +275,8 @@ def send_email_decision_entity(request,entity,entity_history_id,entity_type,appr
     #print(send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
     data = {"id":entity.id,"history_id":entity_history_id, "entity_name":entity.name, "owner_id": entity.owner_id,"url_redirect":url_redirect}
+
     if approved.value == 1:
-        "put delay when finish testing"
-        data["status"] = "Published"
-        data["message"] = f"{entity_type} has been successfully approved and published on the website"
-        send_review_email(request,data)
-        
-    elif approved.value == 0:
         data["status"] = "Pending"
         data["message"] = f"{entity_type} has been submitted and waiting moderator to publish on the website"
         send_review_email(request,data)
