@@ -56,7 +56,6 @@
         width: 40px;
         height: 40px;
         margin-right: 16px;
-        border-radius: 1em;
         border-radius: 6px;
         background: var(--phenotype-banner-bg-color);
         @include prefix(transition, all 250ms ease-in, webkit moz o);
@@ -64,10 +63,10 @@
         
 
         img {
-          object-fit: cover;
+          object-fit: contain;
           width: 70%;
-          object-position: left;
-          height: 55%;
+          object-position: center;
+          border-radius: 50%;
         }
       }
 
