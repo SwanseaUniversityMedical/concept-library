@@ -4143,7 +4143,7 @@ def get_brand_associated_collections(request, concept_or_phenotype="concept", br
     
     return collections, sorted_order
 
-def send_review_email_generic(data,message_from_reviewer=None):
+def send_review_email_generic(request,data,message_from_reviewer=None):
 
 
     owner_email = User.objects.get(id=data['owner_id']).email
@@ -4160,7 +4160,7 @@ def send_review_email_generic(data,message_from_reviewer=None):
                 'decision': data['status'],
                 'url': data['url_redirect'],
                 'generic_message': data['message'],
-            })
+            },request=request)
     "TODO put no is it is not development pc"
     if settings.IS_DEVELOPMENT_PC: 
         try:
