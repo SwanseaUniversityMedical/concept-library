@@ -29,11 +29,11 @@ def form_validation(request, data, entity_history_id, pk, entity,checks):
     data['form_is_valid'] = True
     data['latest_history_ID'] = entity_history_id  # entity.history.latest().pk
     #send email message state and client side message
-    data['message'] = send_message(pk, data, entity, entity_history_id, checks)['message']
+    data['message'] = send_message(request,pk, data, entity, entity_history_id, checks)['message']
 
     return data
 
-def send_message(pk, data, entity, entity_history_id, checks):
+def send_message(request,pk, data, entity, entity_history_id, checks):
     """
     Send email message with variational decisions approved/pending/declined and show message to the  client side
     @param pk: entity id
@@ -51,17 +51,17 @@ def send_message(pk, data, entity, entity_history_id, checks):
     # Determine the appropriate message template and send email
     approval_status = data['approval_status']
     if approval_status == constants.APPROVAL_STATUS.APPROVED:
-        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
+        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, approved_template)
     elif approval_status == constants.APPROVAL_STATUS.REJECTED:
-        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, rejected_template)
+        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, rejected_template)
     elif approval_status == constants.APPROVAL_STATUS.PENDING:
-        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, pending_template)
+        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, pending_template)
     elif approval_status is None and checks['is_moderator']:
-        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
+        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, approved_template)
     elif len(PublishedGenericEntity.objects.filter(
             entity=GenericEntity.objects.get(pk=pk).id, 
             approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0 and approval_status != constants.APPROVAL_STATUS.REJECTED:
-        return format_message_and_send_email(pk, data, entity, entity_history_id, checks, approved_template)
+        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, approved_template)
 
 
 def check_entity_to_publish(request, pk, entity_history_id):
@@ -252,7 +252,7 @@ def get_table_of_entity(entity_class):
     return 'concept_information' if entity_class == "Phenotype" else 'workingset_concept_information'
 
 
-def format_message_and_send_email(pk, data, entity, entity_history_id, checks, message_template):
+def format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, message_template):
     """
     Format the message, send an email, and update data with the new message
     """
@@ -262,11 +262,11 @@ def format_message_and_send_email(pk, data, entity, entity_history_id, checks, m
         pk=pk,
         history=entity_history_id
     )
-    send_email_decision_entity(entity, entity_history_id, checks['entity_type'], data['approval_status'])
+    send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data['approval_status'])
     return data
 
 
-def send_email_decision_entity(entity,entity_history_id,entity_type,approved):
+def send_email_decision_entity(request,entity,entity_history_id,entity_type,approved):
     """
     Call util function to send email decision
     @param workingset: workingset object
@@ -275,26 +275,26 @@ def send_email_decision_entity(entity,entity_history_id,entity_type,approved):
     #print(send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
     data = {"id":entity.id,"history_id":entity_history_id, "entity_name":entity.name, "owner_id": entity.owner_id,"url_redirect":url_redirect}
-    if approved == 1:
+    if approved.value == 1:
         "put delay when finish testing"
         data["status"] = "Published"
         data["message"] = f"{entity_type} has been successfully approved and published on the website"
-        send_review_email(data)
+        send_review_email(request,data)
         
-    elif approved == 0:
+    elif approved.value == 0:
         data["status"] = "Pending"
         data["message"] = f"{entity_type} has been submitted and waiting moderator to publish on the website"
-        send_review_email(data)
+        send_review_email(request,data)
 
-    elif approved == 2:
+    elif approved.value == 2:
         # This line for the case when user want to get notification of same workingset id but different version
         data["status"] = "Published"
         data["message"] = f"{entity_type} has been successfully approved and published on the website"
-        send_review_email(data)
+        send_review_email(request,data)
         
-    elif approved == 3:
+    elif approved.value == 3:
         data["status"] = "Rejected"
         data["message"] = f"{entity_type} has been rejected by the moderator. Please consider update changes and try again"
-        send_review_email(data)
+        send_review_email(request,data)
 
     
