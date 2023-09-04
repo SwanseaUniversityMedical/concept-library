@@ -84,6 +84,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
 
                     data['form_is_valid'] = True
                     data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
+                    data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
                     #show state message to the client side and send email
                     data = publish_utils.form_validation(self.request, data, history_id, pk, entity,checks)
 
@@ -134,6 +135,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
 
             data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
             data['form_is_valid'] = True
+            data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
             data = publish_utils.form_validation(request, data, history_id, pk, entity, conditions)
 
         elif conditions['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
@@ -157,6 +159,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
 
             data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
             data['form_is_valid'] = True
+            data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
             #send message to the client
             data = publish_utils.form_validation(request, data, history_id, pk, entity, conditions)
 
@@ -230,6 +233,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
                         published_entity.save()
                         data['form_is_valid'] = True
                         data['approval_status'] = constants.APPROVAL_STATUS.PENDING
+                        data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
                         data = publish_utils.form_validation(self.request, data, history_id, pk, entity, checks)
 
 

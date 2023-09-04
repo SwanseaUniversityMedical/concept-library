@@ -262,11 +262,11 @@ def format_message_and_send_email(request,pk, data, entity, entity_history_id, c
         pk=pk,
         history=entity_history_id
     )
-    send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data['approval_status'])
+    send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
     return data
 
 
-def send_email_decision_entity(request,entity,entity_history_id,entity_type,approved):
+def send_email_decision_entity(request,entity,entity_history_id,entity_type,data):
     """
     Call util function to send email decision
     @param workingset: workingset object
@@ -274,22 +274,22 @@ def send_email_decision_entity(request,entity,entity_history_id,entity_type,appr
     """
     #print(send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
-    data = {"id":entity.id,"history_id":entity_history_id, "entity_name":entity.name, "owner_id": entity.owner_id,"url_redirect":url_redirect}
+    context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "owner_id": entity.owner_id,"url_redirect":url_redirect}
 
-    if approved.value == 1:
-        data["status"] = "Pending"
-        data["message"] = f"{entity_type} has been submitted and waiting moderator to publish on the website"
-        send_review_email(request,data)
+    if data['approval_status'].value == 1:
+        context["status"] = "Pending"
+        context["message"] = f"{entity_type} has been submitted and waiting moderator to publish on the website"
+        send_review_email(request,context)
 
-    elif approved.value == 2:
+    elif data['approval_status'].value == 2:
         # This line for the case when user want to get notification of same workingset id but different version
-        data["status"] = "Published"
-        data["message"] = f"{entity_type} has been successfully approved and published on the website"
-        send_review_email(request,data)
+        context["status"] = "Published"
+        context["message"] = f"{entity_type} has been successfully approved and published on the website"
+        send_review_email(request,context)
         
-    elif approved.value == 3:
-        data["status"] = "Rejected"
-        data["message"] = f"{entity_type} has been rejected by the moderator. Please consider update changes and try again"
-        send_review_email(request,data)
+    elif data['approval_status'].value == 3:
+        context["status"] = "Rejected"
+        context["message"] = f"{entity_type} has been rejected by the moderator. Please consider update changes and try again"
+        send_review_email(request,context)
 
     
