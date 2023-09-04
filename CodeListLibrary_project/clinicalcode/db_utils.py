@@ -4153,14 +4153,7 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
     email_subject = 'Concept Library - Data %s has been %s' % (data['id'], data['message'])
 
     email_content = render_to_string("clinicalcode/email/email_content.html",
-            {
-                'entity_id': data['id'],
-                'history_id': data['history_id'],
-                'entity_name': data['entity_name'],
-                'decision': data['status'],
-                'url': data['url_redirect'],
-                'generic_message': data['message'],
-            },request=request)
+            data,request=request)
     "TODO put no is it is not development pc"
     if settings.IS_DEVELOPMENT_PC: 
         try:
