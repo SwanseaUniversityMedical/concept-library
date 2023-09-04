@@ -290,6 +290,7 @@ def send_email_decision_entity(request,entity,entity_history_id,entity_type,data
     elif data['approval_status'].value == 3:
         context["status"] = "Rejected"
         context["message"] = f"{entity_type} has been rejected by the moderator. Please consider update changes and try again"
+        context["custom_message"] = "Please adjust changes and try again" #TODO add custom message logic
         send_review_email(request,context)
 
     
