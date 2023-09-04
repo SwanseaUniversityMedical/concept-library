@@ -1028,6 +1028,141 @@ def admin_mig_phenotypes_dt(request):
                         }
                         )
 
+@login_required
+def admin_fix_breathe_dt(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html', 
+            {
+                'url': reverse('admin_fix_breathe_dt'),
+                'action_title': 'Fix Breathe Phenotypes',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    with connection.cursor() as cursor:
+        sql = """
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, '21')
+        WHERE name LIKE 'Acute bronchitis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, '7')
+        WHERE name LIKE 'Asthma%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, '%.')
+        WHERE name LIKE 'Chronic obstructive%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, 'a.')
+        WHERE name LIKE 'Empyema%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, 's.')
+        WHERE name LIKE 'Influenza infection%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, 'hs')
+        WHERE name LIKE 'Pertussis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation ='The definition of pneumonia has not been validated'
+        WHERE name LIKE 'Pneumonia%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+        """
+        cursor.execute(sql)
+        print(cursor.rowcount, "record(s) affected")
+
+    with connection.cursor() as cursor:
+
+        historical = """
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, '21')
+        WHERE name LIKE 'Acute bronchitis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, '7')
+        WHERE name LIKE 'Asthma%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, '%.')
+        WHERE name LIKE 'Chronic obstructive%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, 'a.')
+        WHERE name LIKE 'Empyema%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, 's.')
+        WHERE name LIKE 'Influenza infection%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, 'hs')
+        WHERE name LIKE 'Pertussis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation ='The definition of pneumonia has not been validated'
+        WHERE name LIKE 'Pneumonia%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, 'hs')
+        WHERE name LIKE 'Rhinitis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+        """
+        cursor.execute(historical)
+
+        return render(request,
+                        'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html',
+                        {   'pk': -10,
+                            'action_title': 'Fix Breathe',
+                        }
+                        )
+
+
 def get_serial_id():
     count_all = GenericEntity.objects.count()
     if count_all:
