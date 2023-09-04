@@ -2,19 +2,19 @@
 {% block content %}
 
 <a href="{{ request.scheme }}://{{ request.get_host }}{{url_redirect}}" class="card" style="border:0.0625rem solid #ddd; border-radius:0.625rem; box-shadow:0 0.1875rem 1.25rem rgba(0, 0, 0, 0.15); color:black; display:block; margin:1.25em 0; padding:1.25em; text-decoration:none">
-            <h2 style="color:#4e69c2">{{id}}/{{history_id}} - {{entity_name}}</h2>
+            <h2 style="color:#4e69c2; margin-bottom: 1.23em;">{{id}}/{{history_id}} - {{entity_name}}</h2>
             {% if status == "Published" %}
-                <p style="color:#8c8c8c"><strong>Status:</strong> <span class="status-button-success" style="background-color:#13d601; border:none; border-radius:0.3125rem; color:#fff; cursor:pointer; padding:0.625em; text-decoration:none">Published</span></p>
+                <p style="color:#8c8c8c; line-height:1.70em; margin-bottom: 1.56em; "><strong>Status:</strong> <span class="status-button-success" style="background-color:#13d601; border:none; border-radius:0.3125rem; color:#fff; cursor:pointer; padding:0.625em; text-decoration:none">Published</span></p>
             {% elif status == "Pending" %}
-                <p style="color:#8c8c8c"><strong>Status:</strong> <span class="status-button-success" style="background-color: #ffcc00; border:none; border-radius:0.3125rem; color:#fff; cursor:pointer; padding:0.625em; text-decoration:none">Pending</span></p>
+                <p style="color:#8c8c8c; line-height:1.70em; margin-bottom: 1.56em;"><strong>Status:</strong> <span class="status-button-success" style="background-color: #ffcc00; border:none; border-radius:0.3125rem; color:#fff; cursor:pointer; padding:0.625em; text-decoration:none">Pending</span></p>
             {% elif status == "Rejected" %}
-            <p style="color:#8c8c8c"><strong>Status:</strong> <span class="status-button-success" style="background-color: #ff0101; border:none; border-radius:0.3125rem; color:#fff; cursor:pointer; padding:0.625em; text-decoration:none">Rejected</span></p>
+            <p style="color:#8c8c8c; line-height:1.70em; margin-bottom: 1.56em;"><strong>Status:</strong> <span class="status-button-success" style="background-color: #ff0101; border:none; border-radius:0.3125rem; color:#fff; cursor:pointer; padding:0.625em; text-decoration:none">Rejected</span></p>
             {% endif %}
             {% if custom_message %}
-                <p style="color:#8c8c8c"><strong>Description:</strong> {{message}}</p>
-                <p style="color:#8c8c8c"><strong>Message from reviewer:</strong> {{custom_message}}</p>
+                <p style="color:#8c8c8c; line-height:1.70em; margin-bottom: 1.56em;"><strong>Description:</strong> {{message}}</p>
+                <p style="color:#8c8c8c; line-height:1.70em; margin-bottom: 1.56em;"><strong>Message from reviewer:</strong> {{custom_message}}</p>
             {% else %}
-                <p style="color:#8c8c8c"><strong>Description:</strong> {{message}}</p>
+                <p style="color:#8c8c8c; line-height:1.70em; margin-bottom: 1.56em;"><strong>Description:</strong> {{message}}</p>
             {% endif %}
             
         </a> 
