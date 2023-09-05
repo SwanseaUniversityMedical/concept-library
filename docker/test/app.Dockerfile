@@ -28,8 +28,9 @@ RUN apt-get update && apt-get install -y \
     npm
 
 # Install esbuild
-RUN npm install -g config set user root \
-    npm install -g esbuild
+RUN npm install -g config set user root
+
+RUN npm install -g esbuild@0.19.0
 
 # Instantiate log dir
 RUN ["mkdir", "-p", "/home/config_cll/cll_srvr_logs"]
