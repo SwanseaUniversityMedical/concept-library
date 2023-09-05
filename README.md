@@ -516,8 +516,8 @@ This will provide a dedicated environment for each project you create. It is con
 
 1. Install [Postgres](https://www.postgresql.org/download/) and [PGAdmin](https://www.pgadmin.org/) on your device.
 2. Within PGAdmin3, do the following:
-    - Create a role called `clluser``
-    - Create a database called `code_list_library``
+    - Create a role called `clluser`
+    - Create a database called `code_list_library`
     - Create a read-only role
 3. When running the application it may complain that you have unapplied migrations; your app may not work properly until they are applied. To do this:
     - Navigate to `concept-library/CodeListLibrary_project/cll`
