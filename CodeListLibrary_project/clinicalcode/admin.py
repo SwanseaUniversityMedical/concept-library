@@ -6,10 +6,10 @@ import datetime
 from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operator, Tag)
 from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
+from .models.GenericEntityImage import GenericEntityImage
 from .models.Template import Template
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
-
 
 @admin.register(CodingSystemFilter)
 class CodingSystemFilterAdmin(admin.ModelAdmin):
@@ -124,3 +124,7 @@ class EntityClassAdmin(admin.ModelAdmin):
         obj.modified_by = request.user
         obj.modified = timezone.now()
         obj.save()
+
+@admin.register(GenericEntityImage)
+class GenericEntityImageFilterAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']

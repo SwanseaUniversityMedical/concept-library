@@ -33,6 +33,8 @@ services:
     depends_on:
       - postgres
       - redis
+    volumes:
+      - ../CodeListLibrary_project/cll/media/:/var/www/concept_lib_sites/v1/CodeListLibrary_project/media
 
   redis:
     image: redis:7.0-bullseye

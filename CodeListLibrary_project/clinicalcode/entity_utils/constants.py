@@ -224,6 +224,11 @@ API_MAP_FIELD_NAMES = {
 }
 
 '''
+    Max image size for uploading, 5MB
+'''
+MAX_IMAGE_SIZE = 5242880
+
+'''
     Describes fields that should be stripped from entity list api response
 '''
 ENTITY_LIST_API_HIDDEN_FIELDS = [
