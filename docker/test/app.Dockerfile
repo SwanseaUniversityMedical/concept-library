@@ -68,8 +68,13 @@ COPY ./docker/production/scripts/worker-start.sh /home/config_cll/worker-start.s
 COPY ./docker/production/scripts/beat-start.sh /home/config_cll/beat-start.sh
 
 RUN ["chmod" , "+x" , "/home/config_cll/worker-start.sh"]
+RUN ["dos2unix", "/home/config_cll/worker-start.sh"]
+
 RUN ["chmod" , "+x" , "/home/config_cll/beat-start.sh"]
+RUN ["dos2unix", "/home/config_cll/beat-start.sh"]
+
 RUN ["chmod", "a+x", "/home/config_cll/init-app.sh"]
+RUN ["dos2unix", "/home/config_cll/init-app.sh"]
 
 # Config apache and enable site
 RUN echo $(printf 'export SERVER_NAME=%s' "$SERVER_NAME") >> /etc/apache2/envvars

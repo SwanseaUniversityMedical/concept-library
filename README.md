@@ -175,23 +175,18 @@ c. *OR;* to prune your docker, enter `docker system prune -a`
 >***[!] Note:**   
 To test the transpiling, minification or compression steps, OR; if you have made changes to the Docker container or its images it is recommended that you run a local, pre-production build*
 
-To replicate the server environment, you will have to build the Dockerfile images first:
-1. Open a terminal
-2. Navigate to the `concept-library/docker/` folder
-3. Build `./test/app.Dockerfile` and tag its resulting image as `cll/app` by running: `docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..`
-4. Clone and tag this image for the `celery_beat` service by running: `docker tag cll/app cll/celery_beat`
-5. Clone and tag this image for the `celery_worker` service by running: `docker tag cll/app cll/celery_worker`
-
-To build a local, pre-production build:
 >***[!] Note:**
 If you do not want to start the celery services you can remove the "--profiles live" argument
 
+To build a local, pre-production build:
 1. Open a terminal
 2. Follow the steps above if you have not already built the images
 3. Navgiate to the `concept-library/docker/` folder
 4. Set up the environment variables within `./test/app.compose.env`
-5. In the terminal, run `docker-compose -p cll -f docker-compose.test.yaml --profiles live up` (append `-d` as an argument to run in background)
-6. Open a browser and navigate to `localhost:8005` to access the application
+5. In the terminal, run `docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..`
+6. Once the image is built, run `docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker`
+7. Finally, run `docker-compose -p cll -f docker-compose.test.yaml --profile live up` (append `-d` as an argument to run in background)
+8. Open a browser and navigate to `localhost:8005` to access the application
 
 ### 2.3.7. Impact of Environment Variables
 
