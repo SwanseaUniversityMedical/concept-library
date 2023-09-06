@@ -134,7 +134,7 @@
           <div class="homepage-about__brand">
             <div class="homepage-about__brand-item">
               <div class="homepage-about__brand-icon">
-                <img src="{% static 'img/brands' %}/{{ obj.name }}/apple-touch-icon.png" />
+                <img src="{% static 'img/brands/'|add:obj.name|add:'/apple-touch-icon.png' %}" />
               </div>
               <div class="homepage-about__brand-details">
                 <h4>
