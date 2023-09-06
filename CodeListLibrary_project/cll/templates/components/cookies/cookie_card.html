@@ -31,8 +31,8 @@
 
     <script type="text/javascript">
       domReady.finally(() => {
-      // Attach click event handler to #cookie_preference element
-      document.getElementById("button_cookie").addEventListener("click", function (e) {
+        // Attach click event handler to #cookie_preference element
+        document.getElementById("button_cookie").addEventListener("click", function (e) {
           e.preventDefault();
           cookieSettings("{% url 'privacy_and_cookie_policy' %}");
           const checkbox = document.getElementById("stats-check");
@@ -42,32 +42,32 @@
             : (checkbox.checked = false);
 
           document.getElementById("save-button").addEventListener("click", function () {
-              if (checkbox.checked) {
-                deleteCookies();
-                handleCookies("cookieAlertAccept", "acceptCookies", true);
-                generateTag("update", "G-QE37B9J5WK", { ad_storage: "granted" });
-                generateTag("update", "G-W6XK339B16", { ad_storage: "granted" });
-              } else {
-                deleteCookies();
-                handleCookies("rejectCookiesAlert", "rejectCookies", false);
-                generateTag("default", "G-QE37B9J5WK", {
-                  ad_storage: "denied",
-                  analytics_storage: "denied",
-                });
-                generateTag("default", "G-W6XK339B16", {
-                  ad_storage: "denied",
-                  analytics_storage: "denied",
-                });
-              }
-            });
+            if (checkbox.checked) {
+              deleteCookies();
+              handleCookies("cookieAlertAccept", "acceptCookies", true);
+              generateTag("update", "G-QE37B9J5WK", { ad_storage: "granted" });
+              generateTag("update", "G-W6XK339B16", { ad_storage: "granted" });
+            } else {
+              deleteCookies();
+              handleCookies("rejectCookiesAlert", "rejectCookies", false);
+              generateTag("default", "G-QE37B9J5WK", {
+                ad_storage: "denied",
+                analytics_storage: "denied",
+              });
+              generateTag("default", "G-W6XK339B16", {
+                ad_storage: "denied",
+                analytics_storage: "denied",
+              });
+            }
+          });
         });
       });
     </script>
   {% else %}
     <script type="text/javascript">
       domReady.finally(() => {
-      // Attach click event handler to #cookie_preference element
-      document.getElementById("button_cookie").addEventListener("click", function (e) {
+        // Attach click event handler to #cookie_preference element
+        document.getElementById("button_cookie").addEventListener("click", function (e) {
           e.preventDefault();
           cookieSettings("{% url 'privacy_and_cookie_policy' %}");
 
@@ -77,19 +77,19 @@
             : (checkbox.checked = false);
 
           document.getElementById("save-button").addEventListener("click", function () {
-              if (checkbox.checked) {
-                deleteCookies();
-                handleCookies("cookieAlertAccept", "acceptCookies", true);
-                generateTag("update", "G-KLBS2646W1", { ad_storage: "granted" });
-              } else {
-                deleteCookies();
-                handleCookies("rejectCookiesAlert", "rejectCookies", false);
-                generateTag("default", "G-KLBS2646W1", {
-                  ad_storage: "denied",
-                  analytics_storage: "denied",
-                });
-              }
-            });
+            if (checkbox.checked) {
+              deleteCookies();
+              handleCookies("cookieAlertAccept", "acceptCookies", true);
+              generateTag("update", "G-KLBS2646W1", { ad_storage: "granted" });
+            } else {
+              deleteCookies();
+              handleCookies("rejectCookiesAlert", "rejectCookies", false);
+              generateTag("default", "G-KLBS2646W1", {
+                ad_storage: "denied",
+                analytics_storage: "denied",
+              });
+            }
+          });
         });
       });
     </script>
