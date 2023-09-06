@@ -30,6 +30,7 @@
     ></script>
 
     <script type="text/javascript">
+      domReady.finally(() => {
       // Attach click event handler to #cookie_preference element
       document.getElementById("button_cookie").addEventListener("click", function (e) {
           e.preventDefault();
@@ -39,6 +40,7 @@
           getCookie("acceptCookies")
             ? (checkbox.checked = true)
             : (checkbox.checked = false);
+
           document.getElementById("save-button").addEventListener("click", function () {
               if (checkbox.checked) {
                 deleteCookies();
@@ -59,33 +61,38 @@
               }
             });
         });
+      });
     </script>
   {% else %}
-  <script type="text/javascript">
-    // Attach click event handler to #cookie_preference element
-    document.getElementById("button_cookie").addEventListener("click", function (e) {
-        e.preventDefault();
-        cookieSettings("{% url 'privacy_and_cookie_policy' %}");
-        const checkbox = document.getElementById("stats-check");
-        getCookie("acceptCookies")
-          ? (checkbox.checked = true)
-          : (checkbox.checked = false);
-        document.getElementById("save-button").addEventListener("click", function () {
-            if (checkbox.checked) {
-              deleteCookies();
-              handleCookies("cookieAlertAccept", "acceptCookies", true);
-              generateTag("update", "G-KLBS2646W1", { ad_storage: "granted" });
-            } else {
-              deleteCookies();
-              handleCookies("rejectCookiesAlert", "rejectCookies", false);
-              generateTag("default", "G-KLBS2646W1", {
-                ad_storage: "denied",
-                analytics_storage: "denied",
-              });
-            }
-          });
+    <script type="text/javascript">
+      domReady.finally(() => {
+      // Attach click event handler to #cookie_preference element
+      document.getElementById("button_cookie").addEventListener("click", function (e) {
+          e.preventDefault();
+          cookieSettings("{% url 'privacy_and_cookie_policy' %}");
+
+          const checkbox = document.getElementById("stats-check");
+          getCookie("acceptCookies")
+            ? (checkbox.checked = true)
+            : (checkbox.checked = false);
+
+          document.getElementById("save-button").addEventListener("click", function () {
+              if (checkbox.checked) {
+                deleteCookies();
+                handleCookies("cookieAlertAccept", "acceptCookies", true);
+                generateTag("update", "G-KLBS2646W1", { ad_storage: "granted" });
+              } else {
+                deleteCookies();
+                handleCookies("rejectCookiesAlert", "rejectCookies", false);
+                generateTag("default", "G-KLBS2646W1", {
+                  ad_storage: "denied",
+                  analytics_storage: "denied",
+                });
+              }
+            });
+        });
       });
-  </script>
+    </script>
   {% endif %}
 {% endif %}
 {% endblock content %}
