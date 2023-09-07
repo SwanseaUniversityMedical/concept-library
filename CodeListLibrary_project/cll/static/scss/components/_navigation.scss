@@ -406,9 +406,11 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       visibility: hidden;
       opacity: 0;
       position: fixed;
+      width: 100%;
+      height: 100%;
+
       background-color: var(--navigation-selection-box);
-      right: var(--navigation-gutter);
-      top: var(--navigation-offset);
+      left: 0;
       border-radius: 0.25rem;
       padding: 0.5rem 0.5rem;
       transition: opacity 250ms ease;
@@ -427,7 +429,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         opacity: 1;
         right: 1rem;
         visibility: visible;
-        box-shadow: var(--navigation-panel-shadow);
+      
       }
     }
   }
