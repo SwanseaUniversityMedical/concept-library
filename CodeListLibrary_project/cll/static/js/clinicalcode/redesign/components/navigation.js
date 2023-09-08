@@ -32,7 +32,7 @@ const computeBurgerProperty = (burger) => {
   */
 const initHamburgerMenu = () => {
   const burger = document.querySelector('.page-navigation__buttons');
-  const panel = burger.querySelector('.page-navigation__items');
+  const panel = document.querySelector('.page-navigation__items');
   
   burger.addEventListener('click', e => {
     if (panel.classList.contains('open'))

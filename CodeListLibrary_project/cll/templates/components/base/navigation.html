@@ -11,7 +11,8 @@
     {% url 'concept_library_home' as home_url %}
      <a href="{{ home_url }}" id="Logourl"><div class="page-navigation__logo"></div></a>
     <div class="page-navigation__buttons">
-      <div class="page-navigation__items">
+    </div>
+    <div class="page-navigation__items">
         {% if request.BRAND_OBJECT.allowed_tabs is none or 'home' in request.BRAND_OBJECT.allowed_tabs %}
           {% url 'concept_library_home' as home_url %}
           <a href="{{ home_url }}" id="Home">Home</a>
@@ -43,7 +44,6 @@
           
         {% endif %}
       </div>
-    </div>
   </div>
 </nav>
 {% endblock content %}
