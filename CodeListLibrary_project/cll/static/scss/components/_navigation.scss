@@ -1,7 +1,7 @@
-@import '../_methods';
-@import '../_variables';
-@import '../_media';
-@import '../_utils';
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
 
 /// Avatar content
 /// @desc ...
@@ -10,7 +10,7 @@
   align-items: center;
   border: 1px solid col(accent-washed);
   border-radius: 7px;
-  
+
   svg {
     @include prefix(transition, all 250ms ease-in, webkit moz o);
     width: 35px;
@@ -61,8 +61,6 @@
         border-radius: 6px;
         background: var(--phenotype-banner-bg-color);
         @include prefix(transition, all 250ms ease-in, webkit moz o);
-
-        
 
         img {
           object-fit: cover;
@@ -130,7 +128,7 @@
 
   .content-container {
     list-style: none;
-    
+
     &__full {
       grid-column: 1 / span 2;
       list-style: none;
@@ -181,7 +179,7 @@
       font-weight: 500;
     }
 
-    &__dropdownlink{
+    &__dropdownlink {
       display: flex;
       align-items: center;
       font-size: 14px;
@@ -208,19 +206,20 @@
   }
 }
 
-
 /// Navigation bar
 ///   @desc Used exclusively by navigation.html to present a fixed navigation bar
 ///         Handles both mobile and desktop interfaces
-$navigation_btn_transition: background-size 250ms ease, transform 250ms ease-in-out;
+$navigation_btn_transition: background-size 250ms ease,
+  transform 250ms ease-in-out;
 $navigation_login_transition: background-color 250ms ease, transform 250ms ease;
-$navigation_btn_gradient: 90deg, var(--navigation-item-selector) 0%, var(--navigation-item-selector) 50%, var(--navigation-item-selector) 100%;
+$navigation_btn_gradient: 90deg, var(--navigation-item-selector) 0%,
+  var(--navigation-item-selector) 50%, var(--navigation-item-selector) 100%;
 $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 
 @mixin navigation-item($vertical: false) {
   @include app-font-style();
   @include prefix(transition, $navigation_btn_transition, webkit moz o);
-  
+
   background-image: linear-gradient($navigation_btn_gradient);
   background-image: -webkit-linear-gradient($navigation_btn_gradient);
 
@@ -231,7 +230,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   width: auto;
   font-weight: bold;
   background-repeat: no-repeat;
-  
+
   @if $vertical {
     flex-direction: row;
     padding: 0.5rem;
@@ -299,7 +298,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 //  @desc defines the navigation bar for use within navigation.html
 .page-navigation {
   @include prefix(transition, all 250ms ease-in, webkit moz o);
-  
+
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
@@ -345,7 +344,9 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   @include media("<desktop", "screen") {
     &__container {
       margin: var(--navigation-mobile-offset) var(--navigation-mobile-gutter);
-      width: calc(100% - var(--navigation-mobile-gutter) - var(--navigation-mobile-gutter));
+      width: calc(
+        100% - var(--navigation-mobile-gutter) - var(--navigation-mobile-gutter)
+      );
     }
 
     &__logo {
@@ -364,7 +365,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       &:not(.open):after {
         --as-burger: "true";
 
-        content: '\f0c9';
+        content: "\f0c9";
         cursor: pointer;
         position: relative;
         display: inline-flex;
@@ -407,8 +408,6 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       opacity: 0;
       position: fixed;
       width: 100%;
-      height: 100%;
-
       background-color: var(--navigation-selection-box);
       left: 0;
       border-radius: 0.25rem;
@@ -425,11 +424,9 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 
       &.open {
         flex-grow: 0;
-        z-index: 99998;
         opacity: 1;
         right: 1rem;
         visibility: visible;
-      
       }
     }
   }
@@ -437,7 +434,9 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   &.transparent {
     &__items a {
       background-image: linear-gradient($navigation_transparent_gradient);
-      background-image: -webkit-linear-gradient($navigation_transparent_gradient);
+      background-image: -webkit-linear-gradient(
+        $navigation_transparent_gradient
+      );
     }
   }
 }

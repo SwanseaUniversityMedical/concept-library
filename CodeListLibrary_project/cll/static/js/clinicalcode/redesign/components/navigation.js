@@ -36,26 +36,28 @@ const initHamburgerMenu = () => {
   
   burger.addEventListener('click', e => {
     if (panel.classList.contains('open'))
-      return;
-    
-    const isBurger = computeBurgerProperty(burger);
-    if (isBurger === 'true') {
-      panel.classList.add('open');
-      return;
-    }
+      panel.classList.remove('open');
+    else{
+      const isBurger = computeBurgerProperty(burger);
+      if (isBurger === 'true') {
+        panel.classList.add('open');
+        return;
+      }
+  }
 
-    panel.classList.remove('open');
+    
   });
 
   document.addEventListener('click', e => {
     const element = e.target;
-    if (burger.contains(element)) {
-      return;
-    }
 
-    panel.classList.remove('open');
+    if (!burger.contains(element)) {
+      panel.classList.remove('open');
+    }
   })
 }
+
+
 
 /**
   * setNavigation
