@@ -33,14 +33,17 @@ const computeBurgerProperty = (burger) => {
 const initHamburgerMenu = () => {
   const burger = document.querySelector('.page-navigation__buttons');
   const panel = document.querySelector('.page-navigation__items');
+  const overlay = document.querySelector('.page-navigation__overlay');
   
   burger.addEventListener('click', e => {
-    if (panel.classList.contains('open'))
+    if (panel.classList.contains('open')){
+      overlay.style.display = 'none'; 
       panel.classList.remove('open');
-    else{
+    }else{
       const isBurger = computeBurgerProperty(burger);
       if (isBurger === 'true') {
         panel.classList.add('open');
+        overlay.style.display = 'block';
         return;
       }
   }
@@ -53,6 +56,7 @@ const initHamburgerMenu = () => {
 
     if (!burger.contains(element)) {
       panel.classList.remove('open');
+      overlay.style.display = 'none'; 
     }
   })
 }
