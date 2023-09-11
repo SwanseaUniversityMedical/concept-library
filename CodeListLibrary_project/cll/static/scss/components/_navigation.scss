@@ -380,7 +380,9 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         text-align: center;
         font-size: var(--navigation-hamburger-size);
       }
+      
     }
+
   }
 
   @include media(">=desktop", "screen") {
@@ -413,18 +415,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       border-radius: 0.25rem;
       padding: 0.5rem 0.5rem;
       transition: opacity 250ms ease;
-      
-      &::after{
-        content: '';
-        position: fixed;
-        z-index: 9995;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0,0,0,0.5);
-      }
-
+  
       a {
         @include navigation-item($vertical: true);
         @include clear-anchor();
@@ -439,8 +430,6 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         opacity: 1;
         right: 1rem;
         visibility: visible;
-      
-        
       }
     }
   }
@@ -453,5 +442,16 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         $navigation_transparent_gradient
       );
     }
+  }
+
+  &__overlay{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  display: none; /* Initially hide the overlay */
+  z-index: 9999; 
   }
 }
