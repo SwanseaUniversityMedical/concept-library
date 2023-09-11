@@ -233,16 +233,13 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 
   @if $vertical {
     flex-direction: row;
-    padding: 0.5rem;
-    justify-content: left;
+    padding: 0.7rem;
+    justify-content: center;
     background-position: left 50%;
     background-size: var(--navigation-line-width) 0, auto;
     z-index: 99999;
 
-    &:first-child {
-      padding: 0 0.5rem 0.5rem 0.5rem;
-    }
-
+ 
     &:not(.active):not([role="login"]):not([role="profile"]):hover {
       background-size: var(--navigation-line-width) 90%, auto;
     }
@@ -254,6 +251,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     &:not(.active):not([role="login"]):not([role="profile"]):active {
       @include prefix(transform, translateY(2px), webkit moz o);
     }
+   
   } @else {
     flex-direction: column;
     justify-content: center;
@@ -348,6 +346,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         100% - var(--navigation-mobile-gutter) - var(--navigation-mobile-gutter)
       );
     }
+    
 
     &__logo {
       margin-left: var(--navigation-mobile-gutter);
@@ -360,6 +359,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     display: flex;
     height: auto;
     width: auto;
+    z-index: 1;
 
     @include media("<desktop", "screen") {
       &:not(.open):after {
@@ -413,23 +413,38 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       border-radius: 0.25rem;
       padding: 0.5rem 0.5rem;
       transition: opacity 250ms ease;
+      
+      &::after{
+        content: '';
+        position: fixed;
+        z-index: 9995;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.5);
+      }
 
       a {
         @include navigation-item($vertical: true);
         @include clear-anchor();
 
-        padding: 0.5rem;
         white-space: nowrap;
       }
+
+      
 
       &.open {
         flex-grow: 0;
         opacity: 1;
         right: 1rem;
         visibility: visible;
+      
+        
       }
     }
   }
+ 
 
   &.transparent {
     &__items a {
