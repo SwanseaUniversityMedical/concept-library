@@ -94,7 +94,7 @@ The app container requires emulation for ARM CPUs, please install Rosetta 2:
 To restore from a local backup:
 1. Navigate to the `concept-library/docker/development` folder
 2. Place a `.backup` file inside of the `db` folder  
-3. Skip to [2.3. Development](#2.3.-Development)  
+3. Skip to [2.3. Development](#23-Development)  
 
 ### 2.2.2. Restore from Git Repository
 >***[!] Note:** Do not share these files with anyone*
@@ -110,13 +110,13 @@ To restore from a Git repository:
 5. Delete the contents of the file and paste your personal access token
 6. Open the `postgres.compose.env` file inside of the `docker/development/env` folder
 7. Ensure that the environment variable `POSTGRES_RESTORE_REPO` is set to the correct GitHub repository where your `.backup` file is stored
-8. Skip to [2.3. Development](#2.3.-Development)  
+8. Skip to [2.3. Development](#23-Development)  
 
 ### 2.2.3. Migration only
-If you do not have a backup available the application will still run successfully as migrations are automatically applied, however, no data will be restored. Please skip to [2.3. Development](#2.3.-Development).
+If you do not have a backup available the application will still run successfully as migrations are automatically applied, however, no data will be restored. Please skip to [2.3. Development](#23-Development).
 
 With an empty database, you will need to run statistics manually for the applciation to work correctly:
-  1. After following the steps to start the application in [2.3. Development](#2.3.-Development)
+  1. After following the steps to start the application in [2.3. Development](#23-Development)
   2. Navigate to 127.0.0.1/admin/run-stats
 
 ## 2.3. Development
@@ -459,7 +459,7 @@ If you you are unable to `exec` into `cll-app-1`:
 ## 3.1. Prerequisites
 Please ensure that you have the following installed:
 1. [Python 3.9](https://www.python.org/downloads/release/python-390/)
-2. [Pip](#installing-pip) 
+2. [Pip](https://pip.pypa.io/en/stable/cli/pip_install/) 
 3. [MSVC C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 4. [PostgreSQL 14.4](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
 5. [PGAdmin4](https://www.pgadmin.org/download/pgadmin-4-windows/)
@@ -614,7 +614,7 @@ Optional parameters for the `deploy-site.sh` script include:
 #### What to do when automated deployment is disabled
 > **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
 
-Images will be automatically built via Gitlab CI/CD from the `master` branch when a merge is committed. These images can be pulled using the `deploy-site.sh` script as described in [4.1.2. Automated Deployment](#4.1.2.-Automated-Deployment).
+Images will be automatically built via Gitlab CI/CD from the `master` branch when a merge is committed. These images can be pulled using the `deploy-site.sh` script as described in [4.1.2. Automated Deployment](#412-Automated-Deployment).
 
 When automated deployment is disabled, which may be the case for certain servers, you can still deploy the images being built by the CI/CD pipeline.
 
