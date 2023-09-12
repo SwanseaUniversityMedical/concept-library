@@ -26,7 +26,7 @@ Often the definitions that are created are of interest to researchers for many s
 2. [Setup with Docker](#2-Setup-with-Docker)  
   2.1. [Prerequisites](#21-Prerequisites)  
     2.2.1. [Docker](#211-Docker)  
-    2.2.1. [Running on Apple](#212-Running-on-Apple)  
+    2.2.2. [Running on Apple](#212-Running-on-Apple)  
   2.2. [Database Setup](#22-Database-Setup)  
     2.2.2. [Restore from Git Repository](#222-Restore-from-Git-Repository)  
     2.2.3. [Migration only](#223-Migration-only)  
