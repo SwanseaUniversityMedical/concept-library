@@ -115,7 +115,7 @@ To restore from a Git repository:
 ### 2.2.3. Migration only
 If you do not have a backup available the application will still run successfully as migrations are automatically applied, however, no data will be restored. Please skip to [2.3. Development](#23-Development).
 
-With an empty database, you will need to run statistics manually for the applciation to work correctly:
+With an empty database, you will need to run statistics manually for the application to work correctly:
   1. After following the steps to start the application in [2.3. Development](#23-Development)
   2. Navigate to 127.0.0.1/admin/run-stats
 
@@ -184,7 +184,7 @@ If you do not want to start the celery services you can remove the "--profiles l
 To build a local, pre-production build:
 1. Open a terminal
 2. Follow the steps above if you have not already built the images
-3. Navgiate to the `concept-library/docker/` folder
+3. Navigate to the `concept-library/docker/` folder
 4. Set up the environment variables within `./test/app.compose.env`
 5. In the terminal, run `docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..`
 6. Once the image is built, run `docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker`
@@ -203,7 +203,7 @@ Some environment variables modify the behaviour of the application.
 The following are important to consider when modifying `app.compose.env`:
 - `DEBUG` → When this flag is set to `True`:
     - The application will expect a Redis service to be running for use as the cache backend, otherwise it will use a DummyCache
-    - The appplication will enable the compressor and precompilers, otherwise this will not take place (aside from HTML Minification)
+    - The application will enable the compressor and precompilers, otherwise this will not take place (aside from HTML Minification)
 - `IS_DEVELOPMENT_PC` → When this flag is set to `False`:
     - The application will use both LDAP and User model authentication, otherwise only the latter will be used
     - The application will use a different logging backend - please see `settings.py` for more information
@@ -260,7 +260,7 @@ b. *OR;* run a query directly with `psql -U clluser -d concept_library 'SELECT *
 
 #### To export the database
 1. Open a terminal
-2. In the terminall, run: `docker exec -it cll-postgres-1 /bin/bash`
+2. In the terminal, run: `docker exec -it cll-postgres-1 /bin/bash`
 3. Replace `[filename]` with the file name desired and run:  
 `pg_dump -U postgres -F c concept_library > [filename].backup`
 
@@ -329,7 +329,7 @@ To start using tasks:
 4. Navigate into this directory by running: `cd .vscode`
 5. Create a new `tasks.json` file by running: `touch tasks.json`
 
-#### Basic File Configration
+#### Basic File Configuration
 After opening the `tasks.json` file, you should configure the contents so it looks like this:
 ```json
 {
