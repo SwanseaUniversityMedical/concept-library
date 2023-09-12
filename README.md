@@ -43,14 +43,14 @@ Often the definitions that are created are of interest to researchers for many s
     2.4.1. [Access/Export with PGAdmin4](#241-Access/Export-with-PGAdmin4)  
     2.4.2. [Access/Export with CLI](#242-Access/Export-with-CLI)  
   2.5. [Debugging and Running Tests](#25-Debugging-and-Running-Tests)  
-    2.5.1. [Django logging](#251-Django-Logging)  
+    2.5.1. [Django Logging](#251-Django-Logging)  
     2.5.2. [Debug Tools in Visual Studio Code](#252-Debug-Tools-in-Visual-Studio-Code)  
     2.5.3. [Running Tests](#253-Running-Tests)  
   2.6. [Setting up VSCode Tasks](#26-Setting-up-VSCode-Tasks)  
     2.6.1. [Basics](#261-Basics)  
-    2.6.2. [Debug build tasks](#262-Debug-build-tasks)  
-    2.6.3. [Test build tasks](#263-Test-build-tasks)  
-    2.6.4. [How to handle cleaning](#264-How-to-handle-cleaning)  
+    2.6.2. [Debug Build Tasks](#262-Debug-Build-Tasks)  
+    2.6.3. [Test Build Tasks](#263-Test-Build-Tasks)  
+    2.6.4. [How to Handle Cleaning](#264-How-to-Handle-Cleaning)  
   2.7. [Creating a Superuser](#27-Creating-a-Superuser)
 3. [Setup without Docker](#3-Setup-without-Docker)  
   3.1. [Prerequisites](#31-Prerequisites)  
@@ -329,7 +329,7 @@ To start using tasks:
 4. Navigate into this directory by running: `cd .vscode`
 5. Create a new `tasks.json` file by running: `touch tasks.json`
 
-#### Basic file configration
+#### Basic File Configration
 After opening the `tasks.json` file, you should configure the contents so it looks like this:
 ```json
 {
@@ -338,7 +338,7 @@ After opening the `tasks.json` file, you should configure the contents so it loo
 }
 ```
 
-### 2.6.2. Debug build tasks
+### 2.6.2. Debug Build Tasks
 > ***[!] Note:** You can learn about the available options for tasks [here](https://code.visualstudio.com/docs/editor/tasks-appendix)*
 
 To set up your first debug task, configure your `tasks.json` file such that:
@@ -368,7 +368,7 @@ To set up your first debug task, configure your `tasks.json` file such that:
 }
 ```
 
-### 2.6.3. Test build tasks
+### 2.6.3. Test Build Tasks
 To set up a task for the `docker-compose.test.yaml` container, you append the following to the `"tasks": []` property:
 ```json
 {
@@ -390,7 +390,7 @@ To set up a task for the `docker-compose.test.yaml` container, you append the fo
 }
 ```
 
-### 2.6.4. How to handle cleaning
+### 2.6.4. How to Handle Cleaning
 > ***[!] Note:** There will be some differences between Windows and other operating systems. The example below is set up to use PowerShell logical operators. On a Linux-based OS, you would need to use the '&&' and '||' operators instead of '-and' and '-or'*
 
 If you set up both the debug and test builds you will note that the docker container isn't cleaned between different tasks. It is possible to set up your tasks such that the containers will be cleaned.
@@ -486,7 +486,7 @@ This will provide a dedicated environment for each project you create. It is con
 6. To install the required packages, run the following command: `pip install -r docker/requirements/local.txt`
 7. To stop working on this environment, run: `deactivate cclproject`
 
-#### Database setup
+#### Database set up
 
 1. Install [Postgres](https://www.postgresql.org/download/) and [PGAdmin](https://www.pgadmin.org/) on your device.
 2. Within PGAdmin3, do the following:
