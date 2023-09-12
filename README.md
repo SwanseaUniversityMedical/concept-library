@@ -147,7 +147,7 @@ The application and database will be available at:
 
 ### 2.3.3. Stopping and Starting the Containers
 To stop the docker container:
-1. If you have a terminal open which is running the docker containers, press `ctrl+c`
+1. If you have a terminal open which is running the docker containers, press `CTRL + C` or `CTRL + Z` to stop the containers
 2. If you do not have a terminal open which is running the containers:  
 a. Open a terminal  
 b. Navigate to the `concept-library/docker/` folder  
@@ -304,11 +304,11 @@ Create a run configuration for the project:
 Now you're ready to start debugging:
 1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml up --build` and ensure it is running
 2. Add a breakpoint to the file that you are debugging
-3. In Visual Studio Code, open the `Run and Debug Menu` by clicking the icon on the left-hand side of the screen or using the hotkey `Ctrl+Shift+D`
+3. In Visual Studio Code, open the `Run and Debug Menu` by clicking the icon on the left-hand side of the screen or using the hotkey `CTRL + SHIFT + D`
 4. At the top of the debug menu, select the `Debug Application` option
 5. Press the run button and start debugging
 
-Variables, Watch and Callstack can all be viewed in the `Run and Debug` menu panel and the console can be viewed in the `Debug Console` (hotkey: `Ctrl+Shift+Y`) window.
+Variables, Watch and Callstack can all be viewed in the `Run and Debug` menu panel and the console can be viewed in the `Debug Console` (hotkey: `CTRL + SHIFT + Y`) window.
 
 ### 2.5.3. Running Tests
 > **[!] Todo:** Needs documentation once we implement & finalise new test suite
@@ -501,7 +501,7 @@ This will provide a dedicated environment for each project you create. It is con
     - Navigate to `concept-library/CodeListLibrary_project/cll`
     - Run the following: `python manage.py runserver 0.0.0.0:8000`
 5. You can now access the server on http://127.0.0.1:8000/admin/
-6. To stop the server, press `CTRL + C` within the terminal
+6. To stop the server, press `CTRL + C` or `CTRL + Z` within the terminal
 
 #### Installing LDAP functionality
 
@@ -509,7 +509,7 @@ For windows machines:
 - You will need to install the Microsoft Visual C++ Compiler for Python. This can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
 - Download the `python_ldap` wheel, located [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap)
 - Once downloaded, activate your virtualenv and run the following `pip install path/to/the/file/python_ldap.whl`
-- Once installed, you can run the 'pip install django-auth-ldap' command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
+- Once installed, you can run the `pip install django-auth-ldap` command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
 - If you intend to use LDAP over SSL, please take a look at the troubleshooting guide found [here](https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems)
 
 #### Administration area
