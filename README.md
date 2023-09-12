@@ -25,7 +25,8 @@ Often the definitions that are created are of interest to researchers for many s
 1. [Clone this repository](#1-Clone-this-Repository)  
 2. [Setup with Docker](#2-Setup-with-Docker)  
   2.1. [Prerequisites](#21-Prerequisites)  
-  2.1.1. [Running on Apple](#211-Running-on-Apple)  
+    2.1.1. [Docker](#211-Docker)  
+    2.1.2. [Running on Apple](#212-Running-on-Apple)  
   2.2. [Database Setup](#22-Database-Setup)  
     2.2.2. [Restore from Git Repository](#222-Restore-from-Git-Repository)  
     2.2.3. [Migration only](#223-Migration-only)  
@@ -73,11 +74,13 @@ To download this repository:
 # 2. Setup with Docker
 
 ## 2.1. Prerequisites
+
+### 2.1.1. Docker
 Please ensure that you have installed [Docker Desktop v4.10.1](https://docs.docker.com/desktop/release-notes/) or [Docker Engine v20.10.17](https://docs.docker.com/engine/release-notes/).
 
 If you encounter any issues, please see Docker's documentation (https://docs.docker.com/).
 
-## 2.1.1. Running on Apple
+### 2.1.2. Running on Apple
 
 The app container requires emulation for ARM CPUs, please install Rosetta 2:
 1. Open a terminal
