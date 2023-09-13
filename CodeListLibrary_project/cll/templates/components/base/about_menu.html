@@ -16,21 +16,21 @@
       <ul class="about-row">
         {% if request.BRAND_OBJECT.about_menu is not none %}
           {% for lnk in request.BRAND_OBJECT.about_menu %}
-            {% url 'about_page' pg_name=lnk.page_name as url_drop%}
+            {% url 'about_page' pg_name=lnk.page_name as url_drop %}
             {%card_render url_drop %}
           {% endfor %}
         {% else %}
-          {% url 'about_page' pg_name='cl_about_page' as url_drop%}
+          {% url 'about_page' pg_name='cl_about_page' as url_drop %}
           {% include "components/navigation/dropdown_list_item.html" with icon='about_icon' description='Learn more about Concept Library' url=url_drop title="Concept Library" %}
         {% endif %}
 
         {% if not CLL_READ_ONLY %}
           {% url 'contact_us' as contact_us %}
           {% include "components/navigation/dropdown_list_item_full.html" with icon='message_icon' separator=True url=contact_us title="Contact us" %}
-          
-          {% url 'reference_data' as reference_data%}
-          {% include "components/navigation/dropdown_list_item_full.html" with icon='folder_icon'  url=reference_data title="Reference data" %}
         {% endif %}
+
+        {% url 'reference_data' as reference_data %}
+        {% include "components/navigation/dropdown_list_item_full.html" with icon='folder_icon' url=reference_data title="Reference data" %}
       </ul>
     </div>
   </div>
