@@ -8,9 +8,11 @@ import FuzzyQuery from './fuzzyQuery.js';
 const updateNavBarStyle = (navbar) => {
   const y = window.scrollY;
 
-  
-  if (window.innerWidth <= 768)
+
+  if (window.innerWidth <= 768){
+    navbar.classList.remove('transparent')
     return;
+  }
 
   if (y >= navbar.offsetHeight/2 - navbar.offsetTop) {
     navbar.classList.add('scrolled');
