@@ -398,6 +398,10 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         padding: 0.5rem;
         white-space: nowrap;
       }
+
+      &__overlay{
+        display: none;
+      }
     }
   }
 
@@ -432,6 +436,17 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         visibility: visible;
       }
     }
+
+    &__overlay{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+      display: none; /* Initially hide the overlay */
+      z-index: 9999; 
+      }
   }
  
 
@@ -444,14 +459,4 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  &__overlay{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-  display: none; /* Initially hide the overlay */
-  z-index: 9999; 
-  }
 }
