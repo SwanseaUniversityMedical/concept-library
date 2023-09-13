@@ -52,7 +52,20 @@
   &__support-field{
     z-index: 999;
   }
+
+  @include media("<desktop", "screen") {
+    display: flex;
+    width: 100%;
+    background-color: var(--navigation-selection-box);
+    border-radius: 0.25rem;
+    transition: opacity 250ms ease;
+    justify-content: center;
+
+
 }
+}
+
+
 
 /// Nested menu
 /// @desc describes the nested menu components for use within the nav-dropdown class and its assoc. navigation component
@@ -413,3 +426,4 @@
     }
   }
 }
+
