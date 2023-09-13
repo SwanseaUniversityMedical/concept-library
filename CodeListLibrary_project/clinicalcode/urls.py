@@ -37,9 +37,10 @@ urlpatterns = [
     
     ## Changing password(s)
     url(
-        '^change-password/$', auth_views.PasswordChangeView.as_view(),
-        { 'post_change_redirect': 'concept_library_home' },
-        name='password_change'
+        route='^change-password/$',
+        view=auth_views.PasswordChangeView.as_view(),
+        name='password_change',
+        kwargs={ 'post_change_redirect': 'concept_library_home' }
     ),
 
     # GenericEntity
