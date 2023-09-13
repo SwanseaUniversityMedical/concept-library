@@ -198,7 +198,9 @@ def admin_mig_phenotypes_dt(request):
                         );
 
                         begin
-                            execute 'alter table public.clinicalcode_concept drop constraint ' || CONSTRAINT_NAME;
+                            execute 'alter table public.clinicalcode_concept drop constraint if exists ' || CONSTRAINT_NAME;
+
+                            execute 'update public.clinicalcode_concept set phenotype_owner_id = NULL';
 
                             execute 'truncate table public.clinicalcode_genericentity, public.clinicalcode_publishedgenericentity restart identity';
 
