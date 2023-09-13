@@ -284,7 +284,7 @@ const ENTITY_HANDLERS = {
       parsed = [];
     }
 
-    return new ConceptCreator(element, dataset?.template, parsed)
+    return new ConceptCreator(element, dataset, parsed);
   },
 };
 

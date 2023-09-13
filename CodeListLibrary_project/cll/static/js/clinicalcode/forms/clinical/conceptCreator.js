@@ -285,6 +285,10 @@ const CONCEPT_CREATOR_TEXT = {
   CONCEPT_IMPORTS_ARE_PRESENT: 'Already imported ${failed}',
   // Toast to inform the user they tried to import non-distinct rule-level concepts
   CONCEPT_RULE_IS_PRESENT: 'You have already imported this Concept as a rule',
+  // Toast to inform successful update to new concept version
+  CONCEPT_UPDATE_SUCCESS: 'Updated Concept to Version ${version}',
+  // Toast to inform failed update to new concept version
+  CONCEPT_UPDATE_FAILED: 'Failed to update Concept, please try again.',
 }
 
 /**
@@ -293,8 +297,11 @@ const CONCEPT_CREATOR_TEXT = {
  * 
  */
 export default class ConceptCreator {
-  constructor(element, template, data) {
-    this.template = template;
+  constructor(element, parent, data) {
+    this.parent = parent;
+    this.entity = parent?.object;
+    this.template = parent?.template;
+    this.phenotype_id = this.entity?.id;
     this.data = data || [ ];
     this.element = element;
     this.dirty = false;
@@ -477,6 +484,7 @@ export default class ConceptCreator {
 
     return prompt.show()
       .then((data) => {
+        console.log(data);
         return this.#tryRetrieveCodelists(data);
       });
   }
@@ -966,7 +974,9 @@ export default class ConceptCreator {
   #deriveEditAccess(concept) {
     const canEdit = !isNullOrUndefined(concept?.details?.has_edit_access) ? concept?.details?.has_edit_access : false;
     const isImported = concept?.imported;
-    return canEdit && !isImported;
+    const isNew = concept?.is_new;
+    const owner = concept?.details?.phenotype_owner
+    return !isImported && (isNew || canEdit) && (isNullOrUndefined(owner) || owner == this.phenotype_id);
   }
 
   /**
@@ -1102,7 +1112,7 @@ export default class ConceptCreator {
 
   /**
    * tryUpdateRenderConceptComponents
-   * @desc Renders the update concepts + components.
+   * @desc Renders the updated concepts + components.
    * @param {integer|null|undefined} id optional parameter to toggle open a concept after rendering
    * @param {integer|null|undefined} historyId optional parameter to toggle open a concept after rendering
    * @param {boolean} forceUpdate whether to force update the codelist
@@ -1140,13 +1150,14 @@ export default class ConceptCreator {
     const template = this.templates['concept-item'];
     const access = this.#deriveEditAccess(concept);
     const html = interpolateHTML(template, {
+      'subheader': access ? 'Codelist' : 'Imported Codelist',
       'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
       'concept_id': concept?.concept_id,
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
       'coding_system': concept?.coding_system?.description,
+      'out_of_date': !access ? concept?.details?.latest_version?.is_out_of_date : false,
       'can_edit': access,
-      'subheader': access ? 'Codelist' : 'Imported Codelist',
     });
 
     const containerList = this.element.querySelector('#concept-content-list');
@@ -1158,6 +1169,11 @@ export default class ConceptCreator {
     for (let i = 0; i < headerButtons.length; ++i) {
       headerButtons[i].addEventListener('click', this.#handleConceptHeaderButton.bind(this));
     }
+
+    const updateButton = conceptItem.querySelector('#update-latest-version');
+    updateButton.addEventListener('click', (e) => {
+      this.#handleConceptImportUpdate(e, concept);
+    });
 
     return conceptItem;
   }
@@ -2357,5 +2373,49 @@ export default class ConceptCreator {
 
       default: break;
     }
+  }
+
+  /**
+   * handleConceptImportUpdate
+   * @desc method to update an imported concept to the most recent version
+   * @param {event} e the associated event
+   * @param {object} concept the associated concept
+   */
+  #handleConceptImportUpdate(e, concept) {
+    const version = concept?.details?.latest_version;
+    if (isNullOrUndefined(version)) {
+      return;
+    }
+
+    const index = this.data.findIndex(v => v.concept_id == concept.concept_id && v.concept_version_id == concept.concept_version_id);
+    if (index < 0) {
+      return;
+    }
+
+    this.tryCloseEditor()
+      .then(() => {
+        return this.#tryRetrieveCodelists([version]);
+      })
+      .then((concepts) => {
+        let [updatedConcept, ...other] = concepts;
+        this.data[index] = updatedConcept;
+        this.#tryUpdateRenderConceptComponents(updatedConcept.concept_id, updatedConcept.concept_version_id, true);
+        this.#pushToast({
+          type: 'success',
+          message: interpolateHTML(CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_SUCCESS, {
+            version: updatedConcept.concept_version_id.toString(),
+          })
+        });
+      })
+      .catch((e) => {
+        if (!isNullOrUndefined(e)) {
+          console.error(e);
+        }
+
+        this.#pushToast({
+          type: 'danger',
+          message: CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED
+        });
+      });
   }
 }

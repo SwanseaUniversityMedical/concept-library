@@ -91,6 +91,11 @@
   --text-color: var(--color-text-darkest);
   --icon-color: var(--color-text-darkest);
 
+  &[disabled] {
+    cursor: default;
+    pointer-events: none;
+  }
+
   align-self: center;
   border-radius: 0.2rem;
   background: col(accent-transparent);
@@ -115,11 +120,11 @@
     padding: 0.25rem 1rem 0.25rem 2rem;
     
     &[href="#"] {
-      cursor: default;
+      cursor: inherit;
       pointer-events: none;
-  
+
       &:before {
-        cursor: default;
+        cursor: inherit;
         pointer-events: none;
       }
     }
@@ -139,7 +144,7 @@
     }
   }
 
-  &:hover {
+  &:not(:disabled):hover {
     background-color: var(--accent-color);
     box-shadow: 0 0 0 calc(2px + .25rem) var(--accent-color);
   }
@@ -157,6 +162,26 @@
         left: 0.75rem;
         width: .5rem;
         height: .5rem;
+        color: var(--icon-color);
+        background-color: col(accent-transparent);
+        transform: translateY(-95%);
+      }
+    }
+  }
+
+  .alert-icon {
+    & .chip-text {
+      &:before {
+        @include fontawesome-icon();
+  
+        content: '\f12a';
+        cursor: inherit;
+        pointer-events: inherit;
+        position: absolute;
+        top: 50%;
+        left: 0.5rem;
+        width: 0.75rem;
+        height: 0.75rem;
         color: var(--icon-color);
         background-color: col(accent-transparent);
         transform: translateY(-95%);
@@ -196,6 +221,12 @@
   &.highlight-accent {
     --accent-color: var(--color-accent-highlight);
   }
+  &.warning-accent {
+    --accent-color: var(--color-accent-warning);
+  }
+  &.danger-accent {
+    --accent-color: var(--color-accent-danger);
+  }
   &.washed-accent {
     --accent-color: var(--color-accent-washed);
   }
@@ -221,6 +252,12 @@
   }
   &.icon-accent-highlight {
     --icon-color: var(--color-accent-highlight);
+  }
+  &.icon-accent-warning {
+    --icon-color: var(--color-accent-warning);
+  }
+  &.icon-accent-danger {
+    --icon-color: var(--color-accent-danger);
   }
   &.icon-accent-darkest {
     --icon-color: var(--color-accent-dark);

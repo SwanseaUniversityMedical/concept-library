@@ -1,7 +1,8 @@
-from django.db.models import ForeignKey, Subquery, OuterRef
+from django.db.models import F, Value, ForeignKey, Subquery, OuterRef
 from django.http.request import HttpRequest
 
 from ..models.Concept import Concept
+from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
 from ..models.Component import Component
 from ..models.CodeList import CodeList
@@ -13,6 +14,30 @@ from .constants import (
     USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
     CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE,
 )
+
+def get_latest_accessible_concept(request, concept_id, default=None):
+    '''
+        Gets the latest accessible concept, as described by the user's
+        permissions and the given concept id
+
+        Args:
+            request {RequestContext}: the HTTPRequest
+
+            concept_id {string}: the concept's ID
+
+            default {optional}: the default return value if this method fails
+        
+        Returns:
+            The latest, accessible {concept} for that user and the concept id,
+            otherwise returns {None}
+
+    '''
+    historical_versions = Concept.objects.get(id=concept_id).history.all().order_by('-history_id')
+    for version in historical_versions:
+        if permission_utils.can_user_view_concept(request, version):
+            return version
+    
+    return default
 
 def get_concept_dataset(packet, field_name='concept_information', default=None):
     '''
@@ -28,39 +53,57 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
         default {any}: A default param to return if we are unable to perform the task
 
       Returns:
-        An {array[object]} that contains information relating to the concept:
-          - Name
-          - ID + Version ID
+        Either:
+            1. An {array[object]} that contains information relating to the concept:
+                - Name
+                - ID + Version ID
+            
+            OR;
+
+            2. {default|None} if the children have no child codes
+
     '''
     if not isinstance(packet, list):
         return default
 
-    concept_ids = [x.get('concept_id') for x in packet if x.get('concept_id') is not None]
-    concept_version_ids = [
-        x.get('concept_version_id') for x in packet
-        if x.get('concept_version_id') is not None
+    concept_info = [
+        {
+            'concept_id': x.get('concept_id'),
+            'concept_version_id': x.get('concept_version_id'),
+            'codelist': get_concept_codelist(
+                x.get('concept_id'), x.get('concept_version_id'),
+                incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value],
+            ),
+        }
+        for x in packet
+        if x.get('concept_id') is not None and x.get('concept_version_id') is not None
     ]
+
+    allowed_ids, allowed_versions = [], []
+    for x in concept_info:
+        if not isinstance(x, dict) or len(x.get('codelist', [])) <= 0:
+            continue
+        allowed_ids.append(x.get('concept_id'))
+        allowed_versions.append(x.get('concept_version_id'))
 
     concepts = Concept.history.filter(
-        id__in=concept_ids,
-        history_id__in=concept_version_ids,
+        id__in=allowed_ids,
+        history_id__in=allowed_versions
     )
 
-    concept_data = concepts.values('name', 'id', 'history_id')
-    coding_systems = concepts.values('coding_system__id')
+    if concepts.count() < 0:
+        return default
 
-    concept_data = list(concept_data)
-    concept_data = [
-        {
-            'prefix': 'C',
-            'type': 'Concept',
-            'field': field_name,
-            'coding_system': coding_systems[i].get('coding_system__id') if coding_systems[i] else -1
-        } | concept
-        for i, concept in enumerate(concept_data)
-    ]
+    concepts = concepts.values('id', 'name', 'history_id') \
+        .annotate(
+            prefix=Value('C'),
+            type=Value('Concept'),
+            field=Value(field_name),
+            coding_system_name=F('coding_system__name'),
+            coding_system=F('coding_system__id')
+        )
 
-    return concept_data
+    return list(concepts)
 
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False,
                                   include_codes=True, attribute_headers=None,
@@ -585,6 +628,19 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         strippable_fields=strippable_fields,
         dump=False
     )
+
+    # Determine whether the concept is OOD
+    if isinstance(derive_access_from, HttpRequest):
+        latest_version = get_latest_accessible_concept(derive_access_from, concept_id)
+        
+        if not latest_version:
+            latest_version = historical_concept
+        
+        concept_data['latest_version'] = {
+            'id': latest_version.id,
+            'history_id': latest_version.history_id,
+            'is_out_of_date': historical_concept.history_id < latest_version.history_id,
+        }
 
     # Retrieve human readable data for our tags, collections & coding systems
     if concept_data.get('tags'):
