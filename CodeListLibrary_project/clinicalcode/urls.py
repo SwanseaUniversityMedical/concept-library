@@ -43,7 +43,7 @@ urlpatterns = [
         kwargs={ 'post_change_redirect': 'concept_library_home' }
     ),
 
-    # GenericEntity
+    # GenericEnities (Phenotypes)
     ## Search
     url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
     url(r'^phenotypes/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
@@ -81,7 +81,7 @@ if not settings.CLL_READ_ONLY:
         ## Data Source syncing with HDRUK
         url(r'^admin/run-datasource-sync/$', Admin.run_datasource_sync, name='datasource_sync'),
 
-        # GenericEntity
+        # GenericEnities (Phenotypes)
         ## Create / Update
         url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
         url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
