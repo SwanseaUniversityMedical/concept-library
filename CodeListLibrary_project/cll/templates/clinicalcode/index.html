@@ -166,12 +166,15 @@
           Mauris pellentesque ligula vel magna tempor vestibulum. Nullam vitae ultricies lacus. Nullam eget ante rhoncus 
           mi consequat ultricies vel ut arcu. 
         </p>
-        <div class="homepage-about__info-buttons">
-          <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Contact Us"
-            id="contact-btn" href="{% url 'contact_us' %}">
-            Get in touch
-          </a>
-        </div>
+
+        {% if not CLL_READ_ONLY %}
+          <div class="homepage-about__info-buttons">
+            <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Contact Us"
+              id="contact-btn" href="{% url 'contact_us' %}">
+              Get in touch
+            </a>
+          </div>
+        {% endif %}
       </div>
     </section>
 
