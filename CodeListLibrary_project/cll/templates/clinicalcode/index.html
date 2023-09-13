@@ -282,18 +282,20 @@
               Search
             </a>
           </div>
-          <div class="homepage-carousel__item">
-            <span class="homepage-carousel__item-subtitle">
-              Create a Phenotype
-            </span>
-            <span class="homepage-carousel__item-text">
-              Start here to contribute to the Library.
-            </span>
-            <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a Phenotype" 
-              id="create-btn" href="{% url 'create_phenotype' %}">
-              Create
-            </a>
-          </div>
+          {% if not CLL_READ_ONLY %}
+            <div class="homepage-carousel__item">
+              <span class="homepage-carousel__item-subtitle">
+                Create a Phenotype
+              </span>
+              <span class="homepage-carousel__item-text">
+                Start here to contribute to the Library.
+              </span>
+              <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a Phenotype" 
+                id="create-btn" href="{% url 'create_phenotype' %}">
+                Create
+              </a>
+            </div>
+          {% endif %}
         </div>
       </div>
     </section>
