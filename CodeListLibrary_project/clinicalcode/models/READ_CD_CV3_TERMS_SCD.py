@@ -4,6 +4,7 @@ from django.contrib.postgres.indexes import GinIndex
 class READ_CD_CV3_TERMS_SCD(models.Model):
     term_id = models.CharField(max_length=5, null=True, blank=True)
     term_status = models.CharField(max_length=1, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
     term_30 = models.CharField(max_length=30, null=True, blank=True)
     term_60 = models.CharField(max_length=60, null=True, blank=True)
     term_198 = models.CharField(max_length=198, null=True, blank=True)

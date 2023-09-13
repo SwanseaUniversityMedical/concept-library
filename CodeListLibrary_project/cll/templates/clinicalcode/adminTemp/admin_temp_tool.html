@@ -108,8 +108,9 @@
 						<div class="tool-panel__form">
 							<ul>
 								{% for id, stmt in rowsAffected.items %}
-									<li>{{ id }}</b>
-									<br/>
+									<li>
+										<b>{{ id|safe }}</b>
+										<br/>
 										{{ stmt|safe }}
 									</li>
 								{% endfor %}

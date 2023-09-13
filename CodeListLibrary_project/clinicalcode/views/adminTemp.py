@@ -71,6 +71,72 @@ def compute_related_brands(pheno, default=''):
     return "brands='{%s}' " % related_brands
 
 @login_required
+def admin_fix_read_codes_dt(request):
+    '''
+        Fix data quality issues associated with Read Codes V2 table's reliance
+        on the 30char field
+
+        Achieves this by:
+            1. Coalescing the pref_term field (30, 60 and 198 char) and updating its 'description' field
+            2. Setting the Coding System's desc column to 'description'
+
+    '''
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_read_codes_dt'),
+                'action_title': 'Fix Read Codes',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    with connection.cursor() as cursor:
+        sql = '''
+        -- readcodesv2
+        update public.clinicalcode_read_cd_cv2_scd as trg
+           set description = coalesce(trg.pref_term_198, coalesce(trg.pref_term_60, trg.pref_term_30))
+         where trg.description is null;
+
+        -- readcodes v3
+        update public.clinicalcode_read_cd_cv3_terms_scd as trg
+           set description = coalesce(trg.term_198, coalesce(trg.term_60, trg.term_30))
+         where trg.description is null;
+
+        -- update coding systems
+        update public.clinicalcode_codingsystem
+           set desc_column_name = 'description'
+         where name ilike 'read codes%';
+        '''
+        cursor.execute(sql)
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Fix Read Codes',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_mig_concepts_dt(request):
     '''
         Approximates ownership of a Concept given it's first appearance
@@ -94,7 +160,7 @@ def admin_mig_concepts_dt(request):
     if request.method == 'GET':
         return render(
             request,
-            'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html', 
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
             {
                 'url': reverse('admin_mig_concepts_dt'),
                 'action_title': 'Migrate Concepts',
@@ -130,16 +196,12 @@ def admin_mig_concepts_dt(request):
           from ranked_concepts as src
          where trg.id = src.concept_id::int;
         
-        update public.clinicalcode_historicalconcept as trg
-           set phenotype_owner_id = src.phenotype_owner_id
-          from public.clinicalcode_concept as src
-         where trg.id = src.id;
         '''
         cursor.execute(sql)
 
     return render(
         request,
-        'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html',
+        'clinicalcode/adminTemp/admin_temp_tool.html',
         {
             'pk': -10,
             'rowsAffected' : { '1': 'ALL'},
@@ -163,7 +225,7 @@ def admin_mig_phenotypes_dt(request):
     
     if request.method == 'GET':
         if not settings.CLL_READ_ONLY: 
-            return render(request, 'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html', 
+            return render(request, 'clinicalcode/adminTemp/admin_temp_tool.html', 
                           {'url': reverse('admin_mig_phenotypes_dt'),
                            'action_title': 'Migrate Phenotypes'
                         })
@@ -378,7 +440,7 @@ def admin_mig_phenotypes_dt(request):
     
             return render(
                 request,
-                'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html',
+                'clinicalcode/adminTemp/admin_temp_tool.html',
                 {   'pk': -10,
                     'rowsAffected' : rowsAffected,
                     'action_title': 'Migrate Phenotypes'
@@ -400,7 +462,7 @@ def admin_fix_breathe_dt(request):
     if request.method == 'GET':
         return render(
             request,
-            'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html', 
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
             {
                 'url': reverse('admin_fix_breathe_dt'),
                 'action_title': 'Fix Breathe Phenotypes',
@@ -514,7 +576,7 @@ def admin_fix_breathe_dt(request):
 
         return render(
             request,
-            'clinicalcode/adminTemp/admin_mig_phenotypes_dt.html',
+            'clinicalcode/adminTemp/admin_temp_tool.html',
             {   'pk': -10,
                 'action_title': 'Fix Breathe',
             }

@@ -3,6 +3,7 @@ from django.contrib.postgres.indexes import GinIndex
 
 class READ_CD_CV2_SCD(models.Model):
     read_code = models.CharField(max_length=5, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
     pref_term_30 = models.CharField(max_length=30, null=True, blank=True)
     pref_term_60 = models.CharField(max_length=60, null=True, blank=True)
     pref_term_198 = models.CharField(max_length=198, null=True, blank=True)
