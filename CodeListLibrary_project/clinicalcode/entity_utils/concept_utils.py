@@ -1,7 +1,9 @@
+from django.db import connection
 from django.db.models import F, Value, ForeignKey, Subquery, OuterRef
 from django.http.request import HttpRequest
 
 from ..models.Concept import Concept
+from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
 from ..models.Component import Component
 from ..models.CodeList import CodeList
@@ -11,8 +13,105 @@ from ..models.Code import Code
 from . import model_utils, permission_utils
 from .constants import (
     USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
-    CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE,
+    CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE, APPROVAL_STATUS
 )
+
+def is_concept_published(concept_id, version_id):
+    '''
+        Checks whether a Concept is published
+
+        Will return true if:
+            1. The Concept is currently published directly via a legacy system
+            2. The Concept is currently owned by a Published Phenotype that's published
+            3. The Concept is included in a historic Published Phenotype
+        
+    '''
+    historical_concept = Concept.history.filter(id=concept_id, history_id=version_id)
+    if not historical_concept.exists():
+        return False
+
+    directly_published = PublishedConcept.objects.filter(concept_id=concept_id, concept_history_id=version_id)
+    if directly_published.exists():
+        return True
+    
+    historical_concept = historical_concept.first()
+    phenotype = historical_concept.instance.phenotype_owner
+    if phenotype is not None and phenotype.publish_status == APPROVAL_STATUS.APPROVED:
+        template_data = phenotype.template_data
+        concept_information = template_data.get('concept_information') if isinstance(template_data, dict) else None
+        if concept_information:
+            for item in concept_information:
+                cid = item.get('concept_id')
+                cvd = item.get('concept_version_id')
+                if cid == concept_id and cvd == version_id:
+                    return True
+
+    with connection.cursor() as cursor:
+        sql = f'''
+        select id,
+               concepts
+          from (
+            select id,
+                   concepts
+              from public.clinicalcode_historicalgenericentity as entity,
+                   json_array_elements(entity.template_data::json->'concept_information') as concepts
+             where entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
+          ) results
+         where cast(concepts->>'concept_id' as integer) = {concept_id} and cast(concepts->>'concept_version_id' as integer) = {version_id};
+        '''
+        cursor.execute(sql)
+
+        row = cursor.fetchone()
+        if row is not None:
+            return True
+    
+    return False
+
+def was_concept_ever_published(concept_id, version_id=None):
+    '''
+        Checks whether a Concept has ever been published
+
+        Will return true if:
+            1. The Concept was published directly via a legacy system
+            2. The Concept is currently owned by a Published Phenotype
+            3. The Concept was ever included in historic Published Phenotype
+    '''
+    concept = Concept.objects.filter(id=concept_id)
+    if not concept.exists():
+        return False
+
+    directly_published = PublishedConcept.objects.filter(concept_id=concept_id)
+    if version_id is not None:
+        directly_published = directly_published.filter(concept_history_id=version_id)
+
+    if directly_published.exists():
+        return True
+    
+    concept = concept.first()
+    phenotype = concept.phenotype_owner
+    if phenotype is not None and phenotype.publish_status == APPROVAL_STATUS.APPROVED:
+        return True
+
+    with connection.cursor() as cursor:
+        sql = f'''
+        select id,
+               concepts
+          from (
+            select id,
+                   concepts
+              from public.clinicalcode_historicalgenericentity as entity,
+                   json_array_elements(entity.template_data::json->'concept_information') as concepts
+             where entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
+          ) results
+         where cast(concepts->>'concept_id' as integer) = {concept_id};
+        '''
+        cursor.execute(sql)
+
+        row = cursor.fetchone()
+        if row is not None:
+            return True
+    
+    return False
 
 def get_latest_accessible_concept(request, concept_id, default=None):
     '''

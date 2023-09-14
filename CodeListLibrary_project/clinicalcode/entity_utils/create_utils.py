@@ -678,7 +678,7 @@ def try_update_concept(request, item, entity=None):
     if concept is None:
         return None
     
-    if (entity is not None and not permission_utils.user_can_edit_via_entity(request, concept)) and permission_utils.user_has_concept_ownership(user, concept):
+    if (entity is not None and not permission_utils.user_can_edit_via_entity(request, concept)) and not permission_utils.user_has_concept_ownership(user, concept):
         return None
 
     # Update concept fields
