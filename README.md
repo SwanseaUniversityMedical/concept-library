@@ -1,17 +1,23 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/sail-darkmode.png">
+  <img align="right" src="./docs/assets/sail-lightmode.png" alt="SAIL Databank Logo" height="70" title="SAIL Databank">
+</picture>
+
+<br/>
+<br/>
+
 # Concept Library
 The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.  
-	
+
 The specific goals of this work are:
 - Store code lists along with metadata that captures important information about quality, author, etc.
 - Store version history and provide a way to unambiguously reference a particular version of a code list.
 - Allow programmatic interaction with code lists via an API, so that they can be directly used in queries, statistical scripts, etc.
 - Provide a mechanism for sharing code lists between projects and organizations.
 
-## Live Site
-The Concept Library web application is [available here](https://conceptlibrary.saildatabank.com).
-
-## User documentation
-Concept Library documentation is [available here](https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation).
+You can learn more about us here:
+- Our live website is [available here](https://conceptlibrary.saildatabank.com)
+- Our documentation is [available here](https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation)
 
 ## Overview
 Our goal is to create a system that describes research study designs in a machine-readable format to facilitate rapid study development; higher quality research; easier replication; and sharing of methods between researchers, institutions, and countries.
@@ -62,6 +68,9 @@ Often the definitions that are created are of interest to researchers for many s
     4.1.1. [Manual Deployment](#411-Manual-Deployment)  
     4.1.2. [Automated Deployment](#412-Automated-Deployment)  
   4.2. [Harbor-driven CI/CD Pipeline](#42-Harbor-driven-CI/CD-Pipeline)  
+5. [API and Packages](#5-API-and-Packages)  
+  5.1. [Clients](#51-Clients)  
+  5.2. [API](#52-API)
 
 # 1. Clone this Repository
 To download this repository:
@@ -631,3 +640,21 @@ To do so manually, please do the following:
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor and have set up automated deployment
 
 [Details]
+
+# 5. API and Packages
+
+## 5.1. Clients
+We maintain client packages that can be used to interface with the Concept Library. These packages are intended to make it easier for you to get started using the Concept Library, they implement several features to reduce your technical burden, such as allowing you to submit Phenotypes using a human-readable YAML template.  
+
+Under the hood, these packages call our API endpoints - you can read more about these in [5.2. API](#52-API). However, we anticipate that beginners may feel more comfortable using one of the following packages.  
+
+### Available Packages
+
+1. [Concept Library Client](https://github.com/SwanseaUniversityMedical/ConceptLibraryClient) - an implementation of the API client for the Concept Library in R
+2. [pyconceptlibraryclient](https://github.com/SwanseaUniversityMedical/pyconceptlibraryclient) - a Python API client for the Concept Library
+
+## 5.2. API
+
+If you would like to interface with the API without the aid of our client packages we have documented our API using Swagger. The Swagger documentation is [available here](https://conceptlibrary.saildatabank.com/api/v1/).
+
+Please refer to our reference data, which can be found [here](https://conceptlibrary.demo-dev.saildatabank.com/reference-data/), for fields that described by their identifier.
