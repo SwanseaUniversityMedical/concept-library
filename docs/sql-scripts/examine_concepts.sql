@@ -99,3 +99,15 @@ select id
    and phenotype_owner_id is null;
 
 -------------------------------------------------------------
+
+-- Check publish status
+select id,
+	   concepts
+  from (
+	select id,
+		   concepts
+	  from public.clinicalcode_historicalgenericentity as entity,
+		   json_array_elements(entity.template_data::json->'concept_information') as concepts
+	 where entity.publish_status = 2
+) results
+ where cast(concepts->>'concept_id' as integer) = 715 and cast(concepts->>'concept_version_id' as integer) = 2569;
