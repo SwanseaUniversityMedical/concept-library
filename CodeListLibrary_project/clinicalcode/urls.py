@@ -8,7 +8,7 @@ from django.conf import settings
 from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
-from .views import (Admin, View, adminTemp, site, GenericEntity)
+from clinicalcode.views.DocumentationViewer import DocumentationViewer
 from clinicalcode.views import (View, Admin, adminTemp,
                                 GenericEntity, Profile, Moderation,
                                 Publish, Decline, site)
@@ -66,6 +66,9 @@ urlpatterns = [
     ## Support legacy Concept redirects
     url(r'^concepts/C(?P<pk>\d+)/detail/$', GenericEntity.RedirectConceptView.as_view(), name='redirect_concept_detail'),
     url(r'^concepts/C(?P<pk>\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.RedirectConceptView.as_view(), name='redirect_concept_detail_with_version'),
+
+    ## Documentation for create
+    url(r'^documentation/(?P<documentation>([A-Za-z0-9\-]+))/?$', DocumentationViewer.as_view(), name='documentation_viewer'),
 ]
 
 # Add sitemaps & robots if required

@@ -1,7 +1,7 @@
+from uuid import UUID
+from json import JSONEncoder
 from functools import wraps
 from dateutil import parser as dateparser
-from json import JSONEncoder
-from uuid import UUID
 from django.conf import settings
 from django.http.response import JsonResponse
 from django.core.exceptions import BadRequest
@@ -67,8 +67,10 @@ def clean_str_as_db_col_name(txt):
     '''
     s = txt.strip()
     s = s.replace(' ', '_').replace('.', '_').replace('-', '_')
+
     if is_int(s[0]):
         s = '_' + s
+
     s = re.sub('_+', '_', s)
     return re.sub('[^A-Za-z0-9_]+', '', s)
 
@@ -365,7 +367,6 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                 break
         
         return field_value if valid else default
-
     
     return field_value
 
