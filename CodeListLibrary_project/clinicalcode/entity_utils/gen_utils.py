@@ -344,6 +344,28 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     elif field_type == 'publication':
         if not isinstance(field_value, list):
             return default
+        
+        if len(field_value) < 0:
+            return field_value
+        
+        valid = True
+        for val in field_value:
+            if not isinstance(val, dict):
+                valid = False
+                break
+            
+            details = val.get('details')
+            if not details or not isinstance(details, str):
+                valid = False
+                break
+            
+            doi = val.get('doi')
+            if doi is not None and not isinstance(doi, str):
+                valid = False
+                break
+        
+        return field_value if valid else default
+
     
     return field_value
 

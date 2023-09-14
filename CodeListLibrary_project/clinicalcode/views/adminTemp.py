@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.db.models import Q
-from django.db import connection
+from django.db import connection, transaction
 from django.conf import settings
 from django.contrib import messages
 from django.urls import reverse
@@ -13,9 +13,10 @@ import re
 import json
 import logging
 
-from clinicalcode.entity_utils import permission_utils
+from clinicalcode.entity_utils import permission_utils, gen_utils
 from clinicalcode.models.Tag import Tag
 from clinicalcode.models.Concept import Concept
+from clinicalcode.models.Template import Template
 from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.WorkingSet import WorkingSet
 from clinicalcode.models.GenericEntity import GenericEntity
@@ -69,6 +70,142 @@ def compute_related_brands(pheno, default=''):
     
     related_brands = ','.join([str(x) for x in list(related_brands)])
     return "brands='{%s}' " % related_brands
+
+BASE_LINKAGE_TEMPLATE = {
+    # all sex is '3' unless specified by user
+    'sex': '3',
+    # all PhenotypeType is 'Disease or syndrome' unless specified by user
+    'type': '2',
+    # all version is '1' for migration
+    'version': '1',
+}
+
+def get_publications(concept):
+    publication_doi = concept.publication_doi
+    publication_link = concept.publication_link
+
+    has_publication = not gen_utils.is_empty_string(publication_link)
+    has_publication_doi = not gen_utils.is_empty_string(publication_doi)
+    
+    if has_publication:
+        return [{
+            'details': publication_link,
+            'doi': None if not has_publication_doi else publication_doi
+        }]
+
+    return None
+
+def get_null_on_empty(value):
+    if not gen_utils.is_empty_string(value):
+        return value
+    return None
+
+def get_transformed_data(concept, template):
+    metadata = {
+        'name': concept.name,
+        'author': concept.author,
+        'definition': get_null_on_empty(concept.description),
+        'validation': get_null_on_empty(concept.validation_description),
+        'citation_requirements': get_null_on_empty(concept.citation_requirements),
+        'publications': get_publications(concept),
+        'tags': concept.tags,
+        'collections': concept.collections,
+        'owner': concept.owner,
+        'group': concept.group,
+        'created_by': concept.created_by,
+        'owner_access': concept.owner_access,
+        'group_access': concept.group_access,
+        'world_access': concept.world_access,
+        'template': template,
+        'status': 1,
+    }
+
+    template_data = {
+        'agreement_date': concept.entry_date.strftime('%Y-%m-%d'),
+        'source_reference': get_null_on_empty(concept.source_reference),
+        'coding_system': [concept.coding_system.id] if concept.coding_system else None,
+        'concept_information': [
+            { 'concept_id': concept.id, 'concept_version_id': concept.history_id }
+        ],
+    } | BASE_LINKAGE_TEMPLATE
+
+    metadata.update({
+        'template_data': template_data,
+        'template_version': 1,
+    })
+
+    return metadata
+
+@login_required
+def admin_force_concept_linkage_dt(request):
+    '''
+        Bulk updates unlinked Concepts such that they have a phenotype owner by creating
+        a pseudo-Phenotype using the metadata found within the legacy Conept
+
+        i.e.
+            1. Find unlinked Concepts, e.g. Concept<phenotype_owner=null>
+            2. For each unlinked Concept, create a pseudo-Phenotype using its metadata
+            3. Update the unlinked Concept such that it's phenotype_owner field relates to
+               the newly created pseudo-Phenotype
+
+    '''
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_force_links_dt'),
+                'action_title': 'Force Concept Linkage',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    unlinked_concepts = Concept.objects.filter(phenotype_owner__isnull=True).exclude(is_deleted=True)
+    unlinked_concepts = list(unlinked_concepts.values_list('id', flat=True))
+    unlinked_concepts = Concept.history.filter(
+        id__in=unlinked_concepts
+    ) \
+        .order_by('id', '-history_id') \
+        .distinct('id')
+
+    template = Template.objects.get(id=1)
+
+    bulk_concepts = [ ]
+    for concept in unlinked_concepts:
+        data = get_transformed_data(concept, template)
+        entity = GenericEntity.objects.create(**data)
+
+        instance = concept.instance
+        instance.phenotype_owner = entity
+        bulk_concepts.append(instance)
+
+    if len(bulk_concepts) > 0:
+        Concept.objects.bulk_update(bulk_concepts, ['phenotype_owner'])
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Force Concept Linkage',
+            'hide_phenotype_options': True,
+        }
+    )
 
 @login_required
 def admin_fix_read_codes_dt(request):
@@ -193,9 +330,12 @@ def admin_mig_concepts_dt(request):
 
         update public.clinicalcode_concept as trg
            set phenotype_owner_id = src.phenotype_id
-          from ranked_concepts as src
-         where trg.id = src.concept_id::int;
-        
+          from (
+            select distinct on (concept_id) *
+              from ranked_concepts
+          ) src
+         where (trg.is_deleted is null or trg.is_deleted = false)
+           and trg.id = src.concept_id::int;
         '''
         cursor.execute(sql)
 

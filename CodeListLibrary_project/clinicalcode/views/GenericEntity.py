@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseNotFound
 from django.http.response import HttpResponse, JsonResponse, Http404
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
@@ -475,6 +475,38 @@ class CreateEntityView(TemplateView):
             'result': codelist
         })
 
+class RedirectConceptView(TemplateView):
+    '''
+        [!] Note: Used to maintain legacy URLs where users could visit concepts/<pk>/detail
+
+        @desc Redirects requests to the phenotype page, assuming a phenotype owner
+              can be resolved from the child Concept
+
+    '''
+
+    # URL Name of the detail page
+    ENTITY_DETAIL_VIEW = 'entity_detail'
+
+    def get(self, request, *args, **kwargs):
+        '''
+            Given the pk kwarg:
+                1. Will validate the existence of that Concept
+                2. Will then try to find its Phenotype owner
+                3. Finally, redirect the user to the Phenotype page
+        '''
+        concept_id = gen_utils.parse_int(kwargs.get('pk'), default=None)
+        if concept_id is None:
+            raise Http404
+        
+        concept = model_utils.try_get_instance(Concept, id=concept_id)
+        if concept is None:
+            raise Http404
+        
+        entity_owner = concept.phenotype_owner
+        if entity_owner is None:
+            raise Http404
+
+        return redirect(reverse(self.ENTITY_DETAIL_VIEW, kwargs={ 'pk': entity_owner.id }))
 
 def generic_entity_detail(request, pk, history_id=None):
     ''' 

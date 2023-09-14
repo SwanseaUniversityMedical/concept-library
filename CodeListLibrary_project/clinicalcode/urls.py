@@ -62,6 +62,10 @@ urlpatterns = [
 
     ## Selection service(s)
     url(r'^query/(?P<template_id>\w+)/?$', GenericEntity.EntityDescendantSelection.as_view(), name='entity_descendants'),
+
+    ## Support legacy Concept redirects
+    url(r'^concepts/C(?P<pk>\d+)/detail/$', GenericEntity.RedirectConceptView.as_view(), name='redirect_concept_detail'),
+    url(r'^concepts/C(?P<pk>\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.RedirectConceptView.as_view(), name='redirect_concept_detail_with_version'),
 ]
 
 # Add sitemaps & robots if required
@@ -104,5 +108,6 @@ if not settings.CLL_READ_ONLY:
         url(r'^adminTemp/admin_mig_phenotypes_dt/$', adminTemp.admin_mig_phenotypes_dt, name='admin_mig_phenotypes_dt'),
         url(r'^adminTemp/admin_fix_read_codes_dt/$', adminTemp.admin_fix_read_codes_dt, name='admin_fix_read_codes_dt'),
         url(r'^adminTemp/admin_mig_concepts_dt/$', adminTemp.admin_mig_concepts_dt, name='admin_mig_concepts_dt'),
+        url(r'^adminTemp/admin_force_links_dt/$', adminTemp.admin_force_concept_linkage_dt, name='admin_force_links_dt'),
         url(r'^adminTemp/admin_fix_breathe_dt/$', adminTemp.admin_fix_breathe_dt, name='admin_fix_breathe_dt'),
     ]
