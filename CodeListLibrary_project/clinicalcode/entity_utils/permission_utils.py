@@ -363,7 +363,7 @@ def can_user_view_concept(request, concept):
         return can_user_view_entity(
             request,
             associated_phenotype.id,
-            associated_phenotype.history().latest().history_id
+            associated_phenotype.history.latest().history_id
         )
 
     return False

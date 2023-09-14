@@ -2,7 +2,6 @@ from django.db.models import F, Value, ForeignKey, Subquery, OuterRef
 from django.http.request import HttpRequest
 
 from ..models.Concept import Concept
-from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
 from ..models.Component import Component
 from ..models.CodeList import CodeList
@@ -703,7 +702,13 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     # Only append header attribute if not null
     if attribute_headers is not None:
         concept_data['code_attribute_headers'] = attribute_headers
+    
+    # Set phenotype owner
+    phenotype_owner = concept.phenotype_owner
+    if phenotype_owner:
+        concept_data['phenotype_owner'] = phenotype_owner.id
 
+    # Set base
     if not format_for_api:
         result = {
             'concept_id': concept_id,
