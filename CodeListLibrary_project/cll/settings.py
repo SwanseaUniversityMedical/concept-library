@@ -572,6 +572,10 @@ SASS_PROCESSOR_AUTO_INCLUDE = True
 SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
 SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
 
+## CAPTCHA
+### To ignore captcha during debug builds
+IGNORE_CAPTCHA = get_env_value('IGNORE_CAPTCHA')
+
 ## Email settings
 ###     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = get_env_value('DEFAULT_FROM_EMAIL')

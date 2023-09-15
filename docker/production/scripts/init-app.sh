@@ -2,7 +2,7 @@
 
 cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
-if [ ! -z $IS_DEVELOPMENT_PC ] && [ $IS_DEVELOPMENT_PC = "True" ]; then
+if [ ! -z $AWAIT_POSTGRES ] && [ $AWAIT_POSTGRES = "True" ]; then
   echo "==========================================="
   echo "========== Waiting for Postgres ==========="
   echo "==========================================="

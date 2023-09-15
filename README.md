@@ -187,8 +187,15 @@ c. *OR;* to prune your docker, enter `docker system prune -a`
 >***[!] Note:**   
 To test the transpiling, minification or compression steps, OR; if you have made changes to the Docker container or its images it is recommended that you run a local, pre-production build*
 
+#### Profiles
+The test docker compose has several profiles that can be used to set up your environment:
+1. `live` - this starts both the celery and mailhog services
+2. `email` - this starts the mailhog service only
+
+
+#### Running the Container
 >***[!] Note:**
-If you do not want to start the celery services you can remove the "--profiles live" argument
+If you do not want to start the celery services you can remove the "--profile live" argument*  
 
 To build a local, pre-production build:
 1. Open a terminal
@@ -199,6 +206,15 @@ To build a local, pre-production build:
 6. Once the image is built, run `docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker`
 7. Finally, run `docker-compose -p cll -f docker-compose.test.yaml --profile live up` (append `-d` as an argument to run in background)
 8. Open a browser and navigate to `localhost:8005` to access the application
+
+#### Using Mailhog
+>***[!] Note:**
+To use the mailhog service, you will have to run --profile live or --profile email*  
+
+If you would like to learn more about Mailhog, please visit this [site](https://github.com/mailhog/MailHog). Otherwise, to start Mailhog:
+1. Start the container as described above
+2. Head to [http://localhost:8025](http://localhost:8025)
+3. Any outgoing emails sent from the application will be visible here
 
 ### 2.3.7. Impact of Environment Variables
 

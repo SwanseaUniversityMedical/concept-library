@@ -130,11 +130,10 @@ def get_latest_accessible_concept(request, concept_id, default=None):
             otherwise returns {None}
 
     '''
-    historical_versions = Concept.objects.filter(id=concept_id)
+    historical_versions = Concept.history.filter(id=concept_id).all().order_by('-history_id')
     if not historical_versions.exists():
         return default
     
-    historical_versions = historical_versions.history.all().order_by('-history_id')
     for version in historical_versions:
         if permission_utils.can_user_view_concept(request, version):
             return version

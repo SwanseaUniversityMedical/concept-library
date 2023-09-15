@@ -178,7 +178,9 @@ def contact_us(request):
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
     
-    captcha = check_recaptcha(request)
+    captcha = True
+    if not settings.IGNORE_CAPTCHA:
+        captcha = check_recaptcha(request)
 
     sent_status = None
     if request.method == 'GET':
