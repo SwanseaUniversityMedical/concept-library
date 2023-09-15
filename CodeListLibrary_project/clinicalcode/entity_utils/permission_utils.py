@@ -1,3 +1,4 @@
+from django.db import connection
 from django.db.models import Q, Subquery, OuterRef
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -216,7 +217,7 @@ def get_accessible_entities(
 def get_accessible_concepts(
     request,
     consider_user_perms=True,
-    group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+    group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT],
 ):
     '''
       Tries to get all the concepts that are accessible to a specific user
@@ -229,51 +230,63 @@ def get_accessible_concepts(
         List of accessible concepts
 
     '''
-    phenotypes = get_accessible_entities(
-        request,
-        consider_user_perms=consider_user_perms,
-        status=[APPROVAL_STATUS.ANY]
-    )
-    
-    concepts_from_phenotypes = Concept.history.all() \
-        .filter(phenotype_owner__id__in=phenotypes.values('id')) \
-        .distinct('id')
-
-    concepts = Concept.history.all() \
-    .annotate(
-        is_published=Subquery(
-            PublishedConcept.objects.filter(
-                concept_id=OuterRef('id'),
-                concept_history_id=OuterRef('history_id')
-            )
-            .order_by('id')
-            .distinct('id')
-            .values('id')
-        )
-    ) \
-    .order_by('id', '-history_id') \
-    .distinct('id')
-
     user = request.user
-    if user and not user.is_anonymous:
-        if consider_user_perms and user.is_superuser:
-            return concepts.distinct('id')
+    concepts = Concept.history.none()
 
-        concepts = concepts.filter(
-            Q(owner=user.id) |
-            Q(
-                group_id__in=user.groups.all(),
-                group_access__in=group_permissions
-            ) |
-            Q(world_access=WORLD_ACCESS_PERMISSIONS.VIEW) |
-            Q(is_published__isnull=False)
+    if not user or user.is_anonymous:
+        return concepts
+
+    if user.is_superuser:
+        return Concept.history.all()
+
+    group_access = [x.value for x in group_permissions]
+    with connection.cursor() as cursor:
+        sql = '''
+        select distinct on (concept_id)
+               id as phenotype_id,
+               cast(concepts->>'concept_id' as integer) as concept_id,
+               cast(concepts->>'concept_version_id' as integer) as concept_version_id
+          from (
+            select id,
+                   concepts
+              from public.clinicalcode_historicalgenericentity as entity,
+                   json_array_elements(entity.template_data::json->'concept_information') as concepts
+              where 
+                    (entity.is_deleted is null or entity.is_deleted = false)
+                    and (
+                      entity.publish_status = %s
+                      or (
+                        exists (
+                          select 1
+                            from public.auth_user_groups as t
+                           where t.user_id = %s and t.group_id = entity.group_id
+                        )
+                        and entity.group_access in %s
+                      )
+                      or entity.owner_id = %s
+                      or entity.world_access = %s
+                    )
+          ) results
+         order by concept_id desc, concept_version_id desc
+        '''
+
+        cursor.execute(
+            sql,
+            params=[
+                APPROVAL_STATUS.APPROVED.value, user.id, tuple(group_access),
+                user.id, WORLD_ACCESS_PERMISSIONS.VIEW.value
+            ]
+        )
+        
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        concepts = Concept.history.filter(
+            id__in=[x.get('concept_id') for x in results],
+            history_id__in=[x.get('concept_version_id') for x in results],
         )
 
-        return (concepts | concepts_from_phenotypes).distinct('id')
-
-    concepts = concepts.filter(Q(is_published__isnull=False))
-
-    return (concepts | concepts_from_phenotypes).distinct('id')
+    return concepts
 
 def can_user_view_entity(request, entity_id, entity_history_id=None):
     '''
@@ -291,16 +304,14 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
         return False
 
     if entity_history_id is not None:
-        historical_entity = model_utils.try_get_entity_history(
-            live_entity, entity_history_id)
+        historical_entity = model_utils.try_get_entity_history(live_entity, entity_history_id)
         if historical_entity is None:
             return False
     else:
         historical_entity = live_entity.history.latest()
         entity_history_id = historical_entity.history_id
 
-    is_published = is_publish_status(
-        historical_entity, [APPROVAL_STATUS.APPROVED])
+    is_published = is_publish_status(historical_entity, [APPROVAL_STATUS.APPROVED])
     if is_published:
         return True
 
@@ -309,10 +320,10 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
         return check_brand_access(request, is_published, entity_id, entity_history_id)
 
     moderation_required = is_publish_status(
-        historical_entity, [APPROVAL_STATUS.REQUESTED,
-                            APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
+        historical_entity,
+        [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
     )
-    if is_member(user, "Moderators") and moderation_required:
+    if is_member(user, 'Moderators') and moderation_required:
         return check_brand_access(request, is_published, entity_id, entity_history_id)
 
     if live_entity.owner == user:
@@ -327,45 +338,86 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
 
     return False
 
-def can_user_view_concept(request, concept):
+def can_user_view_concept(request, historical_concept):
     '''
       Checks whether a user has the permissions to view a concept
 
       Args:
-        concept {Concept}: The concept of interest
+        concept {HistoricalConcept}: The concept of interest
 
       Returns:
         A boolean value reflecting whether the user is able to view a concept
     '''
+
+    user = request.user
+    if user and user.is_superuser:
+        return True
+
+    # Check legacy publish status & legacy ownership
     published_concept = PublishedConcept.objects.filter(
-        concept_id=concept.id,
-        concept_history_id=concept.history_id
+        concept_id=historical_concept.id,
+        concept_history_id=historical_concept.history_id
     ).order_by('-concept_history_id').first()
 
     if published_concept is not None:
         return True
 
-    user = request.user
-    if user.is_superuser:
+    if historical_concept.owner == user:
         return True
 
-    if concept.owner == user:
-        return True
-
-    if has_member_access(user, concept, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
+    if has_member_access(user, historical_concept, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
         return True
 
     if user and not user.is_anonymous:
-        if concept.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
+        if historical_concept.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
             return True
+
+    # Check associated phenotypes
+    concept = getattr(historical_concept, 'instance')
+    if not concept:
+        return False
 
     associated_phenotype = concept.phenotype_owner
     if associated_phenotype is not None:
-        return can_user_view_entity(
+        can_view = can_user_view_entity(
             request,
             associated_phenotype.id,
             associated_phenotype.history.latest().history_id
         )
+        if can_view:
+            return True
+
+    with connection.cursor() as cursor:
+        sql = '''
+        select *
+          from (
+            select distinct on (id)
+                   cast(concepts->>'concept_id' as integer) as concept_id,
+                   cast(concepts->>'concept_version_id' as integer) as concept_version_id
+            from public.clinicalcode_historicalgenericentity as entity,
+                 json_array_elements(entity.template_data::json->'concept_information') as concepts
+            where 
+              (
+                cast(concepts->>'concept_id' as integer) = %s
+                and cast(concepts->>'concept_version_id' as integer) = %s
+              )
+              and (entity.is_deleted is null or entity.is_deleted = false)
+              and entity.publish_status = %s
+          ) results
+         limit 1
+        '''
+        cursor.execute(
+            sql,
+            params=[
+                historical_concept.id,
+                historical_concept.history_id,
+                APPROVAL_STATUS.APPROVED.value,
+            ]
+        )
+        
+        row = cursor.fetchone()
+        if row is not None:
+            return True
 
     return False
 
@@ -420,36 +472,72 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     return is_allowed_to_edit
 
 def get_latest_publicly_accessible_concept(concept_id):
-    '''    
+    '''
       Finds the latest publicly accessible published concept
 
       Returns:
         HistoricalConcept {obj} that is accessible by the user
     '''
-    concepts = Concept.history.filter(
-        id=concept_id
-    ) \
-    .annotate(
-        is_published=Subquery(
-            PublishedConcept.objects.filter(
-                concept_id=OuterRef('id'),
-                concept_history_id=OuterRef('history_id')
-            )
-            .order_by('id')
-            .distinct('id')
-            .values('id')
-        )
-    ) \
-    .exclude(is_published__isnull=True) \
-    .order_by('-history_id')
 
-    return concepts.first() if concepts.exists() else None
+    concept = Concept.objects.filter(id=concept_id)
+    if not concept.exists():
+        return None
+
+    concept = Concept.objects.none()
+    with connection.cursor() as cursor:
+        sql = '''
+        select *
+          from (
+            select cast(concepts->>'concept_id' as integer) as concept_id,
+                   cast(concepts->>'concept_version_id' as integer) as concept_version_id
+              from public.clinicalcode_historicalgenericentity as entity,
+                   json_array_elements(entity.template_data::json->'concept_information') as concepts
+              where 
+                    (entity.is_deleted is null or entity.is_deleted = false)
+                    and entity.publish_status = %s
+                    and entity.world_access = %s
+          ) results
+         where concept_id = %s
+         order by concept_version_id desc
+         limit 1
+        '''
+
+        cursor.execute(
+            sql,
+            params=[
+                APPROVAL_STATUS.APPROVED.value,
+                WORLD_ACCESS_PERMISSIONS.VIEW.value,
+                concept_id
+            ]
+        )
+        
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        concept = Concept.history.filter(
+            id__in=[x.get('concept_id') for x in results],
+            history_id__in=[x.get('concept_version_id') for x in results],
+        )
+
+    return concept.first() if concept.exists() else None
 
 def user_can_edit_via_entity(request, concept):
     '''
       Checks to see if a user can edit a child concept via it's phenotype owner's permissions
     '''
     entity = concept.phenotype_owner
+
+    if entity is None:
+        ''' e.g. in the case of a historical entity being passed,
+                 we will check 
+        '''
+        try:
+            instance = getattr(concept, 'instance')
+            if instance is not None:
+                entity = instance.phenotype_owner
+        except:
+            pass
+    
     if entity is None:
         return False
 

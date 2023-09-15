@@ -104,10 +104,107 @@ select id
 select id,
 	   concepts
   from (
-	select id,
-		   concepts
-	  from public.clinicalcode_historicalgenericentity as entity,
-		   json_array_elements(entity.template_data::json->'concept_information') as concepts
-	 where entity.publish_status = 2
-) results
- where cast(concepts->>'concept_id' as integer) = 715 and cast(concepts->>'concept_version_id' as integer) = 2569;
+	  select id,
+		       concepts
+	    from public.clinicalcode_historicalgenericentity as entity,
+		       json_array_elements(entity.template_data::json->'concept_information') as concepts
+	   where entity.publish_status = 2
+  ) results
+ where cast(concepts->>'concept_id' as integer) = 715
+   and cast(concepts->>'concept_version_id' as integer) = 2569;
+
+-------------------------------------------------------------
+
+-- Get all accessible concepts (i.e. the ability for a user to view them via permissions)
+select distinct on (concept_id)
+       id as phenotype_id,
+       cast(concepts->>'concept_id' as integer) as concept_id,
+       cast(concepts->>'concept_version_id' as integer) as concept_version_id
+  from (
+    select id,
+           concepts
+      from public.clinicalcode_historicalgenericentity as entity,
+           json_array_elements(entity.template_data::json->'concept_information') as concepts
+     where 
+           (entity.is_deleted is null or entity.is_deleted = false)
+           and (
+             entity.publish_status = 2
+             or (
+               exists (
+                 select 1
+                   from public.auth_user_groups as t
+                  where t.user_id = 7 and t.group_id = entity.group_id
+               )
+               and entity.group_access in (2, 3)
+             )
+             or entity.owner_id = 7
+             or entity.world_access = 2
+           )
+  ) results
+ order by concept_id desc, concept_version_id desc;
+
+-- Get latest accessible Concept available to anonymous users
+select *
+  from (
+    select cast(concepts->>'concept_id' as integer) as concept_id,
+           cast(concepts->>'concept_version_id' as integer) as concept_version_id
+      from public.clinicalcode_historicalgenericentity as entity,
+           json_array_elements(entity.template_data::json->'concept_information') as concepts
+     where 
+           (entity.is_deleted is null or entity.is_deleted = false)
+           and entity.publish_status = 2
+           and entity.world_access = 2
+     ) results
+ where concept_id = 715
+ order by concept_version_id desc
+ limit 1;
+
+-- Check whether user can access a Concept via associated Phenotypes
+select *
+  from (
+    select distinct on (id)
+           cast(concepts->>'concept_id' as integer) as concept_id,
+           cast(concepts->>'concept_version_id' as integer) as concept_version_id
+      from public.clinicalcode_historicalgenericentity as entity,
+           json_array_elements(entity.template_data::json->'concept_information') as concepts
+     where 
+           (
+             cast(concepts->>'concept_id' as integer) = 715
+             and cast(concepts->>'concept_version_id' as integer) = 2569
+           )
+           and (entity.is_deleted is null or entity.is_deleted = false)
+           and (
+             entity.publish_status = 2
+             or (
+               exists (
+                 select 1
+                   from public.auth_user_groups as t
+                  where t.user_id = 7 and t.group_id = entity.group_id
+               )
+               and entity.group_access in (2, 3)
+             )
+             or entity.owner_id = 7
+             or entity.world_access = 2
+           )
+  ) results
+ limit 1;
+
+-- Check anonymous user access
+select *
+  from (
+    select distinct on (id)
+           cast(concepts->>'concept_id' as integer) as concept_id,
+           cast(concepts->>'concept_version_id' as integer) as concept_version_id
+      from public.clinicalcode_historicalgenericentity as entity,
+           json_array_elements(entity.template_data::json->'concept_information') as concepts
+     where 
+      (
+        cast(concepts->>'concept_id' as integer) = 715
+        and cast(concepts->>'concept_version_id' as integer) = 2569
+      )
+      and (entity.is_deleted is null or entity.is_deleted = false)
+      and entity.publish_status = 2
+  ) results
+ limit 1;
+
+-------------------------------------------------------------

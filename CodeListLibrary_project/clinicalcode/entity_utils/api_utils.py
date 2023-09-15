@@ -214,16 +214,17 @@ def get_concept_version_history(request, concept_id):
 
     latest = historical_versions.first()
     for version in historical_versions:
-        is_published = concept_utils.is_concept_published(concept_id, version.history_id)
+        if not permission_utils.can_user_view_concept(request, version):
+            continue
 
-        if permission_utils.can_user_view_concept(request, version):
-            result.append({
-                'version_id': version.history_id,
-                'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
-                'version_date': version.history_date,
-                'is_published': is_published,
-                'is_latest': latest.history_id == version.history_id
-            })
+        is_published = concept_utils.is_concept_published(concept_id, version.history_id)
+        result.append({
+            'version_id': version.history_id,
+            'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
+            'version_date': version.history_date,
+            'is_published': is_published,
+            'is_latest': latest.history_id == version.history_id
+        })
 
     return result
 
