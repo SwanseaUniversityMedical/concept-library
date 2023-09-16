@@ -136,7 +136,7 @@ Within the `concept-library/docker/` directory you will find the following docke
     - This is the development docker container used to iterate on the Concept Library.
     - After building, the application can be located at http://127.0.0.1:8000
 2. `docker-compose.test.yaml`
-    - This compose file builds an environment that better reflects the production environment, serving the application via Apache, and includes adjunct services like Redis and Celery.
+    - This compose file builds an environment that better reflects the production environment, serving the application via Apache, and includes adjunct services like Redis, Celery and Mailhog.
     - It is recommended for use when developing the Docker images, or as a pre-production test when modifying build behaviour such as offline compression.
     - After building, the application can be located at http://localhost:8005
 3. `docker-compose.prod.yaml`
