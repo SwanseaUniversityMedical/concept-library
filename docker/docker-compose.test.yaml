@@ -13,7 +13,11 @@ services:
     env_file:
       - ./development/env/postgres.compose.env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      test: [
+        "CMD-SHELL",
+        "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
+        "&& /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep .",
+      ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,8 +53,6 @@ services:
       - email
     ports:
       - 8025:8025
-    depends_on:
-      - postgres
     networks:
       default:
         aliases:
