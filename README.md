@@ -34,9 +34,9 @@ Often the definitions that are created are of interest to researchers for many s
     2.1.1. [Docker](#211-Docker)  
     2.1.2. [Running on Apple](#212-Running-on-Apple)  
   2.2. [Database Setup](#22-Database-Setup)  
+    2.2.1. [Restore from Local Backup](#221-Restore-from-Local-Backup)  
     2.2.2. [Restore from Git Repository](#222-Restore-from-Git-Repository)  
     2.2.3. [Migration only](#223-Migration-only)  
-    2.2.1. [Restore from Local Backup](#221-Restore-from-Local-Backup)  
   2.3. [Development](#23-Development)  
     2.3.1. [Docker Compose Files](#231-Docker-Compose-Files)  
     2.3.2. [Initial Build](#232-Initial-Build)  
@@ -57,10 +57,15 @@ Often the definitions that are created are of interest to researchers for many s
     2.6.2. [Debug Build Tasks](#262-Debug-Build-Tasks)  
     2.6.3. [Test Build Tasks](#263-Test-Build-Tasks)  
     2.6.4. [How to Handle Cleaning](#264-How-to-Handle-Cleaning)  
-  2.7. [Creating a Superuser](#27-Creating-a-Superuser)
+  2.7. [Creating a Superuser](#27-Creating-a-Superuser)  
 3. [Setup without Docker](#3-Setup-without-Docker)  
   3.1. [Prerequisites](#31-Prerequisites)  
   3.2. [Installing](#32-Installing)  
+    3.2.1. [Cloning the Concept Library](#321-Cloning-the-Concept-Library)  
+    3.2.2. [Install virtualenv and virtualenvwrapper](#322-Installing-virtualenv-and-virtualenvwrapper)  
+    3.2.3. [Database set up](#323-Database-set-up)  
+    3.2.4. [Installing LDAP functionality](#324-Installing-LDAP-functionality)  
+    3.2.5. [Administration area](#325-Administration-area)  
   3.3. [Using Eclipse](#33-Using-Eclipse)  
   3.4. [Running Tests](#34-Running-Tests)  
 4. [Deployment](#4-Deployment)  
@@ -70,6 +75,8 @@ Often the definitions that are created are of interest to researchers for many s
   4.2. [Harbor-driven CI/CD Pipeline](#42-Harbor-driven-CI/CD-Pipeline)  
 5. [API and Packages](#5-API-and-Packages)  
   5.1. [Clients](#51-Clients)  
+    5.1.1. [What are Clients?](#511-What-Are-Clients?)  
+    5.1.2. [Available Packages](#512-Available-Packages)  
   5.2. [API](#52-API)
 
 # 1. Clone this Repository
@@ -480,6 +487,8 @@ If you you are unable to `exec` into `cll-app-1`:
 4. Continue with Step (3) above
 
 # 3. Setup without Docker
+>***[!] Note:** Unlike [2. Setup with Docker](#2-Setup-with-Docker), this method of setting up and using the Concept Library is not recommended. Containerisation is a much more suitable method if you intend to develop or host the Concept Library application.  
+If you decide to continue, please note that we would not be able to offer advice outside of what is detailed below - please take this into consideration when deciding which method you would like to use.*
 
 ## 3.1. Prerequisites
 Please ensure that you have the following installed:
@@ -491,7 +500,7 @@ Please ensure that you have the following installed:
 
 ## 3.2. Installing
 
-#### Cloning the Concept Library
+### 3.2.1 Cloning the Concept Library
 
 To clone the repository:
 1. Open the terminal
@@ -499,7 +508,7 @@ To clone the repository:
 3. Run the following command: `git clone https://github.com/SwanseaUniversityMedical/concept-library.git`
 4. Checkout the branch you would like to work on, e.g. run the following to work on Master: `git checkout master`
 
-#### Install virtualenv and virtualenvwrapper
+### 3.2.2 Install virtualenv and virtualenvwrapper
 
 This will provide a dedicated environment for each project you create. It is considered best practice and will save time when you’re ready to deploy your project.
 
@@ -511,7 +520,9 @@ This will provide a dedicated environment for each project you create. It is con
 6. To install the required packages, run the following command: `pip install -r docker/requirements/local.txt`
 7. To stop working on this environment, run: `deactivate cclproject`
 
-#### Database set up
+### 3.2.3 Database set up
+>***[!] Note:** Please note the following if you are a Concept Library Developer:  
+To retrieve a database backup, follow some of the steps in [2.2.2. Restore from Git Repository](#222-Restore-from-Git-Repository) and download the `db.backup` file - this can be used to restore the Postgres db during the following steps.*
 
 1. Install [Postgres](https://www.postgresql.org/download/) and [PGAdmin](https://www.pgadmin.org/) on your device.
 2. Within PGAdmin3, do the following:
@@ -528,16 +539,16 @@ This will provide a dedicated environment for each project you create. It is con
 5. You can now access the server on http://127.0.0.1:8000/admin/
 6. To stop the server, press `CTRL + C` or `CTRL + Z` within the terminal
 
-#### Installing LDAP functionality
+### 3.2.4 Installing LDAP functionality
 
-For windows machines:
+For Windows machines:
 - You will need to install the Microsoft Visual C++ Compiler for Python. This can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
 - Download the `python_ldap` wheel, located [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap)
 - Once downloaded, activate your virtualenv and run the following `pip install path/to/the/file/python_ldap.whl`
 - Once installed, you can run the `pip install django-auth-ldap` command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
 - If you intend to use LDAP over SSL, please take a look at the troubleshooting guide found [here](https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems)
 
-#### Administration area
+### 3.2.5 Administration area
 When you first start the application there will be no users within your database. You will first need to create a superuser account in order to access the administration site.
 
 1. Open the terminal and run the following: `python manage.py createsuperuser`
@@ -546,7 +557,8 @@ When you first start the application there will be no users within your database
 
 ## 3.3. Using Eclipse
 
-#### Set up
+### Seting up the Application with Eclipse
+
 1. Navigate to the `File` button within Eclipse's toolbar, then select `Open projects from file system`
 2. Browse to the Concept Library folder, e.g. `C:/Dev/concept-library`
 3. Assuming you have followed the previous steps to create a virtual env, you will need to point Eclipse's python interpreter to the virtual env:
@@ -608,9 +620,11 @@ During manual deployment, the file will be copied and renamed to `env_vars.txt` 
 ### 4.1.2. Automated Deployment
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
 
+#### Pipeline information
+
 [Details]
 
-#### Files
+#### Related files
 > ***[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file*
 
 > ***[!] Note:** `/root/` in this case describes the the directory of your choosing* 
@@ -660,11 +674,12 @@ To do so manually, please do the following:
 # 5. API and Packages
 
 ## 5.1. Clients
+### 5.1.1 What are Clients?
 We maintain client packages that can be used to interface with the Concept Library. These packages are intended to make it easier for you to get started using the Concept Library, they implement several features to reduce your technical burden, such as allowing you to submit Phenotypes using a human-readable YAML template.  
 
 Under the hood, these packages call our API endpoints - you can read more about these in [5.2. API](#52-API). However, we anticipate that beginners may feel more comfortable using one of the following packages.  
 
-### Available Packages
+### 5.1.2 Available Packages
 
 1. [Concept Library Client](https://github.com/SwanseaUniversityMedical/ConceptLibraryClient) - an implementation of the API client for the Concept Library in R
 2. [pyconceptlibraryclient](https://github.com/SwanseaUniversityMedical/pyconceptlibraryclient) - a Python API client for the Concept Library
