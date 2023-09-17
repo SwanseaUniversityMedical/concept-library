@@ -57,18 +57,31 @@ const initHamburgerMenu = () => {
 
     
   });
-
-  document.addEventListener('click', e => {
-    const element = e.target;
-
-    if (!burger.contains(element)) {
-      panel.classList.remove('open');
-      overlay.style.display = 'none'; 
-    }
-  })
 }
 
+const submenuMobile = () => {
+// JavaScript for submenu behavior
+const aboutLink = document.querySelector('#About');
+const submenu = document.querySelector('.nav-dropdown__content ');
 
+// Function to toggle submenu visibility
+function toggleSubmenu() {
+  submenu.classList.toggle('open');
+}
+
+// Add click event listener to the "About" link
+aboutLink.addEventListener('click', (e) => {
+  e.preventDefault(); // Prevent the default link behavior
+  toggleSubmenu();
+});
+
+// Close the submenu when clicking outside of it
+document.addEventListener('click', (e) => {
+  if (!submenu.contains(e.target) && e.target !== aboutLink) {
+    submenu.classList.remove('open');
+  }
+});
+}
 
 /**
   * setNavigation
@@ -123,6 +136,7 @@ const setNavigation = (navbar) => {
 domReady.finally(() => {
   const navbar = document.querySelector('.page-navigation');
   updateNavBarStyle(navbar);
+  submenuMobile();
 
   document.addEventListener('scroll', e => {
     updateNavBarStyle(navbar);
