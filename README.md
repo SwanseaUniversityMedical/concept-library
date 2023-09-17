@@ -75,7 +75,7 @@ Often the definitions that are created are of interest to researchers for many s
   4.2. [Harbor-driven CI/CD Pipeline](#42-Harbor-driven-CI/CD-Pipeline)  
 5. [API and Packages](#5-API-and-Packages)  
   5.1. [Clients](#51-Clients)  
-    5.1.1. [What are Clients?](#511-What-Are-Clients?)  
+    5.1.1. [What are Clients?](#511-What-Are-Clients)  
     5.1.2. [Available Packages](#512-Available-Packages)  
   5.2. [API](#52-API)  
 
