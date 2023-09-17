@@ -70,14 +70,14 @@ Often the definitions that are created are of interest to researchers for many s
   3.4. [Running Tests](#34-Running-Tests)  
 4. [Deployment](#4-Deployment)  
   4.1. [Deploy Scripts](#41-Deploy-Scripts)  
-    4.1.1. [Manual Deployment](#411-Manual-Deployment)  
-    4.1.2. [Automated Deployment](#412-Automated-Deployment)  
+    4.1.1. [Manual Deployment](#411-Manual-Deployment)  
+    4.1.2. [Automated Deployment](#412-Automated-Deployment)  
   4.2. [Harbor-driven CI/CD Pipeline](#42-Harbor-driven-CI/CD-Pipeline)  
 5. [API and Packages](#5-API-and-Packages)  
   5.1. [Clients](#51-Clients)  
-    5.1.1. [What are Clients?](#511-What-Are-Clients?)  
-    5.1.2. [Available Packages](#512-Available-Packages)  
-  5.2. [API](#52-API)
+    5.1.1. [What are Clients?](#511-What-Are-Clients?)  
+    5.1.2. [Available Packages](#512-Available-Packages)  
+  5.2. [API](#52-API)  
 
 # 1. Clone this Repository
 To download this repository:
