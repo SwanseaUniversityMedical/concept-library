@@ -57,7 +57,7 @@
 
   @include media("<desktop", "screen") {
     .nav-dropdown__content{
-      .open{
+      &.open{
         display: contents;
       }
       
