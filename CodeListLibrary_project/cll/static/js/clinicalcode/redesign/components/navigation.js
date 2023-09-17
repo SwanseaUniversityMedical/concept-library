@@ -55,8 +55,20 @@ const initHamburgerMenu = () => {
       }
   }
 
+});
+
+  document.addEventListener('click', e => {
+    const element = e.target;
+
+    if (burger.contains(element) || panel.contains(element)) {
+      return;
+    }
+    panel.classList.remove('open');
+    overlay.style.display = 'none'; 
+  })
+
     
-  });
+
 }
 
 const submenuMobile = () => {

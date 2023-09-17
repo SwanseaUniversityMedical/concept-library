@@ -18,13 +18,20 @@
   }
 
   &:hover {
-    
+  
     .nav-dropdown__content {
       display: flex;
       justify-content: center;
       align-items: flex-start;
       -webkit-box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
       box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
+    }
+
+    @include media("<desktop", "screen") {
+      .nav-dropdown__content{
+        display: none;
+      }
+
     }
 
 
@@ -56,11 +63,12 @@
   }
 
   @include media("<desktop", "screen") {
+
     .nav-dropdown__content{
       &.open{
         display: contents;
       }
-      
+     
     }
    
   }
