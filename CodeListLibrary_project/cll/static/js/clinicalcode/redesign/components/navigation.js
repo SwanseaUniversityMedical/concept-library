@@ -73,8 +73,8 @@ const initHamburgerMenu = () => {
 
 const submenuMobile = () => {
 // JavaScript for submenu behavior
-const aboutLink = document.querySelector('#About');
-const submenu = document.querySelector('.nav-dropdown__content ');
+const navText = document.querySelector('.nav-dropdown__text');
+const submenu = document.querySelector('.nav-dropdown__content');
 
 // Function to toggle submenu visibility
 function toggleSubmenu() {
@@ -82,17 +82,12 @@ function toggleSubmenu() {
 }
 
 // Add click event listener to the "About" link
-aboutLink.addEventListener('click', (e) => {
+navText.addEventListener('click', (e) => {
   e.preventDefault(); // Prevent the default link behavior
   toggleSubmenu();
 });
 
-// Close the submenu when clicking outside of it
-document.addEventListener('click', (e) => {
-  if (!submenu.contains(e.target) && e.target !== aboutLink) {
-    submenu.classList.remove('open');
-  }
-});
+
 }
 
 /**
