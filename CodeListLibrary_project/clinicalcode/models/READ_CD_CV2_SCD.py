@@ -33,6 +33,11 @@ class READ_CD_CV2_SCD(models.Model):
                 opclasses=['gin_trgm_ops']
             ),
             GinIndex(
+                name='readv2_defn_ln_gin_idx',
+                fields=['description'],
+                opclasses=['gin_trgm_ops']
+            ),
+            GinIndex(
                 name='readv2_desc_ln_gin_idx',
                 fields=['pref_term_30'],
                 opclasses=['gin_trgm_ops']

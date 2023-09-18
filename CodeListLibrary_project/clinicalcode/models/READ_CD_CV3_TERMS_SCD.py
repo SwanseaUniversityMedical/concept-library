@@ -24,6 +24,11 @@ class READ_CD_CV3_TERMS_SCD(models.Model):
                 opclasses=['gin_trgm_ops']
             ),
             GinIndex(
+                name='readv3_defn_ln_gin_idx',
+                fields=['description'],
+                opclasses=['gin_trgm_ops']
+            ),
+            GinIndex(
                 name='readv3_desc_ln_gin_idx',
                 fields=['term_30'],
                 opclasses=['gin_trgm_ops']
