@@ -87,6 +87,18 @@ navText.addEventListener('click', (e) => {
   toggleSubmenu();
 });
 
+}
+
+const nestedMenu = () => {
+  const nestedContainer = document.querySelector('.content-container__nested');
+  const nestedMenu = document.querySelector('.nested-menu');
+
+  if (nestedContainer && nestedMenu) {
+  nestedContainer.addEventListener('click', (e) => {
+    e.preventDefault();
+    nestedMenu.classList.toggle('open');
+  });
+}
 
 }
 
@@ -144,6 +156,7 @@ domReady.finally(() => {
   const navbar = document.querySelector('.page-navigation');
   updateNavBarStyle(navbar);
   submenuMobile();
+  nestedMenu();
 
   document.addEventListener('scroll', e => {
     updateNavBarStyle(navbar);
