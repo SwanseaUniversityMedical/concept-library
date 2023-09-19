@@ -48,14 +48,13 @@
       <section class="breadcrumbs">
         <span class="breadcrumb-item">
           <span class="marker"></span>
-          <span class="breadcrumb"><a href="{% url 'search_phenotypes' %}">search</a></span>
+          <span class="breadcrumb"><a href="{% url 'search_phenotypes' %}">Search</a></span>
         </span>
         <span class="breadcrumb-item">
           <span class="marker"></span>
           <span class="breadcrumb">{{ entity.name }}</span>
         </span>
       </section>
-    
     </div>
   </header>
   
@@ -65,7 +64,6 @@
 
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="phenotype-creation">
-
         {% include './detail_buttons.html' %}
         
           <section class="phenotype-creation__header">
@@ -86,17 +84,11 @@
             </p>
           </section>
 
-          
           <ol class="phenotype-progress" id="main-wizard">
             {% render_wizard_sections_detail_pg %}
             {% endrender_wizard_sections_detail_pg %}
           </ol>
-        
       </article>
     </div>
   </main>
 {% endblock container %}
-
-{% block scripts %}
-  <!-- script -->
-{% endblock scripts %}
