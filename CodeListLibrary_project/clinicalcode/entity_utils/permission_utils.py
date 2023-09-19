@@ -228,19 +228,37 @@ def get_accessible_entities(
             world_access=WORLD_ACCESS_PERMISSIONS.VIEW
         )
 
-        entities = entities.filter(query)
+        entities = entities.filter(query) \
+            .annotate(
+                was_deleted=Subquery(
+                    GenericEntity.objects.filter(
+                        id=OuterRef('id'),
+                        is_deleted=True
+                    ) \
+                    .values('id')
+                )
+            )
+
         if only_deleted:
-            entities = entities.exclude(Q(is_deleted=False) | Q(
-                is_deleted__isnull=True) | Q(is_deleted=None))
+            entities = entities.exclude(was_deleted__isnull=True)
         else:
-            entities = entities.exclude(Q(is_deleted=True))
+            entities = entities.exclude(was_deleted__isnull=False)
 
         return entities.distinct('id')
 
     entities = entities.filter(
         publish_status=APPROVAL_STATUS.APPROVED
     ) \
-        .filter(Q(is_deleted=False) | Q(is_deleted=None))
+        .annotate(
+            was_deleted=Subquery(
+                GenericEntity.objects.filter(
+                    id=OuterRef('id'),
+                    is_deleted=True
+                ) \
+                .values('id')
+            )
+        ) \
+        .exclude(was_deleted__isnull=False)
 
     return entities.distinct('id')
 
