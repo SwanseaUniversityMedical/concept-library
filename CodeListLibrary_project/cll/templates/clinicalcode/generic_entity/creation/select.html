@@ -75,5 +75,5 @@
   </template>
 
   <!-- Entity data -->
-  <data aria-hidden="true" name="data" data-owner="entity-selector" type="text/json">{% if entity_data %} {{ entity_data|jsonify|safe }} {% endif %}</data>
+  <data aria-hidden="true" name="data" data-owner="entity-selector" type="text/json">{% if entity_data %} {{ entity_data|jsonify|striptags }} {% endif %}</data>
 {% endblock container %}
