@@ -65,8 +65,13 @@
   @include media("<desktop", "screen") {
 
     .nav-dropdown__content{
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 4s ease;
+
       &.open{
         display: contents;
+        max-height: 500px;
       }
      
     }
@@ -83,6 +88,7 @@
    display: flex;
    justify-content: center;
    align-items: center;
+   padding: 0.3rem;
   flex-direction: column;
 
   &__text::after {
@@ -104,9 +110,31 @@
 
   }
   .content-container{
-    display: flex;
+    display: contents;
     justify-content: flex-start;
     align-items: center;
+
+    &__nested{
+      list-style: none;
+      
+
+      .nested-menu{
+        background: #fff;
+        box-shadow: none;
+        transform: none;
+        position: relative;
+        width: auto;
+  
+        &.open{
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          
+        }
+      }
+    }
+
+    
   }
   .item-dropdown{
     display: none;
@@ -132,6 +160,7 @@
 
 .content-container {
   &:hover {
+    
     .nested-menu {
       display: block;
 
@@ -147,7 +176,15 @@
         position: absolute;
       }
     }
+    @include media("<desktop", "screen") {
+      .nested-menu{
+        display: none;
+      }
+
+    }
+    
   }
+
 }
 
 /// Selection group

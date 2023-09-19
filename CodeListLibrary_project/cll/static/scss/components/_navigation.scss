@@ -130,7 +130,6 @@
     list-style: none;
 
   
-
     &__full {
       grid-column: 1 / span 2;
       list-style: none;
@@ -139,6 +138,7 @@
         background-image: none;
       }
     }
+
   }
 
   .item-dropdown {
@@ -220,7 +220,7 @@
 @include media("<desktop", "screen") {
   .about-row{
     display: block;
-    background-color: white;
+    background-color: #f8f8f8;
     border-radius: 1em;
     position: relative;
     top: 0;
@@ -244,6 +244,7 @@
       &__description {
         display: none;
       }
+
     }
   }
   .item-dropdown{
@@ -291,17 +292,9 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     background-size: var(--navigation-line-width) 0, auto;
     z-index: 99999;
 
- 
-    &:not(.active):not([role="login"]):not([role="profile"]):hover {
-      background-size: var(--navigation-line-width) 90%, auto;
-    }
 
     &.active {
       background-size: var(--navigation-line-width) 90%, auto;
-    }
-
-    &:not(.active):not([role="login"]):not([role="profile"]):active {
-      @include prefix(transform, translateY(2px), webkit moz o);
     }
    
   } @else {
