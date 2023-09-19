@@ -62,7 +62,7 @@ class GenericEntity(models.Model):
     is_deleted = models.BooleanField(null=True, default=False)
     
     ''' Subject to change '''
-    internal_comments = models.TextField(null=True, blank=True) # for create/update forms only, not to be shown elsewhere
+    internal_comments = models.TextField(null=True, blank=True) # e.g. archive reasons, not to be shown elsewhere
 
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="entity_deleted")
@@ -73,7 +73,7 @@ class GenericEntity(models.Model):
     group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
     world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.WORLD_ACCESS_PERMISSIONS], default=constants.WORLD_ACCESS_PERMISSIONS.NONE)
     
-    ''' publish status '''
+    ''' Publish status '''
     publish_status = models.IntegerField(null=True, choices=[(e.name, e.value) for e in constants.APPROVAL_STATUS], default=constants.APPROVAL_STATUS.ANY)
 
     ''' Historical data '''

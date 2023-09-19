@@ -17,6 +17,7 @@
   <!-- Dependencies -->
   {% compress js %}
     <script type="module" src="{% static 'js/clinicalcode/services/collectionService.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
   {% endcompress %}
 
   <!-- Page Stylesheets -->
@@ -100,5 +101,11 @@
       </article>
     </div>
   </main>
+
+  {% if not CLL_READ_ONLY %}
+    <template id="archive-form">
+      {% include "components/forms/archive.html" %}
+    </template>
+  {% endif %}
 
 {% endblock container %}

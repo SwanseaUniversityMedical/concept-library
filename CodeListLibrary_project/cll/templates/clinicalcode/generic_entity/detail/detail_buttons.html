@@ -18,7 +18,7 @@
                href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
                target=_blank 
                {% endif %}>
-                JSON
+              JSON
             </a>
           </li>
           <li aria-label="Export phenotype as XML" role="button" tabindex="0">
@@ -26,7 +26,7 @@
                href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=xml"
                target=_blank 
                {% endif %}>
-                XML
+              XML
             </a>
           </li>
         </ul>
@@ -37,16 +37,19 @@
           <button role="link" 
                   class="primary-btn bold dropdown-btn__label"
                   onClick="window.location.href='{% url 'update_phenotype' entity.id entity.history_id %}';">
-                    &nbsp;Edit&nbsp;
+            &nbsp;Edit&nbsp;
           </button>
         {% endif %}
 
         {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
-            <button class="primary-btn dropdown-btn__label" disabled title="This version is already published" style='color: green;'>
-              &nbsp;<strong>Published</strong>&nbsp;
-            </button>
+          <button class="primary-btn bold dropdown-btn__label"
+                  title="This version is already published"
+                  style='color: green;'
+                  disabled>
+            &nbsp;Published&nbsp;
+          </button>
         {% else %}    
-            {% render_publish_button %} 
+          {% render_publish_button %} 
         {% endif %}
       {% endif %}
     </div>
