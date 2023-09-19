@@ -1,7 +1,10 @@
 {% load svg %}
 {% load cl_extras %}
+{% if list_pages %} 
+<li class="content-container__nested">
+  {%else%}
 <li class="content-container">
-  
+  {% endif %}
     <a href="{{url}}" class="item-dropdown">
       <div class="item-dropdown__icon">
         {% svg icon %}
