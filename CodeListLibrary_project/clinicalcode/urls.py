@@ -33,7 +33,7 @@ urlpatterns = [
     url(r'^cookies-settings/$', View.cookies_settings, name='cookies_settings'),
     
     ## About pages
-    url(r'^about/(?P<pg_name>\w+)/$', View.brand_about_index_return, name='about_page'),
+    url(r'^about/(?P<pg_name>([A-Za-z0-9\-\_]+))/$', View.brand_about_index_return, name='about_page'),
     
     ## Changing password(s)
     url(

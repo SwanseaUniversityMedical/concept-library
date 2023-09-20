@@ -11,7 +11,7 @@ def render_card(context,url_drop, *args, **kwargs):
     card_context["description"] = context['lnk'].get('description','')
     card_context["icon"] = context['lnk'].get('svg','')
     card_context["url"] = url_drop 
-    if isinstance(context['lnk'].get('page_name',''),list):
+    if isinstance(context['lnk'].get('page_name', ''), list):
         card_context["list_pages"] = context['lnk'].get('page_name','')
         
     return card_context
