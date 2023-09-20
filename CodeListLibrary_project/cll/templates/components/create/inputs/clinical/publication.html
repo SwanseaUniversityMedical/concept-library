@@ -8,7 +8,7 @@
   <div class="publication-list-group">
     <data aria-hidden="true" type="value" for="{{ component.field_name }}">
       {% if component.value %}
-        {{ component.value|jsonify|safe }}
+        {{ component.value|jsonify|striptags }}
       {% endif %}
     </data>
     <div class="publication-list-group__interface" data-class="clinical-publication" data-field="{{ component.field_name }}">

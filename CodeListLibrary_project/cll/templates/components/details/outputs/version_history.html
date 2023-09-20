@@ -55,7 +55,7 @@
 							<td>
 								<a class="" href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}">	
 								{% if h.name_highlighted|length %}
-									{{ h.name_highlighted|safe }}
+									{{ h.name_highlighted|striptags }}
 								{% else %}
 									{{ h.name }}
 								{% endif %}

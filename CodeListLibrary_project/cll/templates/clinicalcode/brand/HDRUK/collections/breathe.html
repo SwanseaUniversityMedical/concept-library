@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load compress %}
@@ -15,7 +15,7 @@
 
 <!-- Dependencies -->
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/scrollspy.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/components/scrollspy.js' %}"></script>
 {% endcompress %}
 
 <!-- Main -->

@@ -4,15 +4,13 @@
     ---------------------------------------------------------------------------
 '''
 from django.urls import reverse
-from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import BadRequest
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseNotFound
-from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.http.response import HttpResponse, JsonResponse, Http404
+from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
@@ -25,15 +23,16 @@ import json
 import logging
 import time
 
-from ..models import *
-from ..permissions import *
-from .View import *
-from clinicalcode.api.views.View import get_canonical_path_by_brand
-from clinicalcode.constants import *
-
 from ..entity_utils import (concept_utils, entity_db_utils, permission_utils,
                             template_utils, gen_utils, model_utils, 
-                            create_utils, stats_utils, search_utils, constants)
+                            create_utils, search_utils, constants)
+
+from clinicalcode.models.Concept import Concept
+from clinicalcode.models.Template import Template
+from clinicalcode.models.CodingSystem import CodingSystem
+from clinicalcode.models.GenericEntity import GenericEntity
+from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
+from clinicalcode.api.views.View import get_canonical_path_by_brand
 
 logger = logging.getLogger(__name__)
 
@@ -476,168 +475,38 @@ class CreateEntityView(TemplateView):
             'result': codelist
         })
 
-class EntityStatisticsView(TemplateView):
+class RedirectConceptView(TemplateView):
     '''
-        Admin job panel to save statistics for templates across entities
+        [!] Note: Used to maintain legacy URLs where users could visit concepts/<pk>/detail
+
+        @desc Redirects requests to the phenotype page, assuming a phenotype owner
+              can be resolved from the child Concept
+
     '''
-    @method_decorator([login_required, permission_utils.redirect_readonly])
+
+    # URL Name of the detail page
+    ENTITY_DETAIL_VIEW = 'entity_detail'
+
     def get(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied
+        '''
+            Given the pk kwarg:
+                1. Will validate the existence of that Concept
+                2. Will then try to find its Phenotype owner
+                3. Finally, redirect the user to the Phenotype page
+        '''
+        concept_id = gen_utils.parse_int(kwargs.get('pk'), default=None)
+        if concept_id is None:
+            raise Http404
+        
+        concept = model_utils.try_get_instance(Concept, id=concept_id)
+        if concept is None:
+            raise Http404
+        
+        entity_owner = concept.phenotype_owner
+        if entity_owner is None:
+            raise Http404
 
-        stats_utils.collect_statistics(request)
-        context = {
-            'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
-        }
-
-        return render(request, 'clinicalcode/admin/run_statistics.html', context)
-
-
-def run_homepage_statistics(request):
-    """
-        save home page statistics
-    """
-    if not request.user.is_superuser:
-        raise PermissionDenied
-
-    if settings.CLL_READ_ONLY:
-        raise PermissionDenied
-
-    if request.method == 'GET':
-        stat = stats_utils.save_homepage_stats(request)
-        return render(
-            request,
-            'clinicalcode/admin/run_statistics.html', 
-            {
-                'successMsg': ['Homepage statistics saved'],
-                'stat': stat
-            }
-        )
-
-    raise BadRequest
-
-      
-@login_required
-# phenotype_conceptcodesByVersion
-def phenotype_concept_codes_by_version(request,
-                                    pk,
-                                    history_id,
-                                    target_concept_id = None,
-                                    target_concept_history_id = None):
-    '''
-        Get the codes of the phenotype concepts
-        for a specific version
-        for a specific concept
-        Parameters:     request    The request.
-                        pk         The phenotype id.
-                        history_id  The version id
-                        target_concept_id
-                        target_concept_history_id
-        Returns:        data       Dict with the codes. 
-    '''
-
-    validate_access_to_view(request,
-                            GenericEntity,
-                            pk,
-                            set_history_id=history_id)
-
-    # here, check live version
-    current_ph = GenericEntity.objects.get(pk=pk)
-
-    #     children_permitted_and_not_deleted, error_dict = db_utils.chk_children_permission_and_deletion(request,
-    #                                                                                                 GenericEntity, pk,
-    #                                                                                                 set_history_id=history_id)
-    #     if not children_permitted_and_not_deleted:
-    #         raise PermissionDenied
-
-    if current_ph.is_deleted == True:
-        raise PermissionDenied
-
-    # --------------------------------------------------
-
-    codes = entity_db_utils.get_phenotype_concept_codes_by_version(request, pk, history_id, target_concept_id, target_concept_history_id)
-
-    data = dict()
-    data['form_is_valid'] = True
-
-
-    # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = entity_db_utils.get_concept_ids_versions_of_historical_phenotype(pk, history_id)
-
-    concept_codes_html = []
-    for concept in concept_ids_historyIDs:
-        concept_id = concept[0]
-        concept_version_id = concept[1]
-
-        # check if the sent concept id/ver are valid
-        if (target_concept_id is not None and target_concept_history_id is not None):
-            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
-                continue
-
-        c_codes = []
-
-        c_codes = codes
-
-        c_codes_count = "0"
-        try:
-            c_codes_count = str(len(c_codes))
-        except:
-            c_codes_count = "0"
-
-        # c_codes_count_2 = len([c['code'] for c in codes if c['concept_id'] == concept_id and c['concept_version_id'] == concept_version_id ])
-
-        c_code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
-        concept_codes_html.append({
-            'concept_id': concept_id,
-            'concept_version_id': concept_version_id,
-            'c_codes_count': c_codes_count,
-            'c_html': render_to_string(
-                                        'clinicalcode/phenotype/get_concept_codes.html', {
-                                            'codes': c_codes,
-                                            'code_attribute_header': c_code_attribute_header,
-                                            'showConcept': False,
-                                            'q': ['', request.session.get('phenotype_search', '')][request.GET.get('highlight','0')=='1']
-                                        })
-        })
-
-    data['concept_codes_html'] = concept_codes_html
-
-    # data['codes'] = codes
-
-    return JsonResponse(data)
-
-
-def check_concept_version_is_the_latest(phenotypeID):
-    """
-    check live version of concepts in a phenotype concept_information
-    """
-
-    phenotype = GenericEntity.objects.get(pk=phenotypeID)
-
-    is_ok = True
-    version_alerts = {}
-
-    if not phenotype.template_data['concept_information']:
-        return is_ok, version_alerts
-
-    concepts_id_versionID = phenotype.template_data['concept_information']
-
-    # loop for concept versions
-    for c in concepts_id_versionID:
-        c_id = c['concept_id']
-        c_ver_id = c['concept_version_id']
-        latest_history_id = Concept.objects.get(pk=c_id).history.latest('history_id').history_id
-        if latest_history_id != c_ver_id:
-            version_alerts[c_ver_id] = "newer version available"
-            is_ok = False
-    #         else:
-    #             version_alerts[c_id] = ""
-    return is_ok, version_alerts
-
-
-
-
-
+        return redirect(reverse(self.ENTITY_DETAIL_VIEW, kwargs={ 'pk': entity_owner.id }))
 
 def generic_entity_detail(request, pk, history_id=None):
     ''' 
@@ -648,10 +517,10 @@ def generic_entity_detail(request, pk, history_id=None):
         
     if history_id is None:
         # get the latest version/ or latest published version
-        history_id = try_get_valid_history_id(request, GenericEntity, pk)
+        history_id = permission_utils.try_get_valid_history_id(request, GenericEntity, pk)
 
-    is_published = checkIfPublished(GenericEntity, pk, history_id)
-    approval_status = get_publish_approval_status(GenericEntity, pk, history_id)
+    is_published = permission_utils.check_if_published(GenericEntity, pk, history_id)
+    approval_status = permission_utils.get_publish_approval_status(GenericEntity, pk, history_id)
     is_lastapproved = len(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
 
 
@@ -756,7 +625,7 @@ def get_history_table_data(request, pk):
                                         )
 
         is_this_version_published = False
-        is_this_version_published = checkIfPublished(GenericEntity, ver.id, ver.history_id)
+        is_this_version_published = permission_utils.check_if_published(GenericEntity, ver.id, ver.history_id)
 
         if is_this_version_published:
             verpublish_date = PublishedGenericEntity.objects.get(entity_id=ver.id, entity_history_id=ver.history_id, approval_status=2).created
@@ -790,12 +659,12 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
     """
     if history_id is None:
         # get the latest version/ or latest published version
-        history_id = try_get_valid_history_id(request, GenericEntity, pk)        
+        history_id = permission_utils.try_get_valid_history_id(request, GenericEntity, pk)        
         
     # validate access for login and public site
     permission_utils.validate_access_to_view(request, pk, history_id)
 
-    is_published = checkIfPublished(GenericEntity, pk, history_id)
+    is_published = permission_utils.check_if_published(GenericEntity, pk, history_id)
 
     # ----------------------------------------------------------------------
 
@@ -903,5 +772,3 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
             ])
 
     return response
-
-

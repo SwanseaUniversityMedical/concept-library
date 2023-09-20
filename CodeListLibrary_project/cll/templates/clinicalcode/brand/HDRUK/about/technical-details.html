@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load compress %}
@@ -15,8 +15,8 @@
 
 <!-- Dependencies -->
 {% compress js %}
-  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/templateDetailRenderer.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/scrollspy.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/components/templateDetailRenderer.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/components/scrollspy.js' %}"></script>
 {% endcompress %}
 
 <!-- Build templates -->
@@ -203,9 +203,13 @@
                 </li>
                 <li>
                   By 
-                  <a href="{% url 'contact_us' %}">
+                  {% if not CLL_READ_ONLY %}
+                    <a href="{% url 'contact_us' %}">
+                      contacting us
+                    </a>
+                  {% else %}
                     contacting us
-                  </a>
+                  {% endif %}
                 </li>
               </ul>
             </section>

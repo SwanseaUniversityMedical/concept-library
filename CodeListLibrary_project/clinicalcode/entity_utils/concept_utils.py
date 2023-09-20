@@ -1,7 +1,9 @@
-from django.db.models import ForeignKey, Subquery, OuterRef
+from django.db import connection
+from django.db.models import F, Value, ForeignKey, Subquery, OuterRef
 from django.http.request import HttpRequest
 
 from ..models.Concept import Concept
+from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
 from ..models.Component import Component
 from ..models.CodeList import CodeList
@@ -11,8 +13,132 @@ from ..models.Code import Code
 from . import model_utils, permission_utils
 from .constants import (
     USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
-    CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE,
+    CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE, APPROVAL_STATUS
 )
+
+def is_concept_published(concept_id, version_id):
+    '''
+        Checks whether a Concept is published
+
+        Will return true if:
+            1. The Concept is currently published directly via a legacy system
+            2. The Concept is currently owned by a Published Phenotype that's published
+            3. The Concept is included in a historic Published Phenotype
+        
+    '''
+    historical_concept = Concept.history.filter(id=concept_id, history_id=version_id)
+    if not historical_concept.exists():
+        return False
+
+    directly_published = PublishedConcept.objects.filter(concept_id=concept_id, concept_history_id=version_id)
+    if directly_published.exists():
+        return True
+    
+    historical_concept = historical_concept.first()
+    phenotype = historical_concept.instance.phenotype_owner
+    if phenotype is not None and phenotype.publish_status == APPROVAL_STATUS.APPROVED:
+        template_data = phenotype.template_data
+        concept_information = template_data.get('concept_information') if isinstance(template_data, dict) else None
+        if concept_information:
+            for item in concept_information:
+                cid = item.get('concept_id')
+                cvd = item.get('concept_version_id')
+                if cid == concept_id and cvd == version_id:
+                    return True
+
+    with connection.cursor() as cursor:
+        sql = f'''
+        select id,
+               concepts
+          from (
+            select id,
+                   concepts
+              from public.clinicalcode_historicalgenericentity as entity,
+                   json_array_elements(entity.template_data::json->'concept_information') as concepts
+             where entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
+          ) results
+         where cast(concepts->>'concept_id' as integer) = {concept_id} and cast(concepts->>'concept_version_id' as integer) = {version_id};
+        '''
+        cursor.execute(sql)
+
+        row = cursor.fetchone()
+        if row is not None:
+            return True
+    
+    return False
+
+def was_concept_ever_published(concept_id, version_id=None):
+    '''
+        Checks whether a Concept has ever been published
+
+        Will return true if:
+            1. The Concept was published directly via a legacy system
+            2. The Concept is currently owned by a Published Phenotype
+            3. The Concept was ever included in historic Published Phenotype
+    '''
+    concept = Concept.objects.filter(id=concept_id)
+    if not concept.exists():
+        return False
+
+    directly_published = PublishedConcept.objects.filter(concept_id=concept_id)
+    if version_id is not None:
+        directly_published = directly_published.filter(concept_history_id=version_id)
+
+    if directly_published.exists():
+        return True
+    
+    concept = concept.first()
+    phenotype = concept.phenotype_owner
+    if phenotype is not None and phenotype.publish_status == APPROVAL_STATUS.APPROVED:
+        return True
+
+    with connection.cursor() as cursor:
+        sql = f'''
+        select id,
+               concepts
+          from (
+            select id,
+                   concepts
+              from public.clinicalcode_historicalgenericentity as entity,
+                   json_array_elements(entity.template_data::json->'concept_information') as concepts
+             where entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
+          ) results
+         where cast(concepts->>'concept_id' as integer) = {concept_id};
+        '''
+        cursor.execute(sql)
+
+        row = cursor.fetchone()
+        if row is not None:
+            return True
+    
+    return False
+
+def get_latest_accessible_concept(request, concept_id, default=None):
+    '''
+        Gets the latest accessible concept, as described by the user's
+        permissions and the given concept id
+
+        Args:
+            request {RequestContext}: the HTTPRequest
+
+            concept_id {string}: the concept's ID
+
+            default {optional}: the default return value if this method fails
+        
+        Returns:
+            The latest, accessible {concept} for that user and the concept id,
+            otherwise returns {None}
+
+    '''
+    historical_versions = Concept.history.filter(id=concept_id).all().order_by('-history_id')
+    if not historical_versions.exists():
+        return default
+    
+    for version in historical_versions:
+        if permission_utils.can_user_view_concept(request, version):
+            return version
+    
+    return default
 
 def get_concept_dataset(packet, field_name='concept_information', default=None):
     '''
@@ -28,39 +154,57 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
         default {any}: A default param to return if we are unable to perform the task
 
       Returns:
-        An {array[object]} that contains information relating to the concept:
-          - Name
-          - ID + Version ID
+        Either:
+            1. An {array[object]} that contains information relating to the concept:
+                - Name
+                - ID + Version ID
+            
+            OR;
+
+            2. {default|None} if the children have no child codes
+
     '''
     if not isinstance(packet, list):
         return default
 
-    concept_ids = [x.get('concept_id') for x in packet if x.get('concept_id') is not None]
-    concept_version_ids = [
-        x.get('concept_version_id') for x in packet
-        if x.get('concept_version_id') is not None
+    concept_info = [
+        {
+            'concept_id': x.get('concept_id'),
+            'concept_version_id': x.get('concept_version_id'),
+            'codelist': get_concept_codelist(
+                x.get('concept_id'), x.get('concept_version_id'),
+                incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value],
+            ),
+        }
+        for x in packet
+        if x.get('concept_id') is not None and x.get('concept_version_id') is not None
     ]
+
+    allowed_ids, allowed_versions = [], []
+    for x in concept_info:
+        if not isinstance(x, dict) or len(x.get('codelist', [])) <= 0:
+            continue
+        allowed_ids.append(x.get('concept_id'))
+        allowed_versions.append(x.get('concept_version_id'))
 
     concepts = Concept.history.filter(
-        id__in=concept_ids,
-        history_id__in=concept_version_ids,
+        id__in=allowed_ids,
+        history_id__in=allowed_versions
     )
 
-    concept_data = concepts.values('name', 'id', 'history_id')
-    coding_systems = concepts.values('coding_system__id')
+    if concepts.count() < 0:
+        return default
 
-    concept_data = list(concept_data)
-    concept_data = [
-        {
-            'prefix': 'C',
-            'type': 'Concept',
-            'field': field_name,
-            'coding_system': coding_systems[i].get('coding_system__id') if coding_systems[i] else -1
-        } | concept
-        for i, concept in enumerate(concept_data)
-    ]
+    concepts = concepts.values('id', 'name', 'history_id') \
+        .annotate(
+            prefix=Value('C'),
+            type=Value('Concept'),
+            field=Value(field_name),
+            coding_system_name=F('coding_system__name'),
+            coding_system=F('coding_system__id')
+        )
 
-    return concept_data
+    return list(concepts)
 
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False,
                                   include_codes=True, attribute_headers=None,
@@ -586,6 +730,19 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         dump=False
     )
 
+    # Determine whether the concept is OOD
+    if isinstance(derive_access_from, HttpRequest):
+        latest_version = get_latest_accessible_concept(derive_access_from, concept_id)
+        
+        if not latest_version:
+            latest_version = historical_concept
+        
+        concept_data['latest_version'] = {
+            'id': latest_version.id,
+            'history_id': latest_version.history_id,
+            'is_out_of_date': historical_concept.history_id < latest_version.history_id,
+        }
+
     # Retrieve human readable data for our tags, collections & coding systems
     if concept_data.get('tags'):
         concept_data['tags'] = [
@@ -647,7 +804,13 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     # Only append header attribute if not null
     if attribute_headers is not None:
         concept_data['code_attribute_headers'] = attribute_headers
+    
+    # Set phenotype owner
+    phenotype_owner = concept.phenotype_owner
+    if phenotype_owner:
+        concept_data['phenotype_owner'] = phenotype_owner.id
 
+    # Set base
     if not format_for_api:
         result = {
             'concept_id': concept_id,

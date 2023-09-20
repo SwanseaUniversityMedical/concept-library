@@ -5,54 +5,76 @@
 
 /// Login template override
 ///   @desc Stylesheet relating to login form
-.login-panel {
-  display: flex;
-  flex-flow: column nowrpa;
-  align-items: stretch;
-  margin: auto;
-  width: 800px;
-  min-height: 400px;
-	overflow: hidden;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
-  background: transparent;
+.login-container {
+  @include flex-col();
+  align-self: center;
+  width: var(--phenotype-article-lg-size);
+  max-width: var(--phenotype-article-lg-size);
+  padding: 1rem 1rem 2rem 1rem;
+  box-shadow: none;
+  border-radius: 0.5rem;
+  flex-direction: column-reverse;
 
-  @include media('<desktop', 'screen') {
-    width: 600px;
+  @include media(">desktop-lg", "screen") {
+    @include flex-row();
+    margin: auto;
+    width: var(--phenotype-article-sm-size);
+    max-width: var(--phenotype-article-sm-size);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   }
 
-  @include media('<tablet', 'screen') {
-    width: 320px;
-  }
+  &__info-container {
+    @include flex-col();
+    padding: 0.5rem;
+    margin-top: 1rem;
 
-  @include media('<phone', 'screen') {
-    width: 250px;
-  }
+    @include media(">desktop-lg", "screen") {
+      flex: 0 0 40%;
+      background-color: var(--phenotype-banner-bg-color);
+      border-radius: 1rem;
+      padding: 1.5rem 1rem;
+      //justify-content: center;
+    }
 
-  &__left-container {
-    display: flex;
-    flex: 0 0 40%;
-    background-color: rgba(140, 192, 222, 0.35);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-right: 0;
+    &__section {
+      @include flex-col();
 
-    @include media('<desktop', 'screen') {
-      display: none;
+      &:not(:last-child) {
+        padding-bottom: 2rem;
+      }
+      
+      h2, p {
+        margin: 0;
+        padding: 0;
+      }
+
+      h2 {
+        margin-bottom: 0.5rem;
+      }
     }
   }
 
-  &__right-container {
-    display: flex;
-    flex-flow: column nowrap;
-    flex: 0 0 60%;
-    padding: 1rem;
-    background-color: white;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-left: 0;
+  &__form-container {
+    padding: 0.5rem;
 
-    @include media('<desktop', 'screen') {
-      flex: 0 0 100%;
-      border-left: 1px solid rgba(255, 255, 255, 0.18);
+    @include media(">desktop-lg", "screen") {
+      flex-grow: 1;
+      padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+    }
+
+    &__options-container {
+      @include flex-row();
+      margin: 0.5rem 0;
+
+      .checkbox-item-container {
+        width: auto;
+        flex-grow: 1;
+      }
+    }
+
+    &__submit-container {
+      @include flex-col();
+      margin-top: auto;
     }
   }
 }

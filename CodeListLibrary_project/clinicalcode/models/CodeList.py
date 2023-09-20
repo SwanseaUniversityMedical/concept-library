@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -7,8 +6,6 @@ from .TimeStampedModel import TimeStampedModel
 
 
 class CodeList(TimeStampedModel):
-
-    # Type of codes in the code list
     component = models.OneToOneField(Component,
                                      on_delete=models.CASCADE,
                                      blank=True,

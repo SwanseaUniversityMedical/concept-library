@@ -11,7 +11,7 @@ from ...entity_utils import template_utils
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_templates(request):
   '''
-  
+    Get all templates
   '''    
   templates = Template.objects.all()
   
@@ -34,7 +34,7 @@ def get_templates(request):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_template_version_history(request, template_id):
   '''
-  
+    Get version history of a specific entity, using phenotype_id
   '''  
   template = Template.objects.filter(id=template_id)
   if not template.exists():
@@ -59,7 +59,7 @@ def get_template_version_history(request, template_id):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_template(request, template_id, version_id=None):
   '''
-  
+    Get detail of a template, optionally target a specific version using version_id
   '''  
   template = Template.objects.filter(id=template_id)
   if not template.exists():

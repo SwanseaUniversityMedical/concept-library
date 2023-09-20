@@ -140,6 +140,13 @@
     }
   }
 
+  &__alt-image {
+    max-width: calc(100% - 4rem);
+    padding: 2rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   h3.subheader {
     position: relative;
 

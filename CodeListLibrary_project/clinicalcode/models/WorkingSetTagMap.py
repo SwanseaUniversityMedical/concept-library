@@ -1,11 +1,10 @@
-from clinicalcode.models.TimeStampedModel import TimeStampedModel
 from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
 from .Tag import Tag
 from .WorkingSet import WorkingSet
-
+from .TimeStampedModel import TimeStampedModel
 
 class WorkingSetTagMap(TimeStampedModel):
     workingset = models.ForeignKey(WorkingSet, on_delete=models.CASCADE)

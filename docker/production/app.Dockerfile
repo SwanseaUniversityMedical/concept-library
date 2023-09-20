@@ -36,8 +36,9 @@ RUN apt-get update && apt-get install -y \
 RUN npm config set proxy http://192.168.10.15:8080 && \
     npm config set https-proxy http://192.168.10.15:8080 && \
     npm config set registry http://registry.npmjs.org/ && \
-    npm install -g config set user root \
-    npm install -g esbuild
+    npm install -g config set user root
+
+RUN npm install -g esbuild@0.19.0
 
 # Instantiate log dir
 RUN ["mkdir", "-p", "/home/config_cll/cll_srvr_logs"]

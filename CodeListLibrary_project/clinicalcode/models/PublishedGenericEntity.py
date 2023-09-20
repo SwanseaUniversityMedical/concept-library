@@ -23,7 +23,6 @@ class PublishedGenericEntity(models.Model):
 
     history = HistoricalRecords()
 
-
     def save(self, *args, **kwargs):
         '''
             update publish_status in historicalgenericentity
