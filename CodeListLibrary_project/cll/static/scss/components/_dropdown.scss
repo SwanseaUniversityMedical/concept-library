@@ -65,13 +65,10 @@
   @include media("<desktop", "screen") {
 
     .nav-dropdown__content{
-      max-height: 0;
       overflow: hidden;
-      transition: max-height 4s ease;
 
       &.open{
         display: contents;
-        max-height: 500px;
       }
      
     }
@@ -106,6 +103,7 @@
     font-size: var(--icons-size);
     color: var(--color-accent-dark);
 
+
   }
 
   }
@@ -116,6 +114,25 @@
 
     &__nested{
       list-style: none;
+
+      .item-dropdown{
+        &::after{
+        -webkit-transition: all 250ms ease-in-out;
+        -moz-transition: all 250ms ease-in-out;
+        -o-transition: all 250ms ease-in-out;
+        transition: all 250ms ease-in-out;
+        content: '\f107';
+        cursor: pointer;
+        opacity: 1;
+        position: initial;
+        aspect-ratio: 1 / 1;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--icons-size);
+        color: var(--color-accent-dark);
+
+        }
+      }
       
 
       .nested-menu{
