@@ -7,7 +7,6 @@ from django.db.models import ForeignKey, F
 from ..models.GenericEntity import GenericEntity
 from ..models.Template import Template
 from ..models.Concept import Concept
-from ..models.PublishedConcept import PublishedConcept
 from . import model_utils
 from . import template_utils
 from . import permission_utils
@@ -215,19 +214,17 @@ def get_concept_version_history(request, concept_id):
 
     latest = historical_versions.first()
     for version in historical_versions:
-        published_concept = PublishedConcept.objects.filter(
-            concept_id=concept_id,
-            concept_history_id=version.history_id
-        ).order_by('-concept_history_id').first()
+        if not permission_utils.can_user_view_concept(request, version):
+            continue
 
-        if permission_utils.can_user_view_concept(request, version):
-            result.append({
-                'version_id': version.history_id,
-                'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
-                'version_date': version.history_date,
-                'is_published': published_concept is not None,
-                'is_latest': latest.history_id == version.history_id
-            })
+        is_published = concept_utils.is_concept_published(concept_id, version.history_id)
+        result.append({
+            'version_id': version.history_id,
+            'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
+            'version_date': version.history_date,
+            'is_published': is_published,
+            'is_latest': latest.history_id == version.history_id
+        })
 
     return result
 

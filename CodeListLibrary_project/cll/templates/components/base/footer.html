@@ -7,14 +7,20 @@
       <div class="page-footer__listlinks">
         <hr class='footer-hr'>
 				<p>
-					<a href="{% url 'terms' %}" >Terms & Conditions</a>
+					<a href="{% url 'terms' %}">
+            Terms & Conditions
+          </a>
 				 	 |
-					<a href="{% url 'privacy_and_cookie_policy' %}" >Privacy & Cookie Policy</a>
+					<a href="{% url 'privacy_and_cookie_policy' %}">
+            Privacy & Cookie Policy
+          </a>
 					 | 
-					<a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank  >Support & Documentation</a>
+					<a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank>
+            Support & Documentation
+          </a>
 					{% if not CLL_READ_ONLY %}
 					 |
-					<a href="{% url 'contact_us' %}"  >Contact Us</a>
+					<a href="{% url 'contact_us' %}">Contact Us</a>
 					{% endif %}
         </p>
         <p>

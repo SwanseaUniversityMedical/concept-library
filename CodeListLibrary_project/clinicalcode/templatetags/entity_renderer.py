@@ -2,7 +2,6 @@ from django import template
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from django.templatetags.static import static
 from django.conf import settings
 
 import re

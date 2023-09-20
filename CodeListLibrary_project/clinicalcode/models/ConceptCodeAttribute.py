@@ -14,7 +14,6 @@ from simple_history.models import HistoricalRecords
 from .Concept import Concept
 from .TimeStampedModel import TimeStampedModel
 
-
 class ConceptCodeAttribute(TimeStampedModel):
     '''
         Store attributes of codes in a concept.
@@ -24,8 +23,10 @@ class ConceptCodeAttribute(TimeStampedModel):
     concept = models.ForeignKey(Concept, on_delete=models.CASCADE)
     code = models.CharField(max_length=100)  # A Single Code
     attributes = ArrayField(
-        models.CharField(max_length=250), blank=True,
-        null=True)  # Array of attribute value /without headers
+        models.CharField(max_length=250),
+        blank=True,
+        null=True
+    )
 
     created_by = models.ForeignKey(User,
                                    on_delete=models.SET_NULL,

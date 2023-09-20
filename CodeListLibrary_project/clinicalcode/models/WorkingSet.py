@@ -4,14 +4,12 @@
     A working set is a list of columns from a number of Concepts.
 '''
 from django.contrib.auth.models import Group, User
-#from django.contrib.postgres.fields import JSONField
 from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from ..permissions import Permissions
 from .TimeStampedModel import TimeStampedModel
-
+from ..entity_utils import constants
 
 class WorkingSet(TimeStampedModel):
     name = models.CharField(max_length=250)
@@ -47,12 +45,9 @@ class WorkingSet(TimeStampedModel):
                               null=True,
                               related_name="working_set_owned")
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
-    owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES,
-                                       default=Permissions.EDIT)
-    group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES,
-                                       default=Permissions.NONE)
-    world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES,
-                                       default=Permissions.NONE)
+    owner_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.OWNER_PERMISSIONS], default=constants.OWNER_PERMISSIONS.EDIT)
+    group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
+    world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.WORLD_ACCESS_PERMISSIONS], default=constants.WORLD_ACCESS_PERMISSIONS.NONE)
 
     friendly_id = models.CharField(max_length=50, default='', editable=False)
 

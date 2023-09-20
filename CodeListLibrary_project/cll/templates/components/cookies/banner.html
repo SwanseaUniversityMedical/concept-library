@@ -1,21 +1,11 @@
 {% load i18n static %}
 {% load compress %}
 
-
-{% if IS_DEMO or IS_DEVELOPMENT_PC %}	
-	<head>
-		<!-- Stop indexing the modals popups on the demo site -->
-		<meta name="robots" content="noindex, nofollow">
-		<meta name="googlebot" content="noindex, nofollow">
-	</head>
-{% endif %}
-
-
 {% include "components/cookies/cookie_component.html" %}
 {% include "components/cookies/cookie_card.html" %}
 
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/cookies/cookiealert.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/cookies/cookie-settings.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/clinicalcode/redesign/cookies/generateGtag.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/cookiealert.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/cookie-settings.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/generateGtag.js' %}"></script>
 {% endcompress %}

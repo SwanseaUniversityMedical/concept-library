@@ -6,13 +6,12 @@
     ---------------------------------------------------------------------------
 '''
 
-from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
 
 from .Concept import Concept, HistoricalConcept
 from .TimeStampedModel import TimeStampedModel
-
 
 class Component(TimeStampedModel):
     '''

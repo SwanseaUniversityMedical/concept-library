@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load compress %}
@@ -23,7 +23,7 @@
 
   <!-- Dependencies -->
   {% compress js %}
-  <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entitySelector.js' %}"></script>
+  <script type="module" src="{% static 'js/clinicalcode/forms/entitySelector.js' %}"></script>
   {% endcompress %}
 
   <!-- Main -->
@@ -75,5 +75,5 @@
   </template>
 
   <!-- Entity data -->
-  <data aria-hidden="true" name="data" data-owner="entity-selector" type="text/json">{% if entity_data %} {{ entity_data|jsonify|safe }} {% endif %}</data>
+  <data aria-hidden="true" name="data" data-owner="entity-selector" type="text/json">{% if entity_data %} {{ entity_data|jsonify|striptags }} {% endif %}</data>
 {% endblock container %}

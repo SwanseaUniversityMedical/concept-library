@@ -38,6 +38,7 @@
     },
     {
       "title": "Clinical Code List",
+      "documentation": "clinical-coded-phenotype-docs",
       "description": "Clinical codes used to define this phenotype.",
       "fields": ["concept_information"]
     },

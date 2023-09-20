@@ -21,6 +21,20 @@
     max-width: var(--phenotype-article-lg-size);
   }
 
+  &__edit-icon:after {
+    @include fontawesome-icon();
+    content: '\f304';
+    color: col(accent-primary);
+    margin: 0 0 0 0.25rem;
+  }
+
+  &__delete-icon:after {
+    @include fontawesome-icon();
+    content: '\f1f8';
+    color: col(accent-danger);
+    margin: 0 0 0 0.25rem;
+  }
+
   &__inner-container {
     max-width: 100%;
     padding: 0;

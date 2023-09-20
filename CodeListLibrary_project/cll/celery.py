@@ -1,8 +1,8 @@
 from __future__ import absolute_import
-
-import os
 from celery import Celery
 from django.conf import settings
+
+import os
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cll.settings')
 app = Celery('cll')
@@ -10,15 +10,17 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Load tasks from all registered apps
 """
-Use schedule only for specific tasks that need to be forced to run at a specific time
-Example:
-schedule = {
-    # Publication & Update emails
-    'send_mail': {
-        'task': 'clinicalcode.tasks.send_scheduled_email',
-        'schedule': crontab(minute=0,hour='9,18')
-    },
-}
+    Use schedule only for specific tasks that need to be forced to run at a specific time
+
+    Example:
+
+        schedule = {
+            # Publication & Update emails
+            'send_mail': {
+                'task': 'clinicalcode.tasks.send_scheduled_email',
+                'schedule': crontab(minute=0,hour='9,18')
+            },
+        }
 
 """
 

@@ -1,14 +1,12 @@
+from datetime import datetime
 from django.http import HttpResponse
 from django.views.decorators.http import require_GET
 from django.conf import settings
 from django.urls import reverse
-#import xml.etree.ElementTree as ET
-#from .. import db_utils
+
 from clinicalcode.entity_utils import entity_db_utils
-from datetime import datetime
 
 cur_time = str(datetime.now().date())
-
 
 @require_GET
 def robots_txt(request):
@@ -25,7 +23,6 @@ def robots_txt(request):
     # lines += ["Sitemap22: " + site + "/sitemap.xml"]
 
     lines += ["Sitemap: " + request.build_absolute_uri(reverse('concept_library_home')).replace('http://' , 'https://') + "sitemap.xml"]
-
 
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
@@ -152,6 +149,3 @@ def url_http_replace(url1):
         url = url1.replace('http://' , 'https://')
         
     return url
-
-    
-    
