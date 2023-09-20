@@ -30,7 +30,7 @@ const COLLECTION_MAP = {
     if (item.is_deleted) {
       status = -1;
     } else {
-      status = (!item.publish_status || item.publish_status < 0) ? 5 : item.publish_status;
+      status = (isNullOrUndefined(item.publish_status) || item.publish_status < 0) ? 5 : item.publish_status;
     }
 
     status = STATUSES[status] || 'ARCHIVED';
@@ -49,7 +49,7 @@ const COLLECTION_MAP = {
     if (item.is_deleted) {
       status = -1;
     } else {
-      status = (!item.publish_status || item.publish_status < 0) ? 5 : item.publish_status;
+      status = (isNullOrUndefined(item.publish_status) || item.publish_status < 0) ? 5 : item.publish_status;
     }
 
     status = STATUSES[status] || 'ARCHIVED';
