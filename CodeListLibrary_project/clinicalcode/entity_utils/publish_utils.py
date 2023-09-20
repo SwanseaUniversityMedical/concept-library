@@ -1,8 +1,6 @@
 from django.urls import reverse
 
 import re
-from clinicalcode.db_utils import send_review_email_generic
-from clinicalcode.entity_utils import entity_db_utils
 from django.contrib.auth.models import  User
 from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
@@ -27,11 +25,11 @@ def form_validation(request, data, entity_history_id, pk, entity,checks):
     data['form_is_valid'] = True
     data['latest_history_ID'] = entity_history_id  # entity.history.latest().pk
     #send email message state and client side message
-    data['message'] = send_message(request,pk, data, entity, entity_history_id, checks)['message']
+    data['message'] = send_message(request, pk, data, entity, entity_history_id, checks)['message']
 
     return data
 
-def send_message(request,pk, data, entity, entity_history_id, checks):
+def send_message(request, pk, data, entity, entity_history_id, checks):
     """
     Send email message with variational decisions approved/pending/declined and show message to the  client side
     @param pk: entity id
@@ -49,17 +47,17 @@ def send_message(request,pk, data, entity, entity_history_id, checks):
     # Determine the appropriate message template and send email
     approval_status = data['approval_status']
     if approval_status == constants.APPROVAL_STATUS.APPROVED:
-        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, approved_template)
+        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, approved_template)
     elif approval_status == constants.APPROVAL_STATUS.REJECTED:
-        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, rejected_template)
+        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, rejected_template)
     elif approval_status == constants.APPROVAL_STATUS.PENDING:
-        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, pending_template)
+        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, pending_template)
     elif approval_status is None and checks['is_moderator']:
-        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, approved_template)
+        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, approved_template)
     elif len(PublishedGenericEntity.objects.filter(
             entity=GenericEntity.objects.get(pk=pk).id, 
             approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0 and approval_status != constants.APPROVAL_STATUS.REJECTED:
-        return format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, approved_template)
+        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, approved_template)
 
 
 def check_entity_to_publish(request, pk, entity_history_id):
@@ -94,7 +92,6 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     # Determine the final permission to publish
     allow_to_publish = is_owner or is_moderator or is_publisher
-    
 
     generic_entity = GenericEntity.objects.get(pk=pk)
     published_entity_approved = PublishedGenericEntity.objects.filter(
@@ -120,7 +117,6 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     # Entity class
     entity_class = entity.template.entity_class.name 
-   
 
     # Check children
     if is_valid_entity_class(entity_class):
@@ -134,7 +130,6 @@ def check_entity_to_publish(request, pk, entity_history_id):
     # Check entity data and class
     if not entity_has_data and entity_class == "Workingset":
         allow_to_publish = False
-
     
     checks = {
         'entity_type': entity_class,
@@ -155,7 +150,6 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'all_not_deleted': all_not_deleted
     }
     return checks
-
 
 def check_children(request, entity, entity_class):
         """
@@ -182,7 +176,6 @@ def check_children(request, entity, entity_class):
 
         # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
         # we check access(from live version) here.
-
         errors = []
         all_not_deleted = True
         all_are_published = True
@@ -198,7 +191,6 @@ def check_children(request, entity, entity_class):
         # Check if all objects are not deleted
         all_not_deleted = not bool(errors)
 
-
         for entity_child in child_entitys_versions:
             entity_child_id = entity_child[0]
             entity_child_version = entity_child[1]
@@ -213,8 +205,6 @@ def check_children(request, entity, entity_class):
                     is_published = (entity_child_id,entity_child_version) in inheritated_childs
                 else:
                     is_published = False
-                    
-
             else:
                 is_published = True
             if not is_published:
@@ -225,10 +215,7 @@ def check_children(request, entity, entity_class):
                 ),"url_parent": reverse('entity_detail', kwargs={'pk': concept_owner_id})})
                 all_are_published = False
 
-
         return all_not_deleted and all_are_published, all_not_deleted, all_are_published, errors
-
-
 
 def is_valid_entity_class(entity_class):
     """
@@ -253,7 +240,7 @@ def get_table_of_entity(entity_class):
     return 'concept_information' if entity_class == "Phenotype" else 'workingset_concept_information'
 
 
-def format_message_and_send_email(request,pk, data, entity, entity_history_id, checks, message_template):
+def format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, message_template):
     """
     Format the message, send an email, and update data with the new message
     """
@@ -266,27 +253,27 @@ def format_message_and_send_email(request,pk, data, entity, entity_history_id, c
     send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
     return data
 
-def send_email_decision_entity(request,entity,entity_history_id,entity_type,data):
+def send_email_decision_entity(request, entity, entity_history_id, entity_type,data):
     """
     Call util function to send email decision
     @param workingset: workingset object
     @param approved: approved status flag
     """
-    #print(send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
+    #print(entity_db_utils.send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
     context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "owner_id": entity.owner_id,"url_redirect":url_redirect}
 
     if data['approval_status'].value == 1:
         context["status"] = "Pending"
         context["message"] = f"{entity_type} has been submitted and waiting moderator to publish on the website"
-        send_review_email(request,context)
+        send_review_email(request, context)
     elif data['approval_status'].value == 2:
         # This line for the case when user want to get notification of same workingset id but different version
         context["status"] = "Published"
         context["message"] = f"{entity_type} has been successfully approved and published on the website"
-        send_review_email(request,context)
+        send_review_email(request, context)
     elif data['approval_status'].value == 3:
         context["status"] = "Rejected"
         context["message"] = f"{entity_type} has been rejected by the moderator. Please consider update changes and try again"
         context["custom_message"] = "Please adjust changes and try again" #TODO add custom message logic
-        send_review_email(request,context)
+        send_review_email(request, context)

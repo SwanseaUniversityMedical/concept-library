@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View

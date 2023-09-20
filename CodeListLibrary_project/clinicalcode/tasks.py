@@ -33,7 +33,6 @@ def send_scheduled_email(self):
                                                  email_content[n]['owner_id'] == owner_ids[i]])
                               })
 
-
     for j in range(len(overal_result)):
         if not settings.IS_DEVELOPMENT_PC:
             try:
