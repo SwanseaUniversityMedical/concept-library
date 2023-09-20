@@ -27,7 +27,13 @@ def try_validate_entity(request, entity_id, entity_history_id):
     if not permission_utils.can_user_edit_entity(request, entity_id, entity_history_id):
         return False
     
-    return GenericEntity.history.get(id=entity_id, history_id=entity_history_id)
+    entity = GenericEntity.history.filter(id=entity_id, history_id=entity_history_id)
+    entity = entity.first() if entity.exists() else None
+
+    if entity is None or permission_utils.was_archived(entity_id):
+        return False
+
+    return entity
 
 def get_createable_entities(request):
     '''
@@ -251,6 +257,10 @@ def validate_form_entity(form_entity, form_method, errors=[], default=None):
 
     if not entity.exists():
         errors.append(f'Unable to find an entity with an ID of {entity_id} and a version of {history_id}')
+        return default
+
+    if permission_utils.was_archived(entity_id):
+        errors.append(f'Entity of ID {entity_id} has been archived')
         return default
     
     return entity.first()
@@ -1011,6 +1021,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                     template_data=template_data,
                     created_by=user,
                     brands=related_brands,
+                    updated=make_aware(datetime.now()),
                     owner=user
                 )
                 entity.save()

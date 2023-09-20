@@ -126,18 +126,25 @@ def brand_about_index_return(request, pg_name):
         about_pages_dj_data = brand.about_menu 
 
         # converts 'about_menu' django JSON into a dictionary with key as page_name and html index as value
-        about_page_templates = {item["page_name"]: item["index"] for item in about_pages_dj_data}
+        about_page_templates = {
+            item['page_name'].lower(): item['index']
+            for item in about_pages_dj_data if isinstance(item.get('index'), str) and isinstance(item.get('page_name'), str)
+        }
+        
+        inner_templates = {
+            group['page_name'].lower(): group['index']
+            for item in about_pages_dj_data if isinstance(item.get('page_name'), list)
+            for group in item.get('page_name') if isinstance(group.get('index'), str) and isinstance(group.get('page_name'), str)
+        }
 
         # Get the index associated with current page name
-        about_page_name = about_page_templates.get(pg_name.lower())
-
-        if about_page_name:
-            return render(request, about_page_name, {})
-        else:
-            raise Http404
+        about_page_name = about_page_templates.get(pg_name.lower()) or inner_templates.get(pg_name.lower())
+        if not about_page_name:
+            raise Exception('No valid template found')
     except:
-        # force render of the current index_path for any occuring errors
-        return render(request, settings.INDEX_PATH)
+        raise Http404
+    else:
+        return render(request, about_page_name, {})
 
 #--------------------------------------------------------------------------
 

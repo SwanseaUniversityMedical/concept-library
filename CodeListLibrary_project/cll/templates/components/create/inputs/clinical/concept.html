@@ -2,7 +2,7 @@
 {% load entity_renderer %}
 
 <section class="concepts-view" id="concepts-view" data-field="{{ component.field_name }}" data-class="clinical-concept">
-  <data aria-hidden="true" type="value" for="{{ component.field_name }}">{% if component.value %}{{ component.value|jsonify|safe }}{% endif %}</data>
+  <data aria-hidden="true" type="value" for="{{ component.field_name }}">{% if component.value %}{{ component.value|jsonify|striptags }}{% endif %}</data>
 
   <section class="concepts-view__header">
     <div class="concepts-view__container">

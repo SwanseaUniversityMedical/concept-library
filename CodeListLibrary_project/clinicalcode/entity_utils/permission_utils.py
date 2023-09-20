@@ -70,6 +70,26 @@ def is_publish_status(entity, status):
 
 ''' General permissions '''
 
+def was_archived(entity_id):
+    '''
+      Checks whether an entity was ever archived:
+      
+        - Archive status is derived from the top-most entity, i.e. the latest version
+        - We assume that the instance was deleted in cases where the instance does
+          not exist within the database
+      
+      Args:
+        entity_id {integer}: The ID of the entity
+
+      Returns:
+        A {boolean} that describes the archived state of an entity
+    '''
+    entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
+    if entity is None:
+        return True
+
+    return True if entity.is_deleted else False
+
 def get_user_groups(request):
     '''
       Get the groups related to the requesting user
@@ -128,11 +148,21 @@ def get_editable_entities(
             group_access__in=[GROUP_PERMISSIONS.EDIT]
         )
 
-        entities = entities.filter(query)
+        entities = entities.filter(query) \
+            .annotate(
+                was_deleted=Subquery(
+                    GenericEntity.objects.filter(
+                        id=OuterRef('id'),
+                        is_deleted=True
+                    ) \
+                    .values('id')
+                )
+            )
+
         if only_deleted:
-            return entities.exclude(Q(is_deleted=False) | Q(is_deleted__isnull=True) | Q(is_deleted=None))
+            return entities.exclude(was_deleted__isnull=True)
         else:
-            return entities.exclude(Q(is_deleted=True))
+            return entities.exclude(was_deleted__isnull=False)
 
     return None
 
@@ -198,19 +228,37 @@ def get_accessible_entities(
             world_access=WORLD_ACCESS_PERMISSIONS.VIEW
         )
 
-        entities = entities.filter(query)
+        entities = entities.filter(query) \
+            .annotate(
+                was_deleted=Subquery(
+                    GenericEntity.objects.filter(
+                        id=OuterRef('id'),
+                        is_deleted=True
+                    ) \
+                    .values('id')
+                )
+            )
+
         if only_deleted:
-            entities = entities.exclude(Q(is_deleted=False) | Q(
-                is_deleted__isnull=True) | Q(is_deleted=None))
+            entities = entities.exclude(was_deleted__isnull=True)
         else:
-            entities = entities.exclude(Q(is_deleted=True))
+            entities = entities.exclude(was_deleted__isnull=False)
 
         return entities.distinct('id')
 
     entities = entities.filter(
         publish_status=APPROVAL_STATUS.APPROVED
     ) \
-        .filter(Q(is_deleted=False) | Q(is_deleted=None))
+        .annotate(
+            was_deleted=Subquery(
+                GenericEntity.objects.filter(
+                    id=OuterRef('id'),
+                    is_deleted=True
+                ) \
+                .values('id')
+            )
+        ) \
+        .exclude(was_deleted__isnull=False)
 
     return entities.distinct('id')
 

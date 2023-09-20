@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.db.models import Q
+from django.utils.timezone import make_aware
 from django.db import connection, transaction
 from django.conf import settings
 from django.contrib import messages
@@ -117,6 +118,7 @@ def get_transformed_data(concept, template):
         'group_access': concept.group_access,
         'world_access': concept.world_access,
         'template': template,
+        'updated': make_aware(datetime.now()),
         'status': 1,
     }
 
@@ -504,11 +506,17 @@ def admin_mig_phenotypes_dt(request):
                             approval_status = str(PublishedPhenotype.objects.get(phenotype_id=p.id, phenotype_history_id=p_latest_history_id).approval_status)
                             publish_status_str = " , publish_status = " + approval_status + " "
                         
+                        upd_t = p.modified
+                        if not upd_t:
+                            upd_t = make_aware(datetime.now())
+                        upd_t = upd_t.strftime('%Y-%m-%d %H:%M:%S')
+
                         brand_status = compute_related_brands(p)
                         with connection.cursor() as cursor:
                             sql_p = """
                                     update clinicalcode_genericentity  
-                                    set template_data = '"""+json.dumps(temp_data)+"""',
+                                    set updated = '"""+upd_t+"""',
+                                        template_data = '"""+json.dumps(temp_data)+"""',
                                         publications= '"""+json.dumps(publication_items)+"""'
                                         """+publish_status_str+"""
                                         , """+brand_status+"""
