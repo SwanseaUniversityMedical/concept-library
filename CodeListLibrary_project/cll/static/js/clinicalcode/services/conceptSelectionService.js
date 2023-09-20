@@ -866,7 +866,8 @@ export class ConceptSelectionService {
     // create content handler
     const body = container.querySelector('#target-modal-content');
     if (this.options?.allowMultiple) {
-      body.classList.add('no-pad');
+      body.classList.add('target-modal__body--no-pad');
+      body.classList.add('target-modal__body--constrained');
     }
 
     let contentContainer = body;

@@ -677,6 +677,7 @@
   border-radius: 2px;
   padding: 0.5rem;
   width: auto;
+  max-width: calc(100% - 1rem);
   transition: border-color 250ms ease;
 
   &:focus {

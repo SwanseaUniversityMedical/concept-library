@@ -318,6 +318,9 @@ const tryArchivePhenotype = (id) => {
     onRender: (modal) => {
       const entityIdField = modal.querySelector('#id_entity_id');
       entityIdField.value = id;
+
+      const passphraseField = modal.querySelector('#id_passphrase');
+      passphraseField.setAttribute('placeholder', id);
     },
     beforeAccept: (modal) => {
       const form = modal.querySelector('#archive-form-area');
