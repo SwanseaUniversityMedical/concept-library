@@ -28,7 +28,7 @@
         
         <!-- Brands -->
         {% if request.user.is_superuser  and request.session.all_brands %}
-          {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=""  image="/static/img/header_logo.png"  title="Concept Library" %}
+          {% include "components/navigation/dropdown_profile_item.html" with  currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title="Concept Library" %}
           
           {% for brand in request.session.all_brands %}
             {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo  title=brand|upper %}
