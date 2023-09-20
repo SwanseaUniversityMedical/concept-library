@@ -3,7 +3,6 @@ from django.db import models
 
 from .CodingSystem import CodingSystem
 
-
 class CodingSystemFilter(models.Model):
 
     DATA_TYPE_STRING = "string"

@@ -1,9 +1,9 @@
-from clinicalcode.models.Brand import Brand
-from clinicalcode.models.TimeStampedModel import TimeStampedModel
 from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
+from clinicalcode.models.Brand import Brand
+from clinicalcode.models.TimeStampedModel import TimeStampedModel
 
 class Tag(TimeStampedModel):
     default = 1

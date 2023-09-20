@@ -4,10 +4,11 @@ from django.http.response import JsonResponse
 from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
-from ..entity_utils import permission_utils, constants, publish_utils
-from ..permissions import *
-from .View import *
+from clinicalcode.models.GenericEntity import GenericEntity
+from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
+from ..entity_utils import publish_utils, permission_utils, constants
 
 class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     '''
@@ -26,7 +27,7 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
         @param history_id: entity historical id 
         @return: JSON response to the page
         """
-        is_published = checkIfPublished(GenericEntity, pk, history_id)
+        is_published = permission_utils.check_if_published(GenericEntity, pk, history_id)
         checks = publish_utils.check_entity_to_publish(request, pk, history_id)
         # if not is_published:
         #     checks = publish_utils.check_entity_to_publish(request, pk, history_id)
@@ -56,4 +57,3 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
             data['message'] = render_to_string('clinicalcode/error.html', {}, self.request)
 
         return JsonResponse(data)
-

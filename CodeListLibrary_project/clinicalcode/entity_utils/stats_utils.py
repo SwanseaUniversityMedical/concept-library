@@ -179,12 +179,12 @@ def collate_statistics(entities, data_cache=None, template_cache=None, brand=Non
 
     return statistics
 
-'''
-    Need to change this for several reasons:
-        1. We can utilise receivers and signals so we don't do this as a cronjob
-        2. Big O notation for this implementation is not great
-'''
 def collect_statistics(request):
+    '''
+        Need to change this for several reasons:
+            1. We can utilise receivers and signals so we don't do this as a cronjob
+            2. Big O notation for this implementation is not great
+    '''
     user = request.user if request else None
     cache = { }
     template_cache = { }
@@ -352,19 +352,36 @@ def get_phenotype_data(published_phenotypes):
     ds_ids = [] 
     count = 0
     for p in published_phenotypes:
-        if p['template_id'] == 1: # clinical-coded phenotype
-            template_data = json.loads(p['template_data'])
-            if template_data['coding_system'] is not None:
-                coding_systems_ids = list(set(coding_systems_ids + template_data['coding_system']))
-            if template_data['data_sources'] is not None:
-                ds_ids = list(set(ds_ids + template_data['data_sources']))
-            if template_data['concept_information']:
-                codecount = get_published_phenotype_code_count(
-                    phenotype_id=p['id'], 
-                    phenotype_history_id=p['history_id'], 
-                    concept_information=template_data['concept_information']
-                )
-                count = count + codecount
+        if p['template_id'] == 1:
+            template_data = None
+            try:
+                template_data = p.get('template_data') if isinstance(p, dict) else getattr(p, 'template_data')
+                template_data = json.loads(template_data) if template_data is not None else None
+            except:
+                continue
+
+            if not isinstance(template_data, dict):
+                continue
+            
+            concepts = template_data.get('concept_information')
+            data_sources = template_data.get('data_sources')
+            coding_system = template_data.get('coding_system')
+
+            if coding_system is not None:
+                coding_systems_ids = list(set(coding_systems_ids + coding_system))
+
+            if data_sources is not None:
+                ds_ids = list(set(ds_ids + data_sources))
+
+            if concepts:
+                pid, phd = p.get('id'), p.get('history_id')
+                if pid is not None and phd is not None:
+                    codecount = get_published_phenotype_code_count(
+                        phenotype_id=pid, 
+                        phenotype_history_id=phd, 
+                        concept_information=concepts
+                    )
+                    count = count + codecount
 
     # make sure coding system exists
     unique_coding_systems_ids = list(set(coding_systems_ids))
@@ -411,6 +428,7 @@ def get_published_phenotype_code_count(phenotype_id, phenotype_history_id, conce
             published_phenotype.code_count = codecount
             published_phenotype.save()
             return codecount
+
         return saved_codecount
 
     return codecount

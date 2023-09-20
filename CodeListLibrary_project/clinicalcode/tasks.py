@@ -1,28 +1,26 @@
-import time
-
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, BadHeaderError
 from django.core import management
 
-from clinicalcode import db_utils
-from clinicalcode.entity_utils import stats_utils
+import time
+
+from clinicalcode.entity_utils import stats_utils, email_utils
 
 @shared_task(bind=True)
 def send_message_test(self):
     return 'test message'
 
-@shared_task(name="review_email_backgorund_task")
+@shared_task(name="review_email_background_task")
 def send_review_email(request,data):
-   # time.sleep(20)
-    db_utils.send_review_email_generic(request,data)
+    email_utils.send_review_email_generic(request, data)
     return f"Email sent - {data['id']} with name {data['entity_name']} and owner_id {data['owner_id']}"
 
 @shared_task(bind=True)
 def send_scheduled_email(self):
     email_subject = 'Weekly email Concept Library'
-    email_content = db_utils.get_scheduled_email_to_send()
+    email_content = email_utils.get_scheduled_email_to_send()
 
     owner_ids = list(set([c['owner_id'] for c in email_content]))
     owner_email = list(set([c['owner_email'] for c in email_content]))

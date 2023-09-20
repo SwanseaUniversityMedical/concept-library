@@ -4,35 +4,27 @@
 
     -------------------------------------------------------------------------- generic_entity_db_utils
 '''
-import ast
-import datetime
-import json
-import re
-from collections import OrderedDict
-from collections import OrderedDict as ordr
 from itertools import *
 
-import numpy as np
-import pandas as pd
+from django.db import connection
 from django.conf import settings
-from django.contrib.auth.models import Group, User
-from django.core.exceptions import ObjectDoesNotExist  # , PermissionDenied
-from django.core.validators import URLValidator
-#from dateutil.parser import parse
-from django.db import connection, connections  # , transaction
-from django.db.models import Q
-from django.utils.timezone import now
+from django.contrib.auth.models import Group
 from psycopg2.errorcodes import INVALID_PARAMETER_VALUE
-from simple_history.utils import update_change_reason
-from django.core.mail import BadHeaderError, EmailMultiAlternatives
-from django.db.models.functions import Lower
-from string import ascii_letters
 
-from clinicalcode import utils
-from clinicalcode.models import *
-from ..permissions import *
-from clinicalcode import db_utils
-from clinicalcode.entity_utils import constants
+import json
+import re
+
+from clinicalcode.entity_utils import constants, gen_utils, permission_utils
+from clinicalcode.models.Tag import Tag
+from clinicalcode.models.Brand import Brand
+from clinicalcode.models.DataSource import DataSource
+from clinicalcode.models.CodingSystem import CodingSystem
+from clinicalcode.models.Template import Template
+from clinicalcode.models.Concept import Concept
+from clinicalcode.models.Phenotype import Phenotype
+from clinicalcode.models.WorkingSet import WorkingSet
+from clinicalcode.models.PhenotypeWorkingset import PhenotypeWorkingset
+from clinicalcode.models.GenericEntity import GenericEntity
 
 #--------- Order queries ---------------
 entity_order_queries = {
@@ -782,14 +774,14 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
         is_valid_id = False
         err = 'ID must be a valid id.'
         
-    if not utils.isInt(pk):
-        if set_class == Concept and pk[0].upper() == 'C' and utils.isInt(pk[1:]):
+    if not gen_utils.is_int(pk):
+        if set_class == Concept and pk[0].upper() == 'C' and gen_utils.is_int(pk[1:]):
             int_pk = int(pk[1:])
-        elif set_class == Phenotype and pk[0:2].upper() == 'PH' and utils.isInt(pk[2:]):
+        elif set_class == Phenotype and pk[0:2].upper() == 'PH' and gen_utils.is_int(pk[2:]):
             int_pk = int(pk[2:])        
-        elif set_class == WorkingSet and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
+        elif set_class == WorkingSet and pk[0:2].upper() == 'WS' and gen_utils.is_int(pk[2:]):
             int_pk = int(pk[2:])
-        elif set_class == PhenotypeWorkingset and pk[0:2].upper() == 'WS' and utils.isInt(pk[2:]):
+        elif set_class == PhenotypeWorkingset and pk[0:2].upper() == 'WS' and gen_utils.is_int(pk[2:]):
             int_pk = int(pk[2:])
         else:
             is_valid_id = False
@@ -803,7 +795,7 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
         err = 'ID not found.'
 
     if chk_permission:
-        if not allowed_to_edit(request, set_class, actual_pk):
+        if not permission_utils.allowed_to_edit(request, set_class, actual_pk):
             is_valid_id = False
             err = 'ID must be of a valid accessible entity.'
 
@@ -812,115 +804,3 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
         ret_id = set_class.objects.get(pk=actual_pk).id
 
     return is_valid_id, err, ret_id
-
-
-# get_phenotype_conceptcodesByVersion
-def get_phenotype_concept_codes_by_version(request,
-                                        pk,
-                                        phenotype_history_id,
-                                        target_concept_id=None,
-                                        target_concept_history_id=None):
-    '''
-        Get the codes of the phenotype concepts
-        for a specific version
-        Parameters:     request    The request.
-                        pk         The phenotype id.
-                        phenotype_history_id  The version id
-                        target_concept_id if you need only one concept's code
-                        target_concept_history_id if you need only one concept's code
-        Returns:        list of Dict with the codes. 
-    '''
-
-    # here, check live version
-    current_ph = GenericEntity.objects.get(pk=pk)
-
-    if current_ph.is_deleted == True:
-        raise PermissionDenied
-    #--------------------------------------------------
-
-    current_ph_version = GenericEntity.history.get(id=pk, history_id=phenotype_history_id)
-
-    # Get the list of concepts in the phenotype data
-    concept_ids_historyIDs = get_concept_ids_versions_of_historical_phenotype(pk, phenotype_history_id)
-
-    titles = ([
-        'code', 'description', 'code_attributes', 'coding_system',
-        'concept_id', 'concept_version_id', 'concept_name', 'phenotype_id',
-        'phenotype_version_id', 'phenotype_name'
-    ])
-
-    codes = []
-
-    for concept in concept_ids_historyIDs:
-        concept_id = concept[0]
-        concept_version_id = concept[1]
-        
-        if (target_concept_id is not None and target_concept_history_id is not None):
-            if target_concept_id != str(concept_id) and target_concept_history_id != str(concept_version_id):
-                continue
-        
-        concept_ver_name = Concept.history.get(id=concept_id, history_id=concept_version_id).name
-        concept_coding_system = Concept.history.get(id=concept_id, history_id=concept_version_id).coding_system.name
-
-        rows_no = 0
-        concept_codes = db_utils.getGroupOfCodesByConceptId_HISTORICAL(concept_id, concept_version_id)
-        if concept_codes:
-            #---------
-            code_attribute_header = Concept.history.get(id=concept_id, history_id=concept_version_id).code_attribute_header
-            concept_history_date = Concept.history.get(id=concept_id, history_id=concept_version_id).history_date
-            codes_with_attributes = []
-            if code_attribute_header:
-                codes_with_attributes = db_utils.getConceptCodes_withAttributes_HISTORICAL(concept_id=concept_id,
-                                                                                concept_history_date=concept_history_date,
-                                                                                allCodes=concept_codes,
-                                                                                code_attribute_header=code_attribute_header
-                                                                                )
-
-                concept_codes = codes_with_attributes
-            #---------
-
-            for cc in concept_codes:
-                rows_no += 1
-                attributes_dict = {}
-                if code_attribute_header:
-                    for attr in code_attribute_header:
-                        if request.GET.get('format', '').lower() == 'xml':
-                            # clean attr names/ remove space, etc
-                            attr2 = utils.clean_str_as_db_col_name(attr)
-                        else:
-                            attr2 = attr
-                        attributes_dict[attr2] = cc[attr]
-
-                codes.append(
-                    ordr(
-                        list(
-                            zip(titles, [cc['code']
-                                       , cc['description'].encode('ascii', 'ignore').decode('ascii')
-                                       ] + [attributes_dict] + [
-                                        concept_coding_system 
-                                        , 'C' + str(concept_id)
-                                        , concept_version_id
-                                        , concept_ver_name
-                                        , current_ph_version.id
-                                        , current_ph_version.history_id
-                                        , current_ph_version.name
-                            ]))))
-
-            if rows_no == 0:
-                codes.append(
-                    ordr(
-                        list(
-                            zip(titles, ['', ''] + [attributes_dict] + [
-                                concept_coding_system
-                                , 'C' + str(concept_id)
-                                , concept_version_id
-                                , concept_ver_name
-                                , current_ph_version.id
-                                , current_ph_version.history_id
-                                , current_ph_version.name
-                            ]))))
-
-    return codes
-
-
-

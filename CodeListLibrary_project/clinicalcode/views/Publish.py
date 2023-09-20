@@ -1,21 +1,21 @@
-
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.http import JsonResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
-from ..entity_utils import publish_utils, permission_utils, constants
-from ..permissions import *
-from .View import *
+from django.contrib.auth.decorators import login_required
 
+from clinicalcode.models.GenericEntity import GenericEntity
+from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
+from ..entity_utils import publish_utils, permission_utils, constants
 
 class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     model = GenericEntity
     template_name = 'clinicalcode/generic_entity/publish/publish.html'
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
-    def get(self,request, pk, history_id):
+    def get(self, request, pk, history_id):
         """
         Get method to generate modal response and pass additional information about working set
         @param request: user request object
@@ -42,7 +42,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
         @param entity_history_id: historical id of entity
         @return: JsonResponse and status message
         """
-        is_published = checkIfPublished(GenericEntity, pk, history_id)
+        is_published = permission_utils.check_if_published(GenericEntity, pk, history_id)
         checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
         # if not is_published:
         #     checks = publish_utils.check_entity_to_publish(request, pk, history_id)
@@ -215,7 +215,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         @param history_id: historical id of entity
         @return: JSON success body response
         """
-        is_published = checkIfPublished(GenericEntity, pk, history_id)
+        is_published = permission_utils.check_if_published(GenericEntity, pk, history_id)
         checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
         if not is_published:
             checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)

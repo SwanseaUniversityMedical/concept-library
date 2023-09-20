@@ -1,4 +1,5 @@
-from os import name
+from django.urls import reverse
+
 import re
 from clinicalcode.db_utils import send_review_email_generic
 from clinicalcode.entity_utils import entity_db_utils
@@ -6,14 +7,11 @@ from django.contrib.auth.models import  User
 from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from clinicalcode.tasks import send_review_email
-from ..models import *
-from ..permissions import *
-from clinicalcode.views.GenericEntity import get_history_table_data
-from clinicalcode.permissions import allowed_to_view, checkIfPublished, get_publish_approval_status
-from clinicalcode.entity_utils import constants, permission_utils
+from clinicalcode.entity_utils import constants, permission_utils, entity_db_utils
 
-#from clinicalcode.constants import APPROVED_STATUS
-from . import constants
+from clinicalcode.models.Concept import Concept
+from clinicalcode.models.GenericEntity import GenericEntity
+from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 
 def form_validation(request, data, entity_history_id, pk, entity,checks):
     """
@@ -110,8 +108,8 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     # Initialize the status variables based on the fetched data
     entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
-    is_published = checkIfPublished(GenericEntity, pk, entity_history_id)
-    approval_status = get_publish_approval_status(GenericEntity, pk, entity_history_id)
+    is_published = permission_utils.check_if_published(GenericEntity, pk, entity_history_id)
+    approval_status = permission_utils.get_publish_approval_status(GenericEntity, pk, entity_history_id)
     is_lastapproved = published_entity_approved.exists()
     other_pending = published_entity_pending.exists()
 
@@ -268,7 +266,6 @@ def format_message_and_send_email(request,pk, data, entity, entity_history_id, c
     send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
     return data
 
-
 def send_email_decision_entity(request,entity,entity_history_id,entity_type,data):
     """
     Call util function to send email decision
@@ -283,17 +280,13 @@ def send_email_decision_entity(request,entity,entity_history_id,entity_type,data
         context["status"] = "Pending"
         context["message"] = f"{entity_type} has been submitted and waiting moderator to publish on the website"
         send_review_email(request,context)
-
     elif data['approval_status'].value == 2:
         # This line for the case when user want to get notification of same workingset id but different version
         context["status"] = "Published"
         context["message"] = f"{entity_type} has been successfully approved and published on the website"
         send_review_email(request,context)
-        
     elif data['approval_status'].value == 3:
         context["status"] = "Rejected"
         context["message"] = f"{entity_type} has been rejected by the moderator. Please consider update changes and try again"
         context["custom_message"] = "Please adjust changes and try again" #TODO add custom message logic
         send_review_email(request,context)
-
-    

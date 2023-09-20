@@ -5,10 +5,8 @@ from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from ..permissions import Permissions
-from .DataSource import DataSource
 from .TimeStampedModel import TimeStampedModel
-
+from ..entity_utils import constants
 
 class Phenotype(TimeStampedModel):
     """
@@ -17,7 +15,6 @@ class Phenotype(TimeStampedModel):
     """
     
     id = models.CharField(primary_key=True, editable=False, max_length=50)
-    # Metadata (imported from HDR UK):
     name = models.CharField(max_length=250)
     layout = models.CharField(max_length=250)
     phenotype_uuid = models.CharField(max_length=250, null=True, blank=True)  # Unique ID for the phenotype on HDR UK platform
@@ -25,8 +22,6 @@ class Phenotype(TimeStampedModel):
     validation_performed = models.BooleanField(null=True, default=False)  # Was there any clinical validation of this phenotype?  1=yes 0=no
     validation = models.TextField(null=True, blank=True)
     valid_event_data_range = models.CharField(max_length=250, null=True, blank=True)
-    #     valid_event_data_range_start = models.DateField()
-    #     valid_event_data_range_end = models.DateField()
     sex = models.CharField(max_length=50)
     author = models.CharField(max_length=1000)
     status = models.CharField(max_length=50)
@@ -52,19 +47,17 @@ class Phenotype(TimeStampedModel):
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="phenotype_owned")
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
 
-    owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.EDIT)
-    group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
-    world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
+    owner_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.OWNER_PERMISSIONS], default=constants.OWNER_PERMISSIONS.EDIT)
+    group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
+    world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.WORLD_ACCESS_PERMISSIONS], default=constants.WORLD_ACCESS_PERMISSIONS.NONE)
 
     tags = ArrayField(models.IntegerField(), blank=True, null=True) 
     collections = ArrayField(models.IntegerField(), blank=True, null=True) 
     clinical_terminologies = ArrayField(models.IntegerField(), blank=True, null=True)  # coding systems
     publications = ArrayField(models.CharField(max_length=500), blank=True, null=True)
-
     data_sources = ArrayField(models.IntegerField(), blank=True, null=True) 
 
     history = HistoricalRecords()
-
 
     def save(self, *args, **kwargs):
         count = Phenotype.objects.extra(

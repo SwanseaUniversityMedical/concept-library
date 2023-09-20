@@ -1,0 +1,391 @@
+{% load static %}
+
+<div class="page-split__left">
+  <aside class="scrollspy">
+    <div class="scrollspy__container">
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary active"
+        aria-label="What are Phenotypes?" data-target="#what-are-phenotypes">
+        <a href="#what-are-phenotypes">What are Phenotypes?</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Clinical Coded Phenotypes" data-target="#clinical-coded-phenotypes">
+        <a href="#clinical-coded-phenotypes">Clinical Coded Phenotypes</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Accessing the creation pages" data-target="#accessing-create">
+        <a href="#accessing-create">Accessing the creation pages</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Selecting your template" data-target="#selecting-templates">
+        <a href="#selecting-templates">Selecting your template</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="The creation wizard" data-target="#creation-wizard">
+        <a href="#creation-wizard">The creation wizard</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Adding Concepts" data-target="#adding-concepts">
+        <a href="#adding-concepts">Adding Concepts</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Creating a Concept" data-target="#creating-concepts">
+        <a href="#creating-concepts">Creating a Concept</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Finalising your Concept" data-target="#finalising-concepts">
+        <a href="#finalising-concepts">Finalising your Concept</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Searchterm rules" data-target="#searchterm-rules">
+        <a href="#searchterm-rules">Searchterm rules</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="File import rules" data-target="#file-imports">
+        <a href="#file-imports">File import rules</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Using Concepts as rules" data-target="#concept-as-rules">
+        <a href="#concept-as-rules">Using Concepts as rules</a>
+      </button>
+      <button class="scrollspy__container__item scrollspy__container__item--tertiary"
+        aria-label="Importing Concepts" data-target="#importing-concepts">
+        <a href="#importing-concepts">Importing Concepts</a>
+      </button>
+    </div>
+  </aside>
+</div>
+<div class="page-split__right">
+  <div class="page-split__container">
+    <h2>
+      Learn about Clinical Coded Phenotypes
+    </h2>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="what-are-phenotypes"></span>
+        What are Phenotypes?
+      </h3>
+      <p>
+        A Phenotype is an observable and measurable piece of information that is relevant to health or healthcare.
+        For example, it can be a disease (e.g. type 2 diabetes), a blood pressure measurement, a blood sugar value 
+        or a prescription of antibiotics.
+      </p>
+      <p>
+        Phenotyping algorithms are special tools that enable researchers to extract Phenotypes from complex, and 
+        often messy data that get generated during routine interactions within the healthcare system. 
+        They identify and extract data from medical records using clinical codes which are the building block of 
+        how information is recorded in healthcare (for example ICD-10). Using these specialised algorithms, 
+        researchers and clinicians can maximise the value of patient data contained in medical records and 
+        answer important questions that can improve health and healthcare. 
+      </p>
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="clinical-coded-phenotypes"></span>
+        Clinical Coded Phenotypes
+      </h3>
+      <p>
+        Clinical Coded Phenotype are Phenotype definitions that are applied to structured health data and 
+        involve the use of clinical code lists. A Clinical Coded Phenotype may have one or more code lists, 
+        referred to as a “<em>Concept</em>”. 
+      </p>
+      <h4>
+        Concepts
+      </h4>
+      <p>
+        Each Concept defines a single code list using a single clinical coding system, and having a particular meaning. 
+      </p>
+      <p>
+        Different concepts may define the Phenotype in different contexts: for example, an asthma Phenotype may have a 
+        Concept defining asthma in secondary care using ICD-10, and another Concept defining asthma in primary care 
+        using SNOMED-CT.
+      </p>
+      <p>
+        Concepts may also define different attributes or events associated with a Phenotype. For example, a depression 
+        Phenotype may have a Concept defining depression symptoms, another defining a diagnosis of depression, and a 
+        third defining antidepressant medication.
+      </p>
+      <h4>
+        Defining Concepts with Rules
+      </h4>
+      <p>
+        The codes within a Concept are defined using one or more rules. The rules are as follows:
+      </p>
+      <ul>
+        <li>
+          <p>
+            <strong>Search:</strong> use a search term or regular expression to identify codes. 
+            This can be based on the code itself (for example, all ICD10 codes that start with “<em>A1</em>”), 
+            or the description (such as all Read codes that mention “<em>diabetes</em>”). 
+            If the regular expression option is selected, Perl compatible regular expressions can be used to 
+            define more complex criteria.  
+          </p>
+        </li>
+        <li>
+          <p>
+            <strong>CSV Import:</strong> upload an existing list of codes that has been created elsewhere.
+          </p>
+        </li>
+        <li>
+          <p>
+            <strong>Import from another Phenotype:</strong> concepts that exist in other Phenotype in 
+            the library can be referred to and used as building blocks to create a new Phenotype. 
+            For example, a new Phenotype “<em>Heart Conditions</em>” could be created by combining existing 
+            definitions of heart attack, heart failure, high blood pressure, and other diseases.
+          </p>
+        </li>
+      </ul>
+      <p>
+        Multiple inclusion rules can be used to add codes and build up the code list; additionally, 
+        exclusion rules can be used to remove codes that would otherwise be included. 
+      </p>
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="accessing-create"></span>
+        Accessing the creation pages
+      </h3>
+      <p>
+        Users can access the creation page via the search page - this can be accessed by selecting 
+        the “Phenotypes“ button (marked in red) seen in the navigation bar.
+        To begin working on a Phenotype users must click the link within the “Create a Phenotype“ 
+        card (seen below in pink).
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image1.png' %}"
+        alt="Accessing the Create page" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="selecting-templates"></span>
+        Selecting your template
+      </h3>
+      <p>
+        To start creating a Phenotype the users must select the template they wish to follow. 
+        Different templates may be created for different types of algorithms, data settings, etc.
+         Currently, two types of Phenotype are supported:
+      </p>
+      <ul>
+        <li>
+          <p>
+            <strong>Clinical Coded Phenotype:</strong> Phenotypes that apply to structured 
+            health data and involve the use of clinical codes.
+          </p>
+        </li>
+        <li>
+          <p>
+            <strong>Structured data algorithm:</strong> Phenotypes that apply to structured 
+            health data, but do not relate to specific clinical codes and don’t contain 
+            any list of codes.
+          </p>
+        </li>
+      </ul>
+      <p>
+        This tutorial relates to the process for Clinical Coded Phenotypes, though other 
+        templates will be similar. Click the appropriate template button as shown below:
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image2.png' %}"
+        alt="Selecting a Template" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="creation-wizard"></span>
+        The creation wizard
+      </h3>
+      <p>
+        After the user selects their template they will be referred to the wizard page. 
+        This page describes what details the template can store, and which fields are 
+        required to continue. Any field that is mandatory will be marked with a red 
+        asterisk as highlighted below:
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image3.png' %}"
+        alt="Required fields in the Creation Wizard" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="adding-concepts"></span>
+        Adding Concepts
+      </h3>
+      <p>
+        The “<em>Clinical Code List</em>” section allows researchers to define the Concepts 
+        and associated codes that will be used to define their Phenotype. To start, 
+        the user can either (a) create a new Concept (red) or (b) import an existing 
+        Concept from another Phenotype  (pink).
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image4.png' %}"
+        alt="Adding Concepts to your Phenotype" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="creating-concepts"></span>
+        Creating a Concept
+      </h3>
+      <p>
+        If the user decides to create a new Concept they will be met with the 
+        option to define the coding system that will be used to create the 
+        Concept, and to define some basic metadata such as the Concept’s name.
+      </p>
+      <p>
+        As seen in the image below, a coding system must be selected first 
+        before the system will allow it to add any associated rules or codes:
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image5.png' %}"
+        alt="Adding a Coding System" />
+      <p>
+        To add a new rule, the user can select the “<em>Add Rule</em>” button 
+        in either the “<em>Inclusion Rules</em>” or “<em>Exclusion Rules</em>” section:
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image6.png' %}"
+        alt="Adding a new Rule" />
+      <p>
+        After adding or modifying a rule the user will be notified 
+        of the changes made to the code list by a toast notification on 
+        the bottom right of the screen (seen below in pink). 
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image7.png' %}"
+        alt="Adding a codes with your Rule" />
+      <p>
+        The code list, as generated by the user’s rules, will be visible 
+        in the “<em>Codelist</em>” section. The table columns can be sorted by 
+        clicking on the header of each column.
+      </p>
+      <p>
+        Some important notes regarding the columns:
+      </p>
+      <ul>
+        <li>
+          <p>
+            The “<em>Final</em>” column (red box) describes whether the code will 
+            be included or excluded from the final code list
+          </p>
+        </li>
+        <li>
+          <p>
+            The columns with names that match the given rules (pink box) 
+            describe whether that code was included or excluded by that 
+            rule, and will be blank if the code was not present in that rule
+          </p>
+        </li>
+      </ul>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image8.png' %}"
+        alt="Inclusionary and Exclusionary Rules" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="finalising-concepts"></span>
+        Finalising your Concept
+      </h3>
+      <p>
+        After finalising the Concept’s associated rules and codes, the user can 
+        click the “<em>Confirm</em>” button to save those changes locally. 
+        They will be prompted to do so if they try to submit the Phenotype 
+        before doing so. 
+      </p>
+      <p>
+        If they decide to cancel these changes by clicking the “<em>Cancel</em>” button 
+        then the Concept will be reverted to its previous state, if any.
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image9.png' %}"
+        alt="Finalising your Concept" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="searchterm-rules"></span>
+        Searchterm rules
+      </h3>
+      <p>
+        Selecting the “<em>Add Searchterm</em>” option will add a search rule - these 
+        attempt to add codes by matching a string to one or more codes through 
+        its code’s identifier or its description.
+      </p>
+      <p>
+        There are search options present beneath the search input which can be 
+        used to vary the results of a given term, or to capture using patterns. 
+        We accept <a href="https://regexone.com/">Regex</a> for pattern-based search.
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image10.png' %}"
+        alt="Using Searchterm rules" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="file-imports"></span>
+        File import rules
+      </h3>
+      <p>
+        These can be used to fulfil the need to upload code lists that have 
+        been created in the past, or can be used to support workflows where 
+        users are modifying or iterating on code lists that have been used 
+        in research papers.
+      </p>
+      <p>
+        Currently, only .CSV/.TSV files are supported.
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image11.png' %}"
+        alt="Adding a file import Rule" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="concept-as-rules"></span>
+        Using Concepts as rules
+      </h3>
+      <p>
+        Concepts from other Phenotypes can be used as rules to build up or 
+        modify a code list. This allows combining different specific 
+        concepts to create a more general one, etc. 
+      </p>
+      <p>
+        When a Concept is added as a rule, only the final code list of 
+        that Concept is imported, and those codes are used as an 
+        inclusion or exclusion criterion in a similar manner to other rules.
+      </p>
+      <p>
+        If you want to add an entire existing Concept to a Phenotype 
+        and present it in its original form, do not add it as a rule, 
+        but use “<em>Import concepts</em>” instead (see below).  
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image12.png' %}"
+        alt="Using a Concept as a Rule" />
+    </section>
+    <section class="about-container__section__text">
+      <h3 class="subheader">
+        <span class="scrollspy-target" id="importing-concepts"></span>
+        Importing Concepts
+      </h3>
+      <p>
+        Importing a Concept from another Phenotype adds it to the new 
+        Phenotype as a top-level entity, with all its rules presented 
+        as they were in the original Phenotype. 
+      </p>
+      <p>
+        By selecting the “<em>Import Concepts</em>” button, the user will 
+        be prompted by a modal to select the Concepts they would 
+        like to import. 
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image13.png' %}"
+        alt="Importing one or more Concepts" />
+      <p>
+        The user can select one or more Concepts to import by expanding 
+        the “<em>Available Concepts</em>” section and clicking each individual 
+        Concept they would like to import.
+      </p>
+      <p>
+        After confirming their choices, they will be met with a screen 
+        similar to this:
+      </p>
+      <img class="about-container__alt-image"
+        src="{% static 'img/documentation/clinical-coded-phenotypes/image14.png' %}"
+        alt="Imported Concepts in the viewer" />
+    </section>
+  </div>
+</div>
