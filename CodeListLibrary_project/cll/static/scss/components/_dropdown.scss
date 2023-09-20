@@ -46,6 +46,7 @@
     }
   }
 
+  @include media(">=desktop", "screen") {
   &__text::after {
     left: calc(50% - 10px);
     border-right: 10px solid transparent;
@@ -57,6 +58,7 @@
     bottom: 0;
     position: absolute;
   }
+}
 
   &__support-field{
     z-index: 999;
@@ -89,20 +91,16 @@
   flex-direction: column;
 
   &__text::after {
-    -webkit-transition: all 250ms ease-in-out;
-    -moz-transition: all 250ms ease-in-out;
-    -o-transition: all 250ms ease-in-out;
-    transition: all 250ms ease-in-out;
+    @include prefix(transition, all 250ms ease-in, webkit moz o);
     content: '\f107';
     cursor: pointer;
     opacity: 1;
-    position: initial;
+    display: inline-flex;
     aspect-ratio: 1 / 1;
     font-family: var(--icons-name);
     font-style: var(--icons-style);
     font-size: var(--icons-size);
     color: var(--color-accent-dark);
-
 
   }
 
@@ -117,10 +115,7 @@
 
       .item-dropdown{
         &::after{
-        -webkit-transition: all 250ms ease-in-out;
-        -moz-transition: all 250ms ease-in-out;
-        -o-transition: all 250ms ease-in-out;
-        transition: all 250ms ease-in-out;
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
         content: '\f107';
         cursor: pointer;
         opacity: 1;
