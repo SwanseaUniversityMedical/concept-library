@@ -71,7 +71,7 @@
               # Get details of phenotype
             </p>
             <p class="code-general-highlight">
-              phenotype_details = client$get_detail(<br/>
+              phenotype_details = client$phenotypes$get_detail(<br/>
                 &nbsp;<span class="code-text-highlight">'{{ entity.id }}'</span>,<br/>
                 &nbsp;version_id=<span class="code-value-highlight">{{ entity.history_id }}</span><br/>
               )
@@ -173,7 +173,7 @@
               # Get codelist of phenotype
             </p>
             <p class="code-general-highlight">
-              phenotype_codelist = client$get_codelist(<br/>
+              phenotype_codelist = client$phenotypes$get_codelist(<br/>
                 &nbsp;<span class="code-text-highlight">'{{ entity.id }}'</span>,<br/>
                 &nbsp;version_id=<span class="code-value-highlight">{{ entity.history_id }}</span><br/>
               )
