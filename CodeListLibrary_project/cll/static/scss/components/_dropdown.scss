@@ -170,23 +170,12 @@
   padding: 1rem;
 }
 
-.content-container {
+.content-container{
+  &__nested{
   &:hover {
     
     .nested-menu {
       display: block;
-
-      &::after {
-        border-top: 10px solid transparent;
-        border-bottom: 10px solid #ffffff;
-        border-right: 10px solid transparent;
-        border-left: 10px solid transparent;
-        top: -19%;
-        z-index: 999;
-        left: calc(50% - 48px);
-        content: "";
-        position: absolute;
-      }
     }
     @include media("<desktop", "screen") {
       .nested-menu{
@@ -197,6 +186,7 @@
     
   }
 
+}
 }
 
 /// Selection group
