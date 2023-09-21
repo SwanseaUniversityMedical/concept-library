@@ -68,6 +68,7 @@ class MyCollection(TemplateView):
       permission_utils.get_editable_entities(request, only_deleted=True)
     )
 
+    form = None
     if not settings.CLL_READ_ONLY:
       form = ArchiveForm(parent_request=request)
 
