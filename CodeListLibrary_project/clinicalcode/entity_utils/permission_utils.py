@@ -206,8 +206,11 @@ def get_accessible_entities(
             return entities.distinct('id')
 
         if consider_user_perms and is_member(user, 'Moderators'):
-            status += [APPROVAL_STATUS.REQUESTED,
-                       APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
+            status += [
+                APPROVAL_STATUS.REQUESTED,
+                APPROVAL_STATUS.PENDING, 
+                APPROVAL_STATUS.REJECTED
+            ]
 
         query = Q(owner=user.id)
         if not status:

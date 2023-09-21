@@ -1,5 +1,5 @@
 from rest_framework.decorators import (api_view, permission_classes)
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.expressions import RawSQL
@@ -12,7 +12,7 @@ from ...entity_utils import concept_utils
 from ...entity_utils import gen_utils
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_concepts(request):
     '''
         Get all concepts accessible to the user, optionally, provide parameters to filter by
@@ -109,7 +109,7 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
     
     # Get historical concept
     historical_concept_response = api_utils.exists_historical_concept(
-        concept_id, request.user, historical_id=version_id
+        request, concept_id, historical_id=version_id
     )
     if isinstance(historical_concept_response, Response):
         return historical_concept_response
