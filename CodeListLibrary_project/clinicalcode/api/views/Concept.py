@@ -19,8 +19,7 @@ def get_concepts(request):
     '''
     # Get all concepts accesible to the user
     concepts = permission_utils.get_accessible_concepts(
-        request, 
-        consider_user_perms=False
+        request
     )
     if not concepts.exists():
         return Response([], status=status.HTTP_200_OK)

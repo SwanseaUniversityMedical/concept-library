@@ -113,6 +113,56 @@ def was_concept_ever_published(concept_id, version_id=None):
     
     return False
 
+def get_latest_published_concept(concept_id, default=None):
+    '''
+        Gets the latest published concept given a concept id
+
+        Args:
+            concept_id {string}: the concept's ID
+
+            default {optional}: the default return value if this method fails
+        
+        Returns:
+            The latest, published {concept} for that user and the concept id,
+            otherwise returns {None}
+    '''
+    concepts = Concept.history.none()
+    with connection.cursor() as cursor:
+        sql = '''
+        select *
+         from (
+           select distinct on (id)
+                  cast(concepts->>'concept_id' as integer) as concept_id,
+                  cast(concepts->>'concept_version_id' as integer) as concept_version_id
+             from public.clinicalcode_historicalgenericentity as entity,
+                  json_array_elements(entity.template_data::json->'concept_information') as concepts
+            where 
+              (
+                cast(concepts->>'concept_id' as integer) = %s
+              )
+              and (entity.is_deleted is null or entity.is_deleted = false)
+              and entity.publish_status = %s
+          ) results
+         order by concept_version_id desc
+         limit 1;
+        '''
+        cursor.execute(
+            sql,
+            params=[concept_id, APPROVAL_STATUS.APPROVED.value]
+        )
+
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        concepts = Concept.history.filter(
+            id__in=[x.get('concept_id') for x in results],
+            history_id__in=[x.get('concept_version_id') for x in results],
+        )
+    
+    if concepts.exists():
+        return concepts.first()
+    return default
+
 def get_latest_accessible_concept(request, concept_id, default=None):
     '''
         Gets the latest accessible concept, as described by the user's
