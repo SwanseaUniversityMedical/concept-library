@@ -26,7 +26,7 @@ jobs:
 
       - name: build container
         run: |
-          docker build -t image -f "Dockerfile" .
+          docker build -t image -f "docker/production/app.Dockerfile" .
 
       - name: registry login
         run: |
