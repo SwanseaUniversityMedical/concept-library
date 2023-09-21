@@ -41,6 +41,8 @@ const initHamburgerMenu = () => {
   const burger = document.querySelector('.page-navigation__buttons');
   const panel = document.querySelector('.page-navigation__items');
   const overlay = document.querySelector('.page-navigation__overlay');
+  const avatarMenu = document.querySelector('#dropdown-account');
+  const submenu = document.querySelector('.nav-dropdown__content');
   
   burger.addEventListener('click', e => {
     if (panel.classList.contains('open')){
@@ -64,6 +66,8 @@ const initHamburgerMenu = () => {
       return;
     }
     panel.classList.remove('open');
+    avatarMenu.classList.remove('open');
+    submenu.classList.remove('open');
     overlay.style.display = 'none'; 
   })
 
@@ -76,9 +80,13 @@ const submenuMobile = () => {
 const navText = document.querySelector('.nav-dropdown__text');
 const submenu = document.querySelector('.nav-dropdown__content');
 
+const avataText = document.querySelector('.avatar-content');
+const avatarMenu = document.querySelector('#dropdown-account');
+
 // Function to toggle submenu visibility
 function toggleSubmenu() {
   submenu.classList.toggle('open');
+  avatarMenu.classList.remove('open');
 }
 
 // Add click event listener to the "About" link
@@ -86,6 +94,20 @@ navText.addEventListener('click', (e) => {
   e.preventDefault(); // Prevent the default link behavior
   toggleSubmenu();
 });
+
+if (avatarMenu) {
+  avataText.addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent the default link behavior
+    avatarMenu.classList.toggle('open');
+    submenu.classList.remove('open');
+    
+  });
+
+
+
+}
+
+
 
 }
 
