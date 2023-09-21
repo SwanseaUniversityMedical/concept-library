@@ -27,7 +27,7 @@ jobs:
 
       - name: build container
         run: |
-          docker build -t image -f "docker/production/app.Dockerfile" --build-arg server_name="$SERVER_NAME" .
+          docker build -t image -f "docker/production/build.Dockerfile" --build-arg server_name="$SERVER_NAME" .
 
       - name: registry login
         run: |
