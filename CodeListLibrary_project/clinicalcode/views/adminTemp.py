@@ -116,10 +116,12 @@ def get_transformed_data(concept, template):
         'created_by': concept.created_by,
         'owner_access': concept.owner_access,
         'group_access': concept.group_access,
-        'world_access': concept.world_access,
         'template': template,
         'updated': make_aware(datetime.now()),
+
+        # unpublished & no access
         'status': 1,
+        'world_access': 1,
     }
 
     template_data = {

@@ -574,9 +574,10 @@ SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
 
 ## CAPTCHA
 ### To ignore captcha during debug builds
-IGNORE_CAPTCHA = False
-if DEBUG:
+try:
     IGNORE_CAPTCHA = get_env_value('IGNORE_CAPTCHA')
+except:
+    IGNORE_CAPTCHA = False
 
 ## Email settings
 ###     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
