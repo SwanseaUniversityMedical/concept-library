@@ -33,7 +33,7 @@ services:
           - redis
 
   celery_worker:
-    image: cll/celery_worker
+    image: cll/app
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/worker-start.sh"
@@ -46,7 +46,7 @@ services:
       - redis
 
   celery_beat:
-    image: cll/celery_beat
+    image: cll/app
     restart: on-failure:2
     command: >
       sh -c "/home/config_cll/beat-start.sh"
@@ -58,3 +58,11 @@ services:
       - app
       - redis
       - celery_worker
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json
+    command: --interval 3600 app celery_worker celery_beat
