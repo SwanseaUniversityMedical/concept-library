@@ -221,7 +221,7 @@
 @include media("<desktop", "screen") {
   .about-row {
     display: block;
-    background-color: #f8f8f8;
+    background-color:var(--phenotype-banner-bg-color);
     border-radius: 1em;
     position: relative;
     top: 0;
@@ -282,11 +282,12 @@
     }
   }
   .profile-row {
-    background-color: #f8f8f8;
+    background-color:var(--phenotype-banner-bg-color);
     border-radius: 1em;
     padding: 1em;
     position: relative;
     top: 0;
+    left: 0;
     margin: auto;
     box-sizing: border-box;
     box-shadow: none;
