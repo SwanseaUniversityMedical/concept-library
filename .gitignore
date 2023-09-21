@@ -3,7 +3,6 @@ __pycache__
 .project
 .pydevproject
 .DS_Store
-docker/
 CodeListLibrary_project/.settings/org.eclipse.core.resources.prefs
 .settings/org.eclipse.ltk.core.refactoring.prefs
 requirements/base - Django2.txt
