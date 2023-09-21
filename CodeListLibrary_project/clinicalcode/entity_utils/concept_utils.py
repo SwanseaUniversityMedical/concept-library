@@ -814,6 +814,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
             'is_out_of_date': historical_concept.history_id < latest_version.history_id,
         }
 
+        concept_data['is_published'] = is_concept_published(concept_id, concept_history_id)
+
     # Retrieve human readable data for our tags, collections & coding systems
     if concept_data.get('tags'):
         concept_data['tags'] = [

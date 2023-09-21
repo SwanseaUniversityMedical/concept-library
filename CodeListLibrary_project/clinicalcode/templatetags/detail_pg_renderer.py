@@ -3,6 +3,7 @@ from django import template
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
+from django.http.request import HttpRequest
 from django.conf import settings
 
 import re
@@ -213,7 +214,7 @@ def get_data_sources(ds_ids, info, default=None):
     except:
         return default
     
-def get_template_creation_data(entity, layout, field, default=None):
+def get_template_creation_data(entity, layout, field, request=None, default=None):
     '''
         Used to retrieve assoc. data values for specific keys, e.g.
         concepts, in its expanded format for use with create/update pages
@@ -242,7 +243,9 @@ def get_template_creation_data(entity, layout, field, default=None):
                 item['concept_version_id'],
                 include_component_codes=False, 
                 include_attributes=True, 
-                include_reviewed_codes=True)
+                include_reviewed_codes=True,
+                derive_access_from=request
+            )
 
 
             if value:
@@ -266,7 +269,7 @@ class EntityWizardSections(template.Node):
         self.nodelist = nodelist
     
     def __try_get_entity_value(self, template, entity, field):
-        value = get_template_creation_data(entity, template, field, default=None)
+        value = get_template_creation_data(entity, template, field, request=self.request, default=None)
         #print('value===11======'+str(value))
         if value is None:
             #print('value===22======'+str(template_utils.get_entity_field(entity, field)))
@@ -423,7 +426,7 @@ class EntityWizardSections(template.Node):
                     component['value'] = self.__try_get_entity_value(template, entity, field)
                 else:
                     component['value'] = ''
-                    
+
                 if template_field.get('hide_if_empty', False):
                     if component['value'] is None or str(component['value']) == '':
                         #print('hide_if_empty')
@@ -438,5 +441,6 @@ class EntityWizardSections(template.Node):
         return output
     
     def render(self, context):
-        request = self.request.resolve(context)
-        return self.__generate_wizard(request, context)
+        if not isinstance(self.request, HttpRequest):
+            self.request = self.request.resolve(context)
+        return self.__generate_wizard(self.request, context)
