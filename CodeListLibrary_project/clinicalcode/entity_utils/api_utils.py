@@ -125,30 +125,32 @@ def exists_concept(concept_id):
 
     return concept
 
-def exists_historical_concept(concept_id, user, historical_id=None):
+def exists_historical_concept(request, concept_id, historical_id=None):
     '''
       Checks whether a historical version of a concept exists
 
       Args:
+        request {RequestContext}: the HTTPRequest
         concept_id {string}: concept id
-        user {User}: User object
         historical_id {integer}: historical id of the concept
 
       Returns:
         If exists, returns first instance of historical concept, otherwise 
         returns response 404
     '''
+    historical_concept = None
     if not historical_id:
-        historical_id = permission_utils.get_latest_concept_historical_id(
-            concept_id, user
-        )
+        historical_concept = concept_utils.get_latest_accessible_concept(request, concept_id)
+    else: 
+        historical_concept = model_utils.try_get_instance(
+            Concept,
+            pk=concept_id
+        ).history.filter(history_id=historical_id)
+        
+        if historical_concept.exists():
+            historical_concept = historical_concept.first()
 
-    historical_concept = model_utils.try_get_instance(
-        Concept,
-        pk=concept_id
-    ).history.filter(history_id=historical_id)
-
-    if not historical_concept.exists():
+    if not historical_concept:
         return Response(
             data={
                 'message': 'Historical concept version does not exist'
@@ -157,7 +159,7 @@ def exists_historical_concept(concept_id, user, historical_id=None):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    return historical_concept.first()
+    return historical_concept
 
 ''' General helpers '''
 
