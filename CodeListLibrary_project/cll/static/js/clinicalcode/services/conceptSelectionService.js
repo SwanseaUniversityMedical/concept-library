@@ -106,7 +106,7 @@ const CSEL_OPTIONS = {
 
   // Whether to cache the resulting queries for quicker,
   // albeit possibly out of date, Phenotypes and their assoc. Concepts
-  useCachedResults: true,
+  useCachedResults: false,
 };
 
 /**

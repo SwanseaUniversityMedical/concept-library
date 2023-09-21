@@ -140,7 +140,11 @@ def get_latest_published_concept(concept_id, default=None):
               (
                 cast(concepts->>'concept_id' as integer) = %s
               )
-              and (entity.is_deleted is null or entity.is_deleted = false)
+              and not exists (
+                select *
+                  from public.clinicalcode_genericentity as ge
+                 where ge.is_deleted = true and ge.id = entity.id
+              )
               and entity.publish_status = %s
           ) results
          order by concept_version_id desc
@@ -200,7 +204,9 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
 
       Args:
         packet {array[object]}: A list of objects that contain a {concept_id: [int], concept_version_id: [int]}
+
         field_name {string}: The name of the template field from which this packet was derived
+
         default {any}: A default param to return if we are unable to perform the task
 
       Returns:
@@ -217,44 +223,59 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
     if not isinstance(packet, list):
         return default
 
-    concept_info = [
-        {
-            'concept_id': x.get('concept_id'),
-            'concept_version_id': x.get('concept_version_id'),
-            'codelist': get_concept_codelist(
-                x.get('concept_id'), x.get('concept_version_id'),
-                incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value],
-            ),
-        }
-        for x in packet
-        if x.get('concept_id') is not None and x.get('concept_version_id') is not None
-    ]
+    concept_ids = [x.get('concept_id') for x in packet if x.get('concept_id') is not None and x.get('concept_version_id') is not None]
+    concept_versions = [x.get('concept_version_id') for x in packet if x.get('concept_id') is not None and x.get('concept_version_id') is not None]
 
-    allowed_ids, allowed_versions = [], []
-    for x in concept_info:
-        if not isinstance(x, dict) or len(x.get('codelist', [])) <= 0:
-            continue
-        allowed_ids.append(x.get('concept_id'))
-        allowed_versions.append(x.get('concept_version_id'))
-
-    concepts = Concept.history.filter(
-        id__in=allowed_ids,
-        history_id__in=allowed_versions
-    )
-
-    if concepts.count() < 0:
+    if min(len(concept_ids), len(concept_versions)) < 1:
         return default
 
-    concepts = concepts.values('id', 'name', 'history_id') \
-        .annotate(
-            prefix=Value('C'),
-            type=Value('Concept'),
-            field=Value(field_name),
-            coding_system_name=F('coding_system__name'),
-            coding_system=F('coding_system__id')
+    results = []
+    with connection.cursor() as cursor:
+        sql = '''
+        select concept.id as id,
+               concept.history_id as history_id,
+               concept.name as name,
+               codingsystem.id as coding_system,
+               codingsystem.name as coding_system_name,
+               'C' as prefix,
+               'concept' as type,
+               'concept_information' as field
+          from public.clinicalcode_historicalconcept as concept
+          join public.clinicalcode_codingsystem as codingsystem
+            on codingsystem.id = concept.coding_system_id
+          join public.clinicalcode_historicalcomponent as component
+            on component.concept_id = concept.id
+           and component.history_date <= concept.history_date
+           and component.logical_type = %s
+           and component.history_type != '-'
+          join public.clinicalcode_historicalcodelist as codelist
+            on codelist.component_id = component.id
+           and codelist.history_date <= concept.history_date
+           and codelist.history_type != '-'
+          join public.clinicalcode_historicalcode as code
+            on code.code_list_id = codelist.id
+           and code.history_date <= concept.history_date
+           and code.history_type != '-'
+         where concept.id in %s and concept.history_id in %s
+         group by concept.id, concept.history_id, concept.name, codingsystem.id, codingsystem.name
+         order by concept.id asc, concept.history_id desc
+        '''
+        cursor.execute(
+            sql,
+            params=[
+                CLINICAL_RULE_TYPE.INCLUDE.value,
+                tuple(concept_ids),
+                tuple(concept_versions),
+            ]
         )
 
-    return list(concepts)
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    if len(results) < 0:
+        return default
+
+    return results
 
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False,
                                   include_codes=True, attribute_headers=None,

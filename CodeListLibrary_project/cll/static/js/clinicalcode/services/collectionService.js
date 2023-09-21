@@ -2,8 +2,8 @@ const DETAIL_URL = '/phenotypes/${id}/version/${version_id}/detail/'
 const UPDATE_URL = '/update/${id}/${version_id}';
 
 const COLLECTION_HEADINGS = {
-  PROFILE_COLLECTIONS: ['Name', 'ID', 'Version ID', 'Updated', 'Owner', 'Status'],
-  MODERATION_COLLECTIONS: ['Name', 'ID', 'Version ID', 'Requested', 'Owner', 'Status']
+  PROFILE_COLLECTIONS: ['index', 'Name', 'ID', 'Version ID', 'Updated', 'Owner', 'Status'],
+  MODERATION_COLLECTIONS: ['index', 'Name', 'ID', 'Version ID', 'Requested', 'Owner', 'Status']
 };
 
 const COLLECTION_TABLE_LIMITS = {
@@ -37,6 +37,7 @@ const COLLECTION_MAP = {
 
     return [
       index,
+      `${item.id} - ${item.name}`,
       item.id,
       item.history_id,
       new Date(item.updated), 
@@ -56,6 +57,7 @@ const COLLECTION_MAP = {
 
     return [
       index,
+      `${item.id} - ${item.name}`,
       item.id,
       item.history_id,
       new Date(item.updated),
@@ -121,42 +123,65 @@ const renderNameAnchor = (pageType, key, entity) => {
     version_id: history_id
   });
 
-  if (isNullOrUndefined(ARCHIVE_TEMPLATE) || pageType !== 'PROFILE_COLLECTIONS' || key !== 'content') {
+  if (isNullOrUndefined(ARCHIVE_TEMPLATE) || pageType !== 'PROFILE_COLLECTIONS') {
     return `
       <a href='${url}'>${text}</a>
     `;
   }
 
-  const update = interpolateHTML(brand + UPDATE_URL, {
-    id: id,
-    version_id: history_id
-  });
+  switch (key) {
+    case 'content': {
+      const update = interpolateHTML(brand + UPDATE_URL, {
+        id: id,
+        version_id: history_id
+      });
+    
+      let target =  `
+        <a href='${url}'>${text}</a>
+        <span tooltip="Edit Phenotype" direction="left">
+          <span class="profile-collection__edit-icon"
+                tabindex="0"
+                aria-label="Edit Phenotype"
+                role="button"
+                data-target="edit"
+                data-href="${update}"></span>
+        </span>
+      `;
+    
+      if (publish_status != 2) {
+        target += `
+          <span tooltip="Archive Phenotype" direction="left">
+            <span class="profile-collection__delete-icon"
+                  tabindex="0" aria-label="Archive Phenotype"
+                  role="button"
+                  data-target="archive"
+                  data-id="${id}"></span>
+          </span>
+        `;
+      }
+    
+      return target;
+    }
 
-  let target =  `
-    <a href='${url}'>${text}</a>
-    <span tooltip="Edit Phenotype" direction="left">
-      <span class="profile-collection__edit-icon"
-            tabindex="0"
-            aria-label="Edit Phenotype"
-            role="button"
-            data-target="edit"
-            data-href="${update}"></span>
-    </span>
-  `;
+    case 'archived': {
+      return `
+        <a href='${url}'>${text}</a>
+        <span tooltip="Restore Phenotype" direction="left">
+          <span class="profile-collection__restore-icon"
+                tabindex="0" aria-label="Restore Phenotype"
+                role="button"
+                data-target="restore"
+                data-id="${id}"></span>
+        </span>
+      `;
+    }
 
-  if (publish_status != 2) {
-    target += `
-      <span tooltip="Archive Phenotype" direction="left">
-        <span class="profile-collection__delete-icon"
-              tabindex="0" aria-label="Archive Phenotype"
-              role="button"
-              data-target="archive"
-              data-id="${id}"></span>
-      </span>
-    `;
+    default: {
+      return `
+        <a href='${url}'>${text}</a>
+      `;
+    }
   }
-
-  return target;
 };
 
 /**
@@ -211,28 +236,45 @@ const renderCollectionComponent = (pageType, key, container, data) => {
     classes: {
       wrapper: 'overflow-table-constraint',
     },
+    template: (options, dom) => `<div class='${options.classes.top}'>
+      <div class='${options.classes.dropdown}'>
+        <label>
+          <select class='${options.classes.selector}'></select> ${options.labels.perPage}
+        </label>
+      </div>
+      <div class='${options.classes.search}'>
+        <input id="column-searchbar" class='${options.classes.input}' placeholder='Search...' type='search' title='${options.labels.searchTitle}'${dom.id ? ` aria-controls="${dom.id}"` : ""}>
+      </div>
+      </div>
+      <div class='${options.classes.container}'${options.scrollY.length ? ` style='height: ${options.scrollY}; overflow-Y: auto;'` : ""}></div>
+      <div class='${options.classes.bottom}'>
+      <div class='${options.classes.info}'></div>
+      <nav class='${options.classes.pagination}'></nav>
+    </div>`,
     columns: [
+      { select: 0, type: 'number', hidden: true },
       {
-        select: 0,
-        type: 'number',
+        select: 1,
+        type: 'string',
         render: (value, cell, rowIndex) => {
-          const entity = data[value];
+          const [entityId, ...others] = value.match(/^\w+-?/g);
+          const entity = data.find(e => e.id == entityId);
           return renderNameAnchor(pageType, key, entity);
         },
       },
-      { select: 1, type: 'number', hidden: true },
-      { select: 2, type: 'number' },
+      { select: 2, type: 'number', hidden: true },
+      { select: 3, type: 'number' },
       { 
-        select: 3, 
+        select: 4, 
         type: 'date', 
         format: 'YYYY-MM-DD',
         render: (value, cell, rowIndex) => {
           return moment(value).format('YYYY-MM-DD');
         }
       },
-      { select: 4, type: 'string' },
+      { select: 5, type: 'string' },
       { 
-        select: 5,
+        select: 6,
         type: 'string',
         render: (value, cell, rowIndex) => {
           return renderStatusTag(value);
@@ -253,8 +295,8 @@ const renderCollectionComponent = (pageType, key, container, data) => {
         return {
           nodeName: 'TH',
           attributes: {
-            'column-index': index + 1,
-            'heading': COLLECTION_HEADINGS?.[pageType][index + 1],
+            'column-index': index + 2,
+            'heading': COLLECTION_HEADINGS?.[pageType][index + 2],
           },
           childNodes: [
             {
@@ -276,9 +318,22 @@ const renderCollectionComponent = (pageType, key, container, data) => {
       data: data.map((item, index) => COLLECTION_MAP?.[pageType](item, index)),
     },
   });
+
+  const searchbar = datatable.wrapperDOM.querySelector('#column-searchbar');
+  searchbar.addEventListener('change', (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const value = event.target.value;
+    if (isStringEmpty(value)) {
+      datatable.search('', undefined);
+      return;
+    }
+    datatable.search(value, [1, 2, 3, 4, 5, 6]);
+  });
   
   table.querySelectorAll('[data-js-filter]').forEach(select => {
-    let head = select.closest('th')
+    let head = select.closest('th');
     let columnIndex = head.getAttribute('column-index');
     columnIndex = parseInt(columnIndex);
 
@@ -300,11 +355,12 @@ const renderCollectionComponent = (pageType, key, container, data) => {
     select.addEventListener('change', (event) => {
       const selectedValue = event.target.value;
       if (selectedValue) {
-        let params = [{term: selectedValue, columns: [columnIndex]}]
+        let params = [{term: selectedValue, columns: [columnIndex]}];
         datatable.multiSearch(params);
-      } else {
-        datatable.search('', undefined)
+        return;
       }
+
+      datatable.search('', undefined);
     });
   })
 
@@ -354,6 +410,36 @@ const tryArchivePhenotype = (id) => {
     });
 }
 
+const tryRestorePhenotype = (id) => {
+  const token = getCookie('csrftoken');
+  return fetch(
+    window.location.href,
+    {
+      method: 'POST',
+      cache: 'no-cache',
+      credentials: 'same-origin',
+      withCredentials: true,
+      headers: {
+        'X-CSRFToken': token,
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ restoration_id: id })
+    }
+  )
+    .then(response => response.json())
+    .then(response => {
+      if (!response || !response?.success) {
+        window.ToastFactory.push({
+          type: 'warning',
+          message: response?.message || 'Restoration Error',
+          duration: 5000,
+        });
+        
+        throw new Error(response?.message || 'Restoration Error');
+      }
+    });
+}
+
 domReady.finally(() => {
   ARCHIVE_TEMPLATE = document.querySelector('#archive-form');
 
@@ -379,9 +465,26 @@ domReady.finally(() => {
           const id = target.getAttribute('data-id');
           tryArchivePhenotype(id);
         } break;
+        
         case 'edit': {
           window.location.href = target.getAttribute('data-href');
         } break;
+
+        case 'restore': {
+          const id = target.getAttribute('data-id');
+          window.ModalFactory.create({
+            title: 'Are you sure?',
+            content: `<p>Would you like to restore <strong>${id}</strong>?</p>`
+          })
+            .then((result) => {
+              return tryRestorePhenotype(id);
+            })
+            .then(() => {
+              window.location.reload();
+            })
+            .catch(console.warn);
+        } break;
+        
         default: break;
       }
     });

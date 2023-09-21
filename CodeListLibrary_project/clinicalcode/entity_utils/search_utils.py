@@ -131,7 +131,8 @@ def try_derive_entity_type(entity_type):
         return [entity_cls.first().id]
     return None
 
-def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_relevance=True, reverse_order=False):
+def perform_vector_search(queryset, search_query, min_rank=0.05,
+                          order_by_relevance=True, reverse_order=False):
     '''
         Performs a search on generic entities' indexed search_vector field
     '''
@@ -150,7 +151,8 @@ def perform_vector_search(queryset, search_query, min_rank=0.05, order_by_releva
 
     return queryset.filter(Q(name__search=query) | Q(author__search=query) | Q(definition__search=query))
 
-def perform_trigram_search(queryset, search_query, min_similarity=0.2, order_by_relevance=True, reverse_order=False):
+def perform_trigram_search(queryset, search_query, min_similarity=0.2,
+                           order_by_relevance=True, reverse_order=False):
     '''
         Performs trigram fuzzy search on generic entities
     '''
@@ -168,7 +170,9 @@ def perform_trigram_search(queryset, search_query, min_similarity=0.2, order_by_
     
     return queryset.filter(search_vector__icontains=search_query)
 
-def search_entities(queryset, search_query, min_threshold=0.05, fuzzy=True, order_by_relevance=True, reverse_order=False):
+def search_entities(queryset, search_query,
+                    min_threshold=0.05, fuzzy=True,
+                    order_by_relevance=True, reverse_order=False):
     '''
         Utility method to perform either trigram or vector search
     '''
@@ -177,7 +181,9 @@ def search_entities(queryset, search_query, min_threshold=0.05, fuzzy=True, orde
 
     return perform_vector_search(queryset, search_query, min_threshold, order_by_relevance, reverse_order)
 
-def search_entity_fields(queryset, search_query, fields=[], min_threshold=0.05, fuzzy=True, order_by_relevance=True, reverse_order=False):
+def search_entity_fields(queryset, search_query, fields=[],
+                         min_threshold=0.05, fuzzy=True,
+                         order_by_relevance=True, reverse_order=False):
     '''
         Utility method to search one or more fields of a generic entity based on the parameters of this method
     '''
@@ -257,9 +263,9 @@ def validate_query_param(param, template, data, default=None, request=None):
     
     return default
 
-def apply_param_to_query(
-        query, where, template, param, data, is_dynamic=False, force_term=False, is_api=False, request=None
-    ):
+def apply_param_to_query(query, where, template, param, data,
+                         is_dynamic=False, force_term=False,
+                         is_api=False, request=None):
     '''
         Tries to apply a URL param to a query if its able to resolve and validate the param data
     '''
@@ -854,7 +860,8 @@ def search_codelist_by_term(coding_system, search_term, use_desc=True):
     codes = codes.order_by(code_column, '-similarity').distinct(code_column)
     return codes
 
-def search_codelist(coding_system, search_term, use_desc=False, use_wildcard=False, case_sensitive=True, allow_wildcard=True):
+def search_codelist(coding_system, search_term, use_desc=False,
+                    use_wildcard=False, case_sensitive=True, allow_wildcard=True):
     '''
         Attempts to search a codelist by a search term, given its coding system
 

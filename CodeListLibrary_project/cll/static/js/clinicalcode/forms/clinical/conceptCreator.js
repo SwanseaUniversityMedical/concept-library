@@ -1199,7 +1199,7 @@ export default class ConceptCreator {
         const columns = dataset.components.map(item => item.id == component.id);
         component.codes.map(row => {
           let related = hashset?.[row.code];
-          if (related) {
+          if (!isNullOrUndefined(related)) {
             related = rows[related];
             related[index + CONCEPT_CREATOR_OFFSET - 1] = true;
             return;

@@ -299,7 +299,12 @@ def get_accessible_concepts(
                        concepts
                   from public.clinicalcode_historicalgenericentity as entity,
                        json_array_elements(entity.template_data::json->'concept_information') as concepts
-                 where (entity.is_deleted is null or entity.is_deleted = false)
+                 where
+                   not exists (
+                     select *
+                       from public.clinicalcode_genericentity as ge
+                      where ge.is_deleted = true and ge.id = entity.id
+                   )
                    and entity.publish_status = %s
               ) results
              order by concept_id desc, concept_version_id desc
@@ -332,7 +337,11 @@ def get_accessible_concepts(
               from public.clinicalcode_historicalgenericentity as entity,
                    json_array_elements(entity.template_data::json->'concept_information') as concepts
               where 
-                 (entity.is_deleted is null or entity.is_deleted = false)
+                 not exists (
+                   select *
+                     from public.clinicalcode_genericentity as ge
+                    where ge.is_deleted = true and ge.id = entity.id
+                 )
                  and (
                    entity.publish_status = %s
                    or (
@@ -493,7 +502,11 @@ def can_user_view_concept(request,
                      cast(concepts->>'concept_id' as integer) = %s
                      and cast(concepts->>'concept_version_id' as integer) = %s
                    )
-                   and (entity.is_deleted is null or entity.is_deleted = false)
+                   and not exists (
+                     select *
+                       from public.clinicalcode_genericentity as ge
+                      where ge.is_deleted = true and ge.id = entity.id
+                   )
                    and entity.publish_status = %s
                 ) results
              limit 1;
@@ -520,7 +533,11 @@ def can_user_view_concept(request,
                      cast(concepts->>'concept_id' as integer) = %s
                      and cast(concepts->>'concept_version_id' as integer) = %s
                    )
-                   and (entity.is_deleted is null or entity.is_deleted = false)
+                   and not exists (
+                     select *
+                       from public.clinicalcode_genericentity as ge
+                      where ge.is_deleted = true and ge.id = entity.id
+                   )
                    and (
                      entity.publish_status = %s
                      or (
@@ -628,7 +645,11 @@ def get_latest_publicly_accessible_concept(concept_id):
               from public.clinicalcode_historicalgenericentity as entity,
                    json_array_elements(entity.template_data::json->'concept_information') as concepts
               where 
-                    (entity.is_deleted is null or entity.is_deleted = false)
+                    not exists (
+                      select *
+                        from public.clinicalcode_genericentity as ge
+                       where ge.is_deleted = true and ge.id = entity.id
+                    )
                     and entity.publish_status = %s
                     and entity.world_access = %s
           ) results
