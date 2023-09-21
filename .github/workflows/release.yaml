@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - 'master'
+      - '**'
 
 env:
   HARBOR_REGISTRY: ${{ vars.HARBOR_REGISTRY }}
@@ -11,6 +11,7 @@ env:
   HARBOR_REPO: ${{ vars.HARBOR_REPO }}
   HARBOR_USER: ${{ vars.HARBOR_USER }}
   HARBOR_TOKEN: ${{ secrets.HARBOR_TOKEN }}
+  SERVER_NAME: 'conceptlibrary.saildatabank.com'
 
 jobs:
   release-container:
@@ -26,7 +27,7 @@ jobs:
 
       - name: build container
         run: |
-          docker build -t image -f "docker/production/app.Dockerfile" .
+          docker build -t image -f "docker/production/app.Dockerfile" --build-arg server_name="$SERVER_NAME" .
 
       - name: registry login
         run: |
