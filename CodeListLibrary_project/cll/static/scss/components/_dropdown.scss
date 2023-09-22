@@ -172,15 +172,20 @@
 
 .content-container{
   &__nested{
+  
+  @include media(">=desktop", "screen") {
+
   &:hover {
     
     .nested-menu {
       display: block;
     }
+    
 
     
   }
 
+}
 }
 }
 
