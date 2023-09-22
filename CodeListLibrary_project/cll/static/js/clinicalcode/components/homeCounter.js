@@ -45,8 +45,8 @@ const countup = (elem) => {
   }, duration);
 }
 
-const handleAnalyticsSection = () => {
-  document.querySelectorAll('#analytics-counter').forEach(e => {
+const handleCounterSection = () => {
+  document.querySelectorAll('#entity-counter').forEach(e => {
     const init = e.getAttribute('x-init');
     
     switch (init) {
@@ -75,15 +75,19 @@ const handleAnalyticsSection = () => {
 const handleFeaturesSection = () => {
   document.querySelectorAll('#fade-item').forEach((e, k) => {
     if (isScrolledIntoView(e)) {
+      console.log(e);
       setTimeout(() => {
         e.classList.add('show');
       }, k * 50)
       return;
     }
 
-    elementScrolledIntoView(e).then(() => setTimeout(() => {
-      e.classList.add('show');
-    }, k * 50));
+    e.classList.remove('show');
+
+    elementScrolledIntoView(e)
+      .then(() => setTimeout(() => {
+        e.classList.add('show');
+      }, k * 50));
   });
 }
 
@@ -94,6 +98,6 @@ const handleFeaturesSection = () => {
  *                                     *
  ***************************************/
 domReady.finally(() => {
-  handleAnalyticsSection();
+  handleCounterSection();
   handleFeaturesSection();
 });
