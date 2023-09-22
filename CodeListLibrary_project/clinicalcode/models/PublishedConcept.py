@@ -4,7 +4,6 @@ from simple_history.models import HistoricalRecords
 
 from .Concept import Concept
 
-
 class PublishedConcept(models.Model):
     concept = models.ForeignKey(Concept, on_delete=models.CASCADE)
     concept_history_id = models.IntegerField()
@@ -20,7 +19,7 @@ class PublishedConcept(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name="published_concept_modified"
-    )  # user of the person who modified this row.
+    )
 
     history = HistoricalRecords()
 

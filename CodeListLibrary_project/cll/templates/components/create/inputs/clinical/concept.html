@@ -2,7 +2,7 @@
 {% load entity_renderer %}
 
 <section class="concepts-view" id="concepts-view" data-field="{{ component.field_name }}" data-class="clinical-concept">
-  <data aria-hidden="true" type="value" for="{{ component.field_name }}">{% if component.value %}{{ component.value|jsonify|safe }}{% endif %}</data>
+  <data aria-hidden="true" type="value" for="{{ component.field_name }}">{% if component.value %}{{ component.value|jsonify|striptags }}{% endif %}</data>
 
   <section class="concepts-view__header">
     <div class="concepts-view__container">
@@ -31,7 +31,9 @@
     <section class="concept-list__group" data-concept-id="${concept_id}" data-concept-history-id="${concept_version_id}">
       <span class="concept-list__group-item" id="concept-accordian-header">
         <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
-        <span class="concept-name" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">${concept_name}</span>
+        <span class="concept-name" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">
+          ${concept_name}${out_of_date ? ' - <strong>Legacy Version</strong>' : ''}
+        </span>
         <span class="concept-buttons">
           ${can_edit
             ? `
@@ -51,9 +53,14 @@
         <!-- Finalised concept content when not editing -->
         <section class="concept-group-content__container show" id="concept-information">
           <section class="concept-group-content__details">
-            <h4>${subheader}</h4>
-            <ul class="chips-group" id="coding-system-chip">
-              <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight">
+            <h4>
+              ${subheader}
+            </h4>
+            <ul class="chips-group" id="concept-chips">
+              <li class="chip bold warning-accent text-accent-darkest alert-icon icon-accent-danger ${out_of_date ? 'show' : 'hide'}">
+                <a id="update-latest-version" class="chip-text">Update to Latest</a>
+              </li>
+              <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight" disabled>
                 <a id="coding-system-info" class="chip-text" data-coding-id="${coding_id}">${coding_system}</a>
               </li>
             </ul>

@@ -53,8 +53,12 @@
   background-color: col(accent-transparent);
   color: col(text-darkest);
 	border-radius: 0.25rem;
-  padding: 1rem 2rem;
   margin: 0;
+  padding: 1rem 2rem;
+
+  @include media('<tablet', 'screen') {
+    padding: 0.5rem 1rem;
+  }
   
   &:not(:disabled):active {
     transition: all 250ms ease;
@@ -252,9 +256,13 @@
 	background-color: var(--accent-color);
 	color: col(text-darkest);
 	border-radius: 0.25rem;
-  padding: 1rem 2rem;
   text-align: center;
   border: none;
+  padding: 1rem 2rem;
+
+  @include media('<tablet', 'screen') {
+    padding: 0.5rem 1rem;
+  }
 
   &:focus-visible {
     outline: 1px solid col(accent-dark);
@@ -433,6 +441,11 @@
   padding: 0.5rem 1rem;
   text-align: center;
   margin: 0;
+  padding: 1rem 2rem;
+
+  @include media('<tablet', 'screen') {
+    padding: 0.5rem 1rem;
+  }
 
   &:disabled {
     opacity: 0.5;

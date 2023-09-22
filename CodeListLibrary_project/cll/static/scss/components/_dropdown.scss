@@ -1,7 +1,7 @@
-@import "../_methods";
-@import "../_variables";
-@import "../_media";
-@import "../_utils";
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
 
 /// Navigation dropdown
 /// @desc describes the dropdown, used exclusively in the navigation component
@@ -164,7 +164,7 @@
   -webkit-box-shadow: var(--dropdown-shadow);
   box-shadow: var(--dropdown-shadow);
   z-index: 999;
-  @include prefix(transform, translate(-20%,-12%), webkit moz o);
+  @include prefix(transform, translate(-20%,-9%), webkit moz o);
   position: absolute;
   width: 100%;
   padding: 1rem;

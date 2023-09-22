@@ -7,10 +7,10 @@ from django.utils.deprecation import MiddlewareMixin
 from rest_framework.reverse import reverse
 from importlib import import_module
 
-import distutils
-import importlib
 import os
 import sys
+import numbers
+import importlib
 
 from clinicalcode.models import Brand
 
@@ -181,6 +181,28 @@ class BrandMiddleware(MiddlewareMixin):
 
         return None
 
+    def strtobool(self, val):
+        '''
+            Converts str() to bool()
+            [!] Required as distutil.util.strtobool no longer
+                supported in Python v3.10+ and removed in v3.12+
+        '''
+        if isinstance(val, bool):
+            return val
+
+        if isinstance(val, numbers.Number):
+            val = str(int(val))
+
+        if not isinstance(val, str):
+            raise ValueError('Invalid paramater %r, expected <str()> but got %r' % (val,type(val)))
+
+        val = val.lower()
+        if val in ('y', 'yes', 't', 'true', 'on', '1'):
+            return 1
+        elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+            return 0
+        raise ValueError('Invalid truth value %r, expected one of (\'y/n\', \'yes/no\', \'t/f\', \'true/false\', \'on/off\', \'1/0\')' % (val,))
+
     def get_env_value(self, env_variable, cast=None):
         try:
             if cast == None:
@@ -188,7 +210,7 @@ class BrandMiddleware(MiddlewareMixin):
             elif cast == 'int':
                 return int(os.environ[env_variable])
             elif cast == 'bool':
-                return bool(distutils.util.strtobool(os.environ[env_variable]))
+                return bool(self.strtobool(os.environ[env_variable]))
             else:
                 return os.environ[env_variable]
         except KeyError:

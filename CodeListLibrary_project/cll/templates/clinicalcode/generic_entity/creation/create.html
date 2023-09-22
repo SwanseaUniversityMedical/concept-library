@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load compress %}
@@ -22,18 +22,18 @@
 {% endblock indexing_robots %}
 
 {% block container %}
-  <link rel="stylesheet" type="text/css" href="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.css' %}" />
-  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/tinymde/tiny-mde.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
 
   {% compress js %}
-    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/vendor/lightpick.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/dropdown.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/clinicalcode/redesign/components/tooltipFactory.js' %}"></script>
-    <script type="module" src="{% static 'js/clinicalcode/redesign/forms/entityCreator.js' %}"></script>
-    <script type="module" src="{% static 'js/clinicalcode/redesign/components/stepsWizard.js' %}"></script>
-    <script type="module" src="{% static 'js/clinicalcode/redesign/components/toastNotification.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/forms/entityCreator.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
   {% endcompress %}
 
   {% compress css %}
@@ -107,18 +107,18 @@
       0
     {% endif %}
   </data>
-  <data aria-hidden="true" data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|safe }}</data>
-  <data aria-hidden="true" data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|safe }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|striptags }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|striptags }}</data>
 
   {% if entity is not None %}
-  <data aria-hidden="true" data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|safe }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|striptags }}</data>
   {% endif %}
 
   {% if object_reference is not None %}
   <data aria-hidden="true" data-owner="entity-creator"id="entity-object" name="object" type="text/json"
     referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
 
-    {{ object_reference|jsonify|safe }}
+    {{ object_reference|jsonify|striptags }}
   </data>
   {% endif %}
 {% endblock container %}

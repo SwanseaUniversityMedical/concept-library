@@ -1,5 +1,28 @@
 {% load entity_renderer %}
 <li class="phenotype-progress__item" id="{{ section.title|trimmed }}-progress">
-  <h2 class="phenotype-progress__item-title">{{ section.title }}</h2>
-  <p class="phenotype-progress__item-description">{{ section.description }}</p>
+  <h2 class="phenotype-progress__item-title">
+    {{ section.title }}
+  </h2>
+  {% if section.documentation %}
+    <p class="phenotype-progress__item-description">
+      {{ section.description }}
+    </p>
+    <div class="phenotype-progress__item-hint">
+      <p class="phenotype-progress__item-description">
+        <ul class="chips-group" id="documentation-chips">
+          <li class="chip bold bubble-accent text-accent-darkest documentation-icon icon-accent-primary">
+            <a id="documentation-viewer" class="chip-text"
+               href="{% url 'documentation_viewer' documentation=section.documentation %}"
+               target="_blank" aria-label="View Documentation">
+               View Documentation
+            </a>
+          </li>
+        </ul>
+      </p>
+    </div>
+  {% else %}
+    <p class="phenotype-progress__item-description">
+      {{ section.description }}
+    </p>
+  {% endif %}
   <div class="phenotype-progress__item-container">

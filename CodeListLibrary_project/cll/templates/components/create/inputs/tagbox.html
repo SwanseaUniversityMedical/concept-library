@@ -14,12 +14,12 @@
 
   {% if component.options %}
   <data aria-hidden="true" data-type="options" for="{{ component.field_name }}">
-    {{ component.options|jsonify|safe }}
+    {{ component.options|jsonify|striptags }}
   </data>
   {% endif %}
   <data aria-hidden="true" data-type="value" for="{{ component.field_name }}">
     {% if component.value %}
-    {{ component.value|jsonify|safe }}
+    {{ component.value|jsonify|striptags }}
     {% endif %}
   </data>
 

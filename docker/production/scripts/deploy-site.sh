@@ -89,13 +89,13 @@ echo "========== Deploying application =========="
 echo "==========================================="
 
 if [ "$DeployInForeground" = 'true' ]; then
-  if [ -z "$Profile" ]; then
+  if [ ! -z "$Profile" ]; then
     docker-compose -p "$ContainerName" -f "$ComposeFile" --profile "$Profile" up
   else
     docker-compose -p "$ContainerName" -f "$ComposeFile" up
   fi
 else
-  if [ -z "$Profile" ]; then
+  if [ ! -z "$Profile" ]; then
     docker-compose -p "$ContainerName" -f "$ComposeFile" --profile "$Profile" up -d
   else
     docker-compose -p "$ContainerName" -f "$ComposeFile" up -d

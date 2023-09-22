@@ -12,11 +12,13 @@
         <p class="entity-card__author">{{ entity.author }}</p>
       </div>
       {% if entity.publish_status != 2 %}
-      <div class="entity-card__header-item">
-        <div class="chip bold washed-accent text-accent-darkest draft-icon icon-accent-highlight">
-          <span class="chip-text" href="#">DRAFT</span>
+        <div class="entity-card__header-item">
+          <span tooltip="This is yet to be moderated" direction="left">
+            <div class="chip bold washed-accent text-accent-darkest draft-icon icon-accent-highlight">
+              <span class="chip-text" href="#">UNPUBLISHED</span>
+            </div>
+          </div>
         </div>
-      </div>
       {% endif %}
     </div>
     <div class="entity-card__snippet">

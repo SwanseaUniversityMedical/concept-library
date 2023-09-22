@@ -1,16 +1,16 @@
-import bleach
-import markdown
 from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
+from functools import partial
 from re import IGNORECASE, compile, escape as rescape
-import re 
-from clinicalcode.constants import Type_status
-from clinicalcode.entity_utils import entity_db_utils
 
+import re
+import bleach
+import markdown
+
+from ..entity_utils.constants import TypeStatus
 
 register = template.Library()
-
 
 @register.filter(name='from_phenotype')
 def from_phenotype(value, index, default=''):
@@ -31,17 +31,14 @@ def cut(value, arg):
     """Removes all occurrences of arg from the given string"""
     return value.replace(arg, '')
 
-
 @register.filter(name='has_group')
 def has_group(user, group_name):
     return user.groups.filter(name=group_name).exists()
-
 
 @register.filter
 def islist(value):
     """Check if value is of type list"""
     return type(value) == list
-
 
 @register.filter
 def tolist(value, arg):
@@ -52,12 +49,10 @@ def tolist(value, arg):
     else:
         return [str(t) for t in value.split(',')]
 
-
 @register.filter
 def toString(value):
     """Convert value to string"""
     return str(value)
-
 
 @register.filter
 def addStr(value, arg):
@@ -67,7 +62,7 @@ def addStr(value, arg):
 @register.filter
 def getBrandLogo(value):
     """get brand logos"""
-    return f'/static/img/brands/{value}/header_logo.png'
+    return f'/static/img/brands/{value}/apple-touch-icon.png'
 
 @register.filter
 def markdownify00(text):
@@ -80,12 +75,6 @@ def markdownify00(text):
     )
     html = bleach.linkify(html)
     return html
-
-
-###############################################################
-import warnings
-from functools import partial
-
 
 def legacy():
     """
@@ -124,7 +113,6 @@ def legacy():
         "LINKIFY_TEXT": values,
         "BLEACH": getattr(settings, 'MARKDOWNIFY_BLEACH', True)
     }
-
 
 @register.filter
 def markdownify(text, custom_settings="default"):
@@ -202,9 +190,6 @@ def markdownify(text, custom_settings="default"):
     
     return mark_safe(html)
 
-
-
-
 @register.filter   
 def highlight(text, q):
     q = q.lower()
@@ -227,7 +212,6 @@ def highlight(text, q):
                         )
 
     return mark_safe(return_text.replace("stylexyz001", " class='hightlight-txt' "))
-  
   
 def highlight_all_search_text(text, q):
     # highlight all phrase as a unit
@@ -252,8 +236,7 @@ def get_ws_type_name(type_int):
         get working set type name
     '''
     
-    return str([t[1] for t in Type_status if t[0]==type_int][0])
-    
+    return str([t[1] for t in TypeStatus.Type_status if t[0]==type_int][0])
     
 @register.filter   
 def get_title(txt, makeCapital=''):
@@ -266,7 +249,6 @@ def get_title(txt, makeCapital=''):
         txt = txt.replace(makeCapital.title(), makeCapital.upper())
     
     return txt
-
     
 @register.filter   
 def is_in_list(txt, list_values):
@@ -274,7 +256,6 @@ def is_in_list(txt, list_values):
         check is value is in list
     '''
     return(txt in [i.strip() for i in list_values.split(',')])
-
 
 @register.filter   
 def concat_str(txt, txt2):
@@ -290,7 +271,6 @@ def concat_str(txt, txt2):
         
     return ret_str
 
-
 @register.filter   
 def concat_doi(details, doi):
     '''
@@ -304,6 +284,3 @@ def concat_doi(details, doi):
         ret_str += ' (DOI:' + doi + ')'
         
     return ret_str
-
-
-

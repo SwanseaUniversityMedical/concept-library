@@ -1,13 +1,9 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
-from django.contrib.postgres.fields import ArrayField
 
 from .TimeStampedModel import TimeStampedModel
-from .Brand import Brand
-from clinicalcode.constants import *
-from ..entity_utils import constants
 from .EntityClass import EntityClass
 
 class Template(TimeStampedModel):

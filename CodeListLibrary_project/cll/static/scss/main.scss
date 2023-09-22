@@ -27,8 +27,6 @@
 @import 'components/_toast';
 @import 'components/_banner';
 @import 'components/_cookie_component';
-@import 'components/_loader';
-@import 'components/_cookie_card';
 @import 'components/_scrollspy';
 @import 'components/_headline';
 @import 'components/_misc';
@@ -74,6 +72,12 @@ data {
   img {
     max-width: 100%
   }
+}
+
+// base-form
+//  @desc base form style
+.base-form {
+  max-width: 100%;
 }
 
 // main-header

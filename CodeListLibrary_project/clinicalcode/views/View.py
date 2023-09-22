@@ -3,32 +3,36 @@
     COMMON VIEW CODE
     ---------------------------------------------------------------------------
 '''
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
-from django.core.exceptions import PermissionDenied
+from django.conf import settings
+from django.http import HttpResponse
 from django.db.models import Q
 from django.http.response import Http404
+from django.contrib.auth.models import Group
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
-from django import forms
-from django.conf import settings
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
-from django.http import HttpResponse
-from django.db.models.functions import Lower
+from django.contrib.auth.decorators import login_required
 
-import requests
 import sys
-import datetime
-import json
 import logging
+import requests
 
-from ..models import *
-from clinicalcode import db_utils
 from ..forms.ContactUsForm import ContactForm
-from ..permissions import allowed_to_edit, allowed_to_view
 
+from ..models.Tag import Tag
+from ..models.Brand import Brand
+from ..models.Statistics import Statistics
+from ..models.Phenotype import Phenotype
+from ..models.Concept import Concept
+from ..models.Component import Component
+from ..models.DataSource import DataSource
+from ..models.CodingSystem import CodingSystem
 
 logger = logging.getLogger(__name__)
 
+#--------------------------------------------------------------------------
+# Brand / Homepages incl. about
+#--------------------------------------------------------------------------
 def get_brand_index_stats(request, brand):
     if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
         stat = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
@@ -95,6 +99,7 @@ def index_HDRUK(request, index_path):
             'clinical_terminologies': stats['clinical_terminologies']
         })
 
+
 def index_BREATHE(request, index_path):
     return render(
         request,
@@ -102,64 +107,17 @@ def index_BREATHE(request, index_path):
     )
 
 
-def about_pages(request, pg_name=None):
-    '''
-        manage about pages
-    '''
-
-    # main CL about page
-    if pg_name.lower() == "cl_about_page".lower():
-        return render(request, 'clinicalcode/index.html', {})
-
-    #     elif pg_name.lower() == "cl_terms".lower():
-#         return render(request, 'cl-docs/terms-conditions.html', {})
-
-# HDR-UK about pages
-    if request.CURRENT_BRAND == "HDRUK":
-        if pg_name.lower() == "hdruk_about_the_project".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/about-the-project.html', {})
-
-        elif pg_name.lower() == "hdruk_about_team".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/team.html', {})
-
-        elif pg_name.lower() == "hdruk_about_technical_details".lower():
-            return technicalpage(request)
-
-        elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
-
-        elif pg_name.lower() == "hdruk_about_publications".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
-
-#         elif pg_name.lower() == "hdruk_terms".lower():
-#             return render(request, 'cl-docs/terms-conditions.html', {})
-
-        elif pg_name.lower() == "breathe".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
-
-        elif pg_name.lower() == "bhf_data_science_centre".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
-
-        elif pg_name.lower() == "eurolinkcat".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/collections/eurolinkcat.html', {})
-#     else:
-#         return render(request, 'clinicalcode/index.html', {})
-
-    raise Http404
-
-
-"""
-    Renders the appropriate about page index based on the provided page name.
-
-    Args:
-        request: The HTTP request object.
-        pg_name (str): The name of the requested about page.
-
-    Returns:
-        HttpResponse: The rendered template response.
-"""
 def brand_about_index_return(request, pg_name):
+    """
+        Renders the appropriate about page index based on the provided page name.
 
+        Args:
+            request: The HTTP request object.
+            pg_name (str): The name of the requested about page.
+
+        Returns:
+            HttpResponse: The rendered template response.
+    """
     brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
     try:
@@ -168,132 +126,32 @@ def brand_about_index_return(request, pg_name):
         about_pages_dj_data = brand.about_menu 
 
         # converts 'about_menu' django JSON into a dictionary with key as page_name and html index as value
-        about_page_templates = {item["page_name"]: item["index"] for item in about_pages_dj_data}
+        about_page_templates = {
+            item['page_name'].lower(): item['index']
+            for item in about_pages_dj_data if isinstance(item.get('index'), str) and isinstance(item.get('page_name'), str)
+        }
+        
+        inner_templates = {
+            group['page_name'].lower(): group['index']
+            for item in about_pages_dj_data if isinstance(item.get('page_name'), list)
+            for group in item.get('page_name') if isinstance(group.get('index'), str) and isinstance(group.get('page_name'), str)
+        }
 
         # Get the index associated with current page name
-        about_page_name = about_page_templates.get(pg_name.lower())
-
-        if about_page_name:
-            return render(request, about_page_name, {})
-        else:
-            raise Http404
+        about_page_name = about_page_templates.get(pg_name.lower()) or inner_templates.get(pg_name.lower())
+        if not about_page_name:
+            raise Exception('No valid template found')
     except:
-        # force render of the current index_path for any occuring errors
-        return render(request, settings.INDEX_PATH)
-        
-def HDRUK_portal_redirect(request, unique_url):
-    '''
-        HDR-UK portal redirect to CL
-    '''
-
-    if unique_url is not None:
-        phenotype = list(
-            Phenotype.objects.filter(
-                Q(source_reference__iendswith=("/" + unique_url + ".md"))
-                | Q(source_reference__iendswith=("/" + unique_url))).values_list('id', flat=True))
-        if phenotype:
-            versions = Phenotype.objects.get(pk=phenotype[0]).history.all().order_by('-history_id')
-            for v in versions:
-                is_this_version_published = False
-                is_this_version_published = db_utils.checkIfPublished(Phenotype, v.id, v.history_id)
-                if is_this_version_published:
-                    return redirect('phenotype_history_detail',
-                                    pk=v.id,
-                                    phenotype_history_id=v.history_id)
-
-            raise Http404
-        else:
-            raise Http404
-    else:
         raise Http404
-
-
-def build_permitted_components_list(request,
-                                    concept_id,
-                                    concept_history_id=None,
-                                    check_published_child_concept=False):
-    '''
-        Look through the components that are associated with the specified
-        concept ID and decide whether each has view and edit permission for
-        the specified user.
-    '''
-    user = request.user
-    user_can_view_components = []
-    user_can_edit_components = []
-    component_error_msg_view = {}
-    component_error_msg_edit = {}
-    component_concpet_version_msg = {}
-
-    components = Component.objects.filter(concept=concept_id)
-    for component in components:
-        # add this from latest version (concept_history_id, component_history_id)
-        component.concept_history_id = Concept.objects.get(id=concept_id).history.latest().pk
-        component.component_history_id = Component.objects.get(id=component.id).history.latest().pk
-
-        component_error_msg_view[component.id] = []
-        component_error_msg_edit[component.id] = []
-        component_concpet_version_msg[component.id] = []
-
-        if component.component_type == 1:
-            user_can_view_components += [component.id]
-            user_can_edit_components += [component.id]
-            # if child concept, check if this version is published
-            if check_published_child_concept:
-                from ..permissions import checkIfPublished
-                component.is_published = checkIfPublished(Concept, component.concept_ref_id, component.concept_ref_history_id)
-
-            # Adding extra data here to indicate which group the component
-            # belongs to (only for concepts).
-            component_group_id = Concept.objects.get(id=component.concept_ref_id).group_id
-            if component_group_id is not None:
-                component.group = Group.objects.get(id=component_group_id).name
-
-            if Concept.objects.get(pk=component.concept_ref_id).is_deleted == True:
-                component_error_msg_view[component.id] += ["concept deleted"]
-                component_error_msg_edit[component.id] += ["concept deleted"]
-
-            if not allowed_to_view(request, Concept, component.concept_ref.id, set_history_id=component.concept_ref_history_id):
-                component_error_msg_view[component.id] += ["no view permission"]
-
-            if not allowed_to_edit(request, Concept, component.concept_ref.id):
-                component_error_msg_edit[component.id] += ["no edit permission"]
-
-            # check component child version is the latest
-            if component.concept_ref_history_id != Concept.objects.get(id=component.concept_ref_id).history.latest().pk:
-                component_concpet_version_msg[component.id] += ["newer version available"]
-                component_error_msg_view[component.id] += ["newer version available"]
-
-        else:
-            user_can_view_components += [component.id]
-            user_can_edit_components += [component.id]
-
-    # clean error msg
-    for cid, value in list(component_error_msg_view.items()):
-        if value == []:
-            component_error_msg_view.pop(cid, None)
-
-    for cid, value in list(component_error_msg_edit.items()):
-        if value == []:
-            component_error_msg_edit.pop(cid, None)
-
-    for cid, value in list(component_concpet_version_msg.items()):
-        if value == []:
-            component_concpet_version_msg.pop(cid, None)
-
-    data = {
-            'components': components,
-            'user_can_view_component': user_can_view_components,
-            'user_can_edit_component': user_can_edit_components,
-            'component_error_msg_view': component_error_msg_view,
-            'component_error_msg_edit': component_error_msg_edit,
-            'component_concpet_version_msg': component_concpet_version_msg,
-            'latest_history_id': Concept.objects.get(id=concept_id).history.latest().pk
-    }
-    return data
-
+    else:
+        return render(request, about_page_name, {})
 
 #--------------------------------------------------------------------------
 
+
+#--------------------------------------------------------------------------
+# Misc. pages e.g. T&C, P&C, Technical pages, Contact us etc
+#--------------------------------------------------------------------------
 def termspage(request):
     """
         terms and conditions page
@@ -311,17 +169,8 @@ def cookiespage(request):
 def technicalpage(request):
     """
         HDRUK Documentation outside of HDRUK Brand
-
     """
-
-    phenotype_bronheostasis = db_utils.get_visible_live_or_published_phenotype_versions(request,show_top_version_only = True,
-                                                                                           filter_cond="(phenotype_uuid='ZckoXfUWNXn8Jn7fdLQuxj')")
-    bron_id = phenotype_bronheostasis[0]['id']
-    bron_version = phenotype_bronheostasis[0]['history_id']
-
-
-
-    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {'bron_id':bron_id,'bron_version':bron_version})
+    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', { })
 
 
 def cookies_settings(request):
@@ -336,7 +185,9 @@ def contact_us(request):
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
     
-    captcha = check_recaptcha(request)
+    captcha = True
+    if not settings.IGNORE_CAPTCHA:
+        captcha = check_recaptcha(request)
 
     sent_status = None
     if request.method == 'GET':
@@ -391,6 +242,7 @@ def contact_us(request):
         { 'form': form, 'message_sent': sent_status }
     )
 
+
 def check_recaptcha(request):
     '''
         Contact Us Recaptcha code
@@ -422,10 +274,10 @@ def reference_data(request):
     """
         Open page to list Data sources, Coding systems, Tags, Collections, Phenotype types, etc 
     """
-
     tags = Tag.objects.extra(select={
         'name': 'description'
     }).order_by('id')
+
     collections = tags.filter(tag_type=2).values('id', 'name')
     tags = tags.filter(tag_type=1).values('id', 'name')
 

@@ -1,11 +1,11 @@
+from uuid import UUID
+from json import JSONEncoder
+from functools import wraps
+from dateutil import parser as dateparser
 from django.conf import settings
 from django.http.response import JsonResponse
 from django.core.exceptions import BadRequest
 from django.http.multipartparser import MultiPartParser
-from functools import wraps
-from dateutil import parser as dateparser
-from json import JSONEncoder
-from uuid import UUID
 
 import re
 import time
@@ -14,6 +14,65 @@ import datetime
 import urllib
 
 from . import constants
+
+def is_datetime(x):
+    '''
+        Legacy method from ./utils.py
+
+        Desc:
+            - "Checks if a parameter can be parsed as a datetime"
+    '''
+    try:
+        dateparser(x)
+    except ValueError:
+        return False
+    else:
+        return True
+
+def is_float(x):
+    '''
+        Legacy method from ./utils.py
+
+        Desc:
+            - "Checks if a param can be parsed as a float"
+    '''
+    try:
+        a = float(x)
+    except ValueError:
+        return False
+    else:
+        return True
+
+def is_int(x):
+    '''
+        Legacy method from ./utils.py
+
+        Desc:
+            - "Checks if a number is an integer"
+    '''
+    try:
+        a = float(x)
+        b = int(a)
+    except ValueError:
+        return False
+    else:
+        return a == b
+
+def clean_str_as_db_col_name(txt):
+    '''
+        Legacy method from ./utils.py
+
+        Desc:
+            - "Clean string to be valid column name"
+    '''
+    s = txt.strip()
+    s = s.replace(' ', '_').replace('.', '_').replace('-', '_')
+
+    if is_int(s[0]):
+        s = '_' + s
+
+    s = re.sub('_+', '_', s)
+    return re.sub('[^A-Za-z0-9_]+', '', s)
 
 def try_parse_form(request):
     '''
@@ -287,6 +346,27 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     elif field_type == 'publication':
         if not isinstance(field_value, list):
             return default
+        
+        if len(field_value) < 0:
+            return field_value
+        
+        valid = True
+        for val in field_value:
+            if not isinstance(val, dict):
+                valid = False
+                break
+            
+            details = val.get('details')
+            if not details or not isinstance(details, str):
+                valid = False
+                break
+            
+            doi = val.get('doi')
+            if doi is not None and not isinstance(doi, str):
+                valid = False
+                break
+        
+        return field_value if valid else default
     
     return field_value
 
