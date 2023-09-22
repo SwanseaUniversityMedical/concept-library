@@ -150,10 +150,7 @@ class FilterService {
     this.query = { };
     this.filters = { };
 
-    this.#collectFilters();
-    this.#setUpFilters();
-    this.#fetchURLParameters();
-    this.#handleHistoryUpdate();
+    this.#init();
   }
 
   /*************************************
@@ -184,6 +181,16 @@ class FilterService {
    *               Private             *
    *                                   *
    *************************************/
+  /**
+   * base initialisation
+   */
+  #init() {
+    this.#collectFilters();
+    this.#setUpFilters();
+    this.#fetchURLParameters();
+    this.#handleHistoryUpdate();
+  }
+
   /**
    * fetchURLParameters
    * @desc fetches the current URL parameters and applies it to this.query
@@ -677,7 +684,6 @@ class FilterService {
       }
     }
   }
-
 }
 
 domReady.finally(() => {

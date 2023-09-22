@@ -300,6 +300,7 @@ def build_query_from_template(request, user_authed, template=None):
 
     terms = {}
     where = []
+    params = []
     for key, value in request.GET.items():
         is_dynamic = True
         layout = template
@@ -333,11 +334,11 @@ def build_query_from_template(request, user_authed, template=None):
                 layout = constants.metadata
 
             search_utils.apply_param_to_query(
-                terms, where, layout, key, value,
+                terms, where, params, layout, key, value,
                 is_dynamic=is_dynamic, force_term=True, is_api=True
             )
 
-    return terms, where
+    return terms, where, params
 
 def get_entity_detail_from_layout(
     entity, fields, user_authed, fields_to_ignore=[], target_field=None

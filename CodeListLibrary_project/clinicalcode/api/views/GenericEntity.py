@@ -195,12 +195,12 @@ def get_generic_entities(request, should_paginate=False):
         merged_definition = template_utils.get_merged_definition(template, default={})
         template_fields = template_utils.try_get_content(merged_definition, 'fields')
 
-        template_query, where_clause = api_utils.build_query_from_template(
+        template_query, where_clause, where_params = api_utils.build_query_from_template(
             request, user_authed, template=template_fields
         )
 
         entities = entities.filter(Q(**template_query))
-        entities = entities.extra(where=where_clause)
+        entities = entities.extra(where=where_clause, params=where_params)
 
     # Search terms
     search = request.query_params.get('search', None)
@@ -214,13 +214,20 @@ def get_generic_entities(request, should_paginate=False):
         return Response([], status=status.HTTP_200_OK)
     
     ''' Please note, this looks redundant but is *required* due to varchar entity ID '''
-    entities = GenericEntity.history.filter(
-        id__in=entities.values_list('id', flat=True),
-        history_id__in=entities.values_list('history_id', flat=True)
+    entities = GenericEntity.history.raw(
+        '''
+        select cast(regexp_replace(id::text, '[a-zA-Z]+', '') as integer) as numerical_id,
+               *
+          from public.clinicalcode_historicalgenericentity
+         where id = any(%s)
+           and history_id = any(%s)
+         order by numerical_id
+        ''',
+        params=[
+            list(entities.values_list('id', flat=True)),
+            list(entities.values_list('history_id', flat=True)),
+        ]
     )
-    entities = entities.extra(
-        select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
-    ).order_by('true_id', 'id')
 
     # Paginate results
     if should_paginate:
