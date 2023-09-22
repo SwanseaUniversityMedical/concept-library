@@ -185,6 +185,12 @@
       }
     }
 
+    &-hint {
+      @include flex-row();
+      flex-flow: row wrap;
+      justify-content: space-between;
+    }
+
     &-description {
       padding: 0;
       margin: 0;
@@ -302,6 +308,7 @@
       position: relative;
       color: col(text-darkest);
       padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+      max-width: 100%;
   
       &.is-open + .concept-group-content {
         height: auto;
@@ -343,7 +350,7 @@
         cursor: pointer;
         pointer-events: auto;
         font-weight: normal;
-        white-space: nowrap;
+        white-space: break-spaces;
         text-overflow: ellipsis;
         overflow: hidden;
       }

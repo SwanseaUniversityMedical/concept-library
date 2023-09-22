@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -z $IS_DEVELOPMENT_PC ] && [ $IS_DEVELOPMENT_PC = "True" ]; then
+if [ ! -z $AWAIT_POSTGRES ] && [ $AWAIT_POSTGRES = "True" ]; then
   /bin/wait-for-it.sh -t 0 postgres:5432 -- echo "Postgres is live"
 fi
 

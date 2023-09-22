@@ -2,7 +2,7 @@
 
 cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
-if [ ! -z $IS_DEVELOPMENT_PC ] && [ $IS_DEVELOPMENT_PC = "True" ]; then
+if [ ! -z $AWAIT_POSTGRES ] && [ $AWAIT_POSTGRES = "True" ]; then
   echo "==========================================="
   echo "========== Waiting for Postgres ==========="
   echo "==========================================="
@@ -24,14 +24,14 @@ echo "============== Compiling app =============="
 echo "==========================================="
 if [ ! -z $DEBUG ] && [ $DEBUG = "False" ]; then
   python manage.py compilescss
-  python manage.py collectstatic --noinput --clear --ignore=*.scss
+  python manage.py collectstatic --noinput --clear --ignore=*.scss -v 0
   python manage.py compress
-  python manage.py collectstatic --noinput --ignore=*.scss
+  python manage.py collectstatic --noinput --ignore=*.scss -v 0
   
   chown -R www-data:www-data /var/www/concept_lib_sites
 else
   python manage.py compilescss --delete-files
-  python manage.py collectstatic --clear --noinput
+  python manage.py collectstatic --clear --noinput -v 0
 
   chown -R www-data:www-data /var/www/concept_lib_sites
 fi

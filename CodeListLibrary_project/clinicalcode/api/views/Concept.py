@@ -1,5 +1,5 @@
 from rest_framework.decorators import (api_view, permission_classes)
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.expressions import RawSQL
@@ -12,15 +12,14 @@ from ...entity_utils import concept_utils
 from ...entity_utils import gen_utils
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_concepts(request):
     '''
-    
+        Get all concepts accessible to the user, optionally, provide parameters to filter by
     '''
     # Get all concepts accesible to the user
     concepts = permission_utils.get_accessible_concepts(
-        request, 
-        consider_user_perms=False
+        request
     )
     if not concepts.exists():
         return Response([], status=status.HTTP_200_OK)
@@ -100,7 +99,8 @@ def get_concepts(request):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_concept_detail(request, concept_id, version_id=None, export_codes=False):
     '''
-    
+        Get the detail of specified concept by concept_id, optionally target a specific
+            version using version_id and/or export the concept codelist
     '''
     # Check concept with this id exists
     concept_response = api_utils.exists_concept(concept_id)
@@ -109,7 +109,7 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
     
     # Get historical concept
     historical_concept_response = api_utils.exists_historical_concept(
-        concept_id, request.user, historical_id=version_id
+        request, concept_id, historical_id=version_id
     )
     if isinstance(historical_concept_response, Response):
         return historical_concept_response
@@ -171,7 +171,7 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_concept_version_history(request, concept_id):
     '''
-    
+        Get version history of a specific concept, using concept_id
     '''
     # Check concept with this id exists
     concept_response = api_utils.exists_concept(concept_id)

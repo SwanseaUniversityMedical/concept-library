@@ -35,7 +35,7 @@ const PROMPT_DEFAULT_CONTAINER = '\
       <h2 id="target-modal-title">${title}</h2> \
       <a href="#" class="target-modal__header-close" aria-label="Close Modal" id="modal-close-btn"></a> \
     </div> \
-    <div class="target-modal__body" id="target-modal-content"> \
+    <div class="target-modal__body target-modal__body--constrained" id="target-modal-content"> \
       ${content} \
     </div> \
   </div> \
@@ -62,6 +62,8 @@ const PROMPT_DEFAULT_PARAMS = {
   showFooter: true,
   size: PROMPT_MODAL_SIZES.Medium,
   buttons: PROMPT_BUTTONS_DEFAULT,
+  onRender: () => { },
+  beforeAccept: () => { },
 };
 
 /**
@@ -94,9 +96,10 @@ class CancellablePromise {
  * @desc Creates an instance that is passed as a parameter when resolved/rejected via closure / button interaction
  */
 class ModalResult {
-  constructor(name, type) {
+  constructor(name, type, data) {
     this.name = name;
     this.type = type;
+    this.data = data;
   }
 };
 
@@ -222,7 +225,7 @@ class ModalFactory {
         }
 
         if (details) {
-          method(new ModalResult(details?.name || 'Cancel', details?.type || this.ButtonTypes.REJECT));
+          method(new ModalResult(details?.name || 'Cancel', details?.type || this.ButtonTypes.REJECT, details?.data || null));
         } else {
           method(new ModalResult('Cancel', this.ButtonTypes.REJECT));
         }
@@ -234,7 +237,12 @@ class ModalFactory {
           btn.element.addEventListener('click', (e) => {
             switch (btn.type) {
               case this.ButtonTypes.CONFIRM: {
-                closeModal(resolve, btn);
+                let data;
+                if (options.beforeAccept) {
+                  data = options.beforeAccept(modal);
+                }
+                
+                closeModal(resolve, Object.assign({}, btn, { data: data }));
               } break;
 
               case this.ButtonTypes.REJECT:
@@ -264,6 +272,10 @@ class ModalFactory {
 
         // Stop scrolling on body when modal is open
         document.body.classList.add('modal-open');
+
+        if (options.onRender) {
+          options.onRender(modal);
+        }
       });
 
       this.modal = {

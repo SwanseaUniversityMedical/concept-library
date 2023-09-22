@@ -44,7 +44,7 @@
         <section class="profile-collection__inner-container" id="requested">
           <data aria-hidden="true" data-owner="collection-service" page-type="MODERATION_COLLECTIONS" name="requested" type="text/json">
             {% if requested_content %}
-              {{ requested_content|jsonify|safe }}
+              {{ requested_content|jsonify|striptags }}
             {% endif %}
           </data>
           <h3>1. Phenotypes to be Reviewed</h3>
@@ -61,7 +61,7 @@
         <section class="profile-collection__inner-container" id="pending">
           <data aria-hidden="true" data-owner="collection-service" page-type="MODERATION_COLLECTIONS" name="pending" type="text/json">
             {% if pending_content %}
-              {{ pending_content|jsonify|safe }}
+              {{ pending_content|jsonify|striptags }}
             {% endif %}
           </data>
           <h3>2. Phenotypes under Review</h3>

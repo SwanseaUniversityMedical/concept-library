@@ -7,7 +7,6 @@ from django.db.models import ForeignKey, F
 from ..models.GenericEntity import GenericEntity
 from ..models.Template import Template
 from ..models.Concept import Concept
-from ..models.PublishedConcept import PublishedConcept
 from . import model_utils
 from . import template_utils
 from . import permission_utils
@@ -126,30 +125,32 @@ def exists_concept(concept_id):
 
     return concept
 
-def exists_historical_concept(concept_id, user, historical_id=None):
+def exists_historical_concept(request, concept_id, historical_id=None):
     '''
       Checks whether a historical version of a concept exists
 
       Args:
+        request {RequestContext}: the HTTPRequest
         concept_id {string}: concept id
-        user {User}: User object
         historical_id {integer}: historical id of the concept
 
       Returns:
         If exists, returns first instance of historical concept, otherwise 
         returns response 404
     '''
+    historical_concept = None
     if not historical_id:
-        historical_id = permission_utils.get_latest_concept_historical_id(
-            concept_id, user
-        )
+        historical_concept = concept_utils.get_latest_accessible_concept(request, concept_id)
+    else: 
+        historical_concept = model_utils.try_get_instance(
+            Concept,
+            pk=concept_id
+        ).history.filter(history_id=historical_id)
+        
+        if historical_concept.exists():
+            historical_concept = historical_concept.first()
 
-    historical_concept = model_utils.try_get_instance(
-        Concept,
-        pk=concept_id
-    ).history.filter(history_id=historical_id)
-
-    if not historical_concept.exists():
+    if not historical_concept:
         return Response(
             data={
                 'message': 'Historical concept version does not exist'
@@ -158,7 +159,7 @@ def exists_historical_concept(concept_id, user, historical_id=None):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    return historical_concept.first()
+    return historical_concept
 
 ''' General helpers '''
 
@@ -215,19 +216,17 @@ def get_concept_version_history(request, concept_id):
 
     latest = historical_versions.first()
     for version in historical_versions:
-        published_concept = PublishedConcept.objects.filter(
-            concept_id=concept_id,
-            concept_history_id=version.history_id
-        ).order_by('-concept_history_id').first()
+        if not permission_utils.can_user_view_concept(request, version):
+            continue
 
-        if permission_utils.can_user_view_concept(request, version):
-            result.append({
-                'version_id': version.history_id,
-                'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
-                'version_date': version.history_date,
-                'is_published': published_concept is not None,
-                'is_latest': latest.history_id == version.history_id
-            })
+        is_published = concept_utils.is_concept_published(concept_id, version.history_id)
+        result.append({
+            'version_id': version.history_id,
+            'version_name': version.name.encode('ascii', 'ignore').decode('ascii'),
+            'version_date': version.history_date,
+            'is_published': is_published,
+            'is_latest': latest.history_id == version.history_id
+        })
 
     return result
 

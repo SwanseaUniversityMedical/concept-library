@@ -5,13 +5,22 @@ services:
     build:
       context: .
       dockerfile: ./development/postgres.Dockerfile
-    restart: always
+    restart: unless-stopped
     ports:
       - 5432:5432
     volumes:
       - ./development/db/:/docker-entrypoint-initdb.d/db/
     env_file:
       - ./development/env/postgres.compose.env
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
+        "&& /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep .",
+      ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     platform: linux/amd64
@@ -21,7 +30,7 @@ services:
       dockerfile: ./docker/test/app.Dockerfile
       args:
         server_name: localhost
-    restart: on-failure
+    restart: unless-stopped
     command: >
       sh -c "/home/config_cll/init-app.sh"
     ports:
@@ -30,11 +39,26 @@ services:
       - 80
     env_file:
       - ./test/env/app.compose.env
-    depends_on:
-      - postgres
-      - redis
     volumes:
       - ../CodeListLibrary_project/cll/media/:/var/www/concept_lib_sites/v1/CodeListLibrary_project/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    profiles:
+      - live
+      - email
+    ports:
+      - 8025:8025
+    networks:
+      default:
+        aliases:
+          - mailhog
 
   redis:
     image: redis:7.0-bullseye
@@ -59,9 +83,10 @@ services:
     profiles:
       - live
     depends_on:
-      - postgres
-      - app
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   celery_beat:
     image: cll/app
@@ -73,7 +98,9 @@ services:
     profiles:
       - live
     depends_on:
-      - postgres
-      - app
-      - redis
-      - celery_worker
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      celery_worker:
+        condition: service_started

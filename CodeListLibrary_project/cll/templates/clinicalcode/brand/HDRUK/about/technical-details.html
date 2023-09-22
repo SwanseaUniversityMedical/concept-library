@@ -203,9 +203,13 @@
                 </li>
                 <li>
                   By 
-                  <a href="{% url 'contact_us' %}">
+                  {% if not CLL_READ_ONLY %}
+                    <a href="{% url 'contact_us' %}">
+                      contacting us
+                    </a>
+                  {% else %}
                     contacting us
-                  </a>
+                  {% endif %}
                 </li>
               </ul>
             </section>

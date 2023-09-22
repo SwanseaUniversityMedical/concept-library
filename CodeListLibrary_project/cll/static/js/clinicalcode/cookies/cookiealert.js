@@ -6,7 +6,6 @@
   const acceptCookies = document.querySelector(".acceptcookies");
   const rejectCookies = document.querySelector(".rejectcookies");
 
-
   if (!cookieAlert) {
     return;
   }
@@ -38,11 +37,7 @@
     });
   };
   
-  
-  
-
   // Show the alert if we can't find the "acceptCookies" cookie
-  
   if (!getCookie("acceptCookies")) {
     cookieAlert.classList.add("show");
   }else{
@@ -53,7 +48,6 @@
     cookieAlert.classList.remove("show");
     cookieCard.classList.add("show");
   }
-
 
   const handleCookies = (eventName, cookieName, cookieValue) => {
     cookieAlert.classList.remove("show");
@@ -72,5 +66,4 @@
   window.handleCookies = handleCookies;
   window.getCookie = getCookie;
   window.deleteCookies = deleteCookies;
-
 })();

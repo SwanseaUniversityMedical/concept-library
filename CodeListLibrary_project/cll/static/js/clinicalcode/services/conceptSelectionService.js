@@ -28,7 +28,7 @@ const CSEL_EVENTS = {
  */
 const CSEL_BEHAVIOUR = {
   // Defines cache time for get requests (ms)
-  CACHE_TIME: 3_600_000, // i.e. 1hr
+  CACHE_TIME: 300_000, // i.e. 5 minutes
 
   // Defines the output format behaviour of datetime objects
   DATE_FORMAT: 'YYYY-MM-DD',
@@ -266,7 +266,7 @@ const CSEL_INTERFACE = {
   <div class="checkbox-item-container ${!isSelector? "ignore-overflow" : ""}" id="${isSelector ? "child-selector" : "selected-item" }"> \
     <input id="${field}-${id}" aria-label="${title}" type="checkbox" ${checked ? "checked" : ""} data-index="${index}" \
       class="checkbox-item" data-id="${id}" data-history="${history_id}" data-name="${title}" data-field="${field}" data-prefix="${prefix}"/> \
-    <label for="${field}-${id}" class="constrained-filter-item">${title}</label> \
+    <label for="${field}-${id}" class="constrained-filter-item">${title} [${coding_system}]</label> \
   </div>',
 };
 
@@ -316,7 +316,7 @@ const CSEL_FILTER_COMPONENTS = {
   SEARCHBAR_GROUP: ' \
   <div class="accordian" data-class="searchbar" data-field="search" data-type="string" \
     role="collapsible" tabindex="0" aria-labelledby="Searchterm Filter" aria-controls="filter-search"> \
-    <input class="accordian__input" id="filter-search" name="filter-search" type="checkbox" /> \
+    <input class="accordian__input" id="filter-search" name="filter-search" type="checkbox" checked /> \
     <label class="accordian__label" for="filter-search"> \
       <h4>Search</h4> \
     </label> \
@@ -866,7 +866,8 @@ export class ConceptSelectionService {
     // create content handler
     const body = container.querySelector('#target-modal-content');
     if (this.options?.allowMultiple) {
-      body.classList.add('no-pad');
+      body.classList.add('target-modal__body--no-pad');
+      body.classList.add('target-modal__body--constrained');
     }
 
     let contentContainer = body;
@@ -1060,6 +1061,7 @@ export class ConceptSelectionService {
         'history_id': selected.history_id,
         'field': selected.type,
         'title': `${selected.prefix}${selected.id}/${selected.history_id} - ${selected.name}`,
+        'coding_system': selected.coding_system_name,
         'prefix': selected.prefix,
         'checked': true,
         'isSelector': false,
@@ -1247,6 +1249,7 @@ export class ConceptSelectionService {
           'field': child.type,
           'title': `${child.prefix}${child.id}/${child.history_id} - ${child.name}`,
           'checked': this.isSelected(child.id, child.history_id),
+          'coding_system': child.coding_system_name,
           'prefix': child.prefix,
           'isSelector': true,
           'index': -1,

@@ -65,6 +65,7 @@ if settings.IS_DEVELOPMENT_PC:
 
 ''' API urls '''
 urlpatterns += [
+    # Swagger
     url(r'^$', schema_view.with_ui('swagger', cache_timeout=0), name='root'),
     url(r'^', include(router.urls)),
 

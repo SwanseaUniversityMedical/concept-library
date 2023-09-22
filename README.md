@@ -1,17 +1,23 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/sail-darkmode.png">
+  <img align="right" src="./docs/assets/sail-lightmode.png" alt="SAIL Databank Logo" height="70" title="SAIL Databank">
+</picture>
+
+<br/>
+<br/>
+
 # Concept Library
 The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.  
-	
+
 The specific goals of this work are:
 - Store code lists along with metadata that captures important information about quality, author, etc.
 - Store version history and provide a way to unambiguously reference a particular version of a code list.
 - Allow programmatic interaction with code lists via an API, so that they can be directly used in queries, statistical scripts, etc.
 - Provide a mechanism for sharing code lists between projects and organizations.
 
-## Live Site
-The Concept Library web application is [available here](https://conceptlibrary.saildatabank.com).
-
-## User documentation
-Concept Library documentation is [available here](https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation).
+You can learn more about us here:
+- Our live website is [available here](https://conceptlibrary.saildatabank.com)
+- Our documentation is [available here](https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation)
 
 ## Overview
 Our goal is to create a system that describes research study designs in a machine-readable format to facilitate rapid study development; higher quality research; easier replication; and sharing of methods between researchers, institutions, and countries.
@@ -25,11 +31,12 @@ Often the definitions that are created are of interest to researchers for many s
 1. [Clone this repository](#1-Clone-this-Repository)  
 2. [Setup with Docker](#2-Setup-with-Docker)  
   2.1. [Prerequisites](#21-Prerequisites)  
-  2.1.1. [Running on Apple](#211-Running-on-Apple)  
+    2.1.1. [Docker](#211-Docker)  
+    2.1.2. [Running on Apple](#212-Running-on-Apple)  
   2.2. [Database Setup](#22-Database-Setup)  
+    2.2.1. [Restore from Local Backup](#221-Restore-from-Local-Backup)  
     2.2.2. [Restore from Git Repository](#222-Restore-from-Git-Repository)  
     2.2.3. [Migration only](#223-Migration-only)  
-    2.2.1. [Restore from Local Backup](#221-Restore-from-Local-Backup)  
   2.3. [Development](#23-Development)  
     2.3.1. [Docker Compose Files](#231-Docker-Compose-Files)  
     2.3.2. [Initial Build](#232-Initial-Build)  
@@ -42,25 +49,35 @@ Often the definitions that are created are of interest to researchers for many s
     2.4.1. [Access/Export with PGAdmin4](#241-Access/Export-with-PGAdmin4)  
     2.4.2. [Access/Export with CLI](#242-Access/Export-with-CLI)  
   2.5. [Debugging and Running Tests](#25-Debugging-and-Running-Tests)  
-    2.5.1. [Django logging](#251-Django-Logging)  
+    2.5.1. [Django Logging](#251-Django-Logging)  
     2.5.2. [Debug Tools in Visual Studio Code](#252-Debug-Tools-in-Visual-Studio-Code)  
     2.5.3. [Running Tests](#253-Running-Tests)  
   2.6. [Setting up VSCode Tasks](#26-Setting-up-VSCode-Tasks)  
     2.6.1. [Basics](#261-Basics)  
-    2.6.2. [Debug build tasks](#262-Debug-build-tasks)  
-    2.6.3. [Test build tasks](#263-Test-build-tasks)  
-    2.6.4. [How to handle cleaning](#264-How-to-handle-cleaning)  
-  2.7. [Creating a Superuser](#27-Creating-a-Superuser)
+    2.6.2. [Debug Build Tasks](#262-Debug-Build-Tasks)  
+    2.6.3. [Test Build Tasks](#263-Test-Build-Tasks)  
+    2.6.4. [How to Handle Cleaning](#264-How-to-Handle-Cleaning)  
+  2.7. [Creating a Superuser](#27-Creating-a-Superuser)  
 3. [Setup without Docker](#3-Setup-without-Docker)  
   3.1. [Prerequisites](#31-Prerequisites)  
   3.2. [Installing](#32-Installing)  
+    3.2.1. [Cloning the Concept Library](#321-Cloning-the-Concept-Library)  
+    3.2.2. [Install virtualenv and virtualenvwrapper](#322-Installing-virtualenv-and-virtualenvwrapper)  
+    3.2.3. [Database set up](#323-Database-set-up)  
+    3.2.4. [Installing LDAP functionality](#324-Installing-LDAP-functionality)  
+    3.2.5. [Administration area](#325-Administration-area)  
   3.3. [Using Eclipse](#33-Using-Eclipse)  
   3.4. [Running Tests](#34-Running-Tests)  
 4. [Deployment](#4-Deployment)  
   4.1. [Deploy Scripts](#41-Deploy-Scripts)  
-    4.1.1. [Manual Deployment](#411-Manual-Deployment)  
-    4.1.2. [Automated Deployment](#412-Automated-Deployment)  
+    4.1.1. [Manual Deployment](#411-Manual-Deployment)  
+    4.1.2. [Automated Deployment](#412-Automated-Deployment)  
   4.2. [Harbor-driven CI/CD Pipeline](#42-Harbor-driven-CI/CD-Pipeline)  
+5. [API and Packages](#5-API-and-Packages)  
+  5.1. [Clients](#51-Clients)  
+    5.1.1. [What are Clients?](#511-What-Are-Clients)  
+    5.1.2. [Available Packages](#512-Available-Packages)  
+  5.2. [API](#52-API)  
 
 # 1. Clone this Repository
 To download this repository:
@@ -73,11 +90,13 @@ To download this repository:
 # 2. Setup with Docker
 
 ## 2.1. Prerequisites
+
+### 2.1.1. Docker
 Please ensure that you have installed [Docker Desktop v4.10.1](https://docs.docker.com/desktop/release-notes/) or [Docker Engine v20.10.17](https://docs.docker.com/engine/release-notes/).
 
 If you encounter any issues, please see Docker's documentation (https://docs.docker.com/).
 
-## 2.1.1. Running on Apple
+### 2.1.2. Running on Apple
 
 The app container requires emulation for ARM CPUs, please install Rosetta 2:
 1. Open a terminal
@@ -91,7 +110,7 @@ The app container requires emulation for ARM CPUs, please install Rosetta 2:
 To restore from a local backup:
 1. Navigate to the `concept-library/docker/development` folder
 2. Place a `.backup` file inside of the `db` folder  
-3. Skip to [2.3. Development](#2.3.-Development)  
+3. Skip to [2.3. Development](#23-Development)  
 
 ### 2.2.2. Restore from Git Repository
 >***[!] Note:** Do not share these files with anyone*
@@ -107,13 +126,13 @@ To restore from a Git repository:
 5. Delete the contents of the file and paste your personal access token
 6. Open the `postgres.compose.env` file inside of the `docker/development/env` folder
 7. Ensure that the environment variable `POSTGRES_RESTORE_REPO` is set to the correct GitHub repository where your `.backup` file is stored
-8. Skip to [2.3. Development](#2.3.-Development)  
+8. Skip to [2.3. Development](#23-Development)  
 
 ### 2.2.3. Migration only
-If you do not have a backup available the application will still run successfully as migrations are automatically applied, however, no data will be restored. Please skip to [2.3. Development](#2.3.-Development).
+If you do not have a backup available the application will still run successfully as migrations are automatically applied, however, no data will be restored. Please skip to [2.3. Development](#23-Development).
 
-With an empty database, you will need to run statistics manually for the applciation to work correctly:
-  1. After following the steps to start the application in [2.3. Development](#2.3.-Development)
+With an empty database, you will need to run statistics manually for the application to work correctly:
+  1. After following the steps to start the application in [2.3. Development](#23-Development)
   2. Navigate to 127.0.0.1/admin/run-stats
 
 ## 2.3. Development
@@ -124,7 +143,7 @@ Within the `concept-library/docker/` directory you will find the following docke
     - This is the development docker container used to iterate on the Concept Library.
     - After building, the application can be located at http://127.0.0.1:8000
 2. `docker-compose.test.yaml`
-    - This compose file builds an environment that better reflects the production environment, serving the application via Apache, and includes adjunct services like Redis and Celery.
+    - This compose file builds an environment that better reflects the production environment, serving the application via Apache, and includes adjunct services like Redis, Celery and Mailhog.
     - It is recommended for use when developing the Docker images, or as a pre-production test when modifying build behaviour such as offline compression.
     - After building, the application can be located at http://localhost:8005
 3. `docker-compose.prod.yaml`
@@ -144,7 +163,7 @@ The application and database will be available at:
 
 ### 2.3.3. Stopping and Starting the Containers
 To stop the docker container:
-1. If you have a terminal open which is running the docker containers, press `ctrl+c`
+1. If you have a terminal open which is running the docker containers, press `CTRL + C` or `CTRL + Z` to stop the containers
 2. If you do not have a terminal open which is running the containers:  
 a. Open a terminal  
 b. Navigate to the `concept-library/docker/` folder  
@@ -175,18 +194,34 @@ c. *OR;* to prune your docker, enter `docker system prune -a`
 >***[!] Note:**   
 To test the transpiling, minification or compression steps, OR; if you have made changes to the Docker container or its images it is recommended that you run a local, pre-production build*
 
+#### Profiles
+The test docker compose has several profiles that can be used to set up your environment:
+1. `live` - this starts both the celery and mailhog services
+2. `email` - this starts the mailhog service only
+
+
+#### Running the Container
 >***[!] Note:**
-If you do not want to start the celery services you can remove the "--profiles live" argument
+If you do not want to start the celery services you can remove the "--profile live" argument*  
 
 To build a local, pre-production build:
 1. Open a terminal
 2. Follow the steps above if you have not already built the images
-3. Navgiate to the `concept-library/docker/` folder
+3. Navigate to the `concept-library/docker/` folder
 4. Set up the environment variables within `./test/app.compose.env`
 5. In the terminal, run `docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..`
 6. Once the image is built, run `docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker`
 7. Finally, run `docker-compose -p cll -f docker-compose.test.yaml --profile live up` (append `-d` as an argument to run in background)
 8. Open a browser and navigate to `localhost:8005` to access the application
+
+#### Using Mailhog
+>***[!] Note:**
+To use the mailhog service, you will have to run --profile live or --profile email*  
+
+If you would like to learn more about Mailhog, please visit this [site](https://github.com/mailhog/MailHog). Otherwise, to start Mailhog:
+1. Start the container as described above
+2. Head to [http://localhost:8025](http://localhost:8025)
+3. Any outgoing emails sent from the application will be visible here
 
 ### 2.3.7. Impact of Environment Variables
 
@@ -200,7 +235,7 @@ Some environment variables modify the behaviour of the application.
 The following are important to consider when modifying `app.compose.env`:
 - `DEBUG` → When this flag is set to `True`:
     - The application will expect a Redis service to be running for use as the cache backend, otherwise it will use a DummyCache
-    - The appplication will enable the compressor and precompilers, otherwise this will not take place (aside from HTML Minification)
+    - The application will enable the compressor and precompilers, otherwise this will not take place (aside from HTML Minification)
 - `IS_DEVELOPMENT_PC` → When this flag is set to `False`:
     - The application will use both LDAP and User model authentication, otherwise only the latter will be used
     - The application will use a different logging backend - please see `settings.py` for more information
@@ -257,7 +292,7 @@ b. *OR;* run a query directly with `psql -U clluser -d concept_library 'SELECT *
 
 #### To export the database
 1. Open a terminal
-2. In the terminall, run: `docker exec -it cll-postgres-1 /bin/bash`
+2. In the terminal, run: `docker exec -it cll-postgres-1 /bin/bash`
 3. Replace `[filename]` with the file name desired and run:  
 `pg_dump -U postgres -F c concept_library > [filename].backup`
 
@@ -301,11 +336,11 @@ Create a run configuration for the project:
 Now you're ready to start debugging:
 1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml up --build` and ensure it is running
 2. Add a breakpoint to the file that you are debugging
-3. In Visual Studio Code, open the `Run and Debug Menu` by clicking the icon on the left-hand side of the screen or using the hotkey `Ctrl+Shift+D`
+3. In Visual Studio Code, open the `Run and Debug Menu` by clicking the icon on the left-hand side of the screen or using the hotkey `CTRL + SHIFT + D`
 4. At the top of the debug menu, select the `Debug Application` option
 5. Press the run button and start debugging
 
-Variables, Watch and Callstack can all be viewed in the `Run and Debug` menu panel and the console can be viewed in the `Debug Console` (hotkey: `Ctrl+Shift+Y`) window.
+Variables, Watch and Callstack can all be viewed in the `Run and Debug` menu panel and the console can be viewed in the `Debug Console` (hotkey: `CTRL + SHIFT + Y`) window.
 
 ### 2.5.3. Running Tests
 > **[!] Todo:** Needs documentation once we implement & finalise new test suite
@@ -326,7 +361,7 @@ To start using tasks:
 4. Navigate into this directory by running: `cd .vscode`
 5. Create a new `tasks.json` file by running: `touch tasks.json`
 
-#### Basic file configration
+#### Basic File Configuration
 After opening the `tasks.json` file, you should configure the contents so it looks like this:
 ```json
 {
@@ -335,7 +370,7 @@ After opening the `tasks.json` file, you should configure the contents so it loo
 }
 ```
 
-### 2.6.2. Debug build tasks
+### 2.6.2. Debug Build Tasks
 > ***[!] Note:** You can learn about the available options for tasks [here](https://code.visualstudio.com/docs/editor/tasks-appendix)*
 
 To set up your first debug task, configure your `tasks.json` file such that:
@@ -365,7 +400,7 @@ To set up your first debug task, configure your `tasks.json` file such that:
 }
 ```
 
-### 2.6.3. Test build tasks
+### 2.6.3. Test Build Tasks
 To set up a task for the `docker-compose.test.yaml` container, you append the following to the `"tasks": []` property:
 ```json
 {
@@ -387,7 +422,7 @@ To set up a task for the `docker-compose.test.yaml` container, you append the fo
 }
 ```
 
-### 2.6.4. How to handle cleaning
+### 2.6.4. How to Handle Cleaning
 > ***[!] Note:** There will be some differences between Windows and other operating systems. The example below is set up to use PowerShell logical operators. On a Linux-based OS, you would need to use the '&&' and '||' operators instead of '-and' and '-or'*
 
 If you set up both the debug and test builds you will note that the docker container isn't cleaned between different tasks. It is possible to set up your tasks such that the containers will be cleaned.
@@ -452,18 +487,20 @@ If you you are unable to `exec` into `cll-app-1`:
 4. Continue with Step (3) above
 
 # 3. Setup without Docker
+>***[!] Note:** Unlike [2. Setup with Docker](#2-Setup-with-Docker), this method of setting up and using the Concept Library is not recommended. Containerisation is a much more suitable method if you intend to develop or host the Concept Library application.  
+If you decide to continue, please note that we would not be able to offer advice outside of what is detailed below - please take this into consideration when deciding which method you would like to use.*
 
 ## 3.1. Prerequisites
 Please ensure that you have the following installed:
 1. [Python 3.9](https://www.python.org/downloads/release/python-390/)
-2. [Pip](#installing-pip) 
+2. [Pip](https://pip.pypa.io/en/stable/cli/pip_install/) 
 3. [MSVC C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 4. [PostgreSQL 14.4](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
 5. [PGAdmin4](https://www.pgadmin.org/download/pgadmin-4-windows/)
 
 ## 3.2. Installing
 
-#### Cloning the Concept Library
+### 3.2.1 Cloning the Concept Library
 
 To clone the repository:
 1. Open the terminal
@@ -471,7 +508,7 @@ To clone the repository:
 3. Run the following command: `git clone https://github.com/SwanseaUniversityMedical/concept-library.git`
 4. Checkout the branch you would like to work on, e.g. run the following to work on Master: `git checkout master`
 
-#### Install virtualenv and virtualenvwrapper
+### 3.2.2 Install virtualenv and virtualenvwrapper
 
 This will provide a dedicated environment for each project you create. It is considered best practice and will save time when you’re ready to deploy your project.
 
@@ -483,7 +520,9 @@ This will provide a dedicated environment for each project you create. It is con
 6. To install the required packages, run the following command: `pip install -r docker/requirements/local.txt`
 7. To stop working on this environment, run: `deactivate cclproject`
 
-#### Database setup
+### 3.2.3 Database set up
+>***[!] Note:** Please note the following if you are a Concept Library Developer:  
+To retrieve a database backup, follow some of the steps in [2.2.2. Restore from Git Repository](#222-Restore-from-Git-Repository) and download the `db.backup` file - this can be used to restore the Postgres db during the following steps.*
 
 1. Install [Postgres](https://www.postgresql.org/download/) and [PGAdmin](https://www.pgadmin.org/) on your device.
 2. Within PGAdmin3, do the following:
@@ -498,18 +537,18 @@ This will provide a dedicated environment for each project you create. It is con
     - Navigate to `concept-library/CodeListLibrary_project/cll`
     - Run the following: `python manage.py runserver 0.0.0.0:8000`
 5. You can now access the server on http://127.0.0.1:8000/admin/
-6. To stop the server, press `CTRL + C` within the terminal
+6. To stop the server, press `CTRL + C` or `CTRL + Z` within the terminal
 
-#### Installing LDAP functionality
+### 3.2.4 Installing LDAP functionality
 
-For windows machines:
+For Windows machines:
 - You will need to install the Microsoft Visual C++ Compiler for Python. This can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
 - Download the `python_ldap` wheel, located [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap)
 - Once downloaded, activate your virtualenv and run the following `pip install path/to/the/file/python_ldap.whl`
-- Once installed, you can run the 'pip install django-auth-ldap' command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
+- Once installed, you can run the `pip install django-auth-ldap` command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
 - If you intend to use LDAP over SSL, please take a look at the troubleshooting guide found [here](https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems)
 
-#### Administration area
+### 3.2.5 Administration area
 When you first start the application there will be no users within your database. You will first need to create a superuser account in order to access the administration site.
 
 1. Open the terminal and run the following: `python manage.py createsuperuser`
@@ -518,7 +557,8 @@ When you first start the application there will be no users within your database
 
 ## 3.3. Using Eclipse
 
-#### Set up
+### Seting up the Application with Eclipse
+
 1. Navigate to the `File` button within Eclipse's toolbar, then select `Open projects from file system`
 2. Browse to the Concept Library folder, e.g. `C:/Dev/concept-library`
 3. Assuming you have followed the previous steps to create a virtual env, you will need to point Eclipse's python interpreter to the virtual env:
@@ -580,9 +620,11 @@ During manual deployment, the file will be copied and renamed to `env_vars.txt` 
 ### 4.1.2. Automated Deployment
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
 
+#### Pipeline information
+
 [Details]
 
-#### Files
+#### Related files
 > ***[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file*
 
 > ***[!] Note:** `/root/` in this case describes the the directory of your choosing* 
@@ -611,7 +653,7 @@ Optional parameters for the `deploy-site.sh` script include:
 #### What to do when automated deployment is disabled
 > **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
 
-Images will be automatically built via Gitlab CI/CD from the `master` branch when a merge is committed. These images can be pulled using the `deploy-site.sh` script as described in [4.1.2. Automated Deployment](#4.1.2.-Automated-Deployment).
+Images will be automatically built via Gitlab CI/CD from the `master` branch when a merge is committed. These images can be pulled using the `deploy-site.sh` script as described in [4.1.2. Automated Deployment](#412-Automated-Deployment).
 
 When automated deployment is disabled, which may be the case for certain servers, you can still deploy the images being built by the CI/CD pipeline.
 
@@ -628,3 +670,22 @@ To do so manually, please do the following:
 > **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor and have set up automated deployment
 
 [Details]
+
+# 5. API and Packages
+
+## 5.1. Clients
+### 5.1.1 What are Clients?
+We maintain client packages that can be used to interface with the Concept Library. These packages are intended to make it easier for you to get started using the Concept Library, they implement several features to reduce your technical burden, such as allowing you to submit Phenotypes using a human-readable YAML template.  
+
+Under the hood, these packages call our API endpoints - you can read more about these in [5.2. API](#52-API). However, we anticipate that beginners may feel more comfortable using one of the following packages.  
+
+### 5.1.2 Available Packages
+
+1. [Concept Library Client](https://github.com/SwanseaUniversityMedical/ConceptLibraryClient) - an implementation of the API client for the Concept Library in R
+2. [pyconceptlibraryclient](https://github.com/SwanseaUniversityMedical/pyconceptlibraryclient) - a Python API client for the Concept Library
+
+## 5.2. API
+
+If you would like to interface with the API without the aid of our client packages we have documented our API using Swagger. The Swagger documentation is [available here](https://conceptlibrary.saildatabank.com/api/v1/).
+
+Please refer to our reference data, which can be found [here](https://conceptlibrary.demo-dev.saildatabank.com/reference-data/), for fields that described by their identifier.

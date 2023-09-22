@@ -107,18 +107,18 @@
       0
     {% endif %}
   </data>
-  <data aria-hidden="true" data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|safe }}</data>
-  <data aria-hidden="true" data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|safe }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|striptags }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|striptags }}</data>
 
   {% if entity is not None %}
-  <data aria-hidden="true" data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|safe }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|striptags }}</data>
   {% endif %}
 
   {% if object_reference is not None %}
   <data aria-hidden="true" data-owner="entity-creator"id="entity-object" name="object" type="text/json"
     referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
 
-    {{ object_reference|jsonify|safe }}
+    {{ object_reference|jsonify|striptags }}
   </data>
   {% endif %}
 {% endblock container %}
