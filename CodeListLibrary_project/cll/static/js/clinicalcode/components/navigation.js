@@ -43,11 +43,15 @@ const initHamburgerMenu = () => {
   const overlay = document.querySelector('.page-navigation__overlay');
   const avatarMenu = document.querySelector('#dropdown-account');
   const submenu = document.querySelector('.nav-dropdown__content');
+  const nestedMenu = document.querySelector('.nested-menu');
   
   burger.addEventListener('click', e => {
     if (panel.classList.contains('open')){
-      overlay.style.display = 'none'; 
-      panel.classList.remove('open');
+    panel.classList.remove('open');
+    avatarMenu?.classList.remove('open');
+    submenu?.classList.remove('open');
+    nestedMenu?.classList.remove('open');
+    overlay.style.display = 'none'; 
     }else{
       const isBurger = computeBurgerProperty(burger);
       if (isBurger === 'true') {
@@ -66,8 +70,9 @@ const initHamburgerMenu = () => {
       return;
     }
     panel.classList.remove('open');
-    avatarMenu.classList.remove('open');
-    submenu.classList.remove('open');
+    avatarMenu?.classList.remove('open');
+    submenu?.classList.remove('open');
+    nestedMenu?.classList.remove('open');
     overlay.style.display = 'none'; 
   })
 
@@ -86,7 +91,7 @@ const avatarMenu = document.querySelector('#dropdown-account');
 // Function to toggle submenu visibility
 function toggleSubmenu() {
   submenu.classList.toggle('open');
-  avatarMenu.classList.remove('open');
+  avatarMenu?.classList.remove('open');
 }
 
 // Add click event listener to the "About" link
@@ -103,11 +108,7 @@ if (avatarMenu) {
     
   });
 
-
-
 }
-
-
 
 }
 
