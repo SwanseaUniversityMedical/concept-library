@@ -90,11 +90,11 @@ navText.addEventListener('click', (e) => {
 }
 
 const nestedMenu = () => {
-  const nestedContainer = document.querySelector('.content-container__nested');
+  const nestedContainer = document.querySelector('.content-container__nested > a');
   const nestedMenu = document.querySelector('.nested-menu');
 
   if (nestedContainer && nestedMenu) {
-  nestedContainer.addEventListener('click', (e) => {
+    nestedContainer.addEventListener('click', (e) => {
     e.preventDefault();
     nestedMenu.classList.toggle('open');
   });
