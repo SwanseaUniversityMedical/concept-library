@@ -177,12 +177,7 @@
     .nested-menu {
       display: block;
     }
-    @include media("<desktop", "screen") {
-      .nested-menu{
-        display: none;
-      }
 
-    }
     
   }
 
