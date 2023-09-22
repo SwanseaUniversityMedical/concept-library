@@ -39,6 +39,8 @@ services:
       - 80
     env_file:
       - ./test/env/app.compose.env
+    volumes:
+      - ../CodeListLibrary_project/cll/media/:/var/www/concept_lib_sites/v1/CodeListLibrary_project/media
     depends_on:
       postgres:
         condition: service_healthy

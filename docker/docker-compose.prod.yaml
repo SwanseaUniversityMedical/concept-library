@@ -16,6 +16,7 @@ services:
       - ./env_vars.txt
     volumes:
       - ./cl_log/:/home/config_cll/cll_srvr_logs/
+      - ./media:/var/www/concept_lib_sites/v1/CodeListLibrary_project/media
     depends_on:
       - redis
 
