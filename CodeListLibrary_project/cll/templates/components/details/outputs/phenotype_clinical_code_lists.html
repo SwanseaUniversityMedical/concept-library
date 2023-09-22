@@ -61,7 +61,6 @@
 </div>
 {% endif %}
 
-
 <div class="detailed-input-group fill constrained" id="accordion">
   {% if component.value|length %}
     {% for c in component.value %}
@@ -71,15 +70,43 @@
         <label class="fill-accordian__label" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
             for="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" role="button" tabindex="0">
           <span>
-            <strong>C{{ c.concept_id }}/{{ c.concept_version_id }}</strong>
+            <strong>
+              C{{ c.concept_id }}/{{ c.concept_version_id }}
+            </strong>
+
             &nbsp;-&nbsp;{{ c.details.name }}
-            &nbsp;|&nbsp;({{ c.coding_system.name }}, {{ c.codelist|length }} Codes)
-            {% if c.is_published %}
-              &nbsp;-&nbsp;(Published)
-            {% endif %}
+
+            <span id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
+                  class="hide">
+              &nbsp;|&nbsp;
+              <strong>LEGACY VERSION</strong>
+            </span>
           </span>
         </label>
         <article class="fill-accordian__container codelist-extents">
+          <section class="concept-group-content__container show" id="concept-information">
+            <section class="concept-group-content__details">
+              <h4>
+                {% if c.details.is_published %}
+                  PUBLISHED
+                {% else %}
+                  UNPUBLISHED
+                {% endif %}
+                &nbsp;-&nbsp; {{ c.codelist|length }} Codes
+              </h4>
+              <ul class="chips-group" id="concept-chips">
+                <li class="chip bold warning-accent text-accent-darkest alert-icon icon-accent-danger hide"
+                    id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
+                    disabled>
+                  <a id="update-latest-version" class="chip-text">LEGACY VERSION</a>
+                </li>
+                <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight" disabled>
+                  <a id="coding-system-info" class="chip-text">{{ c.coding_system.name }}</a>
+                </li>
+              </ul>
+            </section>
+          </section>
+
           <div class="detailed-input-group fill constrained" style="max-width: 100%">
             <div class="constrained-codelist-table" id="concept-codelist-{{ c.concept_id }}_{{ c.concept_version_id }}">
             

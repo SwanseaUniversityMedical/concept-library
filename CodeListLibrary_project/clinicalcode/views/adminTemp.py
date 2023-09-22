@@ -113,16 +113,28 @@ def get_transformed_data(concept, template):
         'collections': concept.collections,
         'owner': concept.owner,
         'group': concept.group,
-        'created_by': concept.created_by,
         'owner_access': concept.owner_access,
         'group_access': concept.group_access,
         'template': template,
+
+        # maintain created / updated status
+        'created': concept.created,
+        'created_by': concept.created_by,
         'updated': make_aware(datetime.now()),
+        'updated_by': concept.modified_by,
+
+        # maintain archived status
+        'is_deleted': concept.is_deleted,
+        'deleted': concept.deleted,
+        'deleted_by': concept.deleted_by,
 
         # unpublished & no access
         'status': 1,
         'world_access': 1,
     }
+
+    if concept.is_deleted:
+        metadata.update({ 'internal_comments': 'Legacy Concept archived by user on legacy site' })
 
     template_data = {
         'agreement_date': concept.entry_date.strftime('%Y-%m-%d'),
@@ -178,7 +190,7 @@ def admin_force_concept_linkage_dt(request):
     if request.method != 'POST':
         raise BadRequest('Invalid')
 
-    unlinked_concepts = Concept.objects.filter(phenotype_owner__isnull=True).exclude(is_deleted=True)
+    unlinked_concepts = Concept.objects.filter(phenotype_owner__isnull=True)
     unlinked_concepts = list(unlinked_concepts.values_list('id', flat=True))
     unlinked_concepts = Concept.history.filter(
         id__in=unlinked_concepts

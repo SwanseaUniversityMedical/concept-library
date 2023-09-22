@@ -35,6 +35,13 @@
     margin: 0 0 0 0.25rem;
   }
 
+  &__restore-icon:after {
+    @include fontawesome-icon();
+    content: '\f0e2';
+    color: col(accent-warning);
+    margin: 0 0 0 0.25rem;
+  }
+
   &__inner-container {
     max-width: 100%;
     padding: 0;

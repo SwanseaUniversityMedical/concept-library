@@ -699,9 +699,8 @@ def try_update_concept(request, item, entity=None):
     
     req_component_ids = set([obj.get('id') for obj in components_data if not obj.get('is_new')])
     prev_component_ids = set(list(concept.component_set.all().values_list('id', flat=True)))
-
+    
     removed_components = list(set(prev_component_ids) - set(req_component_ids))
-
     for component_id in removed_components:
         component = model_utils.try_get_instance(Component, pk=component_id)
         if component is None:

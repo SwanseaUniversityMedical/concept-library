@@ -529,7 +529,7 @@ def get_sourced_value(data, info, default=None):
     except:
         return default
 
-def get_template_data_values(entity, layout, field, hide_user_details=False, default=None):
+def get_template_data_values(entity, layout, field, hide_user_details=False, request=None, default=None):
     '''
         Retrieves the sourced values from an entity in an array
     '''
@@ -570,7 +570,8 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, def
             value = concept_utils.get_clinical_concept_data(
                 item['concept_id'], 
                 item['concept_version_id'], 
-                hide_user_details=hide_user_details
+                hide_user_details=hide_user_details,
+                derive_access_from=request
             )
 
             if value:
