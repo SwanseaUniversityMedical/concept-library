@@ -1,5 +1,5 @@
-<!-- Extend base_scss.html for SASS -->
-{% extends "base_scss.html" %}
+<!-- Extend base.html for SASS -->
+{% extends "base.html" %}
 
 {% load static %}
 {% load cl_extras %}
@@ -24,7 +24,7 @@
   {% endwith %}
 {% endblock %}
 
-<!-- Everything within container extends base_scss.html -->
+<!-- Everything within container extends base.html -->
 {% block container %}
 
 <!-- Main header should include breadcrumbs (if required) or include the page title etc -->

@@ -460,7 +460,7 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
             ) \
             .order_by('true_id', 'id')
     
-    page_obj = try_get_paginated_results(request, entities)
+    page_obj = try_get_paginated_results(request, entities, page_size=10)
     
     results = [ ]
     for obj in page_obj.object_list:

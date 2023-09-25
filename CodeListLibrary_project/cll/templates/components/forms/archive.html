@@ -1,0 +1,20 @@
+<form method="post" id="archive-form-area">
+  {% csrf_token %}
+  {{ form.entity_id }}
+  <div class="detailed-input-group fill">
+    <h3 class="detailed-input-group__title">
+      Please explain why you are deleting this Phenotype
+      <span class="detailed-input-group__mandatory">*</span>
+    </h3>
+    <p class="detailed-input-group__description">This will only be visible to the Concept Library team</p>
+    {{ form.comments }}
+  </div>
+  <div class="detailed-input-group fill">
+    <h3 class="detailed-input-group__title">
+      Please re-enter the Phenotype ID to confirm deletion
+      <span class="detailed-input-group__mandatory">*</span>
+    </h3>
+    <p class="detailed-input-group__description">e.g. if you are deleting PH000, please enter 'PH000'</p>
+    {{ form.passphrase }}
+  </div>
+</form>

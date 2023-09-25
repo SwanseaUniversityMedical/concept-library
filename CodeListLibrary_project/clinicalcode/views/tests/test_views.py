@@ -1,11 +1,7 @@
 from unittest.case import skip
-
 from django.test import Client, TestCase
 
-from ...utils import *
-
-#from ...models.Concept import Concept
-
+from ...utils import (detect_sql_meta_characters, detect_sql_injection_with_keywords)
 
 @skip("just skip")
 class ViewTest(TestCase):
@@ -17,12 +13,6 @@ class ViewTest(TestCase):
 
     def setup(self):
         self.client = Client()
-
-
-#     def test_details(self):
-#         response = self.client.get('/')
-#
-#         self.assertEqual(response.status_code, 200)
 
     def test_sqlInjection_sqlMetaCharacters_provideMatch(self):
         value = 'SELECT --:\''

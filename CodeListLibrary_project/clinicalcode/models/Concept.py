@@ -9,10 +9,9 @@ from django.db import models
 from django.template.defaultfilters import default
 from simple_history.models import HistoricalRecords
 
-from ..permissions import Permissions
 from .CodingSystem import CodingSystem
 from .TimeStampedModel import TimeStampedModel
-
+from ..entity_utils import constants
 
 class Concept(TimeStampedModel):
     id = models.AutoField(primary_key=True)
@@ -36,10 +35,10 @@ class Concept(TimeStampedModel):
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="concepts_deleted")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="concepts_owned")
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
-    
-    owner_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.EDIT)
-    group_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
-    world_access = models.IntegerField(choices=Permissions.PERMISSION_CHOICES, default=Permissions.NONE)
+
+    owner_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.OWNER_PERMISSIONS], default=constants.OWNER_PERMISSIONS.EDIT)
+    group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
+    world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.WORLD_ACCESS_PERMISSIONS], default=constants.WORLD_ACCESS_PERMISSIONS.NONE)
 
     tags = ArrayField(models.IntegerField(), blank=True, null=True)
     collections = ArrayField(models.IntegerField(), blank=True, null=True)

@@ -15,7 +15,7 @@ from ...entity_utils import gen_utils
 @permission_classes([IsAuthenticated])
 def get_concepts(request):
     '''
-    
+        Get all concepts accessible to the user, optionally, provide parameters to filter by
     '''
     # Get all concepts accesible to the user
     concepts = permission_utils.get_accessible_concepts(
@@ -100,7 +100,8 @@ def get_concepts(request):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_concept_detail(request, concept_id, version_id=None, export_codes=False):
     '''
-    
+        Get the detail of specified concept by concept_id, optionally target a specific
+            version using version_id and/or export the concept codelist
     '''
     # Check concept with this id exists
     concept_response = api_utils.exists_concept(concept_id)
@@ -171,7 +172,7 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_concept_version_history(request, concept_id):
     '''
-    
+        Get version history of a specific concept, using concept_id
     '''
     # Check concept with this id exists
     concept_response = api_utils.exists_concept(concept_id)

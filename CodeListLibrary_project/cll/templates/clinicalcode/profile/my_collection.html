@@ -1,4 +1,4 @@
-{% extends "base_scss.html" %}
+{% extends "base.html" %}
 
 {% load static %}
 {% load compress %}
@@ -11,12 +11,13 @@
 
 {% block container %}
   <!-- Vendor -->
-  <script src="{% static 'js/clinicalcode/redesign/vendor/moment.min.js' %}"></script>
-  <script src="{% static 'js/clinicalcode/redesign/vendor/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
 
   <!-- Dependencies -->
   {% compress js %}
-    <script type="module" src="{% static 'js/clinicalcode/redesign/services/collectionService.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/services/collectionService.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
   {% endcompress %}
 
   <!-- Page Stylesheets -->
@@ -66,7 +67,7 @@
         <section class="profile-collection__inner-container" id="content">
           <data aria-hidden="true" data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="content" type="text/json">
             {% if content %}
-              {{ content|jsonify|safe }}
+              {{ content|jsonify|striptags }}
             {% endif %}
           </data>
           <h3>1. My Phenotypes</h3>
@@ -83,7 +84,7 @@
         <section class="profile-collection__inner-container" id="archived">
           <data aria-hidden="true" data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="archived" type="text/json">
             {% if archived_content %}
-              {{ archived_content|jsonify|safe }}
+              {{ archived_content|jsonify|striptags }}
             {% endif %}
           </data>
           <h3>2. Archived Phenotypes</h3>
@@ -100,5 +101,11 @@
       </article>
     </div>
   </main>
+
+  {% if not CLL_READ_ONLY %}
+    <template id="archive-form">
+      {% include "components/forms/archive.html" %}
+    </template>
+  {% endif %}
 
 {% endblock container %}
