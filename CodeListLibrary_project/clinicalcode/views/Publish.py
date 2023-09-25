@@ -250,19 +250,3 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
 
         return JsonResponse(data)
     
-    def email_preview(request):
-        email_subject = "Your Subject"
-        email_content = render_to_string("clinicalcode/email/email_content.html",
-            {
-                'id': 1,
-                'name': 'Phenotype',
-                'decision': "'review_decision'",
-                'message': "review_message"
-            })
-        
-        return render(request, 'clinicalcode/email/email_preview.html', {
-            'email_subject': email_subject,
-            'email_content': email_content
-        })
-    
-
