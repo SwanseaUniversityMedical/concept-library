@@ -17,12 +17,10 @@
     
     {% if list_pages %}
     <ul class="nested-menu">
-      {% for lnk2 in list_pages %}
-        {% for header2, view_pg_name2 in lnk2.items %}
+      {% for item in list_pages %}
             <li>
-            <a href="{% url 'about_page' pg_name=view_pg_name2 %}" >{{ header2 }}</a>
+            <a href="{% url 'about_page' pg_name=item.page_name %}" >{{ item.title }}</a>
           </li>
-        {% endfor %}
       {% endfor %}
 
     </ul>
