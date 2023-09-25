@@ -4154,8 +4154,8 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
 
     email_content = render_to_string("clinicalcode/email/email_content.html",
             data,request=request)
-    "TODO put no is it is not development pc"
-    if settings.IS_DEVELOPMENT_PC: 
+    
+    if not settings.IS_DEVELOPMENT_PC: 
         try:
             msg = EmailMultiAlternatives(email_subject,
                                         email_content,
