@@ -2,6 +2,7 @@
 {% load static %}
 {% load compress %}
 {% load sass_tags %}
+{% load entity_renderer %}
 
 {% block title %}| Home{% endblock title %}
 
@@ -64,7 +65,9 @@
                 <p>
                   Phenotypes
                 </p>
-                <p id="analytics-counter" x-value="{{ published_phenotype_count }}" x-init="countup">0</p>
+                <p id="entity-counter" x-value="{{ published_phenotype_count }}" x-init="countup">
+                  {{ published_phenotype_count|stylise_number }}+
+                </p>
               </header>
               <p class="homepage-statistics__card-text">
                 A Phenotype defines how to measure real-world attributes of human health in data
@@ -77,7 +80,9 @@
                 <p>
                   Concepts
                 </p>
-                <p id="analytics-counter" x-value="{{ published_concept_count }}" x-init="countup">0</p>
+                <p id="entity-counter" x-value="{{ published_concept_count }}" x-init="countup">
+                  {{ published_concept_count|stylise_number }}+
+                </p>
               </header>
               <p class="homepage-statistics__card-text">
                 Concepts are individual lists of clinical codes defining a condition, treatment, and so forth
@@ -90,7 +95,9 @@
                 <p>
                   Data Sources
                 </p>
-                <p id="analytics-counter" x-value="{{ datasources_component_count }}" x-init="countup">0</p>
+                <p id="entity-counter" x-value="{{ datasources_component_count }}" x-init="countup">
+                  {{ datasources_component_count|stylise_number }}+
+                </p>
               </header>
               <p class="homepage-statistics__card-text">
                 Phenotypes may be specific to data from one source or apply across a number of data sources
@@ -103,7 +110,9 @@
                 <p>
                   Clinical Codes
                 </p>
-                <p id="analytics-counter" x-value="{{ published_clinical_codes }}" x-init="countup">0</p>
+                <p id="entity-counter" x-value="{{ published_clinical_codes }}" x-init="countup">
+                  {{ published_clinical_codes|stylise_number }}+
+                </p>
               </header>
               <p class="homepage-statistics__card-text">
                 Clinical codes are the 'words' in standardized languages used to create electronic health records
@@ -116,7 +125,9 @@
                 <p>
                   Clinical Terminologies
                 </p>
-                <p id="analytics-counter" x-value="{{ clinical_terminologies }}" x-init="countup">0</p>
+                <p id="entity-counter" x-value="{{ clinical_terminologies }}" x-init="countup">
+                  {{ clinical_terminologies|stylise_number }}+
+                </p>
               </header>
               <p class="homepage-statistics__card-text">
                 Clinical Coding Systems are the languages used to capture electronic health records 
@@ -190,12 +201,12 @@
         </h3>
       </header>
       <div class="homepage-features__container">
-        <div class="homepage-features__image" id="fade-item">
+        <div class="homepage-features__image show" id="fade-item">
           <img draggable="false"/>
         </div>
         
         <div class="homepage-features__list">
-          <div class="homepage-features__item" id="fade-item">
+          <div class="homepage-features__item show" id="fade-item">
             <span class="homepage-features__item-icon build"></span>
             <div class="homepage-features__details">
               <span class="homepage-features__details-title">
@@ -206,7 +217,7 @@
               </span>
             </div>
           </div>
-          <div class="homepage-features__item" id="fade-item">
+          <div class="homepage-features__item show" id="fade-item">
             <span class="homepage-features__item-icon repository"></span>
             <div class="homepage-features__details">
               <span class="homepage-features__details-title">
@@ -217,7 +228,7 @@
               </span>
             </div>
           </div>
-          <div class="homepage-features__item" id="fade-item">
+          <div class="homepage-features__item show" id="fade-item">
             <span class="homepage-features__item-icon version"></span>
             <div class="homepage-features__details">
               <span class="homepage-features__details-title">
@@ -228,7 +239,7 @@
               </span>
             </div>
           </div>
-          <div class="homepage-features__item" id="fade-item">
+          <div class="homepage-features__item show" id="fade-item">
             <span class="homepage-features__item-icon algorithm"></span>
             <div class="homepage-features__details">
               <span class="homepage-features__details-title">
@@ -239,7 +250,7 @@
               </span>
             </div>
           </div>
-          <div class="homepage-features__item" id="fade-item">
+          <div class="homepage-features__item show" id="fade-item">
             <span class="homepage-features__item-icon share"></span>
             <div class="homepage-features__details">
               <span class="homepage-features__details-title">
@@ -250,7 +261,7 @@
               </span>
             </div>
           </div>
-          <div class="homepage-features__item" id="fade-item">
+          <div class="homepage-features__item show" id="fade-item">
             <span class="homepage-features__item-icon review"></span>
             <div class="homepage-features__details">
               <span class="homepage-features__details-title">

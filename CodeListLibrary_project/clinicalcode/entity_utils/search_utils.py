@@ -2,6 +2,7 @@ from django.apps import apps
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.db.models.expressions import RawSQL
+from django.db.models.query import QuerySet
 from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
 
@@ -263,7 +264,7 @@ def validate_query_param(param, template, data, default=None, request=None):
     
     return default
 
-def apply_param_to_query(query, where, template, param, data,
+def apply_param_to_query(query, where, params, template, param, data,
                          is_dynamic=False, force_term=False,
                          is_api=False, request=None):
     '''
@@ -311,11 +312,20 @@ def apply_param_to_query(query, where, template, param, data,
         if clean is not None:
             if is_dynamic:
                 q = ','.join([f"'{str(x)}'" for x in clean])
-                where.append("exists(select 1 " + \
-                    f"from jsonb_array_elements(case jsonb_typeof(template_data->'{param}') when 'array' then template_data->'{param}' else '[]' end) as val " + \
-                    f"where val in ({q})" + \
-                    ")"
+                where.append('''
+                exists(
+                  select 1
+                    from jsonb_array_elements(
+                           case jsonb_typeof(template_data->%s)
+                           when 'array'
+                             then template_data->%s
+                             else '[]'
+                           end
+                    ) as val
+                    where val = ANY(%s)
                 )
+                ''')
+                params += [param, param, q]
             else:
                 query[f'{param}__overlap'] = clean
             return True
@@ -415,16 +425,17 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
     
     query = { }
     where = [ ]
+    params = [ ]
     for param, data in getattr(request, method).items():
         if param in metadata_filters:
-            apply_param_to_query(query, where, constants.metadata, param, data, force_term=force_term)
+            apply_param_to_query(query, where, params, constants.metadata, param, data, force_term=force_term)
         elif param in template_filters:
             if template_fields is None:
                 continue
-            apply_param_to_query(query, where, template_fields, param, data, is_dynamic=True, force_term=force_term)
+            apply_param_to_query(query, where, params, template_fields, param, data, is_dynamic=True, force_term=force_term)
     
     entities = entities.filter(Q(**query))
-    entities = entities.extra(where=where)
+    entities = entities.extra(where=where, params=params)
     
     search_order = gen_utils.try_get_param(request, 'order_by', '1', method)
     should_order_search = search_order == '1'
@@ -494,6 +505,53 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
         },
     }
 
+def reorder_search_results(search_results, order=None, searchterm=''):
+    '''
+        Method to reorder a QuerySet after a group or distinct
+        operation has been used during a previous filter
+
+        Args:
+            search_results {QuerySet}: The current search result query set
+
+            order {dict(constants.ORDER_BY)}: The order by clause information
+
+            searchterm {string}: Any active searchterms - used to stop reorder
+                                 when rank is being used
+        
+        Returns:
+            A queryset containing all related codes of that particular coding system
+    '''
+    if not isinstance(search_results, QuerySet):
+        return QuerySet()
+
+    order = order or constants.ORDER_BY.get('1')
+    if order == constants.ORDER_BY.get('1') and not gen_utils.is_empty_string(searchterm):
+        return search_results.order_by('-score')
+
+    result_ids = None
+    result_vds = None
+    try:
+        result_ids = list(search_results.values_list('id', flat=True))
+        result_vds = list(search_results.values_list('history_id', flat=True))
+    except:
+        return search_results
+
+    results = GenericEntity.history.filter(
+        id__in=result_ids,
+        history_id__in=result_vds
+    )
+
+    if order != constants.ORDER_BY['1']:
+        return results.order_by(order.get('clause'))
+    
+    results = results.all().extra(
+        select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
+    ) \
+    .order_by('true_id')
+    
+    return results
+
+@gen_utils.measure_perf
 def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
     '''
         Method gets searchable, published entities and applies filters retrieved from the request param(s)
@@ -510,11 +568,6 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
 
     if isinstance(entity_types, list) and len(entity_types) > 0:
         entities = entities.filter(template__entity_class__id__in=entity_types)
-    
-    entities = GenericEntity.history.filter(
-        id__in=entities.values_list('id', flat=True),
-        history_id__in=entities.values_list('history_id', flat=True)
-    )
 
     # Get templates for each entity
     templates = Template.history.filter(
@@ -555,15 +608,16 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     # Build query from filters
     query = { }
     where = [ ]
+    params = [ ]
     for param, data in getattr(request, method).items():
         if param in metadata_filters:
             if template_utils.is_single_search_only(constants.metadata, param) and not is_single_search:
                 continue
-            apply_param_to_query(query, where, constants.metadata, param, data, force_term=force_term, request=request)
+            apply_param_to_query(query, where, params, constants.metadata, param, data, force_term=force_term, request=request)
         elif param in template_filters and not is_single_search:
             if template_fields is None:
                 continue
-            apply_param_to_query(query, where, template_fields, param, data, is_dynamic=True, force_term=force_term, request=request)
+            apply_param_to_query(query, where, params, template_fields, param, data, is_dynamic=True, force_term=force_term, request=request)
     
     # Collect all entities that are (1) published and (2) match request parameters
     entities = entities.filter(Q(**query))
@@ -571,8 +625,8 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
 
     # Prepare order clause
     search_order = gen_utils.try_get_param(request, 'order_by', '1', method)
-    should_order_search = search_order == '1'
     search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
+
     if search_order is None:
         search_order = constants.ORDER_BY['1']
     
@@ -580,41 +634,27 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     search = gen_utils.try_get_param(request, 'search', None)
     if not gen_utils.is_empty_string(search):
         entity_ids = list(entities.values_list('id', flat=True))
-        entities = entities.filter(
-            id__in=RawSQL(
-                """
-                select id
-                from clinicalcode_historicalgenericentity
-                where id = ANY(%s)
-                  and search_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %s)::text || ':*', '<->', '|'))
-                """,
-                [entity_ids, search]
-            )
-        ) \
-        .annotate(
-            score=RawSQL(
-                """ts_rank_cd(search_vector, websearch_to_tsquery('pg_catalog.english', %s))""",
-                [search]
-            )
+        history_ids = list(entities.values_list('history_id', flat=True))
+
+        entities = GenericEntity.history.extra(
+            select={ 'score': '''ts_rank_cd("clinicalcode_historicalgenericentity"."search_vector", websearch_to_tsquery('pg_catalog.english', %s))'''},
+            select_params=[search],
+            where=[
+                '''"clinicalcode_historicalgenericentity"."id" = ANY(%s)''',
+                '''"clinicalcode_historicalgenericentity"."history_id" = ANY(%s)''',
+                '''"clinicalcode_historicalgenericentity"."search_vector" @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %s)::text || ':*', '<->', '|'))'''
+            ],
+            params=[entity_ids, history_ids, search]
         )
 
-        if should_order_search:
-            entities = entities.order_by('-score')
-
     # Reorder by user selection
-    if search_order != constants.ORDER_BY['1']:
-        search_order = search_order.get('clause')
-        entities = entities.order_by(search_order)
-    else:
-        if gen_utils.is_empty_string(search):
-            entities = entities.all().extra(
-                select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
-            ) \
-            .order_by('true_id', 'id')
+    entities = reorder_search_results(entities, order=search_order, searchterm=search)
 
     # Generate layouts for use in templates
     layouts = { }
+    count = 0
     for template in templates:
+        count = count + 1
         layouts[f'{template.id}/{template.template_version}'] = {
             'id': template.id,
             'version': template.template_version,
