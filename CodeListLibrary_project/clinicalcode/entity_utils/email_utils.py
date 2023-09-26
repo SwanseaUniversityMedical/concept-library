@@ -1,38 +1,56 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.contrib.staticfiles import finders
+from email.mime.image import MIMEImage
 
 import datetime
 
 from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 
-def send_review_email_generic(id,name, owner_id, review_decision, review_message):
-    owner_email = User.objects.get(id=owner_id).email
+def send_review_email_generic(request,data,message_from_reviewer=None):
+    owner_email = User.objects.get(id=data['owner_id']).email
     if owner_email == '':
         return False
 
-    email_subject = 'Concept Library - Data %s has been %s' % (id, review_decision)
-    email_content = '''<strong>New Message from Concept Library Website</strong><br><br>
-    <strong>{Entity_name}:</strong><br>{id} - {name}<br><br>
-    <strong>Decision:</strong><br>{decision}<br><br>
-    <strong>Reviewer message:</strong><br>{message}
-    '''.format(Entity_name=name, id=id, name=name, decision=review_decision, message=review_message)
-
-    if not settings.IS_DEVELOPMENT_PC:
+    email_subject = 'Concept Library - Phenotype %s has been %s' % (data['id'], data['message'])
+    email_content = render_to_string(
+        'clinicalcode/email/email_content.html',
+        data,
+        request=request
+    )
+    
+    if not settings.IS_DEVELOPMENT_PC: 
         try:
             msg = EmailMultiAlternatives(email_subject,
                                         email_content,
-                                        'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                                        settings.DEFAULT_FROM_EMAIL,
                                         to=[owner_email]
                                     )
-            msg.content_subtype = 'html'
+            msg.content_subtype = 'related'
+            msg.attach_alternative(email_content, "text/html")
+            
+            msg.attach(attach_image_to_email('img/email_images/apple-touch-icon.jpg','mainlogo'))
+            msg.attach(attach_image_to_email('img/email_images/combine.jpg','combined'))
+
             msg.send()
             return True
-        except BadHeaderError:
+        except BadHeaderError as error:
+            print(error)
             return False
-
-    return True
+    else:
+        print(email_content) 
+        return True
+    
+def attach_image_to_email(image,cid):
+    with open(finders.find(image), 'rb') as f:
+        img = MIMEImage(f.read())
+        img.add_header('Content-ID', '<{name}>'.format(name=cid))
+        img.add_header('Content-Disposition', 'inline', filename=image)
+    
+    return img
 
 def get_scheduled_email_to_send():
     HDRUK_pending_phenotypes = PublishedPhenotype.objects.filter(approval_status=1)
@@ -54,9 +72,7 @@ def get_scheduled_email_to_send():
         }
         result['data'].append(data)
 
-
     email_content = []
-
     for i in range(len(result['data'])):
         phenotype = Phenotype.objects.get(pk=result['data'][i]['phenotype_id'], owner_id=result['data'][i]['owner_id'])
         phenotype_id = phenotype.id

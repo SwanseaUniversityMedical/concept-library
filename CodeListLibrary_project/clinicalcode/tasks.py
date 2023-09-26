@@ -13,10 +13,9 @@ def send_message_test(self):
     return 'test message'
 
 @shared_task(name="review_email_background_task")
-def send_review_email(id,name,owner_id, review_decision, review_message):
-    time.sleep(20)
-    email_utils.send_review_email_generic(id,name, owner_id, review_decision, review_message)
-    return f"Email sent - {id} with name {name} and owner_id {owner_id}"
+def send_review_email(request,data):
+    email_utils.send_review_email_generic(request, data)
+    return f"Email sent - {data['id']} with name {data['entity_name']} and owner_id {data['owner_id']}"
 
 @shared_task(bind=True)
 def send_scheduled_email(self):
@@ -33,7 +32,6 @@ def send_scheduled_email(self):
                                                 [str(email_content[n]['email_content']) for n in range(len(email_content)) if
                                                  email_content[n]['owner_id'] == owner_ids[i]])
                               })
-
 
     for j in range(len(overal_result)):
         if not settings.IS_DEVELOPMENT_PC:
