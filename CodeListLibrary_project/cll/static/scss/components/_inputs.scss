@@ -771,8 +771,9 @@
   border: 1px solid col(accent-dark);
   border-radius: 2px;
   padding: 0.5rem;
-  min-width: fit-content;
+  min-width: auto;
   width: fit-content;
+  max-width: 100%;
   transition: border-color 250ms ease;
 
   &:focus {
