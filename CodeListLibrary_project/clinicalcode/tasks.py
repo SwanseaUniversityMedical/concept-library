@@ -14,7 +14,7 @@ def send_message_test(self):
 
 @shared_task(name="review_email_background_task")
 def send_review_email(request,data):
-    db_utils.send_review_email_generic(request,data)
+    email_utils.send_review_email_generic(request, data)
     return f"Email sent - {data['id']} with name {data['entity_name']} and owner_id {data['owner_id']}"
 
 @shared_task(bind=True)

@@ -98,7 +98,6 @@ if not settings.CLL_READ_ONLY:
         url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/publish/$', Publish.Publish.as_view(),name='generic_entity_publish'),
         url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/decline/$', Decline.EntityDecline.as_view(),name='generic_entity_decline'),
         url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/submit/$', Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
-        url(r'email-preview/', Publish.RequestPublish.email_preview, name='email_preview'),
     ]
 
 # Tooling
