@@ -8,7 +8,6 @@ import FuzzyQuery from './fuzzyQuery.js';
 const updateNavBarStyle = (navbar) => {
   const y = window.scrollY;
 
-
   if (window.innerWidth <= 768){
     navbar.classList.remove('transparent')
     return;
@@ -46,22 +45,21 @@ const initHamburgerMenu = () => {
   const nestedMenu = document.querySelector('.nested-menu');
   
   burger.addEventListener('click', e => {
-    if (panel.classList.contains('open')){
-    panel.classList.remove('open');
-    avatarMenu?.classList.remove('open');
-    submenu?.classList.remove('open');
-    nestedMenu?.classList.remove('open');
-    overlay.style.display = 'none'; 
-    }else{
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+      avatarMenu?.classList.remove('open');
+      submenu?.classList.remove('open');
+      nestedMenu?.classList.remove('open');
+      overlay.style.display = 'none'; 
+    } else {
       const isBurger = computeBurgerProperty(burger);
       if (isBurger === 'true') {
         panel.classList.add('open');
         overlay.style.display = 'block';
         return;
       }
-  }
-
-});
+    }
+  });
 
   document.addEventListener('click', e => {
     const element = e.target;
@@ -75,41 +73,35 @@ const initHamburgerMenu = () => {
     nestedMenu?.classList.remove('open');
     overlay.style.display = 'none'; 
   })
-
-    
-
 }
 
 const submenuMobile = () => {
-// JavaScript for submenu behavior
-const navText = document.querySelector('.nav-dropdown__text');
-const submenu = document.querySelector('.nav-dropdown__content');
+  // JavaScript for submenu behavior
+  const navText = document.querySelector('.nav-dropdown__text');
+  const submenu = document.querySelector('.nav-dropdown__content');
 
-const avataText = document.querySelector('.avatar-content');
-const avatarMenu = document.querySelector('#dropdown-account');
+  const avataText = document.querySelector('.avatar-content');
+  const avatarMenu = document.querySelector('#dropdown-account');
 
-// Function to toggle submenu visibility
-function toggleSubmenu() {
-  submenu.classList.toggle('open');
-  avatarMenu?.classList.remove('open');
-}
+  // Function to toggle submenu visibility
+  function toggleSubmenu() {
+    submenu.classList.toggle('open');
+    avatarMenu?.classList.remove('open');
+  }
 
-// Add click event listener to the "About" link
-navText.addEventListener('click', (e) => {
-  e.preventDefault(); // Prevent the default link behavior
-  toggleSubmenu();
-});
-
-if (avatarMenu) {
-  avataText.addEventListener('click', (e) => {
+  // Add click event listener to the "About" link
+  navText.addEventListener('click', (e) => {
     e.preventDefault(); // Prevent the default link behavior
-    avatarMenu.classList.toggle('open');
-    submenu.classList.remove('open');
-    
+    toggleSubmenu();
   });
 
-}
-
+  if (avatarMenu) {
+    avataText.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent the default link behavior
+      avatarMenu.classList.toggle('open');
+      submenu.classList.remove('open');
+    });
+  }
 }
 
 const nestedMenu = () => {
@@ -118,11 +110,10 @@ const nestedMenu = () => {
 
   if (nestedContainer && nestedMenu) {
     nestedContainer.addEventListener('click', (e) => {
-    e.preventDefault();
-    nestedMenu.classList.toggle('open');
-  });
-}
-
+      e.preventDefault();
+      nestedMenu.classList.toggle('open');
+    });
+  }
 }
 
 /**

@@ -1,7 +1,7 @@
-@import "../_methods";
-@import "../_variables";
-@import "../_media";
-@import "../_utils";
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
 
 /// Avatar content
 /// @desc ...
@@ -42,6 +42,7 @@
 
   .content-container {
     list-style: none;
+
     .item-dropdown {
       display: flex;
       justify-content: flex-start;
@@ -126,7 +127,8 @@
 
   .content-container {
     list-style: none;
-    &__nested{
+
+    &__nested {
       list-style: none;
     }
 
@@ -198,6 +200,7 @@
       &__icon {
         display: none;
       }
+
       &__description {
         display: none;
       }
@@ -253,15 +256,16 @@
 }
 
 @include media("<desktop", "screen") {
-
-  .avatar-content{
+  .avatar-content {
     display: inline-flex;
     align-items: center;
     border: none;
     border-radius: none;
+
     svg {
       display: none;
     }
+
     .text-username::after {
         @include prefix(transition, all 250ms ease-in, webkit moz o);
         content: '\f107';
@@ -272,11 +276,10 @@
         font-family: var(--icons-name);
         font-style: var(--icons-style);
         font-size: var(--icons-size);
-        color: var(--color-accent-dark);
-    
-      
+        color: var(--color-accent-dark);  
     }
   }
+
   .profile-row {
     background-color:var(--phenotype-banner-bg-color);
     border-radius: 1em;
@@ -287,48 +290,44 @@
     margin: auto;
     box-sizing: border-box;
     box-shadow: none;
-    
 
     .content-container {
       display: flex;
       justify-content: center;
       align-items: center;
 
-    
-    .item-dropdown {
-      #logout-icon{
-        display: flex;
-        width: 20px;
-        height: 20px;
-        margin-right: 10px;
-      }
-      &__icon {
-        display: none;
-      }
+      .item-dropdown {
+        #logout-icon {
+          display: flex;
+          width: 20px;
+          height: 20px;
+          margin-right: 10px;
+        }
 
-      &__description {
-        display: none;
+        &__icon {
+          display: none;
+        }
+
+        &__description {
+          display: none;
+        }
       }
     }
   }
-}
 }
 
 /// Navigation bar
 ///   @desc Used exclusively by navigation.html to present a fixed navigation bar
 ///         Handles both mobile and desktop interfaces
-$navigation_btn_transition: background-size 250ms ease,
-  transform 250ms ease-in-out;
+$navigation_btn_transition: background-size 250ms ease, transform 250ms ease-in-out;
 $navigation_login_transition: background-color 250ms ease, transform 250ms ease;
-$navigation_btn_gradient: 90deg, var(--navigation-item-selector) 0%,
-  var(--navigation-item-selector) 50%, var(--navigation-item-selector) 100%;
+$navigation_btn_gradient: 90deg, var(--navigation-item-selector) 0%, var(--navigation-item-selector) 50%, var(--navigation-item-selector) 100%;
 $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
 
 @mixin navigation-item($vertical: false) {
   @include app-font-style();
   @include prefix(transition, $navigation_btn_transition, webkit moz o);
   
-
   cursor: pointer;
   pointer-events: auto;
   display: inline-flex;
@@ -512,7 +511,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       background-color: var(--navigation-selection-box);
       left: 0;
       border-radius: 0.25rem;
-      padding: 0.5rem 0.5rem;
+      padding: 0.5rem 0;
       transition: opacity 250ms ease;
 
       a {

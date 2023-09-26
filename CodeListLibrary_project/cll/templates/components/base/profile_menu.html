@@ -11,7 +11,7 @@
     {% include "components/navigation/avatar_component.html"  %}
     
     <div class="nav-dropdown__content" id="dropdown-account">
-    <ul class="profile-row">
+      <ul class="profile-row">
         <li class="content-container">
           {% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
             <!--admin-->
@@ -24,8 +24,6 @@
           {% endif %}
         </li>
 
-       
-        
         <!-- Brands -->
         {% if request.user.is_superuser  and request.session.all_brands %}
           {% include "components/navigation/dropdown_profile_item.html" with  currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title="Concept Library" %}

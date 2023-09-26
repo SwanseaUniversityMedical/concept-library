@@ -18,7 +18,6 @@
   }
 
   &:hover {
-  
     .nav-dropdown__content {
       display: flex;
       justify-content: center;
@@ -28,12 +27,10 @@
     }
 
     @include media("<desktop", "screen") {
-      .nav-dropdown__content{
+      .nav-dropdown__content {
         display: none;
       }
-
     }
-
 
     .nav-dropdown__text {
       a {
@@ -48,11 +45,11 @@
 
   @include media(">=desktop", "screen") {
   &__text::after {
+    content: "";
     left: calc(50% - 10px);
     border-right: 10px solid transparent;
     border-bottom: 10px solid #ffffff;
     border-left: 10px solid transparent;
-    content: "";
     opacity: 0;
     z-index: 999;
     bottom: 0;
@@ -60,103 +57,95 @@
   }
 }
 
-  &__support-field{
+  &__support-field {
     z-index: 999;
   }
 
   @include media("<desktop", "screen") {
-
-    .nav-dropdown__content{
+    .nav-dropdown__content {
       overflow: hidden;
 
-      &.open{
+      &.open {
         display: contents;
       }
-     
     }
-   
   }
-
-
-
 }
 
 /* Define styles for the mobile version */
 @include media("<desktop", "screen") {
   .nav-dropdown {
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   padding: 0.3rem;
-  flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.3rem;
+    flex-direction: column;
 
-  &__text::after {
-    @include prefix(transition, all 250ms ease-in, webkit moz o);
-    content: '\f107';
-    cursor: pointer;
-    opacity: 1;
-    display: inline-flex;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    color: var(--color-accent-dark);
+    &__text::after {
+      @include prefix(transition, all 250ms ease-in, webkit moz o);
 
+      content: '\f107';
+      cursor: pointer;
+      opacity: 1;
+      display: inline-flex;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      color: var(--color-accent-dark);
+    }
   }
 
-  }
-  .content-container{
+  .content-container {
     display: contents;
     justify-content: flex-start;
     align-items: center;
 
-    &__nested{
+    &__nested {
       list-style: none;
 
-      .item-dropdown{
-        &::after{
-        @include prefix(transition, all 250ms ease-in, webkit moz o);
-        content: '\f107';
-        cursor: pointer;
-        opacity: 1;
-        position: initial;
-        aspect-ratio: 1 / 1;
-        font-family: var(--icons-name);
-        font-style: var(--icons-style);
-        font-size: var(--icons-size);
-        color: var(--color-accent-dark);
+      .item-dropdown {
+        &::after {
+          @include prefix(transition, all 250ms ease-in, webkit moz o);
 
+          content: '\f107';
+          cursor: pointer;
+          opacity: 1;
+          position: initial;
+          aspect-ratio: 1 / 1;
+          font-family: var(--icons-name);
+          font-style: var(--icons-style);
+          font-size: var(--icons-size);
+          color: var(--color-accent-dark);
         }
       }
-      
 
-      .nested-menu{
+      .nested-menu {
         background: #fff;
         box-shadow: none;
         transform: none;
         position: relative;
         width: auto;
   
-        &.open{
+        &.open {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
-          
         }
       }
     }
-
-    
   }
-  .item-dropdown{
+
+  .item-dropdown {
     display: none;
   }
 }
 
-
 /// Nested menu
 /// @desc describes the nested menu components for use within the nav-dropdown class and its assoc. navigation component
 .nested-menu {
+  @include prefix(transform, translate(-20%,-9%), webkit moz o);
+
   border-radius: 1em;
   display: none;
   list-style: none;
@@ -164,29 +153,21 @@
   -webkit-box-shadow: var(--dropdown-shadow);
   box-shadow: var(--dropdown-shadow);
   z-index: 999;
-  @include prefix(transform, translate(-20%,-9%), webkit moz o);
   position: absolute;
   width: 100%;
   padding: 1rem;
 }
 
-.content-container{
-  &__nested{
-  
-  @include media(">=desktop", "screen") {
-
-  &:hover {
-    
-    .nested-menu {
-      display: block;
+.content-container {
+  &__nested {
+    @include media(">=desktop", "screen") {
+      &:hover {
+        .nested-menu {
+          display: block;
+        }
+      }
     }
-    
-
-    
   }
-
-}
-}
 }
 
 /// Selection group
@@ -292,7 +273,7 @@
         padding: 10px 20px;
       }
       
-      &.divider{
+      &.divider {
         padding: 0;
         border-bottom: 1px solid #cccccc;
       }
@@ -345,6 +326,7 @@
 
     &-icon:after {
       @include prefix(transition, all 250ms ease-in-out, webkit moz o);
+
       content: '\f107';
       cursor: pointer;
       right: -1.25rem;
@@ -371,6 +353,7 @@
   &__list {
     @include prefix(transition, all 250ms ease-in-out, webkit moz o);
     @include prefix(transform, scale(1, 0), webkit moz o);
+
     pointer-events: none;
     display: none;
     position: absolute;
@@ -389,6 +372,7 @@
 
     &.active {
       @include prefix(transform, scale(1, 1), webkit moz o);
+
       pointer-events: auto;
       opacity: 1;
       display: block;
@@ -396,6 +380,7 @@
 
     &-item {
       @include prefix(transition, all 250ms ease-in-out, webkit moz o);
+
       cursor: pointer;
       display: block;
       height: fit-content;
@@ -410,6 +395,7 @@
 
       &:hover {
         @include prefix(transition, all 250ms ease-in-out, webkit moz o);
+        
         background-color: col(accent-highlight);
         color: col(text-brightest);
       }
@@ -512,7 +498,3 @@
     }
   }
 }
-
-
-
-
