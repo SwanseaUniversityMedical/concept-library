@@ -49,10 +49,10 @@
     }
    
     &__left-landing-page {
-      max-width: 350px;
       width: 50%;
-      padding-top: 2rem;
+      max-width: 450px;
       padding-left: 6rem;
+      padding-top: 2rem;
       align-content: left;
 
       @include media("<tablet", "screen") {
