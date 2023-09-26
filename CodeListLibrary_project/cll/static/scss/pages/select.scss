@@ -55,6 +55,11 @@
     align-items: stretch;
     overflow-x: none;
     overflow-y: auto;
+    max-width: 100%;
+
+    @include media('<phone', 'screen') {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
   }
 
   &__interaction {

@@ -12,6 +12,7 @@
   &__header {
     @include flex-col();
     align-items: center;
+    max-width: 100%;
 
     &--pad-bottom-2 {
       padding-bottom: 2rem;
@@ -40,6 +41,12 @@
     @include media("<desktop", "screen") {
       width: 250px;
       padding: 1rem 0 2rem 0;
+      max-width: calc(100% - 2rem);
+    }
+
+    @include media('<phone', 'screen') {
+      padding: 1rem 0 0.5rem 0;
+      max-width: calc(100% - 1rem);
     }
 
     /* Override search field size */
@@ -80,6 +87,7 @@
     @include flex-col();
     padding: 0 0 2rem;
     align-self: center;
+    max-width: calc(100% - 2rem);
 
     @include media(">phone", "screen") {
       width: 300px;

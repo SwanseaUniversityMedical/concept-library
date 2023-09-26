@@ -82,6 +82,7 @@
     padding: 1rem 0 2rem 0;
     align-self: center;
     overflow: none;
+    max-width: 100%;
 
     @include media(">phone", "screen") {
       width: 300px;

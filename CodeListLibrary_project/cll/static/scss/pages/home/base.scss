@@ -233,6 +233,10 @@
     align-items: stretch;
     justify-items: center;
     width: 100%;
+
+    @include media('<phone', 'screen') {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
   }
 
   &__card {
@@ -250,6 +254,10 @@
     border: 2px solid col(accent-transparent);
     border-radius: 0.5rem;
     transition: transform 250ms ease-in-out, box-shadow 250ms ease-in-out;
+
+    @include media('<phone', 'screen') {
+      padding: 1rem 1rem 1rem 1rem;
+    }
 
     &-content {
       display: flex;
@@ -681,6 +689,7 @@
     flex-wrap: nowrap;
     padding: 0;
     margin: 0;
+    max-width: 100%;
 
     &-title {
       text-align: center;
@@ -698,6 +707,7 @@
     justify-content: center;
     margin-top: 2rem;
     margin-bottom: 2rem;
+    max-width: 100%;
   }
 
   &__items {
@@ -782,6 +792,7 @@
     flex-wrap: nowrap;
     padding: 0;
     margin: 0 0 1rem 0;
+    max-width: 100%;
 
     &-title {
       text-align: center;
@@ -814,6 +825,10 @@
 
     @include media('<tablet', 'screen') {
       padding: 0 0.5rem 0 0.5rem;
+    }
+
+    @include media("<desktop", "screen") {
+      grid-template-columns: repeat(auto-fill, minmax(150px, max-content));
     }
   }
 
@@ -858,7 +873,7 @@
       font-size: 1rem;
       text-align: left;
       color: col(text-darker);
-      word-wrap: break-word;
+      word-wrap: anywhere;
     }
   }
 }
