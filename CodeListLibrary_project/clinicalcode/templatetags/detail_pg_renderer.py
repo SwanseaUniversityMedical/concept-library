@@ -270,9 +270,7 @@ class EntityWizardSections(template.Node):
     
     def __try_get_entity_value(self, template, entity, field):
         value = get_template_creation_data(entity, template, field, request=self.request, default=None)
-        #print('value===11======'+str(value))
         if value is None:
-            #print('value===22======'+str(template_utils.get_entity_field(entity, field)))
             return template_utils.get_entity_field(entity, field)
 
         return value
@@ -323,12 +321,10 @@ class EntityWizardSections(template.Node):
             
             if section.get('requires_auth', False):
                 if not context.get('user').is_authenticated:
-                    #print('SECTION: requires_auth22')
                     continue   
                 
             if section.get('do_not_show_in_production', False):
                 if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
-                    #print('SECTION: do_not_show_in_production')
                     continue    
                     
             # still need to handle: section 'hide_if_empty' ??? 
@@ -341,20 +337,15 @@ class EntityWizardSections(template.Node):
                                              , context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
-                #print('field==== '+str(field))
                 template_field = template_utils.get_field_item(template.definition, 'fields', field)
-                #print('template_field-temp='+ str(template_field) )
                 if not template_field:
                     template_field = template_utils.try_get_content(constants.metadata, field)
-                    #print('template_field-base='+ str(template_field) )
 
                 if not template_field:
-                    #print('not template_field')
                     continue
                 
                 active = template_field.get('active', False)
                 if isinstance(active, bool) and not active:
-                    #print('NOT active')
                     continue
                 
                 if template_field.get('hide_on_detail'):
@@ -365,30 +356,24 @@ class EntityWizardSections(template.Node):
 
                 component = template_utils.try_get_content(field_types, template_field.get('field_type'))                
                 if component is None:
-                    #print('component is None')
                     continue
 
                 if template_utils.is_metadata(GenericEntity, field):
                     field_data = template_utils.try_get_content(constants.metadata, field)
                 else:
                     field_data = template_utils.get_layout_field(template, field)
-
-                #print('field_data===****==='+str(field_data))
                 
 
                 if template_field.get('requires_auth', False):
                     if not request.user.is_authenticated:
-                        #print('requires_auth')
                         continue    
   
 
                 if template_field.get('do_not_show_in_production', False):
                     if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
-                        #print('do_not_show_in_production')
                         continue                                                  
 
                 if field_data is None:
-                    #print('field_data is None ==>> str()')
                     field_data = ''
                     #continue
 
@@ -429,7 +414,6 @@ class EntityWizardSections(template.Node):
 
                 if template_field.get('hide_if_empty', False):
                     if component['value'] is None or str(component['value']) == '':
-                        #print('hide_if_empty')
                         continue    
                                     
 
