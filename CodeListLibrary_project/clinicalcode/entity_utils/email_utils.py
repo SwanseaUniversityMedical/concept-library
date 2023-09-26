@@ -15,7 +15,7 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
     if owner_email == '':
         return False
 
-    email_subject = 'Concept Library - Data %s has been %s' % (data['id'], data['message'])
+    email_subject = 'Concept Library - Phenotype %s has been %s' % (data['id'], data['message'])
     email_content = render_to_string(
         'clinicalcode/email/email_content.html',
         data,
