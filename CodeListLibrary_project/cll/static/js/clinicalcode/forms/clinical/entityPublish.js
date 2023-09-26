@@ -148,22 +148,22 @@ class PublishModal {
     let errorsHtml = "";
     for (let i = 0; i < data.errors.length; i++) {
       if (data.errors[i].url_parent) {
-        errorsHtml += `<li><a href="${
+        errorsHtml += `<li class="publish-modal__error"><a class="publish-modal__reference" href="${
           data.errors[i].url_parent
-        }"class="text-danger cross" target="_blank">${
+        }"class="publish-modal--text-danger publish-modal--cross" target="_blank">${
           Object.values(data.errors[i])[0]
         }</a></li>`;
       } else {
-        errorsHtml += `<li><span class="text-danger cross">${
+        errorsHtml += `<li class="publish-modal publish-modal__error"><span class="publish-modal--text-danger publish-modal--cross">${
           Object.values(data.errors[i])[0]
         }</span></li>`;
       }
     }
     let html = `
         <p>This entity cannot be published</p>
-        <strong><span class="text-danger cross">Errors:</span></strong>
+        <strong><span class="publish-modal--text-danger publish-modal--cross">Errors:</span></strong>
         <br>
-        <ul>${errorsHtml}</ul>`;
+        <ul class="publish-modal publish-modal__errors">${errorsHtml}</ul>`;
     return html;
   }
 

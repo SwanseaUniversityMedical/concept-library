@@ -70,6 +70,8 @@ while [[ "$#" -gt 0 ]]
     shift
 done
 
+cd "$RootPath"
+
 # Pull from repo/branch if required
 if [ "$ShouldPull" = true ]; then
   echo "==========================================="
@@ -78,7 +80,6 @@ if [ "$ShouldPull" = true ]; then
   echo $(printf '\nRepository: %s | Branch %s' "$RepoBase" "$RepoBranch")
 
   rm -rf "$RootPath/concept-library"
-  cd "$RootPath"
 
   if [ ! -z "$RepoBranch" ]; then
     git clone -b "$RepoBranch" "$RepoBase"

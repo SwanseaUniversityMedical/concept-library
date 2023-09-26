@@ -21,33 +21,40 @@ const CONCEPT_UTILS_DEFAULT_ARGS = {
  * @param {object} options optional parameters to modify the behaviour of the method
  *                         see CONCEPT_UTILS_DEFAULT_ARGS.APPLICATOR for more details
  */
-const applyCodelistsFromConcepts = ( conceptData, options) => {
+const applyCodelistsFromConcepts = (conceptData, options) => {
   options = mergeObjects(options || { }, CONCEPT_UTILS_DEFAULT_ARGS.APPLICATOR);
 
   const { codelistContainerId, showAttributes, perPageSelect } = options;
-  for (let ii = 0; ii < conceptData.length; ii++) {
-    const c = conceptData[ii];
-
-    let containerId = interpolateHTML(codelistContainerId, {
+  for (let i = 0; i < conceptData.length; i++) {
+    const c = conceptData[i];
+    const containerId = interpolateHTML(codelistContainerId, {
       concept_id: c?.concept_id,
       concept_version_id: c?.concept_version_id
     });
 
-    let container = document.querySelector(containerId);        
-    let table = container.appendChild(createElement('table', {
+    const outOfDate = c?.details?.latest_version?.is_out_of_date;
+    if (!isNullOrUndefined(outOfDate) && outOfDate) {
+      const target = document.querySelectorAll(`#ood-${c?.concept_id}-${c?.concept_version_id}`);
+      for (let j = 0; j < target.length; ++j) {
+        target[j].classList.remove('hide');
+      }
+    }
+
+    const container = document.querySelector(containerId);
+    const table = container.appendChild(createElement('table', {
       'id': 'codelist-datatable',
       'class': 'constrained-codelist-table__wrapper',
     }));
 
-    let headings = ['Code', 'Description'];
-    let columns = [
+    const headings = ['Code', 'Description'];
+    const columns = [
       { select: 0, type: 'string' },
       { select: 1, type: 'string' },
     ];
 
     if (c?.details?.code_attribute_headers && showAttributes) {
-      for (let i = 0; i < c?.details?.code_attribute_headers.length; i++){
-        headings.push(c?.details?.code_attribute_headers?.[i]);
+      for (let j = 0; j < c?.details?.code_attribute_headers.length; ++j){
+        headings.push(c?.details?.code_attribute_headers?.[j]);
         columns.push({
           select: columns.length,
           type: 'string',

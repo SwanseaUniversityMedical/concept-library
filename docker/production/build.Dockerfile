@@ -1,3 +1,4 @@
+
 FROM python:3.9-slim-bullseye
 
 ARG http_proxy
@@ -33,10 +34,6 @@ RUN apt-get update && apt-get install -y \
     npm
 
 # Install esbuild
-RUN npm config set proxy http://192.168.10.15:8080 && \
-    npm config set https-proxy http://192.168.10.15:8080 && \
-    npm config set registry http://registry.npmjs.org/
-
 RUN npm install -g config set user root
 
 RUN npm install -g esbuild@0.19.0
@@ -53,7 +50,7 @@ RUN \
   apt-get install -y -q python3-pip
 
 RUN \
-  pip --proxy http://192.168.10.15:8080 install --upgrade pip
+  pip install --upgrade pip
 
 # Copy project
 RUN mkdir -p /var/www/concept_lib_sites/v1
@@ -62,7 +59,7 @@ COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_pro
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
 # Install requirements
-RUN pip --proxy http://192.168.10.15:8080 --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
+RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
 # Utility scripts
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]

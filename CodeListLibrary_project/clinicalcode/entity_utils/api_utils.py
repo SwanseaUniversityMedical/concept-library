@@ -125,30 +125,32 @@ def exists_concept(concept_id):
 
     return concept
 
-def exists_historical_concept(concept_id, user, historical_id=None):
+def exists_historical_concept(request, concept_id, historical_id=None):
     '''
       Checks whether a historical version of a concept exists
 
       Args:
+        request {RequestContext}: the HTTPRequest
         concept_id {string}: concept id
-        user {User}: User object
         historical_id {integer}: historical id of the concept
 
       Returns:
         If exists, returns first instance of historical concept, otherwise 
         returns response 404
     '''
+    historical_concept = None
     if not historical_id:
-        historical_id = permission_utils.get_latest_concept_historical_id(
-            concept_id, user
-        )
+        historical_concept = concept_utils.get_latest_accessible_concept(request, concept_id)
+    else: 
+        historical_concept = model_utils.try_get_instance(
+            Concept,
+            pk=concept_id
+        ).history.filter(history_id=historical_id)
+        
+        if historical_concept.exists():
+            historical_concept = historical_concept.first()
 
-    historical_concept = model_utils.try_get_instance(
-        Concept,
-        pk=concept_id
-    ).history.filter(history_id=historical_id)
-
-    if not historical_concept.exists():
+    if not historical_concept:
         return Response(
             data={
                 'message': 'Historical concept version does not exist'
@@ -157,7 +159,7 @@ def exists_historical_concept(concept_id, user, historical_id=None):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    return historical_concept.first()
+    return historical_concept
 
 ''' General helpers '''
 
@@ -298,6 +300,7 @@ def build_query_from_template(request, user_authed, template=None):
 
     terms = {}
     where = []
+    params = []
     for key, value in request.GET.items():
         is_dynamic = True
         layout = template
@@ -331,11 +334,11 @@ def build_query_from_template(request, user_authed, template=None):
                 layout = constants.metadata
 
             search_utils.apply_param_to_query(
-                terms, where, layout, key, value,
+                terms, where, params, layout, key, value,
                 is_dynamic=is_dynamic, force_term=True, is_api=True
             )
 
-    return terms, where
+    return terms, where, params
 
 def get_entity_detail_from_layout(
     entity, fields, user_authed, fields_to_ignore=[], target_field=None

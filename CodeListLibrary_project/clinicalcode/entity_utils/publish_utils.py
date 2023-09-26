@@ -195,7 +195,7 @@ def check_children(request, entity, entity_class):
             entity_child_id = entity_child[0]
             entity_child_version = entity_child[1]
 
-            concept_owner_id = Concept.history.get(id=entity_child_id,history_id=entity_child_version).phenotype_owner_id
+            concept_owner_id = Concept.objects.get(id=entity_child_id).phenotype_owner_id
             if concept_owner_id != entity.id:
                 entity_from_concept = GenericEntity.history.filter(
                 id=concept_owner_id,
@@ -214,6 +214,7 @@ def check_children(request, entity, entity_class):
                     version=str(entity_child_version)
                 ),"url_parent": reverse('entity_detail', kwargs={'pk': concept_owner_id})})
                 all_are_published = False
+            
 
         return all_not_deleted and all_are_published, all_not_deleted, all_are_published, errors
 

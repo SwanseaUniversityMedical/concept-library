@@ -106,7 +106,7 @@ const CSEL_OPTIONS = {
 
   // Whether to cache the resulting queries for quicker,
   // albeit possibly out of date, Phenotypes and their assoc. Concepts
-  useCachedResults: true,
+  useCachedResults: false,
 };
 
 /**
@@ -866,7 +866,8 @@ export class ConceptSelectionService {
     // create content handler
     const body = container.querySelector('#target-modal-content');
     if (this.options?.allowMultiple) {
-      body.classList.add('no-pad');
+      body.classList.add('target-modal__body--no-pad');
+      body.classList.add('target-modal__body--constrained');
     }
 
     let contentContainer = body;

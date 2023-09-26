@@ -131,7 +131,8 @@ def render_publish_button(context, *args, **kwargs):
                                       })
                     
             else:
-                 button_context.update({'class_modal':"primary-btn text-danger bold dropdown-btn__label",
+                 button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
+                                        'Button_type': "Not permitted",
                                       'disabled': 'true',
                                       'title': "Unavailable to publish"
                                       })

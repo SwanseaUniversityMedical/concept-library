@@ -10,8 +10,8 @@
   <div class="nav-dropdown">
     {% include "components/navigation/avatar_component.html"  %}
     
-    <div class="nav-dropdown__content">
-    <ul class="profile-row">
+    <div class="nav-dropdown__content" id="dropdown-account">
+      <ul class="profile-row">
         <li class="content-container">
           {% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
             <!--admin-->
@@ -24,11 +24,9 @@
           {% endif %}
         </li>
 
-        <hr/>
-        
         <!-- Brands -->
         {% if request.user.is_superuser  and request.session.all_brands %}
-          {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=""  image="/static/img/header_logo.png"  title="Concept Library" %}
+          {% include "components/navigation/dropdown_profile_item.html" with  currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title="Concept Library" %}
           
           {% for brand in request.session.all_brands %}
             {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo  title=brand|upper %}
@@ -40,7 +38,7 @@
         <!-- Logout -->
         <li class="content-container">
           <a href="{% url 'logout' %}?next={% url 'search_phenotypes' %}" class="item-dropdown">
-            <div class="item-dropdown__icon">
+            <div class="item-dropdown__icon" id="logout-icon">
               {% svg "exit_icon" %}
             </div>
             <div class="item-dropdown__title">Log out</div>

@@ -699,9 +699,8 @@ def try_update_concept(request, item, entity=None):
     
     req_component_ids = set([obj.get('id') for obj in components_data if not obj.get('is_new')])
     prev_component_ids = set(list(concept.component_set.all().values_list('id', flat=True)))
-
+    
     removed_components = list(set(prev_component_ids) - set(req_component_ids))
-
     for component_id in removed_components:
         component = model_utils.try_get_instance(Component, pk=component_id)
         if component is None:
@@ -798,17 +797,14 @@ def try_create_concept(request, item, entity=None):
         return None
 
     # Create the new concept
-    concept = Concept()
-    concept.name = concept_data.get('name')
-    concept.coding_system = concept_data.get('coding_system')
-    concept.created_by = user
-    concept.entry_date = make_aware(datetime.now())
-    concept.owner_access = constants.OWNER_PERMISSIONS.EDIT
-    concept.owner_id = user.id
-    concept.save()
-    
-    concept = Concept.objects.get(pk=concept.pk)
-    concept.history.latest().delete()
+    concept = Concept.objects.create(
+        name=concept_data.get('name'),
+        coding_system=concept_data.get('coding_system'),
+        created_by=user,
+        entry_date=make_aware(datetime.now()),
+        owner_access=constants.OWNER_PERMISSIONS.EDIT,
+        owner_id=user.id
+    )
 
     # Create new components, codelists and associated codes
     for obj in components_data:
@@ -874,29 +870,29 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
                 if override_dirty or concept.get('is_dirty'):
                     result = try_update_concept(request, item)
                     if result is not None:
-                        entities.append({'method': 'update', 'entity': result.history.latest()})
+                        entities.append({'method': 'update', 'entity': result, 'historical': result.history.latest() })
                         continue
                 
                 # If we're not dirty, append the current concept
                 concept_history_id = concept.get('history_id')
                 if concept_history_id is not None:
                     result = model_utils.try_get_instance(Concept, id=concept_id)
-                    result = model_utils.try_get_entity_history(result, history_id=concept_history_id)
-                    if result is not None:
-                        entities.append({'method': 'set', 'entity': result})
+                    historical = model_utils.try_get_entity_history(result, history_id=concept_history_id)
+                    if historical is not None:
+                        entities.append({ 'method': 'set', 'entity': result, 'historical': historical })
                         continue
             
             # Create new concept & components
             result = try_create_concept(request, item, entity=entity)
             if result is None:
                 continue
-            entities.append({'method': 'create', 'entity': result.history.latest()})
+            entities.append({ 'method': 'create', 'entity': result, 'historical': result.history.latest() })
 
         # Build concept list
         return True, [
             'phenotype_owner',
             [obj.get('entity') for obj in entities if obj.get('method') == 'create'],
-            [{ 'concept_id': obj.get('entity').id, 'concept_version_id': obj.get('entity').history_id } for obj in entities]
+            [{ 'concept_id': obj.get('historical').id, 'concept_version_id': obj.get('historical').history_id } for obj in entities]
         ]
 
     return False, None
@@ -987,6 +983,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
     related_brands = compute_brand_context(request, form_data)
 
     # Atomically create the instance and its children
+    entity = None
     try:
         with transaction.atomic():
             # Build any validated children
@@ -1011,10 +1008,9 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 new_entities.append({'field': ownership_key, 'entities': created_entities})
 
             # Create or update the entity
-            entity = None
             template_data['version'] = form_template.template_version
             if form_method == constants.FORM_METHODS.CREATE:
-                entity = GenericEntity(
+                entity = GenericEntity.objects.create(
                     **metadata,
                     template=template_instance,
                     template_version=form_template.template_version,
@@ -1024,7 +1020,6 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                     updated=make_aware(datetime.now()),
                     owner=user
                 )
-                entity.save()
             elif form_method == constants.FORM_METHODS.UPDATE:
                 entity = form_entity
                 entity.name = metadata.get('name')
@@ -1056,7 +1051,8 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 for instance in instances:
                     setattr(instance, field, entity)
                     instance.save()
-            return entity.history.latest()
     except IntegrityError:
         errors.append('Data integrity error when submitting form')
         return
+    else:
+        return entity.history.latest()

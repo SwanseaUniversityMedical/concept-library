@@ -35,7 +35,7 @@ const PROMPT_DEFAULT_CONTAINER = '\
       <h2 id="target-modal-title">${title}</h2> \
       <a href="#" class="target-modal__header-close" aria-label="Close Modal" id="modal-close-btn"></a> \
     </div> \
-    <div class="target-modal__body" id="target-modal-content"> \
+    <div class="target-modal__body target-modal__body--constrained" id="target-modal-content"> \
       ${content} \
     </div> \
   </div> \

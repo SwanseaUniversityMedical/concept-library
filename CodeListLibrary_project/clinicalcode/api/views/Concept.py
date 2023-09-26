@@ -1,5 +1,5 @@
 from rest_framework.decorators import (api_view, permission_classes)
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.expressions import RawSQL
@@ -10,17 +10,17 @@ from ...entity_utils import api_utils
 from ...entity_utils import permission_utils
 from ...entity_utils import concept_utils
 from ...entity_utils import gen_utils
+from ...entity_utils.constants import CLINICAL_RULE_TYPE
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_concepts(request):
     '''
         Get all concepts accessible to the user, optionally, provide parameters to filter by
     '''
     # Get all concepts accesible to the user
     concepts = permission_utils.get_accessible_concepts(
-        request, 
-        consider_user_perms=False
+        request
     )
     if not concepts.exists():
         return Response([], status=status.HTTP_200_OK)
@@ -110,7 +110,7 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
     
     # Get historical concept
     historical_concept_response = api_utils.exists_historical_concept(
-        concept_id, request.user, historical_id=version_id
+        request, concept_id, historical_id=version_id
     )
     if isinstance(historical_concept_response, Response):
         return historical_concept_response
@@ -129,20 +129,11 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
 
     if export_codes:
         # Build only the codelist
-        concept_data = concept_utils.get_clinical_concept_data(
+        concept_codes = concept_utils.get_concept_codelist(
             historical_concept.id,
             historical_concept.history_id,
-            aggregate_component_codes=True,
-            include_component_codes=False,
-            include_attributes=True,
-            format_for_api=True
-        )
-        concept_codes = concept_data.get('aggregated_component_codes')
-        attribute_headers = concept_data.get('code_attribute_headers')
-
-        # Format the codelist for legacy API
-        concept_codes = api_utils.get_formatted_concept_codes(
-            historical_concept, concept_codes, headers=attribute_headers
+            incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE],
+            incl_attributes=True
         )
         
         return Response(

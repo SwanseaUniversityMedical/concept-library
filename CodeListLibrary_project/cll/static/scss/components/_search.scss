@@ -152,8 +152,8 @@
 
     &.scrollable {
       flex-wrap: nowrap;
-      max-height: 40vh;
       overflow-y: auto;
+      max-height: 100%;
     }
   }
 }

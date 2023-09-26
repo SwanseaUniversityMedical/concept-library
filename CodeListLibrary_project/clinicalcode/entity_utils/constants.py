@@ -148,23 +148,33 @@ MIN_SINGLE_SEARCH = 1
 ORDER_BY = {
     '1': {
         'name': 'Relevance',
-        'clause': 'id'
+        'clause': 'id',
+        'property': 'id',
+        'order': 'asc',
     },
     '2': {
         'name': 'Created (Asc)',
-        'clause': 'created'
+        'clause': 'created',
+        'property': 'created',
+        'order': 'asc',
     },
     '3': {
         'name': 'Created (Desc)',
-        'clause': '-created'
+        'clause': '-created',
+        'property': 'created',
+        'order': 'desc',
     },
     '4': {
         'name': 'Updated (Asc)',
-        'clause': 'updated'
+        'clause': 'updated',
+        'property': 'updated',
+        'order': 'asc',
     },
     '5': {
         'name': 'Updated (Desc)',
-        'clause': '-updated'
+        'clause': '-updated',
+        'property': 'updated',
+        'order': 'desc',
     }
 }
 

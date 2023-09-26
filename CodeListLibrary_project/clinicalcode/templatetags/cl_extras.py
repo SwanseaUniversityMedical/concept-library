@@ -62,7 +62,7 @@ def addStr(value, arg):
 @register.filter
 def getBrandLogo(value):
     """get brand logos"""
-    return f'/static/img/brands/{value}/header_logo.png'
+    return f'/static/img/brands/{value}/apple-touch-icon.png'
 
 @register.filter
 def markdownify00(text):
