@@ -175,7 +175,7 @@ const CSEL_INTERFACE = {
       <div class="selection-filters__container slim-scrollbar" id="search-filters"> \
       </div> \
     </aside> \
-    <section class="entity-search-results"> \
+    <section class="entity-search-results entity-search-results--constrained"> \
       <div class="entity-search-results__header"> \
         <div class="entity-search-results__header-results" id="search-response-header"> \
           <h4>Results</h4> \
