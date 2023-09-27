@@ -36,7 +36,7 @@ const countup = (elem) => {
     const current = parseInt(elem.innerText);
 
     if (current !== counted) {
-      elem.innerText = `${counted.toLocaleString()}+`;
+      elem.innerText = `${counted.toLocaleString()}`;
     }
 
     if (frame >= frames) {
