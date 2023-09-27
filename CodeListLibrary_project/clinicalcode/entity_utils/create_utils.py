@@ -831,7 +831,7 @@ def try_create_concept(request, item, entity=None):
     if entity is not None:
         concept.phenotype_owner = entity
 
-    concept.save()
+    concept.save_without_historical_record()
     return concept
 
 def build_related_entities(request, field_data, packet, override_dirty=False, entity=None):
@@ -1050,7 +1050,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 instances = group.get('entities')
                 for instance in instances:
                     setattr(instance, field, entity)
-                    instance.save()
+                    instance.save_without_historical_record()
     except IntegrityError:
         errors.append('Data integrity error when submitting form')
         return

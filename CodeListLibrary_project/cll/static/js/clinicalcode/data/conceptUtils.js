@@ -52,21 +52,29 @@ const applyCodelistsFromConcepts = (conceptData, options) => {
       { select: 1, type: 'string' },
     ];
 
-    if (c?.details?.code_attribute_headers && showAttributes) {
-      for (let j = 0; j < c?.details?.code_attribute_headers.length; ++j){
-        headings.push(c?.details?.code_attribute_headers?.[j]);
+    const attributeHeaders = c?.details?.code_attribute_headers;
+    if (attributeHeaders && showAttributes) {
+      for (let j = 0; j < attributeHeaders.length; ++j) {
+        headings.push(attributeHeaders?.[j]);
         columns.push({
           select: columns.length,
           type: 'string',
-        })
+        });
       }
     }
 
     let data = [];
     if (c?.codelist) {
       data = c?.codelist.map(item => {
-        if (item.attributes && showAttributes) {
-          return [item?.code, item?.description, ...item?.attributes]
+        if (attributeHeaders && showAttributes) {
+          const attributes = Array(attributeHeaders.length).fill('[No data]');
+          if (item?.attributes) {
+            for (let j = 0; j < item.attributes.length; ++j) {
+              attributes[i] = item.attributes[j] || attributes[i];
+            }
+          }
+          
+          return [item?.code, item?.description, ...attributes]
         }
 
         return [item?.code, item?.description]

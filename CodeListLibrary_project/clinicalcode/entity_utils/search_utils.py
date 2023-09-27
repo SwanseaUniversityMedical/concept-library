@@ -745,7 +745,7 @@ def get_filter_info(field, structure, default=None):
         'title': structure.get('title', field),
     }
 
-def get_metadata_stats_by_field(field, published=True, brand='ALL'):
+def get_metadata_stats_by_field(field, published=False, brand='ALL'):
     '''
         Retrieves the global statistics from metadata fields
     '''
@@ -759,7 +759,7 @@ def get_metadata_stats_by_field(field, published=True, brand='ALL'):
         
         return template_utils.try_get_content(stats, field)
 
-def try_get_template_statistics(field, brand='ALL', published=True, entity_type='GenericEntity', default=None):
+def try_get_template_statistics(field, brand='ALL', published=False, entity_type='GenericEntity', default=None):
     '''
         Attempts to retrieve the the field's statistics by brand, its publication status, and entity type
     '''

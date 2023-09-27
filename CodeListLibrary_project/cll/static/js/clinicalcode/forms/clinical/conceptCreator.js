@@ -484,7 +484,6 @@ export default class ConceptCreator {
 
     return prompt.show()
       .then((data) => {
-        console.log(data);
         return this.#tryRetrieveCodelists(data);
       });
   }
