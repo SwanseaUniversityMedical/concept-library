@@ -311,7 +311,7 @@ def apply_param_to_query(query, where, params, template, param, data,
 
         if clean is not None:
             if is_dynamic:
-                q = ','.join([f"'{str(x)}'" for x in clean])
+                q = [str(x) for x in clean]
                 where.append('''
                 exists(
                   select 1
