@@ -569,7 +569,6 @@ def generic_entity_detail(request, pk, history_id=None):
     publish_date = None
     if is_published:
         publish_date = PublishedGenericEntity.objects.get(entity_id=pk, entity_history_id=history_id).modified
-        print(publish_date)
 
     if GenericEntity.objects.get(pk=pk).is_deleted == True:
         messages.info(request, "This entity has been deleted.")
