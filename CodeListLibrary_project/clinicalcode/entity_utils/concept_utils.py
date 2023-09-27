@@ -460,7 +460,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
         'components': components_data
     }
 
-def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None, incl_attributes=False):
+def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
     '''
       [!] Note: This method ignores permissions - it should only be called from a
                 a method that has previously considered accessibility
@@ -470,10 +470,8 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
 
       Args:
         concept_id {number}: The concept ID of interest
-        concept_history_id {number}: The concept's historical id of interest
 
-        incl_logical_types {int[]}: Whether to include only codes that stem from Components
-                                    with that logical type
+        concept_history_id {number}: The concept's historical id of interest
 
         incl_attributes {bool}: Whether to include code attributes
 
@@ -482,130 +480,104 @@ def get_concept_codelist(concept_id, concept_history_id, incl_logical_types=None
 
     '''
 
-    # Try to find the associated concept and its historical counterpart
-    concept = model_utils.try_get_instance(
-        Concept, pk=concept_id
-    )
-    if not concept:
-        return None
-
-    historical_concept = model_utils.try_get_entity_history(concept, concept_history_id)
-    if not historical_concept:
-        return None
-
-    attribute_header = historical_concept.code_attribute_header
-    if not incl_attributes or not isinstance(attribute_header, list) or len(attribute_header) < 1:
-        attribute_header = None
-
-    # Find the components associated with this concept
-    components = Component.history.exclude(history_type='-') \
-    .filter(
-        concept__id=historical_concept.id,
-        history_date__lte=historical_concept.history_date
-    ) \
-    .annotate(
-        was_deleted=Subquery(
-            Component.history.filter(
-                id=OuterRef('id'),
-                concept__id=historical_concept.id,
-                history_date__lte=historical_concept.history_date,
-                history_type='-'
-            )
-            .order_by('id', '-history_id')
-            .distinct('id')
-            .values('id')
+    output = []
+    with connection.cursor() as cursor:
+        sql = '''
+        with 
+        concept as (
+            select id,
+                   history_id,
+                   history_date
+              from public.clinicalcode_historicalconcept
+             where id = %(concept_id)s
+               and history_id = %(concept_history_id)s
+             group by id, history_id, history_date
+             order by history_id desc
+             limit 1
+        ),
+        component as (
+        	select concept.id as concept_id,
+                   concept.history_id as concept_history_id,
+		           concept.history_date as concept_history_date,
+		           component.id as component_id,
+		           max(component.history_id) as component_history_id,
+	               component.logical_type as logical_type,
+	               codelist.id as codelist_id,
+	               max(codelist.history_id) as codelist_history_id,
+                   codes.id as id,
+	               codes.code,
+		           codes.description
+              from concept as concept
+              join public.clinicalcode_historicalcomponent as component
+                on component.concept_id = concept.id
+               and component.history_date <= concept.history_date
+               and component.history_type <> '-'
+              left join public.clinicalcode_historicalcomponent as deletedcomponent
+                on deletedcomponent.concept_id = concept.id
+               and deletedcomponent.id = component.id
+               and deletedcomponent.history_date <= concept.history_date
+               and deletedcomponent.history_type = '-'
+              join public.clinicalcode_historicalcodelist as codelist
+                on codelist.component_id = component.id
+               and codelist.history_date <= concept.history_date
+               and codelist.history_type <> '-'
+              join public.clinicalcode_historicalcode as codes
+                on codes.code_list_id = codelist.id
+               and codes.history_date <= concept.history_date
+               and codes.history_type <> '-'
+             where deletedcomponent.id is null
+             group by concept.id,
+                      concept.history_id,
+                      concept.history_date, 
+                      component.id, 
+                      component.logical_type, 
+                      codelist.id,
+                      codes.id,
+                      codes.code,
+                      codes.description
         )
-    ) \
-    .exclude(was_deleted__isnull=False) \
-    .order_by('id', '-history_id') \
-    .distinct('id')
 
-    if not components.exists():
-        return []
+        '''
 
-    # This needs changing in future, it's a naive implementation for a hotfix
-    result_set = []
-    final_codelist = set([])
-    excluded_codes = set([])
-    for component in components:
-        # Find the codelist associated with this component
-        codelist = CodeList.history.exclude(history_type='-') \
-        .filter(
-            component__id=component.id,
-            history_date__lte=historical_concept.history_date
-        ) \
-        .order_by('-history_date', '-history_id')
-
-        if not codelist.exists():
-            continue
-        codelist = codelist.first()
-
-        # Find the codes associated with this codelist
-        codes = Code.history.filter(
-            code_list__id=codelist.id,
-            history_date__lte=historical_concept.history_date
-        ) \
-        .annotate(
-            was_deleted=Subquery(
-                Code.history.filter(
-                    id=OuterRef('id'),
-                    code_list__id=codelist.id,
-                    history_date__lte=historical_concept.history_date,
-                    history_type='-'
-                )
-                .order_by('code', '-history_id')
-                .distinct('code')
-                .values('id')
-            )
-        ) \
-        .exclude(was_deleted__isnull=False) \
-        .order_by('id', '-history_id') \
-        .distinct('id')
-
-        results = None
-        if attribute_header:
-            codes = codes.annotate(
-                attributes=Subquery(
-                    ConceptCodeAttribute.history.filter(
-                        concept__id=historical_concept.id,
-                        history_date__lte=historical_concept.history_date,
-                        code=OuterRef('code')
-                    )
-                    .annotate(
-                        was_deleted=Subquery(
-                            ConceptCodeAttribute.history.filter(
-                                concept__id=historical_concept.id,
-                                history_date__lte=historical_concept.history_date,
-                                code=OuterRef('code'),
-                                history_type='-'
-                            )
-                            .order_by('code', '-history_id')
-                            .distinct('code')
-                            .values('id')
-                        )
-                    )
-                    .exclude(was_deleted__isnull=False)
-                    .order_by('code', '-history_id')
-                    .distinct('code')
-                    .values('attributes')
-                )
-            )
-
-            results = list(codes.values('id', 'code', 'description', 'attributes'))
+        if incl_attributes:
+            sql += '''
+            select included_codes.id,
+                   included_codes.code,
+                   included_codes.description,
+                   attributes.attributes
+              from component as included_codes
+              left join component as excluded_codes
+                on excluded_codes.code = included_codes.code
+               and excluded_codes.logical_type = 2
+              left join public.clinicalcode_conceptcodeattribute as attributes
+                on attributes.concept_id = included_codes.concept_id
+               and attributes.code = included_codes.code
+             where included_codes.logical_type = 1
+               and excluded_codes.code is null;
+            '''
         else:
-            results = list(codes.values('id', 'code', 'description'))
+            sql += '''
+            select included_codes.id,
+                   included_codes.code,
+                   included_codes.description
+              from component as included_codes
+              left join component as excluded_codes
+                on excluded_codes.code = included_codes.code
+               and excluded_codes.logical_type = 2
+             where included_codes.logical_type = 1
+               and excluded_codes.code is null;
+            '''
 
-        result_set += results
-        if isinstance(incl_logical_types, list) and component.logical_type not in incl_logical_types:
-            excluded_codes.update([x.get('code') for x in results])
-        else:
-            final_codelist.update([x.get('code') for x in results])
+        cursor.execute(
+            sql,
+            {
+                'concept_id': concept_id,
+                'concept_history_id': concept_history_id
+            }
+        )
 
-    output = list(final_codelist - excluded_codes)
-    output = [
-        next(obj for obj in result_set if obj.get('code') == x)
-        for x in output
-    ]
+        columns = [col[0] for col in cursor.description]
+        output = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     return output
 
@@ -911,7 +883,6 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     if include_reviewed_codes:
         result['codelist'] = get_concept_codelist(
             concept_id, concept_history_id,
-            incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE.value],
             incl_attributes=include_attributes
         )
 

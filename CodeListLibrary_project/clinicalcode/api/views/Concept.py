@@ -132,7 +132,6 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
         concept_codes = concept_utils.get_concept_codelist(
             historical_concept.id,
             historical_concept.history_id,
-            incl_logical_types=[CLINICAL_RULE_TYPE.INCLUDE],
             incl_attributes=True
         )
         

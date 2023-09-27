@@ -322,7 +322,7 @@ def apply_param_to_query(query, where, params, template, param, data,
                              else '[]'
                            end
                     ) as val
-                    where val = ANY(%s)
+                    where val::text = ANY(%s)
                 )
                 ''')
                 params += [param, param, q]

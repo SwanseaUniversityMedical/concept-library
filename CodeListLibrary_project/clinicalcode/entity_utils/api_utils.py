@@ -601,7 +601,6 @@ def build_final_codelist_from_concepts(entity, concept_information, inline=True)
         concept_codes = concept_utils.get_concept_codelist(
             concept_id,
             concept_version,
-            incl_logical_types=[constants.CLINICAL_RULE_TYPE.INCLUDE.value],
             incl_attributes=False
         )
         if inline:

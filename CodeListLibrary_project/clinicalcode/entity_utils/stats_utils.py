@@ -419,7 +419,6 @@ def get_published_phenotype_code_count(phenotype_id, phenotype_history_id, conce
                 codelist = concept_utils.get_concept_codelist(
                     c['concept_id'],
                     c['concept_version_id'],
-                    incl_logical_types=[constants.CLINICAL_RULE_TYPE.INCLUDE.value],
                     incl_attributes=False
                 )
                     
