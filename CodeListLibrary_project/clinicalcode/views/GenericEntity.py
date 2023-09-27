@@ -568,7 +568,7 @@ def generic_entity_detail(request, pk, history_id=None):
 
     publish_date = None
     if is_published:
-        publish_date = PublishedGenericEntity.objects.get(entity_id=pk, entity_history_id=history_id).created
+        publish_date = PublishedGenericEntity.objects.get(entity_id=pk, entity_history_id=history_id).modified
 
     if GenericEntity.objects.get(pk=pk).is_deleted == True:
         messages.info(request, "This entity has been deleted.")
@@ -628,7 +628,7 @@ def get_history_table_data(request, pk):
         is_this_version_published = permission_utils.check_if_published(GenericEntity, ver.id, ver.history_id)
 
         if is_this_version_published:
-            verpublish_date = PublishedGenericEntity.objects.get(entity_id=ver.id, entity_history_id=ver.history_id, approval_status=2).created
+            ver.publish_date = PublishedGenericEntity.objects.get(entity_id=ver.id, entity_history_id=ver.history_id, approval_status=2).modified
         else:
             ver.publish_date = None
 
