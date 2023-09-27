@@ -6,6 +6,9 @@ from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import make_aware
+from datetime import datetime
+
 
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
@@ -85,6 +88,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                         for en in published_entity:
                             en.approval_status = constants.APPROVAL_STATUS.APPROVED
                             en.moderator_id = self.request.user.id
+                            en.modified = make_aware(datetime.now())
                             en.save()
 
                     data['form_is_valid'] = True
@@ -135,6 +139,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             #filter and publish all pending ws
             for en in published_entity:
                 en.approval_status = constants.APPROVAL_STATUS.APPROVED
+                en.modified = make_aware(datetime.now())
                 en.moderator_id = request.user.id
                 en.save()
 
@@ -151,6 +156,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                                                                         ).first()
             published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
             published_entity.moderator_id=request.user.id
+            published_entity.modified = make_aware(datetime.now())
             published_entity.save()
 
             #check if other pending exist to approve this ws automatically
@@ -234,6 +240,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
                     with transaction.atomic():
                         entity = GenericEntity.objects.get(pk=pk)
                         published_entity = PublishedGenericEntity(entity=entity, entity_history_id=history_id,
+                                                                    modified = make_aware(datetime.now()),
                                                                     created_by_id=self.request.user.id,approval_status=constants.APPROVAL_STATUS.PENDING)
                         published_entity.save()
                         data['form_is_valid'] = True
