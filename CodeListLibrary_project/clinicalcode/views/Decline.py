@@ -5,10 +5,12 @@ from django.template.loader import render_to_string
 from django.views.generic.base import TemplateResponseMixin, View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import make_aware
 
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 from ..entity_utils import publish_utils, permission_utils, constants
+from datetime import datetime
 
 class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     '''
@@ -46,6 +48,7 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
                 if checks['is_moderator'] and checks['approval_status'] == constants.APPROVAL_STATUS.PENDING:
                     published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,entity_history_id=history_id,approval_status=constants.APPROVAL_STATUS.PENDING).first() #find first record
                     published_entity.approval_status = constants.APPROVAL_STATUS.REJECTED
+                    
                     published_entity.save()
                     data['form_is_valid'] = True
                     data['approval_status'] = constants.APPROVAL_STATUS.REJECTED
