@@ -70,7 +70,7 @@ const applyCodelistsFromConcepts = (conceptData, options) => {
           const attributes = Array(attributeHeaders.length).fill('[No data]');
           if (item?.attributes) {
             for (let j = 0; j < item.attributes.length; ++j) {
-              attributes[i] = item.attributes[j] || attributes[i];
+              attributes[j] = item.attributes[j] || attributes[j];
             }
           }
           

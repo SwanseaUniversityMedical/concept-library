@@ -372,79 +372,81 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
 
         if not codelist.exists():
             continue
-        codelist = codelist.first()
 
-        # Find the codes associated with this codelist
-        codes = Code.history.filter(
-            code_list__id=codelist.id,
-            history_date__lte=historical_concept.history_date
-        ) \
-        .annotate(
-            was_deleted=Subquery(
-                Code.history.filter(
-                    id=OuterRef('id'),
-                    code_list__id=codelist.id,
-                    history_date__lte=historical_concept.history_date,
-                    history_type='-'
-                )
-                .order_by('code', '-history_id')
-                .distinct('code')
-                .values('id')
-            )
-        ) \
-        .exclude(was_deleted__isnull=False) \
-        .order_by('id', '-history_id') \
-        .distinct('id')
+        if include_codes or aggregate_codes:
+            codelist = codelist.first()
 
-        component_data['code_count'] = codes.count()
-
-        if attribute_headers is None:
-            # Add each code
-            codes = codes.values('id', 'code', 'description')
-        else:
-            # Annotate each code with its list of attribute values based on the code_attribute_headers
-            codes = codes.annotate(
-                attributes=Subquery(
-                    ConceptCodeAttribute.history.filter(
-                        concept__id=historical_concept.id,
+            # Find the codes associated with this codelist
+            codes = Code.history.filter(
+                code_list__id=codelist.id,
+                history_date__lte=historical_concept.history_date
+            ) \
+            .annotate(
+                was_deleted=Subquery(
+                    Code.history.filter(
+                        id=OuterRef('id'),
+                        code_list__id=codelist.id,
                         history_date__lte=historical_concept.history_date,
-                        code=OuterRef('code')
+                        history_type='-'
                     )
-                    .annotate(
-                        was_deleted=Subquery(
-                            ConceptCodeAttribute.history.filter(
-                                concept__id=historical_concept.id,
-                                history_date__lte=historical_concept.history_date,
-                                code=OuterRef('code'),
-                                history_type='-'
-                            )
-                            .order_by('code', '-history_id')
-                            .distinct('code')
-                            .values('id')
-                        )
-                    )
-                    .exclude(was_deleted__isnull=False)
-                    .order_by('id', '-history_id')
-                    .distinct('id')
-                    .values('attributes')
+                    .order_by('code', '-history_id')
+                    .distinct('code')
+                    .values('id')
                 )
             ) \
-            .values('id', 'code', 'description', 'attributes')
+            .exclude(was_deleted__isnull=False) \
+            .order_by('id', '-history_id') \
+            .distinct('id')
 
-        codes = list(codes)
+            component_data['code_count'] = codes.count()
 
-        # Append codes to component if required
-        if include_codes:
-            component_data['codes'] = codes
+            if attribute_headers is None:
+                # Add each code
+                codes = codes.values('id', 'code', 'description')
+            else:
+                # Annotate each code with its list of attribute values based on the code_attribute_headers
+                codes = codes.annotate(
+                    attributes=Subquery(
+                        ConceptCodeAttribute.history.filter(
+                            concept__id=historical_concept.id,
+                            history_date__lte=historical_concept.history_date,
+                            code=OuterRef('code')
+                        )
+                        .annotate(
+                            was_deleted=Subquery(
+                                ConceptCodeAttribute.history.filter(
+                                    concept__id=historical_concept.id,
+                                    history_date__lte=historical_concept.history_date,
+                                    code=OuterRef('code'),
+                                    history_type='-'
+                                )
+                                .order_by('code', '-history_id')
+                                .distinct('code')
+                                .values('id')
+                            )
+                        )
+                        .exclude(was_deleted__isnull=False)
+                        .order_by('id', '-history_id')
+                        .distinct('id')
+                        .values('attributes')
+                    )
+                ) \
+                .values('id', 'code', 'description', 'attributes')
 
-        # Append aggregated codes if required
-        if aggregate_codes:
-            codes = [
-                seen_codes.add(obj.get('code')) or obj
-                for obj in codes
-                if obj.get('code') not in seen_codes
-            ]
-            codelist_data += codes
+            codes = list(codes)
+
+            # Append codes to component if required
+            if include_codes:
+                component_data['codes'] = codes
+
+            # Append aggregated codes if required
+            if aggregate_codes:
+                codes = [
+                    seen_codes.add(obj.get('code')) or obj
+                    for obj in codes
+                    if obj.get('code') not in seen_codes
+                ]
+                codelist_data += codes
 
         components_data.append(component_data)
 
