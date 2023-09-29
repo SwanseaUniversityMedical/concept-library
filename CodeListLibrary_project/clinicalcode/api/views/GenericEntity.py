@@ -14,16 +14,16 @@ from ...entity_utils import api_utils
 from ...entity_utils import gen_utils
 from ...entity_utils import constants
 
-''' Create/Update GenericEntity '''
+""" Create/Update GenericEntity """
 
 @swagger_auto_schema(method='post', auto_schema=None)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_generic_entity(request):
-    '''
+    """
         Create a generic entity from request body, must be formatted in terms
           of a specific layout and is validated against it
-    '''
+    """
     if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
             data={
@@ -67,10 +67,10 @@ def create_generic_entity(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_generic_entity(request):
-    '''
+    """
         Update a generic entity from request body, must be formatted in terms
           of a specific layout and is validated against it
-    '''
+    """
     if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
             data={
@@ -110,14 +110,14 @@ def update_generic_entity(request):
         status=status.HTTP_201_CREATED
     )
 
-''' Get GenericEntity version history '''
+""" Get GenericEntity version history """
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_generic_entity_version_history(request, phenotype_id=None):
-    '''
+    """
         Get version history of specific entity, using phenotype_id
-    '''    
+    """    
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
     entity_id_response = api_utils.is_malformed_entity_id(phenotype_id)
     if isinstance(entity_id_response, Response):
@@ -133,14 +133,14 @@ def get_generic_entity_version_history(request, phenotype_id=None):
         status=status.HTTP_200_OK
     )
 
-''' Get GenericEntities '''
+""" Get GenericEntities """
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_generic_entities(request, should_paginate=False):
-    '''
+    """
         Get all generic entities accessible to the user, optionally paginate results
-    '''
+    """
     user_authed = False
     if request.user and not request.user.is_anonymous:
         user_authed = True
@@ -213,16 +213,16 @@ def get_generic_entities(request, should_paginate=False):
     if not entities.exists():
         return Response([], status=status.HTTP_200_OK)
     
-    ''' Please note, this looks redundant but is *required* due to varchar entity ID '''
+    """ Please note, this looks redundant but is *required* due to varchar entity ID """
     entities = GenericEntity.history.raw(
-        '''
+        """
         select cast(regexp_replace(id::text, '[a-zA-Z]+', '') as integer) as numerical_id,
                *
           from public.clinicalcode_historicalgenericentity
          where id = any(%s)
            and history_id = any(%s)
          order by numerical_id
-        ''',
+        """,
         params=[
             list(entities.values_list('id', flat=True)),
             list(entities.values_list('history_id', flat=True)),
@@ -265,16 +265,16 @@ def get_generic_entities(request, should_paginate=False):
         status=status.HTTP_200_OK
     )
 
-''' Get GenericEntity detail '''
+""" Get GenericEntity detail """
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_entity_detail(request, phenotype_id, version_id=None, field=None):
-    '''
+    """
         Get detail of specified entity by phenotype_id, optionally target a specific
           version using version_id and/or target a specific entity field using
           field parameters
-    '''
+    """
     user_authed = False
     if request.user and not request.user.is_anonymous:
         user_authed = True

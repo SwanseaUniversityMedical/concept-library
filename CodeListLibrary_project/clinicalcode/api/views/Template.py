@@ -10,9 +10,9 @@ from ...entity_utils import template_utils
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_templates(request):
-  '''
+  """
     Get all templates
-  '''    
+  """    
   templates = Template.objects.all()
   
   result = []
@@ -33,9 +33,9 @@ def get_templates(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_template_version_history(request, template_id):
-  '''
+  """
     Get version history of a specific entity, using phenotype_id
-  '''  
+  """  
   template = Template.objects.filter(id=template_id)
   if not template.exists():
     return Response(
@@ -58,9 +58,9 @@ def get_template_version_history(request, template_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_template(request, template_id, version_id=None):
-  '''
+  """
     Get detail of a template, optionally target a specific version using version_id
-  '''  
+  """  
   template = Template.objects.filter(id=template_id)
   if not template.exists():
     return Response(

@@ -11,9 +11,9 @@ from ...entity_utils import constants
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_collections(request):
-    '''
+    """
         Get all collections
-    '''
+    """
     collections = Tag.objects.filter(
         tag_type=constants.TAG_TYPE.COLLECTION.value
     ) \
@@ -32,10 +32,10 @@ def get_collections(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_collection_detail(request, collection_id):
-    '''
+    """
         Get detail of specified collection by collection_id, including associated
           published entities
-    '''
+    """
     collection = Tag.objects.filter(id=collection_id)
     if not collection.exists():
         return Response(

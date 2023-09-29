@@ -1,11 +1,11 @@
-'''
+"""
     ---------------------------------------------------------------------------
     API VIEW
     API access to the data to list the various data types (if access is
     permitted) and to access the data structure and components of groups of
     data types.
     ---------------------------------------------------------------------------
-'''
+"""
 from functools import wraps
 from django.conf import settings
 
@@ -39,7 +39,7 @@ def get_canonical_path_by_brand(request,
                               pk,
                               history_id):
 
-    '''
+    """
         [!] This is LEGACY - We no longer have Concept / Phenotype pages
             - This needs to be updated if it's truly required to utilise the GenericEntity model
         
@@ -47,7 +47,7 @@ def get_canonical_path_by_brand(request,
             "if a concept/phenotype belongs to HDRUK and opened in default site
             set canonical link to phenotypes.healthdatagateway.org"
 
-    '''
+    """
     # if set_class == Concept:
     #     ver = getHistoryConcept(history_id)
     # elif set_class == Phenotype:
@@ -74,10 +74,10 @@ def get_canonical_path_by_brand(request,
     
 
 def robots(content="all"):
-    '''
+    """
         not to index demo site API
         and add the canonical link
-    '''
+    """
     def _method_wrapper(func):
         @wraps(func)
         def wrap(request, *args, **kwargs):
@@ -95,10 +95,10 @@ def robots(content="all"):
 
 
 def robots2(content="all"):
-    '''
+    """
         not to index demo site API
         and add the canonical link after checking the brand
-    '''
+    """
     def _method_wrapper(func):
         @wraps(func)
         def wrap(request, *args, **kwargs):

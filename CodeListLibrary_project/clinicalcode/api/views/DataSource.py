@@ -12,9 +12,9 @@ from ...entity_utils import constants
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_datasources(request):
-    '''
+    """
         Get all datasources
-    '''
+    """
     datasources = DataSource.objects.all().order_by('id')
     datasources = list(datasources.values('id', 'name', 'url', 'uid', 'source'))
     return Response(
@@ -25,10 +25,10 @@ def get_datasources(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_datasource_detail(request, datasource_id):
-    '''
+    """
         Get detail of specified datasource by datasource_id (id or HDRUK UUID for
           linkage between applications), including associated published entities
-    '''
+    """
     query = None
     if gen_utils.is_valid_uuid(datasource_id):
         query = { 'uid': datasource_id }

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 import enum
 
 class TypeStatus:
-    ''' Legacy type status - needs removal during cleanup '''
+    """ Legacy type status - needs removal during cleanup """
     Disease = 0
     Biomarker = 1
     Drug = 2
@@ -32,31 +32,31 @@ class IterableMeta(enum.EnumMeta):
             return True
 
 class TAG_TYPE(int, enum.Enum):
-    '''
+    """
         Tag types used for differentiate Collections & Tags
         within the Tag table
-    '''
+    """
     TAG = 1
     COLLECTION = 2
 
 class CLINICAL_RULE_TYPE(int, enum.Enum, metaclass=IterableMeta):
-    '''
+    """
         Ruleset type for clinical concept
-    '''
+    """
     INCLUDE = 1
     EXCLUDE = 2
 
 class CLINICAL_CODE_REVIEW(int, enum.Enum, metaclass=IterableMeta):
-    '''
+    """
         Review status for a code within a clinical concept
-    '''
+    """
     INCLUDE = 1
     EXCLUDE = 2
 
 class CLINICAL_CODE_SOURCE(int, enum.Enum, metaclass=IterableMeta):
-    '''
+    """
         Audit source of a clinical code within a clinical concept
-    '''
+    """
     CONCEPT = 1
     QUERY_BUILDER = 2
     EXPRESSION = 3
@@ -66,16 +66,16 @@ class CLINICAL_CODE_SOURCE(int, enum.Enum, metaclass=IterableMeta):
     CONCEPT_IMPORT = 7
 
 class ENTITY_STATUS(int, enum.Enum):
-    '''
+    """
         Status of an entity
-    '''
+    """
     DRAFT = 1
     FINAL = 2
 
 class APPROVAL_STATUS(int, enum.Enum):
-    '''
+    """
         Approval status of a published entity
-    '''
+    """
     ANY       = -1
     REQUESTED = 0
     PENDING   = 1
@@ -83,52 +83,52 @@ class APPROVAL_STATUS(int, enum.Enum):
     REJECTED  = 3
 
 class OWNER_PERMISSIONS(int, enum.Enum):
-    '''
+    """
         Owner permissions
-    '''
+    """
     NONE = 1
     VIEW = 2
     EDIT = 3
 
 class GROUP_PERMISSIONS(int, enum.Enum):
-    '''
+    """
         Group permissions
-    '''
+    """
     NONE = 1
     VIEW = 2
     EDIT = 3
 
 class WORLD_ACCESS_PERMISSIONS(int, enum.Enum):
-    '''
+    """
         Everyone else permissions
-    '''
+    """
     NONE = 1
     VIEW = 2
     
 class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
-    '''
+    """
         Describes form method, i.e. to create or update an entity
         Used by both template and view to modify behaviour
-    '''
+    """
     CREATE = 1
     UPDATE = 2
 
-'''
+"""
     The excepted X-Requested-With header if a fetch request is made
-'''
+"""
 FETCH_REQUEST_HEADER = 'XMLHttpRequest'
 
-'''
+"""
     Entity render modifier(s)
         Used by entity_renderer as defaults
-'''
+"""
 DEFAULT_CARD = 'generic'
 CARDS_DIRECTORY = 'components/search/cards'
 
-'''
+"""
     Filter render modifier(s)
         Used by entity_renderer as defaults
-'''
+"""
 FILTER_DIRECTORY = 'components/search/filters'
 FILTER_COMPONENTS = {
     'int': 'checkbox',
@@ -137,14 +137,14 @@ FILTER_COMPONENTS = {
     'datetime': 'datepicker',
 }
 
-'''
+"""
     Threshold for layout count in single search pages (__gte)
-'''
+"""
 MIN_SINGLE_SEARCH = 1
 
-'''
+"""
     Order by clauses for search
-'''
+"""
 ORDER_BY = {
     '1': {
         'name': 'Relevance',
@@ -178,69 +178,69 @@ ORDER_BY = {
     }
 }
 
-'''
+"""
     Page result limits for search
-'''
+"""
 PAGE_RESULTS_SIZE = {
     '1': 20,
     '2': 50,
     '3': 100
 }
 
-'''
+"""
     Entity creation related defaults
-'''
+"""
 CREATE_WIZARD_ASIDE = 'components/create/aside.html'
 CREATE_WIZARD_SECTION_START = 'components/create/section/section_start.html'
 CREATE_WIZARD_SECTION_END = 'components/create/section/section_end.html'
 CREATE_WIZARD_INPUT_DIR = 'components/create/inputs'
 
-'''
+"""
     Entity detail page related defaults
-'''
+"""
 DETAIL_WIZARD_ASIDE = 'components/details/aside.html'
 DETAIL_WIZARD_SECTION_START = 'components/details/section/section_start.html'
 DETAIL_WIZARD_SECTION_END = 'components/details/section/section_end.html'
 DETAIL_WIZARD_OUTPUT_DIR = 'components/details/outputs'
 
 
-'''
+"""
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
-'''
+"""
 USERDATA_MODELS = [str(User), str(Group)]
 STRIPPED_FIELDS = ['SearchVectorField']
 
-'''
+"""
     Describes fields that should be stripped from historical objects
-'''
+"""
 HISTORICAL_HIDDEN_FIELDS = [
     'id', 'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user'
 ]
 
-'''
+"""
     Describes fields that should be stripped from api response
-'''
+"""
 API_HIDDEN_FIELDS = [
     'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user', 
     'template', 'template_data', 'template_version', 'internal_comments'
 ]
 
-'''
+"""
     Re-maps field names to user readable field names
-'''
+"""
 API_MAP_FIELD_NAMES = {
     'id': 'phenotype_id'
 }
 
-'''
+"""
     Describes fields that should be stripped from entity list api response
-'''
+"""
 ENTITY_LIST_API_HIDDEN_FIELDS = [
     'concept_information', 'definition', 'implementation'
 ]
 
-'''
+"""
     ENTITY_FILTER_PARAMS
 
     @desc Used to define:
@@ -251,19 +251,19 @@ ENTITY_LIST_API_HIDDEN_FIELDS = [
         
         [key]: The name of the filter within the .filters property
             
-            [filter]: {string} The name of the filter method within the DataTypeFilter found in filter_utils
+            [filter]: (string) The name of the filter method within the DataTypeFilter found in filter_utils
             
-            [properties]: {dict/null} Any additional params/properties to be passed
+            [properties]: (dict/null) Any additional params/properties to be passed
                           as args (global, not field specific)
             
-            [field_properties] {dict/null}: Params/Properties to be passed to the filter method
+            [field_properties] (dict/null): Params/Properties to be passed to the filter method
                                             based on which field was used to access the filter
             
-                [field_name]: {dict} The field_name/properties to be passed as kwargs
+                [field_name]: (dict) The field_name/properties to be passed as kwargs
             
-            [expected_params]: {dict}: The params expected by this method when attempting to generate
+            [expected_params]: (dict): The params expected by this method when attempting to generate
                                        filters 
-'''
+"""
 ENTITY_FILTER_PARAMS = {
     # the name of the filter found within a field's 'filter' key-value pair in its template/the metadata
     'source_by_brand': {
@@ -293,12 +293,12 @@ ENTITY_FILTER_PARAMS = {
     }
 }
 
-'''
+"""
     [!] All items will be appended to the list of renderables, meaning they will always appear last
 
     Used to define:
         - Sections and fields that relate to permissions for create interface
-'''
+"""
 APPENDED_SECTIONS = [
     {
         "title": "Permissions",
@@ -307,12 +307,12 @@ APPENDED_SECTIONS = [
     }
 ]
 
-'''
+"""
     [!] All items will be appended to the list of renderables in the detail page, meaning they will always appear last
 
     Used to define:
         - Sections and fields that relate to permissions for the detail page
-'''
+"""
 DETAIL_PAGE_APPENDED_SECTIONS = [
     {
       "title": "Permissions",
@@ -332,10 +332,10 @@ DETAIL_PAGE_APPENDED_SECTIONS = [
     }
 ]
 
-'''
+"""
     Used to define:
         - fields that relate to DETAIL_PAGE_APPENDED_SECTIONS for the detail page
-'''
+"""
 DETAIL_PAGE_APPENDED_FIELDS = {
     "permissions":{
       "title": "Permissions",
@@ -365,13 +365,13 @@ DETAIL_PAGE_APPENDED_FIELDS = {
 
 
 
-'''
+"""
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
 
     Used to define:
         - Hashmap for values from sourced data
         - By filter to determine metadata-related filters
-'''
+"""
 metadata = {
     'template': {
         'title': 'Type',
@@ -637,10 +637,10 @@ metadata = {
     },
 }
 
-'''
+"""
     Describes the input and output presentation of common and dynamic fields
     through components and modifiers
-'''
+"""
 FIELD_TYPES = {
     'int': {
         'data_type': 'int',

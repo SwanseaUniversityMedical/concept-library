@@ -9,10 +9,10 @@ from drf_yasg import openapi
 
 from .views import Concept, GenericEntity, Template, DataSource, Tag, Collection
 
-''' Router
+""" Router
     Use the default REST API router to access the API details explicitly. These paths will 
       appear as links on the API page.
-'''
+"""
 router = routers.DefaultRouter()
 #router.register('concepts-live', Concept.ConceptViewSet)
 #router.register('codes', Concept.CodeViewSet)
@@ -20,12 +20,12 @@ router = routers.DefaultRouter()
 #router.register('public/data-sources-list', View.DataSourceViewSet)
 #router.register('public/coding-systems', View.CodingSystemViewSet)
 
-''' Swagger '''
+""" Swagger """
 
 class SchemaGenerator(OpenAPISchemaGenerator):
-    '''
+    """
     
-    '''
+    """
     #@method_decorator(View.robots())
     def get_schema(self, request=None, public=False):
         schema = super(SchemaGenerator, self).get_schema(request, public)
@@ -39,14 +39,14 @@ class SchemaGenerator(OpenAPISchemaGenerator):
 schema_view = get_schema_view(
     openapi.Info(
         title = settings.SWAGGER_TITLE,
-        default_version = "v1",                         
+        default_version = "v1",
     ),
     public = True,
     permission_classes = (permissions.AllowAny,),
     generator_class = SchemaGenerator,
 )
 
-''' Swagger urls '''
+""" Swagger urls """
 urlpatterns = [
     url(r'^swagger(?P<format>\.json|\.yaml)/$', 
         schema_view.without_ui(cache_timeout=0), 
@@ -63,7 +63,7 @@ if settings.IS_DEVELOPMENT_PC:
             name='schema-redoc'),
     ]
 
-''' API urls '''
+""" API urls """
 urlpatterns += [
     # Swagger
     url(r'^$', schema_view.with_ui('swagger', cache_timeout=0), name='root'),
@@ -150,7 +150,7 @@ urlpatterns += [
         name='collections_list_by_id'),    
 ]
 
-''' Create/Update urls '''
+""" Create/Update urls """
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         # GenericEntities (Phenotypes)

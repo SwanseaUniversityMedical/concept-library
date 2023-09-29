@@ -11,9 +11,9 @@ from ...entity_utils import constants
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_tags(request):
-    '''
+    """
         Get all tags
-    '''
+    """
     tags = Tag.objects.filter(
         tag_type=constants.TAG_TYPE.TAG.value
     ) \
@@ -32,10 +32,10 @@ def get_tags(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_tag_detail(request, tag_id):
-    '''
+    """
         Get detail of specified tag by tag_id, including associated
           published entities
-    '''
+    """
     tag = Tag.objects.filter(id=tag_id)
     if not tag.exists():
         return Response(
