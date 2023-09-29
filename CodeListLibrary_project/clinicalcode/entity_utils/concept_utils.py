@@ -17,15 +17,22 @@ from .constants import (
 )
 
 def is_concept_published(concept_id, version_id):
-    '''
-        Checks whether a Concept is published
+    """
+    Checks whether a Concept is published
 
-        Will return true if:
-            1. The Concept is currently published directly via a legacy system
-            2. The Concept is currently owned by a Published Phenotype that's published
-            3. The Concept is included in a historic Published Phenotype
-        
-    '''
+    Will return true if:
+        1. The Concept is currently published directly via a legacy system
+        2. The Concept is currently owned by a Published Phenotype that's published
+        3. The Concept is included in a historic Published Phenotype
+
+    Args:
+        concept_id (int): the Concept's id
+        version_id (int): the Concept's history_id
+
+    Returns:
+        bool: Reflects published status
+
+    """
     historical_concept = Concept.history.filter(id=concept_id, history_id=version_id)
     if not historical_concept.exists():
         return False
@@ -68,14 +75,22 @@ def is_concept_published(concept_id, version_id):
     return False
 
 def was_concept_ever_published(concept_id, version_id=None):
-    '''
-        Checks whether a Concept has ever been published
+    """
+    Checks whether a Concept has ever been published
 
-        Will return true if:
-            1. The Concept was published directly via a legacy system
-            2. The Concept is currently owned by a Published Phenotype
-            3. The Concept was ever included in historic Published Phenotype
-    '''
+    Will return true if:
+        1. The Concept was published directly via a legacy system
+        2. The Concept is currently owned by a Published Phenotype
+        3. The Concept was ever included in historic Published Phenotype
+
+    Args:
+        concept_id (int): the Concept's id
+        version_id (int|null): the Concept's history_id
+
+    Returns:
+        bool: Reflects all-time published status
+
+    """
     concept = Concept.objects.filter(id=concept_id)
     if not concept.exists():
         return False
@@ -114,18 +129,23 @@ def was_concept_ever_published(concept_id, version_id=None):
     return False
 
 def get_latest_published_concept(concept_id, default=None):
-    '''
-        Gets the latest published concept given a concept id
+    """
+    Gets the latest published concept given a concept id
 
-        Args:
-            concept_id {string}: the concept's ID
+    Will return true if:
+        1. The Concept was published directly via a legacy system
+        2. The Concept is currently owned by a Published Phenotype
+        3. The Concept was ever included in historic Published Phenotype
 
-            default {optional}: the default return value if this method fails
-        
-        Returns:
-            The latest, published {concept} for that user and the concept id,
-            otherwise returns {None}
-    '''
+    Args:
+        concept_id (int): the Concept's id
+        default (any, optional): the default return value if this method fails
+
+    Returns:
+        object|null: The latest, published (concept) for that user and the concept id,
+            otherwise returns (None)
+
+    """
     concepts = Concept.history.none()
     with connection.cursor() as cursor:
         sql = '''
@@ -168,22 +188,25 @@ def get_latest_published_concept(concept_id, default=None):
     return default
 
 def get_latest_accessible_concept(request, concept_id, default=None):
-    '''
-        Gets the latest accessible concept, as described by the user's
+    """
+    Gets the latest accessible concept, as described by the user's
         permissions and the given concept id
 
-        Args:
-            request {RequestContext}: the HTTPRequest
+    Will return true if:
+        1. The Concept was published directly via a legacy system
+        2. The Concept is currently owned by a Published Phenotype
+        3. The Concept was ever included in historic Published Phenotype
 
-            concept_id {string}: the concept's ID
+    Args:
+        concept_id (RequestContext): the HTTPRequest
+        concept_id (int): the concept's ID
+        default (any, optional): the default return value if this method fails
 
-            default {optional}: the default return value if this method fails
-        
-        Returns:
-            The latest, accessible {concept} for that user and the concept id,
-            otherwise returns {None}
+    Returns:
+        object|null: The latest, accessible (concept) for that user and the concept id,
+            otherwise returns (None)
 
-    '''
+    """
     historical_versions = Concept.history.filter(id=concept_id).all().order_by('-history_id')
     if not historical_versions.exists():
         return default
@@ -195,31 +218,27 @@ def get_latest_accessible_concept(request, concept_id, default=None):
     return default
 
 def get_concept_dataset(packet, field_name='concept_information', default=None):
-    '''
-      [!] Note: This method ignores permissions - it should only be called from a
-                a method that has previously considered accessibility
+    """
+    Attempts to collate a packet that contains data relating to the concepts
+    defined in the list
 
-      @desc Attempts to collate a packet that contains data relating to the concepts
-            defined in the list
+    [!] Note: This method ignores permissions - it should only be called from a
+    a method that has previously considered accessibility
 
-      Args:
-        packet {array[object]}: A list of objects that contain a {concept_id: [int], concept_version_id: [int]}
+    Will return true if:
+        1. The Concept was published directly via a legacy system
+        2. The Concept is currently owned by a Published Phenotype
+        3. The Concept was ever included in historic Published Phenotype
 
-        field_name {string}: The name of the template field from which this packet was derived
+    Args:
+        packet (list[object]): A list of objects that contain a {concept_id: [int], concept_version_id: [int]}
+        field_name (string): The name of the template field from which this packet was derived
+        default (any, optional): the default return value if this method fails
 
-        default {any}: A default param to return if we are unable to perform the task
+    Returns:
+        list[object]|null: An (array[object]) that contains information relating to the concept: Name & ID + Version ID; or (default|None) if the children have no child codes
 
-      Returns:
-        Either:
-            1. An {array[object]} that contains information relating to the concept:
-                - Name
-                - ID + Version ID
-            
-            OR;
-
-            2. {default|None} if the children have no child codes
-
-    '''
+    """
     if not isinstance(packet, list):
         return default
 
@@ -280,7 +299,7 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False,
                                   include_codes=True, attribute_headers=None,
                                   include_source_data=False):
-    '''
+    """
       [!] Note: This method ignores permissions - it should only be called from a
                 a method that has previously considered accessibility
 
@@ -288,24 +307,24 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
       with a historical concept
 
       Args:
-        concept_id {number}: The concept ID of interest
-        concept_history_id {number}: The concept's historical id of interest
+        concept_id (number): The concept ID of interest
+        concept_history_id (number): The concept's historical id of interest
 
-        aggregate_codes {boolean}: If true, will return a 'codelist' key-value pair in the result dict that
+        aggregate_codes (boolean): If true, will return a 'codelist' key-value pair in the result dict that
                                     describes the distinct, aggregated codes across all components
 
-        include_codes {boolean}: If true, will return a 'codes' key-value pair within each component
+        include_codes (boolean): If true, will return a 'codes' key-value pair within each component
                                   that describes each code included in a component
 
-        attribute_headers {list}: If a non-null list is passed, the method will attempt to find the attributes
+        attribute_headers (list): If a non-null list is passed, the method will attempt to find the attributes
                                   associated with each code within every component (and codelist)
         
-        include_source_data {boolean}: Flag to det. whether we should incl. source data e.g. wildcard, desc search etc
+        include_source_data (boolean): Flag to det. whether we should incl. source data e.g. wildcard, desc search etc
 
       Returns:
-        A dict that describes the components and their details associated with this historical concept,
+        dict: A dict that describes the components and their details associated with this historical concept,
         and if aggregate_codes was passed, will return the distinct codelist across components
-    '''
+    """
 
     # Try to get the Concept and its historical counterpart
     concept = model_utils.try_get_instance(
@@ -461,7 +480,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
     }
 
 def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
-    '''
+    """
       [!] Note: This method ignores permissions - it should only be called from a
                 a method that has previously considered accessibility
 
@@ -469,16 +488,16 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
       with a concept, given its ID and historical id
 
       Args:
-        concept_id {number}: The concept ID of interest
+        concept_id (number): The concept ID of interest
 
-        concept_history_id {number}: The concept's historical id of interest
+        concept_history_id (number): The concept's historical id of interest
 
-        incl_attributes {bool}: Whether to include code attributes
+        incl_attributes (bool): Whether to include code attributes
 
       Returns:
         A list of distinct codes associated with a concept across each of its components
 
-    '''
+    """
 
     output = []
     with connection.cursor() as cursor:
@@ -582,22 +601,22 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
     return output
 
 def get_associated_concept_codes(concept_id, concept_history_id, code_ids, incl_attributes=False):
-    '''
+    """
       [!] Note: This method ignores permissions - it should only be called from a
                 a method that has previously considered accessibility
 
       Retrieves the concept codes associated with the code_ids list
 
       Args:
-        concept_id {number}: The concept ID of interest
-        concept_history_id {number}: The concept's historical id of interest
-        code_ids {list}: The code ids filter
-        incl_attributes {bool}: Whether to include code attributes
+        concept_id (number): The concept ID of interest
+        concept_history_id (number): The concept's historical id of interest
+        code_ids (list): The code ids filter
+        incl_attributes (bool): Whether to include code attributes
 
       Returns:
         The codes that are present in the code ids list
 
-    '''
+    """
     codelist = get_concept_codelist(concept_id, concept_history_id, incl_attributes=incl_attributes)
     codelist = [code for code in codelist if code.get('id', -1) in code_ids]
     return codelist
@@ -609,7 +628,7 @@ def get_reviewable_concept(concept_id, concept_history_id, hide_user_details=Fal
     return
 
 def get_review_concept(concept_id, concept_history_id):
-    '''
+    """
       [!] Note: This method ignores permissions - it should only be called from a
                 a method that has previously considered accessibility
 
@@ -617,13 +636,13 @@ def get_review_concept(concept_id, concept_history_id):
       given its id and historical id
 
       Args:
-        concept_id {number}: The concept ID of interest
-        concept_history_id {number}: The concept's historical id of interest
+        concept_id (number): The concept ID of interest
+        concept_history_id (number): The concept's historical id of interest
 
       Returns:
         The associated ConceptReviewStatus instance
 
-    '''
+    """
     concept = model_utils.try_get_instance(
         Concept, pk=concept_id
     )
@@ -641,17 +660,17 @@ def get_review_concept(concept_id, concept_history_id):
     )
 
 def get_minimal_concept_data(concept):
-    '''
+    """
         Gets the minimum concept related details
         required for the API view to support legacy
         requests & formatting
     
         Args:
-            concept {Concept()} - the Concept model instance
+            concept (Concept()) - the Concept model instance
 
         Returns:
-            An {object} containing the associated data
-    '''
+            An (object) containing the associated data
+    """
     # Dictify our concept
     concept_data = model_utils.jsonify_object(
         concept,
@@ -712,7 +731,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
                               remove_userdata=False, hide_user_details=False,
                               derive_access_from=None, format_for_api=False,
                               include_source_data=False):
-    '''
+    """
       [!] Note: This method ignores permissions to derive data - it should only be called from a
                 a method that has previously considered accessibility
 
@@ -721,28 +740,28 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
       final codelist, if requested
 
       Args:
-        concept_id {number}: The concept ID of interest
+        concept_id (number): The concept ID of interest
 
-        concept_history_id {number}: The concept's historical id of interest
+        concept_history_id (number): The concept's historical id of interest
 
-        include_reviewed_codes {boolean}: When building the data, should we pull the finalised reviewed codes?
+        include_reviewed_codes (boolean): When building the data, should we pull the finalised reviewed codes?
 
-        aggregate_component_codes {boolean}: When building the codelist, should we aggregate across components?
+        aggregate_component_codes (boolean): When building the codelist, should we aggregate across components?
 
-        include_component_codes {boolean}: When building the components, should we incl. a codelist for each component?
+        include_component_codes (boolean): When building the components, should we incl. a codelist for each component?
 
-        include_attributes {boolean}: Should we include attributes?
+        include_attributes (boolean): Should we include attributes?
 
-        strippable_fields {list}: Whether to strip any fields from the Concept model when
+        strippable_fields (list): Whether to strip any fields from the Concept model when
                                   building the concept's data result
 
-        remove_userdata {boolean}: Whether to remove userdata related fields from the result (assoc. with each Concept)
+        remove_userdata (boolean): Whether to remove userdata related fields from the result (assoc. with each Concept)
 
-        derive_access_from {RequestContext}: Using the RequestContext, determine whether a user can edit a Concept
+        derive_access_from (RequestContext): Using the RequestContext, determine whether a user can edit a Concept
 
-        format_for_api {boolean}: Flag to format against legacy API
+        format_for_api (boolean): Flag to format against legacy API
 
-        include_source_data {boolean}: Flag to det. whether we should incl. source data e.g. wildcard, desc search etc
+        include_source_data (boolean): Flag to det. whether we should incl. source data e.g. wildcard, desc search etc
 
       Returns:
         A dictionary that describes the concept, its components, and associated codes; constrained
@@ -750,7 +769,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
         If a RequestContext was provided, per the derive_access_from param, it will return a permission context
 
-    '''
+    """
 
     # Try to find the associated concept and its historical counterpart
     concept = model_utils.try_get_instance(

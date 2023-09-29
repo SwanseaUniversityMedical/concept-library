@@ -2,10 +2,10 @@ from django.conf import settings
 from django_minify_html.middleware import MinifyHtmlMiddleware
 
 class HTMLCompressionMiddleware(MinifyHtmlMiddleware):
-    '''
+    """
         HTML minifier middleware to determine whether
         we should compress a HTML response
-    '''
+    """
     minify_args = {
         'keep_comments': False,
         'minify_css': False,

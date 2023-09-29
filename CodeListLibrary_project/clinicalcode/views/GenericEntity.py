@@ -37,13 +37,13 @@ from clinicalcode.api.views.View import get_canonical_path_by_brand
 logger = logging.getLogger(__name__)
 
 class EntitySearchView(TemplateView):
-    '''
+    """
         Entity single search view
             - Responsible for:
                 -> Managing context of template and which entities to render
                 -> SSR of entities at initial GET request based on request params
                 -> AJAX-driven update of template based on request params (through JsonResponse)
-    '''
+    """
     template_name = 'clinicalcode/generic_entity/search/search.html'
     result_template = 'components/search/results.html'
     pagination_template = 'components/search/pagination_container.html'
@@ -81,7 +81,7 @@ class EntitySearchView(TemplateView):
         }
     
     def get(self, request, *args, **kwargs):
-        '''
+        """
             Manages get requests to this view
             
             @note if search_filtered is passed as a parameter (through a fetch req),
@@ -91,7 +91,7 @@ class EntitySearchView(TemplateView):
 
                   in reality, we should change this to a JSON Response at some point
                   and make the client render it rather than wasting server resources
-        '''
+        """
         context = self.get_context_data(*args, **kwargs)
         filtered = gen_utils.try_get_param(request, 'search_filtered', None)
 
@@ -106,21 +106,21 @@ class EntitySearchView(TemplateView):
 
 @schema(None)
 class EntityDescendantSelection(APIView):
-    '''
+    """
         Selection Service View
             @desc API-like view for internal services to discern
                   template-related information and to retrieve
                   entity descendant data via search
             
             @note Could be moved to API in future?
-    '''
+    """
     fetch_methods = ['get_filters', 'get_results']
 
     ''' Private methods '''
     def __get_template(self, template_id):
-        '''
+        """
             Attempts to get the assoc. template if available or raises a bad request
-        '''
+        """
         template = model_utils.try_get_instance(Template, pk=template_id)
         if template is None:
             raise BadRequest('Template ID is invalid')
@@ -129,15 +129,15 @@ class EntityDescendantSelection(APIView):
     ''' View methods '''
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
-        '''
+        """
             @desc Dispatch view if not in read-only and user is authenticated
-        '''
+        """
         return super(EntityDescendantSelection, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
-        '''
+        """
             @desc Provides contextual data
-        '''
+        """
         context = { }
         request = self.request
 
@@ -147,10 +147,10 @@ class EntityDescendantSelection(APIView):
         return context | { 'template_id': template_id }
     
     def get(self, request, *args, **kwargs):
-        '''
+        """
             @desc Handles GET requests made by the client and directs
                   the params to the appropriate method given the fetch target
-        '''
+        """
         if gen_utils.is_fetch_request(request):
             method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
             return method(request, *args, **kwargs)
@@ -158,9 +158,9 @@ class EntityDescendantSelection(APIView):
 
     ''' Fetch methods '''
     def get_filters(self, request, *args, **kwargs):
-        '''
+        """
             @desc Gets the filter specification for this template
-        '''
+        """
         context = self.get_context_data(*args, **kwargs)
         
         template = self.__get_template(context.get('template_id'))
@@ -173,24 +173,24 @@ class EntityDescendantSelection(APIView):
         })
     
     def get_results(self, request, *args, **kwargs):
-        '''
+        """
             @desc Gets the search results for the desired template
                   after applying query params
-        '''
+        """
         context = self.get_context_data(*args, **kwargs)
         template_id = context.get('template_id')
         result = search_utils.get_template_entities(request, template_id)
         return JsonResponse(result)
 
 class CreateEntityView(TemplateView):
-    '''
+    """
         Entity Create View
             @desc Used to create entities
             
             @note CreateView isn't used due to the requirements
                   of having a form dynamically created to
                   reflect the dynamic model.
-    '''
+    """
     fetch_methods = ['search_codes', 'get_options', 'import_rule', 'import_concept']
     templates = {
         'form': 'clinicalcode/generic_entity/creation/create.html',
@@ -200,27 +200,27 @@ class CreateEntityView(TemplateView):
     ''' View methods '''
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
-        '''
+        """
             @desc Dispatch view
-        '''
+        """
         return super(CreateEntityView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
-        '''
+        """
             @desc Provides contextual data
-        '''
+        """
         context = super(CreateEntityView, self).get_context_data(*args, **kwargs)
         return context
     
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, *args, **kwargs):
-        '''
+        """
             @desc Handles get requests by determining whether it was made
                   through the fetch method, or accessed via a browser.
                   
                   If requested via browser, will render a view. Otherwise
                   will respond with appropriate method, if applicable.
-        '''
+        """
         if gen_utils.is_fetch_request(request):
             method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
             return method(request, *args, **kwargs)
@@ -229,11 +229,11 @@ class CreateEntityView(TemplateView):
 
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, *args, **kwargs):
-        '''
+        """
             @desc Handles form submissions for both:
                 - creating
                 - updating
-        '''
+        """
         form_errors = []
         form = gen_utils.get_request_body(request)
         form = create_utils.validate_entity_form(request, form, form_errors)
@@ -271,13 +271,13 @@ class CreateEntityView(TemplateView):
 
     ''' Main view render '''
     def render_view(self, request, *args, **kwargs):
-        '''
+        """
             @desc Template and entity is tokenised in the URL - providing the latter requires
                   users to be permitted to modify that particular entity.
 
                   If no entity_id is passed, a creation form is returned, otherwise the user is
                   redirected to an update form.
-        '''
+        """
         context = self.get_context_data(*args, **kwargs)
 
         # Send to selection page if no template_id and entity_id
@@ -312,25 +312,25 @@ class CreateEntityView(TemplateView):
     
     ''' Forms '''
     def select_form(self, request, context):
-        '''
+        """
             @desc Renders the template selection form
-        '''
+        """
         context['entity_data'] = create_utils.get_createable_entities(request)
         return render(request, self.templates.get('select'), context)
 
     def create_form(self, request, context, template):
-        '''
+        """
             @desc Renders the entity create form
-        '''
+        """
         context['metadata'] = constants.metadata
         context['template'] = template
         context['form_method'] = constants.FORM_METHODS.CREATE
         return render(request, self.templates.get('form'), context)
 
     def update_form(self, request, context, template, entity):
-        '''
+        """
             @desc Renders the entity update form
-        '''
+        """
         context['metadata'] = constants.metadata
         context['template'] = template
         context['entity'] = entity
@@ -341,10 +341,10 @@ class CreateEntityView(TemplateView):
 
     ''' Fetch methods '''
     def import_rule(self, request, *args, **kwargs):
-        '''
+        """
             @desc GET request made by client to retrieve the codelist assoc.
                   with the concept they are attempting to import as a rule
-        '''
+        """
         concept_id = gen_utils.try_get_param(request, 'concept_id')
         concept_version_id = gen_utils.try_get_param(request, 'concept_version_id')
         if concept_id is None or concept_version_id is None:
@@ -370,10 +370,10 @@ class CreateEntityView(TemplateView):
         })
     
     def import_concept(self, request, *args, **kwargs):
-        '''
+        """
             @desc GET request made by client to retrieve codelists assoc.
                   with the concepts they are attempting to import as top-level objects
-        '''
+        """
         concept_ids = gen_utils.try_get_param(request, 'concept_ids')
         concept_version_ids = gen_utils.try_get_param(request, 'concept_version_ids')
         if concept_ids is None or concept_version_ids is None:
@@ -400,12 +400,12 @@ class CreateEntityView(TemplateView):
         })
     
     def get_options(self, request, *args, **kwargs):
-        '''
+        """
             @desc GET request made by client to retrieve all available
                   options for a given field within its template
 
                   Atm, it is exclusively used to retrieve Coding Systems
-        '''
+        """
         template_id = gen_utils.parse_int(gen_utils.try_get_param(request, 'template'), default=None)
         if not template_id:
             return gen_utils.jsonify_response(message='Invalid template parameter', code=400, status='false')
@@ -432,12 +432,12 @@ class CreateEntityView(TemplateView):
         })
 
     def search_codes(self, request, *args, **kwargs):
-        '''
+        """
             @desc GET request made by client to search a codelist given its coding id,
                   a search term, and the relevant template
             
                   e.g. entity/{update|create}/?search=C1&coding_system=4&template=1
-        '''
+        """
         template_id = gen_utils.parse_int(gen_utils.try_get_param(request, 'template'), default=None)
         if not template_id:
             return gen_utils.jsonify_response(message='Invalid template parameter', code=400, status='false')
@@ -476,24 +476,24 @@ class CreateEntityView(TemplateView):
         })
 
 class RedirectConceptView(TemplateView):
-    '''
+    """
         [!] Note: Used to maintain legacy URLs where users could visit concepts/<pk>/detail
 
         @desc Redirects requests to the phenotype page, assuming a phenotype owner
               can be resolved from the child Concept
 
-    '''
+    """
 
     # URL Name of the detail page
     ENTITY_DETAIL_VIEW = 'entity_detail'
 
     def get(self, request, *args, **kwargs):
-        '''
+        """
             Given the pk kwarg:
                 1. Will validate the existence of that Concept
                 2. Will then try to find its Phenotype owner
                 3. Finally, redirect the user to the Phenotype page
-        '''
+        """
         concept_id = gen_utils.parse_int(kwargs.get('pk'), default=None)
         if concept_id is None:
             raise Http404

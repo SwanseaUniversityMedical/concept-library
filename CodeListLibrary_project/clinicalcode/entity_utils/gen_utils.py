@@ -16,12 +16,12 @@ import urllib
 from . import constants
 
 def is_datetime(x):
-    '''
+    """
         Legacy method from ./utils.py
 
         Desc:
             - "Checks if a parameter can be parsed as a datetime"
-    '''
+    """
     try:
         dateparser(x)
     except ValueError:
@@ -30,12 +30,12 @@ def is_datetime(x):
         return True
 
 def is_float(x):
-    '''
+    """
         Legacy method from ./utils.py
 
         Desc:
             - "Checks if a param can be parsed as a float"
-    '''
+    """
     try:
         a = float(x)
     except ValueError:
@@ -44,12 +44,12 @@ def is_float(x):
         return True
 
 def is_int(x):
-    '''
+    """
         Legacy method from ./utils.py
 
         Desc:
             - "Checks if a number is an integer"
-    '''
+    """
     try:
         a = float(x)
         b = int(a)
@@ -59,12 +59,12 @@ def is_int(x):
         return a == b
 
 def clean_str_as_db_col_name(txt):
-    '''
+    """
         Legacy method from ./utils.py
 
         Desc:
             - "Clean string to be valid column name"
-    '''
+    """
     s = txt.strip()
     s = s.replace(' ', '_').replace('.', '_').replace('-', '_')
 
@@ -75,9 +75,9 @@ def clean_str_as_db_col_name(txt):
     return re.sub('[^A-Za-z0-9_]+', '', s)
 
 def try_parse_form(request):
-    '''
+    """
         Attempts to parse multipart/form-data from the request body
-    '''
+    """
     try:
         parser = MultiPartParser(request.META, request.body, request.upload_handlers)
         post, files = parser.parse()
@@ -87,9 +87,9 @@ def try_parse_form(request):
         return post, files
 
 def get_request_body(request):
-    '''
+    """
         Decodes the body of a request and attempts to load it as JSON
-    '''
+    """
     try:
         body = request.body.decode('utf-8');
         body = json.loads(body)
@@ -98,11 +98,11 @@ def get_request_body(request):
         return None
 
 def try_get_param(request, key, default=None, method='GET'):
-    '''
+    """
         Attempts to get a param from a request by key
             - If a default is passed and the key isn't present, the default is returned
             - If the key is present, and the default is non-null, it tries to parse the value as the default's type
-    '''
+    """
     try:
         req = getattr(request, method)
         param = req.get(key, default)
@@ -118,15 +118,15 @@ def try_get_param(request, key, default=None, method='GET'):
     return param
 
 def is_empty_string(value):
-    '''
+    """
         Checks whether a string is empty or contains only spaces
 
         Args:
-            value {string}: the value to check
+            value (string): the value to check
         
         Returns:
             boolean
-    '''
+    """
     if value is None:
         return True
     
@@ -134,23 +134,23 @@ def is_empty_string(value):
     return len(value) < 1 or value.isspace()
 
 def is_fetch_request(request):
-    '''
+    """
         Helper method to determine if the HTTPRequest was made with a header that matches
         the FETCH-REQUEST-HEADER
 
         Args:
-            request {WSGIRequest}: the request object
+            request (WSGIRequest): the request object
         
         Returns:
             Boolean that reflects whether this request was made with the fetch header
-    '''
+    """
     return request.headers.get('X-Requested-With') == constants.FETCH_REQUEST_HEADER
 
 def handle_fetch_request(request, obj, *args, **kwargs):
-    '''
+    """
         @desc Parses the X-Target header to determine which GET method
               to respond with
-    '''
+    """
     target = request.headers.get('X-Target', None)
     if target is None or target not in obj.fetch_methods:
         raise BadRequest('No such target')
@@ -163,16 +163,16 @@ def handle_fetch_request(request, obj, *args, **kwargs):
         return response 
 
 def decode_uri_parameter(value, default=None):
-    '''
+    """
         Decodes an ecoded URI parameter e.g. 'wildcard:C\d+' encoded as 'wildcard%3AC%5Cd%2B'
 
         Args:
-            value {string}: the value to decode
-            default {*}: the default value to return if this method fails
+            value (string): the value to decode
+            default (*): the default value to return if this method fails
         
         Returns:
             The decoded URI component
-    '''
+    """
     if value is None:
         return default
     try:
@@ -183,17 +183,17 @@ def decode_uri_parameter(value, default=None):
         return value
 
 def jsonify_response(**kwargs):
-    '''
+    """
         Creates a JSON response with the given status
 
         Args:
-            code {integer}: the status code
-            status {string}: the status response
-            message {string}: the message response
+            code (integer): the status code
+            status (string): the status response
+            message (string): the message response
         
         Returns:
             A JSONResponse that matches the kwargs
-    '''
+    """
     code = kwargs.get('code', 400)
     status = kwargs.get('status', 'false')
     message = kwargs.get('message', '')
@@ -203,16 +203,16 @@ def jsonify_response(**kwargs):
     }, status=code)
 
 def try_match_pattern(value, pattern):
-    '''
+    """
         Tries to match a string by a pattern
-    '''
+    """
     pattern = re.compile(pattern)
     return pattern.match(value)
 
 def is_valid_uuid(value):
-    '''
+    """
         Validates value as a UUID
-    '''
+    """
     try:
         uuid = UUID(value)
     except ValueError:
@@ -221,9 +221,9 @@ def is_valid_uuid(value):
     return str(uuid) == value
 
 def parse_int(value, default=0):
-    '''
+    """
         Attempts to parse an int from a value, if it fails to do so, returns the default value
-    '''
+    """
     if value is None:
         return default
     
@@ -235,15 +235,15 @@ def parse_int(value, default=0):
         return value
 
 def get_start_and_end_dates(daterange):
-    '''
+    """
         Sorts a date range to [min, max] and sets their timepoints to the [start] and [end] of the day respectively
 
         Args:
-            daterange {list[string]}: List of dates as strings (size of 2)
+            daterange (list[string]): List of dates as strings (size of 2)
         
         Returns:
-            A sorted {list} of datetime objects, combined with their respective start and end times
-    '''
+            A sorted (list) of datetime objects, combined with their respective start and end times
+    """
     dates = [dateparser.parse(x).date() for x in daterange]
     
     max_date = datetime.datetime.combine(max(dates), datetime.time(23, 59, 59, 999))
@@ -251,9 +251,9 @@ def get_start_and_end_dates(daterange):
     return [min_date, max_date]
 
 def parse_date(value, default=0):
-    '''
+    """
         Attempts to parse a date from a string value, if it fails to do so, returns the default value
-    '''
+    """
     try:
         date = dateparser.parse(value)
     except:
@@ -269,9 +269,9 @@ def parse_as_int_list(value):
     return result
 
 def try_value_as_type(field_value, field_type, validation=None, default=None):
-    '''
+    """
         Tries to parse a value as a given type, otherwise returns default
-    '''
+    """
     if field_type == 'enum' or field_type == 'int':
         if validation is not None:
             limits = validation.get('range')
@@ -371,11 +371,11 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     return field_value
 
 def measure_perf(func):
-    '''
+    """
         Helper function to estimate view execution time
 
         Ref @ https://stackoverflow.com/posts/62522469/revisions
-    '''
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         if settings.DEBUG:
@@ -388,10 +388,10 @@ def measure_perf(func):
     return wrapper
 
 class ModelEncoder(JSONEncoder):
-    '''
+    """
         Encoder class to override behaviour of the JSON encoder to allow
         encoding of datetime objects - used to JSONify instances of a model
-    '''
+    """
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()

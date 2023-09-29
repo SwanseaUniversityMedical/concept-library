@@ -55,7 +55,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **kwargs):
-        '''
+        """
             Pushes the following changes to the legacy models:
 
               1. CodingSystem
@@ -80,7 +80,7 @@ class Command(BaseCommand):
                     from django.core import management
                     management.call_command('dftm_migrate')
 
-        '''
+        """
         # update coding system filters
         for name, filter_value in self.FILTER_UPD.items():
             coding_system = CodingSystem.objects.filter(name=name)

@@ -154,7 +154,7 @@ def get_transformed_data(concept, template):
 
 @login_required
 def admin_force_concept_linkage_dt(request):
-    '''
+    """
         Bulk updates unlinked Concepts such that they have a phenotype owner by creating
         a pseudo-Phenotype using the metadata found within the legacy Conept
 
@@ -164,7 +164,7 @@ def admin_force_concept_linkage_dt(request):
             3. Update the unlinked Concept such that it's phenotype_owner field relates to
                the newly created pseudo-Phenotype
 
-    '''
+    """
     if settings.CLL_READ_ONLY: 
         raise PermissionDenied
     
@@ -225,7 +225,7 @@ def admin_force_concept_linkage_dt(request):
 
 @login_required
 def admin_fix_read_codes_dt(request):
-    '''
+    """
         Fix data quality issues associated with Read Codes V2 table's reliance
         on the 30char field
 
@@ -233,7 +233,7 @@ def admin_fix_read_codes_dt(request):
             1. Coalescing the pref_term field (30, 60 and 198 char) and updating its 'description' field
             2. Setting the Coding System's desc column to 'description'
 
-    '''
+    """
     if settings.CLL_READ_ONLY: 
         raise PermissionDenied
     
@@ -291,7 +291,7 @@ def admin_fix_read_codes_dt(request):
 
 @login_required
 def admin_mig_concepts_dt(request):
-    '''
+    """
         Approximates ownership of a Concept given it's first appearance
         in a phenotype
 
@@ -299,7 +299,7 @@ def admin_mig_concepts_dt(request):
             for concept in concepts:
                 concept.phenotype_owner = earliest_record_as_child_of_phenotype(concept.id)
 
-    '''
+    """
     if settings.CLL_READ_ONLY: 
         raise PermissionDenied
     

@@ -9,9 +9,9 @@ from ..models import GenericEntity, Template, Statistics, Brand, CodingSystem, D
 from . import template_utils, constants, model_utils, entity_db_utils, concept_utils
 
 def sort_by_count(a, b):
-    '''
+    """
         Used to sort filter statistics in descending order
-    '''
+    """
     count0 = a['count']
     count1 = b['count']
     if count0 < count1:
@@ -180,11 +180,11 @@ def collate_statistics(entities, data_cache=None, template_cache=None, brand=Non
     return statistics
 
 def collect_statistics(request):
-    '''
+    """
         Need to change this for several reasons:
             1. We can utilise receivers and signals so we don't do this as a cronjob
             2. Big O notation for this implementation is not great
-    '''
+    """
     user = request.user if request else None
     cache = { }
     template_cache = { }

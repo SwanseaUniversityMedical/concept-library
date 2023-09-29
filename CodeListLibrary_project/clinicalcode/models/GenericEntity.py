@@ -13,11 +13,10 @@ from .EntityClass import EntityClass
 from ..entity_utils import gen_utils, constants
 
 class GenericEntityManager(models.Manager):
-    '''
-        Generic Entity Manager
-            @desc responsible for transfering previous phenotype records to generic entities
-                without using the incremental PK
-    '''
+    """
+        Generic Entity Manager - responsible for transfering previous phenotype records to generic entities
+        without using the incremental PK
+    """
     def transfer_record(self, *args, **kwargs):
         ignore_increment = kwargs.pop('ignore_increment', False)
         
@@ -80,12 +79,12 @@ class GenericEntity(models.Model):
     history = HistoricalRecords()
 
     def save(self, ignore_increment=False, *args, **kwargs):
-        '''
+        """
             [!] Note:
                 1. On creation, increments counter within template and increment's entity ID by count + 1
                 
                 2. template_version field is computed from the template_data.version field
-        '''
+        """
         template_layout = self.template
         if template_layout is not None:
             entity_class = getattr(template_layout, 'entity_class')

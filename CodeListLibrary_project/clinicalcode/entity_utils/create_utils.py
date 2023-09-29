@@ -21,9 +21,9 @@ from . import concept_utils
 from . import constants
 
 def try_validate_entity(request, entity_id, entity_history_id):
-    '''
+    """
       Validates existence of an entity and whether the user has permissions to modify it
-    '''
+    """
     if not permission_utils.can_user_edit_entity(request, entity_id, entity_history_id):
         return False
     
@@ -36,10 +36,10 @@ def try_validate_entity(request, entity_id, entity_history_id):
     return entity
 
 def get_createable_entities(request):
-    '''
+    """
         Used to retrieve information relating to the entities that can
         be created and their associated templates
-    '''
+    """
     entities = EntityClass.objects.all().values('id', 'name', 'description', 'entity_prefix')
     templates = Template.objects.filter(
         entity_class__id__in=entities.values_list('id', flat=True)
@@ -52,10 +52,10 @@ def get_createable_entities(request):
     }
 
 def get_template_creation_data(request, entity, layout, field, default=None):
-    '''
+    """
         Used to retrieve assoc. data values for specific keys, e.g.
         concepts, in its expanded format for use with create/update pages
-    '''
+    """
     data = template_utils.get_entity_field(entity, field)
     info = template_utils.get_layout_field(layout, field)
     if not info and template_utils.is_metadata(entity, field):
@@ -94,10 +94,10 @@ def get_template_creation_data(request, entity, layout, field, default=None):
     return template_utils.get_template_data_values(entity, layout, field, default=default)
 
 def try_add_computed_fields(field, form_data, form_template, data):
-    '''
+    """
         Checks to see if any of our fields have any computed data
         that we need to collect from a child or related field
-    '''
+    """
     field_data = template_utils.get_layout_field(form_template, field)
     if field_data is None:
         return
@@ -122,10 +122,10 @@ def try_add_computed_fields(field, form_data, form_template, data):
         data['coding_system'] = list(output)
 
 def try_validate_sourced_value(field, template, data, default=None, request=None):
-    '''
+    """
         Validates the query param based on its field type as defined by the template or metadata
         by examining its source and its current datatype
-    '''
+    """
     validation = template_utils.try_get_content(template, 'validation')
     if validation:
         if 'source' in validation:
@@ -173,9 +173,9 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
     return default
 
 def validate_form_method(form_method, errors=[], default=None):
-    '''
+    """
         Validates the form method when updating or creating an object
-    '''
+    """
     form_method = gen_utils.parse_int(form_method, None)
     if form_method is None:
         errors.append('No form method enum was provided.')
@@ -188,9 +188,9 @@ def validate_form_method(form_method, errors=[], default=None):
     return form_method
 
 def validate_form_template(form_template, errors=[], default=None):
-    '''
+    """
         Validates the template id and version given by a form
-    '''
+    """
     if form_template is None:
         errors.append('No template parameter was provided.')
         return default
@@ -213,9 +213,9 @@ def validate_form_template(form_template, errors=[], default=None):
     return template.latest()
 
 def validate_form_data_type(form_data, errors=[], default=None):
-    '''
+    """
         Validates the datatype of the form data
-    '''
+    """
     if form_data is None:
         errors.append('No form data was provided.')
         return default
@@ -227,9 +227,9 @@ def validate_form_data_type(form_data, errors=[], default=None):
     return form_data
     
 def validate_form_entity(form_entity, form_method, errors=[], default=None):
-    '''
+    """
         Validates the form's entity, assuming an update form method was called
-    '''
+    """
     if form_method is None:
         return
     
@@ -266,9 +266,9 @@ def validate_form_entity(form_entity, form_method, errors=[], default=None):
     return entity.first()
 
 def validate_template_field(template, field):
-    '''
+    """
         Validates whether this field applies to our current template
-    '''
+    """
     fields = template_utils.get_layout_fields(template)
     if fields is None:
         return False
@@ -276,9 +276,9 @@ def validate_template_field(template, field):
     return field in fields
 
 def validate_computed_field(request, field, field_data, value, errors=[]):
-    '''
+    """
         Computed fields, e.g. Groups, that can be computed based on RequestContext
-    '''
+    """
     user = request.user
     if user is None:
         errors.append('RequestContext invalid')
@@ -322,9 +322,9 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
     return value
 
 def validate_concept_form(form, errors):
-    '''
+    """
         Validates a concept form
-    '''
+    """
     is_new_concept = form.get('is_new')
     is_dirty_concept = form.get('is_dirty')
     concept_id = gen_utils.parse_int(form.get('concept_id'), None)
@@ -476,9 +476,9 @@ def validate_concept_form(form, errors):
     return field_value
 
 def validate_related_entities(field, field_data, value, errors):
-    '''
+    """
         Validates related entities, e.g. Concepts
-    '''    
+    """    
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
         # Exit without error since we haven't included any validation
@@ -514,9 +514,9 @@ def validate_related_entities(field, field_data, value, errors):
     return value
 
 def validate_metadata_value(request, field, value, errors=[]):
-    '''
+    """
         Validates the form's field value against the metadata fields
-    '''
+    """
     field_data = template_utils.try_get_content(constants.metadata, field)
     if field_data is None:
         return None, True
@@ -552,9 +552,9 @@ def validate_metadata_value(request, field, value, errors=[]):
     return field_value, True
 
 def validate_template_value(request, field, form_template, value, errors=[]):
-    '''
+    """
         Validates the form's field value against the entity template
-    '''
+    """
     field_data = template_utils.get_layout_field(form_template, field)
     if field_data is None:
         return None, True
@@ -598,7 +598,7 @@ def validate_template_value(request, field, form_template, value, errors=[]):
     return field_value, True
 
 def validate_entity_form(request, content, errors=[], method=None):
-    '''
+    """
         Validates & Cleans the entity create/update form
 
         Args:
@@ -608,7 +608,7 @@ def validate_entity_form(request, content, errors=[], method=None):
         
         Returns:
             {dict|null} - null value is returned if validation is not successful
-    '''
+    """
 
     # Early exit if any of the base form data is invalid
     if method is None:
@@ -659,7 +659,7 @@ def validate_entity_form(request, content, errors=[], method=None):
     }
 
 def try_update_concept(request, item, entity=None):
-    '''
+    """
         Updates a concept, given the item data validated from the Phentoype builder form
 
         Args:
@@ -668,9 +668,9 @@ def try_update_concept(request, item, entity=None):
             entity {GenericEntity: an associated entity, if applicable
         
         Returns:
-            {Concept()} - the resulting, updated Concept entity
+            (Concept()) - the resulting, updated Concept entity
         
-    '''
+    """
     user = request.user
     if user is None:
         return None
@@ -775,18 +775,18 @@ def try_update_concept(request, item, entity=None):
     return concept
 
 def try_create_concept(request, item, entity=None):
-    '''
+    """
         Creates a concept, given the item data validated from the Phentoype builder form
 
         Args:
-            request {RequestContext}: the request context of the form
-            concept_id {integer}: the id of the concept
-            item {dict}: the data computed from the concept validation method
+            request (RequestContext): the request context of the form
+            concept_id (integer): the id of the concept
+            item (dict): the data computed from the concept validation method
             entity {GenericEntity: an associated entity, if applicable
         
         Returns:
-            {Concept()} - the resulting, created Concept entity
-    '''
+            (Concept()) - the resulting, created Concept entity
+    """
     user = request.user
     if user is None:
         return None
@@ -835,20 +835,20 @@ def try_create_concept(request, item, entity=None):
     return concept
 
 def build_related_entities(request, field_data, packet, override_dirty=False, entity=None):
-    '''
+    """
         Used to build related entities, e.g. concepts, for entities
 
         Args:
-            request {RequestContext}: the request context of the form
-            field {string}: name of the field
-            field_data {dict}: the associated template layout field
-            packet {*}: the field data value
-            override_dirty {boolean}: overrides the is_dirty check for entity creation
+            request (RequestContext): the request context of the form
+            field (string): name of the field
+            field_data (dict): the associated template layout field
+            packet (*): the field data value
+            override_dirty (boolean): overrides the is_dirty check for entity creation
             entity {GenericEntity: an associated entity, if applicable
 
         Returns:
-            {boolean}, {list|null} - success state, list of entity dicts (id, hid) created/updated, or null value is returned if this method fails
-    '''
+            (boolean), (list|null) - success state, list of entity dicts (id, hid) created/updated, or null value is returned if this method fails
+    """
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
         return False, None
@@ -898,11 +898,11 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
     return False, None
 
 def compute_brand_context(request, form_data):
-    '''
+    """
         Computes the brand context given the metadata of an entity,
         where brand is computed by the RequestContext's brand and its
         given collections
-    '''
+    """
     related_brands = set([])
 
     brand = model_utils.try_get_brand(request)
@@ -928,19 +928,19 @@ def compute_brand_context(request, form_data):
 
 @transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
-    '''
+    """
         Used to create or update entities - this method assumes you have
         previously validated the content of the form using the validate_entity_form method
 
         Args:
-            request {RequestContext}: the request context of the form
-            form {dict}: a dict containing the validate_entity_form method result
-            override_dirty {boolean}: overrides the is_dirty check for child entity creation
+            request (RequestContext): the request context of the form
+            form (dict): a dict containing the validate_entity_form method result
+            override_dirty (boolean): overrides the is_dirty check for child entity creation
         
         Returns:
-            {GenericEntity|null} - null value is returned if this method fails
+            (GenericEntity|null) - null value is returned if this method fails
 
-    '''
+    """
     user = request.user
     if user is None:
         return

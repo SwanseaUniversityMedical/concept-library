@@ -6,9 +6,9 @@ from . import concept_utils
 from . import constants
 
 def try_get_content(body, key, default=None):
-    '''
+    """
         Attempts to get content within a dict by a key, if it fails to do so, returns the default value
-    '''
+    """
     try:
         if key in body:
             return body[key]
@@ -17,9 +17,9 @@ def try_get_content(body, key, default=None):
         return default
 
 def is_metadata(entity, field):
-    '''
+    """
         Checks whether a field is accounted for in the metadata of an entity e.g. name, tags, collections
-    '''
+    """
     metadata_field = constants.metadata.get(field)
     if metadata_field is not None and metadata_field.get('is_base_field'):
         return True
@@ -38,9 +38,9 @@ def is_metadata(entity, field):
         return False
 
 def is_layout_safe(layout):
-    '''
+    """
         Determines whether the definition of a layout is null
-    '''
+    """
     if layout is None:
         return False
 
@@ -48,34 +48,34 @@ def is_layout_safe(layout):
     return isinstance(definition, dict)
 
 def try_get_layout(template, default=None):
-    '''
+    """
         Tries to get the definition from a template
-    '''
+    """
     if not is_layout_safe(template):
         return default
     return try_get_content(template, 'definition') if isinstance(template, dict) else getattr(template, 'definition')
 
 def is_data_safe(entity):
-    '''
+    """
         Determines whether the template data of an entity instance is null
-    '''
+    """
     if entity is not None:
         data = getattr(entity, 'template_data')
         return isinstance(data, dict)
 
 def get_layout_fields(layout, default=None):
-    '''
+    """
         Safely gets the fields from a layout
-    '''
+    """
     if is_layout_safe(layout):
         definition = try_get_content(layout, 'definition') if isinstance(layout, dict) else getattr(layout, 'definition')
         return try_get_content(definition, 'fields')
     return default
 
 def get_layout_field(layout, field, default=None):
-    '''
+    """
         Safely gets a field from a layout's field within its definition
-    '''
+    """
     if is_layout_safe(layout):
         definition = try_get_content(layout, 'definition') if isinstance(layout, dict) else getattr(layout, 'definition')
         fields = try_get_content(definition, 'fields')
@@ -85,10 +85,10 @@ def get_layout_field(layout, field, default=None):
     return try_get_content(layout, field, default)
 
 def get_merged_definition(template, default=None):
-    '''
+    """
         Used to merge the metadata into a template such that interfaces, e.g. API/create,
         can understand the origin of fields
-    '''
+    """
     definition = try_get_content(template, 'definition') if isinstance(template, dict) else getattr(template, 'definition')
     if definition is None:
         return default
@@ -105,11 +105,11 @@ def get_merged_definition(template, default=None):
     return definition
 
 def get_ordered_definition(definition, clean_fields=False):
-    '''
+    """
         Safely gets the 'layout_order' field from the definition and tries
         to reorder the JSONB result so that iteration over fields are in the correct
         order
-    '''
+    """
     layout_order = try_get_content(definition, 'layout_order')
     if layout_order is None:
         return definition
@@ -134,17 +134,17 @@ def get_ordered_definition(definition, clean_fields=False):
     return definition
 
 def get_one_of_field(entity, entity_fields, default=None):
-    '''
+    """
         Attempts to get a field member of an entity given the fields to check,
         will return whichever is found first
 
         Args:
-            entity {Model}: the entity to examine
-            entity_fields {list}: a list of fields to select from
+            entity (Model): the entity to examine
+            entity_fields (list): a list of fields to select from
 
         Returns:
             Either (a) the default value if none are found, or (b) the value of the field that was selected
-    '''
+    """
     for field in entity_fields:
         value = None
         try:
@@ -158,9 +158,9 @@ def get_one_of_field(entity, entity_fields, default=None):
     return default
 
 def get_entity_field(entity, field, default=None):
-    '''
+    """
         Safely gets a field from an entity, either at the toplevel (e.g. its name) or from its template data (e.g. some dynamic field)
-    '''
+    """
     if not is_data_safe(entity):
         return default
 
@@ -180,9 +180,9 @@ def get_entity_field(entity, field, default=None):
     return default
 
 def is_valid_field(entity, field):
-    '''
+    """
         Checks to see if a field is a valid member of a template
-    '''
+    """
     if is_metadata(entity, field):
         return True
     
@@ -196,9 +196,9 @@ def is_valid_field(entity, field):
     return False
 
 def get_field_item(layout, field, item, default=None):
-    '''
+    """
         Gets a field item from a layout's field lookup
-    '''
+    """
     field_data = try_get_content(layout, field)
     if field_data is None:
         return default
@@ -206,9 +206,9 @@ def get_field_item(layout, field, item, default=None):
     return try_get_content(field_data, item, default)  
 
 def try_get_instance_field(instance, field, default=None):
-    '''
+    """
         Safely gets a top-level metadata field
-    '''
+    """
     try:
         data = getattr(instance, field)
     except:
@@ -217,9 +217,9 @@ def try_get_instance_field(instance, field, default=None):
         return data
 
 def is_filterable(layout, field):
-    '''
+    """
         Checks if a field is filterable as defined by its layout
-    '''
+    """
     search = get_field_item(layout, field, 'search')
     if search is None:
         return False
@@ -227,11 +227,11 @@ def is_filterable(layout, field):
     return try_get_content(search, 'filterable')
 
 def get_metadata_field_value(entity, field_name, default=None):
-    '''
+    """
         Tries to get the metadata field value of an entity after cleaning
         it by removing the stripped fields, historical fields and userdata information
         so that it can be safely presented to the client
-    '''
+    """
     field = entity._meta.get_field(field_name)
     if not field:
         return default
@@ -256,20 +256,20 @@ def get_metadata_field_value(entity, field_name, default=None):
     return field_value
 
 def try_get_filter_query(field_name, source, request=None):
-    '''
+    """
         @desc cleans the filter query provided by a template / metadata
               and applies the ENTITY_FILTER_PARAMS filter generator if available
               otherwise it will remove this key from the query
         
         Args:
-            field_name {string}: the name of the field
-            source {dict}: the field filter provided by a template and/or metadata
+            field_name (string): the name of the field
+            source (dict): the field filter provided by a template and/or metadata
 
-            request {RequestContext}: the current request context, if available
+            request (RequestContext): the current request context, if available
         
         Returns:
-            The final filter query as a {dict}
-    '''
+            The final filter query as a (dict)
+    """
     output = { }
     for key, value in source.items():
         filter_packet = constants.ENTITY_FILTER_PARAMS.get(key)
@@ -308,14 +308,14 @@ def try_get_filter_query(field_name, source, request=None):
     return output
 
 def get_metadata_value_from_source(entity, field, default=None, request=None):
-    '''
+    """
         [!] Note: RequestContext is an optional parameter that can be provided to further filter
             the results based on the request's Brand    
     
         Tries to get the values from a top-level metadata field
             - This method assumes it is sourced i.e. has a foreign key (has different names and/or filters)
             to another table
-    '''
+    """
     try:
         data = getattr(entity, field)
         if field in constants.metadata:
@@ -366,12 +366,12 @@ def get_metadata_value_from_source(entity, field, default=None, request=None):
         return default
 
 def get_template_sourced_values(template, field, default=None, request=None):
-    '''
+    """
         [!] Note: RequestContext is an optional parameter that can be provided to further filter
             the results based on the request's Brand    
         
         Returns the complete option list of an enum or a sourced field
-    '''
+    """
     struct = get_layout_field(template, field)
     if struct is None:
         return default
@@ -424,9 +424,9 @@ def get_template_sourced_values(template, field, default=None, request=None):
     return default
 
 def get_detailed_options_value(data, info, default=None):
-    '''
+    """
         Tries to get the detailed options parameter from a layout's field entry
-    '''
+    """
     validation = try_get_content(info, 'validation')
     if validation is None:
         return False
@@ -437,9 +437,9 @@ def get_detailed_options_value(data, info, default=None):
     return default
 
 def get_options_value(data, info, default=None):
-    '''
+    """
         Tries to get the options parameter from a layout's field entry
-    '''
+    """
     validation = try_get_content(info, 'validation')
     if validation is None:
         return False
@@ -450,10 +450,10 @@ def get_options_value(data, info, default=None):
     return default
 
 def get_detailed_sourced_value(data, info, default=None):
-    '''
+    """
         Tries to get the detailed sourced value of a dynamic field from its layout and/or 
           another model (if sourced)
-    '''
+    """
     validation = try_get_content(info, 'validation')
     if validation is None:
         return default
@@ -497,9 +497,9 @@ def get_detailed_sourced_value(data, info, default=None):
         return default
 
 def get_sourced_value(data, info, default=None):
-    '''
+    """
         Tries to get the sourced value of a dynamic field from its layout and/or another model (if sourced)
-    '''
+    """
     validation = try_get_content(info, 'validation')
     if validation is None:
         return default
@@ -530,9 +530,9 @@ def get_sourced_value(data, info, default=None):
         return default
 
 def get_template_data_values(entity, layout, field, hide_user_details=False, request=None, default=None):
-    '''
+    """
         Retrieves the sourced values from an entity in an array
-    '''
+    """
     data = get_entity_field(entity, field)
     info = get_layout_field(layout, field)
     if not info or not data:
@@ -582,9 +582,9 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
     return default
 
 def is_single_search_only(template, field):
-    '''
+    """
         Checks if the single_search_only attribute is present in a given template's field
-    '''
+    """
     template = try_get_content(template, field)
     if template is None:
         return False

@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 
 ### Entity Statistics
 class EntityStatisticsView(TemplateView):
-    '''
+    """
         Admin job panel to save statistics for templates across entities
-    '''
+    """
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, *args, **kwargs):
         if not request.user.is_superuser:
