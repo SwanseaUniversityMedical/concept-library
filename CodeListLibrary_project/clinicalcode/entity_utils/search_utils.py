@@ -489,8 +489,9 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
         }
 
         children = try_get_template_children(obj, default=[])
-        entity.update({ 'children': children })
-        results.append(entity)
+        if len(children) > 0:
+            entity.update({ 'children': children })
+            results.append(entity)
 
     return {
         'results': results,
@@ -498,8 +499,8 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
             'page': page_obj.number,
             'total': page_obj.paginator.num_pages,
             'max_results': page_obj.paginator.count,
-            'start_index': page_obj.start_index(),
-            'end_index': page_obj.end_index(),
+            'start_index': page_obj.start_index() if len(results) > 0 else 0,
+            'end_index': page_obj.end_index() - (len(page_obj.object_list) - len(results)),
             'has_previous': page_obj.has_previous(),
             'has_next': page_obj.has_next(),
         },

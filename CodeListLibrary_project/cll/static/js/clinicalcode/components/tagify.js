@@ -246,9 +246,9 @@ export default class Tagify {
     const target = e.relatedTarget;
     if (target && target.classList.contains('autocomplete-item')) {
       const name = target.getAttribute('data-name');
-      this.field.value = '';
       this.addTag(name);
     }
+    this.field.value = '';
 
     this.#clearAutocomplete();
     this.autocomplete.classList.remove('show');

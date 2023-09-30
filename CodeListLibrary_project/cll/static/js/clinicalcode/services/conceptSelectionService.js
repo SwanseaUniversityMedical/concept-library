@@ -185,7 +185,7 @@ const CSEL_INTERFACE = {
           <div class="selection-group"> \
             <p class="selection-group__title">Order By:</p> \
             <select id="order-by-filter" placeholder-text="By Relevance" data-element="dropdown" data-field="order_by" data-class="option"> \
-              <option value="1" class="dropdown-selection__list-item" selected>By Relevance</option> \
+              <option value="1" class="dropdown-selection__list-item" selected>Relevance</option> \
               <option value="2" class="dropdown-selection__list-item">Created (Asc)</option> \
               <option value="3" class="dropdown-selection__list-item">Created (Desc)</option> \
               <option value="4" class="dropdown-selection__list-item">Updated (Asc)</option> \
