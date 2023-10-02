@@ -13,10 +13,10 @@ from ..models.PublishedGenericEntity import PublishedGenericEntity
 from . import model_utils
 from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
 
-''' Permission decorators '''
+""" Permission decorators """
 
 def redirect_readonly(fn):
-    '''
+    """
       Method decorator to raise 403 if we're on the read only site
       to avoid insert / update methods via UI
 
@@ -25,8 +25,7 @@ def redirect_readonly(fn):
       @permission_utils.redirect_readonly
       def some_view_func(request):
         # stuff
-
-    '''
+    """
     @wraps(fn)
     def wrap(request, *args, **kwargs):
         if settings.CLL_READ_ONLY:
@@ -35,27 +34,27 @@ def redirect_readonly(fn):
 
     return wrap
 
-''' Status helpers '''
+""" Status helpers """
 
 def is_member(user, group_name):
-    '''
+    """
       Checks if a User instance is a member of a group
-    '''
+    """
     return user.groups.filter(name__iexact=group_name).exists()
 
 def has_member_access(user, entity, permissions):
-    '''
+    """
       Checks if a user has access to an entity via its group membership
-    '''
+    """
     if entity.group_id in user.groups.all():
         return entity.group_access in permissions
 
     return False
 
 def is_publish_status(entity, status):
-    '''
+    """
       Checks the publication status of an entity
-    '''
+    """
     history_id = getattr(entity, 'history_id', None)
     if history_id is None:
         history_id = entity.history.latest().history_id
@@ -68,22 +67,21 @@ def is_publish_status(entity, status):
         return approval_status in status
     return False
 
-''' General permissions '''
+""" General permissions """
 
 def was_archived(entity_id):
-    '''
+    """
       Checks whether an entity was ever archived:
-      
         - Archive status is derived from the top-most entity, i.e. the latest version
         - We assume that the instance was deleted in cases where the instance does
           not exist within the database
       
       Args:
-        entity_id {integer}: The ID of the entity
+        entity_id (integer): The ID of the entity
 
       Returns:
-        A {boolean} that describes the archived state of an entity
-    '''
+        A (boolean) that describes the archived state of an entity
+    """
     entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
     if entity is None:
         return True
@@ -91,9 +89,9 @@ def was_archived(entity_id):
     return True if entity.is_deleted else False
 
 def get_user_groups(request):
-    '''
+    """
       Get the groups related to the requesting user
-    '''
+    """
     user = request.user
     if not user:
         return []
@@ -106,16 +104,16 @@ def get_moderation_entities(
     request,
     status=None
 ):
-    '''
+    """
       Returns entities with moderation status of specified status
 
       Args:
-        request {RequestContext}: HTTP context
-        status {List}: List of integers representing status
+        request (RequestContext): HTTP context
+        status (List): List of integers representing status
 
       Returns:
         List of all entities with specified moderation status
-    '''
+    """
     entities = GenericEntity.history.all() \
         .order_by('id', '-history_id') \
         .distinct('id')
@@ -126,16 +124,16 @@ def get_editable_entities(
     request,
     only_deleted=False
 ):
-    '''
+    """
       Tries to get all the entities that are editable by a specific user
 
       Args:
-        request {RequestContext}: HTTP context
-        only_deleted {boolean}: Whether to only show deleted phenotypes or not 
+        request (RequestContext): HTTP context
+        only_deleted (boolean): Whether to only show deleted phenotypes or not 
 
       Returns:
         List of all editable entities
-    '''
+    """
     user = request.user
     entities = GenericEntity.history.all() \
         .order_by('id', '-history_id') \
@@ -174,24 +172,19 @@ def get_accessible_entities(
     group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT],
     consider_brand=True
 ):
-    '''
+    """
       Tries to get all the entities that are accessible to a specific user
 
       Args:
-        consider_user_perms {boolean}: Whether to consider user perms i.e. superuser, moderation status etc
-
-        only_deleted {boolean}: Whether to incl/excl deleted entities
-
-        status {list}: A list of publication statuses to consider
-
-        group_permissions {list}: A list of which group permissions to consider
-
-        consider_brand {boolean}: Whether to consider the request Brand (only applies to Moderators, Non-Auth'd and Auth'd accounts)
+        consider_user_perms (boolean): Whether to consider user perms i.e. superuser, moderation status etc
+        only_deleted (boolean): Whether to incl/excl deleted entities
+        status (list): A list of publication statuses to consider
+        group_permissions (list): A list of which group permissions to consider
+        consider_brand (boolean): Whether to consider the request Brand (only applies to Moderators, Non-Auth'd and Auth'd accounts)
 
       Returns:
         List of accessible entities
-
-    '''
+    """
     user = request.user
     entities = GenericEntity.history.all() \
         .order_by('id', '-history_id') \
@@ -269,18 +262,16 @@ def get_accessible_concepts(
     request,
     group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
 ):
-    '''
+    """
       Tries to get all the concepts that are accessible to a specific user
 
       Args:
-        request {RequestContext}: the HTTPRequest
-
-        group_permissions {list}: A list of which group permissions to consider
+        request (RequestContext): the HTTPRequest
+        group_permissions (list): A list of which group permissions to consider
 
       Returns:
         List of accessible concepts
-
-    '''
+    """
     user = request.user
     concepts = Concept.history.none()
 
@@ -378,19 +369,17 @@ def get_accessible_concepts(
     return concepts
 
 def can_user_view_entity(request, entity_id, entity_history_id=None):
-    '''
+    """
       Checks whether a user has the permissions to view an entity
 
       Args:
-        request {RequestContext}: the HTTPRequest
-
-        entity_id {number}: The entity ID of interest
-
-        entity_history_id {number} (optional): The entity's historical id of interest
+        request (RequestContext): the HTTPRequest
+        entity_id (number): The entity ID of interest
+        entity_history_id (number) (optional): The entity's historical id of interest
 
       Returns:
         A boolean value reflecting whether the user is able to view an entity
-    '''
+    """
     live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if live_entity is None:
         return False
@@ -433,19 +422,17 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
 def can_user_view_concept(request,
                           historical_concept,
                           group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
-    '''
+    """
       Checks whether a user has the permissions to view a concept
 
       Args:
-        request {RequestContext}: the HTTPRequest
-
-        historical_concept {HistoricalConcept}: The concept of interest
-
-        group_permissions {list}: A list of which group permissions to consider
+        request (RequestContext): the HTTPRequest
+        historical_concept (HistoricalConcept): The concept of interest
+        group_permissions (list): A list of which group permissions to consider
 
       Returns:
         A boolean value reflecting whether the user is able to view a concept
-    '''
+    """
 
     user = request.user
     if user and user.is_superuser:
@@ -571,28 +558,26 @@ def can_user_view_concept(request,
     return False
 
 def check_brand_access(request, is_published, entity_id, entity_history_id=None):
-    '''
+    """
       Checks whether an entity is accessible for the request brand,
       if the entity is published the accessibility via is_brand_accessible() will be ignored
-    '''
+    """
     if not is_published:
         return is_brand_accessible(request, entity_id, entity_history_id)
     return True
 
 def can_user_edit_entity(request, entity_id, entity_history_id=None):
-    '''
+    """
       Checks whether a user has the permissions to modify an entity
 
       Args:
-        request {RequestContext}: the HTTPRequest
-
-        entity_id {number}: The entity ID of interest
-
-        entity_history_id {number} (optional): The entity's historical id of interest
+        request (RequestContext): the HTTPRequest
+        entity_id (number): The entity ID of interest
+        entity_history_id (number) (optional): The entity's historical id of interest
 
       Returns:
         A boolean value reflecting whether the user is able to modify an entity
-    '''
+    """
     live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if live_entity is None:
         return False
@@ -624,12 +609,12 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     return is_allowed_to_edit
 
 def get_latest_publicly_accessible_concept(concept_id):
-    '''
+    """
       Finds the latest publicly accessible published concept
 
       Returns:
-        HistoricalConcept {obj} that is accessible by the user
-    '''
+        HistoricalConcept (obj) that is accessible by the user
+    """
 
     concept = Concept.objects.filter(id=concept_id)
     if not concept.exists():
@@ -678,15 +663,12 @@ def get_latest_publicly_accessible_concept(concept_id):
     return concept.first() if concept.exists() else None
 
 def user_can_edit_via_entity(request, concept):
-    '''
+    """
       Checks to see if a user can edit a child concept via it's phenotype owner's permissions
-    '''
+    """
     entity = concept.phenotype_owner
 
     if entity is None:
-        ''' e.g. in the case of a historical entity being passed,
-                 we will check 
-        '''
         try:
             instance = getattr(concept, 'instance')
             if instance is not None:
@@ -700,19 +682,19 @@ def user_can_edit_via_entity(request, concept):
     return can_user_edit_entity(request, entity)
 
 def user_has_concept_ownership(user, concept):
-    '''
+    """
       [!] Legacy permissions method
 
       Determines whether the user has top-level access to the Concept,
       and can therefore modify it
 
       Args:
-        user {User()} - the user instance
-        concept {Concept()} the concept instance
+        user (User()): the user instance
+        concept (Concept()): the concept instance
 
       Returns:
-        {boolean} that reflects whether the user has top-level access
-    '''
+        (boolean) that reflects whether the user has top-level access
+    """
     if user is None or concept is None:
         return False
 
@@ -722,9 +704,9 @@ def user_has_concept_ownership(user, concept):
     return has_member_access(user, concept, [GROUP_PERMISSIONS.EDIT])
 
 def validate_access_to_view(request, entity_id, entity_history_id=None):
-    '''
+    """
       Validate access to view the entity
-    '''
+    """
 
     # Check if entity_id is valid, i.e. matches regex '^[a-zA-Z]\d+'
     true_entity_id = model_utils.get_entity_id(entity_id)
@@ -743,15 +725,12 @@ def is_brand_accessible(request, entity_id, entity_history_id=None):
             is accessible to a user
 
       Args:
-        request {RequestContext}: the HTTPRequest
-
-        entity_id {string}: the entity's ID
-
-        entity_history_id {int/null}: the entity's historical id
+        request (RequestContext): the HTTPRequest
+        entity_id (string): the entity's ID
+        entity_history_id (int, optional): the entity's historical id
 
       Returns:
-        A {boolean} that reflects its accessibility to the request context
-
+        A (boolean) that reflects its accessibility to the request context
     """
     entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
     if entity is None:
@@ -768,13 +747,13 @@ def is_brand_accessible(request, entity_id, entity_history_id=None):
     return brand.id in related_brands
 
 def allowed_to_create():
-    '''
+    """
       Permit creation unless we have a READ-ONLY application.
-    '''
+    """
     return settings.CLL_READ_ONLY
 
 def allowed_to_permit(user, entity_id):
-    '''
+    """
       The ability to change the owner of an entity remains with the owner and
       not with those granted editing permission. And with superusers to get
       us out of trouble, when necessary.
@@ -783,17 +762,17 @@ def allowed_to_permit(user, entity_id):
         1. user is a super-user
         OR
         2. user owns the object.
-    '''
+    """
     if user.is_superuser:
         return True
 
     return GenericEntity.objects.filter(Q(id=entity_id), Q(owner=user)).exists()
 
 class HasAccessToViewGenericEntityCheckMixin(object):
-  '''
+  """
     Mixin to check if user has view access to a working set
     this mixin is used within class based views and can be overridden
-  '''
+  """
   def dispatch(self, request, *args, **kwargs):
     if not can_user_view_entity(request, self.kwargs['pk']):
       raise PermissionDenied
@@ -801,9 +780,9 @@ class HasAccessToViewGenericEntityCheckMixin(object):
     return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
 
 def get_latest_entity_published(entity_id):
-    '''
+    """
       Gets latest published entity given an entity id
-    '''
+    """
     entity = GenericEntity.history.filter(
         id=entity_id, publish_status=APPROVAL_STATUS.APPROVED)
     if not entity.exists():
@@ -814,11 +793,11 @@ def get_latest_entity_published(entity_id):
     return entity
 
 def get_latest_entity_historical_id(entity_id, user):
-    '''
+    """
       Gets the latest entity history id for a given entity
       and user, given the user has the permissions to access that
       particular entity
-    '''
+    """
     entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
 
     if entity:
@@ -849,11 +828,11 @@ def get_latest_entity_historical_id(entity_id, user):
     return None
 
 def get_latest_concept_historical_id(concept_id, user):
-    '''
+    """
       Gets the latest concept history id for a given concept
       and user, given the user has the permissions to access that
       particular concept
-    '''
+    """
     concept = model_utils.try_get_instance(Concept, pk=concept_id)
 
     if concept:
@@ -883,17 +862,16 @@ def get_latest_concept_historical_id(concept_id, user):
 
     return None
 
-''' Legacy methods that require clenaup '''
+""" Legacy methods that require clenaup """
 def get_publish_approval_status(set_class, set_id, set_history_id):
-    '''
+    """
         [!] Note: Legacy method from ./permissions.py
     
             Updated to only check GenericEntity since Phenotype/WorkingSet
             no longer exists in the current application
         
         @desc Get the publish approval status
-
-    '''
+    """
 
     if set_class == GenericEntity:
         return PublishedGenericEntity.objects.filter(
@@ -907,15 +885,14 @@ def get_publish_approval_status(set_class, set_id, set_history_id):
 
 
 def check_if_published(set_class, set_id, set_history_id):
-    '''
+    """
         [!] Note: Legacy method from ./permissions.py
         
             Updated to only check GenericEntity since Phenotype/WorkingSet
             no longer exists in the current application
         
         @desc Check if an entity version is published
-
-    '''
+    """
     
     if set_class == GenericEntity:
         return PublishedGenericEntity.objects.filter(
@@ -927,14 +904,14 @@ def check_if_published(set_class, set_id, set_history_id):
     return False
 
 def get_latest_published_version(set_class, set_id):
-    '''
+    """
         [!] Note: Legacy method from ./permissions.py
         
             Updated to only check GenericEntity since Phenotype/WorkingSet
             no longer exists in the current application
 
         Get latest published version
-    '''
+    """
 
     latest_published_version = None 
     if set_class == GenericEntity:
@@ -951,7 +928,7 @@ def get_latest_published_version(set_class, set_id):
     return latest_published_version
 
 def try_get_valid_history_id(request, set_class, set_id):
-    '''
+    """
         [!] Note: Legacy method from ./permissions.py
         
         Tries to resolve a valid history id for an entity query.
@@ -959,11 +936,14 @@ def try_get_valid_history_id(request, set_class, set_id):
         then return the most recent version if the user is authenticated,      
         Otherwise, this method will return the most recently published version, if available.
 
-        @param request, the request
-        @param set_class, a model
-        @param set_id, the id of the entity
-        @returns int, a history_id
-    '''
+        Args:
+            request (RequestContext): the request
+            set_class (str): a model
+            set_id (str): the id of the entity
+
+        Returns:
+            int representing history_id
+    """
     set_history_id = None
     is_authenticated = request.user.is_authenticated
 
@@ -978,7 +958,7 @@ def try_get_valid_history_id(request, set_class, set_id):
     return set_history_id
 
 def allowed_to_edit(request, set_class, set_id, user=None):
-    '''
+    """
         Legacy method from ./permissions.py for set_class
 
         Desc:
@@ -995,7 +975,7 @@ def allowed_to_edit(request, set_class, set_id, user=None):
         (skip this for now)(The object must not be marked as deleted - even for superuser)
         --
         user will be read from request.user unless given directly via param: user
-    '''
+    """
 
     if settings.CLL_READ_ONLY:
         return False
