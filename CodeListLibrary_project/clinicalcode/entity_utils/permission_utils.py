@@ -122,7 +122,8 @@ def get_moderation_entities(
 
 def get_editable_entities(
     request,
-    only_deleted=False
+    only_deleted=False,
+    consider_brand=True
 ):
     """
       Tries to get all the entities that are editable by a specific user
@@ -138,6 +139,10 @@ def get_editable_entities(
     entities = GenericEntity.history.all() \
         .order_by('id', '-history_id') \
         .distinct('id')
+
+    brand = model_utils.try_get_brand(request)
+    if consider_brand and brand:
+        entities = entities.filter(Q(brands__overlap=[brand.id]))
 
     if user and not user.is_anonymous:
         query = Q(owner=user.id)
