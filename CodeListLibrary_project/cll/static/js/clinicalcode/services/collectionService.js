@@ -224,9 +224,7 @@ const renderCollectionComponent = (pageType, key, container, data) => {
   }));
 
   data.sort((a, b) => {
-    let id0 = parseInt(a.id.match(/\d+/)[0]);
-    let id1 = parseInt(b.id.match(/\d+/)[0]);
-    return id0 - id1;
+    return new Date(b.updated) - new Date(a.updated);
   });
 
   const datatable = new window.simpleDatatables.DataTable(table, {
