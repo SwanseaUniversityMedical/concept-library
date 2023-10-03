@@ -104,6 +104,19 @@ const submenuMobile = () => {
   }
 }
 
+const searchBar = () => {
+
+  const searchIcon = document.querySelector('.search-navigation__search-icon');
+  const searchInput = document.querySelector('.search-navigation__search-input');
+  searchIcon.addEventListener('mouseover', (e) => {
+    searchInput.focus();
+  });
+
+
+
+  
+}
+
 const nestedMenu = () => {
   const nestedContainer = document.querySelector('.content-container__nested > a');
   const nestedMenu = document.querySelector('.nested-menu');
@@ -171,6 +184,7 @@ domReady.finally(() => {
   updateNavBarStyle(navbar);
   submenuMobile();
   nestedMenu();
+  searchBar();
 
   document.addEventListener('scroll', e => {
     updateNavBarStyle(navbar);
