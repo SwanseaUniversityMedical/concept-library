@@ -36,6 +36,12 @@
         {% include "components/base/about_menu.html" %}
       {% endblock about_wrapper %}
 
+      {% block search_bar %}
+      {% include "components/navigation/search_navigation.html"  %}
+      {% endblock search_bar %}
+
+
+        
       {% url 'login' as login_url %}
       {% if not user.is_authenticated %}
         <!-- Need to change to profile later -->
