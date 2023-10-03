@@ -58,12 +58,11 @@ def check_driver(driver_directory, type_os):
     path_to_directory = os.path.abspath(driver_directory)
 
     try:
-
-        cmd_run = subprocess.run(['cmd.exe','/r',path_to_directory + "/chromedriver --version"], capture_output=True, text=True)
         if IS_LINUX:
-            linux_run = cmd_run
             linux_run = subprocess.run(path_to_directory + "/chromedriver --version",capture_output=True, text=True)
             cmd_run = linux_run
+        else:
+            cmd_run = subprocess.run(['cmd.exe','/r',path_to_directory + "/chromedriver --version"], capture_output=True, text=True)
 
 
     except FileNotFoundError:
@@ -91,8 +90,8 @@ TEST_SLEEP_TIME = 5
 if REMOTE_TEST:
     WEBAPP_HOST = 'http://webapp-test/'
 
-linux_chromdriver = check_driver('clinicalcode/tests/functional_tests','linux')
-windows_chromdriver = check_driver('clinicalcode/tests/functional_tests','windows')
+linux_chromdriver = check_driver('clinicalcode/tests/legacy/functional_tests','linux')
+windows_chromdriver = check_driver('clinicalcode/tests/legacy/functional_tests','windows')
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
