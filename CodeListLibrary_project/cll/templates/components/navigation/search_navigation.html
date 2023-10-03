@@ -1,6 +1,12 @@
+{% load static %}
+{% load i18n %}
+{% load mathfilters %}
+{% load cl_extras %}
+
+{% block content %}
 <form action="{% url 'search_phenotypes' %}" class="search-navigation__search" method="GET">
     <input
-      aria-label="{{search_label}}"
+      aria-label="Search Phenotypes"
       class="search-navigation__search-input"
       id="data-search"
       minlength="3"
@@ -8,11 +14,13 @@
       placeholder="Search..."
     />
     <button
-      aria-label="Go to {{search_label}}"
+      aria-label="Go to search"
       class="search-navigation__search-icon"
       name="page"
       tabindex="0"
       value="1"
     ></button>
   </form>
+
+  {% endblock content %}
   
