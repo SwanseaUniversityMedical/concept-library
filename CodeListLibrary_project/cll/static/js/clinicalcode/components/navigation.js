@@ -111,11 +111,16 @@ const searchBar = () => {
   searchIcon.addEventListener('mouseover', (e) => {
     searchInput.focus();
   });
-
-
-
+  document.addEventListener('mouseout', (e) => {
+    if (searchInput.contains(e.target) || searchIcon.contains(e.target)) {
+      return;
+    }
+    searchInput.blur();
+  });
   
+
 }
+
 
 const nestedMenu = () => {
   const nestedContainer = document.querySelector('.content-container__nested > a');
