@@ -9,6 +9,7 @@ from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.CodingSystem import CodingSystem
 from ..models.Concept import Concept
+from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Component import Component
 from ..models.CodeList import CodeList
 from ..models.Code import Code
@@ -80,7 +81,8 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 item['concept_version_id'],
                 aggregate_component_codes=True,
                 derive_access_from=request,
-                include_source_data=True
+                include_source_data=True,
+                include_attributes=True
             )
 
             if value:
@@ -366,6 +368,11 @@ def validate_concept_form(form, errors):
             errors.append(f'Invalid concept with ID {concept_id} - coding_system is non-nullable int field.')
             return None
 
+        attribute_headers = gen_utils.try_value_as_type(
+            concept_details.get('code_attribute_header'),
+            'string_array'
+        )
+
     concept_components = form.get('components')
     if is_new_concept and (concept_components is None or not isinstance(concept_components, list)):
         errors.append(f'Invalid concept with ID {concept_id} - components is a non-nullable list field.')
@@ -422,7 +429,7 @@ def validate_concept_form(form, errors):
                 errors.append(f'Invalid concept with ID {concept_id} - Component code items are non-nullable, dict field')
                 return None
             
-            is_new_code = component_code.get('is_new')
+            is_new_code = is_new_component or component_code.get('is_new')
             code_id = gen_utils.parse_int(component_code.get('id'), None)
             if not is_new_code and code_id is not None:
                 historical_code = Code.history.filter(id=code_id)
@@ -442,7 +449,15 @@ def validate_concept_form(form, errors):
             # if gen_utils.is_empty_string(code_desc):
             #     errors.append(f'Invalid concept with ID {concept_id} - A code\'s description is a non-nullable, string field')
             #     return None
-            
+
+            if isinstance(attribute_headers, list):
+                code_attributes = gen_utils.try_value_as_type(
+                    component_code.get('attributes'), 'string_array'
+                )
+                if isinstance(code_attributes, list):
+                    code_attributes = code_attributes[:len(attribute_headers)]
+                code['attributes'] = code_attributes
+
             code['is_new'] = is_new_code
             code['code'] = code_name
             code['description'] = code_desc
@@ -471,6 +486,7 @@ def validate_concept_form(form, errors):
     field_value['concept']['is_dirty'] = is_dirty_concept
     field_value['concept']['name'] = concept_name
     field_value['concept']['coding_system'] = concept_coding
+    field_value['concept']['code_attribute_header'] = attribute_headers
     field_value['components'] = components
 
     return field_value
@@ -669,7 +685,6 @@ def try_update_concept(request, item, entity=None):
         
         Returns:
             (Concept()) - the resulting, updated Concept entity
-        
     """
     user = request.user
     if user is None:
@@ -696,17 +711,41 @@ def try_update_concept(request, item, entity=None):
     concept.coding_system = concept_data.get('coding_system')
     concept.modified = make_aware(datetime.now())
     concept.modified_by = request.user
+    concept.code_attribute_header = concept_data.get('code_attribute_header')
     
     req_component_ids = set([obj.get('id') for obj in components_data if not obj.get('is_new')])
     prev_component_ids = set(list(concept.component_set.all().values_list('id', flat=True)))
     
     removed_components = list(set(prev_component_ids) - set(req_component_ids))
     for component_id in removed_components:
+        component_codelist = model_utils.try_get_instance(
+            CodeList, 
+            component__id=component_id
+        )
+        
+        if component_codelist is not None:
+            codelist_codes = Code.objects.filter(
+                code_list__id=component_codelist.id
+            )
+            if codelist_codes.exists():
+                code_attributes = ConceptCodeAttribute.objects.filter(
+                    concept__id=concept_id,
+                    code__in=list(codelist_codes.values_list('code', flat=True))
+                )
+
+                if code_attributes.exists():
+                    code_attributes.delete()
+                codelist_codes.delete()
+            component_codelist.delete()
+
         component = model_utils.try_get_instance(Component, pk=component_id)
         if component is None:
             continue
         component.delete()
-    
+
+    # for attr in concept.conceptcodeattribute_set.all():
+    #     attr.delete()
+
     # Update exiting components, codelists and associated codes
     new_components = []
     existing_components = [obj for obj in components_data if not obj.get('is_new') and obj.get('id') not in removed_components]
@@ -735,18 +774,38 @@ def try_update_concept(request, item, entity=None):
         deleted_codes = list(prev_codes - req_codes)
         
         for code_item in deleted_codes:
-            deleted_codes = Code.objects.filter(code_list_id=codelist.pk, code=code_item)
-            for code in deleted_codes:
-                try:
-                    code.delete()
-                except:
-                    pass
+            removable_codes = Code.objects.filter(code_list_id=codelist.pk, code=code_item)
+            if removable_codes.exists():
+                attribute = ConceptCodeAttribute.objects.filter(
+                    concept_id=concept_id,
+                    code__in=list(removable_codes.values_list('code', flat=True))
+                )
+                if attribute.exists():
+                    attribute.delete()
+
+                removable_codes.delete()
 
         for code_item in added_codes:
             codes = Code.objects.filter(code_list_id=codelist.pk, code=code_item)
+            code_object = next(item for item in new_codes if item['code'] == code_item)
+
             if codes.exists():
-                continue
-            Code.objects.create(code_list=codelist, code=code_item, description=next(item for item in new_codes if item['code'] == code_item).get('description'))
+                codes = codes.first()
+            else:
+                codes = Code.objects.create(
+                    code_list=codelist, 
+                    code=code_item, 
+                    description=code_object.get('description')
+                )
+
+            attributes = code_object.get('attributes')
+            if attributes:
+                ConceptCodeAttribute.objects.create(
+                    concept=concept,
+                    created_by=user,
+                    code=code.get('code'),
+                    attributes=attributes
+                )
 
     # Create new components, codelists and associated codes
     new_components += [obj for obj in components_data if obj.get('is_new')]
@@ -765,11 +824,20 @@ def try_update_concept(request, item, entity=None):
 
         codelist = CodeList.objects.create(component=component, description='-')
         for code in obj.get('codes'):
-            Code.objects.create(
+            codes = Code.objects.create(
                 code_list=codelist,
                 code=code.get('code'),
                 description=code.get('description')
             )
+
+            attributes = code.get('attributes')
+            if attributes:
+                ConceptCodeAttribute.objects.create(
+                    concept=concept,
+                    created_by=user,
+                    code=code.get('code'),
+                    attributes=attributes
+                )
     
     concept.save()
     return concept
@@ -803,7 +871,8 @@ def try_create_concept(request, item, entity=None):
         created_by=user,
         entry_date=make_aware(datetime.now()),
         owner_access=constants.OWNER_PERMISSIONS.EDIT,
-        owner_id=user.id
+        owner_id=user.id,
+        code_attribute_header=concept_data.get('code_attribute_header')
     )
 
     # Create new components, codelists and associated codes
@@ -828,8 +897,21 @@ def try_create_concept(request, item, entity=None):
                 description=code.get('description')
             )
 
+            attributes = code.get('attributes')
+            if attributes:
+                ConceptCodeAttribute.objects.create(
+                    concept=concept,
+                    created_by=user,
+                    code=code.get('code'),
+                    attributes=attributes
+                )
+
     if entity is not None:
         concept.phenotype_owner = entity
+
+    historical = concept.history.latest()
+    historical.history_date = make_aware(datetime.now())
+    historical.save()
 
     concept.save_without_historical_record()
     return concept
@@ -872,7 +954,7 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
                     if result is not None:
                         entities.append({'method': 'update', 'entity': result, 'historical': result.history.latest() })
                         continue
-                
+
                 # If we're not dirty, append the current concept
                 concept_history_id = concept.get('history_id')
                 if concept_history_id is not None:
@@ -881,7 +963,7 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
                     if historical is not None:
                         entities.append({ 'method': 'set', 'entity': result, 'historical': historical })
                         continue
-            
+
             # Create new concept & components
             result = try_create_concept(request, item, entity=entity)
             if result is None:

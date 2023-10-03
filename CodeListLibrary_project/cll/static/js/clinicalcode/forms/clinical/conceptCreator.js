@@ -353,23 +353,6 @@ export default class ConceptCreator {
         continue;
       }
 
-      // Clean prev. attributes from our code(s)
-      if (concept.details?.code_attribute_headers) {
-        concept.components.map(component => {
-          const codes = component.codes.map(item => {
-            const code = { id: item.id, code: item.code, description: item.description };
-            if (item.hasOwnProperty('is_new')) {
-              code.is_new = true;
-            }
-
-            return code;
-          })
-
-          component.codes = codes;
-          return component;
-        });
-      }
-
       // Clean prev. metadata for new concept(s)
       const codingSystem = concept.coding_system.id;
       delete concept.coding_system;
@@ -377,6 +360,7 @@ export default class ConceptCreator {
       concept.details = {
         name: concept.details.name,
         coding_system: codingSystem,
+        code_attribute_header: concept.details.code_attribute_header
       }
 
       cleaned.push(concept);

@@ -423,7 +423,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                 # Add each code
                 codes = codes.values('id', 'code', 'description')
             else:
-                # Annotate each code with its list of attribute values based on the code_attribute_headers
+                # Annotate each code with its list of attribute values based on the code_attribute_header
                 codes = codes.annotate(
                     attributes=Subquery(
                         ConceptCodeAttribute.history.filter(
@@ -555,21 +555,31 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
                       codes.code,
                       codes.description
         )
-
         '''
 
         if incl_attributes:
             sql += '''
-            select included_codes.id,
-                   included_codes.code,
-                   included_codes.description,
+            select included_codes.*,
                    attributes.attributes
               from component as included_codes
               left join component as excluded_codes
                 on excluded_codes.code = included_codes.code
                and excluded_codes.logical_type = 2
-              left join public.clinicalcode_conceptcodeattribute as attributes
+              left join (
+                  select attr.*
+                    from concept as concept
+                    join public.clinicalcode_historicalconceptcodeattribute as attr
+                      on attr.concept_id = concept.id
+                     and attr.history_date <= concept.history_date
+                    left join public.clinicalcode_historicalconceptcodeattribute as deleted_attr
+                      on deleted_attr.id = attr.id
+                     and deleted_attr.history_type = '-'
+                     and deleted_attr.history_date <= concept.history_date
+                   where attr.history_type <> '-'
+                     and deleted_attr.id is null
+              ) as attributes
                 on attributes.concept_id = included_codes.concept_id
+               and attributes.history_date <= included_codes.concept_history_date
                and attributes.code = included_codes.code
              where included_codes.logical_type = 1
                and excluded_codes.code is null;
@@ -869,7 +879,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
     # Only append header attribute if not null
     if attribute_headers is not None:
-        concept_data['code_attribute_headers'] = attribute_headers
+        concept_data['code_attribute_header'] = attribute_headers
     
     # Set phenotype owner
     phenotype_owner = concept.phenotype_owner

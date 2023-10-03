@@ -91,7 +91,7 @@ def get_request_body(request):
         Decodes the body of a request and attempts to load it as JSON
     """
     try:
-        body = request.body.decode('utf-8');
+        body = request.body.decode('utf-8')
         body = json.loads(body)
         return body
     except:
