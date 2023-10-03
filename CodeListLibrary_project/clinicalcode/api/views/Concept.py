@@ -134,6 +134,10 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
             historical_concept.history_id,
             incl_attributes=True
         )
+        for code in concept_codes:
+            code['attributes'] = dict(zip(
+                historical_concept.code_attribute_header, code['attributes']
+            ))
         
         return Response(
             data=concept_codes,

@@ -298,7 +298,7 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
 
 def get_concept_component_details(concept_id, concept_history_id, aggregate_codes=False,
                                   include_codes=True, attribute_headers=None,
-                                  include_source_data=False):
+                                  include_source_data=False, format_for_api=False):
     """
       [!] Note: This method ignores permissions - it should only be called from a
                 a method that has previously considered accessibility
@@ -309,18 +309,15 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
       Args:
         concept_id (number): The concept ID of interest
         concept_history_id (number): The concept's historical id of interest
-
         aggregate_codes (boolean): If true, will return a 'codelist' key-value pair in the result dict that
                                     describes the distinct, aggregated codes across all components
-
         include_codes (boolean): If true, will return a 'codes' key-value pair within each component
                                   that describes each code included in a component
-
         attribute_headers (list): If a non-null list is passed, the method will attempt to find the attributes
                                   associated with each code within every component (and codelist)
-        
         include_source_data (boolean): Flag to det. whether we should incl. source data e.g. wildcard, desc search etc
-
+        format_for_api (boolean): Flag to format against legacy API
+        
       Returns:
         dict: A dict that describes the components and their details associated with this historical concept,
         and if aggregate_codes was passed, will return the distinct codelist across components
@@ -422,6 +419,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
             if attribute_headers is None:
                 # Add each code
                 codes = codes.values('id', 'code', 'description')
+                codes = list(codes)
             else:
                 # Annotate each code with its list of attribute values based on the code_attribute_header
                 codes = codes.annotate(
@@ -452,7 +450,12 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                 ) \
                 .values('id', 'code', 'description', 'attributes')
 
-            codes = list(codes)
+                codes = list(codes)
+                if format_for_api:
+                    for code in codes:
+                        code['attributes'] = dict(zip(
+                            historical_concept.code_attribute_header, code['attributes']
+                        ))
 
             # Append codes to component if required
             if include_codes:
@@ -751,26 +754,16 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
       Args:
         concept_id (number): The concept ID of interest
-
         concept_history_id (number): The concept's historical id of interest
-
         include_reviewed_codes (boolean): When building the data, should we pull the finalised reviewed codes?
-
         aggregate_component_codes (boolean): When building the codelist, should we aggregate across components?
-
         include_component_codes (boolean): When building the components, should we incl. a codelist for each component?
-
         include_attributes (boolean): Should we include attributes?
-
         strippable_fields (list): Whether to strip any fields from the Concept model when
                                   building the concept's data result
-
         remove_userdata (boolean): Whether to remove userdata related fields from the result (assoc. with each Concept)
-
         derive_access_from (RequestContext): Using the RequestContext, determine whether a user can edit a Concept
-
         format_for_api (boolean): Flag to format against legacy API
-
         include_source_data (boolean): Flag to det. whether we should incl. source data e.g. wildcard, desc search etc
 
       Returns:
@@ -778,7 +771,6 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         by the method parameters
 
         If a RequestContext was provided, per the derive_access_from param, it will return a permission context
-
     """
 
     # Try to find the associated concept and its historical counterpart
@@ -874,7 +866,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         aggregate_codes=aggregate_component_codes,
         include_codes=include_component_codes,
         attribute_headers=attribute_headers,
-        include_source_data=include_source_data
+        include_source_data=include_source_data,
+        format_for_api=format_for_api
     )
 
     # Only append header attribute if not null

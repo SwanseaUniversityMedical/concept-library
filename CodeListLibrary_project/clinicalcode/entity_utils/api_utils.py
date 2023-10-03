@@ -395,7 +395,11 @@ def get_entity_detail_from_layout(
             value = template_utils.get_entity_field(entity, field)
             if value:
                 result[field] = build_final_codelist_from_concepts(
-                    entity, concept_information=value, inline=False
+                    entity, 
+                    concept_information=value, 
+                    inline=False, 
+                    include_concept_detail=False,
+                    include_headers=True
                 )
         else:
             value = template_utils.get_template_data_values(
@@ -562,7 +566,12 @@ def get_entity_detail(
         status=status.HTTP_200_OK
     )
 
-def build_final_codelist_from_concepts(entity, concept_information, inline=True):
+def build_final_codelist_from_concepts(
+        entity, 
+        concept_information, 
+        inline=True,
+        include_concept_detail=True, 
+        include_headers=False):
     """
       Builds the final codelist from all entity concepts
 
@@ -597,12 +606,27 @@ def build_final_codelist_from_concepts(entity, concept_information, inline=True)
             'phenotype_name': entity.name
         }
 
+        if include_headers:
+            concept_data |= { 'code_attribute_header': concept_entity.code_attribute_header}
+
         # Get codes
         concept_codes = concept_utils.get_concept_codelist(
             concept_id,
             concept_version,
-            incl_attributes=False
+            incl_attributes=True
         )
+        for i, code in enumerate(concept_codes):
+            if not include_concept_detail:
+                concept_codes[i] = {
+                    'code': code.get('code'),
+                    'description': code.get('description'),
+                    'attributes': code.get('attributes')
+                }
+
+            concept_codes[i]['attributes'] = dict(zip(
+                concept_entity.code_attribute_header, code.get('attributes')
+            ))
+
         if inline:
             concept_codes = [data | concept_data for data in concept_codes]
             result += concept_codes
