@@ -17,6 +17,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - run: sudo apt-fast install -y google-chrome
     - uses: nanasess/setup-chromedriver@v1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
