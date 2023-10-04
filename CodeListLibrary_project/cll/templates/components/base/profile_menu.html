@@ -22,7 +22,14 @@
               <div class="item-dropdown__title">Admin</div> 
             </a>
           {% endif %}
+          <a href="{% url 'my_collection' %}" class="item-dropdown">
+            <div class="item-dropdown__icon" id="collection_icon">
+              {% svg "collection_icon" %}
+            </div>
+            <div class="item-dropdown__title">My collection</div> 
+          </a>
         </li>
+        <hr/>
 
         <!-- Brands -->
         {% if request.user.is_superuser  and request.session.all_brands %}
