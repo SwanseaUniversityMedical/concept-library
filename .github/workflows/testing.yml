@@ -17,7 +17,14 @@ jobs:
 
   
     steps:
-    - uses: actions/checkout@v3      
+    - uses: actions/checkout@v3 
+    - name: Load env file
+      id: env
+      uses: falti/dotenv-action@v1.0.4
+      with:
+          path: docker/development/env/app.compose.env
+          log-variables: true
+          export-variables: true
     - uses: browser-actions/setup-chrome@v1
     - run: chrome --version
     - name: Set up Python ${{ matrix.python-version }}
