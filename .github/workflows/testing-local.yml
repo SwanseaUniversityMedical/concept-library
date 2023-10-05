@@ -20,6 +20,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Load env file
+      id: env
+      uses: falti/dotenv-action@v1.0.4
+      with:
+          path: docker/development/env/app.compose.env
+          log-variables: true
+          export-variables: true
+
     - name: Install Chrome Deps
       run: |
           sudo apt-get update
@@ -43,6 +51,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r docker/requirements/base.txt
     - name: Run Tests
+      env_file:
+          - ./development/env/app.compose.env
       run: |
         export DISPLAY=:99
         chromedriver --url-base=/wd/hub &
