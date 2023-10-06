@@ -25,58 +25,9 @@ from selenium import webdriver
 
 from .settings import *
 
-import wget
-import subprocess
-import requests
 import os
-import zipfile
+from webdriver_manager.chrome import ChromeDriverManager
 
-
-def download_lates_driver(version, directory_driver, type_os):
-    url_windows = "https://chromedriver.storage.googleapis.com/" + version + "/chromedriver_win32.zip"
-    url_linux = "https://chromedriver.storage.googleapis.com/" + version + "/chromedriver_linux64.zip"
-
-    driver_zip = ''
-    if type_os == 'windows':
-        driver_zip = wget.download(url_windows, out=directory_driver)
-
-    elif type_os == 'linux':
-        driver_zip = wget.download(url_linux, out=directory_driver)
-
-    with zipfile.ZipFile(driver_zip, 'r') as downloaded_zip:
-        downloaded_zip.extractall(path=directory_driver)
-
-    os.remove(driver_zip)
-    return
-
-
-def check_driver(driver_directory, type_os):
-    url_latest_release = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
-    response = requests.get(url_latest_release)
-    online_drive_version = response.text
-
-    path_to_directory = os.path.abspath(driver_directory)
-
-    try:
-        if IS_LINUX:
-            linux_run = subprocess.run(path_to_directory + "/chromedriver --version",capture_output=True, text=True)
-            cmd_run = linux_run
-        else:
-            cmd_run = subprocess.run(['cmd.exe','/r',path_to_directory + "/chromedriver --version"], capture_output=True, text=True)
-
-
-    except FileNotFoundError:
-        print("No chromedriver")
-        download_lates_driver(online_drive_version, driver_directory, type_os)
-    else:
-        local_drive_version = cmd_run.stdout.split()[1]
-        print(f'Local version of chromedrive:{local_drive_version}')
-        print(f'Web version of chromedrive:{online_drive_version}')
-
-        if local_drive_version == online_drive_version:
-            return True
-        else:
-            download_lates_driver(online_drive_version, driver_directory, type_os)
 
 
 WEBAPP_HOST = ''
@@ -90,21 +41,26 @@ TEST_SLEEP_TIME = 5
 if REMOTE_TEST:
     WEBAPP_HOST = 'http://webapp-test/'
 
-linux_chromdriver = check_driver('clinicalcode/tests/legacy/functional_tests','linux')
-windows_chromdriver = check_driver('clinicalcode/tests/legacy/functional_tests','windows')
 
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
+chrome_options = webdriver.ChromeOptions()    
+# Add your options as needed    
+options = [
+   "--window-size=1200,1200",
+   "--ignore-certificate-errors",
+   "prefs", {'profile.managed_default_content_settings.javascript': 'enable'},
+   "--window-size=1280,800",
+   "--verbose",
+   "--start-maximized",
+   "--disable-gpu",
+   "--allow-insecure-localhost",
+   "--disable-dev-shm-usage",
+   "--no-sandbox",
+   '--headless'
+]
+for option in options:
+    chrome_options.add_argument(option)
 
-chrome_options.add_argument('--headless')
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-
-chrome_options.add_argument("--start-maximized")
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--window-size=1280,800")
-chrome_options.add_argument("--allow-insecure-localhost")
-chrome_options.add_argument("--verbose")
+driver = webdriver.Chrome(ChromeDriverManager().install(),options=chrome_options)
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
