@@ -26,7 +26,7 @@ from selenium import webdriver
 from .settings import *
 
 import os
-from webdriver_manager.chrome import ChromeDriverManager
+
 
 
 
@@ -41,7 +41,9 @@ TEST_SLEEP_TIME = 5
 if REMOTE_TEST:
     WEBAPP_HOST = 'http://webapp-test/'
 
+import chromedriver_autoinstaller
 
+chromedriver_autoinstaller.install("CodeListLibrary_project/clinicalcode/tests/legacy/functional_tests/chromedriver")
 chrome_options = webdriver.ChromeOptions()    
 # Add your options as needed    
 options = [
@@ -60,7 +62,7 @@ options = [
 for option in options:
     chrome_options.add_argument(option)
 
-driver = webdriver.Chrome(ChromeDriverManager().install(),options=chrome_options)
+driver = webdriver.Chrome(options=chrome_options)
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 

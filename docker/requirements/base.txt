@@ -32,6 +32,7 @@ redis==4.5.3
 selenium==4.4.3
 swagger-spec-validator==2.7.6
 typing==3.7.4.3
+chromedriver_autoinstaller==0.6.2
 tzdata==2022.2
 urllib3==1.26.12
 wget==3.2
