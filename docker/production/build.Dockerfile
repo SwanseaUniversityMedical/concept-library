@@ -1,4 +1,3 @@
-
 FROM python:3.9-slim-bullseye
 
 ARG http_proxy
