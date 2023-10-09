@@ -7,7 +7,7 @@ on:
 
 permissions:
   # read needed for changes detection
-  # write needed to author a Github release
+  # write needed to author a Github release 
   contents: write
 
 concurrency:
