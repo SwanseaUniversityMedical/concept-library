@@ -50,7 +50,6 @@ chrome_options = webdriver.ChromeOptions()
 options = [
    "--window-size=1200,1200",
    "--ignore-certificate-errors",
-   "prefs", {'profile.managed_default_content_settings.javascript': 'enable'},
    "--window-size=1280,800",
    "--verbose",
    "--start-maximized",
@@ -62,6 +61,8 @@ options = [
 ]
 for option in options:
     chrome_options.add_argument(option)
+
+chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
 
 driver = webdriver.Chrome(options=chrome_options)
 
