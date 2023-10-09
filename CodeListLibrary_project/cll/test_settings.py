@@ -43,7 +43,7 @@ if REMOTE_TEST:
 
 import chromedriver_autoinstaller
 
-chromedriver_autoinstaller.install()
+#chromedriver_autoinstaller.install('/var/www/concept_lib_sites/v1/chromedriver')
 
 chrome_options = webdriver.ChromeOptions()    
 # Add your options as needed    
@@ -64,7 +64,7 @@ for option in options:
     chrome_options.add_argument(option)
 
 driver = webdriver.Chrome(options=chrome_options)
-print("pidor")
+
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
