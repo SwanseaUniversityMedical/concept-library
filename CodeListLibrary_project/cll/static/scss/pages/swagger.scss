@@ -1,0 +1,48 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Swagger template
+///   @desc Stylesheet relating to the API page
+.swagger-container {
+  margin: var(--main-top-padding) 0 0 0;
+}
+
+.information-container {
+  padding: 0 0.1rem !important;
+}
+
+.scheme-container {
+  box-shadow: none !important;
+}
+
+div.info {
+  margin: 0 !important;
+}
+
+.api-about {
+  @include flex-col();
+  max-width: 1460px;
+  padding: 0;
+
+  &__section {
+    p {
+      margin: 0;
+      padding: 0;
+    }
+
+    ul {
+      margin-top: 0.3rem;
+    }
+  }
+}
+
+.auth-wrapper,
+.wrapper {
+  flex-wrap: wrap;
+}
+
+.base-url {
+  text-wrap: wrap;
+}

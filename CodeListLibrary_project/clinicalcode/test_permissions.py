@@ -6,16 +6,13 @@
 
 from django.test import TestCase
 
-
 class SmokeTest(TestCase):
-
     @classmethod
     def setUp(self):
         print("Permissions tests ...")
 
     '''def test_bad_maths(self):
         self.assertEqual(1 + 1, 3)'''
-
 
 """
 '''

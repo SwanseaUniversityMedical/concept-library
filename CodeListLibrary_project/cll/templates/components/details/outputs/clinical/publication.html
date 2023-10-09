@@ -1,0 +1,26 @@
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <div class="publication-list-group">
+    <section class="publication-list-group__list show" id="publication-group">
+      <!-- <div class="publication-list-group__list-container " id="publication-list"> -->
+        {% if component.value|length %}
+          <ul>
+              {% for p in component.value %}
+                  <li>{{ p.details|markdownify }}
+                    {% if p.doi %}
+                    (DOI:{{ p.doi }})
+                    {% endif %}
+                  </li>
+              {% endfor %}
+          </ul>
+        {% else %}
+        <span class="card-no-data">No publications</span>
+        {% endif %}
+      <!-- </div> -->
+    </section>
+  </div>
+</div>

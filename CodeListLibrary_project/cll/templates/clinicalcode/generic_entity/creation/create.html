@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| {% if form_method.value == 1 %} Create your Phenotype {% else %} Update your Phenotype{% endif %}{% endblock title %}
+
+{% block cache_tags %}
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+{% endblock cache_tags %}
+
+{% block indexing_robots %}
+  {% with stop_robot_indexing=True %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock indexing_robots %}
+
+{% block container %}
+  <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
+
+  {% compress js %}
+    <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/forms/entityCreator.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  {% compress css %}
+    <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
+  {% endcompress %}
+
+  <header class="main-header">
+    <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+      {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+      {% endbreadcrumbs %}
+    </div>
+  </header>
+  
+  <main class="main-content">
+    {% render_wizard_navigation %}
+    {% endrender_wizard_navigation %}
+
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="phenotype-creation">
+        <section class="phenotype-creation__header">
+          {% if form_method.value == 1 %}
+            <h1>Create a new Phenotype:<span>step by step</span></h1>
+            <p>Follow the steps below to create and publish your Phenotype.</p>
+          {% else %}
+            <h1>Update your Phenotype:<span>step by step</span></h1>
+            <p>Follow the steps below to update and publish your Phenotype.</p>
+          {% endif %}
+        </section>
+        
+        {% if is_historical %}
+          <section class="phenotype-creation__alert">
+            <div class="phenotype-creation__alert-content">
+              <div class="phenotype-creation__alert-icon"></div>
+              <div class="text">
+                <h3>Legacy Phenotype</h3>
+                <p>You are editing a legacy version of this Phenotype.</p>
+              </div>
+            </div>
+          </section>
+        {% endif %}
+        
+        <ol class="phenotype-progress" id="main-wizard">
+          {% render_wizard_sections %}
+          {% endrender_wizard_sections %}
+        </ol>
+
+        <section class="phenotype-creation__completed" id="completed-section">
+          <div class="phenotype-creation__completed-row">
+            <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="cancel-entity-btn">
+              Cancel
+            </button>
+            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create or Update Entity" id="submit-entity-btn">
+              {% if form_method.value == 1 %}
+              Create Phenotype
+              {% else %}
+              Update Phenotype
+              {% endif %}
+            </button>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <data aria-hidden="true" data-owner="entity-creator" id="referral-links" name="links" type="text/json" referral-url="{% url 'search_phenotypes' %}"></data>
+  <data aria-hidden="true" data-owner="entity-creator" id="form-method" name="method" type="int">{{ form_method.value }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="historical-data" name="is_historical" type="int">
+    {% if is_historical %}
+      1
+    {% else %}
+      0
+    {% endif %}
+  </data>
+  <data aria-hidden="true" data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|striptags }}</data>
+  <data aria-hidden="true" data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|striptags }}</data>
+
+  {% if entity is not None %}
+  <data aria-hidden="true" data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ entity|jsonify|striptags }}</data>
+  {% endif %}
+
+  {% if object_reference is not None %}
+  <data aria-hidden="true" data-owner="entity-creator"id="entity-object" name="object" type="text/json"
+    referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
+
+    {{ object_reference|jsonify|striptags }}
+  </data>
+  {% endif %}
+{% endblock container %}

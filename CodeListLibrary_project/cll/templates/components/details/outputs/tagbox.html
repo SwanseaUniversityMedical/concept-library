@@ -1,0 +1,18 @@
+{% load entity_renderer %}
+<div class="detailed-input-group fill">
+  <div class="box-container">
+    <div class="row">
+      <span id="entity-{{ component.field_name }}"></span>
+      <div class="col-sm-2 row-padding">{{ component.field_data.title }}</div>
+      <div class="col-sm-10">
+          {% if component.value|length %}
+            {% for c in component.value %}
+                <span class="badge">{{ c.name }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="card-no-data">No data</span>
+          {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

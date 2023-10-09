@@ -1,0 +1,48 @@
+{% load static %}
+{% load entity_renderer %}
+
+<article class="entity-card" data-target="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}"
+  data-entity-id="{{ entity.id }}" data-entity-version-id="{{ entity.history_id }}" data-layout-id="{{ layout.id }}"
+  aria-label="View {{ entity.name }}">
+
+  <a class="entity-card__click" href="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}">
+    <div class="entity-card__header">
+      <div class="entity-card__header-item">
+        <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
+        <p class="entity-card__author">{{ entity.author }}</p>
+      </div>
+      {% if entity.publish_status != 2 %}
+        <div class="entity-card__header-item">
+          <span tooltip="This is yet to be moderated" direction="left">
+            <div class="chip bold washed-accent text-accent-darkest draft-icon icon-accent-highlight">
+              <span class="chip-text" href="#">UNPUBLISHED</span>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    <div class="entity-card__snippet">
+      <div class="entity-card__snippet-metadata">
+        <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
+      </div>
+      <div class="entity-card__snippet-tags">
+        <div class="entity-card__snippet-tags-group">
+          {% renderable_field_values entity layout "tags" as tags %}
+          {% for tag in tags %}
+            <div class="meta-chip meta-chip-washed-accent">
+              <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ tag.name }}</span>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="entity-card__snippet-tags-group">
+          {% renderable_field_values entity layout "collections" as collections %}
+          {% for collection in collections %}
+            <div class="meta-chip meta-chip-tertiary-accent">
+              <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ collection.name }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </a>
+</article>

@@ -1,0 +1,215 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Pagination
+///   @desc used for search results
+.pagination-box {
+  @include flex-row();
+  margin: 1rem 0 0 0;
+  align-self: flex-end;
+  justify-content: flex-end;
+
+  &.push-bottom {
+    margin-bottom: auto;
+  }
+}
+
+.pagination-container {
+  @include flex-row();
+  @include prefix(transition, all 250ms ease, webkit moz o);
+  justify-content: center;
+  align-items: center;
+
+  &__details {
+    @include flex-row();
+
+    &-number {
+      margin-right: 1rem;
+    }
+  }
+
+  &__previous {
+    @include flex-row();
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    &[data-disabled="true"] {
+      & > li {
+        background: var(--pagination-disabled-color);
+
+        & > a {
+          cursor: default;
+          pointer-events: none;
+        }
+      }
+    }
+
+    &:not([data-disabled="true"]) > li:not(.disabled):not(.divider):active, 
+    &:not([data-disabled="true"]) > li:not(.disabled):not(.divider) > a:active {
+      @include prefix(transform, scale(0.9), webkit moz o);
+    }
+
+    &:not([data-disabled="true"]) > li:not(.disabled):not(.divider):hover,
+    &:not([data-disabled="true"]) > li:not(.disabled):not(.divider) > a:hover {
+      background: var(--pagination-active-color);
+    }
+
+    & > li {
+      background: var(--pagination-inactive-color);
+      margin: .5rem;
+      border-radius: 0.1rem;
+
+      & > a {
+        @include clear-anchor();
+        display: block;
+        padding: 0.5rem 1rem;
+        color: col(text-darker);
+      }
+    }
+  }
+
+  &__next {
+    @include flex-col();
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    
+    &[data-disabled="true"] {
+      & > li {
+        background: var(--pagination-disabled-color);
+
+        & > a {
+          cursor: default;
+          pointer-events: none;
+        }
+      }
+    }
+
+    &:not([data-disabled="true"]) > li:not(.disabled):not(.divider):active, 
+    &:not([data-disabled="true"]) > li:not(.disabled):not(.divider) > a:active {
+      @include prefix(transform, scale(0.9), webkit moz o);
+    }
+
+    &:not([data-disabled="true"]) > li:not(.disabled):not(.divider):hover,
+    &:not([data-disabled="true"]) > li:not(.disabled):not(.divider) > a:hover {
+      background: var(--pagination-active-color);
+    }
+
+    & > li {
+      background: var(--pagination-inactive-color);
+      margin: .5rem;
+      border-radius: 0.1rem;
+
+      & > a {
+        @include clear-anchor();
+        display: block;
+        padding: 0.5rem 1rem;
+        color: col(text-darker);
+      }
+    }
+  }
+
+  &__pages {
+    @include flex-row();
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    @include media('<tablet', 'screen') {
+      display: none;
+    }
+
+    &[data-disabled="true"] {
+      & > li {
+        background: var(--pagination-disabled-color);
+
+        & > a {
+          cursor: default;
+          pointer-events: none;
+        }
+      }
+    }
+
+    &:not([data-disabled="true"]) > li:not(.divider):not(.disabled):not(.is-active):active, 
+    &:not([data-disabled="true"]) > li:not(.divider):not(.disabled):not(.is-active) > a:active {
+      @include prefix(transform, scale(0.9), webkit moz o);
+    }
+
+    &:not([data-disabled="true"]) > li:not(.divider):not(.disabled):not(.is-active):hover,
+    &:not([data-disabled="true"]) > li:not(.divider):not(.disabled):not(.is-active) > a:hover {
+      background: var(--pagination-active-color);
+    }
+
+    & > li {
+      background: var(--pagination-inactive-color);
+      margin: .5rem;
+      border-radius: 0.1rem;
+
+      &.is-active {
+        background: var(--pagination-disabled-color);
+
+        & > a {
+          cursor: default;
+          pointer-events: none;
+          color: col(text-brightest);
+        }
+      }
+
+      & > a {
+        @include clear-anchor();
+        display: block;
+        padding: 0.5rem 1rem;
+        color: col(text-darker);
+      }
+
+      &.divider {
+        background-color: col(accent-transparent);
+
+        &:after {
+          content: '...';
+          position: absolute;
+          bottom: 0;
+          left: 0.75rem;
+        }
+      }
+
+      @include media('<desktop', 'screen') {
+        &.divider {
+          display: none;
+        }
+
+        &:nth-child(2) ~ li:not(.is-active) {
+          display: none;
+        }
+
+        &:nth-child(2) {
+          margin-right: 3rem;
+        }
+
+        &:nth-last-child(3) ~ li:not(.divider) {
+          display: block;
+        }
+
+        &:nth-child(2):after {
+          content: '...';
+          position: absolute;
+          bottom: 0;
+          right: -2rem;
+        }
+      }
+    }
+  }
+
+  li.disabled {
+    background: var(--pagination-disabled-color);
+    
+    & > a {
+      cursor: default;
+      pointer-events: none;
+      color: col(text-brightest);
+    }
+  }
+}

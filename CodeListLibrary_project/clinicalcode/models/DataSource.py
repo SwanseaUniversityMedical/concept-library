@@ -1,9 +1,8 @@
-from clinicalcode.models.Brand import Brand
-from clinicalcode.models.TimeStampedModel import TimeStampedModel
 from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
+from clinicalcode.models.TimeStampedModel import TimeStampedModel
 
 class DataSource(TimeStampedModel):
     """
@@ -23,9 +22,6 @@ class DataSource(TimeStampedModel):
                                    on_delete=models.SET_NULL,
                                    null=True,
                                    related_name="data_source_updated")
-
-    #brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name="data_source_brand")
-    
     datasource_id = models.IntegerField(unique=True, null=True)
 
     history = HistoricalRecords()
@@ -34,7 +30,3 @@ class DataSource(TimeStampedModel):
 
     def __str__(self):
         return self.name
-
-
-#     class Meta:
-#         unique_together = (("name", "uid", "url", "description"),)

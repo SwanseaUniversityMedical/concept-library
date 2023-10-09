@@ -1,0 +1,303 @@
+{% load static %}
+{% load entity_renderer %}
+
+<section class="concepts-view" id="concepts-view" data-field="{{ component.field_name }}" data-class="clinical-concept">
+  <data aria-hidden="true" type="value" for="{{ component.field_name }}">{% if component.value %}{{ component.value|jsonify|striptags }}{% endif %}</data>
+
+  <section class="concepts-view__header">
+    <div class="concepts-view__container">
+      <p class="concepts-view__title">Your Concepts {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+      <p class="concepts-view__description">The Concepts that relate to this Phenotype:</p>
+    </div>
+    <div class="concepts-view__container as-row">
+      <button class="secondary-btn text-accent-darkest bold icon create-icon secondary-accent" aria-label="Create new Concept" id="create-concept-btn">
+        New Concept
+      </button>
+      <button class="secondary-btn text-accent-darkest bold icon import-icon secondary-accent" aria-label="Import Concepts" id="import-concept-btn">
+        Import Concepts
+      </button>
+    </div>
+  </section>
+
+  <section class="concept-list__none-available" id="no-available-concepts">
+    <p class="concept-list__none-available-message">You haven't added any concepts yet</p>
+  </section>
+  
+  <section class="concept-list" id="concept-content-list">
+
+  </section>
+
+  <template id="concept-item">
+    <section class="concept-list__group" data-concept-id="${concept_id}" data-concept-history-id="${concept_version_id}">
+      <span class="concept-list__group-item" id="concept-accordian-header">
+        <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
+        <span class="concept-name" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">
+          ${concept_name} | ${coding_system}${out_of_date ? ' | <strong>Legacy Version</strong>' : ''}
+        </span>
+        <span class="concept-buttons">
+          ${can_edit
+            ? `
+            <span tooltip="Edit Concept" direction="left">
+              <span class="edit-icon" tabindex="0" aria-label="Edit Concept" role="button" data-target="edit"></span>
+            </span>
+            `
+            : ``
+          }
+          <span tooltip="Delete Concept" direction="left">
+            <span class="delete-icon" tabindex="0" aria-label="Delete Concept" role="button" data-target="delete"></span>
+          </span>
+        </span>
+      </span>
+
+      <section class="concept-group-content" id="concept-content">
+        <!-- Finalised concept content when not editing -->
+        <section class="concept-group-content__container show" id="concept-information">
+          <section class="concept-group-content__details">
+            <h4>
+              ${subheader}
+            </h4>
+            <ul class="chips-group" id="concept-chips">
+              <li class="chip bold warning-accent text-accent-darkest alert-icon icon-accent-danger ${out_of_date ? 'show' : 'hide'}">
+                <a id="update-latest-version" class="chip-text">Update to Latest</a>
+              </li>
+              <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight" disabled>
+                <a id="coding-system-info" class="chip-text" data-coding-id="${coding_id}">${coding_system}</a>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Codelist section -->
+          <section class="concept-group-content__no-codes" id="no-available-codelist">
+            <p class="concept-group-content__no-codes-message">You haven't added any codes yet</p>
+          </section>
+          <div class="constrained-codelist-table" id="concept-codelist-table">
+            
+          </div>
+        </section>
+      </section>
+    </section>
+  </template>
+
+  <template id="concept-editor">
+    <section class="concept-group-content__container show" id="concept-editing">
+      <div class="detailed-input-group fill">
+        <h3 class="detailed-input-group__title">Name</h3>
+        <p class="detailed-input-group__description">The name of the Concept</p>
+        <input class="text-input" aria-label="Concept Name" type="text" id="concept-name" name="concept-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${concept_name}" aria-required="true">
+      </div>
+      <div class="detailed-input-group fill">
+        <h3 class="detailed-input-group__title">Coding System</h3>
+        <p class="detailed-input-group__description">Clinical coding system used to build this Concept's codelist.</p>
+        <select class="selection-input" name="coding-system" id="coding-system-select" aria-label="Select Coding System" data-value="${coding_system_id}" aria-required="true">
+          ${coding_system_options}
+        </select>
+      </div>
+
+      <section class="concept-group-content__details">
+        <div class="concept-group-content__details-explanation">
+          <h3>Inclusion Rules</h3>
+          <p class="concept-group-content__details-explanation-description">These rules are used to include codes within your codelist</p>
+        </div>
+        <div class="concept-group-content__editor-selection">
+          <fieldset class="dropdown-btn">
+            <label aria-label="Add Ruleset Selection" role="dropdown" tabindex="0" id="add-ruleset" data-type="INCLUDE" for="open-incl-ruleset">
+              <input type="radio" class="dropdown-btn__input" name="incl-ruleset-btn" id="open-incl-ruleset">
+              <div class="dropdown-btn__label">Add Rule</div>
+              <input type="radio" class="dropdown-btn__close" id="close-incl-ruleset" name="incl-ruleset-btn">
+              <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-incl-ruleset"></label>
+              <ul class="dropdown-btn__menu fall-right">
+                <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
+                <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
+                <li aria-label="Add Concept Import Rule" role="button" tabindex="0" data-source="CONCEPT_IMPORT">Import from Concept</li>
+              </ul>
+            </label>
+          </fieldset>
+        </div>
+      </section>
+
+      <section class="ruleset-group" id="inclusion-rulesets">
+        <section class="ruleset-group__none-available ${has_inclusions ? '' : 'show'}" id="no-rules">
+          <p class="ruleset-group__none-available-message">You haven't added any inclusion rules yet</p>
+        </section>
+        <section class="ruleset-group__container" id="rules-list">
+
+        </section>
+      </section>
+
+      <section class="concept-group-content__details">
+        <div class="concept-group-content__details-explanation">
+          <h3>Exclusion Rules</h3>
+          <p class="concept-group-content__details-explanation-description">These rules are used to exclude codes within your codelist, they take priority over inclusionary rules</p>
+        </div>
+        <div class="concept-group-content__editor-selection">
+          <fieldset class="dropdown-btn">
+            <label aria-label="Add Ruleset Selection" role="dropdown" tabindex="0" id="add-ruleset" data-type="EXCLUDE" for="open-excl-ruleset">
+              <input type="radio" class="dropdown-btn__input" name="excl-ruleset-btn" id="open-excl-ruleset">
+              <div class="dropdown-btn__label">Add Rule</div>
+              <input type="radio" class="dropdown-btn__close" id="close-excl-ruleset" name="excl-ruleset-btn" checked>
+              <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-excl-ruleset"></label>
+              <ul class="dropdown-btn__menu fall-right">
+                <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
+                <li aria-label="Add Concept Import Rule" role="button" tabindex="0" data-source="CONCEPT_IMPORT">Import from Concept</li>
+              </ul>
+            </label>
+          </fieldset>
+        </div>
+      </section>
+      
+      <section class="ruleset-group" id="exclusion-rulesets">
+        <section class="ruleset-group__none-available ${has_exclusions ? '' : 'show'}" id="no-rules">
+          <p class="ruleset-group__none-available-message">You haven't added any exclusion rules yet</p>
+        </section>
+        <section class="ruleset-group__container" id="rules-list">
+          
+        </section>
+      </section>
+
+      <section class="concept-group-content__details">
+        <div class="concept-group-content__details-explanation">
+          <h3>Codelist</h3>
+          <p class="concept-group-content__details-explanation-description">The codelist associated with this Concept</p>
+        </div>
+      </section>
+      <section class="concept-group-content__no-codes" id="no-available-codelist">
+        <p class="concept-group-content__no-codes-message">You haven't added any codes yet</p>
+      </section>
+      <div class="constrained-codelist-table" id="aggregated-codelist-table">
+        
+      </div>
+
+      <div class="concept-group-content__editor-buttons">
+        <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Cancel Changes" id="cancel-changes">Cancel</button>
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Confirm Changes" id="confirm-changes">Confirm</button>
+      </div>
+    </section>
+  </template>
+
+  <template id="search-rule">
+    <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
+      <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
+      <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
+      </label>
+      <article class="fill-accordian__container">
+        <div class="detailed-input-group fill">
+          <div class="detailed-input-group__header detailed-input-group__header--nowrap">
+            <div class="detailed-input-group__header-item">
+              <h3 class="detailed-input-group__title sm">Searchterm Rule</h3>
+              <p class="detailed-input-group__description">
+                A searchterm rule attempts to include codes by their code or description.
+              </p>
+              <p class="detailed-input-group__description">
+                You can learn about pattern matching with Regex <a href="https://regexone.com/" target=”_blank”>here</a>.
+              </p>
+            </div>
+            <div class="detailed-input-group__header-item">
+              <span tooltip="Remove Ruleset" direction="left">
+                <button id="remove-rule-btn" class="publication-list-group__list-item-btn" data-target="${index}">
+                  <span class="delete-icon"></span>
+                  <span>Remove</span>
+                </button>
+              </span>
+            </div>
+          </div>
+          <fieldset class="code-search-group">
+            <input class="code-text-input" aria-label="Ruleset Searchterm" type="text" 
+                id="searchterm" placeholder="Add searchterm..." minlength="3"
+                value="${source}" data-item="rule">
+            <span class="code-text-input__icon" id="code-search-icon"></span>
+          </fieldset>
+          <fieldset class="search-options justify-content-end align-items-center">
+            <div class="search-options__container">
+              <p class="search-options__title"><strong>Fields:</strong></p>
+              <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option-${id}" x-target="codes" ${used_code}>
+              <label class="search-options__label" role="button" tabindex="0" for="search-codes-${id}">
+                <span class="search-options__label-icon"></span>
+                Code
+              </label>
+              <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option-${id}" x-target="description" ${used_description}>
+              <label class="search-options__label" role="button" tabindex="0" for="search-desc-${id}">
+                <span class="search-options__label-icon"></span>
+                Description
+              </label>
+            </div>
+            <div class="search-options__container">
+              <p class="search-options__title"><strong>Regex:</strong></p>
+              <input class="search-options__input" aria-label="Use Regex Wildcard" type="checkbox" id="search-wildcard-${id}" name="search-wildcard" data-target="wildcard" ${used_wildcard}>
+              <label class="search-options__label" role="button" tabindex="0" for="search-wildcard-${id}">
+                <span class="search-options__label-icon"></span>
+                Use Regex
+              </label>
+              <input class="search-options__input" aria-label="Case Sensitive" type="checkbox" id="search-sensitive-${id}" name="search-sensitive" ${was_wildcard_sensitive}>
+              <label class="search-options__label" role="button" tabindex="0" for="search-sensitive-${id}" data-follows="wildcard">
+                <span class="search-options__label-icon"></span>
+                Case Sensitive
+              </label>
+            </div>
+          </fieldset>
+        </div>
+      </article>
+    </div>
+  </template>
+
+  <template id="file-rule">
+    <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
+      <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
+      <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
+      </label>
+      <article class="fill-accordian__container">
+        <div class="detailed-input-group fill">
+          <div class="detailed-input-group__header">
+            <div class="detailed-input-group__header-item">
+              <h3 class="detailed-input-group__title sm">File Import Rule</h3>
+              <p class="detailed-input-group__description">This rule describes any codes retrieved from a file</p>
+            </div>
+            <div class="detailed-input-group__header-item">
+              <span tooltip="Remove Ruleset" direction="left">
+                <button id="remove-rule-btn" class="publication-list-group__list-item-btn" data-target="${index}">
+                  <span class="delete-icon"></span>
+                  <span>Remove</span>
+                </button>
+              </span>
+            </div>
+          </div>
+          <input class="text-input" aria-label="Imported File" type="text"
+              value="${source}" data-item="rule" disabled>
+        </div>
+      </article>
+    </div>
+  </template>
+
+  <template id="concept-rule">
+    <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
+      <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
+      <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
+        <span class="fill-accordian__input-title">Name:</span>
+        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
+      </label>
+      <article class="fill-accordian__container">
+        <div class="detailed-input-group fill">
+          <div class="detailed-input-group__header">
+            <div class="detailed-input-group__header-item">
+              <h3 class="detailed-input-group__title sm">Concept Import Rule</h3>
+              <p class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            </div>
+            <div class="detailed-input-group__header-item">
+              <span tooltip="Remove Ruleset" direction="left">
+                <button id="remove-rule-btn" class="publication-list-group__list-item-btn" data-target="${index}">
+                  <span class="delete-icon"></span>
+                  <span>Remove</span>
+                </button>
+              </span>
+            </div>
+          </div>
+          <input class="text-input" aria-label="Imported Concept"
+              type="text" value="${source}" data-item="rule" disabled>
+        </div>
+      </article>
+    </div>
+  </template>
+</section>

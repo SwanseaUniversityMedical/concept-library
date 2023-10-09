@@ -1,665 +1,809 @@
-import time
 from datetime import datetime
-import re
-
+from django.db.models import Q
+from django.utils.timezone import make_aware
+from django.db import connection, transaction
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin  # , UserPassesTestMixin
-from django.contrib.auth.models import Group, User
-from django.core.paginator import EmptyPage, Paginator
-from django.db import transaction  # , models, IntegrityError
-from django.http import HttpResponseRedirect  # , StreamingHttpResponse, HttpResponseForbidden
-from django.http.response import HttpResponse, JsonResponse
-from django.template.loader import render_to_string
-#from django.core.urlresolvers import reverse_lazy, reverse
-from django.urls import reverse, reverse_lazy
-from django.utils.timezone import now
-from django.views.generic import DetailView
-from django.views.generic.base import TemplateResponseMixin, View
-from django.views.generic.edit import CreateView, UpdateView  # , DeleteView
-from simple_history.models import HistoricalRecords
+from django.urls import reverse
+from django.core.exceptions import BadRequest, PermissionDenied
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from rest_framework.reverse import reverse
 
-from .. import db_utils, utils
-#from ..forms.ConceptForms import ConceptForm, ConceptUploadForm
-from ..models import *
-from ..permissions import *
-from .View import *
+import re
+import json
+import logging
+
+from clinicalcode.entity_utils import permission_utils, gen_utils
+from clinicalcode.models.Tag import Tag
+from clinicalcode.models.Concept import Concept
+from clinicalcode.models.Template import Template
+from clinicalcode.models.Phenotype import Phenotype
+from clinicalcode.models.WorkingSet import WorkingSet
+from clinicalcode.models.GenericEntity import GenericEntity
+from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 
 logger = logging.getLogger(__name__)
 
-import json
-import os
+#### Dynamic Template  ####
+def sort_pk_list(a, b):
+    pk1 = int(a.replace('PH', ''))
+    pk2 = int(b.replace('PH', ''))
 
-from django.core.exceptions import PermissionDenied
-from django.db import connection, connections  # , transaction
-from rest_framework.reverse import reverse
-        
-        
+    if pk1 > pk2:
+        return 1
+    elif pk1 < pk2:
+        return -1
+    return 0
+
+def try_parse_doi(publications):
+    import re
+    pattern = re.compile(r'\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b')
+
+    output = [ ]
+    for publication in publications:
+        if publication is None or len(str(publication).strip()) < 1:
+            continue
+
+        doi = pattern.findall(publication)
+        output.append({
+            'details': publication,
+            'doi': doi[0] if len(doi) > 0 else None
+        })
+    
+    return output
+
+def compute_related_brands(pheno, default=''):
+    collections = pheno.collections
+    if not isinstance(collections, list):
+        return default
+    
+    related_brands = set([])
+    for collection_ids in collections:
+        collection = Tag.objects.filter(id=collection_ids)
+        if not collection.exists():
+            continue
+
+        brand = collection.first().collection_brand
+        if brand is None:
+            continue
+        related_brands.add(brand.id)
+    
+    related_brands = ','.join([str(x) for x in list(related_brands)])
+    return "brands='{%s}' " % related_brands
+
+BASE_LINKAGE_TEMPLATE = {
+    # all sex is '3' unless specified by user
+    'sex': '3',
+    # all PhenotypeType is 'Disease or syndrome' unless specified by user
+    'type': '2',
+    # all version is '1' for migration
+    'version': '1',
+}
+
+def get_publications(concept):
+    publication_doi = concept.publication_doi
+    publication_link = concept.publication_link
+
+    has_publication = not gen_utils.is_empty_string(publication_link)
+    has_publication_doi = not gen_utils.is_empty_string(publication_doi)
+    
+    if has_publication:
+        return [{
+            'details': publication_link,
+            'doi': None if not has_publication_doi else publication_doi
+        }]
+
+    return None
+
+def get_null_on_empty(value):
+    if not gen_utils.is_empty_string(value):
+        return value
+    return None
+
+def get_transformed_data(concept, template):
+    metadata = {
+        'name': concept.name,
+        'author': concept.author,
+        'definition': get_null_on_empty(concept.description),
+        'validation': get_null_on_empty(concept.validation_description),
+        'citation_requirements': get_null_on_empty(concept.citation_requirements),
+        'publications': get_publications(concept),
+        'tags': concept.tags,
+        'collections': concept.collections,
+        'owner': concept.owner,
+        'group': concept.group,
+        'owner_access': concept.owner_access,
+        'group_access': concept.group_access,
+        'template': template,
+
+        # maintain created / updated status
+        'created': concept.created,
+        'created_by': concept.created_by,
+        'updated': make_aware(datetime.now()),
+        'updated_by': concept.modified_by,
+
+        # maintain archived status
+        'is_deleted': concept.is_deleted,
+        'deleted': concept.deleted,
+        'deleted_by': concept.deleted_by,
+
+        # unpublished & no access
+        'status': 1,
+        'world_access': 1,
+    }
+
+    if concept.is_deleted:
+        metadata.update({ 'internal_comments': 'Legacy Concept archived by user on legacy site' })
+
+    template_data = {
+        'agreement_date': concept.entry_date.strftime('%Y-%m-%d'),
+        'source_reference': get_null_on_empty(concept.source_reference),
+        'coding_system': [concept.coding_system.id] if concept.coding_system else None,
+        'concept_information': [
+            { 'concept_id': concept.id, 'concept_version_id': concept.history_id }
+        ],
+    } | BASE_LINKAGE_TEMPLATE
+
+    metadata.update({
+        'template_data': template_data,
+        'template_version': 1,
+    })
+
+    return metadata
+
 @login_required
-def api_remove_data(request):
+def admin_force_concept_linkage_dt(request):
+    """
+        Bulk updates unlinked Concepts such that they have a phenotype owner by creating
+        a pseudo-Phenotype using the metadata found within the legacy Conept
+
+        i.e.
+            1. Find unlinked Concepts, e.g. Concept<phenotype_owner=null>
+            2. For each unlinked Concept, create a pseudo-Phenotype using its metadata
+            3. Update the unlinked Concept such that it's phenotype_owner field relates to
+               the newly created pseudo-Phenotype
+
+    """
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
     if not request.user.is_superuser:
         raise PermissionDenied
-
-    if settings.CLL_READ_ONLY:
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
         raise PermissionDenied
 
+    # get
     if request.method == 'GET':
-        if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
-                          {'url': reverse('api_remove_data'),
-                           'action_title': 'Delete API Data'
-                        }
-                        )
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_force_links_dt'),
+                'action_title': 'Force Concept Linkage',
+                'hide_phenotype_options': True,
+            }
+        )
 
-    elif request.method == 'POST':
-        if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            code = request.POST.get('code')
-            if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-                raise PermissionDenied
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
 
-            rowsAffected = {}
+    unlinked_concepts = Concept.objects.filter(phenotype_owner__isnull=True)
+    unlinked_concepts = list(unlinked_concepts.values_list('id', flat=True))
+    unlinked_concepts = Concept.history.filter(
+        id__in=unlinked_concepts
+    ) \
+        .order_by('id', '-history_id') \
+        .distinct('id')
 
-            #
-            concepts = Concept.objects.filter(owner=request.user)
-            for c in concepts:
-                rowsAffected[c.id] = "concept: " + c.name + " :: deleted"
-                c.delete()
+    template = Template.objects.get(id=1)
 
-            concepts = Concept.history.filter(owner=request.user)
-            for c in concepts:
-                rowsAffected[c.id] = "concept: " + c.name + " :: deleted"
-                c.delete()
+    bulk_concepts = [ ]
+    for concept in unlinked_concepts:
+        data = get_transformed_data(concept, template)
+        entity = GenericEntity.objects.create(**data)
 
-            rowsAffected["**********************************"] = "**********************************"
+        instance = concept.instance
+        instance.phenotype_owner = entity
+        bulk_concepts.append(instance)
 
-            workingsets = WorkingSet.objects.filter(owner=request.user)
-            for ws in workingsets:
-                rowsAffected[ws.id] = "working set: " + ws.name + ":: deleted"
-                ws.delete()
+    if len(bulk_concepts) > 0:
+        Concept.objects.bulk_update(bulk_concepts, ['phenotype_owner'])
 
-            workingsets = WorkingSet.history.filter(owner=request.user)
-            for ws in workingsets:
-                rowsAffected[ws.id] = "working set: " + ws.name + ":: deleted"
-                ws.delete()
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Force Concept Linkage',
+            'hide_phenotype_options': True,
+        }
+    )
 
-            rowsAffected["**********************************"] = "**********************************"
-
-            phenotypes = Phenotype.objects.filter(owner=request.user)
-            for ph in phenotypes:
-                rowsAffected[ph.id] = "phenotype: " + ph.name + ":: deleted"
-                ph.delete()
-
-            phenotypes = Phenotype.history.filter(owner=request.user)
-            for ph in phenotypes:
-                rowsAffected[ph.id] = "phenotype: " + ph.name + ":: deleted"
-                ph.delete()
-
-            rowsAffected["**********************************"] = "**********************************"
-
-            return render(request, 'clinicalcode/adminTemp/adminTemp.html', {
-                'pk': -10,
-                'strSQL': {},
-                'rowsAffected': rowsAffected,
-                'action_title': 'Delete API Data'
-            })
-            
-"""
 @login_required
-def json_adjust_phenotype(request):
-    # not needed anymore
-    raise PermissionDenied
+def admin_fix_read_codes_dt(request):
+    """
+        Fix data quality issues associated with Read Codes V2 table's reliance
+        on the 30char field
 
+        Achieves this by:
+            1. Coalescing the pref_term field (30, 60 and 198 char) and updating its 'description' field
+            2. Setting the Coding System's desc column to 'description'
+
+    """
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
     if not request.user.is_superuser:
         raise PermissionDenied
-
-    if settings.CLL_READ_ONLY or (not settings.IS_DEVELOPMENT_PC):
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
         raise PermissionDenied
 
+    # get
     if request.method == 'GET':
-        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
-                          {'url': reverse('json_adjust_phenotype')
-                           })
-            
-    elif request.method == 'POST':
-        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            code = request.POST.get('code')
-            if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-                raise PermissionDenied
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_read_codes_dt'),
+                'action_title': 'Fix Read Codes',
+                'hide_phenotype_options': True,
+            }
+        )
 
-            rowsAffected = {}
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
 
+    with connection.cursor() as cursor:
+        sql = '''
+        -- readcodesv2
+        update public.clinicalcode_read_cd_cv2_scd as trg
+           set description = coalesce(trg.pref_term_198, coalesce(trg.pref_term_60, trg.pref_term_30))
+         where trg.description is null;
 
-            ######################################################################
+        -- readcodes v3
+        update public.clinicalcode_read_cd_cv3_terms_scd as trg
+           set description = coalesce(trg.term_198, coalesce(trg.term_60, trg.term_30))
+         where trg.description is null;
 
-            hisp = Phenotype.history.filter(id__gte=0)  #.exclude(id__in=[1026])
-            for hp in hisp:
-                if hp.concept_informations:
-                    concept_informations = json.loads(hp.concept_informations)
-                    hp.concept_informations = concept_informations
-                    hp.save()
+        -- update coding systems
+        update public.clinicalcode_codingsystem
+           set desc_column_name = 'description'
+         where name ilike 'read codes%';
+        '''
+        cursor.execute(sql)
 
-                    if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-                        p0 = Phenotype.objects.get(id=hp.id)
-                        p0.concept_informations = concept_informations
-                        p0.save_without_historical_record()
-        
-                        rowsAffected[hp.id] = "phenotype: " + hp.name + ":: json adjusted"
-            
-            
-            
-            
-            
-            return render(request,
-                        'clinicalcode/adminTemp/adminTemp.html',
-                        {   'pk': -10,
-                            'strSQL': {},
-                            'rowsAffected' : rowsAffected
-                        }
-                        )
-"""
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Fix Read Codes',
+            'hide_phenotype_options': True,
+        }
+    )
 
-"""            
 @login_required
-def json_adjust_workingset(request):
-    # not needed anymore
-    raise PermissionDenied
+def admin_mig_concepts_dt(request):
+    """
+        Approximates ownership of a Concept given it's first appearance
+        in a phenotype
 
+        i.e.
+            for concept in concepts:
+                concept.phenotype_owner = earliest_record_as_child_of_phenotype(concept.id)
+
+    """
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
     if not request.user.is_superuser:
         raise PermissionDenied
-
-    if settings.CLL_READ_ONLY or (not settings.IS_DEVELOPMENT_PC):
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
         raise PermissionDenied
 
+    # get
     if request.method == 'GET':
-        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-            return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
-                          {'url': reverse('json_adjust_workingset')
-                           })
-            
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_mig_concepts_dt'),
+                'action_title': 'Migrate Concepts',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    with connection.cursor() as cursor:
+        sql = '''
+        with
+            split_concepts as (
+                select phenotype.id as phenotype_id, 
+                    concept ->> 'concept_id' as concept_id,
+                    created
+                from public.clinicalcode_phenotype as phenotype,
+                    json_array_elements(phenotype.concept_informations :: json) as concept
+            ),
+            ranked_concepts as (
+                select phenotype_id, concept_id,
+                    rank() over(
+                        partition by concept_id
+                        order by created
+                    ) ranking
+                from split_concepts
+            )
+
+        update public.clinicalcode_concept as trg
+           set phenotype_owner_id = src.phenotype_id
+          from (
+            select distinct on (concept_id) *
+              from ranked_concepts
+          ) src
+         where (trg.is_deleted is null or trg.is_deleted = false)
+           and trg.id = src.concept_id::int;
+        '''
+        cursor.execute(sql)
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Migrate Concepts',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
+def admin_mig_phenotypes_dt(request):
+    # for admin(developers) to migrate phenotypes into dynamic template
+   
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    if request.method == 'GET':
+        if not settings.CLL_READ_ONLY: 
+            return render(request, 'clinicalcode/adminTemp/admin_temp_tool.html', 
+                          {'url': reverse('admin_mig_phenotypes_dt'),
+                           'action_title': 'Migrate Phenotypes'
+                        })
+    
     elif request.method == 'POST':
-        if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
+        if not settings.CLL_READ_ONLY: 
             code = request.POST.get('code')
-            if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
+            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
                 raise PermissionDenied
+    
+            phenotype_ids = request.POST.get('phenotype_ids')
+            phenotype_ids = phenotype_ids.strip().upper()
 
-            rowsAffected = {}
+            rowsAffected = {} 
+            
+            if phenotype_ids:
+                if phenotype_ids == 'ALL': # mig ALL                    
+                    with connection.cursor() as cursor:
+                        sql = "truncate table clinicalcode_historicalgenericentity restart identity; "
+                        cursor.execute(sql)
+                        sql2 = "truncate table clinicalcode_historicalpublishedgenericentity restart identity; "
+                        cursor.execute(sql2)   
+                        sql3 = """
+                        DO
+                        $do$
+                        declare CONSTRAINT_NAME text:= (
+                            select quote_ident(conname)
+                            from pg_constraint
+                            where conrelid = 'public.clinicalcode_concept'::regclass
+                            and confrelid = 'public.clinicalcode_genericentity'::regclass
+                            limit 1
+                        );
 
+                        begin
+                            execute 'alter table public.clinicalcode_concept drop constraint if exists ' || CONSTRAINT_NAME;
 
-            ######################################################################
+                            execute 'update public.clinicalcode_concept set phenotype_owner_id = NULL';
 
-            ws_hitory = WorkingSet.history.filter(id__gte=0)  #.exclude(id__in=[1026])
-            for ws in ws_hitory:
-                if ws.concept_informations:
-                    concept_informations = json.loads(ws.concept_informations)
-                    ws.concept_informations = concept_informations
-                    ws.save()
+                            execute 'truncate table public.clinicalcode_genericentity, public.clinicalcode_publishedgenericentity restart identity';
 
-                    if ws.history_id == int(WorkingSet.objects.get(pk=ws.id).history.latest().history_id):
-                        wso = WorkingSet.objects.get(id=ws.id)
-                        wso.concept_informations = concept_informations
-                        wso.save_without_historical_record()
-        
-                        rowsAffected[ws.id] = "working set: " + ws.name + ":: json adjusted"
-            
-            
-            
-            
-            
-            return render(request,
-                        'clinicalcode/adminTemp/adminTemp.html',
-                        {   'pk': -10,
-                            'strSQL': {},
-                            'rowsAffected' : rowsAffected
+                            execute 'alter table public.clinicalcode_concept
+                                add constraint ' || CONSTRAINT_NAME || ' foreign key (phenotype_owner_id)
+                                references public.clinicalcode_genericentity (id)';
+                        end
+                        $do$
+                        """
+                        cursor.execute(sql3)
+                    
+                    
+                        mig_h_pheno = """
+                        INSERT INTO clinicalcode_historicalgenericentity(
+                            id, name, author, status, tags, collections, definition
+                            , implementation, validation, citation_requirements
+                            , template_data, template_id, template_version, internal_comments
+                            , created, updated, is_deleted, deleted, owner_access, group_access, world_access
+                            , history_id, history_date, history_change_reason, history_type, history_user_id
+                            , created_by_id, deleted_by_id, group_id, owner_id, updated_by_id
+                            )
+                        SELECT id, name, author, 2 status, tags, collections, description definition
+                            , implementation, validation, citation_requirements
+                            , '{}' template_data, 1 template_id, 1 template_version, '' internal_comments
+                            , created, modified updated, is_deleted, deleted, owner_access, group_access, world_access
+                            , history_id, history_date, history_change_reason, history_type, history_user_id
+                            , created_by_id, deleted_by_id, group_id, owner_id, updated_by_id
+                        FROM clinicalcode_historicalphenotype;
+                        """
+                        cursor.execute(mig_h_pheno) 
+                    
+                        mig_pheno = """
+                        INSERT INTO clinicalcode_genericentity(
+                            id, name, author, status, tags, collections, definition
+                            , implementation, validation, citation_requirements
+                            , template_data, template_id, template_version, internal_comments
+                            , created, updated, is_deleted, deleted, owner_access, group_access, world_access
+                            , created_by_id, deleted_by_id, group_id, owner_id, updated_by_id
+                            )
+                        SELECT id, name, author, 2 status, tags, collections, description definition                       
+                            , implementation, validation, citation_requirements
+                            , '{}' template_data, 1 template_id, 1 template_version, '' internal_comments
+                            , created, modified updated, is_deleted, deleted, owner_access, group_access, world_access
+                            , created_by_id, deleted_by_id, group_id, owner_id, updated_by_id
+                        FROM clinicalcode_phenotype;
+                        """
+                        cursor.execute(mig_pheno)
+                    
+                        mig_h_published_records = """
+                        insert into clinicalcode_historicalpublishedgenericentity(
+                            id, entity_id, entity_history_id, code_count
+                            , moderator_id, approval_status
+                            , created, created_by_id, modified, modified_by_id
+                            , history_id, history_date, history_change_reason, history_type, history_user_id
+                            )    
+                        SELECT id, phenotype_id, phenotype_history_id, null code_count
+                            , moderator_id, approval_status
+                            , created, created_by_id, modified, modified_by_id
+                            , history_id, history_date, history_change_reason, history_type, history_user_id
+                            FROM clinicalcode_historicalpublishedphenotype
+                            where phenotype_id like 'PH%';
+                        """
+                        cursor.execute(mig_h_published_records)
+                    
+                        mig_published_records = """
+                        insert into clinicalcode_publishedgenericentity(
+                            id, entity_id, entity_history_id, code_count
+                            , moderator_id, approval_status
+                            , created, created_by_id, modified, modified_by_id
+                            )    
+                        SELECT id, phenotype_id, phenotype_history_id, null code_count
+                            , moderator_id, approval_status
+                            , created, created_by_id, modified, modified_by_id
+                            FROM clinicalcode_publishedphenotype
+                            where phenotype_id like 'PH%';
+                        """
+                        cursor.execute(mig_published_records)                           
+                    
+                    ######################################
+                    live_pheno = Phenotype.objects.all()
+
+                    live_pheno_count = Phenotype.objects.extra(
+                        select={
+                            'true_id': '''CAST(SUBSTRING(id, 3, LENGTH(id)) AS INTEGER)'''
                         }
-                        )
-            
-"""
+                    ).order_by('-true_id', 'id').first()
+                    live_pheno_count = live_pheno_count.true_id
+
+                    for p in live_pheno:
+                        temp_data = get_custom_fields_key_value(p)
+                        temp_data['version'] = 1
+                        publication_items = try_parse_doi([i.replace("'", "''") for i in p.publications])
                         
-# @login_required
-# def moveDataSources(request):
-#     # not needed anymore
-#     raise PermissionDenied
-#
-#     if not request.user.is_superuser:
-#         raise PermissionDenied
-#
-#     if settings.CLL_READ_ONLY:
-#         raise PermissionDenied
-#
-#     if request.method == 'GET':
-#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             return render(request, 'clinicalcode/adminTemp/moveDataSources.html', {})
-#
-#     elif request.method == 'POST':
-#         if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             code = request.POST.get('code')
-#             if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-#                 raise PermissionDenied
-#
-#             rowsAffected = {}
-#
+                        ''' update publish status in live generic entity '''
+                        publish_status_str = ""
+                        approval_status = ""
+                        p_latest_history_id =  p.history.latest().history_id
+                        if PublishedPhenotype.objects.filter(phenotype_id=p.id, phenotype_history_id=p_latest_history_id).exists():
+                            approval_status = str(PublishedPhenotype.objects.get(phenotype_id=p.id, phenotype_history_id=p_latest_history_id).approval_status)
+                            publish_status_str = " , publish_status = " + approval_status + " "
+                        
+                        upd_t = p.modified
+                        if not upd_t:
+                            upd_t = make_aware(datetime.now())
+                        upd_t = upd_t.strftime('%Y-%m-%d %H:%M:%S')
 
+                        brand_status = compute_related_brands(p)
+                        with connection.cursor() as cursor:
+                            sql_p = """
+                                    update clinicalcode_genericentity  
+                                    set updated = '"""+upd_t+"""',
+                                        template_data = '"""+json.dumps(temp_data)+"""',
+                                        publications= '"""+json.dumps(publication_items)+"""'
+                                        """+publish_status_str+"""
+                                        , """+brand_status+"""
+                                    where id ='"""+p.id+"""' ;
+                                    """
+                            cursor.execute(sql_p)
 
-            ######################################################################
-            # # move phenotype data-sources as an attribute
-            # distinct_phenotypes_with_ds = PhenotypeDataSourceMap.objects.all().distinct('phenotype_id')
-            # for dp in distinct_phenotypes_with_ds:
-            #     #print "*************"
-            #     #print dp.phenotype_id
-            #     hisp = Phenotype.history.filter(id=dp.phenotype_id)
-            #     for hp in hisp:
-            #         #print hp.id, "...", hp.history_id
-            #         ph_DataSources_history = db_utils.getHistoryDataSource_Phenotype(hp.id, hp.history_date)
-            #         if ph_DataSources_history:
-            #             ph_DataSources_list = [i['datasource_id'] for i in ph_DataSources_history if 'datasource_id' in i]
-            #         else:
-            #             ph_DataSources_list = []
-            #         #print ph_DataSources_list
-            #         with connection.cursor() as cursor:
-            #             sql = """ UPDATE clinicalcode_historicalphenotype
-            #                         SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
-            #                         WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-            #                  """
-            #             cursor.execute(sql)
-            #             if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-            #                 sql2 = """ UPDATE clinicalcode_phenotype
-            #                         SET data_sources = '{""" + ','.join([str(i) for i in ph_DataSources_list]) + """}'
-            #                         WHERE id="""+str(hp.id)+"""  ;
-            #                  """
-            #                 cursor.execute(sql2)
-            #
-            #                 rowsAffected[hp.id] = "phenotype: " + hp.name + ":: data_sources moved"
-            #
-            #
-            #
-            #
-            #
-            # return render(request,
-            #             'clinicalcode/adminTemp/moveDataSources.html',
-            #             {   'pk': -10,
-            #                 'strSQL': {},
-            #                 'rowsAffected' : rowsAffected
-            #             }
-            #             )
+                            sql_p = """
+                                    update clinicalcode_historicalgenericentity  
+                                    set """+brand_status+"""
+                                    where id ='"""+p.id+"""';
+                                    """
+                            cursor.execute(sql_p)
+                    
+                    with connection.cursor() as cursor:
+                        sql_entity_count = "update clinicalcode_entityclass set entity_count ="+str(live_pheno_count)+" where id = 1;"
+                        cursor.execute(sql_entity_count)
 
-# @login_required
-# def api_remove_longIDfromName(request):
-#     if not request.user.is_superuser:
-#         raise PermissionDenied
-#
-#     if settings.CLL_READ_ONLY:
-#         raise PermissionDenied
-#
-#
-#     if request.method == 'GET':
-#         if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             return render(request, 'clinicalcode/adminTemp/api_remove_longIDfromName.html',
-#                           { }
-#                         )
-#
-#     elif request.method == 'POST':
-#         if not settings.CLL_READ_ONLY and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-#             code =  request.POST.get('code')
-#             if code.strip()!="nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-#                 raise PermissionDenied
-#
-#             rowsAffected = {}
-#
-#
-#             #######################################################################
-#
-#             from django.db import connection, connections #, transaction
-#
-#             # remove long ID from concept name / title
-#             hisp = Concept.history.all()
-#             for hp in hisp:
-#                 print hp.id, "...", hp.history_id
-#                 print hp.name
-#                 print "..................."
-#                 if hp.name.find(' - ') != -1:
-#                     newname = ' - '.join(hp.name.split(' - ')[1:])
-#                     newname = newname.replace("'", "''")
-#                     print newname
-#                     with connection.cursor() as cursor:
-#                         sql = """ UPDATE clinicalcode_historicalconcept
-#                                     SET  name = '""" + newname + """'
-#                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-#                              """
-#                         cursor.execute(sql)
-#                         if hp.history_id == int(Concept.objects.get(pk=hp.id).history.latest().history_id):
-#                             sql2 = """ UPDATE clinicalcode_concept
-#                                     SET name = '""" + newname + """'
-#                                     WHERE id="""+str(hp.id)+"""  ;
-#                              """
-#                             cursor.execute(sql2)
-#
-#                 print "-------------"
-#
-#             ######################################################################
-#
-#             # remove long ID from phenotype name / title
-#             hisp = Phenotype.history.all()
-#             for hp in hisp:
-#                 print hp.id, "...", hp.history_id
-#                 print hp.name
-#                 print "..................."
-#                 if hp.name.find(' - ') != -1:
-#                     newname = ' - '.join(hp.name.split(' - ')[1:])
-#                     newname = newname.replace("'", "''")
-#                     print newname
-#                     with connection.cursor() as cursor:
-#                         sql = """ UPDATE clinicalcode_historicalphenotype
-#                                     SET title = '""" + newname + """' ,  name = '""" + newname + """'
-#                                     WHERE id="""+str(hp.id)+""" and history_id="""+str(hp.history_id)+""";
-#                              """
-#                         cursor.execute(sql)
-#                         if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-#                             sql2 = """ UPDATE clinicalcode_phenotype
-#                                     SET title = '""" + newname + """' ,  name = '""" + newname + """'
-#                                     WHERE id="""+str(hp.id)+"""  ;
-#                              """
-#                             cursor.execute(sql2)
-#
-#                     print "-------------"
-#
-#
-#
-#             return render(request,
-#                    'clinicalcode/adminTemp/api_remove_longIDfromName.html',
-#                    {   'pk': -10,
-#                        'strSQL': {},
-#                        'rowsAffected' : rowsAffected
-#                    }
-#                    )
-#
-#
-
-
-def update_concept_tags_from_phenotype_tags():
-    return 
-
-    phenotypes = Phenotype.objects.all()
-    for p in phenotypes:
-        concept_id_list = [x['concept_id'] for x in p.concept_informations]
-        concept_hisoryid_list = [x['concept_version_id'] for x in p.concept_informations]
-        concepts = Concept.history.filter(id__in=concept_id_list, history_id__in=concept_hisoryid_list)
-
-        for c in concepts:
-            with connection.cursor() as cursor:
-                sql = """ UPDATE clinicalcode_historicalconcept 
-                            SET tags = '{""" + ','.join([str(i) for i in p.tags ]) + """}'
-                            WHERE id=""" + str(c.id) + """ and history_id=""" + str(c.history_id) + """;
-                    """
-                cursor.execute(sql)
-                sql2 = """ UPDATE clinicalcode_concept 
-                            SET tags = '{""" + ','.join([str(i) for i in p.tags]) + """}'
-                            WHERE id=""" + str(c.id) + """  ;
-                    """
-                cursor.execute(sql2)
-
-                print(("phenotype/concept: " + p.name + "/" + c.name + ":: tags moved"))
-
-
-@login_required
-def check_concepts_not_associated_with_phenotypes(request):
-
-    phenotypes = db_utils.get_visible_live_or_published_phenotype_versions(request, exclude_deleted=False)
-    phenotypes_id = db_utils.get_list_of_visible_entity_ids(phenotypes, return_id_or_history_id="id")
-
-    concepts_ids_in_phenotypes = []
-    for p in phenotypes_id:
-        phenotype = Phenotype.objects.get(pk=p)
-        if phenotype.concept_informations:
-            concept_id_list = [x['concept_id'] for x in phenotype.concept_informations]    
-            concepts_ids_in_phenotypes = concepts_ids_in_phenotypes + concept_id_list
-
-    concepts_ids_in_phenotypes = set(concepts_ids_in_phenotypes)
-
-    concepts = db_utils.get_visible_live_or_published_concept_versions(request, exclude_deleted=False)
-
-    all_concepts_ids = db_utils.get_list_of_visible_entity_ids(concepts, return_id_or_history_id="id")
-
-    result = all(elem in concepts_ids_in_phenotypes for elem in all_concepts_ids)
-    if result:
-        messages.success(request, "Yes, all concepts are associated with phenotypes.")
-    else:
-        messages.warning(request, "No, NOT all concepts are associated with phenotypes.")
-
-    unasscoiated_concepts_ids = list(set(all_concepts_ids) - set(concepts_ids_in_phenotypes))
-
-    unasscoiated_concepts = Concept.objects.filter(id__in=unasscoiated_concepts_ids).order_by('id')
-
-    return render(request,
-                  'clinicalcode/adminTemp/concepts_not_in_phenotypes.html', {
-                      'count': unasscoiated_concepts.count(),
-                      'concepts': unasscoiated_concepts
-                  })
-
-
-
-
-@login_required
-def populate_collections_tags(request):
-    # not needed anymore
-    raise PermissionDenied
-
-    # if not request.user.is_superuser:
-    #     raise PermissionDenied
-    #
-    # if settings.CLL_READ_ONLY: # or (not settings.IS_DEVELOPMENT_PC):
-    #     raise PermissionDenied
-    #
-    # if request.method == 'GET':
-    #     if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-    #         return render(request, 'clinicalcode/adminTemp/adminTemp.html', 
-    #                       {'url': reverse('populate_collections_tags'),
-    #                        'action_title': 'Split tags & collections'
-    #                     })
-    #
-    # elif request.method == 'POST':
-    #     if not settings.CLL_READ_ONLY:  # and (settings.IS_DEMO or settings.IS_DEVELOPMENT_PC):
-    #         code = request.POST.get('code')
-    #         if code.strip() != "nvd)#_0-i_a05n^5p6az2q_cd(_(+_4g)r&9h!#ru*pr(xa@=k":
-    #             raise PermissionDenied
-    #
-    #         rowsAffected = {}
-    #
-    #
-    #         ######################################################################
-    #         # phenotype
-    #         hisp = Phenotype.history.filter(id__gte=0)
-    #         for hp in hisp:
-    #             if hp.tags:
-    #                 tag_ids_list = list(Tag.objects.filter(id__in=hp.tags, tag_type=1).values_list('id', flat=True))
-    #                 collection_ids_list = list(Tag.objects.filter(id__in=hp.tags, tag_type=2).values_list('id', flat=True))
-    #
-    #                 hp.tags = tag_ids_list
-    #                 hp.collections = collection_ids_list
-    #                 hp.save()
-    #
-    #                 if hp.history_id == int(Phenotype.objects.get(pk=hp.id).history.latest().history_id):
-    #                     p0 = Phenotype.objects.get(id=hp.id)
-    #                     p0.tags = tag_ids_list
-    #                     p0.collections = collection_ids_list
-    #                     p0.save_without_historical_record()
-    #
-    #                     rowsAffected[hp.id] = "phenotype: " + hp.name + ":: tags/collections split"
-    #
-    #
-    #
-    #         ######################################################################
-    #         # concepts
-    #         hisc = Concept.history.filter(id__gte=0)
-    #         for hc in hisc:
-    #             if hc.tags:
-    #                 tag_ids_list = list(Tag.objects.filter(id__in=hc.tags, tag_type=1).values_list('id', flat=True))
-    #                 collection_ids_list = list(Tag.objects.filter(id__in=hc.tags, tag_type=2).values_list('id', flat=True))
-    #
-    #                 hc.tags = tag_ids_list
-    #                 hc.collections = collection_ids_list
-    #                 hc.save()
-    #
-    #                 if hc.history_id == int(Concept.objects.get(pk=hc.id).history.latest().history_id):
-    #                     c0 = Concept.objects.get(id=hc.id)
-    #                     c0.tags = tag_ids_list
-    #                     c0.collections = collection_ids_list
-    #                     c0.save_without_historical_record()
-    #
-    #                     rowsAffected[hc.id] = "concept: " + hc.name + ":: tags/collections split"
-    #
-    #
-    #
-    #
-    #
-    #         return render(request,
-    #                     'clinicalcode/adminTemp/adminTemp.html',
-    #                     {   'pk': -10,
-    #                         'rowsAffected' : rowsAffected,
-    #                         'action_title': 'Split tags & collections'
-    #                     }
-    #                     )
-            
-            
-@login_required
-def admin_delete_phenotypes(request):
-    # for admin(developers) to mark phenotypes as deleted    
-   
-    if settings.CLL_READ_ONLY: 
-        raise PermissionDenied
-    
-    if not request.user.is_superuser:
-        raise PermissionDenied
-    
-    if not is_member(request.user, 'system developers'):
-        raise PermissionDenied
-    
-
-    if request.method == 'GET':
-        if not settings.CLL_READ_ONLY: 
-            return render(request, 'clinicalcode/adminTemp/admin_delete_phenotypes.html', 
-                          {'url': reverse('admin_delete_phenotypes'),
-                           'action_title': 'Delete Phenotypes'
-                        })
-    
-    elif request.method == 'POST':
-        if not settings.CLL_READ_ONLY: 
-            code = request.POST.get('code')
-            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
-                raise PermissionDenied
-    
-            phenotype_ids = request.POST.get('phenotype_ids')
-            phenotype_ids = phenotype_ids.strip().upper()
-            
-            ph_id_list = []
-            if phenotype_ids:
-                ph_id_list = [i.strip() for i in phenotype_ids.split(",")]
-            
-            rowsAffected = {}    
-    
-            if ph_id_list:
-                for pk in ph_id_list:
-                    pk = re.sub(' +', ' ', pk.strip())
-                    id_match = re.search(r"(?i)^PH\d+$", pk)
-                    if id_match:
-                        if id_match.group() == id_match.string: # full match
-                            is_valid_id, err, ret_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=pk, chk_permission=True)
-                            if is_valid_id:
-                                pk = str(ret_id)
-                
-                                if Phenotype.objects.filter(pk=pk).exists():
-                                    phenotype = Phenotype.objects.get(pk=pk)
-                                    phenotype.is_deleted = True
-                                    phenotype.deleted = datetime.datetime.now()
-                                    phenotype.deleted_by = request.user
-                                    phenotype.updated_by = request.user
-                                    phenotype.changeReason = "Deleted"
-                                    phenotype.save()
-                                    db_utils.modify_Entity_ChangeReason(Phenotype, pk, "Deleted")
-                                    
-                                    
-                                    rowsAffected[pk] = "phenotype(" + str(pk) + "): \"" + phenotype.name + "\" is marked as deleted."
-    
-            else:
-                rowsAffected[-1] = "Phenotype IDs NOT correct"
-    
-            return render(request,
-                        'clinicalcode/adminTemp/admin_delete_phenotypes.html',
-                        {   'pk': -10,
-                            'rowsAffected' : rowsAffected,
-                            'action_title': 'Delete Phenotypes'
-                        }
-                        )
-            
-            
-@login_required
-def admin_restore_phenotypes(request):
-    # for admin(developers) to restore deleted phenotypes 
-   
-    if settings.CLL_READ_ONLY: 
-        raise PermissionDenied
-    
-    if not request.user.is_superuser:
-        raise PermissionDenied
-    
-    if not is_member(request.user, 'system developers'):
-        raise PermissionDenied
-    
-
-    if request.method == 'GET':
-        if not settings.CLL_READ_ONLY: 
-            return render(request, 'clinicalcode/adminTemp/admin_delete_phenotypes.html', 
-                          {'url': reverse('admin_restore_phenotypes'),
-                           'action_title': 'Restore Phenotypes'
-                        })
-    
-    elif request.method == 'POST':
-        if not settings.CLL_READ_ONLY: 
-            code = request.POST.get('code')
-            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
-                raise PermissionDenied
-    
-            phenotype_ids = request.POST.get('phenotype_ids')
-            phenotype_ids = phenotype_ids.strip().upper()
-
-            ph_id_list = []
-            if phenotype_ids:
-                ph_id_list = [i.strip() for i in phenotype_ids.split(",")]
-                
+                    historical_pheno = Phenotype.history.filter(~Q(id='x'))
+                    for p in historical_pheno:
+                        temp_data = get_custom_fields_key_value(p)
+                        temp_data['version'] = 1
+                        publication_items = try_parse_doi([i.replace("'", "''") for i in p.publications])
+                        with connection.cursor() as cursor:
+                            sql_p = """ update  clinicalcode_historicalgenericentity  
+                                    set template_data = '"""+json.dumps(temp_data)+"""'
+                                        , publications= '"""+json.dumps(publication_items)+"""'
+                                    where id ='"""+p.id+"""' and history_id='"""+str(p.history_id)+"""';
+                                    """
+                            cursor.execute(sql_p)
                             
-            rowsAffected = {}    
-    
-            if ph_id_list:
-                for pk in ph_id_list:
-                    pk = re.sub(' +', ' ', pk.strip())
-                    id_match = re.search(r"(?i)^PH\d+$", pk)
-                    if id_match:
-                        if id_match.group() == id_match.string: # full match
-                            is_valid_id, err, ret_id = db_utils.chk_valid_id(request, set_class=Phenotype, pk=pk, chk_permission=True)
-                            if is_valid_id:
-                                pk = str(ret_id)
-                                                    
-                                if Phenotype.objects.filter(pk=pk).exists():
-                                    phenotype = Phenotype.objects.get(pk=pk)
-                                    phenotype.is_deleted = False
-                                    phenotype.deleted = None
-                                    phenotype.deleted_by = None
-                                    phenotype.updated_by = request.user
-                                    phenotype.changeReason = "Restored"
-                                    phenotype.save()
-                                    db_utils.modify_Entity_ChangeReason(Phenotype, pk, "Restored")
-                                    
-                                    rowsAffected[pk] = "phenotype(" + str(pk) + "): \"" + phenotype.name + "\" is restored."
-    
+                    ''' update publish status in historical generic entity '''
+                    with connection.cursor() as cursor:
+                        sql_publish_status = """
+                                                UPDATE public.clinicalcode_historicalgenericentity AS hg
+                                                SET publish_status = p.approval_status
+                                                FROM public.clinicalcode_publishedgenericentity AS p
+                                                WHERE hg.id = p.entity_id and hg.history_id = p.entity_history_id ;
+
+                                                UPDATE public.clinicalcode_historicalgenericentity AS hg
+                                                SET publish_status = p.approval_status
+                                                FROM public.clinicalcode_publishedgenericentity AS p
+                                                WHERE hg.id = p.entity_id and hg.history_id = p.entity_history_id ;
+                                            """
+                        cursor.execute(sql_publish_status)
+                        
+
+                    with connection.cursor() as cursor:
+                        cursor.execute("""SELECT SETVAL(
+                            pg_get_serial_sequence('clinicalcode_historicalgenericentity', 'history_id'),
+                            (SELECT MAX(history_id) FROM public.clinicalcode_historicalgenericentity)
+                        );""")
+                        
+                    with connection.cursor() as cursor:
+                        cursor.execute("""SELECT SETVAL(
+                            pg_get_serial_sequence('clinicalcode_historicalpublishedgenericentity', 'history_id'),
+                            (SELECT MAX(history_id) FROM public.clinicalcode_historicalpublishedgenericentity)
+                        );""")
+
+                    with connection.cursor() as cursor:
+                        cursor.execute("""SELECT setval('clinicalcode_publishedgenericentity_id_seq',
+                                       (SELECT MAX(id) FROM public.clinicalcode_publishedgenericentity)+1);""")
+
+
+                    ######################################
+                    rowsAffected[1] = "phenotypes migrated."
             else:
                 rowsAffected[-1] = "Phenotype IDs NOT correct"
     
-            return render(request,
-                        'clinicalcode/adminTemp/admin_delete_phenotypes.html',
-                        {   'pk': -10,
-                            'rowsAffected' : rowsAffected,
-                            'action_title': 'Restore Phenotypes'
-                        }
-                        )
-            
+            return render(
+                request,
+                'clinicalcode/adminTemp/admin_temp_tool.html',
+                {   'pk': -10,
+                    'rowsAffected' : rowsAffected,
+                    'action_title': 'Migrate Phenotypes'
+                }
+            )
 
+@login_required
+def admin_fix_breathe_dt(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_breathe_dt'),
+                'action_title': 'Fix Breathe Phenotypes',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    with connection.cursor() as cursor:
+        sql = """
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, '21')
+        WHERE name LIKE 'Acute bronchitis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, '7')
+        WHERE name LIKE 'Asthma%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, '%.')
+        WHERE name LIKE 'Chronic obstructive%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, 'a.')
+        WHERE name LIKE 'Empyema%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, 's.')
+        WHERE name LIKE 'Influenza infection%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation =CONCAT(validation, 'hs')
+        WHERE name LIKE 'Pertussis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_genericentity
+        SET validation ='The definition of pneumonia has not been validated'
+        WHERE name LIKE 'Pneumonia%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+        """
+        cursor.execute(sql)
+        print(cursor.rowcount, "record(s) affected")
+
+    with connection.cursor() as cursor:
+
+        historical = """
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, '21')
+        WHERE name LIKE 'Acute bronchitis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, '7')
+        WHERE name LIKE 'Asthma%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, '%.')
+        WHERE name LIKE 'Chronic obstructive%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, 'a.')
+        WHERE name LIKE 'Empyema%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, 's.')
+        WHERE name LIKE 'Influenza infection%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, 'hs')
+        WHERE name LIKE 'Pertussis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation ='The definition of pneumonia has not been validated'
+        WHERE name LIKE 'Pneumonia%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+
+        UPDATE public.clinicalcode_historicalgenericentity
+        SET validation =CONCAT(validation, 'hs')
+        WHERE name LIKE 'Rhinitis%'
+        AND template_data ->> 'phenotype_uuid' LIKE 'excel-breathe%'
+        AND validation IS NOT NULL;
+        """
+        cursor.execute(historical)
+
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html',
+            {   'pk': -10,
+                'action_title': 'Fix Breathe',
+            }
+        )
+
+def get_serial_id():
+    count_all = GenericEntity.objects.count()
+    if count_all:
+        count_all += 1
+    else:
+        count_all = 1
+        
+    return count_all
+
+def get_agreement_date(phenotype):
+    if phenotype.hdr_modified_date:
+        return phenotype.hdr_modified_date
+    else:
+        return phenotype.hdr_created_date
+
+def get_sex(phenotype):
+    sex = str(phenotype.sex).lower().strip()
+    if sex == 'male':
+        return 1
+    elif sex == 'female':
+        return 2
+    else:
+        return 3
+
+def get_type(phenotype):
+    type = str(phenotype.type).lower().strip()
+    if type == "biomarker":
+        return 1
+    elif type == "disease or syndrome":
+        return 2
+    elif type == "drug":
+        return 3
+    elif type == "lifestyle risk factor":
+        return 4
+    elif type == "musculoskeletal":
+        return 5
+    elif type == "surgical procedure":
+        return 6    
+    else:
+        return -1
+
+def get_custom_fields(phenotype):
+    ret_data = {}
+    
+    ret_data['type'] = str(get_type(phenotype))
+    ret_data['concept_information'] = phenotype.concept_informations
+    ret_data['coding_system'] = phenotype.clinical_terminologies
+    ret_data['data_sources'] = phenotype.data_sources
+    ret_data['phenoflowid'] = phenotype.phenoflowid    
+    ret_data['agreement_date'] = get_agreement_date(phenotype)
+    ret_data['phenotype_uuid'] = phenotype.phenotype_uuid
+    ret_data['event_date_range'] = phenotype.valid_event_data_range
+    ret_data['sex'] = str(get_sex(phenotype))
+    ret_data['source_reference'] = phenotype.source_reference
+    
+    return ret_data
+    
+def get_custom_fields_key_value(phenotype):
+    """
+        return one dict of col_name/col_value pairs
+    """
+    
+    return get_custom_fields(phenotype)

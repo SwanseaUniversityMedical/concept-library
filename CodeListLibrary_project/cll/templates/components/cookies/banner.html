@@ -1,0 +1,11 @@
+{% load i18n static %}
+{% load compress %}
+
+{% include "components/cookies/cookie_component.html" %}
+{% include "components/cookies/cookie_card.html" %}
+
+{% compress js %}
+<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/cookiealert.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/cookie-settings.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/generateGtag.js' %}"></script>
+{% endcompress %}

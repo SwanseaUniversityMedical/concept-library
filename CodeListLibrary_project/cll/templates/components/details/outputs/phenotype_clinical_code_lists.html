@@ -1,0 +1,143 @@
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load entity_renderer %}
+{% load markdownify %}
+<!--   phenotype_clinical_code_lists   -->
+
+<script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+{% compress js %}
+<script type="text/javascript" src="{% static 'js/clinicalcode/data/conceptUtils.js' %}"></script>
+{% endcompress %}
+
+{% if component.value|length %}
+<div class="detailed-input-group fill">
+  <div id="export-code-button" class="box-container">
+
+    <div class="row">
+      <div class="col-md-6 text-align-left">
+      </div>
+      <div class="col-md-6 text-align-right">
+
+        <label class="dropdown-group">
+
+          <div class="dropdown-group__button">Export Code List </div>
+        
+          <input type="checkbox" class="dropdown-group__input"  id="dd_2">
+        
+          <ul class="dropdown-group__menu dropdown-group__menu--fall-right" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} >
+            <li aria-label="Export code list as CSV" role="button" tabindex="0">
+              <a {% if user_can_export %}
+                href="{% url 'export_entity_version_codes_to_csv' pk=entity.id history_id=entity.history_id %}" {% endif %}
+              >
+                CSV
+              </a>
+            </li>
+            <li aria-label="Export code list as Json" role="button" tabindex="0">
+              <a {% if user_can_export %}
+                  href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=json"
+                  target=_blank {% endif %}
+              >
+                JSON
+              </a>
+            </li>
+            <li aria-label="Export code list as XML" role="button" tabindex="0">
+              <a {% if user_can_export %}
+                href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=xml"
+                target=_blank {% endif %}
+              >
+              XML
+            </a>
+            </li>
+          </ul>
+          
+        </label>
+
+        </div>
+      </div>
+      
+    </div>
+</div>
+{% endif %}
+
+<div class="detailed-input-group fill constrained" id="accordion">
+  {% if component.value|length %}
+    {% for c in component.value %}
+      <div class="fill-accordian" id="concept-accordian-{{ c.concept_id }}" data-id="{{ c.concept_id }}" data-history-id="{{ c.concept_version_id }}">
+        <input class="fill-accordian__input" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
+          name="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" type="checkbox" />
+        <label class="fill-accordian__label" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
+            for="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" role="button" tabindex="0">
+          <span>
+            <strong>
+              C{{ c.concept_id }}/{{ c.concept_version_id }}
+            </strong>
+
+            &nbsp;-&nbsp;{{ c.details.name }}
+            &nbsp;|&nbsp;<em>{{ c.coding_system.name }}</em>
+
+            <span id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
+                  class="hide">
+              &nbsp;|&nbsp;
+              <strong>LEGACY VERSION</strong>
+            </span>
+          </span>
+        </label>
+        <article class="fill-accordian__container codelist-extents">
+          <section class="concept-group-content__container show" id="concept-information">
+            <section class="concept-group-content__details">
+              <h4>
+                {% if c.details.is_published %}
+                  PUBLISHED
+                {% else %}
+                  UNPUBLISHED
+                {% endif %}
+                &nbsp;-&nbsp; {{ c.codelist|length }} Codes
+              </h4>
+              <ul class="chips-group" id="concept-chips">
+                <li class="chip bold warning-accent text-accent-darkest alert-icon icon-accent-danger hide"
+                    id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
+                    disabled>
+                  <a id="update-latest-version" class="chip-text">LEGACY VERSION</a>
+                </li>
+                <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight" disabled>
+                  <a id="coding-system-info" class="chip-text">{{ c.coding_system.name }}</a>
+                </li>
+              </ul>
+            </section>
+          </section>
+
+          <div class="detailed-input-group fill constrained" style="max-width: 100%">
+            <div class="constrained-codelist-table" id="concept-codelist-{{ c.concept_id }}_{{ c.concept_version_id }}">
+            
+            </div>
+          </div>
+        </article>
+      </div>
+    {% endfor %}
+  {% else %}
+    <span class="card-no-data">No Clinical Code Lists</span>
+  {% endif %}
+</div>
+
+<script type="text/javascript">
+  let conceptData = '{{ component.value|jsonify|escapejs }}';
+  conceptData = JSON.parse(conceptData);
+
+  domReady.finally(() => {
+    if (isNullOrUndefined(conceptData)) {
+      return;
+    }
+
+    applyCodelistsFromConcepts(
+      conceptData,
+      {
+        codelistContainerId: '#concept-codelist-${concept_id}_${concept_version_id}',
+        showAttributes: true,
+        perPageSelect: [10, 50, 100, ['All', -1]]
+      }
+    );
+  });
+</script>
+

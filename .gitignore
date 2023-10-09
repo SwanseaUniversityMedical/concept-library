@@ -1,10 +1,25 @@
 *.pyc
+__pycache__
 .project
 .pydevproject
 .DS_Store
-docker/
 CodeListLibrary_project/.settings/org.eclipse.core.resources.prefs
 .settings/org.eclipse.ltk.core.refactoring.prefs
 requirements/base - Django2.txt
 docs/~$plication Guide.docx
+**/docker/**/backup
+*.backup
+git.token
+CodeListLibrary_project/debug.log
+.vscode
+.settings/org.eclipse.core.resources.prefs
+venv
+**/dump.rdb
+CodeListLibrary_project/staticroot/*
+CodeListLibrary_project/media/*
+docker/development/db/postgresql.conf
+docker/CodeListLibrary_project
+
+# macOS system files
+.DS_Stores
 .idea

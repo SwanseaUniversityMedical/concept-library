@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load detail_pg_renderer %}
+{% load entity_publish_renderer %}
+{% load compress %}
+{% load sass_tags %}
+
+{% block title %}| {{ entity_class }}: {{ entity.name }}{% endblock title %}
+{% block description %}{{ entity.name }}{% endblock description %}
+{% block keywords %}, {{ entity.name }}{% endblock keywords %}
+
+{% block canonical_path %}
+	<link rel="canonical" href="{{ page_canonical_path }}" />
+{% endblock canonical_path %}
+
+{% block container %}
+<!-- Vendor -->
+  <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
+
+  <!-- Dependencies -->
+  {% compress js %}
+  <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+  {% endcompress %}
+
+  {% compress js %}
+  <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
+  <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  {% compress css %}
+  <link href="{% sass_src 'scss/pages/detail.scss' %}" rel="stylesheet" type="text/css" />
+  {% endcompress %}
+
+  <!-- Form -->
+  <header class="main-header">
+    <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+      {% comment %} {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+      {% endbreadcrumbs %} {% endcomment %}
+
+      <section class="breadcrumbs">
+        <span class="breadcrumb-item">
+          <span class="marker"></span>
+          <span class="breadcrumb"><a href="{% url 'search_phenotypes' %}">Search</a></span>
+        </span>
+        <span class="breadcrumb-item">
+          <span class="marker"></span>
+          <span class="breadcrumb">{{ entity.name }}</span>
+        </span>
+      </section>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    {% render_wizard_sidemenu %}
+    {% endrender_wizard_sidemenu %}
+
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="phenotype-creation">
+        {% include './detail_buttons.html' %}
+        
+          <section class="phenotype-creation__header">
+            <h1>{{ entity.name }}</h1>
+            <p><i>{{ entity.author }}</i></p>
+            <p>
+              <strong>{{ entity.id }} / {{ entity.history_id }}</strong>
+              {% if user.is_authenticated %}
+                (
+                {% if is_latest_version %}
+                  <span class="tag label label-highlighted">LATEST VERSION</span>
+                {% else %}
+                  <span class="tag label label-default">LEGACY VERSION</span>
+                {% endif %}
+                )
+              {% endif %}
+              <span class="badge"><strong>{{ template.definition.template_details.name }}</strong></span>
+            </p>
+          </section>
+
+          <ol class="phenotype-progress" id="main-wizard">
+            {% render_wizard_sections_detail_pg %}
+            {% endrender_wizard_sections_detail_pg %}
+          </ol>
+      </article>
+    </div>
+  </main>
+{% endblock container %}

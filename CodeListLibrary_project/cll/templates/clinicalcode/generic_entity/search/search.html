@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Search Phenotypes {% endblock title %}
+
+{% block container %}
+
+<!-- Include search banner component -->
+{% include "components/search/search_banner.html" with query=False %}
+
+<!-- Include required components -->
+<script src="{% static 'js/lib/moment.min.js' %}"></script>
+{% compress js %}
+<script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
+{% endcompress %}
+
+<!-- Main search page -->
+<main class="main-content main-content--inner-padding">
+  <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+    <div class="search-page">
+      <aside class="side-search-filters">
+        {% compress js %}
+          <script type="module" src="{% static 'js/clinicalcode/services/filterService.js' %}"></script>
+        {% endcompress %}
+        <div class="side-search-filters__header">
+          <h3>Filter By</h3>
+        </div>
+        <div class="side-search-filters__container">
+          {% render_entity_filters %}
+          {% endrender_entity_filters %}
+        </div>
+      </aside>
+
+      <section class="entity-search-results" id="search-results-area">
+        {% include "components/search/results.html" %}
+      </section>
+    </div>
+
+    <aside class="pagination-box" id="search-pagination-area">
+      {% include "components/search/pagination_container.html" %}
+    </aside>
+  </div>
+</main>
+
+{% endblock container %}

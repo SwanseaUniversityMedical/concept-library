@@ -1,9 +1,9 @@
-from clinicalcode.models.Brand import Brand
-from clinicalcode.models.TimeStampedModel import TimeStampedModel
 from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 
+from clinicalcode.models.Brand import Brand
+from clinicalcode.models.TimeStampedModel import TimeStampedModel
 
 class Tag(TimeStampedModel):
     default = 1
@@ -34,6 +34,7 @@ class Tag(TimeStampedModel):
 
     tag_type = models.IntegerField(choices=TAG_TYPES, default=1)
     collection_brand = models.ForeignKey(Brand,
+                                         blank=True,
                                          on_delete=models.SET_NULL,
                                          null=True,
                                          related_name="tags_collection_brand")

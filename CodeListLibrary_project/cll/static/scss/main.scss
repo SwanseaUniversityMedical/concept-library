@@ -1,0 +1,181 @@
+@import '_fonts';
+@import '_brands';
+@import '_utils';
+@import '_media';
+@import '_layout';
+
+@import 'components/_navigation';
+@import 'components/_footer';
+@import 'components/_breadcrumbs';
+@import 'components/_stepsWizard';
+@import 'components/_inputs';
+@import 'components/_cards';
+@import 'components/_buttons';
+@import 'components/_tags';
+@import 'components/_chips';
+@import 'components/_tables';
+@import 'components/_accordians';
+@import 'components/_scrollbars';
+@import 'components/_search';
+@import 'components/_tabView';
+@import 'components/_filters';
+@import 'components/_pagination';
+@import 'components/_markdown';
+@import 'components/_dropdown';
+@import 'components/_modals';
+@import 'components/_tooltips';
+@import 'components/_toast';
+@import 'components/_banner';
+@import 'components/_cookie_component';
+@import 'components/_search-navigation';
+@import 'components/_scrollspy';
+@import 'components/_headline';
+@import 'components/_misc';
+
+// Need to add vendor's properties to brand map
+@import 'vendor/_lightpick';
+@import 'vendor/_datatables';
+
+html {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  -webkit-text-size-adjust: none;
+}
+
+*:not(body) {
+  position: relative;
+
+  &.hide {
+    display: none;
+  }
+}
+
+body {
+  @include flex-col();
+  @include app-font-style();
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: col(bg);
+  flex-wrap: nowrap;
+}
+
+data {
+  display: none;
+}
+
+// markdownify
+//  @desc shadow frames for markdownify
+.shadow-frame {
+  img {
+    max-width: 100%
+  }
+}
+
+// base-form
+//  @desc base form style
+.base-form {
+  max-width: 100%;
+}
+
+// main-header
+//  @desc defines the main <header/> element
+.main-header {
+  @include flex-col();
+  min-height: min-content;
+  max-width: 100%;
+  margin: var(--main-top-padding) 0 0 0;
+
+  @include media('<desktop', 'screen') {
+    margin: var(--main-top-mobile-padding) 0 0 0;
+  }
+
+  &__inner-container {
+    @include flex-col();
+    min-height: min-content;
+    max-width: 100%;
+    padding: 0 var(--main-gutter) 0 var(--main-gutter);
+
+    @include media("<desktop", "screen") {
+      padding-right: var(--main-mobile-gutter);
+      padding-left: var(--main-mobile-gutter);
+    }
+
+    &--constrained {
+      max-width: 2160px;
+      width: calc(100% - var(--main-gutter) - var(--main-gutter));
+
+      @include media("<desktop", "screen") {
+        max-width: 2160px;
+        width: calc(100% - var(--main-mobile-gutter) - var(--main-mobile-gutter));
+      }
+    }
+
+    &--constrained-no-pad {
+      max-width: 2160px;
+      width: 100%;
+      padding: 0 !important;
+    }
+
+    &--centred {
+      align-self: center;
+    }
+  }
+}
+
+// main-content
+//  @desc defines the main <main/> element
+.main-content {
+  @include flex-col();
+  position: relative;
+  flex: 1;
+  min-height: fit-content;
+  max-width: 100%;
+  flex-wrap: nowrap;
+
+  &__inner-container {
+    @include flex-col();
+    position: relative;
+    flex: 1;
+    min-height: fit-content;
+    max-width: 100%;
+
+    &--fill-width {
+      width: 100%;
+    }
+
+    &--constrained {
+      width: 100%;
+      max-width: 2160px;
+    }
+
+    &--centred {
+      align-self: center;
+    }
+
+    &--pad-right-1 {
+      padding-right: 1rem;
+    }
+
+    &--pad-right-constrained {
+      padding-right: 1rem;
+
+      @include media("<desktop", "screen") {
+        padding-right: 2rem;
+        width: calc(100% - 2rem);
+      }
+    }
+  }
+  
+  &--inner-padding {
+    padding: 0 var(--main-gutter) 0 var(--main-gutter);
+  
+    @include media("<desktop", "screen") {
+      padding-right: var(--main-mobile-gutter);
+      padding-left: var(--main-mobile-gutter);
+    }
+  }
+}

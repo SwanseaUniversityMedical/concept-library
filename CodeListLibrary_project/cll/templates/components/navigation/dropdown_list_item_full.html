@@ -1,0 +1,22 @@
+{% load svg %}
+{% load cl_extras %}
+
+<li class="content-container__full">
+  {% if separator %}
+    <hr/>
+  {% endif %}
+
+  <a href="{{url}}" class="item-dropdown">
+    <div class="item-dropdown__icon">
+      {% svg icon %}
+    </div>
+    {% if description %}
+      <div class="item-dropdown__text">
+        <div class="item-dropdown__title">{{title}}</div>
+        <p class="item-dropdown__description">{{description}}</p>
+      </div>
+    {% else %}
+      <div class="item-dropdown__title">{{title}}</div>
+    {% endif %}
+  </a>
+</li>

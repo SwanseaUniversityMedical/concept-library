@@ -1,0 +1,117 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.page-split {
+  @include flex-row();
+
+  &__left {
+    @include flex-col();
+    flex-grow: 1;
+  }
+
+  &__right {
+    @include flex-col();
+    flex-grow: 2;
+  }
+
+  &__container {
+    margin-left: 1rem;
+  }
+}
+
+.page-split {
+  display: grid;
+  grid-template-columns: 15% 85%;
+
+  @include media("<tablet", "screen") {
+    @include flex-col();
+  }
+
+  &__left {
+    grid-column-start: 1;
+
+    @include media("<tablet", "screen") {
+      display: none;
+    }
+  }
+
+  &__right {
+    grid-column-start: 2;
+    border-image: linear-gradient(col(accent-dark), col(bg)) 30;
+    border-left-width: 1px;
+    border-left-style: solid;
+  
+    @include media("<900px", "screen") {
+      border-left: none;
+    }
+
+    @include media("<tablet", "screen") {
+      grid-column-start: 1;
+    }
+  }
+
+  &__container {
+    margin-left: 1rem;
+  }
+}
+
+.scrollspy {
+  padding: 1rem 0 0 0;
+  position: sticky;
+  position: -webkit-sticky;
+  height: min-content;
+  top: var(--main-top-padding);
+
+  a {
+    @include clear-anchor();
+  }
+
+  &__container {
+    @include flex-col();
+
+    &__item {
+      &--primary {
+        --accent-color: #{$soft_blue};
+        --hover-color: #{$lightest_grey};
+      }
+
+      &--secondary {
+        --accent-color: #{$soft_cyan};
+        --hover-color: #{$lightest_grey};
+      }
+
+      &--tertiary {
+        --accent-color: #{$pixie-green};
+        --hover-color: #{$lightest_grey};
+      }
+
+      @include app-font-style();
+      @include flex-row();
+      @include prefix(transition, all 250ms ease-in-out, webkit moz o ms);
+      padding: 1rem 1rem 1rem 1.5rem;
+      text-align: left;
+      border-radius: 0;
+      border: none;
+      font-weight: bold;
+      background-color: $white;
+
+      &:hover {
+        background-color: var(--hover-color);
+      }
+
+      &.active {
+        &:after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 0.5rem;
+          background-color: var(--accent-color);
+        }
+      }
+    }
+  }
+}
