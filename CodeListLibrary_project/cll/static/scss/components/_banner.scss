@@ -1,0 +1,99 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+// Banner
+//  @desc defines a rectangular banner shown along the top of a page
+.banner {
+  @include flex-col();
+  background-color: var(--phenotype-banner-bg-color);
+
+  &.image {
+    background: var(--banner-url);
+    background-repeat: no-repeat;
+    background-color: #000000;
+    background-position: center;
+
+    @include media('<tablet', 'screen') {
+      background-position: 50% 50%;
+      background-size: cover;
+    }
+  }
+
+  &__container {
+    @include flex-col();
+    padding: 0.5rem 0 0.5rem 0;
+    width: var(--phenotype-article-lg-size);
+    max-width: var(--phenotype-article-lg-size);
+    align-items: flex-start;
+    align-self: center;
+  
+    @include media(">desktop", "screen") {
+      width: var(--phenotype-article-sm-size);
+      max-width: var(--phenotype-article-sm-size);
+    }
+  
+    @include media("<desktop", "screen") {
+      width: var(--phenotype-article-lg-size);
+      max-width: var(--phenotype-article-lg-size);
+    }
+
+    &.container {
+      &--desktop-lg {
+        @include media("<desktop-lg", "screen") {
+          width: var(--phenotype-article-lg-size);
+          max-width: var(--phenotype-article-lg-size);
+        }
+      }
+    }
+   
+    &__left-landing-page {
+      width: 50%;
+      max-width: 450px;
+      padding-left: 6rem;
+      padding-top: 2rem;
+      align-content: left;
+
+      @include media("<tablet", "screen") {
+        padding: 1rem 0 0 2rem;
+      }
+    }
+  }
+
+  &__title {
+    padding: 0;
+    margin: 2rem 0 0.5rem 0;
+    font-size: var(--phenotype-banner-title-size);
+    font-weight: bold;
+    line-height: 1;
+    color: var(--phenotype-banner-title-color);
+  }
+
+  &__description {
+    margin: 1rem 0 0.5rem 0;
+    &__landing-page {
+      color: var(--color-accent-bright);
+    }
+  }
+
+  &__cards {
+    @include flex-col();
+    padding: 1rem 0 2rem 0;
+    align-self: center;
+    overflow: none;
+    max-width: 100%;
+
+    @include media(">phone", "screen") {
+      width: 300px;
+    }
+
+    @include media(">=tablet", "screen") {
+      width: 600px;
+    }
+
+    @include media(">=desktop", "screen") {
+      width: 100%;
+    }
+  }
+}

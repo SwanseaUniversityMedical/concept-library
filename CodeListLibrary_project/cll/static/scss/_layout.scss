@@ -1,0 +1,187 @@
+@use 'sass:map';
+@use 'sass:math';
+@import '_methods';
+@import '_variables';
+@import '_media';
+@import '_utils';
+
+/// Element modifiers
+///   @desc used within box containers for layout
+@each $class, $modifier in $modifiers {
+  $values: map-get($modifier, values);
+
+  @if ($values) {
+    @if (type-of(nth($values, 1)) != 'list') {
+      $values: zip($values, $values);
+    }
+
+    @each $key, $val in $values {
+      $property: map-get($modifier, property);
+
+      .#{$class}-#{$key} {
+        #{$property}: $val;
+      }
+    }
+  }
+}
+
+/// Responsive box container
+///   @desc Used to define row/col layouts
+.box-container,
+.box-container-sm,
+.box-container-md,
+.box-container-lg {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+}
+
+@media (min-width: map-get($column-grid, xs)) {
+  .box-container, .box-container-sm {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: map-get($column-grid, sm)) {
+  .box-container, .box-container-sm, .box-container-md {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: map-get($column-grid, md)) {
+  .box-container, .box-container-sm, .box-container-md, .box-container-lg {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: map-get($column-grid, lg)) {
+  .box-container, .box-container-sm, .box-container-md, .box-container-lg {
+    max-width: 1140px;
+  }
+}
+
+/// Grid-based row-column layout
+///   @desc Responsive grid-based 12 column layout
+///   @requires .box-container wrapper
+.box-container,
+.box-container-sm,
+.box-container-md,
+.box-container-lg {
+  .grid-row {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-gap: 20px;
+    width: 100%;
+  }
+
+  @each $name, $scale in $column-grid {
+    @if ($scale) {
+      @media (min-width: $scale) {
+        @for $val from $column-min through $column-max {
+          .grid-col-#{$name}-#{$val} {
+            grid-column: span $val;
+          }
+        }
+      }
+    } @else {
+      @for $val from $column-min through $column-max {
+        .grid-col-#{$name}-#{$val} {
+          grid-column: span $val;
+        }
+      }
+    }
+  }
+}
+
+/// Flexbox-based row-column layout
+///   @desc Responsive flexbox-based 12 column layout
+///   @requires .box-container wrapper
+.box-container,
+.box-container-sm,
+.box-container-md,
+.box-container-lg {
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    flex-direction: row;
+
+    & > * {
+      box-sizing: border-box;
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    &-cols-auto {
+      display: flex;
+      flex: 0 0 auto;
+      width: auto;
+    }
+
+    @each $name, $scale in $column-scales {
+      @if ($scale) {
+        @media (min-width: $scale) {
+          &-#{$name} {
+            flex: 1 0 0%;
+          }
+        }
+      }
+    }
+  }
+
+  @for $count from $column-min through $column-max {
+    .row-cols-#{$count} {
+      flex: 0 0 auto;
+      width: (1 / $count) * 100%;
+    }
+  }
+
+  .col {
+    display: flex;
+    flex: 1 0 0%;
+    flex-direction: column;
+
+    &-auto {
+      flex: 0 0 auto;
+      width: auto;
+    }
+  }
+
+  @for $count from $column-min through $column-max {
+    .col-#{$count} {
+      flex: 0 0 auto;
+      width: ($count / $column-max) * 100%;
+    }
+
+    .offset-#{$count} {
+      margin-left: ($count / $column-max) * 100%;
+    }
+  }
+
+  @each $name, $scale in $column-scales {
+    @if ($scale) {
+      @media (min-width: $scale) {
+        @for $count from $column-min through $column-max {
+          .row-cols-#{$name}-#{$count} > * {
+            flex: 0 0 auto;
+            width: (1 / $count) * 100%;
+          }
+
+          .col-#{$name} {
+            flex: 1 0 0%;
+          }
+
+          .col-#{$name}-#{$count} {
+            flex: 0 0 auto;
+            width: ($count / $column-max) * 100%;
+          }
+
+          .offset-#{$name}-#{$count} {
+            margin-left: ($count / $column-max) * 100%;
+          }
+        }
+      }
+    }
+  }
+}

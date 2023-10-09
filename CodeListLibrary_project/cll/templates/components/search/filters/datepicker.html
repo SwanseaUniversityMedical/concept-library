@@ -1,0 +1,14 @@
+<div class="accordian" data-class="datepicker" data-field="{{ filter_info.field }}" 
+  data-type="{{ filter_info.type }}" data-controller="filter"
+  role="collapsible" tabindex="0" aria-labelledby="{{ filter_info.title }} Filters" aria-controls="filter-{{ filter_info.field }}">
+
+  <input class="accordian__input" id="filter-{{ filter_info.field }}" name="filter-{{ filter_info.field }}" type="checkbox" />
+  <label class="accordian__label" for="filter-{{ filter_info.field }}">
+    <h4>{{ filter_info.title }}</h4>
+  </label>
+  <article class="accordian__container">
+    <fieldset class="date-range-field">
+      <input type="text" class="date-range-picker" aria-label="{{ filter_info.title }}" data-class="datepicker" id="filter-{{ filter_info.field }}-input" name="filter-{{ filter_info.field }}-input" data-name="{{ option.value }}" />
+    </fieldset>
+  </article>
+</div>

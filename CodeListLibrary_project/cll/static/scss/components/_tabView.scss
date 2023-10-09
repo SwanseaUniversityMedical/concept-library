@@ -1,0 +1,78 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+// tab-view
+//  @desc describes a JS-driven tab-based view, primarily used by conceptSelectionService.js
+.tab-view {
+  @include flex-col();
+  width: 100%;
+  height: fit-content;
+  max-height: 100%;
+  max-width: 100%;
+  padding: 0.5rem 0 0 0;
+
+  &__tabs {
+    @include flex-row();
+    justify-content: flex-start;
+    align-content: flex-end;
+    padding: 0 0 0 1rem;
+    width: 100%;
+    max-width: 100%;
+
+    &-z-buffer {
+      z-index: 9999999;
+    }
+  }
+
+  &__tab {
+    @include app-font-style();
+    cursor: pointer;
+    display: flex;
+    padding: 0.5rem 0.5rem 1rem 0.5rem;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    outline: none;
+    background-color: col(bg);
+    font-weight: 600;
+
+    &:after {
+      content: '';
+      position: absolute;
+      left: 0.5rem;
+      bottom: 0.25rem;
+      width: 0.5rem;
+      height: 4px;
+      background: col(accent-washed);
+    }
+
+    &:hover {
+      &:after {
+        background: col(accent-primary);
+      }
+    }
+    
+    &.active {
+      border: 1px solid col(accent-washed);
+      border-bottom: 2px solid col(bg);
+      margin-bottom: -2px;
+
+      &:after {
+        background: col(accent-primary);
+      }
+    }
+  }
+  
+  &__content {
+    @include flex-col();
+    flex-wrap: nowrap;
+    box-sizing: border-box;
+    padding: 1rem 0.5rem;
+    width: 100%;
+    height: fit-content;
+    max-width: 100%;
+    max-height: 100%;
+    border-top: 1px solid col(accent-washed);
+  }
+}

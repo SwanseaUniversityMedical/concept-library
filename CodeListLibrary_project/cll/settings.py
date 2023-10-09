@@ -5,28 +5,48 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/
 """
 
-import distutils
-import os
-import socket
-import sys
-from distutils import util
-
-import ldap
-from decouple import Config, Csv, RepositoryEnv
-from django.conf.global_settings import AUTHENTICATION_BACKENDS, EMAIL_BACKEND
+from datetime import timedelta
+from django.urls import reverse_lazy
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
-#from django.core.urlresolvers import reverse_lazy
-from django.urls import reverse_lazy
-from django_auth_ldap.config import (GroupOfNamesType, LDAPSearch,
+from django_auth_ldap.config import (LDAPSearch,
                                      LDAPSearchUnion,
                                      NestedActiveDirectoryGroupType)
 
+import os
+import socket
+import sys
+import ldap
+import numbers
+
+''' Utilities '''
+
+def strtobool(val):
+    '''
+        Converts str() to bool()
+        [!] Required as distutil.util.strtobool no longer
+            supported in Python v3.10+ and removed in v3.12+
+    '''
+    if isinstance(val, bool):
+        return val
+
+    if isinstance(val, numbers.Number):
+        val = str(int(val))
+
+    if not isinstance(val, str):
+        raise ValueError('Invalid paramater %r, expected <str()> but got %r' % (val,type(val)))
+
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return 1
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return 0
+    raise ValueError('Invalid truth value %r, expected one of (\'y/n\', \'yes/no\', \'t/f\', \'true/false\', \'on/off\', \'1/0\')' % (val,))
 
 def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
-    """
-        returns the server IP
-    """
+    '''
+        Returns the server IP
+    '''
     S = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
@@ -38,25 +58,45 @@ def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
         S.close()
     return IP
 
-
-SRV_IP = GET_SERVER_IP()
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 def get_env_value(env_variable, cast=None):
+    '''
+        Attempts to get env variable from OS
+    '''
     try:
         if cast == None:
             return os.environ[env_variable]
         elif cast == 'int':
             return int(os.environ[env_variable])
         elif cast == 'bool':
-            return bool(distutils.util.strtobool(os.environ[env_variable]))
+            return bool(strtobool(os.environ[env_variable]))
         else:
             return os.environ[env_variable]
     except KeyError:
         error_msg = 'Set the {} environment variable'.format(env_variable)
         raise ImproperlyConfigured(error_msg)
 
+#==============================================================================#
+
+''' Application base '''
+
+APP_TITLE = 'Concept Library'
+APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
+APP_LOGO_PATH = 'img/'
+APP_EMBED_ICON = '{logo_path}embed_img.png'
+INDEX_PATH = 'clinicalcode/index.html'
+
+ADMIN = [
+    ('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
+    ('Dan', 'd.s.thayer@swansea.ac.uk')
+]
+
+#==============================================================================#
+
+''' Application settings '''
+
+SRV_IP = GET_SERVER_IP()
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # check OS
 IS_LINUX = False
@@ -70,18 +110,16 @@ else:
 if path_prj not in sys.path:
     sys.path.append(path_prj)
 
-#==========================================================================
+#==============================================================================#
+
+''' Application variables '''
+
 # separate settings for different environments
-# general variables
 IS_DEMO = get_env_value('IS_DEMO', cast='bool')
 
+CLINICALCODE_SESSION_ID = 'concept'
+
 CLL_READ_ONLY = get_env_value('CLL_READ_ONLY', cast='bool')
-
-# This variable was used for dev/admin and no longer maintained
-#ENABLE_PUBLISH = True   # get_env_value('ENABLE_PUBLISH', cast='bool')
-
-SHOWADMIN = get_env_value('SHOWADMIN', cast='bool')
-BROWSABLEAPI = get_env_value('BROWSABLEAPI', cast='bool')
 
 IS_INSIDE_GATEWAY = get_env_value('IS_INSIDE_GATEWAY', cast='bool')
 IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool')
@@ -94,48 +132,69 @@ SECRET_KEY = get_env_value('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_env_value('DEBUG', cast='bool')
 
-ADMIN = [('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
-         ('Dan', 'd.s.thayer@swansea.ac.uk')]
-
+# Allowed application hots
 ALLOWED_HOSTS = [i.strip() for i in get_env_value('ALLOWED_HOSTS').split(",")]
 
 ROOT_URLCONF = 'cll.urls'
 DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
+# Setup support for proxy headers
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.saildatabank.com',
+    'https://phenotypes.healthdatagateway.org',
+    'http://conceptlibrary.serp.ac.uk',
+    'http://conceptlibrary.sail.ukserp.ac.uk'
+]
+
+# This variable was used for dev/admin and no longer maintained
+#ENABLE_PUBLISH = True   # get_env_value('ENABLE_PUBLISH', cast='bool')
+SHOWADMIN = get_env_value('SHOWADMIN', cast='bool')
+BROWSABLEAPI = get_env_value('BROWSABLEAPI', cast='bool')
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-CLINICALCODE_SESSION_ID = 'concept'
-
-#===========================================================================
-
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.settings"
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.10/howto/static-files/
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'cll/static'),
-]
+#==============================================================================#
 
-STATIC_URL = '/static/'
+''' Site related variables '''
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
+## Brand related settings
+IS_HDRUK_EXT = "0"
+CURRENT_BRAND = ""
+CURRENT_BRAND_WITH_SLASH = ""
+BRAND_OBJECT = {}
 
-WSGI_APPLICATION = 'cll.wsgi.application'
+## Graph settings
+GRAPH_MODELS = {
+    'all_applications': True,
+    'group_models': True,
+}
 
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
+## Message template settings
+MESSAGE_TAGS = {messages.ERROR: 'danger'}
+
+### Icon settings for demo sites, incl. cookie alert(s)
+DEV_PRODUCTION = ""
+if IS_DEMO:  # Demo server
+    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'>&#9881; </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'>&#9881; </i>"
+
+SHOW_COOKIE_ALERT = True
+
+#==============================================================================#
+
+''' LDAP authentication '''
 
 # Binding and connection options
-# LDAP authentication  =======================================================
 ENABLE_LDAP_AUTH = get_env_value('ENABLE_LDAP_AUTH', cast='bool')
 
 AUTH_LDAP_SERVER_URI = get_env_value('AUTH_LDAP_SERVER_URI')
@@ -150,10 +209,8 @@ AUTH_LDAP_GROUP_SEARCH = LDAPSearch(get_env_value('AUTH_LDAP_GROUP_SEARCH'), lda
 
 AUTH_LDAP_GROUP_TYPE = NestedActiveDirectoryGroupType()
 
-
 # Simple group restrictions
 AUTH_LDAP_REQUIRE_GROUP = get_env_value('AUTH_LDAP_REQUIRE_GROUP')
-
 
 # Populate the django user from the LDAP directory.
 AUTH_LDAP_USER_ATTR_MAP = {
@@ -171,9 +228,11 @@ AUTH_LDAP_FIND_GROUP_PERMS = True
 # Cache group memberships for an hour to minimize LDAP traffic
 AUTH_LDAP_CACHE_GROUPS = True
 AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
-#==============================================================================
 
-# Application definition
+#==============================================================================#
+
+''' Installed applications '''
+
 INSTALLED_APPS = []
 if SHOWADMIN:
     INSTALLED_APPS = INSTALLED_APPS + [
@@ -181,6 +240,7 @@ if SHOWADMIN:
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
+    'django.contrib.postgres',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -200,19 +260,44 @@ INSTALLED_APPS = INSTALLED_APPS + [
     #'rest_framework_swagger',
     'drf_yasg',
     'django.contrib.sitemaps',
+    'svg',
+    # SCSS
+    'sass_processor',
+    # Compressor
+    'compressor',
+    # HTML Minifier
+    'django_minify_html',
 ]
+
+#==============================================================================#
+
+
+''' Middleware '''
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',  # manages sessions across requests
+    # GZip
+    'django.middleware.gzip.GZipMiddleware',
+    # Manage sessions across requests
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',  # associates users with requests using sessions
+    # Associates users with requests using sessions
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
-    'cll.middleware.brandMiddleware'
+    # Minify HTML
+    'clinicalcode.middleware.compression.HTMLCompressionMiddleware',
+    # Handle brands
+    'clinicalcode.middleware.brands.BrandMiddleware',
+    # Handle user session expiry
+    'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
 ]
+
+#==============================================================================#
+
+''' Authentication backends '''
 
 # Keep ModelBackend around for per-user permissions and a local superuser.
 # Don't check AD on development PCs due to network connection
@@ -227,72 +312,7 @@ else:
         'django.contrib.auth.backends.ModelBackend',
     ]
 
-REST_FRAMEWORK = {
-    #     'DEFAULT_RENDERER_CLASSES': (
-    #         'rest_framework.renderers.JSONRenderer',
-    #         'rest_framework_xml.renderers.XMLRenderer',
-    #         'rest_framework.renderers.BrowsableAPIRenderer',
-    #     ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES':
-    ('rest_framework.permissions.IsAuthenticated', ),
-    # 'DEFAULT_PARSER_CLASSES': (
-    #     'rest_framework.parsers.FileUploadParser',
-    #     'rest_framework.parsers.JSONParser',
-    #     'rest_framework.parsers.FormParser',
-    #     'rest_framework.parsers.MultiPartParser',
-    # ),
-}
-
-if not BROWSABLEAPI:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework_xml.renderers.XMLRenderer',
-    )
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'cookielaw.context_processors.cookielaw',
-                'cll.context_processors.general_var',
-            ],
-        },
-    },
-]
-
-# Database
-# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': get_env_value('DB_NAME'),
-        'USER': get_env_value('DB_USER'),
-        'PASSWORD': get_env_value('DB_PASSWORD'),
-        'HOST': get_env_value('DB_HOST'),
-        'PORT': '',
-    }
-}
-
-# sslmode is required for production DB
-if not IS_DEMO and (not IS_DEVELOPMENT_PC):
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
-
-# Password validation
-# https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
-
+# Password validation, ref @ https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME':
@@ -311,6 +331,145 @@ AUTH_PASSWORD_VALIDATORS = [
         'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+#==============================================================================#
+
+''' REST framework settings '''
+
+REST_FRAMEWORK = {
+    #     'DEFAULT_RENDERER_CLASSES': (
+    #         'rest_framework.renderers.JSONRenderer',
+    #         'rest_framework_xml.renderers.XMLRenderer',
+    #         'rest_framework.renderers.BrowsableAPIRenderer',
+    #     ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    # 'DEFAULT_PARSER_CLASSES': (
+    #     'rest_framework.parsers.FileUploadParser',
+    #     'rest_framework.parsers.JSONParser',
+    #     'rest_framework.parsers.FormParser',
+    #     'rest_framework.parsers.MultiPartParser',
+    # ),
+}
+
+if not BROWSABLEAPI:
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework_xml.renderers.XMLRenderer',
+    )
+
+#==============================================================================#
+
+''' Templating settings '''
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'cookielaw.context_processors.cookielaw',
+                'clinicalcode.context_processors.general.general_var',
+            ],
+            'libraries': {
+                'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
+                'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
+                'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
+            }
+        },
+    },
+]
+
+#==============================================================================#
+
+''' Database settings '''
+
+# Databases, ref @ https://docs.djangoproject.com/en/1.10/ref/settings/#databases
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': get_env_value('DB_NAME'),
+        'USER': get_env_value('DB_USER'),
+        'PASSWORD': get_env_value('DB_PASSWORD'),
+        'HOST': get_env_value('DB_HOST'),
+        'PORT': '',
+    }
+}
+
+# sslmode is required for production DB
+if not IS_DEMO and (not IS_DEVELOPMENT_PC):
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+
+#==============================================================================#
+
+''' Caching '''
+
+if DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        },
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://redis:6379/0',
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+            },
+            'KEY_PREFIX': 'cll',
+        }
+    }
+
+#==============================================================================#
+
+''' Static file handling & serving '''
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.10/howto/static-files/
+STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
+
+WSGI_APPLICATION = 'cll.wsgi.application'
+
+STATICFILES_STORAGE = 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # SCSS compilation
+    'sass_processor.finders.CssFinder',
+    # Compressor
+    'compressor.finders.CompressorFinder',
+)
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'cll/static'),
+]
+
+#==============================================================================#
+
+''' Media file handling '''
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+#==============================================================================#
+
+''' Application logging settings '''
 
 if IS_LINUX or IS_DEVELOPMENT_PC:
     LOGGING = {
@@ -366,34 +525,62 @@ else:
         },
     }
 
-GRAPH_MODELS = {
-    'all_applications': True,
-    'group_models': True,
-}
+#==============================================================================#
 
-# Redirect to home URL after login (Default redirects to /accounts/profile/)
-LOGIN_REDIRECT_URL = reverse_lazy('concept_list')
+''' Installed application settings '''
+
+# General settings
+
+## Django auth settings -> Redirect to home URL after login (Default redirects to /accounts/profile/)
+LOGIN_REDIRECT_URL = reverse_lazy('search_phenotypes')
 LOGIN_URL = reverse_lazy('login')
 LOGOUT_URL = reverse_lazy('logout')
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+## User session expiry for middleware.SessionExpiryMiddleware
+SESSION_EXPIRY = {
+    # i.e. logout after 1 week (optional)
+    'SESSION_LIMIT': timedelta(weeks=1),
+    # i.e. logout after 1 day if no requests were made during this time (optional)
+    'IDLE_LIMIT': timedelta(days=1),
+}
 
-MESSAGE_TAGS = {messages.ERROR: 'danger'}
-
-CURRENT_BRAND = ""
-CURRENT_BRAND_WITH_SLASH = ""
-BRAND_OBJECT = {}
-
+## Django cookie session settings
 if not DEBUG:
     SESSION_COOKIE_AGE = 3600  # 1 hour
 
-DEV_PRODUCTION = ""
-if IS_DEMO:  # Demo server
-    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'> </i>"
+## Default primary key field type - Django >= 3.2
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-##EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# Email, contact us page
+## HTML Minifier
+HTML_MINIFIER_ENABLED = True
+
+## Compressor options
+COMPRESS_ENABLED = not DEBUG
+COMPRESS_OFFLINE = True
+COMPRESS_URL = STATIC_URL
+COMPRESS_ROOT = STATIC_ROOT
+
+if not DEBUG:
+    COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
+    COMPRESS_PRECOMPILERS = (
+        ('module', 'esbuild {infile} --bundle --outfile={outfile}'),
+    )
+
+## SASS options
+SASS_PROCESSOR_ENABLED = True
+SASS_PROCESSOR_AUTO_INCLUDE = True
+SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
+SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
+
+## CAPTCHA
+### To ignore captcha during debug builds
+try:
+    IGNORE_CAPTCHA = get_env_value('IGNORE_CAPTCHA')
+except:
+    IGNORE_CAPTCHA = False
+
+## Email settings
+###     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = get_env_value('DEFAULT_FROM_EMAIL')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = get_env_value('EMAIL_USE_TLS', cast='bool')
@@ -404,10 +591,21 @@ EMAIL_HOST_PASSWORD = get_env_value('EMAIL_HOST_PASSWORD')
 EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
 HELPDESK_EMAIL = get_env_value('HELPDESK_EMAIL')
 
-IS_HDRUK_EXT = "0"
-SHOW_COOKIE_ALERT = True
+## Celery settings
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'django-db'
 
-# MARKDOWNIFY
+## Celery beat settings
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+## Swagger settings
+##     SWAGGER_SETTINGS = { 'JSON_EDITOR': True, }
+SWAGGER_TITLE = "Concept Library API"
+
+## Markdownify settings
 MARKDOWNIFY = {
     "default": {
         "WHITELIST_TAGS": [
@@ -440,41 +638,4 @@ MARKDOWNIFY = {
     }
 }
 
-# CELERY SETTINGS
-
-CELERY_BROKER_URL = 'redis://localhost:6379/0' if IS_DEVELOPMENT_PC else 'redis://redis:6379/0'
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
-
-CELERY_RESULT_BACKEND = 'django-db'
-
-#CELERY BEAT
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
-
-# Swagger
-# SWAGGER_SETTINGS = {
-#                     'JSON_EDITOR': True,
-# }
-
-# Setup support for proxy headers
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-SWAGGER_TITLE = "Concept Library API"
-
-
-# Default primary key field type
-# Django >= 3.2
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.saildatabank.com',
-    'https://phenotypes.healthdatagateway.org',
-    'http://conceptlibrary.serp.ac.uk',
-    'http://conceptlibrary.sail.ukserp.ac.uk'
-]
-
-
-
+#==============================================================================#

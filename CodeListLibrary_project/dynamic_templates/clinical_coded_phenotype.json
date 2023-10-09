@@ -1,0 +1,222 @@
+{
+  "template_details": {
+    "version": 1,
+    "name": "Clinical-Coded Phenotype",
+    "description": "Phenotype definitions that are based on lists of clinical codes, or algorithms using clinical codes.",
+    "card_type": "clinical"
+  },
+
+  "sections": [
+    {
+      "title": "Name & Author",
+      "description": "",
+      "fields": ["name", "author"],
+      "hide_on_detail": true
+    },
+    {
+      "title": "Overview",
+      "description": "An overview of the phenotype with basic metadata.",
+      "fields": ["type", "phenotype_uuid", "sex", "event_date_range", "coding_system", "data_sources", "collections", "tags"]
+    },
+    {
+      "title": "Definition",
+      "description": "",
+      "fields": ["definition"]
+    },
+    {
+      "title": "Implementation",
+      "description": "How this phenotype definition is run against data.",
+      "fields": ["phenoflowid", "implementation"],
+      "hide_if_empty": true
+    },
+    {
+      "title": "Validation",
+      "description": "Description of how correctness, appropriateness, and/or quality was assessed.",
+      "fields": ["validation"],
+      "do_not_show_in_production": true,
+      "hide_if_empty": true
+    },
+    {
+      "title": "Clinical Code List",
+      "documentation": "clinical-coded-phenotype-docs",
+      "description": "Clinical codes used to define this phenotype.",
+      "fields": ["concept_information"]
+    },
+    {
+      "title": "Publication",
+      "description": "Publication(s) where this phenotype is defined and/or used.",
+      "fields": ["publications", "citation_requirements"]
+    }
+  ],
+
+  "fields": {
+    "phenotype_uuid": {
+      "title": "Phenotype UUID",
+      "field_type": "string_inputbox_code",
+      "active": true,
+      "requires_auth": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "unique": true,
+        "length": [0, 250]
+      },
+      "search": {
+        "api": true
+      },
+      "hide_on_create": true,
+      "hide_if_empty": true
+    },
+    "type": {
+      "title": "Phenotype Type",
+      "description": "The category of patient characteristic this phenotype falls under.",
+      "field_type": "enum_dropdown_badge",
+      "active": true,
+      "validation": {
+        "type": "enum",
+        "mandatory": true,
+        "options": {
+          "1": "Biomarker",
+          "2": "Disease or syndrome",
+          "3": "Drug",
+          "4": "Lifestyle risk factor",
+          "5": "Musculoskeletal",
+          "6": "Surgical procedure",
+          "7": "Other"
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      }
+    },
+    "data_sources": {
+      "title": "Data Sources",
+      "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.",
+      "field_type": "data_sources",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "source": {
+          "table": "DataSource",
+          "query": "id",
+          "relative": "name",
+          "include": ["uid", "url"]
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      }
+    },
+    "event_date_range": {
+      "title": "Valid Event Date Range",
+      "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional).",
+      "field_type": "daterange",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "regex": "(?:\\d+\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\/|\\d+)+"
+      }
+    },
+    "sex": {
+      "title": "Sex",
+      "description": "The biological sex this phenotype is applicable to.",
+      "field_type": "grouped_enum",
+      "active": true,
+      "validation": {
+        "type": "enum",
+        "mandatory": true,
+        "options": {
+          "1": "Male",
+          "2": "Female",
+          "3": "Both",
+          "4": "Neither"
+        },
+        "properties": [
+          {
+            "when": ["1", "2"],
+            "result": "3"
+          }
+        ]
+      },
+      "search": {
+        "api": true
+      }
+    },
+    "agreement_date": {
+      "title": "Agreement Date",
+      "description":"A date representing when this phenotype was first finalized (may predate the Phenotype Library). Deprecated.",
+      "field_type": "date",
+      "active": false,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "regex": "(0[1-9]|[12]\\d|30|31)\\/(0[1-9]|1[0-2])\\/(\\d{4})"
+      },
+      "hide_on_create": true,
+      "hide_if_empty": true
+    },
+    "coding_system": {
+      "title": "Coding System",
+      "description":"Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
+      "field_type": "coding_system",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "computed": true,
+        "source": {
+          "table": "CodingSystem",
+          "query": "codingsystem_id",
+          "relative": "name"
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      },
+      "hide_on_create": true
+    },
+    "phenoflowid": {
+      "title": "Phenoflow ID",
+      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
+      "field_type": "phenoflowid",
+      "active": true,
+      "validation": {
+        "type": "int",
+        "mandatory": false
+      },
+      "search": {
+        "api": true
+      },
+      "hide_if_empty": true
+    },
+    "concept_information": {
+      "title": "Clinical Codes",
+      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this phenotype.",
+      "field_type": "concept_information",
+      "active": true,
+      "validation": {
+        "type": "concept",
+        "mandatory": false,
+        "has_children": true
+      }
+    },
+    "source_reference": {
+      "title": "Source Reference",
+      "description": "If this phenotype is derived from a third-party source, define that here. Deprecated.",
+      "field_type": "string_inputbox",
+      "active": false,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 250]
+      },
+      "hide_on_create": true,
+      "hide_if_empty": true
+    }
+  }
+}

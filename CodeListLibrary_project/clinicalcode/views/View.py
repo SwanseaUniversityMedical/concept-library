@@ -3,342 +3,155 @@
     COMMON VIEW CODE
     ---------------------------------------------------------------------------
 '''
-import datetime
-import json
-import logging
-
-from clinicalcode import db_utils
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
-from django.core.exceptions import PermissionDenied
+from django.conf import settings
+from django.http import HttpResponse
 from django.db.models import Q
 from django.http.response import Http404
+from django.contrib.auth.models import Group
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
+from django.core.mail import BadHeaderError, EmailMultiAlternatives
+from django.contrib.auth.decorators import login_required
 
-from ..models import *
+import sys
+import logging
+import requests
 
 from ..forms.ContactUsForm import ContactForm
-from ..permissions import allowed_to_edit, allowed_to_view
 
-import requests
-from django import forms
-from django.conf import settings
-from django.core.mail import BadHeaderError, EmailMultiAlternatives
-from django.http import HttpResponse
-from django.db.models.functions import Lower
+from ..models.Tag import Tag
+from ..models.Brand import Brand
+from ..models.Statistics import Statistics
+from ..models.Phenotype import Phenotype
+from ..models.Concept import Concept
+from ..models.Component import Component
+from ..models.DataSource import DataSource
+from ..models.CodingSystem import CodingSystem
 
 logger = logging.getLogger(__name__)
 
+#--------------------------------------------------------------------------
+# Brand / Homepages incl. about
+#--------------------------------------------------------------------------
+def get_brand_index_stats(request, brand):
+    if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
+        stat = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
+        stats = stat.stat
+    else:
+        from ..entity_utils.stats_utils import save_homepage_stats
+        # update stat
+        stat_obj = save_homepage_stats(request, brand)
+        stats = stat_obj[0]
+    return stats
 
 def index(request):
     '''
-        Display the index homepage.
+        Displays the index homepage.
+        Assigns brand defined in the Django Admin Portal under "index_path". 
+        If brand is not available it will rely on the default index path.
     '''
+    index_path = settings.INDEX_PATH
+    brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
-    if request.CURRENT_BRAND == "":
-        return render(request, 'clinicalcode/index.html')
-    elif request.CURRENT_BRAND == "BREATHE":
-        return index_BREATHE(request)
-    elif request.CURRENT_BRAND == "HDRUK":
-        return index_HDRUK(request)
-    else:
-        return render(request, 'clinicalcode/index.html')
+    # if the index_ function doesn't exist for the current brand force render of the default index_path
+    try:
+        if not brand.exists():
+            return index_home(request, index_path)
+        brand = brand.first()
+        return getattr(sys.modules[__name__], "index_%s" % brand)(request, brand.index_path)
+    except:
+        return index_home(request, index_path)
 
+def index_home(request, index_path):
+    stats = get_brand_index_stats(request, 'ALL')
+    brands = Brand.objects.all().values('name', 'description')
 
-def index_HDRUK(request):
+    return render(request, index_path, {
+        'known_brands': brands,
+        'published_concept_count': stats['published_concept_count'],
+        'published_phenotype_count': stats['published_phenotype_count'],
+        'published_clinical_codes': stats['published_clinical_codes'],
+        'datasources_component_count': stats['datasources_component_count'],
+        'clinical_terminologies': stats['clinical_terminologies']
+    })
+
+def index_ADP(request, index_path):
+    '''
+        Display the base page for ADP
+    '''
+    return render(request, index_path)
+
+def index_HDRUK(request, index_path):
     '''
         Display the HDR UK homepage.
     '''
-
-    from .Admin import save_statistics
-
-    if Statistics.objects.all().filter(org__iexact='HDRUK', type__iexact='landing-page').exists():
-        stat = Statistics.objects.get(org__iexact='HDRUK', type__iexact='landing-page')
-        HDRUK_stat = stat.stat
-
-    else:
-        # update stat
-        stat_obj = save_statistics(request)
-        HDRUK_stat = stat_obj[0]
+    stats = get_brand_index_stats(request, 'HDRUK')
 
     return render(
         request,
-        'clinicalcode/brand/HDRUK/index_HDRUK.html',
+        index_path,
         {
             # ONLY PUBLISHED COUNTS HERE
-            'published_concept_count': HDRUK_stat['published_concept_count'],
-            'published_phenotype_count': HDRUK_stat['published_phenotype_count'],
-            'published_clinical_codes': HDRUK_stat['published_clinical_codes'],
-            'datasources_component_count': HDRUK_stat['datasources_component_count'],
-            'clinical_terminologies': HDRUK_stat['clinical_terminologies']
+            'published_concept_count': stats['published_concept_count'],
+            'published_phenotype_count': stats['published_phenotype_count'],
+            'published_clinical_codes': stats['published_clinical_codes'],
+            'datasources_component_count': stats['datasources_component_count'],
+            'clinical_terminologies': stats['clinical_terminologies']
         })
 
 
-def index_BREATHE(request):
+def index_BREATHE(request, index_path):
     return render(
         request,
-        'clinicalcode/brand/BREATHE/index_BREATHE.html',
+        index_path
     )
 
 
-def about_pages(request, pg_name=None):
-    '''
-        manage about pages
-    '''
+def brand_about_index_return(request, pg_name):
+    """
+        Renders the appropriate about page index based on the provided page name.
 
-    # main CL about page
-    if pg_name.lower() == "cl_about_page".lower():
-        return render(request, 'clinicalcode/index.html', {})
+        Args:
+            request: The HTTP request object.
+            pg_name (str): The name of the requested about page.
 
-    #     elif pg_name.lower() == "cl_terms".lower():
-#         return render(request, 'cl-docs/terms-conditions.html', {})
+        Returns:
+            HttpResponse: The rendered template response.
+    """
+    brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
-# HDR-UK about pages
-    if request.CURRENT_BRAND == "HDRUK":
-        if pg_name.lower() == "hdruk_about_the_project".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/about-the-project.html', {})
+    try:
+        brand = brand.first()
+        # Retrieve the 'about_menu' JSON from Django
+        about_pages_dj_data = brand.about_menu 
 
-        elif pg_name.lower() == "hdruk_about_team".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/team.html', {})
+        # converts 'about_menu' django JSON into a dictionary with key as page_name and html index as value
+        about_page_templates = {
+            item['page_name'].lower(): item['index']
+            for item in about_pages_dj_data if isinstance(item.get('index'), str) and isinstance(item.get('page_name'), str)
+        }
+        
+        inner_templates = {
+            group['page_name'].lower(): group['index']
+            for item in about_pages_dj_data if isinstance(item.get('page_name'), list)
+            for group in item.get('page_name') if isinstance(group.get('index'), str) and isinstance(group.get('page_name'), str)
+        }
 
-        elif pg_name.lower() == "hdruk_about_technical_details".lower():
-            return technicalpage(request)
-
-        elif pg_name.lower() == "hdruk_about_covid_19_response".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/covid-19-response.html', {})
-
-        elif pg_name.lower() == "hdruk_about_publications".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/about/publications.html', {})
-
-#         elif pg_name.lower() == "hdruk_terms".lower():
-#             return render(request, 'cl-docs/terms-conditions.html', {})
-
-        elif pg_name.lower() == "breathe".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/collections/breathe.html', {})
-
-        elif pg_name.lower() == "bhf_data_science_centre".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/collections/bhf-data-science-centre.html', {})
-
-        elif pg_name.lower() == "eurolinkcat".lower():
-            return render(request, 'clinicalcode/brand/HDRUK/collections/eurolinkcat.html', {})
-
-#     else:
-#         return render(request, 'clinicalcode/index.html', {})
-
-    raise Http404
-
-
-def HDRUK_portal_redirect(request, unique_url):
-    '''
-        HDR-UK portal redirect to CL
-    '''
-
-    if unique_url is not None:
-        phenotype = list(
-            Phenotype.objects.filter(
-                Q(source_reference__iendswith=("/" + unique_url + ".md"))
-                | Q(source_reference__iendswith=("/" + unique_url))).values_list('id', flat=True))
-        if phenotype:
-            versions = Phenotype.objects.get(pk=phenotype[0]).history.all().order_by('-history_id')
-            for v in versions:
-                is_this_version_published = False
-                is_this_version_published = db_utils.checkIfPublished(Phenotype, v.id, v.history_id)
-                if is_this_version_published:
-                    return redirect('phenotype_history_detail',
-                                    pk=v.id,
-                                    phenotype_history_id=v.history_id)
-
-            raise Http404
-        else:
-            raise Http404
-    else:
+        # Get the index associated with current page name
+        about_page_name = about_page_templates.get(pg_name.lower()) or inner_templates.get(pg_name.lower())
+        if not about_page_name:
+            raise Exception('No valid template found')
+    except:
         raise Http404
-
-
-def build_permitted_components_list(request,
-                                    concept_id,
-                                    concept_history_id=None,
-                                    check_published_child_concept=False):
-    '''
-        Look through the components that are associated with the specified
-        concept ID and decide whether each has view and edit permission for
-        the specified user.
-    '''
-    user = request.user
-    user_can_view_components = []
-    user_can_edit_components = []
-    component_error_msg_view = {}
-    component_error_msg_edit = {}
-    component_concpet_version_msg = {}
-
-    components = Component.objects.filter(concept=concept_id)
-    for component in components:
-        # add this from latest version (concept_history_id, component_history_id)
-        component.concept_history_id = Concept.objects.get(id=concept_id).history.latest().pk
-        component.component_history_id = Component.objects.get(id=component.id).history.latest().pk
-
-        component_error_msg_view[component.id] = []
-        component_error_msg_edit[component.id] = []
-        component_concpet_version_msg[component.id] = []
-
-        if component.component_type == 1:
-            user_can_view_components += [component.id]
-            user_can_edit_components += [component.id]
-            # if child concept, check if this version is published
-            if check_published_child_concept:
-                from ..permissions import checkIfPublished
-                component.is_published = checkIfPublished(Concept, component.concept_ref_id, component.concept_ref_history_id)
-
-            # Adding extra data here to indicate which group the component
-            # belongs to (only for concepts).
-            component_group_id = Concept.objects.get(id=component.concept_ref_id).group_id
-            if component_group_id is not None:
-                component.group = Group.objects.get(id=component_group_id).name
-
-            if Concept.objects.get(pk=component.concept_ref_id).is_deleted == True:
-                component_error_msg_view[component.id] += ["concept deleted"]
-                component_error_msg_edit[component.id] += ["concept deleted"]
-
-            if not allowed_to_view(request, Concept, component.concept_ref.id, set_history_id=component.concept_ref_history_id):
-                component_error_msg_view[component.id] += ["no view permission"]
-
-            if not allowed_to_edit(request, Concept, component.concept_ref.id):
-                component_error_msg_edit[component.id] += ["no edit permission"]
-
-            # check component child version is the latest
-            if component.concept_ref_history_id != Concept.objects.get(id=component.concept_ref_id).history.latest().pk:
-                component_concpet_version_msg[component.id] += ["newer version available"]
-                component_error_msg_view[component.id] += ["newer version available"]
-
-        else:
-            user_can_view_components += [component.id]
-            user_can_edit_components += [component.id]
-
-    # clean error msg
-    for cid, value in list(component_error_msg_view.items()):
-        if value == []:
-            component_error_msg_view.pop(cid, None)
-
-    for cid, value in list(component_error_msg_edit.items()):
-        if value == []:
-            component_error_msg_edit.pop(cid, None)
-
-    for cid, value in list(component_concpet_version_msg.items()):
-        if value == []:
-            component_concpet_version_msg.pop(cid, None)
-
-    data = {
-            'components': components,
-            'user_can_view_component': user_can_view_components,
-            'user_can_edit_component': user_can_edit_components,
-            'component_error_msg_view': component_error_msg_view,
-            'component_error_msg_edit': component_error_msg_edit,
-            'component_concpet_version_msg': component_concpet_version_msg,
-            'latest_history_id': Concept.objects.get(id=concept_id).history.latest().pk
-    }
-    return data
-
+    else:
+        return render(request, about_page_name, {})
 
 #--------------------------------------------------------------------------
 
 
-# No authentication for this function
-def customRoot(request):
-    '''
-        Custom API Root page.
-        Replace pk=0 (i.e.'/0/' in the url) with the relevant id.
-        Replace history=0 (i.e.'/0/' in the url) with the relevant version_id.
-    '''
-    from django.shortcuts import render
-    from rest_framework.reverse import reverse
-    from rest_framework.views import APIView
-
-    #api_absolute_ip = str(request.build_absolute_uri(reverse('api:api_export_concept_codes', kwargs={'pk': 0}))).split('/')[2]
-
-    urls_available = {
-        'export_concept_codes': reverse('api:api_export_concept_codes', kwargs={'pk': 0}),
-        'export_concept_codes_byVersionID': reverse('api:api_export_concept_codes_byVersionID', kwargs={'pk': 0, 'concept_history_id': 123}),
-        'api_export_published_concept_codes_latestVersion': reverse('api:api_export_published_concept_codes_latestVersion', kwargs={'pk': 0}),
-        'api_export_published_concept_codes': reverse('api:api_export_published_concept_codes', kwargs={'pk': 0, 'concept_history_id': 123}),
-        'concepts': reverse('api:concepts', kwargs={}),
-        'api_concept_detail': reverse('api:api_concept_detail', kwargs={'pk': 0}),
-        'api_concept_detail_version': reverse('api:api_concept_detail_version', kwargs={'pk': 0, 'concept_history_id': 123}),
-        'api_published_concepts': reverse('api:api_published_concepts', kwargs={}),
-        'api_concept_detail_public': reverse('api:api_concept_detail_public', kwargs={'pk': 0}),
-        'api_concept_detail_version_public': reverse('api:api_concept_detail_version_public', kwargs={'pk': 0, 'concept_history_id': 123}),
-        'get_concept_versions': reverse('api:get_concept_versions', kwargs={'pk': 0}),
-        'get_concept_versions_public': reverse('api:get_concept_versions_public', kwargs={'pk': 0}),
-        'concept_by_id': reverse('api:concept_by_id', kwargs={'pk': 0}),
-        'api_published_concept_by_id': reverse('api:api_published_concept_by_id', kwargs={'pk': 0}),
-        'export_workingset_codes': reverse('api:api_export_workingset_codes', kwargs={'pk': 0}),
-        'export_workingset_codes_byVersionID': reverse('api:api_export_workingset_codes_byVersionID', kwargs={'pk': 0, 'workingset_history_id': 123}),
-        'workingsets': reverse('api:workingsets', kwargs={}),
-        'api_workingset_detail': reverse('api:api_workingset_detail', kwargs={'pk': 0}),
-        'api_workingset_detail_version': reverse('api:api_workingset_detail_version', kwargs={'pk': 0, 'workingset_history_id': 123}),
-        'get_workingset_versions': reverse('api:get_workingset_versions', kwargs={'pk': 0}),
-        'workingset_by_id': reverse('api:workingset_by_id', kwargs={'pk': 0}),
-
-        # not implemented yet, will be done when creating/updating phenotype
-        #'export_phenotype_codes': reverse('api:api_export_phenotype_codes', kwargs={'pk': 'PH0'}),
-        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'phenotypes': reverse('api:phenotypes', kwargs={}),
-        'api_phenotype_detail': reverse('api:api_phenotype_detail', kwargs={'pk': 'PH0'}),
-        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_published_phenotypes': reverse('api:api_published_phenotypes', kwargs={}),
-        # not needed to be public
-        #'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 'PH0'}),
-        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_export_published_phenotype_codes_latestVersion': reverse('api:api_export_published_phenotype_codes_latestVersion', kwargs={'pk': 'PH0'}),
-        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 'PH0'}),
-        'get_phenotype_versions_public': reverse('api:get_phenotype_versions_public', kwargs={'pk': 'PH0'}),
-        'phenotype_by_id': reverse('api:phenotype_by_id', kwargs={'pk': 'PH0'}),
-        'api_published_phenotype_by_id': reverse('api:api_published_phenotype_by_id', kwargs={'pk': 'PH0'}),
-        'api_phenotype_detail_public': reverse('api:api_phenotype_detail_public', kwargs={'pk': 'PH0'}),
-        'api_phenotype_detail_version': reverse('api:api_phenotype_detail_version', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_phenotype_detail_version_public': reverse('api:api_phenotype_detail_version_public', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_export_phenotype_codes_byVersionID': reverse('api:api_export_phenotype_codes_byVersionID', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-        'api_export_phenotype_codes_latestVersion': reverse('api:api_export_phenotype_codes_latestVersion', kwargs={'pk': 'PH0'}),
-        'api_export_published_phenotype_codes': reverse('api:api_export_published_phenotype_codes', kwargs={'pk': 'PH0', 'phenotype_history_id': 123}),
-                
-        'get_phenotype_versions': reverse('api:get_phenotype_versions', kwargs={'pk': 'PH0'}),
-        'get_phenotype_versions_public':  reverse('api:get_phenotype_versions_public', kwargs={'pk': 'PH0'}),
-        'tags':  reverse('api:tag_list_public'),
-        'collections':  reverse('api:collection_list_public'),
-        'datasource-list':  reverse('api:datasource-list'),
-    }
-    
-    if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC:
-        urls_available.update({
-            'phenotypeworkingset_by_id': reverse('api:api_phenotypeworkingset_by_id', kwargs={'pk': 'WS0'}),
-            'api_phenotypeworkingset_detail': reverse('api:api_phenotypeworkingset_detail', kwargs={'pk': 'WS0'}),
-            'api_phenotypeworkingset_detail_version': reverse('api:api_phenotypeworkingset_detail_version', kwargs={'pk': 'WS0', 'workingset_history_id': 123}),
-            'get_phenotypeworkingset_versions': reverse('api:get_phenotypeworkingset_versions', kwargs={'pk': 'WS0'}),
-            'api_export_phenotypeworkingset_codes_latestVersion': reverse('api:api_export_phenotypeworkingset_codes_latestVersion', kwargs={'pk': 'WS0'}),
-            'api_export_phenotypeworkingset_codes_byVersionID': reverse('api:api_export_phenotypeworkingset_codes_byVersionID', kwargs={'pk': 'WS0', 'workingset_history_id': 123}),
-            'api_export_published_phenotypeworkingset_codes_latestVersion': reverse('api:api_export_published_phenotypeworkingset_codes_latestVersion', kwargs={'pk': 'WS0'}),
-            'api_export_published_phenotypeworkingset_codes': reverse('api:api_export_published_phenotypeworkingset_codes', kwargs={'pk': 'WS0', 'workingset_history_id': 123}),
-        })
-
-    if not settings.CLL_READ_ONLY:
-        urls_available.update({
-            'api_concept_create':       reverse('api:api_concept_create', kwargs={}),
-            'api_concept_update':       reverse('api:api_concept_update', kwargs={}),
-            'api_workingset_create':    reverse('api:api_workingset_create', kwargs={}),
-            'api_workingset_update':    reverse('api:api_workingset_update', kwargs={}),
-            'api_phenotype_create':     reverse('api:api_phenotype_create', kwargs={}),
-            'api_phenotype_update':     reverse('api:api_phenotype_update', kwargs={}),
-            'api_datasource_create':    reverse('api:api_datasource_create', kwargs={})
-        })
-
-    # replace 0/123 by {id}/{version_id}
-    for k, v in list(urls_available.items()):
-        new_url = urls_available[k].replace('C0', '{id}').replace('PH0', '{id}').replace('WS0', '{id}').replace('123', '{version_id}')
-        urls_available[k] = new_url
-
-    return render(request, 'rest_framework/API-root-pg.html', urls_available)
-
-
+#--------------------------------------------------------------------------
+# Misc. pages e.g. T&C, P&C, Technical pages, Contact us etc
+#--------------------------------------------------------------------------
 def termspage(request):
     """
         terms and conditions page
@@ -356,17 +169,8 @@ def cookiespage(request):
 def technicalpage(request):
     """
         HDRUK Documentation outside of HDRUK Brand
-
     """
-
-    phenotype_bronheostasis = db_utils.get_visible_live_or_published_phenotype_versions(request,show_top_version_only = True,
-                                                                                           filter_cond="(phenotype_uuid='ZckoXfUWNXn8Jn7fdLQuxj')")
-    bron_id = phenotype_bronheostasis[0]['id']
-    bron_version = phenotype_bronheostasis[0]['history_id']
-
-
-
-    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {'bron_id':bron_id,'bron_version':bron_version})
+    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', { })
 
 
 def cookies_settings(request):
@@ -381,8 +185,11 @@ def contact_us(request):
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
     
-    captcha = check_recaptcha(request)
-    status = []
+    captcha = True
+    if not settings.IGNORE_CAPTCHA:
+        captcha = check_recaptcha(request)
+
+    sent_status = None
     if request.method == 'GET':
         form = ContactForm()
     else:
@@ -392,86 +199,93 @@ def contact_us(request):
             from_email = form.cleaned_data['from_email']
             message = form.cleaned_data['message']
             category = form.cleaned_data['categories']
-            email_subject = ('Concept Library - New Message From ' + name)
+            email_subject = 'Concept Library - New Message From %s' % name
 
             try:
-                html_content = ('<strong>New Message from Concept Library Website</strong> <br><br> <strong>Name:</strong><br>' 
-                                + name 
-                                + '<br><br> <strong>Email:</strong><br>' 
-                                + from_email 
-                                + '<br><br> <strong>Issue Type:</strong><br>' 
-                                + category 
-                                + '<br><br><strong> Tell us about your Enquiry: </strong><br>' 
-                                + message)
+                html_content = \
+                    "<strong>New Message from Concept Library Website</strong><br><br>"\
+                    "<strong>Name:</strong><br>"\
+                    "{name}"\
+                    "<br><br>"\
+                    "<strong>Email:</strong><br>"\
+                    "{from_email}"\
+                    "<br><br>"\
+                    "<strong>Issue Type:</strong><br>"\
+                    "{category}"\
+                    "<br><br>"\
+                    "<strong> Tell us about your Enquiry: </strong><br>"\
+                    "{message}".format(
+                        name=name, from_email=from_email, category=category, message=message
+                    )
                 
-                msg = EmailMultiAlternatives(email_subject,
-                                             html_content,
-                                             'Helpdesk <%s>' %
-                                             settings.DEFAULT_FROM_EMAIL,
-                                             to=[settings.HELPDESK_EMAIL],
-                                             cc=[from_email])
-                msg.content_subtype = "html"  # Main content is now text/html
-                msg.send()
+                if not settings.IS_DEVELOPMENT_PC:
+                    message = EmailMultiAlternatives(
+                        email_subject,
+                        html_content,
+                        'Helpdesk <%s>' % settings.DEFAULT_FROM_EMAIL,
+                        to=[settings.HELPDESK_EMAIL],
+                        cc=[from_email]
+                    )
+                    message.content_subtype = "html"
+                    message.send()
 
                 form = ContactForm()
-                status.append({'SUCCESS': 'Issue Reported Successfully.'})
+                sent_status = True
             except BadHeaderError:
-                return HttpResponse('Invalid header found.')
+                return HttpResponse('Invalid header found')
 
-        if captcha == False:
-            status.append({'FAIL': 'Please verify using the Captcha'})
+    sent_status = captcha
 
-    return render(request, 
-                  'cl-docs/contact-us.html', 
-                  {
-                    'form': form,
-                    'message': status,
-                  }
-                )
+    return render(
+        request, 
+        'cl-docs/contact-us.html', 
+        { 'form': form, 'message_sent': sent_status }
+    )
+
 
 def check_recaptcha(request):
     '''
         Contact Us Recaptcha code
     '''
+    if settings.IS_DEVELOPMENT_PC:
+        return True
+
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
     
     if request.method == 'POST':
-        recaptcha_response = request.POST.get('g-recaptcha-response')
         data = {
             'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-            'response': recaptcha_response
+            'response': request.POST.get('g-recaptcha-response')
         }
-        r = requests.post(
-                            'https://www.google.com/recaptcha/api/siteverify',
-                            data=data,
-                            proxies={'https': 'http://proxy:8080/'}
-                        )
-        result = r.json()
+        result = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=data,
+            proxies={ 'https': 'http://proxy:8080/' }
+        ).json()
+
         if result['success']:
-            recaptcha_is_valid = True
-        else:
-            recaptcha_is_valid = False
-        return recaptcha_is_valid
+            return True
+        
+        return False
 
 
 def reference_data(request):
     """
         Open page to list Data sources, Coding systems, Tags, Collections, Phenotype types, etc 
     """
+    tags = Tag.objects.extra(select={
+        'name': 'description'
+    }).order_by('id')
 
-    context = {}
-    context['data_sources'] = DataSource.objects.all().order_by('name')
-    context['coding_systems'] = CodingSystem.objects.all().order_by('name')
-    context['tags'] = Tag.objects.filter(tag_type=1).order_by('description')
-    context['collections'] = Tag.objects.filter(tag_type=2).order_by('description')
+    collections = tags.filter(tag_type=2).values('id', 'name')
+    tags = tags.filter(tag_type=1).values('id', 'name')
+
+    context = {
+        'data_sources': list(DataSource.objects.all().order_by('id').values('id', 'name')),
+        'coding_system': list(CodingSystem.objects.all().order_by('id').values('id', 'name')),
+        'tags': list(tags),
+        'collections': list(collections)
+    }
     
-    #context['phenotype_types'] = Phenotype.objects.values('type').distinct().order_by('type')
-    # available phenotype_types in the DB
-    phenotype_types = Phenotype.history.annotate(type_lower=Lower('type')).values('type_lower').distinct().order_by('type_lower')
-    phenotype_types_list = list(phenotype_types.values_list('type_lower',  flat=True))
-    context['phenotype_types'] = phenotype_types_list 
-
-    return render(request, 'clinicalcode/reference-data.html', context)
-
-
+    return render(request, 'clinicalcode/about/reference_data.html', context)

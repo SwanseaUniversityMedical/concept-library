@@ -1,0 +1,65 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Slim scrollbar 
+///   @desc used for table content
+.slim-scrollbar {
+  /* Webkit */
+  &::-webkit-scrollbar {
+    width: var(--slim-scrollbar-width);
+    height: var(--slim-scrollbar-width);
+  }
+  
+  &::-webkit-scrollbar-track {
+    border-radius: var(--slim-scrollbar-radius);
+    -webkit-border-radius: var(--slim-scrollbar-radius);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--slim-scrollbar-inactive-color);
+    border-radius: var(--slim-scrollbar-radius);
+    -webkit-border-radius: var(--slim-scrollbar-radius);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--slim-scrollbar-active-color);
+  }
+  
+  &::-webkit-scrollbar-thumb:window-inactive {
+    background: col(clear);
+  }
+
+  /* Firefox */
+  scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
+  scrollbar-width: thin !important;
+}
+
+/// Filter scrollbar
+///   @desc vertical scrollbar used for filters on search pages
+.filter-scrollbar {
+  /* Webkit */
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 12px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: col(accent-transparent);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: var(--slim-scrollbar-inactive-color);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--slim-scrollbar-active-color);
+  }
+
+  /* Firefox */
+  scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
+  scrollbar-width: thin !important;
+}

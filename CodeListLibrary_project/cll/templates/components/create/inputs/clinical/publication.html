@@ -1,0 +1,39 @@
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Publications {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+  {% if not component.hide_input_details %}
+  <p class="detailed-input-group__description">Add a publication by providing the reference details and its DOI.</p>
+  {% endif %}
+  <div class="publication-list-group">
+    <data aria-hidden="true" type="value" for="{{ component.field_name }}">
+      {% if component.value %}
+        {{ component.value|jsonify|striptags }}
+      {% endif %}
+    </data>
+    <div class="publication-list-group__interface" data-class="clinical-publication" data-field="{{ component.field_name }}">
+      <p>Add Publication</p>
+      <div class="publication-list-group__interface-children">
+        <input class="text-input" aria-label="Publication details" type="text"
+          placeholder="e.g. Doe J. et al. Publication. Publisher"
+          minlength="3" pattern="^[a-zA-Z]{1,}.*?"
+          id="publication-input-box">
+        <input class="text-input" aria-label"Publication DOI" type="text" placeholder="e.g. DOI 10.111" id="doi-input-box">
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Publication" id="add-input-btn">Add</button>
+      </div>
+    </div>
+  
+    <section class="publication-list-group__none-available " id="no-available-publications">
+      <p class="publication-list-group__none-available-message">You haven't added any publications yet</p>
+    </section>
+
+    <section class="publication-list-group__list show" id="publication-group">
+      <div class="publication-list-group__list-header" id="pub-header">
+        <h3>Your publications</h3>
+      </div>
+      <div class="publication-list-group__list-container slim-scrollbar" id="publication-list">
+        
+      </div>
+    </section>
+  </div>
+</div>

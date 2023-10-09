@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Create a Phenotype{% endblock title %}
+
+{% block container %}
+<header class="main-header">
+  {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
+  {% endbreadcrumbs %}
+  <!-- any other content -->
+  <div class="main-header__inner-container">
+    <!-- content that's been padded to same width as navigation -->
+  </div>
+</header>
+<main class="main-content">
+  <!-- any other content -->
+  <div class="main-content__inner-container">
+    <!-- content that's been padded to same width as navigation -->
+  </div>
+</main>
+
+{% endblock container %}

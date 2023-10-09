@@ -1,0 +1,552 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Avatar content
+/// @desc ...
+.avatar-content {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid col(accent-washed);
+  border-radius: 7px;
+
+  svg {
+    @include prefix(transition, all 250ms ease-in, webkit moz o);
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
+    background: var(--navigation-item-selector);
+
+    path {
+      fill: var(--item-icon-color);
+      stroke: var(--stroke-icon);
+    }
+  }
+}
+
+/// Profile row
+/// @desc ...
+.profile-row {
+  z-index: 999;
+  background-color: white;
+  border-radius: 1em;
+  padding: 1.5em;
+  left: calc(5% - 10px);
+  margin: 0 5em 0 -5em;
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  -webkit-box-shadow: var(--dropdown-shadow);
+  box-shadow: var(--dropdown-shadow);
+
+  .content-container {
+    list-style: none;
+
+    .item-dropdown {
+      display: flex;
+      justify-content: flex-start;
+      margin: 0 12px;
+      text-decoration: none;
+      flex-direction: row;
+
+      &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        margin-right: 16px;
+        border-radius: 6px;
+        background: var(--phenotype-banner-bg-color);
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+
+        img {
+          object-fit: contain;
+          width: 70%;
+          object-position: center;
+          border-radius: 50%;
+        }
+      }
+
+      &__text {
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+        flex-grow: 1;
+      }
+
+      &__title {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        line-height: 14px;
+        font-weight: 500;
+      }
+
+      &__description {
+        word-break: break-word;
+        color: #6e6d7a;
+        line-height: 16px;
+        font-size: 12px;
+        font-weight: 400;
+      }
+    }
+  }
+
+  hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    margin-right: 1.5em;
+    margin-left: 1.5em;
+    background: #e7e7e9;
+  }
+
+  #admin_icon {
+    svg {
+      path {
+        fill: var(--item-icon-color);
+        stroke: var(--stroke-icon);
+      }
+    }
+  }
+}
+
+/// About row
+/// @desc ...
+.about-row {
+  @include grid-template(false, 2, 1fr);
+  background-color: white;
+  border-radius: 1em;
+  padding: 1.5em;
+  margin: 0 5em 0 -5em;
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  -webkit-box-shadow: var(--dropdown-shadow);
+  box-shadow: var(--dropdown-shadow);
+
+  .content-container {
+    list-style: none;
+
+    &__nested {
+      list-style: none;
+    }
+
+    &__full {
+      grid-column: 1 / span 2;
+      list-style: none;
+
+      a {
+        background-image: none;
+      }
+    }
+  }
+
+  .item-dropdown {
+    display: flex;
+    justify-content: flex-start;
+    margin: 0 12px;
+    text-decoration: none;
+    flex-direction: row;
+
+    &__icon {
+      @include prefix(transition, all 250ms ease-in, webkit moz o);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--icon-width);
+      height: var(--icon-height);
+      margin-right: 16px;
+      border-radius: 6px;
+      background: var(--icon-background-color);
+
+      svg {
+        path {
+          fill: var(--item-icon-color);
+          stroke: var(--stroke-icon);
+        }
+      }
+    }
+
+    &__text {
+      @include prefix(transition, all 250ms ease-in, webkit moz o);
+      flex-grow: 1;
+    }
+
+    &__title {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    &__dropdownlink {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      line-height: 14px;
+      font-weight: 500;
+    }
+
+    &__description {
+      word-break: break-word;
+      color: var(--description-text-color);
+      line-height: 3px;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    @include media("<desktop", "screen") {
+      &__icon {
+        display: none;
+      }
+
+      &__description {
+        display: none;
+      }
+    }
+  }
+
+  hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    margin-right: 1.5em;
+    margin-left: 1.5em;
+    background: #e7e7e9;
+  }
+}
+
+@include media("<desktop", "screen") {
+  .about-row {
+    display: block;
+    background-color:var(--phenotype-banner-bg-color);
+    border-radius: 1em;
+    position: relative;
+    top: 0;
+    box-sizing: border-box;
+    margin: auto;
+    box-shadow: none;
+  }
+
+  .content-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &__full {
+      &__icon {
+        display: none;
+      }
+
+      &__description {
+        display: none;
+      }
+    }
+  }
+  .item-dropdown {
+    &__icon {
+      display: none;
+    }
+
+    &__description {
+      display: none;
+    }
+  }
+}
+
+@include media("<desktop", "screen") {
+  .avatar-content {
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    border-radius: none;
+
+    svg {
+      display: none;
+    }
+
+    .text-username::after {
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+        content: '\f107';
+        cursor: pointer;
+        opacity: 1;
+        display: inline-flex;
+        aspect-ratio: 1 / 1;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--icons-size);
+        color: var(--color-accent-dark);  
+    }
+  }
+
+  .profile-row {
+    background-color:var(--phenotype-banner-bg-color);
+    border-radius: 1em;
+    padding: 1em;
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: auto;
+    box-sizing: border-box;
+    box-shadow: none;
+
+    .content-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .item-dropdown {
+        #logout-icon {
+          display: flex;
+          width: 20px;
+          height: 20px;
+          margin-right: 10px;
+        }
+
+        &__icon {
+          display: none;
+        }
+
+        &__description {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+/// Navigation bar
+///   @desc Used exclusively by navigation.html to present a fixed navigation bar
+///         Handles both mobile and desktop interfaces
+$navigation_btn_transition: background-size 250ms ease, transform 250ms ease-in-out;
+$navigation_login_transition: background-color 250ms ease, transform 250ms ease;
+$navigation_btn_gradient: 90deg, var(--navigation-item-selector) 0%, var(--navigation-item-selector) 50%, var(--navigation-item-selector) 100%;
+$navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
+
+@mixin navigation-item($vertical: false) {
+  @include app-font-style();
+  @include prefix(transition, $navigation_btn_transition, webkit moz o);
+  
+  cursor: pointer;
+  pointer-events: auto;
+  display: inline-flex;
+  height: auto;
+  width: auto;
+  font-weight: bold;
+  background-repeat: no-repeat;
+
+  @if $vertical {
+    flex-direction: row;
+    padding: 0.7rem;
+    justify-content: center;
+    background-position: left 50%;
+    background-size: var(--navigation-line-width) 0, auto;
+    z-index: 99999;
+
+    &.active {
+      background-size: var(--navigation-line-width) 90%, auto;
+    }
+  } @else {
+    flex-direction: column;
+    justify-content: center;
+    background-position: center bottom;
+    background-size: 0 var(--navigation-line-width), auto;
+
+    &:not(.active):not([role="login"]):not([role="profile"]):hover {
+      background-size: 25% var(--navigation-line-width), auto;
+      @include prefix(transform, translateY(-2px), webkit moz o);
+    }
+
+    &.active {
+      background-size: 100% 100%, auto;
+      border-radius: 0.5rem;
+      border-style: solid;
+      border-color: var(--navigation-item-selector);
+    }
+
+    &:not(.active):not([role="login"]):not([role="profile"]):active {
+      @include prefix(transform, translateY(0px), webkit moz o);
+    }
+  }
+
+  &:not(.active) {
+    color: col(text-dark);
+  }
+
+  &[role="login"],
+  &[role="profile"] {
+    @include prefix(transition, $navigation_login_transition, webkit moz o);
+    background-color: rgba(255, 255, 255, 0);
+    border-radius: 0.25rem;
+
+    &:hover {
+      background-color: var(--navigation-item-selector);
+    }
+    &:active {
+      @include prefix(transition, scale(0.95), webkit moz o);
+    }
+  }
+}
+
+// page-navigation
+//  @desc defines the navigation bar for use within navigation.html
+.page-navigation {
+  @include prefix(transition, all 250ms ease-in, webkit moz o);
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  z-index: 99998;
+
+  &.scrolled {
+    box-shadow: var(--navigation-scroll-shadow);
+  }
+
+  &:not(.transparent) {
+    background-color: col(bg);
+  }
+
+  &__container {
+    @include flex-row();
+
+    justify-content: space-between;
+    height: fit-content;
+    min-height: var(--navigation-height);
+    margin: var(--navigation-offset) var(--navigation-gutter);
+    max-width: 2160px;
+    width: calc(100% - var(--navigation-gutter) - var(--navigation-gutter));
+  }
+
+  &__logo {
+    height: var(--navigation-height);
+    aspect-ratio: 8 / 1;
+    background-color: col(clear);
+    background-image: var(--logo-url);
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    @include prefix(background-size, contain, webkit moz o);
+  }
+
+  @include media("<desktop", "screen") {
+    &__container {
+      margin: var(--navigation-mobile-offset) var(--navigation-mobile-gutter);
+      width: calc(
+        100% - var(--navigation-mobile-gutter) - var(--navigation-mobile-gutter)
+      );
+    }
+
+    &__logo {
+      margin-left: var(--navigation-mobile-gutter);
+    }
+  }
+
+  &__buttons {
+    --as-burger: "false";
+
+    display: flex;
+    height: auto;
+    width: auto;
+    z-index: 1;
+
+    @include media("<desktop", "screen") {
+      &:not(.open):after {
+        --as-burger: "true";
+
+        content: "\f0c9";
+        cursor: pointer;
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        pointer-events: auto;
+        height: inherit;
+        margin-right: var(--navigation-mobile-gutter);
+        aspect-ratio: 1 / 1;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        text-align: center;
+        font-size: var(--navigation-hamburger-size);
+      }
+    }
+  }
+
+  @include media(">=desktop", "screen") {
+    &__items {
+      @include flex-row($gap: 1rem);
+      height: var(--navigation-height);
+      align-items: center;
+
+      a {
+        @include navigation-item();
+        @include clear-anchor();
+
+        padding: 0.5rem;
+        white-space: nowrap;
+      }
+
+      &__overlay {
+        display: none;
+      }
+    }
+  }
+
+  @include media("<desktop", "screen") {
+    &__items {
+      @include flex-col();
+
+      display: flex;
+      visibility: hidden;
+      opacity: 0;
+      position: fixed;
+      width: 100%;
+      background-color: var(--navigation-selection-box);
+      left: 0;
+      border-radius: 0.25rem;
+      padding: 0.5rem 0;
+      transition: opacity 250ms ease;
+
+      a {
+        @include navigation-item($vertical: true);
+        @include clear-anchor();
+
+        white-space: nowrap;
+      }
+
+      &.open {
+        flex-grow: 0;
+        opacity: 1;
+        right: 1rem;
+        visibility: visible;
+      }
+    }
+
+    &__overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+      display: none; /* Initially hide the overlay */
+      z-index: 9999;
+    }
+  }
+
+  &.transparent {
+    &__items a {
+      background-image: linear-gradient($navigation_transparent_gradient);
+      background-image: -webkit-linear-gradient(
+        $navigation_transparent_gradient
+      );
+    }
+  }
+}

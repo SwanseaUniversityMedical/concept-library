@@ -1,0 +1,80 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Login template override
+///   @desc Stylesheet relating to login form
+.login-container {
+  @include flex-col();
+  align-self: center;
+  width: var(--phenotype-article-lg-size);
+  max-width: var(--phenotype-article-lg-size);
+  padding: 1rem 1rem 2rem 1rem;
+  box-shadow: none;
+  border-radius: 0.5rem;
+  flex-direction: column-reverse;
+
+  @include media(">desktop-lg", "screen") {
+    @include flex-row();
+    margin: auto;
+    width: var(--phenotype-article-sm-size);
+    max-width: var(--phenotype-article-sm-size);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  }
+
+  &__info-container {
+    @include flex-col();
+    padding: 0.5rem;
+    margin-top: 1rem;
+
+    @include media(">desktop-lg", "screen") {
+      flex: 0 0 40%;
+      background-color: var(--phenotype-banner-bg-color);
+      border-radius: 1rem;
+      padding: 1.5rem 1rem;
+      //justify-content: center;
+    }
+
+    &__section {
+      @include flex-col();
+
+      &:not(:last-child) {
+        padding-bottom: 2rem;
+      }
+      
+      h2, p {
+        margin: 0;
+        padding: 0;
+      }
+
+      h2 {
+        margin-bottom: 0.5rem;
+      }
+    }
+  }
+
+  &__form-container {
+    padding: 0.5rem;
+
+    @include media(">desktop-lg", "screen") {
+      flex-grow: 1;
+      padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+    }
+
+    &__options-container {
+      @include flex-row();
+      margin: 0.5rem 0;
+
+      .checkbox-item-container {
+        width: auto;
+        flex-grow: 1;
+      }
+    }
+
+    &__submit-container {
+      @include flex-col();
+      margin-top: auto;
+    }
+  }
+}

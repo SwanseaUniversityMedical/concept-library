@@ -1,96 +1,100 @@
 {% extends "base.html" %}
 
 {% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
 
-{% block idexing_robots %}
+{% block title %}Run Datasource Sync - Admin Only{% endblock title %}
+
+{% block bodyclass %}{% endblock bodyclass %}
+
+{% block indexing_robots %}
 <!-- Stop indexing this page at all times -->
 <meta name="robots" content="noindex, nofollow">
 <meta name="googlebot" content="noindex, nofollow">
-{% endblock idexing_robots %}
-		
-{% block title %}
-	Run Datasource Sync - Admin Only
-{% endblock title %}
+{% endblock indexing_robots %}
 
 {% block container %}
+  {% compress css %}
+    <link href="{% sass_src 'scss/pages/tools.scss' %}" rel="stylesheet" type="text/css" />
+  {% endcompress %}
 
-{% if request.user.is_superuser %}
-	<h2><i class="fa fa-file-text-o" aria-hidden="true"></i> Run Datasource Sync</h2>
-	{% if errorMsg %}
-		<div class="bs-example">
-		    <div class="alert alert-danger fade in">
-		        <a href="#" class="close" data-dismiss="alert">&times;</a>
-		        <strong>Errors!</strong>
-				<br>
-		        <ul>
-		            {% for error in errorMsg %}
-	                	<li>{{ error|safe }}</li> 			                		            	                 
-		            {% endfor %}
-		        </ul>
-		    </div>
-		</div>
-	{% endif %}
-	
-	{% if successMsg %}
-		<div class="bs-example">
-		    <div class="alert alert-success fade in">
-		        <a href="#" class="close" data-dismiss="alert">&times;</a>
-		        <strong>Success!</strong>
-		        <br>
-		        <ul>
-		            {% for msg in successMsg %}
-		            <li>{{ msg|safe }}</li>
-		            {% endfor %}
-		        </ul>
-		    </div>
-		</div>
-	{% endif %}	
-	
-	<div class="panel panel-default">
-		<div class="panel-body">
-			<div class="row">
-				<div class="col-md-12">	
-				
-					{% if result and result.created %}
-					<div class="bs-example"> 
-					    <div class="alert alert-success fade in">
-					        <a href="#" class="close" data-dismiss="alert">&times;</a>
-					        <strong>Created:</strong>
-					        <br>
-					        <ul>
-					            {% for created in result.created %}
-					            	<li>{{ created|safe }}</li>            
-					            {% endfor %}
-					        </ul>
-					    </div>
-					</div>
-					{% endif %}	
-				
-					{% if result and result.updated %}
-					<div class="bs-example"> 
-					    <div class="alert alert-success fade in">
-					        <a href="#" class="close" data-dismiss="alert">&times;</a>
-					        <strong>Updated:</strong>
-					        <br>
-					        <ul>
-					            {% for updated in result.updated %}
-					            	<li>{{ updated|safe }}</li>            
-					            {% endfor %}
-					        </ul>
-					    </div>
-					</div>
+  <header class="main-header banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">Run Datasource Sync</h2>
+        <p class="banner__description">
+          Admin Tools
+        </p>
+      </div>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <div class="main-content__inner-container">
+      <article class="tool-panel">
+        <section class="tool-panel__container">
+					{% if errorMsg %}
+						<strong>Errors:</strong>
+						<br>
+						<ul>
+							{% for error in errorMsg %}
+								<li>{{ error|safe }}</li>
+							{% endfor %}
+						</ul>
+					{% endif %}
+					
+					{% if successMsg %}
+						<strong>Success:</strong>
+						<br>
+						<ul>
+							{% for msg in successMsg %}
+								<li>{{ msg|safe }}</li>
+							{% endfor %}
+						</ul>
 					{% endif %}	
 
-				</div>
-			</div>
-		</div>
-	</div>
-{% endif %}				
+					<div class="tool-panel__form">
+						<div class="row">
+							<div class="col-md-12">	
+								{% if result and result.created %}
+									<div class="bs-example"> 
+											<div class="alert alert-success fade in">
+													<a href="#" class="close" data-dismiss="alert">&times;</a>
+													<strong>Created:</strong>
+													<br>
+													<ul>
+															{% for created in result.created %}
+																<li>{{ created|safe }}</li>            
+															{% endfor %}
+													</ul>
+											</div>
+									</div>
+								{% endif %}	
+							
+								{% if result and result.updated %}
+									<div class="bs-example"> 
+											<div class="alert alert-success fade in">
+													<a href="#" class="close" data-dismiss="alert">&times;</a>
+													<strong>Updated:</strong>
+													<br>
+													<ul>
+															{% for updated in result.updated %}
+																<li>{{ updated|safe }}</li>            
+															{% endfor %}
+													</ul>
+											</div>
+									</div>
+								{% endif %}	
+							</div>
+						</div>
+					</div>
 
-
+        </section>
+      </article>
+    </div>
+  </main>
 {% endblock container %}
-
-
-{% block scripts %}
-
-{% endblock scripts %}
