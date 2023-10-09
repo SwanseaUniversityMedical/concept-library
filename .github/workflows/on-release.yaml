@@ -41,6 +41,8 @@ jobs:
       container-registry-project: ${{ vars.HARBOR_PROJECT }}
       container-registry-repo: concept-library
       release-tag-format: 'Concept-Library-${version}'
+      release-branches: |
+        ['master']
       slack-channel: ${{ vars.SLACK_CHANNEL }}
       build-command: |
         docker build -t $IMAGE -f "docker/production/build.Dockerfile" --build-arg server_name="conceptlibrary.saildatabank.com" .
