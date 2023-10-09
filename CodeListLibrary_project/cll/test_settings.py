@@ -43,7 +43,8 @@ if REMOTE_TEST:
 
 import chromedriver_autoinstaller
 
-chromedriver_autoinstaller.install("CodeListLibrary_project/clinicalcode/tests/legacy/functional_tests/chromedriver")
+chromedriver_autoinstaller.install()
+
 chrome_options = webdriver.ChromeOptions()    
 # Add your options as needed    
 options = [
@@ -63,6 +64,7 @@ for option in options:
     chrome_options.add_argument(option)
 
 driver = webdriver.Chrome(options=chrome_options)
+print("pidor")
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
