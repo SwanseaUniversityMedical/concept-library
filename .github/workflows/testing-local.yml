@@ -13,6 +13,14 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.11]
+    
+    services:
+      db:
+        image: postgres
+        env:
+          POSTGRES_DB: concept_library
+          POSTGRES_USER: clluser_test
+          POSTGRES_PASSWORD: password
 
     steps:
       - uses: actions/checkout@v3
