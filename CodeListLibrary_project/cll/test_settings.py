@@ -41,9 +41,6 @@ TEST_SLEEP_TIME = 5
 if REMOTE_TEST:
     WEBAPP_HOST = 'http://webapp-test/'
 
-import chromedriver_autoinstaller
-
-#chromedriver_autoinstaller.install('/var/www/concept_lib_sites/v1/chromedriver')
 
 chrome_options = webdriver.ChromeOptions()    
 # Add your options as needed    
@@ -64,10 +61,8 @@ for option in options:
 
 chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
 
-driver = webdriver.Chrome(options=chrome_options)
+#driver = webdriver.Chrome(options=chrome_options)
 
-driver.get("http://www.python.org") # just make sure driver is working
-assert "Python" in driver.title
 
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
