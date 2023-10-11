@@ -623,9 +623,10 @@ def build_final_codelist_from_concepts(
                     'attributes': code.get('attributes')
                 }
 
-            concept_codes[i]['attributes'] = dict(zip(
-                concept_entity.code_attribute_header, code.get('attributes')
-            ))
+            if concept_entity.code_attribute_header is not None and code.get('attributes') is not None:
+                concept_codes[i]['attributes'] = dict(zip(
+                    concept_entity.code_attribute_header, code.get('attributes')
+                ))
 
         if inline:
             concept_codes = [data | concept_data for data in concept_codes]
