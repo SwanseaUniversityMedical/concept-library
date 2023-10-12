@@ -30,7 +30,7 @@ import os
 WEBAPP_HOST = ''
 
 # remote test features
-LOCAL_TEST = os.environ["LOCAL_TEST"] 
+REMOTE_TEST = get_env_value('REMOTE_TEST', cast='bool')
 REMOTE_TEST_HOST = 'http://selenium-hub:4444/wd/hub'
 IMPLICTLY_WAIT = 10
 TEST_SLEEP_TIME = 5
@@ -54,10 +54,10 @@ for option in options:
 
 chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
 
-if LOCAL_TEST:
-    driver = webdriver.Remote(command_executor='http://selenium:4444/wd/hub',options=chrome_options)
-else:
+if REMOTE_TEST:
     driver = webdriver.Chrome(options=chrome_options)
+else:
+    driver = webdriver.Remote(command_executor='http://selenium:4444/wd/hub',options=chrome_options)
 
 
 driver.get("http://www.python.org")
