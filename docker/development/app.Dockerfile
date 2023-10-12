@@ -33,8 +33,8 @@ RUN \
 RUN mkdir -p /var/www/concept_lib_sites/v1
 COPY ./requirements /var/www/concept_lib_sites/v1/requirements
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
-COPY ./development/chromedriver /var/www/concept_lib_sites/v1/chromedriver
-RUN ["chmod", "u+x", "/var/www/concept_lib_sites/v1/chromedriver"]
+
+# Install requirements
 RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/local.txt
 
 

@@ -27,20 +27,13 @@ from .settings import *
 
 import os
 
-
-
-
 WEBAPP_HOST = ''
 
 # remote test features
-REMOTE_TEST = False  # True
+LOCAL_TEST = os.environ["LOCAL_TEST"] 
 REMOTE_TEST_HOST = 'http://selenium-hub:4444/wd/hub'
 IMPLICTLY_WAIT = 10
 TEST_SLEEP_TIME = 5
-
-if REMOTE_TEST:
-    WEBAPP_HOST = 'http://webapp-test/'
-
 
 chrome_options = webdriver.ChromeOptions()    
 # Add your options as needed    
@@ -61,11 +54,16 @@ for option in options:
 
 chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
 
-driver = webdriver.Chrome(options=chrome_options)
+if LOCAL_TEST:
+    driver = webdriver.Remote(command_executor='http://selenium:4444/wd/hub',options=chrome_options)
+else:
+    driver = webdriver.Chrome(options=chrome_options)
+
 
 driver.get("http://www.python.org")
 print(driver.title)
 
+driver.quit()
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
