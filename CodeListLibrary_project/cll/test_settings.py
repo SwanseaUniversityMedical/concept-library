@@ -61,7 +61,7 @@ for option in options:
 
 chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
 
-driver = webdriver.Remote(command_executor='http://selenium:4444/wd/hub',options=chrome_options)
+driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub',options=chrome_options)
 
 driver.get("http://www.python.org")
 print(driver.title)
