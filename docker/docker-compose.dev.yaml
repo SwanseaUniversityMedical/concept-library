@@ -36,11 +36,3 @@ services:
       - ./development/env/app.compose.env
     depends_on:
       - postgres
-
-  selenium:
-    image: selenium/standalone-chrome
-    ports:
-    - 4444:4444
-    restart: unless-stopped
-    
-
