@@ -32,8 +32,7 @@ def get_sitemap(request):
     links = [
         (request.build_absolute_uri(reverse('concept_library_home')), cur_time, "1.00"), 
         (request.build_absolute_uri(reverse('concept_library_home2')), cur_time, "1.00"),  
-        #(request.build_absolute_uri(reverse('concept_list')), cur_time, "1.00"), 
-        (request.build_absolute_uri(reverse('phenotype_list')), cur_time, "1.00"),  
+        (request.build_absolute_uri(reverse('search_phenotypes')), cur_time, "1.00"),  
         (request.build_absolute_uri(reverse('reference_data')), cur_time, "1.00"),
         (request.build_absolute_uri(reverse('login')), cur_time, "1.00"),
     ]

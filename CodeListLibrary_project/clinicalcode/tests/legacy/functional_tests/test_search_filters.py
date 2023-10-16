@@ -215,7 +215,7 @@ class SearchTest(StaticLiveServerTestCase):
         browser = self.browser
 
         # Go to phenotype list
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         checkboxes = browser.find_elements(By.ID, "collection_id")
 
@@ -240,7 +240,7 @@ class SearchTest(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         checkboxes = browser.find_elements(By.NAME, "collection_id")
 
@@ -267,7 +267,7 @@ class SearchTest(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
 
@@ -309,7 +309,7 @@ class SearchTest(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
 
@@ -364,7 +364,7 @@ class SearchTest(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list')
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes')
                     )
         browser.find_element(By.XPATH,"//*[@id='show-advanced-search']").click()
 
@@ -406,7 +406,7 @@ class SearchTest(StaticLiveServerTestCase):
         self.login(su_user, su_password)
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
 
@@ -453,7 +453,7 @@ class SearchTest(StaticLiveServerTestCase):
                                    owner=self.owner_user,
                                    author="test_author")
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
@@ -481,7 +481,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
@@ -544,7 +544,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         checkboxes = browser.find_elements(By.NAME, "collection_id")
 
@@ -575,7 +575,7 @@ class SearchTest(StaticLiveServerTestCase):
         # First login as superuser
         self.login(su_user, su_password)
         browser = self.browser
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
@@ -593,7 +593,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         # After login to owner and check owned phenotypes
         self.login(ow_user, ow_password)
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
@@ -611,7 +611,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         self.login(su_user, su_password)
         browser = self.browser
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         time.sleep(settings_cll.IMPLICTLY_WAIT)
 
@@ -643,7 +643,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
@@ -682,7 +682,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         # Search phenotype in basic search
         browser.find_element(By.ID,"search1").send_keys("Phenotype")
@@ -717,7 +717,7 @@ class SearchTest(StaticLiveServerTestCase):
 
         browser = self.browser
 
-        browser.get(self.WEBAPP_HOST + reverse('phenotype_list'))
+        browser.get(self.WEBAPP_HOST + reverse('search_phenotypes'))
 
         browser.find_element(By.XPATH,
                              "//*[@id='show-advanced-search']").click()
