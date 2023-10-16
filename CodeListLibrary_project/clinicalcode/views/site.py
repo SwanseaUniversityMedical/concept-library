@@ -49,7 +49,7 @@ def get_sitemap(request):
             ('https://phenotypes.healthdatagateway.org/about/hdruk_about_publications/', cur_time, "0.80"),
             ('https://phenotypes.healthdatagateway.org/about/breathe/', cur_time, "0.80"),
             ('https://phenotypes.healthdatagateway.org/about/bhf_data_science_centre/', cur_time, "0.80"),
-            ('https://phenotypes.healthdatagateway.org/about/eurolinkcat/', cur_time, "0.80"),
+            # ('https://phenotypes.healthdatagateway.org/about/eurolinkcat/', cur_time, "0.80"),
 
         ]
     
