@@ -105,12 +105,6 @@ class TemplateAdmin(admin.ModelAdmin):
         obj.save()
 
 
-@admin.register(GenericEntity)
-class GenericEntityAdmin(admin.ModelAdmin):
-    readonly_fields = ['template_version']
-    list_display = ['id', 'name', 'template', 'template_version']
-    exclude = []
-
 
 @admin.register(EntityClass)
 class EntityClassAdmin(admin.ModelAdmin):
