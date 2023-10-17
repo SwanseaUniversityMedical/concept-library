@@ -6,9 +6,11 @@
 # from django.contrib.auth import views as auth_views
 # from django.views.generic.base import TemplateView
 
+
 # from .views import (GenericEntity, adminTemp, Profile, Moderation)
 # from clinicalcode.views import Publish
 # from clinicalcode.views import Decline
+
 
 # urlpatterns = []
  
