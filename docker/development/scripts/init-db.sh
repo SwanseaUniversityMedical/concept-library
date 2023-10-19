@@ -13,6 +13,8 @@ if [ ! -z $BACKUP_FILE ] && [ -e $BACKUP_FILE ]; then
 elif [ -e /docker-entrypoint-initdb.d/db/git.token ]; then
   echo "[!>] Found token, restoring from git"
   GIT_TOKEN=`cat /docker-entrypoint-initdb.d/db/git.token`
+  /usr/bin/psql -U $POSTGRES_USER -d $POSTGRES_DB -c "CREATE USER $UNIT_TEST_DB_USER WITH PASSWORD '$UNIT_TEST_DB_PASSWORD'; ALTER USER $UNIT_TEST_DB_USER CREATEDB;"
+
 
   if [ -d "/docker-entrypoint-initdb.d/db/backup/" ]; then
     echo "[!>] Aborting restore, please remove './docker/development/db/backup/' folder"

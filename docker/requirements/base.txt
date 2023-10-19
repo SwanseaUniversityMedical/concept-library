@@ -36,3 +36,4 @@ typing==3.7.4.3
 tzdata==2022.2
 urllib3==1.26.12
 wget==3.2
+pytest-analyzer

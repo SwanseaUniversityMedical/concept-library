@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 ENV PYTHONUNBUFFERED 1
 ENV LC_ALL=C.UTF-8
@@ -44,3 +44,5 @@ RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
+
+WORKDIR /var/www/concept_lib_sites/v1/CodeListLibrary_project/
