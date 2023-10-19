@@ -21,6 +21,6 @@ def test_users():
     
     yield users
     
-    # Optionally, you can clean up the users after the tests are finished
+    # Clean up the users after the tests are finished
     for user in users.values():
         user.delete()
