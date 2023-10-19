@@ -440,7 +440,7 @@ def validate_concept_form(form, errors):
             else:
                 is_new_code = True
             
-            code_name = gen_utils.try_value_as_type(component_code.get('code'), 'string')
+            code_name = gen_utils.try_value_as_type(component_code.get('code'), 'code')
             if gen_utils.is_empty_string(code_name):
                 errors.append(f'Invalid concept with ID {concept_id} - A code\'s code is a non-nullable, string field')
                 return None
@@ -459,7 +459,7 @@ def validate_concept_form(form, errors):
                 code['attributes'] = code_attributes
 
             code['is_new'] = is_new_code
-            code['code'] = code_name
+            code['code'] = code_name.strip()
             code['description'] = code_desc
             codes.append(code)
 
@@ -766,7 +766,12 @@ def try_update_concept(request, item, entity=None):
         component.source = component_data.get('source')
         component.save()
 
-        new_codes = component_data.get('codes') or list()
+        new_codes = [
+            obj | { 'code': obj.get('code').strip() } 
+            for obj in component_data.get('codes')
+            if isinstance(obj.get('code'), str)
+        ] or list()
+        
         prev_codes = set(list(codelist.codes.values_list('code', flat=True)))
         req_codes = set([obj.get('code') for obj in new_codes])
 
@@ -803,7 +808,7 @@ def try_update_concept(request, item, entity=None):
                 ConceptCodeAttribute.objects.create(
                     concept=concept,
                     created_by=user,
-                    code=code.get('code'),
+                    code=code_item,
                     attributes=attributes
                 )
 
@@ -824,9 +829,14 @@ def try_update_concept(request, item, entity=None):
 
         codelist = CodeList.objects.create(component=component, description='-')
         for code in obj.get('codes'):
+            stripped_code = code.get('code')
+            if not isinstance(stripped_code, str) or gen_utils.is_empty_string(stripped_code):
+                continue
+            stripped_code = stripped_code.strip()
+
             codes = Code.objects.create(
                 code_list=codelist,
-                code=code.get('code'),
+                code=stripped_code,
                 description=code.get('description')
             )
 
@@ -835,7 +845,7 @@ def try_update_concept(request, item, entity=None):
                 ConceptCodeAttribute.objects.create(
                     concept=concept,
                     created_by=user,
-                    code=code.get('code'),
+                    code=stripped_code,
                     attributes=attributes
                 )
     
@@ -891,9 +901,14 @@ def try_create_concept(request, item, entity=None):
 
         codelist = CodeList.objects.create(component=component, description='-')
         for code in obj.get('codes'):
+            stripped_code = code.get('code')
+            if not isinstance(stripped_code, str) or gen_utils.is_empty_string(stripped_code):
+                continue
+            stripped_code = stripped_code.strip()
+
             Code.objects.create(
                 code_list=codelist,
-                code=code.get('code'),
+                code=stripped_code,
                 description=code.get('description')
             )
 
@@ -902,7 +917,7 @@ def try_create_concept(request, item, entity=None):
                 ConceptCodeAttribute.objects.create(
                     concept=concept,
                     created_by=user,
-                    code=code.get('code'),
+                    code=stripped_code,
                     attributes=attributes
                 )
 

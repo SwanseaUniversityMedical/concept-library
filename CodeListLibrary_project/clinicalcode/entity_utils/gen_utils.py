@@ -299,6 +299,23 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                     break
             cleaned.append(result)
         return cleaned if valid else default
+    elif field_type == 'code':
+        try:
+            value = str(field_value) if field_value is not None else ''
+            if validation is not None:
+                value = value.encode('ascii', 'ignore').decode('unicode')
+
+                pattern = validation.get('regex')
+                mandatory = validation.get('mandatory')
+                if pattern is not None and not try_match_pattern(value, pattern):
+                    if mandatory:
+                        return default
+                    else:
+                        return value if is_empty_string(value) else default
+        except:
+            return default
+        else:
+            return value
     elif field_type == 'string':
         try:
             value = str(field_value) if field_value is not None else ''

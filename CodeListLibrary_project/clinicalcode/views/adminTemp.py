@@ -153,6 +153,80 @@ def get_transformed_data(concept, template):
     return metadata
 
 @login_required
+def admin_fix_malformed_codes(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_malformed_codes'),
+                'action_title': 'Strip Concept Codes',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+    
+    with connection.cursor() as cursor:
+        sql = '''
+        update public.clinicalcode_code
+           set code = 
+                 regexp_replace(
+                   code, 
+                   '^[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+|[\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]|[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+$', 
+                   ''
+                 );
+
+        update public.clinicalcode_historicalcode
+           set code = 
+                 regexp_replace(
+                   code, 
+                   '^[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+|[\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]|[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+$', 
+                   ''
+                 );
+
+        update public.clinicalcode_conceptcodeattribute
+           set code = 
+                 regexp_replace(
+                   code, 
+                   '^[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+|[\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]|[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+$', 
+                   ''
+                 );
+
+        update public.clinicalcode_historicalconceptcodeattribute
+           set code = 
+                 regexp_replace(
+                   code, 
+                   '^[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+|[\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]|[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+$', 
+                   ''
+                 );
+        '''
+        cursor.execute(sql)
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Strip Concept Codes',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_force_concept_linkage_dt(request):
     """
         Bulk updates unlinked Concepts such that they have a phenotype owner by creating

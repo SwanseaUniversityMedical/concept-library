@@ -58,9 +58,8 @@ urlpatterns = [
     url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_version_codes_to_csv'),   
 
     ## Profile
-    url(r'profile/$', Profile.MyProfile.as_view(), name='my_profile'),
+    url(r'profile/$', Profile.MyCollection.as_view(), name='my_profile'),
     url(r'profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
-    url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
 
     ## Selection service(s)
     url(r'^query/(?P<template_id>\w+)/?$', GenericEntity.EntityDescendantSelection.as_view(), name='entity_descendants'),
@@ -84,6 +83,9 @@ if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         # Base
+        ## Moderation
+        url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
+
         ## Contact
         url(r'^contact-us/$', View.contact_us, name='contact_us'),
 
@@ -115,4 +117,5 @@ if not settings.CLL_READ_ONLY:
         # url(r'^adminTemp/admin_mig_concepts_dt/$', adminTemp.admin_mig_concepts_dt, name='admin_mig_concepts_dt'),
         # url(r'^adminTemp/admin_force_links_dt/$', adminTemp.admin_force_concept_linkage_dt, name='admin_force_links_dt'),
         # url(r'^adminTemp/admin_fix_breathe_dt/$', adminTemp.admin_fix_breathe_dt, name='admin_fix_breathe_dt'),
+        url(r'^adminTemp/admin_fix_malformed_codes/$', adminTemp.admin_fix_malformed_codes, name='admin_fix_malformed_codes')
     ]
