@@ -360,8 +360,7 @@ REST_FRAMEWORK = {
 
 if not BROWSABLEAPI:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework_xml.renderers.XMLRenderer',
+        'clinicalcode.entity_utils.api_utils.PrettyJsonRenderer',
     )
 
 #==============================================================================#

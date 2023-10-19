@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.functions import JSONObject
 from django.db.models import ForeignKey, F
+from rest_framework.renderers import JSONRenderer
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Template import Template
@@ -15,6 +16,11 @@ from . import search_utils
 from . import create_utils
 from . import gen_utils
 from . import constants
+
+""" REST renderer """
+class PrettyJsonRenderer(JSONRenderer):
+    def get_indent(self, accepted_media_type, renderer_context):
+        return 2
 
 """ Parameter validation """
 
