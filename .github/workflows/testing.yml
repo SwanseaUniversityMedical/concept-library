@@ -54,6 +54,6 @@ jobs:
       - name: Run tests
         run: |
           export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
-          python CodeListLibrary_project/manage.py test --noinput clinicalcode.tests.legacy
+          pytest -v -s 
         env:
           DISPLAY: ":99"
