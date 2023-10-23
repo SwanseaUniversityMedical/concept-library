@@ -51,6 +51,7 @@ ContainerName='cllro_dev';
 
 RepoBase='https://github.com/SwanseaUniversityMedical/concept-library.git';
 RepoBranch='manual-feature-branch';
+export app_port=80;
 
 # Collect CLI args
 while [[ "$#" -gt 0 ]]
