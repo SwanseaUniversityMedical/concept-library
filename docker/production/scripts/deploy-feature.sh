@@ -47,7 +47,7 @@ EnvFileName='env_vars-RO.txt';
 
 Profile='live';
 ComposeFile='docker-compose.prod.yaml';
-ContainerName='cllro_dev';
+ContainerName='cl_dev';
 
 RepoBase='https://github.com/SwanseaUniversityMedical/concept-library.git';
 RepoBranch='manual-feature-branch';

@@ -29,6 +29,14 @@ if [ ! -z $DEBUG ] && [ $DEBUG = "False" ]; then
   python manage.py collectstatic --noinput --ignore=*.scss -v 0
   
   chown -R www-data:www-data /var/www/concept_lib_sites
+  
+  # test if re-run avoid compress issues
+  python manage.py compilescss
+  python manage.py collectstatic --noinput --clear --ignore=*.scss -v 0
+  python manage.py compress
+  python manage.py collectstatic --noinput --ignore=*.scss -v 0
+  
+  chown -R www-data:www-data /var/www/concept_lib_sites
 else
   python manage.py compilescss --delete-files
   python manage.py collectstatic --clear --noinput -v 0
