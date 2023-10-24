@@ -30,6 +30,8 @@ elif [ -e /docker-entrypoint-initdb.d/db/git.token ]; then
       rm -rf /docker-entrypoint-initdb.d/db/backup/
 
       /usr/bin/pg_restore -U $POSTGRES_USER -d $POSTGRES_DB /docker-entrypoint-initdb.d/db/db.backup
+      /usr/bin/psql -U $POSTGRES_USER -d $POSTGRES_DB -c "CREATE USER $UNIT_TEST_DB_USER WITH PASSWORD '$UNIT_TEST_DB_PASSWORD'; ALTER USER $UNIT_TEST_DB_USER CREATEDB;"
+
     else
       echo "[!>] Cannot restore, failed to find database file after cloning repo"
     fi
