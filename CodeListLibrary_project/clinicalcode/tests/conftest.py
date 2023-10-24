@@ -67,5 +67,7 @@ def generate_entity(create_groups):
         "source_reference": "https://portal.caliberresearch.org/phenotypes/archangelidi-heart-rate-6keWsw2mW2TQjDMhNAUETt",
         "concept_information": []
     }
-    generate_entity = GenericEntity.objects.create(name="Test entity",group=create_groups['permitted_group'],template_data=template_data,updated=make_aware(datetime.now()))
+    generate_entity = GenericEntity.objects.create(name="Test entity",
+                                                   group=create_groups['permitted_group'],
+                                                   template_data=template_data,updated=make_aware(datetime.now()))
     return generate_entity
