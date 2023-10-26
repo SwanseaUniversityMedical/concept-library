@@ -1,5 +1,5 @@
 class PublishModal {
-  constructor(publish_url, decline_url,redirect_url) {
+  constructor(publish_url, decline_url, redirect_url) {
     this.publish_url = publish_url;
     this.decline_url = decline_url;
     this.redirect_url = redirect_url;
@@ -57,29 +57,7 @@ class PublishModal {
         },
       ];
 
-      ModalFactory.create({
-        id: "publish-dialog",
-        title: this.generateTitle(data),
-        content: data.errors
-          ? this.generateErrorContent(data)
-          : this.generateContent(data),
-        buttons: data.approval_status === 1 ? declineButton : publishButton,
-      })
-        .then(async (result) => {
-          const name = result.name;
-          if (name == "Decline") {
-            await this.postData(data, this.decline_url);
-            window.location.href = this.redirect_url+'?eraseCache=true';
-          } else {
-            await this.postData(data, this.publish_url);
-            window.location.href = this.redirect_url+'?eraseCache=true';
-          }
-        })
-        .catch((result) => {
-          if (!(result instanceof ModalFactory.ModalResults)) {
-            return console.error(result);
-          }
-        });
+      this.createPublishModal(data, declineButton, publishButton);
     } catch (error) {
       console.error(error);
     }
@@ -100,15 +78,16 @@ class PublishModal {
           "Cache-Control": "no-cache",
         },
         body: JSON.stringify(data),
-      }).then(response => {
-        if (!response.ok) {
-          return Promise.reject(response);
-        }
-        return response.json();
-      }).finally(() => {
-        spinner.remove();
-      });
-
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return Promise.reject(response);
+          }
+          return response.json();
+        })
+        .finally(() => {
+          spinner.remove();
+        });
     } catch (error) {
       spinner.remove();
       console.log(error);
@@ -144,6 +123,77 @@ class PublishModal {
     return paragraph;
   }
 
+  createPublishModal(data, declineButton, publishButton) {
+    ModalFactory.create({
+      id: "publish-dialog",
+      title: this.generateTitle(data),
+      content: data.errors
+        ? this.generateErrorContent(data)
+        : this.generateContent(data),
+      buttons: data.approval_status === 1 ? declineButton : publishButton,
+    })
+      .then(async (result) => {
+        const name = result.name;
+        if (name == "Decline") {
+          this.declinePhenotype(data.entity_id);
+        } else {
+          await this.postData(data, this.publish_url);
+          window.location.href = this.redirect_url + "?eraseCache=true";
+        }
+      })
+      .catch((result) => {
+        if (!(result instanceof ModalFactory.ModalResults)) {
+          return console.error(result);
+        }
+      });
+  }
+
+  declinePhenotype = (id) => {
+    window.ModalFactory.create({
+      id: 'decline-dialog',
+      title: `Are you sure you want to archive ${id}?`,
+      content: this.generateDeclineMessage(),
+      onRender: (modal) => {
+        const entityIdField = modal.querySelector('#id_entity_id');
+        entityIdField.value = id;
+  
+        const passphraseField = modal.querySelector('#id_passphrase');
+        passphraseField.setAttribute('placeholder', id);
+      },
+      beforeAccept: (modal) => {
+        const form = modal.querySelector('#decline-form-area');
+        const textField = modal.querySelector('#id_reject');
+        console.log(textField.value);
+        return {
+          form: new FormData(form),
+          action: form.action,
+        };
+      }
+    })
+      .then((result) => {
+        return fetch(result.data.action, {
+          method: 'post',
+          body: result.data.form,
+        })
+          .then(response => response.json())
+          .then(response => {
+            if (!response || !response?.success) {
+              window.ToastFactory.push({
+                type: 'warning',
+                message: response?.message || 'Form Error',
+                duration: 5000,
+              });
+              return;
+            }
+  
+            window.location.reload();
+          });
+      })
+      .catch((e) => {
+        console.warn(e);
+      });
+  }
+  
   generateErrorContent(data) {
     let errorsHtml = "";
     for (let i = 0; i < data.errors.length; i++) {
@@ -182,6 +232,18 @@ class PublishModal {
     }
     return title;
   }
+
+  generateDeclineMessage() {
+    let maincomponent = `
+    <form method="post" id="decline-form-area" action="${this.decline_url}">
+        <div class="detailed-input-group fill">
+        <h3 class="detailed-input-group__title">Message for owner </h3>
+        <textarea class="text-area-input simple" cols="40" id="id_reject" required='required' name="message" rows="10"></textarea>
+        </div>
+        </form>`;
+
+    return maincomponent;
+  }
 }
 
 domReady.finally(() => {
@@ -193,4 +255,6 @@ domReady.finally(() => {
     url_decline.innerHTML,
     redirect_url.innerHTML
   );
+
+  
 });
