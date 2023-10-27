@@ -135,7 +135,7 @@ class PublishModal {
       .then(async (result) => {
         const name = result.name;
         if (name == "Decline") {
-          this.declinePhenotype(data.entity_id);
+          this.declinePhenotype(data);
         } else {
           await this.postData(data, this.publish_url);
           window.location.href = this.redirect_url + "?eraseCache=true";
@@ -148,52 +148,39 @@ class PublishModal {
       });
   }
 
-  declinePhenotype = (id) => {
+  declineEntity = (data) => {
     window.ModalFactory.create({
-      id: 'decline-dialog',
-      title: `Are you sure you want to archive ${id}?`,
+      id: "decline-dialog",
+      title: `Explanation for rejection ${data.name} - ${data.entity_id}?`,
       content: this.generateDeclineMessage(),
-      onRender: (modal) => {
-        const entityIdField = modal.querySelector('#id_entity_id');
-        entityIdField.value = id;
-  
-        const passphraseField = modal.querySelector('#id_passphrase');
-        passphraseField.setAttribute('placeholder', id);
-      },
       beforeAccept: (modal) => {
-        const form = modal.querySelector('#decline-form-area');
-        const textField = modal.querySelector('#id_reject');
-        console.log(textField.value);
+        const form = modal.querySelector("#decline-form-area");
+        const textField = modal.querySelector("#id_reject");
+        data.message = textField.value;
+        if (textField.value.trim() === "") {
+          window.ToastFactory.push({
+            type: "warning",
+            message: "Please provide an explanation for the rejection.",
+            duration: 5000,
+          });
+          return false;
+        }
         return {
           form: new FormData(form),
           action: form.action,
         };
-      }
+      },
     })
       .then((result) => {
-        return fetch(result.data.action, {
-          method: 'post',
-          body: result.data.form,
-        })
-          .then(response => response.json())
-          .then(response => {
-            if (!response || !response?.success) {
-              window.ToastFactory.push({
-                type: 'warning',
-                message: response?.message || 'Form Error',
-                duration: 5000,
-              });
-              return;
-            }
-  
-            window.location.reload();
-          });
+        return this.postData(data, result.data.action).then((response) => {
+          window.location.href = this.redirect_url + "?eraseCache=true";
+        });
       })
       .catch((e) => {
         console.warn(e);
       });
-  }
-  
+  };
+
   generateErrorContent(data) {
     let errorsHtml = "";
     for (let i = 0; i < data.errors.length; i++) {
@@ -237,8 +224,8 @@ class PublishModal {
     let maincomponent = `
     <form method="post" id="decline-form-area" action="${this.decline_url}">
         <div class="detailed-input-group fill">
-        <h3 class="detailed-input-group__title">Message for owner </h3>
-        <textarea class="text-area-input simple" cols="40" id="id_reject" required='required' name="message" rows="10"></textarea>
+        <h3 class="detailed-input-group__title">Message for owner <span class="detailed-input-group__mandatory">*</span></h3>
+        <textarea class="text-area-input simple" cols="40" id="id_reject" required name="message" rows="10"></textarea>
         </div>
         </form>`;
 
@@ -255,6 +242,4 @@ domReady.finally(() => {
     url_decline.innerHTML,
     redirect_url.innerHTML
   );
-
-  
 });
