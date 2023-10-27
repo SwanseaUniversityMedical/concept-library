@@ -1,3 +1,13 @@
+/**
+ * Represents a modal for publishing or declining an entity.
+
+  /**
+   * Creates a new instance of the PublishModal class.
+   * @constructor
+   * @param {string} publish_url - The URL to publish the entity.
+   * @param {string} decline_url - The URL to decline the entity.
+   * @param {string} redirect_url - The URL to redirect to after publishing or declining the entity.
+   */
 class PublishModal {
   constructor(publish_url, decline_url, redirect_url) {
     this.publish_url = publish_url;
@@ -63,6 +73,12 @@ class PublishModal {
     }
   }
 
+  /**
+   * Sends a POST request to the specified URL with the provided data.
+   * @async
+   * @param {Object} data - The data to send in the request body.
+   * @param {string} url - The URL to send the request to.
+   */
   async postData(data, url) {
     const spinner = startLoadingSpinner();
     try {
@@ -79,14 +95,22 @@ class PublishModal {
         },
         body: JSON.stringify(data),
       })
+        .then((response) => response.json())
         .then((response) => {
-          if (!response.ok) {
-            return Promise.reject(response);
+          if (!response || !response?.success) {
+            window.ToastFactory.push({
+              type: 'success',
+              message: response?.message,
+              duration: 5000,
+            });
+            return;
           }
-          return response.json();
         })
         .finally(() => {
           spinner.remove();
+          setTimeout(() => {
+            window.location.href = this.redirect_url + "?eraseCache=true";
+          }, 5000);
         });
     } catch (error) {
       spinner.remove();
@@ -94,6 +118,16 @@ class PublishModal {
     }
   }
 
+  /**
+   * Generates a paragraph with a confirmation message for publishing or approving a clinical entity.
+   * @param {Object} data - The data object containing information about the clinical entity.
+   * @param {string} data.name - The name of the clinical entity.
+   * @param {string} data.entity_type - The type of the clinical entity.
+   * @param {number|null} data.approval_status - The approval status of the clinical entity. Can be 1, 3 or null.
+   * @param {boolean} data.is_moderator - Indicates whether the user is a moderator.
+   * @param {boolean} data.is_lastapproved - Indicates whether the user is the last one to approve the clinical entity.
+   * @returns {string} A paragraph with a confirmation message for publishing or approving a clinical entity.
+   */
   generateContent(data) {
     let paragraph;
     switch (data.approval_status) {
@@ -123,6 +157,13 @@ class PublishModal {
     return paragraph;
   }
 
+  /**
+   * Creates a modal dialog for publishing an entity.
+   *
+   * @param {Object} data - The data for the entity being published.
+   * @param {Object} declineButton - The button to decline publishing the entity.
+   * @param {Object} publishButton - The button to publish the entity.
+   */
   createPublishModal(data, declineButton, publishButton) {
     ModalFactory.create({
       id: "publish-dialog",
@@ -138,7 +179,6 @@ class PublishModal {
           this.declineEntity(data);
         } else {
           await this.postData(data, this.publish_url);
-          window.location.href = this.redirect_url + "?eraseCache=true";
         }
       })
       .catch((result) => {
@@ -148,6 +188,13 @@ class PublishModal {
       });
   }
 
+  /**
+   * Declines an entity and prompts the user to provide an explanation for the rejection.
+   * @param {Object} data - The data object containing information about the entity to be declined.
+   * @param {string} data.name - The name of the entity to be declined.
+   * @param {string} data.entity_id - The ID of the entity to be declined.
+   * @returns {Promise} A promise that resolves when the entity has been declined and the page has been redirected.
+   */
   declineEntity = (data) => {
     window.ModalFactory.create({
       id: "decline-dialog",
@@ -156,7 +203,7 @@ class PublishModal {
       beforeAccept: (modal) => {
         const form = modal.querySelector("#decline-form-area");
         const textField = modal.querySelector("#id_reject");
-        data.message = textField.value;
+        data.rejectMessage = textField.value;
         if (textField.value.trim() === "") {
           window.ToastFactory.push({
             type: "warning",
@@ -181,6 +228,13 @@ class PublishModal {
       });
   };
 
+  /**
+   * Generates HTML content for displaying errors when an entity cannot be published.
+   * @param {Object} data - The data object containing the errors.
+   * @param {Array} data.errors - An array of error objects.
+   * @param {string} data.errors.url_parent - The URL of the parent entity that caused the error (if applicable).
+   * @returns {string} - The HTML content to display the errors.
+   */
   generateErrorContent(data) {
     let errorsHtml = "";
     for (let i = 0; i < data.errors.length; i++) {
@@ -204,6 +258,11 @@ class PublishModal {
     return html;
   }
 
+  /**
+   * Generates a title based on the approval status, entity ID, entity type, and name.
+   * @param {Object} data - The data object containing the approval status, entity ID, entity type, and name.
+   * @returns {string} The generated title.
+   */
   generateTitle(data) {
     let title;
     switch (data.approval_status) {
@@ -220,6 +279,10 @@ class PublishModal {
     return title;
   }
 
+  /**
+   * Generates a decline message form for the owner of an entity to change details.
+   * @returns {string} The HTML string of the decline message form.
+   */
   generateDeclineMessage() {
     let maincomponent = `
     <form method="post" id="decline-form-area" action="${this.decline_url}">
