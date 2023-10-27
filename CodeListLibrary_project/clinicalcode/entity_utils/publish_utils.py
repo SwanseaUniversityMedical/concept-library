@@ -41,7 +41,6 @@ def send_message(request, pk, data, entity, entity_history_id, checks):
     """
     # Message templates
     approved_template = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
-    rejected_template = """The {entity_type} version has been rejected .<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
     pending_template = """The {entity_type} version is going to be reviewed by the moderator.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
 
     # Determine the appropriate message template and send email
@@ -49,7 +48,7 @@ def send_message(request, pk, data, entity, entity_history_id, checks):
     if approval_status == constants.APPROVAL_STATUS.APPROVED:
         return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, approved_template)
     elif approval_status == constants.APPROVAL_STATUS.REJECTED:
-        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, rejected_template)
+        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, data['rejectMessage'])
     elif approval_status == constants.APPROVAL_STATUS.PENDING:
         return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, pending_template)
     elif approval_status is None and checks['is_moderator']:
@@ -251,10 +250,10 @@ def format_message_and_send_email(request, pk, data, entity, entity_history_id, 
         pk=pk,
         history=entity_history_id
     )
-    send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
+    send_email_decision_entity(request,entity, entity_history_id, data)
     return data
 
-def send_email_decision_entity(request, entity, entity_history_id, entity_type,data):
+def send_email_decision_entity(request, entity, entity_history_id,data):
     """
     Call util function to send email decision
     @param workingset: workingset object
