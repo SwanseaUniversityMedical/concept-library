@@ -135,7 +135,7 @@ class PublishModal {
       .then(async (result) => {
         const name = result.name;
         if (name == "Decline") {
-          this.declinePhenotype(data);
+          this.declineEntity(data);
         } else {
           await this.postData(data, this.publish_url);
           window.location.href = this.redirect_url + "?eraseCache=true";
@@ -225,6 +225,7 @@ class PublishModal {
     <form method="post" id="decline-form-area" action="${this.decline_url}">
         <div class="detailed-input-group fill">
         <h3 class="detailed-input-group__title">Message for owner <span class="detailed-input-group__mandatory">*</span></h3>
+        <p class="detailed-input-group__description">The owner of entity will see message to change details</p>
         <textarea class="text-area-input simple" cols="40" id="id_reject" required name="message" rows="10"></textarea>
         </div>
         </form>`;
