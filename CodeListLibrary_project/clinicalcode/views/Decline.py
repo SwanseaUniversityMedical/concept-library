@@ -1,3 +1,4 @@
+import json
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.http.response import JsonResponse
@@ -53,6 +54,7 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
                     data['form_is_valid'] = True
                     data['approval_status'] = constants.APPROVAL_STATUS.REJECTED
                     data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
+                    data['rejectMessage'] = json.loads(request.body)['rejectMessage']
                     data = publish_utils.form_validation(request, data, history_id, pk, entity, checks)
         except Exception as e:
             #print(e)
