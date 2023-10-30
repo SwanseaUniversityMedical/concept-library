@@ -29,7 +29,6 @@ class PublishModal {
       });
       const data = await response.json();
       spinner.remove();
-      console.log(data);
 
       const publishButton = [
         {
@@ -97,9 +96,10 @@ class PublishModal {
       })
         .then((response) => response.json())
         .then((response) => {
+
           if (!response || !response?.success) {
             window.ToastFactory.push({
-              type: 'success',
+              type: response?.approval_status == 3 ? 'danger' : 'success',
               message: response?.message,
               duration: 5000,
             });
@@ -219,9 +219,7 @@ class PublishModal {
       },
     })
       .then((result) => {
-        return this.postData(data, result.data.action).then((response) => {
-          window.location.href = this.redirect_url + "?eraseCache=true";
-        });
+        return this.postData(data, result.data.action)
       })
       .catch((e) => {
         console.warn(e);
