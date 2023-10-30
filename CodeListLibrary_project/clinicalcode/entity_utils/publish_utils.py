@@ -265,15 +265,15 @@ def send_email_decision_entity(request, entity, entity_history_id,data):
 
     if data['approval_status'].value == 1:
         context["status"] = "Pending"
-        context["message"] = "submitted and is under review"
+        context["message"] = "Submitted and is under review"
         send_review_email(request, context)
     elif data['approval_status'].value == 2:
         # This line for the case when user want to get notification of same workingset id but different version
         context["status"] = "Published"
-        context["message"] = "approved and successfully published"
+        context["message"] = "Approved and successfully published"
         send_review_email(request, context)
     elif data['approval_status'].value == 3:
         context["status"] = "Rejected"
-        context["message"] = "rejected by the moderator"
-        context["custom_message"] = "Please adjust changes and try again" #TODO add custom message logic
+        context["message"] = "Rejected by the moderator"
+        context["custom_message"] = data['rejectMessage']
         send_review_email(request, context)
