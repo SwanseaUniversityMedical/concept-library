@@ -42,14 +42,6 @@
                 JSON
               </a>
             </li>
-            <li aria-label="Export code list as XML" role="button" tabindex="0">
-              <a {% if user_can_export %}
-                href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=xml"
-                target=_blank {% endif %}
-              >
-              XML
-            </a>
-            </li>
           </ul>
           
         </label>
