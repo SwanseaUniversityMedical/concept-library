@@ -21,6 +21,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/
 """
 
+import time
 from selenium import webdriver
 
 from .settings import *
@@ -35,35 +36,44 @@ REMOTE_TEST_HOST = 'http://selenium-hub:4444/wd/hub'
 IMPLICTLY_WAIT = 10
 TEST_SLEEP_TIME = 5
 
-chrome_options = webdriver.ChromeOptions()    
+
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})    
+chrome_options.accept_insecure_certs = True
+chrome_options.accept_ssl_certs = True
+
 # Add your options as needed    
 options = [
    "--window-size=1200,1200",
    "--ignore-certificate-errors",
+   "--ignore-ssl-errors",
    "--window-size=1280,800",
    "--verbose",
    "--start-maximized",
    "--disable-gpu",
    "--allow-insecure-localhost",
    "--disable-dev-shm-usage",
-   "--no-sandbox",
-   '--headless'
+   "--allow-running-insecure-content"
+   #'headless'
 ]
+
+
+
 for option in options:
     chrome_options.add_argument(option)
 
-chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
+print(chrome_options.arguments)
+
 
 if REMOTE_TEST:
     driver = webdriver.Chrome(options=chrome_options)
 else:
-    driver = webdriver.Remote(command_executor='http://selenium:4444/wd/hub',options=chrome_options)
-
-
-driver.get("http://www.python.org")
+    driver = webdriver.Remote(command_executor='http://selenium-hub:4444/wd/hub',options=chrome_options)
+driver.get("http://google.com")
 print(driver.title)
-
-driver.quit()
+driver.get("http://web-test:8000/phenotypes")
+print(driver.title)
+#driver.quit()
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
