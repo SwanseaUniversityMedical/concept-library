@@ -94,7 +94,7 @@ DATABASES = {
         'NAME': get_env_value('UNIT_TEST_DB_NAME'),
         'USER': get_env_value('UNIT_TEST_DB_USER'),
         'PASSWORD': get_env_value('UNIT_TEST_DB_PASSWORD'),
-        'HOST': get_env_value('UNIT_TEST_DB_HOST'),
+        'HOST': get_env_value('UNIT_TEST_DB_REMOTE_HOST') if REMOTE_TEST else get_env_value('UNIT_TEST_DB_HOST'),
         'PORT': '',
         'TEST': {
             'NAME': get_env_value('UNIT_TEST_DB_NAME')  # TODO: check this was cl_testdatabase before!
