@@ -73,7 +73,7 @@ driver.get("http://google.com")
 print(driver.title)
 driver.get("http://web-test:8000/phenotypes")
 print(driver.title)
-#driver.quit()
+driver.quit()
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
