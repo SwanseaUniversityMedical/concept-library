@@ -64,6 +64,7 @@ jobs:
       - name: Run tests
         run: |
           export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
+          cd CodeListLibrary_project
           pytest -v -s
         env:
           DISPLAY: ":99"

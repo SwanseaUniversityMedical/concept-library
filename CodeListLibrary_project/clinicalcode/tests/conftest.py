@@ -1,10 +1,19 @@
-
-
-from clinicalcode.models import GenericEntity
-from django.utils.timezone import make_aware
 from datetime import datetime
+
 import pytest
-from django.contrib.auth.models import User,Group
+from clinicalcode.models import GenericEntity
+from django.contrib.auth.models import User, Group
+from django.utils.timezone import make_aware
+from selenium import webdriver
+from selenium.webdriver import DesiredCapabilities
+# from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.support.wait import WebDriverWait
+
+from cll.test_settings import driver
+
+
+# from webdriver_manager.chrome import ChromeDriverManager
+
 
 @pytest.fixture
 def generate_user():
@@ -23,9 +32,9 @@ def generate_user():
         'view_group_user': vgp_user,
         'edit_group_user': egp_user,
     }
-    
+
     yield users
-    
+
     # Clean up the users after the tests are finished
     for user in users.values():
         user.delete()
@@ -37,7 +46,7 @@ def create_groups():
     forbidden_group = Group.objects.create(name="forbidden_group")
     view_group = Group.objects.create(name="view_group")
     edit_group = Group.objects.create(name="edit_group")
-    
+
     # Yield the created groups so they can be used in tests
     yield {
         'permitted_group': permitted_group,
@@ -45,10 +54,11 @@ def create_groups():
         'view_group': view_group,
         'edit_group': edit_group,
     }
-    
+
     # Clean up the groups after the tests are finished
     for group in [permitted_group, forbidden_group, view_group, edit_group]:
         group.delete()
+
 
 @pytest.fixture
 def generate_entity(create_groups):
@@ -69,5 +79,15 @@ def generate_entity(create_groups):
     }
     generate_entity = GenericEntity.objects.create(name="Test entity",
                                                    group=create_groups['permitted_group'],
-                                                   template_data=template_data,updated=make_aware(datetime.now()))
+                                                   template_data=template_data, updated=make_aware(datetime.now()))
     return generate_entity
+
+
+@pytest.fixture(scope="class")
+def setup_webdriver(request):
+
+    wait = WebDriverWait(driver, 10)
+    driver.maximize_window()
+    request.cls.driver = driver
+    yield
+    driver.close()
