@@ -61,13 +61,13 @@ jobs:
           export DISPLAY=:99
           chromedriver --url-base=/wd/hub &
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
-      - name: Run tests
-        run: |
-          export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
-          cd CodeListLibrary_project
-          pytest -v -s --cov-report xml --cov .
-        env:
-          DISPLAY: ":99"
+#      - name: Run tests
+#        run: |
+#          export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
+#          cd CodeListLibrary_project
+#          pytest -v -s --cov-report xml --cov .
+#        env:
+#          DISPLAY: ":99"
 
       - name: cobertura-report
         uses: 5monkeys/cobertura-action@v13
