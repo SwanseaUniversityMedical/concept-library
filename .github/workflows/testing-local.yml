@@ -2,9 +2,9 @@ name: Integration-test
 
 on:
   push:
-    branches: ["test-master"]
-  pull_request:
-    branches: ["test-master"]
+    branches: ["test-functional"]
+  # pull_request:
+  #   branches: ["test-master"]
 
 jobs:
   build:
@@ -65,6 +65,12 @@ jobs:
         run: |
           export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
           cd CodeListLibrary_project
-          pytest -v -s
+          pytest -v -s --cov-report xml --cov .
         env:
           DISPLAY: ":99"
+
+      - name: cobertura-report
+        uses: 5monkeys/cobertura-action@v13
+        with:
+          # Path to the cobertura file.
+          path: CodeListLibrary_project/coverage.xml
