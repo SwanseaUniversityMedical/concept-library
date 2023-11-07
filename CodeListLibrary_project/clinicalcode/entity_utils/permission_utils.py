@@ -46,7 +46,7 @@ def has_member_access(user, entity, permissions):
     """
       Checks if a user has access to an entity via its group membership
     """
-    if entity.group_id in user.groups.all():
+    if entity.group_id in user.groups.all().values_list('id', flat=True):
         return entity.group_access in permissions
 
     return False

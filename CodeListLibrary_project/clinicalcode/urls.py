@@ -117,5 +117,6 @@ if not settings.CLL_READ_ONLY:
         # url(r'^adminTemp/admin_mig_concepts_dt/$', adminTemp.admin_mig_concepts_dt, name='admin_mig_concepts_dt'),
         # url(r'^adminTemp/admin_force_links_dt/$', adminTemp.admin_force_concept_linkage_dt, name='admin_force_links_dt'),
         # url(r'^adminTemp/admin_fix_breathe_dt/$', adminTemp.admin_fix_breathe_dt, name='admin_fix_breathe_dt'),
-        url(r'^adminTemp/admin_fix_malformed_codes/$', adminTemp.admin_fix_malformed_codes, name='admin_fix_malformed_codes')
+        #url(r'^adminTemp/admin_fix_malformed_codes/$', adminTemp.admin_fix_malformed_codes, name='admin_fix_malformed_codes'),
+        url(r'^adminTemp/admin_force_brand_links/$', adminTemp.admin_force_brand_links, name='admin_force_brand_links'),
     ]

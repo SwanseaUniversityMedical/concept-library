@@ -14,7 +14,7 @@ import re
 import json
 import logging
 
-from clinicalcode.entity_utils import permission_utils, gen_utils
+from clinicalcode.entity_utils import permission_utils, gen_utils, create_utils
 from clinicalcode.models.Tag import Tag
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
@@ -222,6 +222,99 @@ def admin_fix_malformed_codes(request):
             'pk': -10,
             'rowsAffected' : { '1': 'ALL'},
             'action_title': 'Strip Concept Codes',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
+def admin_force_brand_links(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_force_brand_links'),
+                'action_title': 'Force brand linkage',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    phenotypes = GenericEntity.objects.filter(Q(brands__isnull=True) | Q(brands__len__lte=0)) \
+        .exclude(Q(collections__isnull=True) | Q(collections__len__lte=0))
+    
+    for phenotype in phenotypes:        
+        collections = phenotype.collections
+        if not isinstance(collections, list):
+            continue
+
+        related_brands = set([])
+        for collection_id in collections:
+            collection = Tag.objects.filter(id=collection_id)
+            if not collection.exists():
+                continue
+            
+            brand = collection.first().collection_brand
+            if brand is None:
+                continue
+            related_brands.add(brand.id)
+
+        phenotype.brands = list(related_brands)
+        phenotype.save_without_historical_record()
+
+    # save historical
+    phenotypes = GenericEntity.history.filter(Q(brands__isnull=True) | Q(brands__len__lte=0)) \
+        .exclude(Q(collections__isnull=True) | Q(collections__len__lte=0))
+    
+    for phenotype in phenotypes:        
+        collections = phenotype.collections
+        if not isinstance(collections, list):
+            continue
+
+        related_brands = set([])
+        for collection_id in collections:
+            collection = Tag.objects.filter(id=collection_id)
+            if not collection.exists():
+                continue
+            
+            brand = collection.first().collection_brand
+            if brand is None:
+                continue
+            related_brands.add(brand.id)
+        
+        related_brands = list(related_brands)
+        with connection.cursor() as cursor:
+            sql = '''
+                UPDATE public.clinicalcode_historicalgenericentity
+                   SET brands = %(brands)s
+                 WHERE id = %(phenotype_id)s
+                   AND history_id = %(history_id)s
+            '''
+            cursor.execute(
+                sql, 
+                { 'brands': related_brands, 'phenotype_id': phenotype.id, 'history_id': phenotype.history_id }
+            )
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Force brand linkage',
             'hide_phenotype_options': True,
         }
     )
