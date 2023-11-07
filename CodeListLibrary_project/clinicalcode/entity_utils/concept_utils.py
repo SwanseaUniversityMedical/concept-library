@@ -453,9 +453,12 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                 codes = list(codes)
                 if format_for_api:
                     for code in codes:
-                        code['attributes'] = dict(zip(
-                            historical_concept.code_attribute_header, code['attributes']
-                        ))
+                        attributes = code.get('attributes')
+                        headers = historical_concept.code_attribute_header
+                        if attributes is not None and headers is not None:
+                            code['attributes'] = dict(zip(
+                                headers, attributes
+                            ))
 
             # Append codes to component if required
             if include_codes:

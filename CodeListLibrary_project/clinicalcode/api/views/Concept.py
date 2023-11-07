@@ -135,9 +135,12 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
             incl_attributes=True
         )
         for code in concept_codes:
-            code['attributes'] = dict(zip(
-                historical_concept.code_attribute_header, code['attributes']
-            ))
+            attributes = code.get('attributes')
+            headers = historical_concept.code_attribute_header
+            if attributes is not None and headers is not None:
+                code['attributes'] = dict(zip(
+                    headers, attributes
+                ))
         
         return Response(
             data=concept_codes,
