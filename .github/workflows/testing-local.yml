@@ -61,10 +61,15 @@ jobs:
           export DISPLAY=:99
           chromedriver --url-base=/wd/hub &
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
-      - name: Run tests
+
+      - name: Run application
         run: |
           export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
           cd CodeListLibrary_project
+          python manage.py migrate
+          python manage.py runserver
+      - name: Run tests
+        run: |
           pytest -v -s --cov-report xml --cov .
         env:
           DISPLAY: ":99"
