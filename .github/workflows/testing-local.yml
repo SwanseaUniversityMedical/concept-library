@@ -65,19 +65,19 @@ jobs:
           chrome --version
 
   ngrok-install:
-  needs: [setup, db]
-  runs-on: ubuntu-latest
-  steps:
-    - name: Install ngrok
-      run: |
-        export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
-        wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-        unzip ngrok-stable-linux-amd64.zip
-        chmod +x ngrok
-        ./ngrok authtoken NGROK_AUTH_TOKEN
-        ./ngrok http 8000
-      env:
-        NGROK_AUTH_TOKEN: NGROK_AUTH_TOKEN
+    needs: [setup, db]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ngrok
+        run: |
+          export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
+          wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
+          unzip ngrok-stable-linux-amd64.zip
+          chmod +x ngrok
+          ./ngrok authtoken NGROK_AUTH_TOKEN
+          ./ngrok http 8000
+        env:
+          NGROK_AUTH_TOKEN: NGROK_AUTH_TOKEN
       
 
   chromedriver:
