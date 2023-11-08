@@ -19,7 +19,6 @@ jobs:
         image: postgres
         env:
           POSTGRES_DB: concept_library
-          POSTGRES_HOST: postgres
           POSTGRES_USER: clluser_test
           POSTGRES_PASSWORD: password
         ports:
