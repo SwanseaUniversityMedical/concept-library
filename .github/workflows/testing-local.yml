@@ -7,7 +7,7 @@ on:
     branches: ["test-master"]
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
@@ -61,7 +61,7 @@ jobs:
           ./ngrok http 8000 > /dev/null &  
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK }}
-          
+
       - name: Prepare Selenium
         uses: nanasess/setup-chromedriver@v2
       - name: Run Browser
