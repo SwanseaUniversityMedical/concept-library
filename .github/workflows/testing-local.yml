@@ -2,18 +2,28 @@ name: Integration-test
 
 on:
   push:
-    branches:
-      - "test-master"
+    branches: ["test-master"]
   pull_request:
-    branches:
-      - "test-master"
+    branches: ["test-master"]
 
 jobs:
-  setup:
+  build:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 4
       matrix:
         python-version: [3.11]
+
+    services:
+      db:
+        image: postgres
+        env:
+          POSTGRES_DB: concept_library
+          POSTGRES_USER: clluser_test
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - name: Checkout code
@@ -28,6 +38,7 @@ jobs:
             libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
             lsb-release wget xdg-utils
 
+      - uses: browser-actions/setup-chrome@v1
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
@@ -52,16 +63,15 @@ jobs:
     steps:
       - name: Wait for Postgres
         run: echo "Postgres is started!"
-      
 
   prepare:
-    needs: [setup, db]
+    needs: [build, db]
     runs-on: ubuntu-latest
     steps:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r .docker/requirements/base.txt
+          pip install -r docker/requirements/base.txt
       - name: Prepare Selenium
         uses: nanasess/setup-chromedriver@v2
       - name: Run Browser
@@ -69,22 +79,21 @@ jobs:
           chrome --version
 
   ngrok-install:
-    needs: [setup, db]
+    needs: [prepare]
     runs-on: ubuntu-latest
     steps:
-    - name: Install ngrok
-      run: |
-        wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-        unzip ngrok-stable-linux-amd64.zip
-        chmod +x ngrok
-        ./ngrok authtoken 2Xtpxu8S2cLvqyEV2hVMzT6AlJr_5z7VkibbKDY1N8uUHQy2E
-        ./ngrok http 8000
-      env:
-        NGROK_AUTH_TOKEN: 2Xtpxu8S2cLvqyEV2hVMzT6AlJr_5z7VkibbKDY1N8uUHQy2E
-      
+      - name: Install ngrok
+        run: |
+          wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
+          unzip ngrok-stable-linux-amd64.zip
+          chmod +x ngrok
+          ./ngrok authtoken 2Xtpxu8S2cLvqyEV2hVMzT6AlJr_5z7VkibbKDY1N8uUHQy2E
+          ./ngrok http 8000 > /dev/null &  
+        env:
+          NGROK_AUTH_TOKEN: 2Xtpxu8S2cLvqyEV2hVMzT6AlJr_5z7VkibbKDY1N8uUHQy2E
 
   chromedriver:
-    needs: [setup, db]
+    needs: [prepare, ngrok-install]
     runs-on: ubuntu-latest
     steps:
       - name: Run chromedriver
@@ -94,7 +103,7 @@ jobs:
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
 
   run-tests:
-    needs: [setup, db, prepare, chromedriver]
+    needs: [prepare, ngrok-install, chromedriver]
     runs-on: ubuntu-latest
     steps:
       - name: Run tests
