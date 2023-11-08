@@ -74,7 +74,8 @@ jobs:
     steps:
     - name: Load environment variables from file
       run: |
-        source docker/selenium-testing/env/remotetest.compose.env
+        export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
+
 
     - name: Install ngrok
       run: |
