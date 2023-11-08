@@ -52,6 +52,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r docker/requirements/base.txt
+          
+      - name: Run Browser
+        run: |
+          chrome --version
 
   db:
     runs-on: ubuntu-latest
@@ -69,15 +73,12 @@ jobs:
       - name: Wait for Postgres
         run: echo "Postgres is started!"
 
-  prepare:
+  selenium-install:
     needs: [build, db]
     runs-on: ubuntu-latest
     steps:
       - name: Prepare Selenium
         uses: nanasess/setup-chromedriver@v2
-      - name: Run Browser
-        run: |
-          chrome --version
 
   ngrok-install:
     needs: [prepare]
