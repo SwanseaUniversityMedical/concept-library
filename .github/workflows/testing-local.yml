@@ -108,8 +108,8 @@ jobs:
     needs: [build,ngrok-install, db,chromedriver]
     runs-on: ubuntu-latest
     steps:
-       - name: Checkout code
-         uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Run tests
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
