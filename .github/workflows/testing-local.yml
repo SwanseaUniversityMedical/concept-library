@@ -64,6 +64,14 @@ jobs:
       - name: Run tests
         run: |
           export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
-          pytest -v -s
+          cd CodeListLibrary_project
+          pytest -v -s --cov-report xml --cov .
         env:
           DISPLAY: ":99"
+
+      - name: Coverage report
+        uses: 5monkeys/cobertura-action@v13
+        with:
+          # Path to the cobertura file.
+          path: CodeListLibrary_project/coverage.xml
+          minimum_coverage: 25
