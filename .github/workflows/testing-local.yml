@@ -7,7 +7,7 @@ on:
     branches: ["test-master"]
 
 jobs:
-  build-test:
+  pre-deploy-test:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
@@ -72,6 +72,14 @@ jobs:
           export DISPLAY=:99
           chromedriver --url-base=/wd/hub &
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
+      
+      - name: Run application
+        run: |
+          export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
+          cd CodeListLibrary_project
+          python manage.py makemigrations
+          python manage.py migrate
+          python runserver 0.0.0.0:8000 > /dev/null &  
 
       - name: Run tests
         run: |
