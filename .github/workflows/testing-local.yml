@@ -64,7 +64,7 @@ jobs:
 
       - name: Run application
         run: |
-          export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
+          export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
           python manage.py migrate
           python manage.py runserver
