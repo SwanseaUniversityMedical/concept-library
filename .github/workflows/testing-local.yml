@@ -47,6 +47,11 @@ jobs:
       - name: Install LDAP files
         run: |
           sudo apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev
+      
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docker/requirements/base.txt
 
   db:
     runs-on: ubuntu-latest
@@ -68,10 +73,6 @@ jobs:
     needs: [build, db]
     runs-on: ubuntu-latest
     steps:
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r docker/requirements/base.txt
       - name: Prepare Selenium
         uses: nanasess/setup-chromedriver@v2
       - name: Run Browser
