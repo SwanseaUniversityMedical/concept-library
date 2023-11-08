@@ -75,7 +75,7 @@ jobs:
       
       - name: Run application
         run: |
-          export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
+          export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
           python manage.py makemigrations
           python manage.py migrate
@@ -83,7 +83,7 @@ jobs:
 
       - name: Run tests
         run: |
-          export $(grep -v '^#' docker/development/env/app.compose.env | xargs)
+          export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
           pytest -v -s --cov-report xml --cov .
         env:
