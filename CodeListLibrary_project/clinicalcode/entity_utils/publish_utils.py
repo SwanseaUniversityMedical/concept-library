@@ -41,15 +41,15 @@ def send_message(request, pk, data, entity, entity_history_id, checks):
     """
     # Message templates
     approved_template = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
-    rejected_template = """The {entity_type} version has been rejected .<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
     pending_template = """The {entity_type} version is going to be reviewed by the moderator.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
+    rejected_template = """The {entity_type} version has been rejected .<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
 
     # Determine the appropriate message template and send email
     approval_status = data['approval_status']
     if approval_status == constants.APPROVAL_STATUS.APPROVED:
         return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, approved_template)
     elif approval_status == constants.APPROVAL_STATUS.REJECTED:
-        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, rejected_template)
+        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks,rejected_template)
     elif approval_status == constants.APPROVAL_STATUS.PENDING:
         return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, pending_template)
     elif approval_status is None and checks['is_moderator']:
@@ -251,10 +251,10 @@ def format_message_and_send_email(request, pk, data, entity, entity_history_id, 
         pk=pk,
         history=entity_history_id
     )
-    send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
+    send_email_decision_entity(request,entity, entity_history_id, data)
     return data
 
-def send_email_decision_entity(request, entity, entity_history_id, entity_type,data):
+def send_email_decision_entity(request, entity, entity_history_id,data):
     """
     Call util function to send email decision
     @param workingset: workingset object
@@ -266,15 +266,15 @@ def send_email_decision_entity(request, entity, entity_history_id, entity_type,d
 
     if data['approval_status'].value == 1:
         context["status"] = "Pending"
-        context["message"] = "submitted and is under review"
+        context["message"] = "Submitted and is under review"
         send_review_email(request, context)
     elif data['approval_status'].value == 2:
         # This line for the case when user want to get notification of same workingset id but different version
         context["status"] = "Published"
-        context["message"] = "approved and successfully published"
+        context["message"] = "Approved and successfully published"
         send_review_email(request, context)
     elif data['approval_status'].value == 3:
         context["status"] = "Rejected"
-        context["message"] = "rejected by the moderator"
-        context["custom_message"] = "Please adjust changes and try again" #TODO add custom message logic
+        context["message"] = "Rejected by the moderator"
+        context["custom_message"] = data['rejectMessage']
         send_review_email(request, context)
