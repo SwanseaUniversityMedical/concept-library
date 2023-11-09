@@ -93,11 +93,12 @@ def get_user_groups(request):
       Get the groups related to the requesting user
     """
     user = request.user
-    if not user:
+    if not user or user.is_anonymous:
         return []
 
     if user.is_superuser:
         return list(Group.objects.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
+
     return list(user.groups.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
 
 def get_moderation_entities(
@@ -612,6 +613,45 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
             is_allowed_to_edit = False
 
     return is_allowed_to_edit
+
+def has_derived_edit_access(request, entity_id, entity_history_id=None):
+    """
+      Checks whether a user has derived its permissions from something
+      other than ownership, e.g. in the case of group permissions
+
+      Args:
+        request (RequestContext): the HTTPRequest
+        entity_id (number): The entity ID of interest
+        entity_history_id (number) (optional): The entity's historical id of interest
+
+      Returns:
+        A boolean value reflecting whether the user has derived edit access
+    """
+    user = request.user
+    if not user or user.is_anonymous:
+        return False
+    
+    live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
+    if live_entity is None:
+        return False
+
+    if not is_brand_accessible(request, entity_id):
+        return False
+
+    if entity_history_id is not None:
+        historical_entity = model_utils.try_get_entity_history(live_entity, entity_history_id)
+        if historical_entity is None:
+            return False
+    else:
+        historical_entity = live_entity.history.latest()
+        entity_history_id = historical_entity.history_id
+
+    if user.is_superuser or live_entity.owner == user or live_entity.created_by == user:
+        return False
+    elif has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
+        return True
+
+    return False
 
 def get_latest_publicly_accessible_concept(concept_id):
     """

@@ -337,6 +337,7 @@ class CreateEntityView(TemplateView):
         context['object_reference'] = { 'id': entity.id, 'history_id': entity.history_id }
         context['form_method'] = constants.FORM_METHODS.UPDATE
         context['is_historical'] = model_utils.is_legacy_entity(entity.id, entity.history_id)
+        context['derived_ownership'] = permission_utils.has_derived_edit_access(request, entity.id, entity.history_id)
         return render(request, self.templates.get('form'), context)
 
     ''' Fetch methods '''
@@ -578,7 +579,6 @@ def generic_entity_detail(request, pk, history_id=None):
 
     # history
     history = get_history_table_data(request, pk)
-   
 
     context = {
         'entity_class': entity_class,

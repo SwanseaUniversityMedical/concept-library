@@ -1,14 +1,16 @@
-<button
-  role="link"
-  class="{{class_modal}}"
-  title="{{title}}"
-  
-  {%if disabled%}
-  disabled
-  {%endif%}
-  id="publish2"
->
-  {{Button_type}}
-</button>
+{% if not pub_btn_hidden %}
+  <button
+    role="link"
+    class="{{class_modal}}"
+    title="{{title}}"
+    
+    {%if disabled%}
+    disabled
+    {%endif%}
+    id="publish2"
+  >
+    {{ Button_type }}
+  </button>
 
-{% include 'clinicalcode/generic_entity/publish/publish.html' %}
+  {% include 'clinicalcode/generic_entity/publish/publish.html' %}
+{% endif %}
