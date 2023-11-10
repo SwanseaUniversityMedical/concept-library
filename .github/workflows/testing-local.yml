@@ -33,7 +33,7 @@ jobs:
         with:
           cache: 'pip'
           python-version: ${{ matrix.python-version }}
-          cache-dependency-path: "${{ github.action_path }}/requirements.txt"
+          cache-dependency-path: "${{ github.action_path }}/requirements/base.txt"
         
 
       - name: Install LDAP files
