@@ -52,15 +52,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r docker/requirements/base.txt
       
-      - name: Install ngrok
-        run: |
-          wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-          unzip ngrok-stable-linux-amd64.zip
-          chmod +x ngrok
-          ./ngrok authtoken ${{ secrets.NGROK }}
-          ./ngrok http 8000 > /dev/null &  
-        env:
-          NGROK_AUTH_TOKEN: ${{ secrets.NGROK }}
 
       - name: Prepare Selenium
         uses: nanasess/setup-chromedriver@v2
