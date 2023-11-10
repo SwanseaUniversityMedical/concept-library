@@ -28,10 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: browser-actions/setup-chrome@v1
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('docker/requirements/base.txt') }}
+          key: ${{ runner.os }}-${{ hashFiles('setup.py') }}-${{ hashFiles('docker/requirements/base.txt') }}
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
