@@ -10,6 +10,7 @@
     {{ component.description }}
   </p>
   {% endif %}
+
   <fieldset class="hstack-radio-group" id="entity-{{ component.field_name }}" data-class="radiobutton" data-field="{{ component.field_name }}">
     <input class="radio-input" data-value="1" aria-label="No Access" type="radio" id="{{ component.field_name }}-1"
       name="entity-radio-{{ component.field_name }}" {% if component.value == 1 or not component.value %} checked {% endif %}>

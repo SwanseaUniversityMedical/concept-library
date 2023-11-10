@@ -28,7 +28,9 @@ class SessionExpiryMiddleware:
             return False
 
         last_login = request.user.last_login
-        session_time = (last_login - current_time + session_limit).total_seconds()
+        session_time = -1
+        if isinstance(last_login, datetime):
+            session_time = (last_login - current_time + session_limit).total_seconds()
         return session_time < 0
 
     def __session_reached_idle_limit(self, request, options):

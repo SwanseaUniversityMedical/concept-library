@@ -147,6 +147,21 @@ def jsonify(value, should_print=False):
         return json.dumps(value, cls=gen_utils.ModelEncoder)
     return model_utils.jsonify_object(value)
 
+@register.simple_tag
+def parse_as_json_object(value, remove_userdata=True, should_print=False):
+    '''
+        Attempts to dump a value to JSON
+    '''
+    if should_print:
+        print(type(value), value)
+    
+    if value is None:
+        value = { }
+    
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, cls=gen_utils.ModelEncoder)
+    return model_utils.jsonify_object(value, remove_userdata=remove_userdata)
+
 @register.filter(name='trimmed')
 def trimmed(value):
     return re.sub(r'\s+', '_', value).lower()

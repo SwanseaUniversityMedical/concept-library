@@ -1,3 +1,12 @@
+/**
+ * PublishModal
+ * @author @zinnurov - Artur Zinnurov
+ * @notes originally located within `./forms/clinical` - relocated to `./forms/`
+ * @desc A class that controls the publication modal used to publish entities within the detail page,
+ *       controls both moderator & normal client usage
+ * 
+ */
+
 class PublishModal {
   constructor(publish_url, decline_url,redirect_url) {
     this.publish_url = publish_url;
@@ -120,25 +129,25 @@ class PublishModal {
     switch (data.approval_status) {
       case 1:
         paragraph = `<p>Are you sure you want to approve this version of "${data.name}"?</p>
-        <p>Published ${data.entity_type} cannot be undone.</p>`;
+        <p>Publishing a ${data.entity_type} cannot be undone.</p>`;
         break;
       case 3:
         paragraph = `<p>Are you sure you want to approve previously declined version of "${data.name}"?</p>
-        <p>This change of ${data.entity_type} cannot be undone.</p>`;
+        <p>Changes made to this ${data.entity_type} cannot be undone.</p>`;
         break;
       case null:
         if (data.is_moderator || data.is_lastapproved) {
           paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
-        <p>Published ${data.entity_type} cannot be undone.</p>`;
+        <p>Publishing a ${data.entity_type} cannot be undone.</p>`;
         } else {
           paragraph = `<p>Are you sure you want submit to publish this version of "${data.name}"?</p>
-          <p>This change of ${data.entity_type} cannot be undone.</p>
+          <p>Changes made to this ${data.entity_type} cannot be undone.</p>
           <p>This ${data.entity_type} is going to be reviewed by the moderator and you will be notified when is published</p>`;
         }
         break;
       default:
         paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
-        <p>Published ${data.entity_type} cannot be undone.</p>`;
+        <p>Publishing a ${data.entity_type} cannot be undone.</p>`;
         break;
     }
     return paragraph;

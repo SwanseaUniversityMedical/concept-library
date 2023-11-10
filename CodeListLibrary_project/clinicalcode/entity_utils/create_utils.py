@@ -1123,6 +1123,11 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 )
             elif form_method == constants.FORM_METHODS.UPDATE:
                 entity = form_entity
+
+                group = metadata.get('group')
+                if not group and permission_utils.has_derived_edit_access(request, entity.id):
+                    group = entity.group
+
                 entity.name = metadata.get('name')
                 entity.status = constants.ENTITY_STATUS.DRAFT
                 entity.author = metadata.get('author')
@@ -1133,7 +1138,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.tags = metadata.get('tags')
                 entity.collections = metadata.get('collections')
                 entity.publications = metadata.get('publications')
-                entity.group = metadata.get('group')
+                entity.group = group
                 entity.group_access = metadata.get('group_access')
                 entity.world_access = metadata.get('world_access')
                 entity.template = template_instance

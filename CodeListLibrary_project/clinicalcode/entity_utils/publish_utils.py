@@ -75,7 +75,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
     # Fetch the required objects from the database only once
     generic_entity = GenericEntity.objects.get(id=pk)
     user_is_moderator = request.user.groups.filter(name="Moderators").exists()
-    user_is_owner = generic_entity.owner == request.user
+    user_is_owner = permission_utils.can_user_edit_entity(request, generic_entity.id) #generic_entity.owner == request.user
 
     latest_pending_version_exists = PublishedGenericEntity.objects.filter(
         entity_id=pk, 
@@ -120,7 +120,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     # Check children
     if is_valid_entity_class(entity_class):
-        is_ok, all_not_deleted, all_are_published, errors = check_children(request,entity,get_entity_class(entity_class))
+        is_ok, all_not_deleted, all_are_published, errors = check_child_validity(request,entity,get_entity_class(entity_class))
 
         if not is_ok:
             allow_to_publish = False
@@ -150,6 +150,33 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'all_not_deleted': all_not_deleted
     }
     return checks
+
+def check_child_validity(request, entity, entity_class, check_publication_validity=False):
+    """
+    Wrapper for 'check_children' method authored by @zinnurov
+    to optionally test publication & deletion status
+
+    [!] Implementation required until we can discuss how to handle the issues
+    surrounding legacy Phenotypes / Concepts that have imported entities from
+    archived and/or unpublished entities.
+
+    Args:
+        request {RequestContext}: the request context of the form
+        entity {instance}: an instance of an entity
+        entity_class {Model()}: the model entity class
+    
+    Returns:
+        {boolean} - a boolean that describes the validity of the child entity
+        {boolean} - a boolean that describes whether the entity passed the deleted test
+        {boolean} - a boolean that describes whether the entity passed the publication check
+        {list} - a list of any errors that may have been encountered when testing each entity
+    """
+
+    if check_publication_validity:
+        return check_children(request, entity, entity_class)
+    
+    # defaults to true
+    return True, True, True, []
 
 def check_children(request, entity, entity_class):
         """
@@ -198,8 +225,10 @@ def check_children(request, entity, entity_class):
             concept_owner_id = Concept.objects.get(id=entity_child_id).phenotype_owner_id
             if concept_owner_id != entity.id:
                 entity_from_concept = GenericEntity.history.filter(
-                id=concept_owner_id,
-                publish_status=constants.APPROVAL_STATUS.APPROVED.value)
+                    id=concept_owner_id,
+                    publish_status=constants.APPROVAL_STATUS.APPROVED.value
+                )
+
                 if entity_from_concept.exists():
                     inheritated_childs = [(i[child_id],i[child_version_id]) for i in entity_from_concept.values_list("template_data", flat=True)[0][name_table]]
                     is_published = (entity_child_id,entity_child_version) in inheritated_childs
@@ -214,7 +243,6 @@ def check_children(request, entity, entity_class):
                     version=str(entity_child_version)
                 ),"url_parent": reverse('entity_detail', kwargs={'pk': concept_owner_id})})
                 all_are_published = False
-            
 
         return all_not_deleted and all_are_published, all_not_deleted, all_are_published, errors
 
