@@ -42,6 +42,14 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
+        
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install LDAP files
         run: |
@@ -76,7 +84,7 @@ jobs:
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
-          pytest -v -s --cov-report xml --cov . --html=reports.html
+          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html
         env:
           DISPLAY: ":99"
 
