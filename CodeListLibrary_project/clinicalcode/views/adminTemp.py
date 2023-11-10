@@ -284,8 +284,8 @@ def admin_force_adp_linkage(request):
         sql = '''
         update public.clinicalcode_historicalgenericentity entity
            set
-               entity.group_id = selected.group_id,
-               entity.brands = selected.brands
+               group_id = selected.group_id,
+               brands = selected.brands
           from public.clinicalcode_genericentity selected
          where entity.id = selected.id
            and 1 = any(selected.brands);
