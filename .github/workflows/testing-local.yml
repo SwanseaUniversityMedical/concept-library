@@ -81,7 +81,7 @@ jobs:
           DISPLAY: ":99"
 
       - name: Coverage report
-        uses: 5monkeys/cobertura-action@v3
+        uses: 5monkeys/cobertura-action@v13
         with:
           # Path to the cobertura file.
           path: CodeListLibrary_project/coverage.xml
