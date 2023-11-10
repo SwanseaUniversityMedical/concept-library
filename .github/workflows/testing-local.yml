@@ -41,15 +41,9 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
+          cache: 'pip'
           python-version: ${{ matrix.python-version }}
         
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Install LDAP files
         run: |
@@ -99,5 +93,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: test-results
-          path: CodeListLibrary_project/reports.html
+          path: CodeListLibrary_project/report.html
           retention-days: 5
