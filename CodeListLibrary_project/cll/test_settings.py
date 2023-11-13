@@ -57,10 +57,13 @@ options = [
     # 'headless'
 ]
 
+
+
 for option in options:
     chrome_options.add_argument(option)
 
 print(chrome_options.arguments)
+
 
 if REMOTE_TEST:
     driver = webdriver.Chrome(options=chrome_options)
@@ -68,7 +71,6 @@ else:
     driver = webdriver.Remote(command_executor='http://selenium-hub:4444/wd/hub', options=chrome_options)
 driver.get("http://google.com")
 print(driver.title)
-# driver.get("http://web-test:8000/phenotypes")
 driver.get("http://localhost:8000/phenotypes") if REMOTE_TEST else driver.get("http://web-test:8000/phenotypes")
 print(driver.title)
 driver.quit()
