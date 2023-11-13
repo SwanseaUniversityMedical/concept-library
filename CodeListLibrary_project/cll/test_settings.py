@@ -71,9 +71,9 @@ else:
     driver = webdriver.Remote(command_executor='http://selenium-hub:4444/wd/hub',options=chrome_options)
 driver.get("http://google.com")
 print(driver.title)
-driver.get("http://web-test:8000/phenotypes")
+driver.get("http://localhost:8000/phenotypes") if REMOTE_TEST else driver.get("http://web-test:8000/phenotypes")
 print(driver.title)
-#driver.quit()
+driver.quit()
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
@@ -94,7 +94,7 @@ DATABASES = {
         'NAME': get_env_value('UNIT_TEST_DB_NAME'),
         'USER': get_env_value('UNIT_TEST_DB_USER'),
         'PASSWORD': get_env_value('UNIT_TEST_DB_PASSWORD'),
-        'HOST': get_env_value('UNIT_TEST_DB_HOST'),
+        'HOST': get_env_value('UNIT_TEST_DB_REMOTE_HOST') if REMOTE_TEST else get_env_value('UNIT_TEST_DB_HOST'),
         'PORT': '',
         'TEST': {
             'NAME': get_env_value('UNIT_TEST_DB_NAME')  # TODO: check this was cl_testdatabase before!
