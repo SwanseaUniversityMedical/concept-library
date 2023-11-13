@@ -26,7 +26,7 @@ class TestReadOnlyPermissions:
         generate_entity.created_by = generate_user[user_type]
         assert can_user_edit_entity(
             None, generate_entity, generate_user[user_type]) == False
-    
+
     def test_user_not_allowed_to_create(self):
         assert allowed_to_create() == False
     
