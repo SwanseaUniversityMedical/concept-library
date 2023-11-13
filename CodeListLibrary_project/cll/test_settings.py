@@ -36,8 +36,9 @@ REMOTE_TEST_HOST = 'http://selenium-hub:4444/wd/hub'
 IMPLICTLY_WAIT = 10
 TEST_SLEEP_TIME = 5
 
+
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
+chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})    
 chrome_options.accept_insecure_certs = True
 chrome_options.accept_ssl_certs = True
 
@@ -68,8 +69,9 @@ else:
 driver.get("http://google.com")
 print(driver.title)
 # driver.get("http://web-test:8000/phenotypes")
+driver.get("http://localhost:8000/phenotypes") if REMOTE_TEST else driver.get("http://web-test:8000/phenotypes")
 print(driver.title)
-# driver.quit()
+driver.quit()
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
@@ -90,7 +92,7 @@ DATABASES = {
         'NAME': get_env_value('UNIT_TEST_DB_NAME'),
         'USER': get_env_value('UNIT_TEST_DB_USER'),
         'PASSWORD': get_env_value('UNIT_TEST_DB_PASSWORD'),
-        'HOST': get_env_value('UNIT_TEST_DB_HOST'),
+        'HOST': get_env_value('UNIT_TEST_DB_REMOTE_HOST') if REMOTE_TEST else get_env_value('UNIT_TEST_DB_HOST'),
         'PORT': '',
         'TEST': {
             'NAME': get_env_value('UNIT_TEST_DB_NAME')  # TODO: check this was cl_testdatabase before!
