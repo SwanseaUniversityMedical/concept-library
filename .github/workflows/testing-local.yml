@@ -2,7 +2,7 @@ name: Integration-test
 
 on:
   push:
-    branches: ["pytest-error-handling"]
+    branches: ["test-master"]
   pull_request:
     branches: ["test-master"]
 
