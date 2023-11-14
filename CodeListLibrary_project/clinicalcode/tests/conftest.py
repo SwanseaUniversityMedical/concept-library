@@ -1,10 +1,17 @@
-
-
-from clinicalcode.models import GenericEntity
-from django.utils.timezone import make_aware
 from datetime import datetime
+
 import pytest
-from django.contrib.auth.models import User,Group
+from clinicalcode.models import GenericEntity
+from django.contrib.auth.models import User, Group
+from django.utils.timezone import make_aware
+
+from selenium.webdriver import Keys
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+
+from cll.test_settings import WEBAPP_HOST, REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
+
 
 @pytest.fixture
 def generate_user():
@@ -23,9 +30,9 @@ def generate_user():
         'view_group_user': vgp_user,
         'edit_group_user': egp_user,
     }
-    
+
     yield users
-    
+
     # Clean up the users after the tests are finished
     for user in users.values():
         user.delete()
@@ -37,7 +44,7 @@ def create_groups():
     forbidden_group = Group.objects.create(name="forbidden_group")
     view_group = Group.objects.create(name="view_group")
     edit_group = Group.objects.create(name="edit_group")
-    
+
     # Yield the created groups so they can be used in tests
     yield {
         'permitted_group': permitted_group,
@@ -45,7 +52,7 @@ def create_groups():
         'view_group': view_group,
         'edit_group': edit_group,
     }
-    
+
     # Clean up the groups after the tests are finished
     for group in [permitted_group, forbidden_group, view_group, edit_group]:
         group.delete()
@@ -71,3 +78,48 @@ def generate_entity(create_groups):
                                                    group=create_groups['permitted_group'],
                                                    template_data=template_data,updated=make_aware(datetime.now()))
     return generate_entity
+
+
+@pytest.fixture(scope="class")
+def setup_webdriver(request):
+    if REMOTE_TEST:
+        driver = webdriver.Chrome(options=chrome_options)
+    else:
+        driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
+
+    wait = WebDriverWait(driver, 10)
+    driver.maximize_window()
+    request.cls.driver = driver
+    request.cls.wait = wait
+    yield
+    driver.close()
+
+
+@pytest.fixture(scope="function")
+def login():
+    def _login(driver, username, password):
+        driver.get(WEBAPP_HOST + "/account/login/")
+        username_input = driver.find_element(By.NAME, "username")
+        password_input = driver.find_element(By.NAME, "password")
+
+        # Input username and password
+        username_input.send_keys(username)
+        password_input.send_keys(password)
+
+        # Submit the form by pressing Enter
+        password_input.send_keys(Keys.ENTER)
+
+    yield _login
+
+
+@pytest.fixture(scope="function")
+def logout():
+    def _logout(driver):
+        driver.get(WEBAPP_HOST + "/account/logout/")
+    yield _logout
+
+
+
+
+
+
