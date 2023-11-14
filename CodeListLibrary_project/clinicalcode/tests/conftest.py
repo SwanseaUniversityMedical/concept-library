@@ -6,12 +6,11 @@ from django.contrib.auth.models import User, Group
 from django.utils.timezone import make_aware
 
 from selenium.webdriver import Keys
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-from cll.test_settings import driver
-
-from cll.test_settings import WEBAPP_HOST
+from cll.test_settings import WEBAPP_HOST, REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
 
 
 @pytest.fixture
@@ -58,7 +57,6 @@ def create_groups():
     for group in [permitted_group, forbidden_group, view_group, edit_group]:
         group.delete()
 
-
 @pytest.fixture
 def generate_entity(create_groups):
     template_data = {
@@ -73,18 +71,21 @@ def generate_entity(create_groups):
         "agreement_date": "2012-11-23",
         "phenotype_uuid": "4",
         "event_date_range": "01/01/1999 - 01/07/2016",
-        "source_reference": "https://portal.caliberresearch.org/phenotypes/archangelidi-heart-rate"
-                            "-6keWsw2mW2TQjDMhNAUETt",
+        "source_reference": "https://portal.caliberresearch.org/phenotypes/archangelidi-heart-rate-6keWsw2mW2TQjDMhNAUETt",
         "concept_information": []
     }
     generate_entity = GenericEntity.objects.create(name="Test entity",
                                                    group=create_groups['permitted_group'],
-                                                   template_data=template_data, updated=make_aware(datetime.now()))
+                                                   template_data=template_data,updated=make_aware(datetime.now()))
     return generate_entity
 
 
 @pytest.fixture(scope="class")
 def setup_webdriver(request):
+    if REMOTE_TEST:
+        driver = webdriver.Chrome(options=chrome_options)
+    else:
+        driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
 
     wait = WebDriverWait(driver, 10)
     driver.maximize_window()

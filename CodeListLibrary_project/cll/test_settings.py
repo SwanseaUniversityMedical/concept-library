@@ -28,7 +28,7 @@ from .settings import *
 
 import os
 
-WEBAPP_HOST = 'http://web-test:8000/'
+WEBAPP_HOST = ""
 
 # remote test features
 REMOTE_TEST = get_env_value('REMOTE_TEST', cast='bool')
@@ -36,9 +36,8 @@ REMOTE_TEST_HOST = 'http://selenium-hub:4444/wd/hub'
 IMPLICTLY_WAIT = 10
 TEST_SLEEP_TIME = 5
 
-
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})    
+chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
 chrome_options.accept_insecure_certs = True
 chrome_options.accept_ssl_certs = True
 
@@ -57,21 +56,24 @@ options = [
     # 'headless'
 ]
 
-
-
 for option in options:
     chrome_options.add_argument(option)
 
 print(chrome_options.arguments)
 
-
 if REMOTE_TEST:
     driver = webdriver.Chrome(options=chrome_options)
 else:
-    driver = webdriver.Remote(command_executor='http://selenium-hub:4444/wd/hub', options=chrome_options)
+    driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
 driver.get("http://google.com")
 print(driver.title)
-driver.get("http://localhost:8000/phenotypes") if REMOTE_TEST else driver.get("http://web-test:8000/phenotypes")
+
+if REMOTE_TEST:
+    WEBAPP_HOST = "http://localhost:8000/"
+else:
+    WEBAPP_HOST = "http://web-test:8000/"
+
+driver.get(WEBAPP_HOST)
 print(driver.title)
 driver.quit()
 
