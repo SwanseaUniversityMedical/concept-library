@@ -73,6 +73,6 @@ services:
     ports:
       - "5050:5050"
     volumes:
-      - ../CodeListLibrary_project/allure-results:/var/www/concept_lib_sites/v1/CodeListLibrary_project/allure-results
-      - ../CodeListLibrary_project/allure-reports:/var/www/concept_lib_sites/v1/CodeListLibrary_project/allure-reports
+      - ../CodeListLibrary_project/clinicalcode/tests/allure-results:/var/www/concept_lib_sites/v1/CodeListLibrary_project/clinicalcode/tests/allure-results
+      - ../CodeListLibrary_project/clinicalcode/tests/allure-reports:/var/www/concept_lib_sites/v1/CodeListLibrary_project/clinicalcode/tests/allure-reports
 
