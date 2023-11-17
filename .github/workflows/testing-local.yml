@@ -75,7 +75,8 @@ jobs:
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
-          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=clinicalcode/tests/allure-results 
+          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=clinicalcode/tests/allure-results
+          ls clinicalcode/tests/allure-results 
         env:
           DISPLAY: ":99"
 
@@ -99,10 +100,10 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          ref: github-pages
+          ref: pytest-allure
           path: github-pages
       
-      - name: Allure Report action from marketplace
+      - name: Allure Report action
         uses: simple-elf/allure-report-action@v1.7
         if: always()
         with:
