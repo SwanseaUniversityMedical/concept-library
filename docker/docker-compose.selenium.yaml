@@ -64,4 +64,15 @@ services:
         - SE_EVENT_BUS_HOST=selenium-hub
         - SE_EVENT_BUS_PUBLISH_PORT=4442
         - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+        
+  allure:
+    image: "frankescobar/allure-docker-service"
+    environment:
+      CHECK_RESULTS_EVERY_SECONDS: 1
+      KEEP_HISTORY: 1
+    ports:
+      - "5050:5050"
+    volumes:
+      - ${PWD}/allure-results:/app/allure-results
+      - ${PWD}/allure-reports:/app/default-reports
 

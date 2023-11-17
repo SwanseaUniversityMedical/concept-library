@@ -38,3 +38,4 @@ urllib3==1.26.12
 wget==3.2
 pytest-html==4.1.1
 pytest-cov==4.1.0
+allure-pytest==2.13.2
