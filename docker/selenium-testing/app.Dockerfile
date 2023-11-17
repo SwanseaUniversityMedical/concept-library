@@ -35,13 +35,13 @@ COPY ./requirements /var/www/concept_lib_sites/v1/requirements
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
 # Install requirements
-RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/local.txt
+RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/test-requirements.txt
 
 
 # Deploy scripts
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 
-COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
+COPY ./selenium-testing/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
 
