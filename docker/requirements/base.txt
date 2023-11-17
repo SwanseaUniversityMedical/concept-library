@@ -29,13 +29,8 @@ python-dateutil==2.8.2
 python-decouple==3.6
 requests==2.31.0
 redis==4.5.3
-selenium==4.15.0
-pytest-django==4.5.2
 swagger-spec-validator==2.7.6
 typing==3.7.4.3
 tzdata==2022.2
 urllib3==1.26.12
 wget==3.2
-pytest-html==4.1.1
-pytest-cov==4.1.0
-allure-pytest==2.13.2
