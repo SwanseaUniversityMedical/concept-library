@@ -75,7 +75,7 @@ jobs:
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
-          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=allure-results 
+          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=clinicalcode/tests/allure-results 
         env:
           DISPLAY: ":99"
 
@@ -107,12 +107,4 @@ jobs:
         if: always()
         with:
           allure_results: allure-results
-          allure_history: allure-history
   
-      - name: Deploy report to Github Pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v2
-        env:
-          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISH_BRANCH: github-pages
-          PUBLISH_DIR: allure-history
