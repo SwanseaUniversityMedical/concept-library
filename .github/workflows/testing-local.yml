@@ -95,25 +95,54 @@ jobs:
           path: CodeListLibrary_project/report.html
           retention-days: 5
       
-      - name: Get Allure history
+      - name: Get Allure history 
         uses: actions/checkout@v3
-        if: always()
-        continue-on-error: true
+        if: always() 
+        continue-on-error: true 
         with:
-          ref: pytest-allure
-          path: github-pages
-      
-      - name: Allure Report action
-        uses: simple-elf/allure-report-action@v1.7
+          ref: testing-result-pages 
+          path: testing-result-pages 
+
+      - name: Allure report action # Step to generate Allure report
+        uses: simple-elf/allure-report-action@master
+        if: always() 
+        with:
+          allure_results: clinicalcode/tests/allure-results
+          allure_report: clinicalcode/tests/allure-reports
+          allure_history: allure-history 
+          keep_reports: 5 # Specify the number of previous reports to keep
+
+      - name: Upload an artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v2
         if: always()
         with:
-          allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
-      
-      - name: Deploy report to Github Pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v2
-        env:
-          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISH_BRANCH: github-pages
-          PUBLISH_DIR: allure-history
+          name: allure-report
+          path: clinicalcode/tests/allure-reports
+  
+  test-result-page:
+      needs: pre-deploy-test
+  
+      permissions:
+        pages: write      
+        id-token: write
+        contents: read  
+  
+      environment:
+        name: test-result-pages
+        url: ${{ steps.deployment.outputs.page_url }}
+  
+      runs-on: ubuntu-latest
+      steps:
+      - name: Download Allure Results
+        uses: actions/download-artifact@v2
+        with:
+          name: allure-report
+          path: clinicalcode/tests/allure-reports
+          token: ${{ secrets.GITHUB_TOKEN }}
+  
+      - name: Deploy to GitHub Pages
+        id: deployment
+        with:
+          artifact_name: allure-report
+        uses: actions/deploy-pages@v2 
   
