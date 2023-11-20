@@ -30,6 +30,9 @@ class TestReadOnlyPermissions:
     def test_wrong_answer(self):
         assert allowed_to_create() == True
     
+    def test_wrong_again():
+        assert 1 == 2
+    
 
 
         
