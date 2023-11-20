@@ -110,6 +110,7 @@ jobs:
           allure_results: clinicalcode/tests/allure-results
           allure_report: clinicalcode/tests/allure-reports
           allure_history: allure-history 
+          gh_pages: testing-result-pages
           keep_reports: 5 # Specify the number of previous reports to keep
 
       - name: Upload an artifact for GitHub Pages
@@ -120,6 +121,7 @@ jobs:
           path: clinicalcode/tests/allure-reports
   
   test-result-page:
+      if: success() || failure()
       needs: pre-deploy-test
   
       permissions:
