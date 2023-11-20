@@ -77,13 +77,15 @@ jobs:
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
-          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=CodeListLibrary_project/clinicalcode/tests/allure-results
+          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=./clinicalcode/tests/allure-results
         env:
           DISPLAY: ":99"
         
       - name: Get directory
         if: success() || failure()
-        run: | 
+        run: |
+          pwd 
+          ls
           ls CodeListLibrary_project/clinicalcode/tests
           ls CodeListLibrary_project/clinicalcode/tests/allure-results
 
