@@ -103,10 +103,15 @@ jobs:
         with:
           ref: testing-result-pages 
           path: testing-result-pages 
+      
+      - name: Check directory
+        run: |
+            ls 
+            cd tests/allure-results
+            ls
 
       - name: Allure report action # Step to generate Allure report
         uses: simple-elf/allure-report-action@master
-        if: success() || failure()
         with:
           allure_results: tests/allure-results
           allure_report: tests/allure-report
