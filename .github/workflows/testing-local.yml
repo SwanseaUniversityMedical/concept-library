@@ -111,7 +111,7 @@ jobs:
           allure_report: clinicalcode/tests/allure-reports
           allure_history: allure-history 
           gh_pages: testing-result-pages
-          keep_reports: 5 # Specify the number of previous reports to keep
+          keep_reports: 10 # Specify the number of previous reports to keep
 
       - name: Upload an artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v2
@@ -119,6 +119,14 @@ jobs:
         with:
           name: allure-report
           path: clinicalcode/tests/allure-reports
+      
+      - name: Deploy report to testing-result-pages branch
+        if: always()
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: testing-result-pages
+          PUBLISH_DIR: allure-history
   
   test-result-page:
       if: success() || failure()
