@@ -27,9 +27,6 @@ class TestReadOnlyPermissions:
     def test_user_not_allowed_to_create(self):
         assert allowed_to_create() == False
     
-    def test_wrong_answer(self):
-        assert allowed_to_create() == True
-    
 
 
         
