@@ -96,6 +96,10 @@ jobs:
           path: CodeListLibrary_project/report.html
           retention-days: 5
       
+      - name: Get  dir
+        run: |
+            ls
+      
       - name: Get Allure history 
         uses: actions/checkout@v3
         if: success() || failure()
@@ -104,10 +108,8 @@ jobs:
           ref: testing-result-pages 
           path: testing-result-pages 
       
-      - name: Check directory
+      - name: Get allure dir
         run: |
-            ls 
-            cd tests/allure-results
             ls
 
       - name: Allure report action # Step to generate Allure report
