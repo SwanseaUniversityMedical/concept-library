@@ -80,6 +80,11 @@ jobs:
           pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=tests/allure-results
         env:
           DISPLAY: ":99"
+        
+      - name: Get directory
+        if: success() || failure()
+        run: | 
+          ls
 
       - name: Coverage report
         if: success() || failure()
@@ -105,6 +110,7 @@ jobs:
           path: testing-result-pages 
       
       - name: Allure report action # Step to generate Allure report
+        if: success() || failure()
         uses: simple-elf/allure-report-action@master
         with:
           allure_results: tests/allure-results
