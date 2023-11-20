@@ -77,14 +77,15 @@ jobs:
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
-          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=tests/allure-results
+          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=CodeListLibrary_project/clinicalcode/tests/allure-results
         env:
           DISPLAY: ":99"
         
       - name: Get directory
         if: success() || failure()
         run: | 
-          ls
+          ls CodeListLibrary_project/clinicalcode/tests
+          ls CodeListLibrary_project/clinicalcode/tests/allure-results
 
       - name: Coverage report
         if: success() || failure()
@@ -113,8 +114,8 @@ jobs:
         if: success() || failure()
         uses: simple-elf/allure-report-action@master
         with:
-          allure_results: tests/allure-results
-          allure_report: tests/allure-report
+          allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
+          allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report
           allure_history: allure-history 
           gh_pages: testing-result-pages
           keep_reports: 10 # Specify the number of previous reports to keep
@@ -124,7 +125,7 @@ jobs:
         if: success() || failure()
         with:
           name: allure-report
-          path: tests/allure-report
+          path: CodeListLibrary_project/clinicalcode/tests/allure-report
       
       - name: Deploy report to testing-result-pages branch
         if: always()
@@ -153,7 +154,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: allure-report
-          path: tests/allure-report
+          path: CodeListLibrary_project/clinicalcode/tests/allure-report
           token: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Deploy to GitHub Pages
