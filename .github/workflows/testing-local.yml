@@ -108,7 +108,7 @@ jobs:
         if: success() || failure()
         with:
           allure_results: clinicalcode/tests/allure-results
-          allure_report: clinicalcode/tests/allure-reports
+          allure_report: clinicalcode/tests/allure-report
           allure_history: allure-history 
           gh_pages: testing-result-pages
           keep_reports: 10 # Specify the number of previous reports to keep
@@ -118,7 +118,7 @@ jobs:
         if: success() || failure()
         with:
           name: allure-report
-          path: clinicalcode/tests/allure-reports
+          path: clinicalcode/tests/allure-report
       
       - name: Deploy report to testing-result-pages branch
         if: always()
@@ -147,7 +147,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: allure-report
-          path: clinicalcode/tests/allure-reports
+          path: clinicalcode/tests/allure-report
           token: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Deploy to GitHub Pages
