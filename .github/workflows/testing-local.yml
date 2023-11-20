@@ -1,8 +1,6 @@
 name: Integration-test
 
 on:
-  push:
-    branches: ["pytest-allure"]
   pull_request:
     branches: ["test-master"]
 
@@ -81,14 +79,6 @@ jobs:
         env:
           DISPLAY: ":99"
         
-      - name: Get directory
-        if: success() || failure()
-        run: |
-          pwd 
-          ls
-          ls CodeListLibrary_project/clinicalcode/tests
-          ls CodeListLibrary_project/clinicalcode/tests/allure-results
-
       - name: Coverage report
         if: success() || failure()
         uses: 5monkeys/cobertura-action@v13
