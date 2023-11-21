@@ -92,7 +92,7 @@ def setup_webdriver(request):
     request.cls.driver = driver
     request.cls.wait = wait
     yield
-    driver.close()
+    driver.quit()
 
 
 @pytest.fixture(scope="function")
