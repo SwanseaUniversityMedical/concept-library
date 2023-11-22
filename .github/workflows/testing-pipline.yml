@@ -126,6 +126,7 @@ jobs:
           PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLISH_BRANCH: github-pages
           PUBLISH_DIR: allure-history
+          keep_files: true
   
   test-result-page:
       if: success() || failure()
