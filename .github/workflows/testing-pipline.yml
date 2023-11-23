@@ -99,8 +99,8 @@ jobs:
         if: success() || failure()
         continue-on-error: true 
         with:
-          ref: github-pages
-          path: github-pages
+          ref: testing-result-pages
+          path: testing-result-pages
       
       - name: Allure report action # Step to generate Allure report
         if: success() || failure()
@@ -109,7 +109,7 @@ jobs:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
           allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report
           allure_history: allure-history 
-          gh_pages: github-pages
+          gh_pages: testing-result-pages
           keep_reports: 10 # Specify the number of previous reports to keep
 
       - name: Upload an artifact for GitHub Pages
@@ -124,34 +124,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v2
         env:
           PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISH_BRANCH: github-pages
+          PUBLISH_BRANCH: testing-result-pages
           PUBLISH_DIR: allure-history
-  
-  test-result-page:
-      if: success() || failure()
-      needs: pre-deploy-test
-  
-      permissions:
-        pages: write      
-        id-token: write
-        contents: read  
-  
-      environment:
-        name: github-pages
-        url: ${{ steps.deployment.outputs.page_url }}
-  
-      runs-on: ubuntu-latest
-      steps:
-      - name: Download Allure Results
-        uses: actions/download-artifact@v2
-        with:
-          name: allure-report
-          path: CodeListLibrary_project/clinicalcode/tests/allure-report
-          token: ${{ secrets.GITHUB_TOKEN }}
-  
-      - name: Deploy to GitHub Pages
-        id: deployment
-        with:
-          artifact_name: allure-report
-        uses: actions/deploy-pages@v2 
+          keep_files: true
   
