@@ -188,6 +188,23 @@ const getCurrentBrandPrefix = () => {
 }
 
 /**
+ * getBrandedHost
+ * @desc Returns the branded host based on URL, e.g. '/HDRUK' if non-prod, otherwise
+ *       returns its appropriate domain
+ * @returns {string}
+ */
+const getBrandedHost = () => {
+  const host = getCurrentHost();
+  const brand = document.documentElement.getAttribute('data-brand');
+  const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
+  if (host === 'https://phenotypes.healthdatagateway.org' || isUnbranded) {
+    return host;
+  }
+
+  return `${host}/${brand}`;
+}
+
+/**
   * domReady
   * @desc A promise that resolves when the DOM is ready
   * @returns {promise}

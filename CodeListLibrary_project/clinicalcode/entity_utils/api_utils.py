@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.functions import JSONObject
 from django.db.models import ForeignKey, F
+from rest_framework.renderers import JSONRenderer
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Template import Template
@@ -16,19 +17,24 @@ from . import create_utils
 from . import gen_utils
 from . import constants
 
-''' Parameter validation '''
+""" REST renderer """
+class PrettyJsonRenderer(JSONRenderer):
+    def get_indent(self, accepted_media_type, renderer_context):
+        return 2
+
+""" Parameter validation """
 
 def is_malformed_entity_id(primary_key):
-    '''
+    """
       Checks whether primary key is malformed
 
       Args:
-        primary_key {string}: string containing primary key to be checked
+        primary_key (string): string containing primary key to be checked
 
       Returns:
         If primary key is malformed, returns 406 response, else returns split id
         i.e. PH123 -> 'PH', '123'
-    '''
+    """
     entity_id_split = model_utils.get_entity_id(primary_key)
     if not entity_id_split:
         return Response(
@@ -42,15 +48,15 @@ def is_malformed_entity_id(primary_key):
     return entity_id_split
 
 def exists_entity(entity_id):
-    '''
+    """
       Checks whether an entity with given entity_id exists
 
       Args:
-        entity_id {string}: Id of entity to be checked
+        entity_id (string): Id of entity to be checked
 
       Returns:
         If entity exists, returns entity, else returns 404 response
-    '''
+    """
     entity = model_utils.try_get_instance(
         GenericEntity, id=entity_id
     )
@@ -67,18 +73,18 @@ def exists_entity(entity_id):
     return entity
 
 def exists_historical_entity(entity_id, user, historical_id=None):
-    '''
+    """
       Checks whether a historical version of an entity exists
 
       Args:
-        entity_id {string}: entity id
-        user {User}: User object
-        historical_id {integer}: historical id
+        entity_id (string): entity id
+        user (User): User object
+        historical_id (Integer): historical id
 
       Returns:
         If exists, returns first instance of historical entity, otherwise 
         returns response 404
-    '''
+    """
     if not historical_id:
         historical_id = permission_utils.get_latest_entity_historical_id(
             entity_id, user
@@ -101,15 +107,15 @@ def exists_historical_entity(entity_id, user, historical_id=None):
     return historical_entity.first()
 
 def exists_concept(concept_id):
-    '''
+    """
       Checks whether a concept with given concept_id exists
 
       Args:
-        concept_id {string}: Id of the concept to be checked
+        concept_id (string): Id of the concept to be checked
 
       Returns:
         If concept exists, returns concept, else returns 404 response
-    '''
+    """
     concept = model_utils.try_get_instance(
         Concept, pk=concept_id
     )
@@ -126,18 +132,18 @@ def exists_concept(concept_id):
     return concept
 
 def exists_historical_concept(request, concept_id, historical_id=None):
-    '''
+    """
       Checks whether a historical version of a concept exists
 
       Args:
-        request {RequestContext}: the HTTPRequest
-        concept_id {string}: concept id
-        historical_id {integer}: historical id of the concept
+        request (RequestContext): the HTTPRequest
+        concept_id (string): concept id
+        historical_id (Integer): historical id of the concept
 
       Returns:
         If exists, returns first instance of historical concept, otherwise 
         returns response 404
-    '''
+    """
     historical_concept = None
     if not historical_id:
         historical_concept = concept_utils.get_latest_accessible_concept(request, concept_id)
@@ -161,19 +167,19 @@ def exists_historical_concept(request, concept_id, historical_id=None):
 
     return historical_concept
 
-''' General helpers '''
+""" General helpers """
 
 def get_entity_version_history(request, entity_id):
-    '''
+    """
       Retrieves an entities version history
 
       Args:
-        request {HTTPContext}: Request context
-        entity_id {string}: Entity id
+        request (HTTPContext): Request context
+        entity_id (string): Entity id
 
       Returns:
         Dict containing version history of entity
-    '''
+    """
     result = []
 
     historical_versions = GenericEntity.objects.get(
@@ -198,16 +204,16 @@ def get_entity_version_history(request, entity_id):
     return result
 
 def get_concept_version_history(request, concept_id):
-    '''
+    """
       Retrieves a concepts version history
 
       Args:
-        request {HTTPContext}: Request context
-        concept_id {string}: concept id
+        request (HTTPContext): Request context
+        concept_id (string): concept id
 
       Returns:
         Dict containing version history of entity
-    '''
+    """
     result = []
 
     historical_versions = Concept.objects.get(
@@ -230,18 +236,18 @@ def get_concept_version_history(request, concept_id):
 
     return result
 
-''' Formatting helpers '''
+""" Formatting helpers """
 
 def get_layout_from_entity(entity):
-    '''
+    """
       Retrieve the layout of an entity
 
       Args:
-        entity {Entity}: Entity object
+        entity (GenericEntity): Entity object
 
       Returns:
         Layout of entity if entity exists, otherwise 404 response
-    '''
+    """
     layout = entity.template
     if not layout:
         return Response(
@@ -284,18 +290,18 @@ def get_layout_from_entity(entity):
     )
 
 def build_query_from_template(request, user_authed, template=None):
-    '''
+    """
       Builds query (terms and where clauses) based on a template
 
       Args:
-        request {HTTPContext}: Request context
-        user_authed {boolean}: Whether the user making the request is 
+        request (HTTPContext): Request context
+        user_authed (boolean): Whether the user making the request is 
           authenticated
-        template {dict}: Template object
+        template (dict): Template object
 
       Returns:
         Terms and where clause built from the template
-    '''
+    """
     is_dynamic = True
 
     terms = {}
@@ -343,21 +349,21 @@ def build_query_from_template(request, user_authed, template=None):
 def get_entity_detail_from_layout(
     entity, fields, user_authed, fields_to_ignore=[], target_field=None
 ):
-    '''
+    """
       Retrieves entity detail in the format required for detail API endpoint,
         specifically from a template 
 
       Args:
-        entity {Entity}: Entity object to get the detail for
-        fields {dict}: dict containing layout of the entity
-        user_authed {boolean}: Whether the user is authenticated
-        fields_to_ignore {list of strings}: List of fields to remove from output
-        target_field {string}: Field to be targeted, i.e. only build the detail
+        entity (GenericEntity): Entity object to get the detail for
+        fields (dict): dict containing layout of the entity
+        user_authed (boolean): Whether the user is authenticated
+        fields_to_ignore (list of strings): List of fields to remove from output
+        target_field (string): Field to be targeted, i.e. only build the detail
           for this particular field
 
       Returns:
         Dict containing details of the entity specified
-    '''
+    """
     result = {}
     for field, field_definition in fields.items():
         if target_field is not None and target_field.lower() != field.lower():
@@ -395,7 +401,11 @@ def get_entity_detail_from_layout(
             value = template_utils.get_entity_field(entity, field)
             if value:
                 result[field] = build_final_codelist_from_concepts(
-                    entity, concept_information=value, inline=False
+                    entity, 
+                    concept_information=value, 
+                    inline=False, 
+                    include_concept_detail=False,
+                    include_headers=True
                 )
         else:
             value = template_utils.get_template_data_values(
@@ -409,20 +419,20 @@ def get_entity_detail_from_layout(
     return result
 
 def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=None):
-    '''
+    """
       Retrieves entity detail in the format required for detail API endpoint,
         specifically from metadata fields, e.g. constants
 
       Args:
-        entity {Entity}: Entity object to get the detail for
-        data {dict}: dict containing previously built detail
-        fields_to_ignore {list of strings}: List of fields to remove from output
-        target_field {string}: Field to be targeted, i.e. only build the detail
+        entity (GenericEntity): Entity object to get the detail for
+        data (dict): dict containing previously built detail
+        fields_to_ignore (list of strings): List of fields to remove from output
+        target_field (string): Field to be targeted, i.e. only build the detail
           for this particular field
 
       Returns:
         Dict containing details of the entity specified
-    '''
+    """
     result = {}
     for field in entity._meta.fields:
         field_name = field.name
@@ -468,20 +478,20 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
 def get_ordered_entity_detail(
     fields, layout, layout_version, entity_versions, data
 ):
-    '''
+    """
       Orders entity detail and appends template and version history to the detail
         dict
 
       Args:
-        fields {dict}: Dict of fields from a template object
-        layout {dict}: Layout object
-        layout_version {int}: Layout version
-        entity_versions {dict}: Dict containing entity version information
-        data {dict}: Entity detail built so far
+        fields (dict): Dict of fields from a template object
+        layout (dict): Layout object
+        layout_version (integer): Layout version
+        entity_versions (dict): Dict containing entity version information
+        data (dict): Entity detail built so far
 
       Returns:
         Ordered entity detail with appended template and version history fields
-    '''
+    """
     ordered_keys = list(fields.keys())
     ordered_keys.extend(key for key in data.keys() if key not in ordered_keys)
     ordered_result = {}
@@ -511,22 +521,22 @@ def get_entity_detail(
     target_field=None,
     return_data=False
 ):
-    '''
+    """
       Gets entity detail
 
       Args:
-        request {HTTPContext}: Request context
-        entity_id {int}: Entity id
-        entity {Entity}: Entity object
-        user_authed {boolean}: Whether the user is authenticated or not
-        fields_to_ignore {list of strings}: Fields that should be ignored from result
-        target_field {string}: Field to target and break early if required
-        return_data {boolean}: Optionally return data or response
+        request (HTTPContext): Request context
+        entity_id (integer): Entity id
+        entity (GenericEntity): Entity object
+        user_authed (boolean): Whether the user is authenticated or not
+        fields_to_ignore (list of strings): Fields that should be ignored from result
+        target_field (string): Field to target and break early if required
+        return_data (boolean): Optionally return data or response
 
       Returns:
         Returns response containing entity detail if return_data is False,
           otherwise returns dict containing built entity detail
-    '''
+    """
     layout_response = get_layout_from_entity(entity)
     if isinstance(layout_response, Response):
         return layout_response
@@ -562,19 +572,24 @@ def get_entity_detail(
         status=status.HTTP_200_OK
     )
 
-def build_final_codelist_from_concepts(entity, concept_information, inline=True):
-    '''
+def build_final_codelist_from_concepts(
+        entity, 
+        concept_information, 
+        inline=True,
+        include_concept_detail=True, 
+        include_headers=False):
+    """
       Builds the final codelist from all entity concepts
 
       Args:
-        entity {Entity}: Entity object
+        entity (GenericEntity): Entity object
         concept_information {list of ints}: List of concept ids
-        inline {boolean}: Optionally format the response to be a list
+        inline (boolean): Optionally format the response to be a list
 
       Returns:
         Dict object containing final codelist if inline is False, otherwise, returns
           list containing final codelist
-    '''
+    """
     result = []
     for concept in concept_information:
         concept_id = concept['concept_id']
@@ -597,12 +612,28 @@ def build_final_codelist_from_concepts(entity, concept_information, inline=True)
             'phenotype_name': entity.name
         }
 
+        if include_headers:
+            concept_data |= { 'code_attribute_header': concept_entity.code_attribute_header}
+
         # Get codes
         concept_codes = concept_utils.get_concept_codelist(
             concept_id,
             concept_version,
-            incl_attributes=False
+            incl_attributes=True
         )
+        for i, code in enumerate(concept_codes):
+            if not include_concept_detail:
+                concept_codes[i] = {
+                    'code': code.get('code'),
+                    'description': code.get('description'),
+                    'attributes': code.get('attributes')
+                }
+
+            if concept_entity.code_attribute_header is not None and code.get('attributes') is not None:
+                concept_codes[i]['attributes'] = dict(zip(
+                    concept_entity.code_attribute_header, code.get('attributes')
+                ))
+
         if inline:
             concept_codes = [data | concept_data for data in concept_codes]
             result += concept_codes
@@ -612,16 +643,16 @@ def build_final_codelist_from_concepts(entity, concept_information, inline=True)
     return result
 
 def get_codelist_from_entity(entity):
-    '''
+    """
       Retrieves final codelist from an entity
 
       Args:
-        entity {Entity}: Entity object
+        entity (GenericEntity): Entity object
 
       Returns:
         If the entity contains a codelist, returns the final codelist, otherwise
           returns 400/404 response depending on status within the template/entity
-    '''
+    """
     layout_response = get_layout_from_entity(entity)
     if isinstance(layout_response, Response):
         return layout_response
@@ -670,15 +701,15 @@ def get_codelist_from_entity(entity):
     )
 
 def populate_entity_version_id(form):
-    '''
+    """
       Populates entity version id in entity form dict
 
       Args:
-        form {dict}: Entity form dict
+        form (dict): Entity form dict
 
       Returns:
         Form with entity version based on entity_id
-    '''
+    """
     form_entity = form.get('entity')
     if form_entity is not None:
         form['entity']['version_id'] = None
@@ -692,16 +723,16 @@ def populate_entity_version_id(form):
     return form
 
 def validate_api_create_update_form(request, method):
-    '''
+    """
       Validates entity form dict
 
       Args:
-        request {HTTPContext}: Request context
-        method {integer}: Represents create/update, see constants.FORM_METHODS enum
+        request (HTTPContext): Request context
+        method (Integer): Represents create/update, see constants.FORM_METHODS enum
 
       Returns:
         Validated form if successful, otherwise returns 400 response
-    '''
+    """
     form_errors = []
     form = gen_utils.get_request_body(request)
     form = populate_entity_version_id(form)
@@ -722,17 +753,17 @@ def validate_api_create_update_form(request, method):
     return form
 
 def create_update_from_api_form(request, form):
-    '''
+    """
       Create or updates an entity from an entity form dict
 
       Args:
-        request {HTTPContext}: Request context
-        form {dict}: Dict containing entity information
+        request (HTTPContext): Request context
+        form (dict): Dict containing entity information
 
       Returns:
         Created/Updated entity if validation succeeds, otherwise returns
           400 response
-    '''
+    """
     form_errors = []
     entity = create_utils.create_or_update_entity_from_form(
         request, form, form_errors)
@@ -749,16 +780,16 @@ def create_update_from_api_form(request, form):
     return entity
 
 def get_concept_versions_from_entity(entity):
-    '''
+    """
       Retrieves concept versions for an entity
 
       Args:
-        entity {Entity}: Entity object
+        entity (GenericEntity): Entity object
 
       Returns:
         Dict containing all concept_ids and concept_version_ids associated with 
           the entity passed
-    '''
+    """
     result = {}
 
     concept_information = template_utils.try_get_content(
@@ -782,15 +813,15 @@ def get_concept_versions_from_entity(entity):
     return result
 
 def get_template_versions(template_id):
-    '''
+    """
       Retrieves version history of a template from template_id
 
       Args:
-        template_id {integer}: Template id
+        template_id (Integer): Template id
 
       Returns:
         List containing version history of template
-    '''
+    """
     template_versions = Template.objects.get(
         id=template_id
     ).history.all().order_by('-template_version')
@@ -800,17 +831,17 @@ def get_template_versions(template_id):
     return list(set([version['template_version'] for version in template_versions]))
 
 def get_formatted_concept_codes(concept, concept_codelist, headers=None):
-    '''
+    """
       Formats concept codelist and attribute data in the format required for API
 
       Args:
-        concept {Concept}: Concept object
-        concept_codelist {dict}: Dict containing codelist data
-        headers {list of strings}: List containing attribute headers
+        concept (Concept): Concept object
+        concept_codelist (dict): Dict containing codelist data
+        headers (list of strings): List containing attribute headers
 
       Returns:
         Dict containing formatted concept codelist information 
-    '''
+    """
     concept_codes = []
     for code in concept_codelist:
         attributes = code.get('attributes')
@@ -829,15 +860,15 @@ def get_formatted_concept_codes(concept, concept_codelist, headers=None):
     return concept_codes
 
 def annotate_linked_entities(entities):
-    '''
+    """
         Annotates linked entities with phenotype and template details
 
         Args:
-            entities {QuerySet}: Entities queryset
+            entities (QuerySet): Entities queryset
         
         Returns:
             Queryset containing annotated entities
-    '''
+    """
     return entities.annotate(
         phenotype_id=F('id'),
         phenotype_version_id=F('history_id'),

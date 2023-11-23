@@ -44,6 +44,7 @@ LibraryAddress='';
 
 RootPath='/root/';
 ComposeFile='docker-compose.prod.yaml';
+export app_port=80;
 
 # Collect CLI args
 while [[ "$#" -gt 0 ]]

@@ -51,6 +51,21 @@ const ENTITY_TEXT_PROMPTS = {
     title: 'Are you sure?',
     content: '<p>Are you sure you want to exit this form?</p>'
   },
+  // Prompt when attempting to save changes to a legacy version
+  HISTORICAL_PROMPT: {
+    title: 'Are you sure?',
+    content: `
+      <p>
+        <strong>
+          You are saving a legacy Phenotype.
+          Updating this Phenotype will overwrite the most recent version.
+        </strong>
+      </p>
+      <p>Are you sure you want to do this?</p>
+    `
+  },
+  // Informs user that they're trying to change group access to null when they've derived access
+  DERIVED_GROUP_ACCESS: 'Unable to change group when you\'re deriving access from a group!',
   // Validation error when a field is null
   REQUIRED_FIELD: '${field} field is required, it cannot be empty',
   // Validation error when a field is empty
@@ -508,14 +523,15 @@ const ENTITY_FIELD_COLLECTOR = {
   },
   
   // Retrieves and validates group select components (internally they are radiobuttons)
-  'group-select': (field, packet) => {
+  'group-select': (field, packet, controller) => {
     const element = packet.element;
-    const selected = element.options[element.selectedIndex];
+
+    let selected = element.options[element.selectedIndex];
     if (isMandatoryField(packet)) {
       if (!element.checkValidity() || isNullOrUndefined(selected) || element.selectedIndex < 0) {
         return {
           valid: false,
-          value: selected.value,
+          value: !isNullOrUndefined(selected) ? selected.value : null,
           message: (isNullOrUndefined(selected) || element.selectedIndex < 0) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
         }
       }
@@ -524,22 +540,22 @@ const ENTITY_FIELD_COLLECTOR = {
     if (isNullOrUndefined(selected)) {
       return {
         valid: true,
-        value: null
+        value: controller.getSafeGroupId(),
       }
     }
 
-    const parsedValue = parseAsFieldType(packet, selected.value);
+    let parsedValue = parseAsFieldType(packet, selected.value);
     if (!parsedValue || !parsedValue?.success) {
       return {
         valid: false,
-        value: selected.value,
+        value: controller.getSafeGroupId(),
         message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
 
     return {
       valid: true,
-      value: parsedValue?.value < 0 ? null : parsedValue?.value
+      value: controller.getSafeGroupId(parsedValue?.value),
     }
   },
 
@@ -1017,6 +1033,36 @@ class EntityCreator {
     }
   }
 
+  /**
+   * getSafeGroupId
+   * @desc attempts to safely get the default group id if the 
+   *       user attempts to change the group when they have derived
+   *       access from another group
+   * @param {integer|null} groupId optional parameter to test
+   * @returns {integer|null} the safe group id
+   */
+  getSafeGroupId(groupId) {
+    groupId = !isNullOrUndefined(groupId) && groupId >= 0 ? groupId : null;
+
+    if (this.data?.derived_access !== 1) {
+      return groupId;
+    }
+
+    if (isNullOrUndefined(groupId) || groupId < 0) {
+      if (window.ToastFactory) {
+        window.ToastFactory.push({
+          type: 'error',
+          message: ENTITY_TEXT_PROMPTS.DERIVED_GROUP_ACCESS,
+          duration: ENTITY_TOAST_MIN_DURATION,
+        });
+      }
+
+      return this.form?.group?.value;
+    }
+
+    return groupId;
+  }
+
   /*************************************
    *                                   *
    *               Setter              *
@@ -1296,7 +1342,7 @@ class EntityCreator {
       }
 
       // Collect the field value & validate it
-      const result = ENTITY_FIELD_COLLECTOR[packet?.dataclass](field, packet);
+      const result = ENTITY_FIELD_COLLECTOR[packet?.dataclass](field, packet, this);
       if (result && result?.valid) {
         data[field] = result.value;
         continue;
@@ -1336,7 +1382,7 @@ class EntityCreator {
     
     const form = { };
     for (let field in fields) {
-      const element = document.querySelector(`[data-field="${field}"`);
+      const element = document.querySelector(`[data-field="${field}"]`);
       if (!element) {
         continue;
       }
@@ -1379,6 +1425,18 @@ class EntityCreator {
    * @returns {*} any field's initial value
    */
   #getFieldInitialValue(field) {
+    // const fields = getTemplateFields(this.data.template);
+    // const packet = fields[field];
+    // if (packet?.is_base_field) {
+    //   let metadata = this.data?.metadata;
+    //   if (!metadata) {
+    //     return null;
+    //   }
+      
+    //   return metadata[field]?.validation;
+    // }
+
+    // // return packet?.validation;
     const entity = this.data?.entity;
     if (!entity) {
       return;
@@ -1436,7 +1494,17 @@ class EntityCreator {
 
     const submitBtn = document.querySelector(`#${ENTITY_FORM_BUTTONS['submit']}`);
     if (submitBtn) {
-      submitBtn.addEventListener('click', this.submitForm.bind(this));
+      if (this.data?.is_historical === 1) {
+        submitBtn.addEventListener('click', (e) => {
+          window.ModalFactory.create(ENTITY_TEXT_PROMPTS.HISTORICAL_PROMPT)
+            .then(() => {
+              this.submitForm();
+            })
+            .catch(() => { /* SINK */ });
+        })
+      } else {
+        submitBtn.addEventListener('click', this.submitForm.bind(this));
+      }
     }
 
     const cancelBtn = document.querySelector(`#${ENTITY_FORM_BUTTONS['cancel']}`);

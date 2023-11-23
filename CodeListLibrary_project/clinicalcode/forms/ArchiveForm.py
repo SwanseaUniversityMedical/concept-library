@@ -6,10 +6,10 @@ from ..models.GenericEntity import GenericEntity
 from ..entity_utils import gen_utils, permission_utils, model_utils
 
 class ArchiveForm(forms.Form):
-    '''
+    """
         Generates the archive form widget to allow users
         to archive their content
-    '''
+    """
 
     entity_id = forms.CharField(
         widget=forms.TextInput(

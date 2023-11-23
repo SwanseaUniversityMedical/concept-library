@@ -52,7 +52,7 @@ const applyCodelistsFromConcepts = (conceptData, options) => {
       { select: 1, type: 'string' },
     ];
 
-    const attributeHeaders = c?.details?.code_attribute_headers;
+    const attributeHeaders = c?.details?.code_attribute_header;
     if (attributeHeaders && showAttributes) {
       for (let j = 0; j < attributeHeaders.length; ++j) {
         headings.push(attributeHeaders?.[j]);
@@ -69,8 +69,8 @@ const applyCodelistsFromConcepts = (conceptData, options) => {
         if (attributeHeaders && showAttributes) {
           const attributes = Array(attributeHeaders.length).fill('[No data]');
           if (item?.attributes) {
-            for (let j = 0; j < item.attributes.length; ++j) {
-              attributes[j] = item.attributes[j] || attributes[j];
+            for (let j = 0; j < attributeHeaders.length; ++j) {
+              attributes[j] = item.attributes?.[j] || attributes[j];
             }
           }
           

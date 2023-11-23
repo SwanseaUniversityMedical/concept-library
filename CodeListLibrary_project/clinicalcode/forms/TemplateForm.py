@@ -6,23 +6,20 @@ from ..models.Template import Template
 from ..entity_utils import template_utils
 
 class PrettyPrintOrderedDefinition(json.JSONEncoder):
-    '''
-        PrettyPrintOrderedDefinition
-            @desc Indents and prettyprints the definition field so that it's readable
-                  Preserves order that was given by template_utils.get_ordered_definition
-    '''
+    """
+        Indents and prettyprints the definition field so that it's readable
+        Preserves order that was given by template_utils.get_ordered_definition
+    """
     def __init__(self, *args, indent, sort_keys, **kwargs):
         super().__init__(*args, indent=2, sort_keys=False, **kwargs)
 
 class TemplateAdminForm(forms.ModelForm):
-    '''
-        TemplateAdminForm
-            @desc Template form to override behaviour to meet requirements of:
+    """
+        Template form to override behaviour to meet requirements of:
+            1. Render the JSON definition of a template as described by its 'layout_field' and 'order' fields
             
-                1. Render the JSON definition of a template as described by its 'layout_field' and 'order' fields
-                
-                2. On submission, update the [name] and [description] fields to reflect the template's JSON definition
-    '''
+            2. On submission, update the [name] and [description] fields to reflect the template's JSON definition
+    """
     name = forms.CharField(widget=forms.TextInput(attrs={'readonly': 'readonly'}), required=False)
     description = forms.CharField(widget=forms.Textarea(attrs={'readonly': 'readonly'}), required=False)
     template_version = forms.IntegerField(widget=forms.NumberInput(attrs={'readonly':'readonly'}))

@@ -6,6 +6,7 @@
 /// Markdown editor
 ///   @desc Markdown editor panel for create/update pages
 .markdown-editor {
+  max-width: 100%;
   height: 300px;
   overflow-y: scroll;
   border: 1px solid col(accent-dark);
@@ -14,8 +15,15 @@
 }
 
 /// Markdown commandbar
-///   @desc Markdown command bar - used for MDE within create/update pages
+///   @desc markdown command bar, used for wrapper surrounding MDE within create/update pages
+.markdown-command-bar {
+  max-width: 100%;
+}
+
+/// Markdown TMCommandBar
+///   @desc Markdown command bar element, used for MDE within create/update pages
 .TMCommandBar {
+  max-width: 100%;
   border: 1px solid col(accent-dark) !important;
   border-bottom: 0px !important;
   border-top-left-radius: 0.25rem;

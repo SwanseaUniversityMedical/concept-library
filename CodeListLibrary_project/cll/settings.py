@@ -23,11 +23,11 @@ import numbers
 
 
 def strtobool(val):
-    '''
+    """
         Converts str() to bool()
         [!] Required as distutil.util.strtobool no longer
             supported in Python v3.10+ and removed in v3.12+
-    '''
+    """
     if isinstance(val, bool):
         return val
 
@@ -48,9 +48,9 @@ def strtobool(val):
 
 
 def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
-    '''
+    """
         Returns the server IP
-    '''
+    """
     S = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
@@ -64,9 +64,9 @@ def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
 
 
 def get_env_value(env_variable, cast=None):
-    '''
+    """
         Attempts to get env variable from OS
-    '''
+    """
     try:
         if cast == None:
             return os.environ[env_variable]
@@ -106,7 +106,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # check OS
 IS_LINUX = False
-if os.name.lower() == "nt":
+if os.name.lower() == 'nt':
     path_prj = BASE_DIR  # windows os
     IS_LINUX = False
 else:
@@ -130,7 +130,7 @@ CLL_READ_ONLY = get_env_value('CLL_READ_ONLY', cast='bool')
 IS_INSIDE_GATEWAY = get_env_value('IS_INSIDE_GATEWAY', cast='bool')
 IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool')
 if IS_DEVELOPMENT_PC:
-    print("SRV_IP=" + SRV_IP)
+    print('SRV_IP=' + SRV_IP)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_env_value('SECRET_KEY')
@@ -139,7 +139,7 @@ SECRET_KEY = get_env_value('SECRET_KEY')
 DEBUG = get_env_value('DEBUG', cast='bool')
 
 # Allowed application hots
-ALLOWED_HOSTS = [i.strip() for i in get_env_value('ALLOWED_HOSTS').split(",")]
+ALLOWED_HOSTS = [i.strip() for i in get_env_value('ALLOWED_HOSTS').split(',')]
 
 ROOT_URLCONF = 'cll.urls'
 DATA_UPLOAD_MAX_MEMORY_SIZE = None
@@ -168,16 +168,16 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-os.environ["DJANGO_SETTINGS_MODULE"] = "cll.settings"
+os.environ['DJANGO_SETTINGS_MODULE'] = 'cll.settings'
 
 # ==============================================================================#
 
 ''' Site related variables '''
 
 ## Brand related settings
-IS_HDRUK_EXT = "0"
-CURRENT_BRAND = ""
-CURRENT_BRAND_WITH_SLASH = ""
+IS_HDRUK_EXT = '0'
+CURRENT_BRAND = ''
+CURRENT_BRAND_WITH_SLASH = ''
 BRAND_OBJECT = {}
 
 ## Graph settings
@@ -190,9 +190,9 @@ GRAPH_MODELS = {
 MESSAGE_TAGS = {messages.ERROR: 'danger'}
 
 ### Icon settings for demo sites, incl. cookie alert(s)
-DEV_PRODUCTION = ""
+DEV_PRODUCTION = ''
 if IS_DEMO:  # Demo server
-    DEV_PRODUCTION = "<i class='glyphicon glyphicon-cog'  aria-hidden='true'>&#9881; </i> DEMO SITE <i class='glyphicon glyphicon-cog'  aria-hidden='true'>&#9881; </i>"
+    DEV_PRODUCTION = '<i class="glyphicon glyphicon-cog" aria-hidden="true">&#9881; </i> DEMO SITE <i class="glyphicon glyphicon-cog" aria-hidden="true">&#9881;</i>'
 
 SHOW_COOKIE_ALERT = True
 
@@ -208,11 +208,12 @@ AUTH_LDAP_BIND_DN = get_env_value('AUTH_LDAP_BIND_DN')
 
 AUTH_LDAP_BIND_PASSWORD = get_env_value('AUTH_LDAP_BIND_PASSWORD')
 
-AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
-    LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)"), )
+
+AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE, '(sAMAccountName=%(user)s)'), )
+
 
 # Set up the basic group parameters.
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch(get_env_value('AUTH_LDAP_GROUP_SEARCH'), ldap.SCOPE_SUBTREE, "(objectClass=group)")
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(get_env_value('AUTH_LDAP_GROUP_SEARCH'), ldap.SCOPE_SUBTREE, '(objectClass=group)')
 
 AUTH_LDAP_GROUP_TYPE = NestedActiveDirectoryGroupType()
 
@@ -221,9 +222,9 @@ AUTH_LDAP_REQUIRE_GROUP = get_env_value('AUTH_LDAP_REQUIRE_GROUP')
 
 # Populate the django user from the LDAP directory.
 AUTH_LDAP_USER_ATTR_MAP = {
-    "first_name": "givenName",
-    "last_name": "sn",
-    "email": "mail"
+    'first_name': 'givenName',
+    'last_name': 'sn',
+    'email': 'mail'
 }
 
 # This is the default, but I like to be explicit.
@@ -367,8 +368,7 @@ REST_FRAMEWORK = {
 
 if not BROWSABLEAPI:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework_xml.renderers.XMLRenderer',
+        'clinicalcode.entity_utils.api_utils.PrettyJsonRenderer',
     )
 
 # ==============================================================================#
@@ -568,7 +568,7 @@ COMPRESS_URL = STATIC_URL
 COMPRESS_ROOT = STATIC_ROOT
 
 if not DEBUG:
-    COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
+    # COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
     COMPRESS_PRECOMPILERS = (
         ('module', 'esbuild {infile} --bundle --outfile={outfile}'),
     )
@@ -610,35 +610,35 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 ## Swagger settings
 ##     SWAGGER_SETTINGS = { 'JSON_EDITOR': True, }
-SWAGGER_TITLE = "Concept Library API"
+SWAGGER_TITLE = 'Concept Library API'
 
 ## Markdownify settings
 MARKDOWNIFY = {
-    "default": {
-        "WHITELIST_TAGS": [
+    'default': {
+        'WHITELIST_TAGS': [
             'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol',
             'p', 'strong', 'ul', 'img',
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7'
             # , 'span', 'div',  'code'
         ],
-        "WHITELIST_ATTRS": [
+        'WHITELIST_ATTRS': [
             'href',
             'src',
             'alt',
             'style',
             'class',
         ],
-        "WHITELIST_STYLES": [
+        'WHITELIST_STYLES': [
             'color',
             'font-weight',
             'background-color',
         ],
 
-        "MARKDOWN_EXTENSIONS": [
+        'MARKDOWN_EXTENSIONS': [
             'markdown.extensions.fenced_code',
             'markdown.extensions.extra',
         ],
-        "WHITELIST_PROTOCOLS": [
+        'WHITELIST_PROTOCOLS': [
             'http',
             'https',
         ]

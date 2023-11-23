@@ -17,9 +17,9 @@ from .constants import (USERDATA_MODELS, STRIPPED_FIELDS, APPROVAL_STATUS,
                         GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS)
 
 def try_get_instance(model, **kwargs):
-    '''
+    """
       Safely attempts to get an instance
-    '''
+    """
     try:
         instance = model.objects.get(**kwargs)
     except:
@@ -28,10 +28,10 @@ def try_get_instance(model, **kwargs):
         return instance
 
 def try_get_entity_history(entity, history_id):
-    '''
+    """
       Safely attempts to get an entity's historical record given an entity
       and a history id
-    '''
+    """
     if not entity:
         return None
 
@@ -43,18 +43,18 @@ def try_get_entity_history(entity, history_id):
         return instance
 
 def try_get_brand(request, default=None):
-    '''
+    """
       Safely get the Brand instance from the RequestContext
-    '''
+    """
     current_brand = request.CURRENT_BRAND
     if gen_utils.is_empty_string(current_brand):
         return default
     return try_get_instance(Brand, name=current_brand)
 
 def get_entity_id(primary_key):
-    '''
+    """
       Splits an entity's varchar primary key into its numerical component
-    '''
+    """
     entity_id = re.split('(\d.*)', primary_key)
     if len(entity_id) >= 2 and entity_id[0].isalpha() and entity_id[1].isdigit():
         entity_id[0] = entity_id[0].upper()
@@ -72,18 +72,18 @@ def get_brand_collection_ids(brand_name):
     return [-1]
 
 def get_entity_approval_status(entity_id, historical_id):
-    '''
+    """
       Gets the entity's approval status, given an entity id and historical id
-    '''
+    """
     entity = GenericEntity.history.filter(id=entity_id, history_id=historical_id)
     if entity.exists():
         return entity.first().publish_status
 
 def is_legacy_entity(entity_id, entity_history_id):
-    '''
+    """
       Checks whether this entity_id and entity_history_id match the latest record
       to determine whether a historical entity is legacy or not
-    '''
+    """
     latest_entity = GenericEntity.history.filter(id=entity_id)
     if not latest_entity.exists():
         return False
@@ -92,13 +92,13 @@ def is_legacy_entity(entity_id, entity_history_id):
     return latest_entity.history_id != entity_history_id
 
 def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fields=None, dump=True):
-    '''
+    """
       JSONifies/Dictifies instance of a model
         - removes userdata related data for safe usage within template
         - removes specific fields that are unrelated to templates e.g. SearchVectorField
         - able to strip fields from a model, given a list of field names to strip
         - able to dump to json if requested
-    '''
+    """
     instance = model_to_dict(obj)
 
     if remove_userdata or strip_fields:
@@ -129,9 +129,9 @@ def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fiel
     return instance
 
 def get_tag_attribute(tag_id, tag_type):
-    '''
+    """
       Returns a dict that describes a tag given its id and type
-    '''
+    """
     tag = Tag.objects.filter(id=tag_id, tag_type=tag_type)
     if tag.exists():
         tag = tag.first()
@@ -144,11 +144,11 @@ def get_tag_attribute(tag_id, tag_type):
     return None
 
 def get_coding_system_details(coding_system):
-    '''
+    """
       Returns a dict that describes a coding system given that
       the coding_system parameter passed is either an obj or an int
       that references a coding_system by its codingsystem_id
-    '''
+    """
     if isinstance(coding_system, int):
         coding_system = CodingSystem.objects.filter(codingsystem_id=coding_system)
         if not coding_system.exists():
@@ -165,10 +165,10 @@ def get_coding_system_details(coding_system):
     }
 
 def get_userdata_details(model, **kwargs):
-    '''
+    """
       Attempts to return a dict that describes a userdata field e.g. a user, or a group
       in a human readable format
-    '''
+    """
     hide_user_id = False
     if kwargs.get('hide_user_details'):
         hide_user_id = kwargs.pop('hide_user_details')
@@ -190,20 +190,20 @@ def get_userdata_details(model, **kwargs):
     return details
 
 def append_coding_system_data(systems):
-    '''
+    """
       Appends the number of available codes within a Coding System's
       codelist as well as whether it is searchable
         - This is used primarily for the create/update page to determine
           whether a search rule is applicable
 
       Args:
-        systems {list[dict]} A list of dicts that contains the coding systems of interest
-                              e.g. {name: (str), value: (int)} where value is the pk
+        systems (list of dicts) A list of dicts that contains the coding systems of interest
+            e.g. {name: (str), value: (int)} where value is the pk
 
       Returns:
         A list of dicts that has the number of codes/searchable status appended,
         as defined by their code reference tables
-    '''
+    """
     for i, system in enumerate(systems):
         try:
             coding_system = CodingSystem.objects.get(codingsystem_id=system.get('value'))
@@ -218,9 +218,9 @@ def append_coding_system_data(systems):
     return systems
 
 def modify_entity_change_reason(entity, reason):
-    '''
+    """
       Modify an entity's HistoricalRecord to reflect the change reason on update
-    '''
+    """
     if entity is None:
         return
 

@@ -16,9 +16,9 @@ from ..models.CodingSystem import CodingSystem
 from . import model_utils, template_utils, constants, gen_utils, permission_utils, concept_utils
 
 def get_template_filters(request, template, default=None):
-    '''
+    """
         Safely gets the filterable fields of a template
-    '''
+    """
     current_brand = request.CURRENT_BRAND or 'ALL'
 
     layout = template_utils.try_get_layout(template)
@@ -63,9 +63,9 @@ def get_template_filters(request, template, default=None):
     return filters
 
 def get_metadata_filters(request):
-    '''
+    """
         Gets all filterable fields of the top-level metadata
-    '''
+    """
     current_brand = request.CURRENT_BRAND or 'ALL'
 
     filters = [ ]
@@ -108,15 +108,15 @@ def get_metadata_filters(request):
     return filters
 
 def try_derive_entity_type(entity_type):
-    '''
+    """
         Attempts to derive the entity type passed as a kwarg to the search view
 
         Args:
-            entity_type {string}: the entity_type parameter
+            entity_type (string): the entity_type parameter
         
         Returns:
-            {list} containing the EntityClass ID if successful, otherwise returns None
-    '''
+            (list) containing the EntityClass ID if successful, otherwise returns None
+    """
     if gen_utils.is_empty_string(entity_type):
         return None
     
@@ -134,9 +134,9 @@ def try_derive_entity_type(entity_type):
 
 def perform_vector_search(queryset, search_query, min_rank=0.05,
                           order_by_relevance=True, reverse_order=False):
-    '''
+    """
         Performs a search on generic entities' indexed search_vector field
-    '''
+    """
     query = SearchQuery(search_query)
     if order_by_relevance:
         vector = SearchVector('search_vector')
@@ -154,9 +154,9 @@ def perform_vector_search(queryset, search_query, min_rank=0.05,
 
 def perform_trigram_search(queryset, search_query, min_similarity=0.2,
                            order_by_relevance=True, reverse_order=False):
-    '''
+    """
         Performs trigram fuzzy search on generic entities
-    '''
+    """
     if order_by_relevance:
         clause = '-similarity' if not reverse_order else 'similarity'
         return queryset.filter(search_vector__icontains=search_query) \
@@ -174,9 +174,9 @@ def perform_trigram_search(queryset, search_query, min_similarity=0.2,
 def search_entities(queryset, search_query,
                     min_threshold=0.05, fuzzy=True,
                     order_by_relevance=True, reverse_order=False):
-    '''
+    """
         Utility method to perform either trigram or vector search
-    '''
+    """
     if fuzzy:
         return perform_trigram_search(queryset, search_query, min_threshold, order_by_relevance, reverse_order)
 
@@ -185,9 +185,9 @@ def search_entities(queryset, search_query,
 def search_entity_fields(queryset, search_query, fields=[],
                          min_threshold=0.05, fuzzy=True,
                          order_by_relevance=True, reverse_order=False):
-    '''
+    """
         Utility method to search one or more fields of a generic entity based on the parameters of this method
-    '''
+    """
 
     if not isinstance(fields, list) or len(fields) < 1:
         return queryset.none()
@@ -230,9 +230,9 @@ def search_entity_fields(queryset, search_query, fields=[],
     return queryset.annotate(search=vector).filter(search=query)
 
 def validate_query_param(param, template, data, default=None, request=None):
-    '''
+    """
         Validates the query param based on its field type as defined by the template or metadata by examining its source
-    '''
+    """
     validation = template_utils.try_get_content(template, 'validation')
     if validation:
         if 'source' in validation:
@@ -267,9 +267,9 @@ def validate_query_param(param, template, data, default=None, request=None):
 def apply_param_to_query(query, where, params, template, param, data,
                          is_dynamic=False, force_term=False,
                          is_api=False, request=None):
-    '''
+    """
         Tries to apply a URL param to a query if its able to resolve and validate the param data
-    '''
+    """
     template_data = template_utils.try_get_content(template, param)
     search = template_utils.try_get_content(template_data, 'search')
     if search is None or (not 'filterable' in search and not is_api):
@@ -345,10 +345,10 @@ def apply_param_to_query(query, where, params, template, param, data,
     return False
 
 def try_get_template_children(entity, default=None):
-    '''
+    """
         Used to retrieve entities assoc. with this parent entity per
         the template specification
-    '''
+    """
     children = [ ]
     if not template_utils.is_data_safe(entity):
         return default
@@ -384,7 +384,7 @@ def try_get_template_children(entity, default=None):
     return children
         
 def get_template_entities(request, template_id, method='GET', force_term=True):
-    '''
+    """
         Method to get a Template's entities that:
             1. Are accessible to the RequestContext's user
             2. Match the query parameters
@@ -393,7 +393,7 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
             A page of the results as defined by the query param
                 - Contains the entities and their related children
                 - Contains the pagination details
-    '''
+    """
     template = model_utils.try_get_instance(Template, pk=template_id)
     if template is None:
         return None
@@ -489,8 +489,9 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
         }
 
         children = try_get_template_children(obj, default=[])
-        entity.update({ 'children': children })
-        results.append(entity)
+        if len(children) > 0:
+            entity.update({ 'children': children })
+            results.append(entity)
 
     return {
         'results': results,
@@ -498,29 +499,29 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
             'page': page_obj.number,
             'total': page_obj.paginator.num_pages,
             'max_results': page_obj.paginator.count,
-            'start_index': page_obj.start_index(),
-            'end_index': page_obj.end_index(),
+            'start_index': page_obj.start_index() if len(results) > 0 else 0,
+            'end_index': page_obj.end_index() - (len(page_obj.object_list) - len(results)),
             'has_previous': page_obj.has_previous(),
             'has_next': page_obj.has_next(),
         },
     }
 
 def reorder_search_results(search_results, order=None, searchterm=''):
-    '''
+    """
         Method to reorder a QuerySet after a group or distinct
         operation has been used during a previous filter
 
         Args:
-            search_results {QuerySet}: The current search result query set
+            search_results (QuerySet): The current search result query set
 
-            order {dict(constants.ORDER_BY)}: The order by clause information
+            order (dict(constants.ORDER_BY)): The order by clause information
 
-            searchterm {string}: Any active searchterms - used to stop reorder
+            searchterm (string): Any active searchterms - used to stop reorder
                                  when rank is being used
         
         Returns:
             A queryset containing all related codes of that particular coding system
-    '''
+    """
     if not isinstance(search_results, QuerySet):
         return QuerySet()
 
@@ -553,13 +554,13 @@ def reorder_search_results(search_results, order=None, searchterm=''):
 
 @gen_utils.measure_perf
 def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
-    '''
+    """
         Method gets searchable, published entities and applies filters retrieved from the request param(s)
 
         Returns:
             1. The entities and their data
             2. The template associated with each of the entities
-    '''
+    """
     # Get entities relating to the user
     entities = permission_utils.get_accessible_entities(
         request,
@@ -666,9 +667,9 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     return entities, layouts
 
 def try_get_paginated_results(request, entities, page=None, page_size=None):
-    '''
+    """
         Gets the paginated results based on request params and the given renderable entities
-    '''
+    """
     if not page:
         page = gen_utils.try_get_param(request, 'page', 1)
         page = max(page, 1)
@@ -689,9 +690,9 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
     return page_obj
 
 def get_source_references(struct, default=None, modifier=None):
-    '''
+    """
         Retrieves the refence values from source fields e.g. tags, collections, entity type
-    '''
+    """
     validation = template_utils.try_get_content(struct, 'validation')
     if not validation:
         return default
@@ -728,9 +729,9 @@ def get_source_references(struct, default=None, modifier=None):
         return default
 
 def get_filter_info(field, structure, default=None):
-    '''
+    """
         Compiles the filter_info for a given field
-    '''
+    """
     validation = template_utils.try_get_content(structure, 'validation')
     if validation is None:
         return default
@@ -746,9 +747,9 @@ def get_filter_info(field, structure, default=None):
     }
 
 def get_metadata_stats_by_field(field, published=False, brand='ALL'):
-    '''
+    """
         Retrieves the global statistics from metadata fields
-    '''
+    """
     instance = model_utils.try_get_instance(Statistics, type='GenericEntity', org=brand)
     if instance is not None:
         stats = instance.stat
@@ -760,9 +761,9 @@ def get_metadata_stats_by_field(field, published=False, brand='ALL'):
         return template_utils.try_get_content(stats, field)
 
 def try_get_template_statistics(field, brand='ALL', published=False, entity_type='GenericEntity', default=None):
-    '''
+    """
         Attempts to retrieve the the field's statistics by brand, its publication status, and entity type
-    '''
+    """
     obj = model_utils.try_get_instance(Statistics, org=brand, type=entity_type)
     if obj is None:
         return default
@@ -774,18 +775,18 @@ def try_get_template_statistics(field, brand='ALL', published=False, entity_type
     return template_utils.try_get_content(stats, field)
 
 def search_codelist_by_pattern(coding_system, pattern, use_desc=False, case_sensitive=True):
-    '''
+    """
         Tries to match a coding system's codes by a valid regex pattern
 
         Args:
-            coding_system {obj}: The coding system of interest
-            pattern {str}: The regex pattern
-            use_desc {boolean}: Whether to search via desc instead of code
-            case_sensitive {boolean}: Whether we use __regex or __iregex
+            coding_system (obj): The coding system of interest
+            pattern (str): The regex pattern
+            use_desc (boolean): Whether to search via desc instead of code
+            case_sensitive (boolean): Whether we use __regex or __iregex
         
         Returns:
             A queryset containing all related codes of that particular coding system
-    '''
+    """
     if not isinstance(coding_system, CodingSystem) or not isinstance(pattern, str):
         return None
     
@@ -826,11 +827,11 @@ def search_codelist_by_pattern(coding_system, pattern, use_desc=False, case_sens
             f'{code_column}__{query_type}': pattern
         })
     
-    '''
+    """
         Required because:
             1. Annotation needed to make naming structure consistent since the code tables aren't consistently named...
             2. Distinct required because there are duplicate entires...
-    '''
+    """
     codes = codes.extra(
         select={
             'code': code_column,
@@ -842,17 +843,17 @@ def search_codelist_by_pattern(coding_system, pattern, use_desc=False, case_sens
     return codes
 
 def search_codelist_by_term(coding_system, search_term, use_desc=True):
-    '''
+    """
         Fuzzy match codes in a coding system by a search term
 
         Args:
-            coding_system {obj}: The coding system of interest
-            search_term {str}: The search term of interest
-            use_desc {boolean}: Whether to search via desc instead of code
+            coding_system (obj): The coding system of interest
+            search_term (str): The search term of interest
+            use_desc (boolean): Whether to search via desc instead of code
         
         Returns:
             A queryset containing all related codes of that particular coding system
-    '''
+    """
     if not isinstance(coding_system, CodingSystem) or not isinstance(search_term, str):
         return None
 
@@ -885,11 +886,11 @@ def search_codelist_by_term(coding_system, search_term, use_desc=True):
             similarity=TrigramSimilarity(f'{desc_column}', search_term)
         )
 
-    '''
+    """
         Required because:
             1. Annotation needed to make naming structure consistent since the code tables aren't consistently named...
             2. Distinct required because there are duplicate entires...
-    '''
+    """
     codes = codes.extra(
         select={
             'code': code_column,
@@ -902,28 +903,28 @@ def search_codelist_by_term(coding_system, search_term, use_desc=True):
 
 def search_codelist(coding_system, search_term, use_desc=False,
                     use_wildcard=False, case_sensitive=True, allow_wildcard=True):
-    '''
+    """
         Attempts to search a codelist by a search term, given its coding system
 
         Args:
-            coding_system {obj}: The assoc. coding system that is to be searched
+            coding_system (obj): The assoc. coding system that is to be searched
 
-            search_term {str}: The search term used to query the table
+            search_term (str): The search term used to query the table
             
-            use_desc {boolean}: Whether to search by description instead of code
+            use_desc (boolean): Whether to search by description instead of code
 
-            use_wildcard {boolean}: Whether to search by wildcard
+            use_wildcard (boolean): Whether to search by wildcard
 
-            case_sensitive {boolean}: Whether we use __regex or __iregex - only applies to pattern search
+            case_sensitive (boolean): Whether we use __regex or __iregex - only applies to pattern search
 
-            allow_wildcard {boolean}: Whether to check for, and apply, regex patterns
+            allow_wildcard (boolean): Whether to check for, and apply, regex patterns
                                     through the 'wildcard:' prefix
         
         Returns:
             The QuerySet of codes (assoc. with the given codingsystem) that match the
             search term
         
-    '''
+    """
     if not isinstance(coding_system, CodingSystem) or not isinstance(search_term, str):
         return None
     

@@ -77,13 +77,13 @@ class TemplateAdmin(admin.ModelAdmin):
     form = TemplateAdminForm
 
     def save_model(self, request, obj, form, change):
-        '''
+        """
             - Responsible for version history
                 -> template_version computed from JSONB data, never updated unless dictdiff and/or purposefully changed
             - Responsible for computing the 'layout_order' field within the template definition
                 -> Iterates through the template prior to JSONB reordering and creates a 'layout_order' key [array, def. order] (Postgres stores arrays in semantic order)
                 -> Adds 'order' field to the template's individual fields
-        '''
+        """
         if obj.definition is not None and 'fields' in obj.definition:
             order = []
             for field in obj.definition['fields']:
@@ -104,12 +104,6 @@ class TemplateAdmin(admin.ModelAdmin):
         
         obj.save()
 
-
-@admin.register(GenericEntity)
-class GenericEntityAdmin(admin.ModelAdmin):
-    readonly_fields = ['template_version']
-    list_display = ['id', 'name', 'template', 'template_version']
-    exclude = []
 
 
 @admin.register(EntityClass)

@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django.core.exceptions import BadRequest, PermissionDenied
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.shortcuts import render
 from rest_framework.reverse import reverse
 
@@ -14,7 +15,7 @@ import re
 import json
 import logging
 
-from clinicalcode.entity_utils import permission_utils, gen_utils
+from clinicalcode.entity_utils import permission_utils, gen_utils, create_utils
 from clinicalcode.models.Tag import Tag
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
@@ -153,8 +154,251 @@ def get_transformed_data(concept, template):
     return metadata
 
 @login_required
+def admin_fix_malformed_codes(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_malformed_codes'),
+                'action_title': 'Strip Concept Codes',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+    
+    with connection.cursor() as cursor:
+        sql = '''
+        update public.clinicalcode_code
+           set code = 
+                 regexp_replace(
+                   code, 
+                   '^[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+|[\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]|[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+$', 
+                   ''
+                 );
+
+        update public.clinicalcode_historicalcode
+           set code = 
+                 regexp_replace(
+                   code, 
+                   '^[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+|[\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]|[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+$', 
+                   ''
+                 );
+
+        update public.clinicalcode_conceptcodeattribute
+           set code = 
+                 regexp_replace(
+                   code, 
+                   '^[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+|[\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]|[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+$', 
+                   ''
+                 );
+
+        update public.clinicalcode_historicalconceptcodeattribute
+           set code = 
+                 regexp_replace(
+                   code, 
+                   '^[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+|[\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]|[\s\u00a0\u180e\u2007\u200b-\u200f\u202f\u2060\ufeff]+$', 
+                   ''
+                 );
+        '''
+        cursor.execute(sql)
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Strip Concept Codes',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
+def admin_force_adp_linkage(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_force_adp_links'),
+                'action_title': 'Force ADP linkage',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+    
+    adp = Group.objects.get(name='ADP')
+
+    phenotypes = GenericEntity.objects.exclude(Q(collections__isnull=True) | Q(collections__len__lte=0))
+    for phenotype in phenotypes:
+        collections = phenotype.collections
+        if not isinstance(collections, list):
+            continue
+
+        related_brands = set([])
+        for collection_id in collections:
+            collection = Tag.objects.filter(id=collection_id)
+            if not collection.exists():
+                continue
+            
+            brand = collection.first().collection_brand
+            if brand is None:
+                continue
+            related_brands.add(brand.id)
+        
+        if 1 not in related_brands:
+            continue
+
+        phenotype.brands = list(related_brands)
+        phenotype.group = adp
+        phenotype.save_without_historical_record()
+
+    with connection.cursor() as cursor:
+        sql = '''
+        update public.clinicalcode_historicalgenericentity entity
+           set
+               group_id = selected.group_id,
+               brands = selected.brands
+          from public.clinicalcode_genericentity selected
+         where entity.id = selected.id
+           and 1 = any(selected.brands);
+        '''
+        cursor.execute(sql)
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Force ADP linkage',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
+def admin_force_brand_links(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_force_brand_links'),
+                'action_title': 'Force brand linkage',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    phenotypes = GenericEntity.objects.filter(Q(brands__isnull=True) | Q(brands__len__lte=0)) \
+        .exclude(Q(collections__isnull=True) | Q(collections__len__lte=0))
+    
+    for phenotype in phenotypes:        
+        collections = phenotype.collections
+        if not isinstance(collections, list):
+            continue
+
+        related_brands = set([])
+        for collection_id in collections:
+            collection = Tag.objects.filter(id=collection_id)
+            if not collection.exists():
+                continue
+            
+            brand = collection.first().collection_brand
+            if brand is None:
+                continue
+            related_brands.add(brand.id)
+
+        phenotype.brands = list(related_brands)
+        phenotype.save_without_historical_record()
+
+    # save historical
+    phenotypes = GenericEntity.history.filter(Q(brands__isnull=True) | Q(brands__len__lte=0)) \
+        .exclude(Q(collections__isnull=True) | Q(collections__len__lte=0))
+    
+    for phenotype in phenotypes:        
+        collections = phenotype.collections
+        if not isinstance(collections, list):
+            continue
+
+        related_brands = set([])
+        for collection_id in collections:
+            collection = Tag.objects.filter(id=collection_id)
+            if not collection.exists():
+                continue
+            
+            brand = collection.first().collection_brand
+            if brand is None:
+                continue
+            related_brands.add(brand.id)
+        
+        related_brands = list(related_brands)
+        with connection.cursor() as cursor:
+            sql = '''
+                UPDATE public.clinicalcode_historicalgenericentity
+                   SET brands = %(brands)s
+                 WHERE id = %(phenotype_id)s
+                   AND history_id = %(history_id)s
+            '''
+            cursor.execute(
+                sql, 
+                { 'brands': related_brands, 'phenotype_id': phenotype.id, 'history_id': phenotype.history_id }
+            )
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Force brand linkage',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_force_concept_linkage_dt(request):
-    '''
+    """
         Bulk updates unlinked Concepts such that they have a phenotype owner by creating
         a pseudo-Phenotype using the metadata found within the legacy Conept
 
@@ -164,7 +408,7 @@ def admin_force_concept_linkage_dt(request):
             3. Update the unlinked Concept such that it's phenotype_owner field relates to
                the newly created pseudo-Phenotype
 
-    '''
+    """
     if settings.CLL_READ_ONLY: 
         raise PermissionDenied
     
@@ -225,7 +469,7 @@ def admin_force_concept_linkage_dt(request):
 
 @login_required
 def admin_fix_read_codes_dt(request):
-    '''
+    """
         Fix data quality issues associated with Read Codes V2 table's reliance
         on the 30char field
 
@@ -233,7 +477,7 @@ def admin_fix_read_codes_dt(request):
             1. Coalescing the pref_term field (30, 60 and 198 char) and updating its 'description' field
             2. Setting the Coding System's desc column to 'description'
 
-    '''
+    """
     if settings.CLL_READ_ONLY: 
         raise PermissionDenied
     
@@ -291,7 +535,7 @@ def admin_fix_read_codes_dt(request):
 
 @login_required
 def admin_mig_concepts_dt(request):
-    '''
+    """
         Approximates ownership of a Concept given it's first appearance
         in a phenotype
 
@@ -299,7 +543,7 @@ def admin_mig_concepts_dt(request):
             for concept in concepts:
                 concept.phenotype_owner = earliest_record_as_child_of_phenotype(concept.id)
 
-    '''
+    """
     if settings.CLL_READ_ONLY: 
         raise PermissionDenied
     

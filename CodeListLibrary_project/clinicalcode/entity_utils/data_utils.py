@@ -27,18 +27,18 @@ def try_find_duplicates(model, pk_name='ID', field_name='NAME', min_similarity=2
         Compares rows in a table, given its pk field name, and the comparator field
 
         Args:
-            model {django.models.Model}: The model that will be examined
+            model (django.models.Model): The model that will be examined
 
-            pk_name {string}: The name of the model's primary key field
+            pk_name (string): The name of the model's primary key field
 
-            field_name {string}: The name of the model's field that we want to compare
+            field_name (string): The name of the model's field that we want to compare
 
-            min_similarity {number}: Limits results where similarity < min_similarity
+            min_similarity (number): Limits results where similarity < min_similarity
 
-            drop_ext {boolean}: Whether to drop the extension after use
+            drop_ext (boolean): Whether to drop the extension after use
         
         Returns:
-            - Returns a {list} containing the rows that may be duplicated
+            - Returns a (list) containing the rows that may be duplicated
     """
 
     result = [ ]

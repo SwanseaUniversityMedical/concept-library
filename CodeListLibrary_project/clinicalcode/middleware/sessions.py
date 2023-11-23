@@ -4,9 +4,9 @@ from django.utils.timezone import now as timezone_now
 from datetime import datetime, timedelta
 
 class SessionExpiryMiddleware:
-    '''
+    """
         Middleware to det. whether a user session needs to expire
-    '''
+    """
     def __init__(self, get_response):
         self.get_response = get_response
         super().__init__()
@@ -28,7 +28,9 @@ class SessionExpiryMiddleware:
             return False
 
         last_login = request.user.last_login
-        session_time = (last_login - current_time + session_limit).total_seconds()
+        session_time = -1
+        if isinstance(last_login, datetime):
+            session_time = (last_login - current_time + session_limit).total_seconds()
         return session_time < 0
 
     def __session_reached_idle_limit(self, request, options):
@@ -46,12 +48,12 @@ class SessionExpiryMiddleware:
         return idle_time < 0
 
     def __try_expire_session(self, request, options):
-        '''
+        """
             [!] Options are defined within settings.py
             Tries to expire a session if either:
                 - The session length has expired after X duration
                 - The user has idled between requests for X duration
-        '''
+        """
         requires_logout = self.__session_is_expired(request, options) | self.__session_reached_idle_limit(request, options)
 
         if requires_logout:

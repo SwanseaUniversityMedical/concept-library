@@ -117,7 +117,7 @@ const renderNameAnchor = (pageType, key, entity) => {
     ? `${text.substring(0, MAX_NAME_LENGTH).trim()}...` 
     : text;
 
-  const brand = getCurrentBrandPrefix();
+  const brand = getBrandedHost();
   const url = interpolateHTML(brand + DETAIL_URL, {
     id: id,
     version_id: history_id
@@ -224,9 +224,7 @@ const renderCollectionComponent = (pageType, key, container, data) => {
   }));
 
   data.sort((a, b) => {
-    let id0 = parseInt(a.id.match(/\d+/)[0]);
-    let id1 = parseInt(b.id.match(/\d+/)[0]);
-    return id0 - id1;
+    return new Date(b.updated) - new Date(a.updated);
   });
 
   const datatable = new window.simpleDatatables.DataTable(table, {

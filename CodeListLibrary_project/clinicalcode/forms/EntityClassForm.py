@@ -4,11 +4,10 @@ from django.contrib.auth.models import User
 from ..models.EntityClass import EntityClass
 
 class EntityAdminForm(forms.ModelForm):
-    '''
-        EntityAdminForm
-            @desc excludes the created_by field so that the request.user who creates/updates this form is set as the
-                  created_by User()
-    '''
+    """
+        excludes the created_by field so that the request.user who creates/updates this form is set as the
+        created_by User()
+    """
 
     class Meta:
         model = EntityClass

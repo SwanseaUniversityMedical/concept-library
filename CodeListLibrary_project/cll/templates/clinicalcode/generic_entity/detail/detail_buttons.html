@@ -21,30 +21,22 @@
               JSON
             </a>
           </li>
-          <li aria-label="Export phenotype as XML" role="button" tabindex="0">
-            <a {% if user_can_export %}
-               href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=xml"
-               target=_blank 
-               {% endif %}>
-              XML
-            </a>
-          </li>
         </ul>
       </label>
       
       {% if user.is_authenticated and not CLL_READ_ONLY %}
         {% if user_can_edit %}
+          {% url 'update_phenotype' entity.id entity.history_id as update_entity_url %}
           <button role="link" 
                   class="primary-btn bold dropdown-btn__label"
-                  onClick="window.location.href='{% url 'update_phenotype' entity.id entity.history_id %}';">
+                  onClick="window.location.href='{{ update_entity_url }}';">
             &nbsp;Edit&nbsp;
           </button>
         {% endif %}
 
         {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
-          <button class="primary-btn bold dropdown-btn__label"
+          <button class="primary-btn bold dropdown-btn__label text-success"
                   title="This version is already published"
-                  style='color: green;'
                   disabled>
             &nbsp;Published&nbsp;
           </button>
