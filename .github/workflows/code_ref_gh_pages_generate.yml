@@ -28,6 +28,7 @@ jobs:
               python -m pip install django
               python -m pip install mock
               pip install sphinxjp.themes.basicstrap
+              cd docker 
               cd requirements
               pip install python_ldap-3.3.1-cp39-cp39-win_amd64.whl
               pip install sphinxjp
