@@ -20,7 +20,7 @@ MOCK_MODULES = ['functional_test_base', 'test_functional_other', 'test_hierarchi
 'test_versioning', 'test_functional_read_only_conf_concept', 'clinicalcode.tests.functional_tests.read_only', 'read_only_test_settings',
 ]
 
-TIME_ZONE = 'America/NewYork'
+TIME_ZONE = 'America/New_York'
 
 
 for mod_name in MOCK_MODULES:
