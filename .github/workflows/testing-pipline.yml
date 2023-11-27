@@ -2,8 +2,11 @@ name: Integration-test
 
 on:
   pull_request:
-    branches: ["test-master"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+  
 jobs:
   pre-deploy-test:
     env:
