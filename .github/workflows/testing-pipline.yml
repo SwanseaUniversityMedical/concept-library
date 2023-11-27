@@ -102,8 +102,8 @@ jobs:
         if: success() || failure()
         continue-on-error: true
         with:
-          ref: testing-result-pages # this needs to be changed to gh-pages after finilizing the docs pipline
-          path: testing-result-pages # this needs to be changed to gh-pages after finilizing the docs pipline
+          ref: gh-pages
+          path: gh-pages
 
       - name: Allure report action # Step to generate Allure report
         if: success() || failure()
@@ -112,7 +112,7 @@ jobs:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
           allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report
           allure_history: allure-history
-          gh_pages: testing-result-pages # this needs to be changed to gh-pages after finilizing the docs pipline
+          gh_pages: gh-pages
           keep_reports: 10 # Specify the number of previous reports to keep
 
       - name: Upload an artifact for GitHub Pages
@@ -127,6 +127,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v2
         env:
           PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISH_BRANCH: testing-result-pages # this needs to be changed to gh-pages after finilizing the docs pipline
+          PUBLISH_BRANCH: gh-pages
           PUBLISH_DIR: allure-history
           keep_files: true
