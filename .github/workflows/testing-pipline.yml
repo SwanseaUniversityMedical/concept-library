@@ -117,7 +117,7 @@ jobs:
           path: gh-pages
 
       - name: Allure report action # Step to generate Allure report
-        if: success() || failure() && github.event_name != 'pull_request'
+        if: success() || failure() 
         uses: simple-elf/allure-report-action@master
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
