@@ -52,7 +52,7 @@ options = [
     "--disable-gpu",
     "--allow-insecure-localhost",
     "--disable-dev-shm-usage",
-    "--allow-running-insecure-content"
+    "--allow-running-insecure-content",
     '--headless' #if need debug localy through selenim container comment this line
 ]
 
