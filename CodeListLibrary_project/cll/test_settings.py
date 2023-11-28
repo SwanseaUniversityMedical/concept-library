@@ -53,7 +53,7 @@ options = [
     "--allow-insecure-localhost",
     "--disable-dev-shm-usage",
     "--allow-running-insecure-content"
-    # 'headless'
+    '--headless'
 ]
 
 for option in options:
