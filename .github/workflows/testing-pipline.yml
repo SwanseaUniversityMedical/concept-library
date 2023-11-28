@@ -2,13 +2,13 @@ name: Integration-test
 
 on:
   push:
-    branches: 
+    branches:
       - main
     paths:
-      - 'CodeListLibrary_project/**'
+      - "CodeListLibrary_project/**"
   pull_request:
     paths:
-      - 'CodeListLibrary_project/**'
+      - "CodeListLibrary_project/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -96,7 +96,7 @@ jobs:
           path: CodeListLibrary_project/coverage.xml
           minimum_coverage: 25
 
-      - name: "Upload Test Results"
+      - name: Upload Test Results
         if: success() || failure()
         uses: actions/upload-artifact@v3
         with:
@@ -106,14 +106,14 @@ jobs:
 
       - name: Get Allure history
         uses: actions/checkout@v3
-        if: success() || failure()
+        if: success() || failure() && github.event_name != 'pull_request'
         continue-on-error: true
         with:
           ref: gh-pages
           path: gh-pages
 
       - name: Allure report action # Step to generate Allure report
-        if: success() || failure()
+        if: success() || failure() && github.event_name != 'pull_request'
         uses: simple-elf/allure-report-action@master
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
@@ -129,8 +129,8 @@ jobs:
           name: allure-report
           path: CodeListLibrary_project/clinicalcode/tests/allure-report
 
-      - name: Deploy report to testing-result-pages branch
-        if: always()
+      - name: Deploy report to gh-pages branch
+        if: always() && github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v2
         env:
           PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
