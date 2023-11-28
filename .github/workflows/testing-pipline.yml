@@ -117,7 +117,7 @@ jobs:
           path: gh-pages
 
       - name: Allure report action # Step to generate Allure report
-        if: success() || failure() 
+        if: success() || failure() && github.event_name != 'pull_request'
         uses: simple-elf/allure-report-action@master
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
@@ -128,7 +128,7 @@ jobs:
 
       - name: Upload an artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v2
-        if: success() || failure()
+        if: success() || failure() && github.event_name != 'pull_request'
         with:
           name: allure-report
           path: CodeListLibrary_project/clinicalcode/tests/allure-report
