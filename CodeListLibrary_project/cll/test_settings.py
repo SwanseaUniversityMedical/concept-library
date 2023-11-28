@@ -53,7 +53,7 @@ options = [
     "--allow-insecure-localhost",
     "--disable-dev-shm-usage",
     "--allow-running-insecure-content"
-    '--headless'
+    '--headless' #if need debug localy through selenim container comment this line
 ]
 
 for option in options:
