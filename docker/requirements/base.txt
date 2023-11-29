@@ -29,7 +29,6 @@ python-dateutil==2.8.2
 python-decouple==3.6
 requests==2.31.0
 redis==4.5.3
-selenium==4.4.3
 swagger-spec-validator==2.7.6
 typing==3.7.4.3
 tzdata==2022.2
