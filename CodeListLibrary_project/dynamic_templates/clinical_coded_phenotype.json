@@ -8,7 +8,7 @@
 
   "sections": [
     {
-      "title": "Name & Author",
+      "title": "Name - Author",
       "description": "",
       "fields": ["name", "author"],
       "hide_on_detail": true
