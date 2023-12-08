@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: ./selenium-testing/postgres.Dockerfile
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./selenium-testing/db/:/docker-entrypoint-initdb.d/db/
+    env_file:
+      - ./selenium-testing/env/postgres.compose.env
+
+  web-test:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./selenium-testing/app.Dockerfile
+    command: >
+      sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py makemigrations
+      && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py migrate
+      && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+    ports:
+      - 8000:8000
+    expose:
+      - 8000
+    links:
+      - postgres:postgres
+    tty: true
+    stdin_open: true
+    env_file:
+      - ./selenium-testing/env/app.compose.env
+
+  selenium-hub:
+    image: selenium/hub:latest
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+    restart: unless-stopped
+  
+  selenium-chrome:
+    image: selenium/node-chrome:latest
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+    ports:
+      - "5900:5900"
+    depends_on:
+      - selenium-hub
+  
+  selenium-edge:
+      image: selenium/node-edge
+      depends_on:
+        - selenium-hub
+      ports:
+      - "5901:5901"
+      environment:
+        - SE_EVENT_BUS_HOST=selenium-hub
+        - SE_EVENT_BUS_PUBLISH_PORT=4442
+        - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  allure:
+    image: "frankescobar/allure-docker-service"
+    environment:
+      CHECK_RESULTS_EVERY_SECONDS: 1
+      KEEP_HISTORY: 1
+    ports:
+      - "5050:5050"
+    volumes:
+      - ../CodeListLibrary_project/clinicalcode/tests/allure-results:/app/allure-results
+      - ../CodeListLibrary_project/clinicalcode/tests/allure-reports:/app/allure-reports
