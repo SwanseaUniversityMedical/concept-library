@@ -660,14 +660,12 @@ FIELD_TYPES = {
     'string_inputbox': {
         'data_type': 'string',
         'input_type': 'inputbox',
-        'output_type': 'inputbox',
-        'max_length': 250
+        'output_type': 'inputbox'
     },
     'string_inputbox_code': {
         'data_type': 'string',
         'input_type': 'inputbox',
         'output_type': 'inputbox',
-        'max_length': 250,
         'apply_code_style': True
     },
     'textarea': {
@@ -680,33 +678,27 @@ FIELD_TYPES = {
         'data_type': 'string',
         'input_type': 'markdown',
         'output_type': 'markdown',
-        'rows': 5,
-        'display': 'markdown'
+        'rows': 5
     },
     'string_list_of_inputboxes': {
-        'data_type': 'string',
-        'max_length': 250
+        'data_type': 'string'
     },
     'string_list_of_inputboxes_markdown': {
         'data_type': 'string',
         'input_type': 'list_of_inputboxes',
-        'output_type': 'list_of_inputboxes',
-        'max_length': 250,
-        'display': 'markdown'
+        'output_type': 'list_of_inputboxes'
     },
 
     'enum': {
         'data_type': 'int',
         'input_type': 'dropdown-list',
-        'output_type': 'dropdown-list',
-        'use_permitted_values': True
+        'output_type': 'dropdown-list'
     },
 
     'grouped_enum': {
         'data_type': 'int',
         'input_type': 'grouped_enum',
         'output_type': 'radiobutton',
-        'use_permitted_values': True,
         'apply_badge_style': True
     },
 
@@ -714,7 +706,6 @@ FIELD_TYPES = {
         'data_type': 'int',
         'input_type': 'radiobutton',
         'output_type': 'radiobutton',
-        'use_permitted_values': True,
         'apply_badge_style': True
     },
 
@@ -722,7 +713,6 @@ FIELD_TYPES = {
         'data_type': 'int',
         'input_type': 'dropdown',
         'output_type': 'dropdown',
-        'use_permitted_values': True,
         'apply_badge_style': True
     },
 
