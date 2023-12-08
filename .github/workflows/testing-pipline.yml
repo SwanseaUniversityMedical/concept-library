@@ -8,7 +8,7 @@ on:
       - "CodeListLibrary_project/**"
   pull_request:
     branches:
-      - Development
+      - test-pipline
     paths:
       - "CodeListLibrary_project/**"
 
