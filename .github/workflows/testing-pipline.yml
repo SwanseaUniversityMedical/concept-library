@@ -3,7 +3,7 @@ name: Integration-test
 on:
   push:
     branches:
-      - main
+      - test-pipline
     paths:
       - "CodeListLibrary_project/**"
   pull_request:
