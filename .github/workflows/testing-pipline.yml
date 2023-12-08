@@ -117,7 +117,7 @@ jobs:
 
       - name: Allure report action # Step to generate Allure report
         if: (success() || failure()) && github.event_name != 'pull_request'
-        uses: simple-elf/allure-report-action@1.7
+        uses: simple-elf/allure-report-action@v1.7
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
           allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report
