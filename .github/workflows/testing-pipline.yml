@@ -63,7 +63,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade --upgrade-strategy eager -r docker/requirements/test-requirements.txt
+          pip install --upgrade --upgrade-strategy --default-timeout=100 eager -r docker/requirements/test-requirements.txt
 
       - name: Prepare Selenium
         uses: nanasess/setup-chromedriver@v2
@@ -115,7 +115,15 @@ jobs:
           ref: gh-pages
           path: gh-pages
 
-
+      - name: Allure report action # Step to generate Allure report
+        if: (success() || failure()) && github.event_name != 'pull_request'
+        uses: simple-elf/allure-report-action@v1.7
+        with:
+          allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
+          allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report
+          allure_history: allure-history
+          gh_pages: gh-pages
+          keep_reports: 10 # Specify the number of previous reports to keep
 
       - name: Upload an artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v2
