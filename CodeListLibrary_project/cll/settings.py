@@ -194,7 +194,7 @@ DEV_PRODUCTION = ''
 if IS_DEMO:  # Demo server
     DEV_PRODUCTION = '<i class="glyphicon glyphicon-cog" aria-hidden="true">&#9881; </i> DEMO SITE <i class="glyphicon glyphicon-cog" aria-hidden="true">&#9881;</i>'
 
-SHOW_COOKIE_ALERT = True
+SHOW_COOKIE_ALERT = get_env_value('SHOW_COOKIE_ALERT', cast='bool')
 
 # ==============================================================================#
 
