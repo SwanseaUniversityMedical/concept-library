@@ -91,4 +91,3 @@ DATABASES = {
     }
 }
 
-SHOW_COOKIE_ALERT = False
