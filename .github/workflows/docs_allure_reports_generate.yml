@@ -47,7 +47,7 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/test-ghpages-override')
         run: |
           mkdir -p gh-pages/docs
-          cp -r build/html/* gh-pages/docs/
+          cp -r docs/codebase_docs/build/html/* gh-pages/docs/
 
       - name: Copy Allure Reports
         if: startsWith(github.ref, 'refs/heads/allure-reports')
