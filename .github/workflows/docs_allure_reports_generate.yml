@@ -50,7 +50,7 @@ jobs:
           dir
           mkdir -p gh-pages/docs
           dir
-          cp -r docs/*.html gh-pages/docs/
+          cp -r /*.html gh-pages/docs/
 
       - name: Copy Allure Reports
         if: startsWith(github.ref, 'refs/heads/allure-reports')
