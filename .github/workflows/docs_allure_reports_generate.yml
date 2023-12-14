@@ -47,7 +47,9 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/test-ghpages-override')
         run: |
           cd docs/codebase_docs/ 
+          dir
           mkdir -p gh-pages/docs
+          dir
           cp -r docs/*.html gh-pages/docs/
 
       - name: Copy Allure Reports
