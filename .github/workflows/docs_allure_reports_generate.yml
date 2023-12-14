@@ -48,9 +48,18 @@ jobs:
         run: |
           cd docs/codebase_docs/ 
           dir
-          mkdir -p gh-pages/docs
+          mkdir -p gh-pages
           dir
-          cp -r /*.html gh-pages/docs/
+          cp -r /*.html gh-pages
+          cd .. 
+          rm -r assets
+          rm -r sql-scripts
+          rm -r codebase_docs
+          cd ..
+          rm -r docker
+          rm -r CodeListLibrary_project          
+
+
 
       - name: Copy Allure Reports
         if: startsWith(github.ref, 'refs/heads/allure-reports')
