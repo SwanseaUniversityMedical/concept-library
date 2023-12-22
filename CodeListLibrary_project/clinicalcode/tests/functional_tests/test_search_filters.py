@@ -1,20 +1,20 @@
 import time
-
+from django.urls import reverse
 import pytest
 from selenium.webdriver.common.by import By
 
-from cll.test_settings import WEBAPP_HOST
 
 @pytest.mark.django_db
 @pytest.mark.usefixtures("setup_webdriver")
 class TestSearchFilters:
 
     @pytest.mark.parametrize('user_type', ['super_user'])
-    def test_tags_filter(self, login, logout, generate_user, user_type):
+    def test_tags_filter(self, login, logout, generate_user, user_type,live_server):
         user = generate_user[user_type]
         login(self.driver, user.username, user.password)
+        print(live_server.url)
+        self.driver.get(live_server + reverse('search_phenotypes'))    
 
-        self.driver.get(WEBAPP_HOST +"/phenotypes")
         accordian = self.driver.find_element(By.XPATH, "/html/body/main/div/div/aside/div[2]/div[4]")
         time.sleep(5)
         accordian.click()
