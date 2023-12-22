@@ -59,23 +59,10 @@ options = [
 for option in options:
     chrome_options.add_argument(option)
 
-print(chrome_options.arguments)
-
-if REMOTE_TEST:
-    driver = webdriver.Chrome(options=chrome_options)
-else:
-    driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
-driver.get("http://google.com")
-print(driver.title)
-
 if REMOTE_TEST:
     WEBAPP_HOST = "http://localhost:8000/"
 else:
     WEBAPP_HOST = "http://web-test:8000/"
-
-driver.get(WEBAPP_HOST)
-print(driver.title)
-driver.quit()
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "cll.test_settings"
 
@@ -104,4 +91,3 @@ DATABASES = {
     }
 }
 
-SHOW_COOKIE_ALERT = False

@@ -63,7 +63,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade --upgrade-strategy eager -r docker/requirements/test-requirements.txt
+          pip install --upgrade --upgrade-strategy eager --default-timeout 100  -r docker/requirements/test-requirements.txt
 
       - name: Prepare Selenium
         uses: nanasess/setup-chromedriver@v2
@@ -85,7 +85,6 @@ jobs:
           python manage.py runserver 0.0.0.0:8000 > /dev/null &
 
       - name: Run tests
-        if: success() || failure()
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
@@ -94,14 +93,14 @@ jobs:
           DISPLAY: ":99"
 
       - name: Coverage report
-        if: success() || failure()
+        if: always()
         uses: 5monkeys/cobertura-action@v13
         with:
           path: CodeListLibrary_project/coverage.xml
           minimum_coverage: 25
 
       - name: Upload Test Results
-        if: success() || failure()
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: test-results
@@ -110,15 +109,15 @@ jobs:
 
       - name: Get Allure history
         uses: actions/checkout@v3
-        if: success() || failure() && github.event_name != 'pull_request'
+        if: (success() || failure()) && github.event_name != 'pull_request'
         continue-on-error: true
         with:
           ref: gh-pages
           path: gh-pages
 
       - name: Allure report action # Step to generate Allure report
-        if: success() || failure() && github.event_name != 'pull_request'
-        uses: simple-elf/allure-report-action@master
+        if: (success() || failure()) && github.event_name != 'pull_request'
+        uses: simple-elf/allure-report-action@v1.7
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
           allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report
@@ -128,13 +127,13 @@ jobs:
 
       - name: Upload an artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v2
-        if: success() || failure() && github.event_name != 'pull_request'
+        if: (success() || failure()) && github.event_name != 'pull_request'
         with:
           name: allure-report
           path: CodeListLibrary_project/clinicalcode/tests/allure-report
 
       - name: Deploy report to gh-pages branch
-        if: always() && github.event_name != 'pull_request'
+        if: (success() || failure()) && github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v2
         env:
           PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
