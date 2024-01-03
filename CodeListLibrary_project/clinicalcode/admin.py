@@ -7,8 +7,13 @@ from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operat
 from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
+from .models.ClinicalDiseaseCategory import ClinicalDiseaseCategoryNode
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
+
+@admin.register(ClinicalDiseaseCategoryNode)
+class ClinicalDiseaseCategoryNode(admin.ModelAdmin):
+    list_display = ['id', 'name', 'code', 'coding_system', 'code_id']
 
 
 @admin.register(CodingSystemFilter)

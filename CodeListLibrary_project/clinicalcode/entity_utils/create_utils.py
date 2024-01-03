@@ -171,7 +171,7 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
                 data = str(data)
                 if data in options:
                     return data
-    
+
     return default
 
 def validate_form_method(form_method, errors=[], default=None):
@@ -571,6 +571,24 @@ def validate_metadata_value(request, field, value, errors=[]):
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
     return field_value, True
 
+def is_computed_template_field(field, form_template):
+    """
+        Checks whether a field is considered a computed field within its template
+    """
+    field_data = template_utils.get_layout_field(form_template, field)
+    if field_data is None:
+        return False
+
+    validation = template_utils.try_get_content(field_data, 'validation')
+    if validation is None:
+        return False
+
+    field_computed = template_utils.try_get_content(validation, 'computed')
+    if field_computed is not None:
+        return True
+
+    return False
+
 def validate_template_value(request, field, form_template, value, errors=[]):
     """
         Validates the form's field value against the entity template
@@ -659,9 +677,13 @@ def validate_entity_form(request, content, errors=[], method=None):
                 continue
             top_level_data[field] = field_value
         elif validate_template_field(form_template, field):
+            if is_computed_template_field(field, form_template):
+                continue
+
             field_value, validated = validate_template_value(request, field, form_template, value, errors)
             if not validated or field_value is None:
                 continue
+
             template_data[field] = field_value
             try_add_computed_fields(field, form_data, form_template, template_data)
 

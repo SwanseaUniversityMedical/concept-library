@@ -228,6 +228,87 @@ def admin_fix_malformed_codes(request):
     )
 
 @login_required
+def admin_fix_coding_system_linkage(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_coding_system_linkage'),
+                'action_title': 'Fix Coding System Linkage',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    row_count = 0
+    with connection.cursor() as cursor:
+        sql = '''
+
+        update public.clinicalcode_historicalgenericentity as trg
+           set template_data['coding_system'] = to_jsonb(src.coding_system)
+          from (
+            select entity.phenotype_id,
+                   entity.phenotype_version_id,
+                   array_agg(distinct concept.coding_system_id::integer) as coding_system
+              from public.clinicalcode_historicalconcept as concept
+              join (
+                select id as phenotype_id,
+                       history_id as phenotype_version_id,
+                       cast(concepts->>'concept_id' as integer) as concept_id,
+                       cast(concepts->>'concept_version_id' as integer) as concept_version_id
+                  from (
+                    select id,
+                           history_id,
+                           concepts
+                      from public.clinicalcode_historicalgenericentity as entity,
+                           json_array_elements(entity.template_data::json->'concept_information') as concepts
+                     where template_id = 1
+                       and json_array_length(entity.template_data::json->'concept_information') > 0
+                  ) results
+              ) as entity
+            on entity.concept_id = concept.id
+               and entity.concept_version_id = concept.history_id
+            group by entity.phenotype_id,
+                     entity.phenotype_version_id
+          ) src
+        where trg.id = src.phenotype_id
+          and trg.history_id = src.phenotype_version_id
+          and trg.template_id = 1
+          and array(
+            select jsonb_array_elements_text(trg.template_data->'coding_system')
+          )::int[] <> src.coding_system;
+
+        '''
+
+        cursor.execute(sql)
+        row_count = cursor.rowcount
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': f'Updated {str(row_count)} entities' },
+            'action_title': 'Fix Coding System Linkage',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_force_adp_linkage(request):
     if settings.CLL_READ_ONLY: 
         raise PermissionDenied
