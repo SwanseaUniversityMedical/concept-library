@@ -5,20 +5,20 @@ from django_postgresql_dag.models import node_factory, edge_factory
 from .CodingSystem import CodingSystem
 
 class ClinicalDiseaseCategoryEdge(edge_factory('ClinicalDiseaseCategoryNode', concrete=False)):
-  name = models.CharField(max_length=255, unique=True)
+  name = models.CharField(max_length=1024, unique=True)
 
   def __str__(self):
       return self.name
 
   def save(self, *args, **kwargs):
-      self.name = f"{self.parent.name} {self.child.name}"
+      self.name = f'{self.parent.name} {self.child.name}'
       super().save(*args, **kwargs)
 
 class ClinicalDiseaseCategoryNode(node_factory(ClinicalDiseaseCategoryEdge)):
-    name = models.CharField(max_length=255)
-    code = models.CharField(max_length=255)
-    coding_system = models.ForeignKey(CodingSystem, on_delete=models.SET_NULL, related_name='disease_categories', null=True, blank=True)
-    code_id = models.IntegerField(null=True)
+    name = models.CharField(max_length=510)
+    code = models.CharField(max_length=255, null=True, blank=True)
+    coding_system = models.ForeignKey(CodingSystem, on_delete=models.SET_NULL, related_name='disease_categories', null=True, blank=True) # models.IntegerField(null=True, blank=True)
+    code_id = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -31,10 +31,9 @@ class ClinicalDiseaseCategoryNode(node_factory(ClinicalDiseaseCategoryEdge)):
             try:
                 comparators = [ desired_code, desired_code.replace('.', '') ]
 
-                coding_system = CodingSystem.objects.get(codingsystem_id=desired_system)
-                table_name = coding_system.table_name
-                model_name = coding_system.table_name.replace('clinicalcode_', '')
-                codes_name = coding_system.coding_system.code_column_name.lower()
+                table_name = desired_system.table_name
+                model_name = desired_system.table_name.replace('clinicalcode_', '')
+                codes_name = desired_system.code_column_name.lower()
 
                 query = """
                     select *
@@ -48,6 +47,7 @@ class ClinicalDiseaseCategoryNode(node_factory(ClinicalDiseaseCategoryEdge)):
                 code = code.first() if code.exists() else None
             except:
                 self.code_id = None
+                pass
             else:
                 if code is not None:
                     self.code_id = code.pk

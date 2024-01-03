@@ -1,9 +1,11 @@
 from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.db import transaction, connection
 
+import re
 import os
 import json
 import enum
+import time
 
 from ...generators.graphs.generator import Graph as GraphGenerator
 from ...models.CodingSystem import CodingSystem
@@ -89,18 +91,111 @@ class GraphBuilders:
     @classmethod
     def CODE_CATEGORIES(cls, data):
         """
-            ICD-10 Disease Category builder
+            ICD-10 Disease Category builder test(s)
 
         """
+
+        ''' [!] Warning: This is only partially optimised '''
         if not isinstance(data, list):
             return False, 'Invalid data type, expected list but got %s' % type(data)
 
+        # process nodes
+        nodes = [ ]
+        linkage = [ ]
+        result = [ ]
+        name_hashmap = { }
+        started = time.time()
 
-        '''! TODO !'''
-        # Need to process code categories data
+        def create_linkage(parent, parent_index, children):
+            for child_data in children:
+                name = child_data.get('name').strip()
+                code = child_data.get('code').strip()
 
+                # ICD-10 uses non-unique names, add code to vary them if required
+                if name in name_hashmap:
+                    name = f'{name} ({code})'
+                name_hashmap[name] = True
 
-        return False, data
+                # Create child node and process descendants
+                node = ClinicalDiseaseCategoryNode(name=name, code=code)
+                index = len(nodes)
+                nodes.append(node)
+                linkage.append([parent_index, index])
+
+                descendants = child_data.get('children')
+                child_count = len(descendants) if isinstance(descendants, list) else 0
+                result.append(f'\t\tChildNode<name: {node.name}, code: {node.code}, children: {child_count}>')
+
+                if isinstance(descendants, list):
+                    create_linkage(node, index, descendants)
+
+        for root_data in data:
+            # clean up the section name(s)
+            root_name = root_data.get('name').strip()
+            matched_code = re.search(r'(\b(?=[a-zA-Z\d]+)[a-zA-Z]*\d[a-zA-Z\d]*-\b(?=[A-Z\d]+)[a-zA-Z]*\d[a-zA-Z\d]*)', root_name)
+
+            root_name = re.sub(r'\((\b(?=[a-zA-Z\d]+)[a-zA-Z]*\d[a-zA-Z\d]*-\b(?=[A-Z\d]+)[a-zA-Z]*\d[a-zA-Z\d]*)\)', '', root_name).strip()
+            derived_code = matched_code.group() if matched_code else None
+
+            # process node and its branches
+            root = ClinicalDiseaseCategoryNode(name=root_name, code=derived_code)
+            index = len(nodes)
+            nodes.append(root)
+
+            children = root_data.get('sections')
+            result.append(f'\tRootNode<name: {root.name}, code: {root.code}, children: {len(children)}>')
+
+            create_linkage(root, index, children)
+
+        # bulk create nodes & children
+        nodes = ClinicalDiseaseCategoryNode.objects.bulk_create(nodes)
+
+        # bulk create edges
+        ClinicalDiseaseCategoryNode.children.through.objects.bulk_create(
+            [
+                # list comprehension here is required because we need to match the instance(s)
+                ClinicalDiseaseCategoryNode.children.through(
+                    name=f'{nodes[link[0]].name} | {nodes[link[1]].name}',
+                    parent=nodes[link[0]],
+                    child=nodes[link[1]]
+                )
+                for link in linkage
+            ],
+            batch_size=7000
+        )
+
+        # update coding system and apply related code
+        icd_10_id = CodingSystem.objects.get(name='ICD10 codes').id
+
+        with connection.cursor() as cursor:
+            ''' [!] Note: We could probably optimise this '''
+
+            sql = """
+            -- update matched values
+            update public.clinicalcode_clinicaldiseasecategorynode as trg
+               set coding_system_id = %(coding_id)s,
+                   code_id = src.code_id
+              from (
+                select node.id as node_id,
+                       code.id as code_id
+                  from public.clinicalcode_clinicaldiseasecategorynode as node
+                  join public.clinicalcode_icd10_codes_and_titles_and_metadata as code
+                    on node.code = code.code
+              ) src
+             where trg.id = src.node_id;
+
+            -- update null values
+            update public.clinicalcode_clinicaldiseasecategorynode as trg
+               set coding_system_id = %(coding_id)s
+             where coding_system_id is null;
+            """
+            cursor.execute(sql, { 'coding_id': icd_10_id })
+
+        # create result string for log
+        elapsed = (time.time() - started)
+        result = 'Created Nodes<coding_system: %d, elapsed: %.2f s> {\n%s\n}' % (icd_10_id, elapsed, '\n'.join(result))
+
+        return True, result
 
 
 ######################################################
@@ -119,7 +214,7 @@ class Command(BaseCommand):
     def __get_log_style(self, style):
         """
             Returns the BaseCommand's log style
-            
+
             See ref @ https://docs.djangoproject.com/en/5.0/howto/custom-management-commands/#django.core.management.BaseCommand.style
 
         """
@@ -247,6 +342,11 @@ class Command(BaseCommand):
             result = result if isinstance(result, str) else 'Unknown error occurred'
             self.__log(f'Error occurred when processing File<{filepath}> via BuilderType<{builder_type.name}>:\n\t{result}', LogType.ERROR)
             return
+
+        self.__log('Building Graph from File<%s> was completed successfully' % filepath, LogType.SUCCESS)
+
+        if isinstance(result, str):
+            self.__log(result, LogType.SUCCESS)
 
     def __generate_debug_dag(self):
         """
