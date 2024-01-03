@@ -17,8 +17,8 @@ class ClinicalDiseaseCategoryEdge(edge_factory('ClinicalDiseaseCategoryNode', co
 class ClinicalDiseaseCategoryNode(node_factory(ClinicalDiseaseCategoryEdge)):
     name = models.CharField(max_length=510)
     code = models.CharField(max_length=255, null=True, blank=True)
-    coding_system = models.ForeignKey(CodingSystem, on_delete=models.SET_NULL, related_name='disease_categories', null=True, blank=True) # models.IntegerField(null=True, blank=True)
     code_id = models.IntegerField(null=True, blank=True)
+    coding_system = models.ForeignKey(CodingSystem, on_delete=models.SET_NULL, related_name='disease_categories', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -38,12 +38,10 @@ class ClinicalDiseaseCategoryNode(node_factory(ClinicalDiseaseCategoryEdge)):
                 query = """
                     select *
                       from public.%(table_name)s
-                     where lower(%(column_name)s)
-                """ % { 'table_name': table_name, 'column_name': codes_name }
+                     where lower(%(column_name)s)""" % { 'table_name': table_name, 'column_name': codes_name }
 
                 codes = apps.get_model(app_label='clinicalcode', model_name=model_name)
                 code = codes.objects.raw(query + ' = ANY(%(values)s::text[])', { 'values': comparators })
-
                 code = code.first() if code.exists() else None
             except:
                 self.code_id = None
