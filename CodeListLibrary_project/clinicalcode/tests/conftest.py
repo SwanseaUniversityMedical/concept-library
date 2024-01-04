@@ -104,6 +104,7 @@ def pytest_configure(config):
 def login(live_server):
     def _login(driver, username, password):
         driver.get(live_server.url + "/account/login/")
+        print(driver.page_source)
         username_input = driver.find_element(By.NAME, "username")
         password_input = driver.find_element(By.NAME, "password")
 
