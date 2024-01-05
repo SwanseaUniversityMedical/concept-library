@@ -97,11 +97,15 @@ def setup_webdriver(request):
 
 
 def pytest_configure(config):
-    config.option.liveserver = socket.gethostbyname(socket.gethostname())
+    if REMOTE_TEST:
+        config.option.liveserver = "0.0.0.0:8000"
+    else:
+        config.option.liveserver = socket.gethostbyname(socket.gethostname())
 
 @pytest.fixture(scope="function")
 def login(live_server):
     def _login(driver, username, password):
+        print(f"Live server URL: {live_server.url}")
         driver.get(live_server.url + "/account/login/")
         print(driver.page_source)
         username_input = driver.find_element(By.NAME, "username")
