@@ -98,7 +98,7 @@ def setup_webdriver(request):
 
 def pytest_configure(config):
     if REMOTE_TEST:
-        config.option.liveserver = "0.0.0.0:8000"
+        config.option.liveserver = "localhost:8080"
     else:
         config.option.liveserver = socket.gethostbyname(socket.gethostname())
 
