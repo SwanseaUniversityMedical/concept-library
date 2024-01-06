@@ -85,7 +85,7 @@ def generate_entity(create_groups):
 @pytest.fixture(scope="class")
 def setup_webdriver(request):
     if REMOTE_TEST:
-        driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub',options=chrome_options)
+        driver = webdriver.Chrome(options=chrome_options)
     else:
         driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
     wait = WebDriverWait(driver, 10)
@@ -98,7 +98,7 @@ def setup_webdriver(request):
 
 def pytest_configure(config):
     if REMOTE_TEST:
-        config.option.liveserver = "localhost:80"
+        config.option.liveserver = "localhost:8080"
     else:
         config.option.liveserver = socket.gethostbyname(socket.gethostname())
 
