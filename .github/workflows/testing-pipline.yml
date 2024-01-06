@@ -66,8 +66,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --upgrade-strategy eager --default-timeout 100  -r docker/requirements/test-requirements.txt
       
-          - name: Prepare Selenium
-          uses: nanasess/setup-chromedriver@v2
+      - name: Prepare Selenium
+        uses: nanasess/setup-chromedriver@v2
 
       - name: Run Browser
         run: |
