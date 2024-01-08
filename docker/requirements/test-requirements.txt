@@ -4,3 +4,4 @@ pytest-django==4.5.2
 pytest-html==4.1.1
 pytest-cov==4.1.0
 allure-pytest==2.13.2
+git+https://github.com/SwanseaUniversityMedical/pyconceptlibraryclient.git@v1.0.1

@@ -80,6 +80,7 @@ services:
       - ../CodeListLibrary_project/clinicalcode/tests/allure-results:/app/allure-results
       - ../CodeListLibrary_project/clinicalcode/tests/allure-reports:/app/allure-reports
 
+
 networks:
   default:
     name: web-test
