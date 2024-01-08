@@ -88,7 +88,6 @@ def setup_webdriver(request):
         driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub',options=chrome_options)
     else:
         driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
-
     wait = WebDriverWait(driver, 10)
     driver.maximize_window()
     request.cls.driver = driver
@@ -99,13 +98,14 @@ def setup_webdriver(request):
 
 def pytest_configure(config):
     if REMOTE_TEST:
-        config.option.liveserver = "http://0.0.0.0:8080"
+        config.option.liveserver = "localhost:8080"
     else:
         config.option.liveserver = socket.gethostbyname(socket.gethostname())
 
 @pytest.fixture(scope="function")
 def login(live_server):
     def _login(driver, username, password):
+        print(f"Live server URL: {live_server.url}")
         driver.get(live_server.url + "/account/login/")
         username_input = driver.find_element(By.NAME, "username")
         password_input = driver.find_element(By.NAME, "password")
