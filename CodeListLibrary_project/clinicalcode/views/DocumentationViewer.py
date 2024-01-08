@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.views.generic import TemplateView
 
+
 class DocumentationViewer(TemplateView):
     """
         Simple contextual documentation view
@@ -26,14 +27,14 @@ class DocumentationViewer(TemplateView):
         documentation = kwargs.get('documentation')
         if not documentation:
             raise Http404
-        
+
         title = self.PAGE_TITLES.get(documentation)
         if not title:
             raise PermissionDenied
-      
+
         docs = {
             'title': title,
             'page': f'clinicalcode/documentation/views/{documentation}.html',
         }
 
-        return render(request, self.PAGE_BASE, { 'docs': docs })
+        return render(request, self.PAGE_BASE, {'docs': docs})

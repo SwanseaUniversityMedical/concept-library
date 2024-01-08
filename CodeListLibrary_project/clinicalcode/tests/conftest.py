@@ -1,18 +1,18 @@
+import json
 from datetime import datetime
 import socket
 import time
 
 import pytest
-from clinicalcode.models import GenericEntity
 from django.contrib.auth.models import User, Group
 from django.utils.timezone import make_aware
-
-from selenium.webdriver import Keys
 from selenium import webdriver
+from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-from cll.test_settings import  REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
+from clinicalcode.models import GenericEntity
+from cll.test_settings import REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
 
 
 @pytest.fixture
@@ -78,14 +78,14 @@ def generate_entity(create_groups):
     }
     generate_entity = GenericEntity.objects.create(name="Test entity",
                                                    group=create_groups['permitted_group'],
-                                                   template_data=template_data,updated=make_aware(datetime.now()))
+                                                   template_data=template_data, updated=make_aware(datetime.now()))
     return generate_entity
 
 
 @pytest.fixture(scope="class")
 def setup_webdriver(request):
     if REMOTE_TEST:
-        driver = webdriver.Chrome(options=chrome_options)
+        driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub',options=chrome_options)
     else:
         driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
 
@@ -94,11 +94,14 @@ def setup_webdriver(request):
     request.cls.driver = driver
     request.cls.wait = wait
     yield
-    driver.quit()
+    # driver.quit()
 
 
 def pytest_configure(config):
-    config.option.liveserver = socket.gethostbyname(socket.gethostname())
+    if REMOTE_TEST:
+        config.option.liveserver = "http://0.0.0.0:8080"
+    else:
+        config.option.liveserver = socket.gethostbyname(socket.gethostname())
 
 @pytest.fixture(scope="function")
 def login(live_server):
@@ -128,4 +131,3 @@ def logout(live_server):
 @pytest.fixture(autouse=True)
 def use_debug(settings):
     settings.DEBUG = True
-    
