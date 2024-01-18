@@ -10,6 +10,7 @@ import warnings
 
 from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants
 from ..models.GenericEntity import GenericEntity
+from ..models.Brand import Brand
 
 register = template.Library()
 
@@ -354,6 +355,21 @@ class EntityFiltersNode(template.Node):
             modifier = None
 
         return search_utils.get_source_references(structure, default=[], modifier=modifier)
+    
+    def __check_excluded_brand_collections(self, context, field, current_brand, options):
+        """
+            Checks and removes Collections excluded from filters
+        """
+        updated_options = options
+        if field == 'collections':
+            if current_brand !='' and current_brand != 'ALL':
+                if Brand.objects.all().filter(name__iexact=current_brand).exists():
+                    brand = Brand.objects.get(name__iexact=current_brand)
+                    collections_excluded_from_filters = brand.collections_excluded_from_filters
+                    if collections_excluded_from_filters:
+                        updated_options = [o for o in options if o['pk'] not in collections_excluded_from_filters]
+                        
+        return updated_options   
 
     def __render_metadata_component(self, context, field, structure):
         """
@@ -372,6 +388,7 @@ class EntityFiltersNode(template.Node):
         if 'compute_statistics' in structure:
             current_brand = request.CURRENT_BRAND or 'ALL'
             options = search_utils.get_metadata_stats_by_field(field, brand=current_brand)
+            options = self.__check_excluded_brand_collections(context, field, current_brand, options)
 
         if options is None:
             validation = template_utils.try_get_content(structure, 'validation')
