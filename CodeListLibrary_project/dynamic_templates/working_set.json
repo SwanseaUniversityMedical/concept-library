@@ -1,8 +1,8 @@
 {
   "template_details": {
     "version": 1,
-    "name": "Working Set",
-    "description": "e.g. a workingset example",
+    "name": "Asthma-workingset",
+    "description": "Asthtma description",
     "card_type": "generic"
   },
 
@@ -16,17 +16,7 @@
     {
       "title": "Definition",
       "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["definition", "tags", "collections", "data_sources"]
-    },
-    {
-      "title": "Implementation",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["implementation"]
-    },
-    {
-      "title": "Validation",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "fields": ["validation"]
+      "fields": ["definition", "tags", "collections"]
     },
     {
       "title": "Publication",
