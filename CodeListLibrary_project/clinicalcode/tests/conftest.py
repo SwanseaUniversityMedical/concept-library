@@ -12,6 +12,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
 from clinicalcode.models import GenericEntity
+from clinicalcode.models.Template import Template
+from clinicalcode.models.EntityClass import EntityClass
+from clinicalcode.tests.constants.constants import ENTITY_CLASS_FIELDS, TEMPLATE_JSON_V1_PATH, TEMPLATE_FIELDS, \
+    TEMPLATE_DATA
 from cll.test_settings import REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
 
 
@@ -47,7 +51,7 @@ def create_groups():
     view_group = Group.objects.create(name="view_group")
     edit_group = Group.objects.create(name="edit_group")
 
-    # Yield the created groups so they can be used in tests
+    # Yield the created groups, so they can be used in tests
     yield {
         'permitted_group': permitted_group,
         'forbidden_group': forbidden_group,
@@ -59,33 +63,38 @@ def create_groups():
     for group in [permitted_group, forbidden_group, view_group, edit_group]:
         group.delete()
 
+
+@pytest.fixture
+def entity_class():
+    entity_class = EntityClass.objects.create(**ENTITY_CLASS_FIELDS)
+
+    return entity_class
+
+
+@pytest.fixture
+def template(entity_class):
+    with open(TEMPLATE_JSON_V1_PATH) as f:
+        template_json = json.load(f)
+    template = Template.objects.create(**TEMPLATE_FIELDS,
+                                       definition=template_json,
+                                       entity_class=entity_class,
+                                       )
+    return template
+
+
 @pytest.fixture
 def generate_entity(create_groups):
-    template_data = {
-        "sex": "3",
-        "type": "1",
-        "version": 1,
-        "phenoflowid": "",
-        "data_sources": [
-            5
-        ],
-        "coding_system": [],
-        "agreement_date": "2012-11-23",
-        "phenotype_uuid": "4",
-        "event_date_range": "01/01/1999 - 01/07/2016",
-        "source_reference": "https://portal.caliberresearch.org/phenotypes/archangelidi-heart-rate-6keWsw2mW2TQjDMhNAUETt",
-        "concept_information": []
-    }
     generate_entity = GenericEntity.objects.create(name="Test entity",
+                                                   author="Tester author",
                                                    group=create_groups['permitted_group'],
-                                                   template_data=template_data, updated=make_aware(datetime.now()))
+                                                   template_data=TEMPLATE_DATA, updated=make_aware(datetime.now()))
     return generate_entity
 
 
 @pytest.fixture(scope="class")
 def setup_webdriver(request):
     if REMOTE_TEST:
-        driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub',options=chrome_options)
+        driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub', options=chrome_options)
     else:
         driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
 
@@ -94,7 +103,7 @@ def setup_webdriver(request):
     request.cls.driver = driver
     request.cls.wait = wait
     yield
-    # driver.quit()
+    driver.quit()
 
 
 def pytest_configure(config):
@@ -102,6 +111,7 @@ def pytest_configure(config):
         config.option.liveserver = "http://0.0.0.0:8080"
     else:
         config.option.liveserver = socket.gethostbyname(socket.gethostname())
+
 
 @pytest.fixture(scope="function")
 def login(live_server):
@@ -124,8 +134,8 @@ def login(live_server):
 def logout(live_server):
     def _logout(driver):
         driver.get(live_server.url + "/account/logout/")
-    yield _logout
 
+    yield _logout
 
 
 @pytest.fixture(autouse=True)

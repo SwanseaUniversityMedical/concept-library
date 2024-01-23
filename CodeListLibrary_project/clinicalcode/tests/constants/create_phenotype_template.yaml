@@ -1,34 +1,15 @@
+phenotype_id: PH1547
+phenotype_version_id: 3906
 name: Test name
-definition: Test Definition
-implementation: Test Implementation
-validation: test validation
-citation_requirements: Test citation requirements
 author: test author
-collections: 25
-tags: 29
-group: 3
 group_access: 1
 world_access: 1
 sex: '1'
-type: '1'
-data_sources: 448
-endorsement_date: 20/12/2023
-event_date_range: 2023/12/20 - 2023/12/22
-concept_information:
-- name: COVID-19 infection - Primary Care
-  type: existing_concept
-  concept_id: 714
-  concept_version_id: 2567
-- name: Anxiety - Primary Care
-  type: existing_concept
-  concept_id: 716
-  concept_version_id: 2571
+type: '2'
+endorsement_date: 12/01/2024
 primary_clinical_trial: '2'
-endorsement_organisation: Test Endorsement Organisation
-regulatory_approval_date: 20/12/2023
-regulatory_approval_study: Test Regulatory Approval Study
-regulatory_approval_organisation: Test Regulatory Approval organisation
-owner: superuser
+regulatory_approval_date: 12/01/2024
+owner: tobyr
 template:
-  id: 1
+  id: 2
   version_id: 2

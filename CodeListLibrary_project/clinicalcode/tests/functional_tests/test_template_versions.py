@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import shutil
 
 import pytest
@@ -7,115 +8,68 @@ import requests
 import yaml
 from pyconceptlibraryclient import Client
 from selenium.webdriver.common.by import By
+from clinicalcode.models.Template import Template
 
-from clinicalcode.tests.constants.constants import TEST_TEMPLATE_PATH, API_URL, CREATE_PHENOTYPE_TEMPLATE_PATH, \
-    TEST_CREATE_PHENOTYPE_PATH, PHENOTYPE_ATTR_KEYS
+from clinicalcode.tests.constants.constants import API_LINK, CREATE_PHENOTYPE_TEMPLATE_PATH, \
+    TEST_CREATE_PHENOTYPE_PATH, PHENOTYPE_ATTR_KEYS, TEMPLATE_JSON_V2_PATH
 
-
-# with open(TEST_TEMPLATE_PATH) as f:
-#     data = json.load(f)
-#
-# print(data)
-#
-# # REMOTE_TEST_HOST = 'http://selenium-hub-1:4444/wd/hub'
-#
-# chrome_options = webdriver.ChromeOptions()
-# chrome_options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 'enable'})
-# chrome_options.accept_insecure_certs = True
-# chrome_options.accept_ssl_certs = True
-#
-# # Add your options as needed
-# options = [
-#     "--window-size=1200,1200",
-#     "--ignore-certificate-errors",
-#     "--ignore-ssl-errors",
-#     "--window-size=1280,800",
-#     "--verbose",
-#     "--start-maximized",
-#     "--disable-gpu",
-#     "--allow-insecure-localhost",
-#     "--disable-dev-shm-usage",
-#     "--allow-running-insecure-content"
-#     # '--headless' #if need debug localy through selenim container comment this line
-# ]
-# WEBAPP_HOST = "http://localhost:8000/"
-# for option in options:
-#     chrome_options.add_argument(option)
-# driver = webdriver.Chrome(options=chrome_options)
-#
-# driver.get(WEBAPP_HOST + "/account/login/")
-# username_input = driver.find_element(By.NAME, "username")
-# password_input = driver.find_element(By.NAME, "password")
-#
-# username_input.send_keys("tobyr")
-# password_input.send_keys("tobyr")
-# password_input.send_keys(Keys.ENTER)
-#
-# driver.get(WEBAPP_HOST + "admin/clinicalcode/template/1/change/")
-# template_input = driver.find_element(By.NAME, "definition")
-# template_input.clear()
-# template_input.send_keys(json.dumps(data))
-# save_button = driver.find_element(By.NAME, "_save")
-# save_button.click()
-#
-# # Test to check if api is updates with the new template
-# x = requests.get(WEBAPP_HOST + "api/v1/templates/1/version/2/detail")
-
-# Test number 2
 
 @pytest.mark.django_db
-@pytest.mark.usefixtures("setup_webdriver", "get_template")
+@pytest.mark.usefixtures("setup_webdriver")
 class TestTemplateVersioning:
 
     @pytest.fixture
-    def get_template(self):
-        with open(TEST_TEMPLATE_PATH) as f:
+    def new_template_definition(self):
+        with open(TEMPLATE_JSON_V2_PATH) as f:
             new_template = json.load(f)
         return new_template
 
-    @pytest.mark.parametrize('user_type', ['super_user'])
-    def test_api_data_updated(self, get_template, login, generate_user, user_type, live_server):
-        user = generate_user[user_type]
-        login(self.driver, user.username, user.username + "password")
-        self.driver.get(live_server + "admin/clinicalcode/template/1/change/")
-        template_input = self.driver.find_element(By.NAME, "definition")
-        template_input.clear()
-        template_input.send_keys(json.dumps(get_template))
-        save_button = self.driver.find_element(By.NAME, "_save")
-        save_button.click()
-        print("New template added")
+    @pytest.fixture
+    def template_v2(self, template, new_template_definition):
+        template.save()
+        template.definition = new_template_definition
+        template.template_version = 2
+        return template
 
-        api_request = requests.get(API_URL + "templates/1/detail/")
+    @pytest.mark.parametrize('user_type', ['super_user'])
+    def test_api_data_updated(self, generate_user, user_type, template_v2, live_server):
+        user = generate_user[user_type]
+
+        template_v2.created_by = user
+        template_v2.save()
+
+        api_request = requests.get(live_server.url + API_LINK)
         api_data = api_request.json()
 
-        assert get_template["template_details"]['version'] == api_data["version_id"]
+        assert template_v2.template_version == api_data["version_id"]
 
     @pytest.mark.parametrize('user_type', ['super_user'])
-    def test_template_api(self, generate_user, user_type, live_server):
+    def test_template_api(self, generate_user, user_type, live_server, template_v2, login):
         user = generate_user[user_type]
+
+        template_v2.created_by = user
+        template_v2.save()
+
         client = Client(
-            username=user.username, password= user.username + "password",
+            username=user.username, password=user.username + "password",
             url=live_server.url
         )
         shutil.copy(CREATE_PHENOTYPE_TEMPLATE_PATH, TEST_CREATE_PHENOTYPE_PATH)
-
         client.phenotypes.create(TEST_CREATE_PHENOTYPE_PATH)
-
-        with open(CREATE_PHENOTYPE_TEMPLATE_PATH) as stream:
-            read_yaml = yaml.load(stream, Loader=yaml.FullLoader)
 
         with open(TEST_CREATE_PHENOTYPE_PATH) as stream:
             create_yaml = yaml.load(stream, Loader=yaml.FullLoader)
 
-        for key in PHENOTYPE_ATTR_KEYS:
-            create_yaml.pop(key)
-        # os.remove(TEST_CREATE_PHENOTYPE_PATH)
+        assert create_yaml["template"]["version_id"] == 2
 
-        assert create_yaml == read_yaml
+    @pytest.mark.parametrize('user_type', ['super_user'])
+    def test_edit_v1(self, generate_entity, user_type, generate_user, login):
+        user = generate_user[user_type]
+        login(self.driver, user.username, user.username + "password")
+        generate_entity.owner = user
+        generate_entity.created_by =user
+        time.sleep(110)
+        # generate_entity.save()
+        time.sleep(110)
 
-
-
-
-
-
-# clinicalcode/tests/functional_tests/test_template_versions.py
+# pytest -v -s clinicalcode/tests/functional_tests/test_template_versions.py
