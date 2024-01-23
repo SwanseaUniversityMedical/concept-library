@@ -36,6 +36,7 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      
 
     steps:
       - uses: actions/checkout@v3
@@ -64,9 +65,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade --upgrade-strategy eager --default-timeout 100  -r docker/requirements/test-requirements.txt
-
+      
       - name: Prepare Selenium
         uses: nanasess/setup-chromedriver@v2
+
       - name: Run Browser
         run: |
           chrome --version
@@ -75,6 +77,7 @@ jobs:
           export DISPLAY=:99
           chromedriver --url-base=/wd/hub &
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
+
 
       - name: Run application
         run: |
@@ -88,7 +91,7 @@ jobs:
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
-          pytest -v -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=./clinicalcode/tests/allure-results
+          pytest -vv -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=./clinicalcode/tests/allure-results
         env:
           DISPLAY: ":99"
 

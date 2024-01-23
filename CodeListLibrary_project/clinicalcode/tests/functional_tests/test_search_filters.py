@@ -17,6 +17,8 @@ class TestSearchFilters:
 
         self.driver.get(live_server + reverse('search_phenotypes'))
 
+        print(f"Current username:{self.driver.find_element(By.CLASS_NAME, 'text-username').text}") 
+
         accordian = self.driver.find_element(By.XPATH, "/html/body/main/div/div/aside/div[2]/div[4]")
         time.sleep(5)
         accordian.click()
