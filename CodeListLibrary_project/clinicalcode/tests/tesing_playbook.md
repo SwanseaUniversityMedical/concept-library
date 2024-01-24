@@ -10,12 +10,12 @@ This document outlines guidelines and best practices for working with the Pytest
 3. [Writing Tests](#writing-tests)
 4. [Running Tests](#running-tests)
 5. [Test Fixtures](#test-fixtures)
-7. [Mocking](#mocking)
-8. [Documentation](#documentation)
-9. [Continuous Integration](#continuous-integration)
-10. [Code Review](#code-review)
-11. [Troubleshooting](#troubleshooting)
-12. [Resources](#resources)
+6. [Mocking](#mocking)
+7. [Documentation](#documentation)
+8. [Continuous Integration](#continuous-integration)
+9. [Code Review](#code-review)
+10. [Troubleshooting](#troubleshooting)
+11. [Resources](#resources)
 
 ## 1. Setting Up Pytest
 
@@ -43,7 +43,7 @@ directory.
 │   │   │   ├───allure-reports
 │   │   │   ├───allure-results
 │   │   │   ├───constants
-│   │   │   │   └───contants.py
+│   │   │   │   └───constants.py
 │   │   │   ├───functional_tests
 │   │   │   │   └───test_functional_module1.py
 │   │   │   ├───legacy
@@ -302,5 +302,5 @@ Guidance on common testing issues, debugging tips for failed tests, and any proj
     - [pytest](https://github.com/pytest-dev/pytest)
     - [A curated list of awesome pytest resources](https://github.com/augustogoulart/awesome-pytest)
 
-Happy Testing :)
+## Happy Testing :)
 

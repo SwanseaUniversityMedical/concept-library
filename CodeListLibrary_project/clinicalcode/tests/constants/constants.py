@@ -15,8 +15,14 @@ TEMPLATE_FIELDS = {"name": "Clinical-Coded Phenotype",
 
 TEMPLATE_JSON_V1_PATH = "dynamic_templates/clinical_coded_phenotype.json"
 
-TEMPLATE_DATA = {"sex": "1", "type": "1", "version": 1, "coding_system": [], "event_date_range": "",
-                 "concept_information": []}
+TEMPLATE_DATA = {
+                      "sex": "1",
+                      "type": "1",
+                      "version": 1,
+                      "coding_system": [],
+                      "event_date_range": "",
+                      "concept_information": []
+                }
 
 """
 Constants for test_template_versions
@@ -26,3 +32,19 @@ API_LINK = "/api/v1/templates/1/detail/"
 CREATE_PHENOTYPE_TEMPLATE_PATH = "clinicalcode/tests/constants/create_phenotype_template.yaml"
 TEST_CREATE_PHENOTYPE_PATH = "clinicalcode/tests/constants/test_create_phenotype.yaml"
 PHENOTYPE_ATTR_KEYS = ("phenotype_version_id", "phenotype_id")
+NEW_FIELDS = ['Primary Clinical Trial', 'Endorsement Organisation', 'Endorsement Date', 'Regulatory Approval Study',
+              'Regulatory Approval organisation', 'Regulatory Approval Date']
+TEMPLATE_DATA_V2 = {
+                        "sex": "1",
+                        "type": "1",
+                        "version": 2,
+                        "coding_system": [],
+                        "endorsement_date": "24/01/2024",
+                        "event_date_range": "",
+                        "concept_information": [],
+                        "primary_clinical_trial": "2",
+                        "endorsement_organisation": "",
+                        "regulatory_approval_date": "24/01/2024",
+                        "regulatory_approval_study": "",
+                        "regulatory_approval_organisation": ""
+                    }
