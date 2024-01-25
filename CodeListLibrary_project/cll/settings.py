@@ -21,6 +21,7 @@ import numbers
 
 ''' Utilities '''
 
+
 def strtobool(val):
     """
         Converts str() to bool()
@@ -34,14 +35,17 @@ def strtobool(val):
         val = str(int(val))
 
     if not isinstance(val, str):
-        raise ValueError('Invalid paramater %r, expected <str()> but got %r' % (val,type(val)))
+        raise ValueError('Invalid paramater %r, expected <str()> but got %r' % (val, type(val)))
 
     val = val.lower()
     if val in ('y', 'yes', 't', 'true', 'on', '1'):
         return 1
     elif val in ('n', 'no', 'f', 'false', 'off', '0'):
         return 0
-    raise ValueError('Invalid truth value %r, expected one of (\'y/n\', \'yes/no\', \'t/f\', \'true/false\', \'on/off\', \'1/0\')' % (val,))
+    raise ValueError(
+        'Invalid truth value %r, expected one of (\'y/n\', \'yes/no\', \'t/f\', \'true/false\', \'on/off\', \'1/0\')' % (
+        val,))
+
 
 def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
     """
@@ -57,6 +61,7 @@ def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
     finally:
         S.close()
     return IP
+
 
 def get_env_value(env_variable, cast=None):
     """
@@ -75,7 +80,8 @@ def get_env_value(env_variable, cast=None):
         error_msg = 'Set the {} environment variable'.format(env_variable)
         raise ImproperlyConfigured(error_msg)
 
-#==============================================================================#
+
+# ==============================================================================#
 
 ''' Application base '''
 
@@ -90,7 +96,7 @@ ADMIN = [
     ('Dan', 'd.s.thayer@swansea.ac.uk')
 ]
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Application settings '''
 
@@ -110,7 +116,7 @@ else:
 if path_prj not in sys.path:
     sys.path.append(path_prj)
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Application variables '''
 
@@ -150,7 +156,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # This variable was used for dev/admin and no longer maintained
-#ENABLE_PUBLISH = True   # get_env_value('ENABLE_PUBLISH', cast='bool')
+# ENABLE_PUBLISH = True   # get_env_value('ENABLE_PUBLISH', cast='bool')
 SHOWADMIN = get_env_value('SHOWADMIN', cast='bool')
 BROWSABLEAPI = get_env_value('BROWSABLEAPI', cast='bool')
 
@@ -164,7 +170,7 @@ USE_TZ = True
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'cll.settings'
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Site related variables '''
 
@@ -188,9 +194,9 @@ DEV_PRODUCTION = ''
 if IS_DEMO:  # Demo server
     DEV_PRODUCTION = '<i class="glyphicon glyphicon-cog" aria-hidden="true">&#9881; </i> DEMO SITE <i class="glyphicon glyphicon-cog" aria-hidden="true">&#9881;</i>'
 
-SHOW_COOKIE_ALERT = True
+SHOW_COOKIE_ALERT = get_env_value('SHOW_COOKIE_ALERT', cast='bool')
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' LDAP authentication '''
 
@@ -202,7 +208,9 @@ AUTH_LDAP_BIND_DN = get_env_value('AUTH_LDAP_BIND_DN')
 
 AUTH_LDAP_BIND_PASSWORD = get_env_value('AUTH_LDAP_BIND_PASSWORD')
 
+
 AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE, '(sAMAccountName=%(user)s)'), )
+
 
 # Set up the basic group parameters.
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(get_env_value('AUTH_LDAP_GROUP_SEARCH'), ldap.SCOPE_SUBTREE, '(objectClass=group)')
@@ -229,7 +237,7 @@ AUTH_LDAP_FIND_GROUP_PERMS = True
 AUTH_LDAP_CACHE_GROUPS = True
 AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Installed applications '''
 
@@ -251,13 +259,13 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'cll',
     'simple_history',
     'rest_framework',
-    #'mod_wsgi.server',
+    # 'mod_wsgi.server',
     'django_extensions',
     'markdownify',
     'cookielaw',
     'django_celery_results',
     'django_celery_beat',
-    #'rest_framework_swagger',
+    # 'rest_framework_swagger',
     'drf_yasg',
     'django.contrib.sitemaps',
     'svg',
@@ -269,7 +277,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django_minify_html',
 ]
 
-#==============================================================================#
+# ==============================================================================#
 
 
 ''' Middleware '''
@@ -295,7 +303,7 @@ MIDDLEWARE = [
     'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
 ]
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Authentication backends '''
 
@@ -303,7 +311,7 @@ MIDDLEWARE = [
 # Don't check AD on development PCs due to network connection
 if IS_DEVELOPMENT_PC or (not ENABLE_LDAP_AUTH):
     AUTHENTICATION_BACKENDS = [
-        #'django_auth_ldap.backend.LDAPBackend',
+        # 'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend',
     ]
 else:
@@ -316,23 +324,23 @@ else:
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME':
-        'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+            'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
         'NAME':
-        'django.contrib.auth.password_validation.MinimumLengthValidator',
+            'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
         'NAME':
-        'django.contrib.auth.password_validation.CommonPasswordValidator',
+            'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME':
-        'django.contrib.auth.password_validation.NumericPasswordValidator',
+            'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' REST framework settings '''
 
@@ -363,7 +371,7 @@ if not BROWSABLEAPI:
         'clinicalcode.entity_utils.api_utils.PrettyJsonRenderer',
     )
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Templating settings '''
 
@@ -390,7 +398,7 @@ TEMPLATES = [
     },
 ]
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Database settings '''
 
@@ -410,7 +418,7 @@ DATABASES = {
 if not IS_DEMO and (not IS_DEVELOPMENT_PC):
     DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Caching '''
 
@@ -432,7 +440,7 @@ else:
         }
     }
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Static file handling & serving '''
 
@@ -459,14 +467,14 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'cll/static'),
 ]
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Media file handling '''
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Application logging settings '''
 
@@ -493,7 +501,7 @@ else:
         'formatters': {
             'verbose': {
                 'format':
-                '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+                    '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
             },
             'simple': {
                 'format': '%(levelname)s %(message)s'
@@ -524,7 +532,7 @@ else:
         },
     }
 
-#==============================================================================#
+# ==============================================================================#
 
 ''' Installed application settings '''
 
@@ -610,8 +618,8 @@ MARKDOWNIFY = {
         'WHITELIST_TAGS': [
             'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol',
             'p', 'strong', 'ul', 'img',
-            'h1', 'h2', 'h3','h4', 'h5', 'h6', 'h7'
-            #, 'span', 'div',  'code'
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7'
+            # , 'span', 'div',  'code'
         ],
         'WHITELIST_ATTRS': [
             'href',
@@ -637,4 +645,4 @@ MARKDOWNIFY = {
     }
 }
 
-#==============================================================================#
+# ==============================================================================#

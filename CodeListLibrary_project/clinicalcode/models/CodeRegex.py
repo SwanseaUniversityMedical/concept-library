@@ -4,6 +4,7 @@ from simple_history.models import HistoricalRecords
 
 from .Component import Component
 
+
 class CodeRegex(models.Model):
     SIMPLE = 1
     POSIX = 2
