@@ -266,7 +266,10 @@ To run tests you will have to take several steps:
 
 3. Make sure that in PGadmin you will see the clluser_test user
 
-4. Inside of the web-test container type ```pytest -s -v```
+4. Inside of the web-test container type ```pytest -s -v``` or ```pytest ``` if you do not want to see print statement
+
+5. If you will  encounter problem run ```docker compose -p cll -f docker-compose.selenium.yaml down --volumes```
+
 
 ## 7. Mocking
 
@@ -289,6 +292,8 @@ extend the test suite effectively. Follow these guidelines to ensure thorough do
 ## 9. Continuous Integration
 
 Integration of Pytest into the project's CI/CD pipeline, specifying Python versions, and including test coverage checks in CI.
+Concept Library has integrated pipline for the tests but it is advisable to not change the /env/remotetest.compose.env file 
+
 
 ## 10. Code Review
 
