@@ -1,22 +1,42 @@
+import json
 from datetime import datetime
 import socket
 import time
 
 import pytest
-from clinicalcode.models import GenericEntity
 from django.contrib.auth.models import User, Group
 from django.utils.timezone import make_aware
-
-from selenium.webdriver import Keys
 from selenium import webdriver
+from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-from cll.test_settings import  REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
+from clinicalcode.models import GenericEntity
+from clinicalcode.models.Template import Template
+from clinicalcode.models.EntityClass import EntityClass
+from clinicalcode.tests.constants.constants import ENTITY_CLASS_FIELDS, TEMPLATE_JSON_V1_PATH, TEMPLATE_FIELDS, \
+    TEMPLATE_DATA
+from cll.test_settings import REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
 
 
 @pytest.fixture
 def generate_user():
+    """
+    Pytest fixture for generating test users with different roles.
+
+    This fixture creates several user instances with different roles for testing purposes. After the tests are finished,
+    it deletes the created users to clean up the database.
+
+    Returns:
+        dict: A dictionary containing user instances with keys representing different roles.
+            Keys:
+                'super_user': Superuser instance
+                'normal_user': Normal user instance
+                'owner_user': Owner user instance
+                'group_user': Group user instance
+                'view_group_user': View group user instance
+                'edit_group_user': Edit group user instance
+    """
     su_user = User.objects.create_superuser(username='superuser', password='superuserpassword', email=None)
     nm_user = User.objects.create_user(username='normaluser', password='normaluserpassword', email=None)
     ow_user = User.objects.create_user(username='owneruser', password='owneruserpassword', email=None)
@@ -42,12 +62,26 @@ def generate_user():
 
 @pytest.fixture
 def create_groups():
+    """
+    Pytest fixture for creating test groups.
+
+    This fixture creates several group instances for testing purposes. After the tests are finished,
+    it deletes the created groups to clean up the database.
+
+    Returns:
+        dict: A dictionary containing group instances with keys representing different groups.
+            Keys:
+                'permitted_group': Permitted group instance
+                'forbidden_group': Forbidden group instance
+                'view_group': View group instance
+                'edit_group': Edit group instance
+    """
     permitted_group = Group.objects.create(name="permitted_group")
     forbidden_group = Group.objects.create(name="forbidden_group")
     view_group = Group.objects.create(name="view_group")
     edit_group = Group.objects.create(name="edit_group")
 
-    # Yield the created groups so they can be used in tests
+    # Yield the created groups, so they can be used in tests
     yield {
         'permitted_group': permitted_group,
         'forbidden_group': forbidden_group,
@@ -59,31 +93,76 @@ def create_groups():
     for group in [permitted_group, forbidden_group, view_group, edit_group]:
         group.delete()
 
+
 @pytest.fixture
-def generate_entity(create_groups):
-    template_data = {
-        "sex": "3",
-        "type": "1",
-        "version": 1,
-        "phenoflowid": "",
-        "data_sources": [
-            5
-        ],
-        "coding_system": [],
-        "agreement_date": "2012-11-23",
-        "phenotype_uuid": "4",
-        "event_date_range": "01/01/1999 - 01/07/2016",
-        "source_reference": "https://portal.caliberresearch.org/phenotypes/archangelidi-heart-rate-6keWsw2mW2TQjDMhNAUETt",
-        "concept_information": []
-    }
-    generate_entity = GenericEntity.objects.create(name="Test entity",
-                                                   group=create_groups['permitted_group'],
-                                                   template_data=template_data,updated=make_aware(datetime.now()))
+def entity_class():
+    """
+    Pytest fixture for creating a test instance of the EntityClass model.
+
+    This fixture creates a single instance of the EntityClass model with predefined fields for testing purposes.
+
+    Returns:
+        EntityClass: An instance of the EntityClass model with predefined fields.
+    """
+    entity_class = EntityClass.objects.create(**ENTITY_CLASS_FIELDS)
+
+    return entity_class
+
+
+@pytest.fixture
+def template(entity_class):
+    """
+    Pytest fixture for creating a test instance of the Template model.
+
+    This fixture creates a single instance of the Template model with predefined fields and a template JSON file
+    for testing purposes.
+
+    Args:
+        entity_class (EntityClass): An instance of the EntityClass model associated with the template.
+
+    Returns:
+        Template: An instance of the Template model with predefined fields and a template JSON.
+    """
+    with open(TEMPLATE_JSON_V1_PATH) as f:
+        template_json = json.load(f)
+    template = Template.objects.create(**TEMPLATE_FIELDS,
+                                       definition=template_json,
+                                       entity_class=entity_class,
+                                       )
+    return template
+
+
+@pytest.fixture
+def generate_entity(create_groups, template):
+    """
+    Pytest fixture for creating a test instance of the GenericEntity model.
+
+    Args:
+        create_groups (dict): A dictionary containing group instances.
+        template (Template): An instance of the Template model associated with the entity.
+
+    Returns:
+        GenericEntity: An instance of the GenericEntity model with predefined fields.
+    """
+    generate_entity = GenericEntity(name="Test entity",
+                                    author="Tester author",
+                                    group=create_groups['permitted_group'],
+                                    template_data=TEMPLATE_DATA, updated=make_aware(datetime.now()),
+                                    template=template, template_version=template.template_version)
     return generate_entity
 
 
 @pytest.fixture(scope="class")
 def setup_webdriver(request):
+    """
+    Pytest fixture for setting up a WebDriver instance for class-scoped tests.
+
+    Args:
+        request: Pytest request object.
+
+    Yields:
+        None
+    """
     if REMOTE_TEST:
         driver = webdriver.Chrome(options=chrome_options)
     else:
@@ -97,13 +176,32 @@ def setup_webdriver(request):
 
 
 def pytest_configure(config):
+    """
+    Pytest configuration hook to set the liveserver based on the remote test flag.
+
+    Args:
+        config: Pytest config object.
+
+    Returns:
+        None
+    """
     if REMOTE_TEST:
         config.option.liveserver = "localhost:8080"
     else:
         config.option.liveserver = socket.gethostbyname(socket.gethostname())
 
+
 @pytest.fixture(scope="function")
 def login(live_server):
+    """
+    Pytest fixture for performing login during tests.
+
+    Args:
+        live_server: Pytest fixture providing the live server URL.
+
+    Yields:
+        Callable: A function for performing login.
+    """
     def _login(driver, username, password):
         print(f"Live server URL: {live_server.url}")
         driver.get(live_server.url + "/account/login/")
@@ -122,13 +220,30 @@ def login(live_server):
 
 @pytest.fixture(scope="function")
 def logout(live_server):
+    """
+    Pytest fixture for performing logout during tests.
+
+    Args:
+        live_server: Pytest fixture providing the live server URL.
+
+    Yields:
+        Callable: A function for performing logout.
+    """
     def _logout(driver):
         driver.get(live_server.url + "/account/logout/")
-    yield _logout
 
+    yield _logout
 
 
 @pytest.fixture(autouse=True)
 def use_debug(settings):
+    """
+    Pytest fixture for setting the DEBUG flag to True during tests.
+
+    Args:
+        settings: Django settings fixture.
+
+    Yields:
+        None
+    """
     settings.DEBUG = True
-    

@@ -9,11 +9,11 @@ from selenium.webdriver.common.by import By
 class TestSearchFilters:
 
     @pytest.mark.parametrize('user_type', ['super_user'])
-    def test_tags_filter(self, login, logout, generate_user, user_type,live_server):
+    def test_tags_filter(self, login, logout, generate_user, user_type, live_server):
         user = generate_user[user_type]
-        #generate_entity.created_by = generate_user[user_type] this needed to test the page for at least some data
+        # generate_entity.created_by = generate_user[user_type] this needed to test the page for at least some data
 
-        login(self.driver, user.username, user.username+"password")
+        login(self.driver, user.username, user.username + "password")
 
         self.driver.get(live_server + reverse('search_phenotypes'))
 
@@ -28,4 +28,3 @@ class TestSearchFilters:
             assert checkbox.is_enabled() is True
 
         logout(self.driver)
-

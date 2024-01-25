@@ -53,7 +53,7 @@ options = [
     "--allow-insecure-localhost",
     "--disable-dev-shm-usage",
     "--allow-running-insecure-content",
-    '--headless' #if need debug localy through selenim container comment this line
+    "--headless"  #if need debug localy through selenim container comment this line
 ]
 
 for option in options:
@@ -91,3 +91,4 @@ DATABASES = {
     }
 }
 
+SHOW_COOKIE_ALERT = False
