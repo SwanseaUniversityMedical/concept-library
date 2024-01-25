@@ -23,3 +23,5 @@ docker/CodeListLibrary_project
 # macOS system files
 .DS_Stores
 .idea
+
+CodeListLibrary_project/clinicalcode/tests/allure-results/

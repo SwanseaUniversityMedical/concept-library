@@ -1,0 +1,145 @@
+name: Integration-test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "CodeListLibrary_project/**"
+  pull_request:
+    paths:
+      - "CodeListLibrary_project/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pre-deploy-test:
+    env:
+      working-directory: ./concept-library
+    runs-on:
+      labels: [self-hosted, linux, x64]
+      group: heavy
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.11]
+
+    services:
+      db:
+        image: postgres
+        env:
+          POSTGRES_DB: concept_library
+          POSTGRES_USER: clluser_test
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      
+
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev libasound2 
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+      - uses: browser-actions/setup-chrome@v1
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('docker/requirements/test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install LDAP files
+        run: |
+          sudo apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev libpq-dev
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade --upgrade-strategy eager --default-timeout 100  -r docker/requirements/test-requirements.txt
+      
+      - name: Prepare Selenium
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Run Browser
+        run: |
+          chrome --version
+      - name: Run chromedriver
+        run: |
+          export DISPLAY=:99
+          chromedriver --url-base=/wd/hub &
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
+
+
+      - name: Run application
+        run: |
+          export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
+          cd CodeListLibrary_project
+          python manage.py makemigrations
+          python manage.py migrate
+          python manage.py runserver 0.0.0.0:8000 > /dev/null &
+
+      - name: Run tests
+        run: |
+          export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
+          cd CodeListLibrary_project
+          pytest -vv -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=./clinicalcode/tests/allure-results
+        env:
+          DISPLAY: ":99"
+
+      - name: Coverage report
+        if: always()
+        uses: 5monkeys/cobertura-action@v13
+        with:
+          path: CodeListLibrary_project/coverage.xml
+          minimum_coverage: 25
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: CodeListLibrary_project/report.html
+          retention-days: 5
+
+      - name: Get Allure history
+        uses: actions/checkout@v3
+        if: (success() || failure()) && github.event_name != 'pull_request'
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Allure report action # Step to generate Allure report
+        if: (success() || failure()) && github.event_name != 'pull_request'
+        uses: simple-elf/allure-report-action@v1.7
+        with:
+          allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
+          allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report
+          allure_history: allure-history
+          gh_pages: gh-pages
+          keep_reports: 10 # Specify the number of previous reports to keep
+
+      - name: Upload an artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v2
+        if: (success() || failure()) && github.event_name != 'pull_request'
+        with:
+          name: allure-report
+          path: CodeListLibrary_project/clinicalcode/tests/allure-report
+
+      - name: Deploy report to gh-pages branch
+        if: (success() || failure()) && github.event_name != 'pull_request'
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: allure-history
+          keep_files: true

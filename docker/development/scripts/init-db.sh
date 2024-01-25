@@ -7,7 +7,6 @@ echo "===================================="
 BACKUP_FILE=$(find /docker-entrypoint-initdb.d/db/ -name '*.backup'| head -1)
 if [ ! -z $BACKUP_FILE ] && [ -e $BACKUP_FILE ]; then 
   echo "[!>] Found backup, restoring from local"
-  
   echo "[!>] Restoring database from local .backup"
   /usr/bin/pg_restore -U $POSTGRES_USER -d $POSTGRES_DB $BACKUP_FILE;
 elif [ -e /docker-entrypoint-initdb.d/db/git.token ]; then
@@ -28,6 +27,7 @@ elif [ -e /docker-entrypoint-initdb.d/db/git.token ]; then
       rm -rf /docker-entrypoint-initdb.d/db/backup/
 
       /usr/bin/pg_restore -U $POSTGRES_USER -d $POSTGRES_DB /docker-entrypoint-initdb.d/db/db.backup
+
     else
       echo "[!>] Cannot restore, failed to find database file after cloning repo"
     fi

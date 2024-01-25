@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 
 import enum
 
+
 class TypeStatus:
     """ Legacy type status - needs removal during cleanup """
     Disease = 0
@@ -12,17 +13,18 @@ class TypeStatus:
     Musculoskeletal = 4
     Surgical_procedure = 5
     Type_status = ((Disease, 'Disease or syndrome'),
-                (Biomarker,'Biomarker'),
-                (Drug,'Drug'),
-                (Lifestyle_risk_factor,'Lifestyle risk factor'),
-                (Musculoskeletal,'Musculoskeletal'),
-                (Surgical_procedure,'Surgical procedure'))
+                   (Biomarker, 'Biomarker'),
+                   (Drug, 'Drug'),
+                   (Lifestyle_risk_factor, 'Lifestyle risk factor'),
+                   (Musculoskeletal, 'Musculoskeletal'),
+                   (Surgical_procedure, 'Surgical procedure'))
+
 
 class IterableMeta(enum.EnumMeta):
     def from_name(cls, name):
         if name in cls:
             return getattr(cls, name)
-    
+
     def __contains__(cls, lhs):
         try:
             cls(lhs)
@@ -30,6 +32,7 @@ class IterableMeta(enum.EnumMeta):
             return lhs in cls.__members__.keys()
         else:
             return True
+
 
 class TAG_TYPE(int, enum.Enum):
     """
@@ -39,6 +42,7 @@ class TAG_TYPE(int, enum.Enum):
     TAG = 1
     COLLECTION = 2
 
+
 class CLINICAL_RULE_TYPE(int, enum.Enum, metaclass=IterableMeta):
     """
         Ruleset type for clinical concept
@@ -46,12 +50,14 @@ class CLINICAL_RULE_TYPE(int, enum.Enum, metaclass=IterableMeta):
     INCLUDE = 1
     EXCLUDE = 2
 
+
 class CLINICAL_CODE_REVIEW(int, enum.Enum, metaclass=IterableMeta):
     """
         Review status for a code within a clinical concept
     """
     INCLUDE = 1
     EXCLUDE = 2
+
 
 class CLINICAL_CODE_SOURCE(int, enum.Enum, metaclass=IterableMeta):
     """
@@ -65,6 +71,7 @@ class CLINICAL_CODE_SOURCE(int, enum.Enum, metaclass=IterableMeta):
     SEARCH_TERM = 6
     CONCEPT_IMPORT = 7
 
+
 class ENTITY_STATUS(int, enum.Enum):
     """
         Status of an entity
@@ -72,15 +79,17 @@ class ENTITY_STATUS(int, enum.Enum):
     DRAFT = 1
     FINAL = 2
 
+
 class APPROVAL_STATUS(int, enum.Enum):
     """
         Approval status of a published entity
     """
-    ANY       = -1
+    ANY = -1
     REQUESTED = 0
-    PENDING   = 1
-    APPROVED  = 2
-    REJECTED  = 3
+    PENDING = 1
+    APPROVED = 2
+    REJECTED = 3
+
 
 class OWNER_PERMISSIONS(int, enum.Enum):
     """
@@ -90,6 +99,7 @@ class OWNER_PERMISSIONS(int, enum.Enum):
     VIEW = 2
     EDIT = 3
 
+
 class GROUP_PERMISSIONS(int, enum.Enum):
     """
         Group permissions
@@ -98,13 +108,15 @@ class GROUP_PERMISSIONS(int, enum.Enum):
     VIEW = 2
     EDIT = 3
 
+
 class WORLD_ACCESS_PERMISSIONS(int, enum.Enum):
     """
         Everyone else permissions
     """
     NONE = 1
     VIEW = 2
-    
+
+
 class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     """
         Describes form method, i.e. to create or update an entity
@@ -112,6 +124,7 @@ class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     """
     CREATE = 1
     UPDATE = 2
+
 
 """
     The excepted X-Requested-With header if a fetch request is made
@@ -203,7 +216,6 @@ DETAIL_WIZARD_SECTION_START = 'components/details/section/section_start.html'
 DETAIL_WIZARD_SECTION_END = 'components/details/section/section_end.html'
 DETAIL_WIZARD_OUTPUT_DIR = 'components/details/outputs'
 
-
 """
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
@@ -222,7 +234,7 @@ HISTORICAL_HIDDEN_FIELDS = [
     Describes fields that should be stripped from api response
 """
 API_HIDDEN_FIELDS = [
-    'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user', 
+    'history_id', 'history_date', 'history_change_reason', 'history_type', 'history_user',
     'template', 'template_data', 'template_version', 'internal_comments'
 ]
 
@@ -272,7 +284,7 @@ ENTITY_FILTER_PARAMS = {
 
         # e.g. some props if needed (this key can be removed but here for example usage)
         'properties': {
-            
+
         },
 
         # how to generate the filter based on the field name
@@ -315,20 +327,20 @@ APPENDED_SECTIONS = [
 """
 DETAIL_PAGE_APPENDED_SECTIONS = [
     {
-      "title": "Permissions",
-      "description": "",
-      "fields": ["permissions"],
-      "requires_auth": True
+        "title": "Permissions",
+        "description": "",
+        "fields": ["permissions"],
+        "requires_auth": True
     },
     {
-      "title": "API",
-      "description": "",
-      "fields": ["api"]
+        "title": "API",
+        "description": "",
+        "fields": ["api"]
     },
     {
-      "title": "Version History",
-      "description": "",
-      "fields": ["version_history"]
+        "title": "Version History",
+        "description": "",
+        "fields": ["version_history"]
     }
 ]
 
@@ -337,33 +349,31 @@ DETAIL_PAGE_APPENDED_SECTIONS = [
         - fields that relate to DETAIL_PAGE_APPENDED_SECTIONS for the detail page
 """
 DETAIL_PAGE_APPENDED_FIELDS = {
-    "permissions":{
-      "title": "Permissions",
-      "field_type": "permissions_section",
-      "active": True,
-      "hide_on_create": True
+    "permissions": {
+        "title": "Permissions",
+        "field_type": "permissions_section",
+        "active": True,
+        "hide_on_create": True
     },
-    "api":{
-      "title": "API",
-      "field_type": "api_section",
-      "active": True,
-      "hide_on_create": True
+    "api": {
+        "title": "API",
+        "field_type": "api_section",
+        "active": True,
+        "hide_on_create": True
     },
-    "version_history":{
-      "title": "Version History",
-      "field_type": "version_history_section",
-      "active": True,
-      "hide_on_create": True
+    "version_history": {
+        "title": "Version History",
+        "field_type": "version_history_section",
+        "active": True,
+        "hide_on_create": True
     },
-    "history_id":{
-      "title": "Version ID",
-      "field_type": "history_id",
-      "active": True,
-      "hide_on_create": True
+    "history_id": {
+        "title": "Version ID",
+        "field_type": "history_id",
+        "active": True,
+        "hide_on_create": True
     }
 }
-
-
 
 """
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
@@ -515,7 +525,7 @@ metadata = {
                 "relative": "description",
                 "filter": {
                     "tag_type": 2,
-                    
+
                     ## Can be added once we det. what we're doing with brands
                     # "source_by_brand": None
                 }
@@ -542,7 +552,7 @@ metadata = {
                 "relative": "description",
                 "filter": {
                     "tag_type": 1,
-                    
+
                     ## Can be added once we det. what we're doing with brands
                     # "source_by_brand": None
                 }
@@ -608,7 +618,7 @@ metadata = {
         'active': True,
         'requires_auth': True,
         'validation': {
-            'type': 'int', 
+            'type': 'int',
             'mandatory': True,
             'computed': True
         },
@@ -621,7 +631,7 @@ metadata = {
         'active': True,
         'requires_auth': True,
         'validation': {
-            'type': 'int', 
+            'type': 'int',
             'mandatory': True,
             'computed': True
         },
@@ -767,7 +777,7 @@ FIELD_TYPES = {
         'input_type': 'access_select_editable',
     },
 
-    'permissions_section':{
+    'permissions_section': {
         'system_defined': True,
         'output_type': 'permissions'
     },

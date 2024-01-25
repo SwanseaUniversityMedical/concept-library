@@ -1,38 +1,32 @@
-'''
+"""
     ---------------------------------------------------------------------------
     COMMON VIEW CODE
     ---------------------------------------------------------------------------
-'''
-from django.conf import settings
-from django.http import HttpResponse
-from django.db.models import Q
-from django.http.response import Http404
-from django.contrib.auth.models import Group
-from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect, render
-from django.core.mail import BadHeaderError, EmailMultiAlternatives
-from django.contrib.auth.decorators import login_required
-
-import sys
+"""
 import logging
+import sys
+
 import requests
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.core.mail import BadHeaderError, EmailMultiAlternatives
+from django.http import HttpResponse
+from django.http.response import Http404
+from django.shortcuts import render
 
 from ..forms.ContactUsForm import ContactForm
-
-from ..models.Tag import Tag
 from ..models.Brand import Brand
-from ..models.Statistics import Statistics
-from ..models.Phenotype import Phenotype
-from ..models.Concept import Concept
-from ..models.Component import Component
-from ..models.DataSource import DataSource
 from ..models.CodingSystem import CodingSystem
+from ..models.DataSource import DataSource
+from ..models.Statistics import Statistics
+from ..models.Tag import Tag
 
 logger = logging.getLogger(__name__)
 
-#--------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
 # Brand / Homepages incl. about
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 def get_brand_index_stats(request, brand):
     if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
         stat = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
@@ -44,12 +38,13 @@ def get_brand_index_stats(request, brand):
         stats = stat_obj[0]
     return stats
 
+
 def index(request):
-    '''
+    """
         Displays the index homepage.
-        Assigns brand defined in the Django Admin Portal under "index_path". 
+        Assigns brand defined in the Django Admin Portal under "index_path".
         If brand is not available it will rely on the default index path.
-    '''
+    """
     index_path = settings.INDEX_PATH
     brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
@@ -61,6 +56,7 @@ def index(request):
         return getattr(sys.modules[__name__], "index_%s" % brand)(request, brand.index_path)
     except:
         return index_home(request, index_path)
+
 
 def index_home(request, index_path):
     stats = get_brand_index_stats(request, 'ALL')
@@ -75,16 +71,18 @@ def index_home(request, index_path):
         'clinical_terminologies': stats['clinical_terminologies']
     })
 
+
 def index_ADP(request, index_path):
-    '''
+    """
         Display the base page for ADP
-    '''
+    """
     return render(request, index_path)
 
+
 def index_HDRUK(request, index_path):
-    '''
+    """
         Display the HDR UK homepage.
-    '''
+    """
     stats = get_brand_index_stats(request, 'HDRUK')
 
     return render(
@@ -123,18 +121,20 @@ def brand_about_index_return(request, pg_name):
     try:
         brand = brand.first()
         # Retrieve the 'about_menu' JSON from Django
-        about_pages_dj_data = brand.about_menu 
+        about_pages_dj_data = brand.about_menu
 
         # converts 'about_menu' django JSON into a dictionary with key as page_name and html index as value
         about_page_templates = {
             item['page_name'].lower(): item['index']
-            for item in about_pages_dj_data if isinstance(item.get('index'), str) and isinstance(item.get('page_name'), str)
+            for item in about_pages_dj_data if
+            isinstance(item.get('index'), str) and isinstance(item.get('page_name'), str)
         }
-        
+
         inner_templates = {
             group['page_name'].lower(): group['index']
             for item in about_pages_dj_data if isinstance(item.get('page_name'), list)
-            for group in item.get('page_name') if isinstance(group.get('index'), str) and isinstance(group.get('page_name'), str)
+            for group in item.get('page_name') if
+            isinstance(group.get('index'), str) and isinstance(group.get('page_name'), str)
         }
 
         # Get the index associated with current page name
@@ -146,12 +146,13 @@ def brand_about_index_return(request, pg_name):
     else:
         return render(request, about_page_name, {})
 
-#--------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
 
 
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Misc. pages e.g. T&C, P&C, Technical pages, Contact us etc
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 def termspage(request):
     """
         terms and conditions page
@@ -170,7 +171,7 @@ def technicalpage(request):
     """
         HDRUK Documentation outside of HDRUK Brand
     """
-    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', { })
+    return render(request, 'clinicalcode/brand/HDRUK/about/technical-details.html', {})
 
 
 def cookies_settings(request):
@@ -181,10 +182,10 @@ def contact_us(request):
     """
         Generation of Contact us page/form and email send functionality.
     """
-    
+
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
-    
+
     captcha = True
     if not settings.IGNORE_CAPTCHA:
         captcha = check_recaptcha(request)
@@ -203,21 +204,21 @@ def contact_us(request):
 
             try:
                 html_content = \
-                    "<strong>New Message from Concept Library Website</strong><br><br>"\
-                    "<strong>Name:</strong><br>"\
-                    "{name}"\
-                    "<br><br>"\
-                    "<strong>Email:</strong><br>"\
-                    "{from_email}"\
-                    "<br><br>"\
-                    "<strong>Issue Type:</strong><br>"\
-                    "{category}"\
-                    "<br><br>"\
-                    "<strong> Tell us about your Enquiry: </strong><br>"\
+                    "<strong>New Message from Concept Library Website</strong><br><br>" \
+                    "<strong>Name:</strong><br>" \
+                    "{name}" \
+                    "<br><br>" \
+                    "<strong>Email:</strong><br>" \
+                    "{from_email}" \
+                    "<br><br>" \
+                    "<strong>Issue Type:</strong><br>" \
+                    "{category}" \
+                    "<br><br>" \
+                    "<strong> Tell us about your Enquiry: </strong><br>" \
                     "{message}".format(
                         name=name, from_email=from_email, category=category, message=message
                     )
-                
+
                 if not settings.IS_DEVELOPMENT_PC:
                     message = EmailMultiAlternatives(
                         email_subject,
@@ -237,9 +238,9 @@ def contact_us(request):
     sent_status = captcha
 
     return render(
-        request, 
-        'cl-docs/contact-us.html', 
-        { 'form': form, 'message_sent': sent_status }
+        request,
+        'cl-docs/contact-us.html',
+        {'form': form, 'message_sent': sent_status}
     )
 
 
@@ -252,7 +253,7 @@ def check_recaptcha(request):
 
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
-    
+
     if request.method == 'POST':
         data = {
             'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
@@ -261,12 +262,12 @@ def check_recaptcha(request):
         result = requests.post(
             'https://www.google.com/recaptcha/api/siteverify',
             data=data,
-            proxies={ 'https': 'http://proxy:8080/' }
+            proxies={'https': 'http://proxy:8080/'}
         ).json()
 
         if result['success']:
             return True
-        
+
         return False
 
 
@@ -287,5 +288,5 @@ def reference_data(request):
         'tags': list(tags),
         'collections': list(collections)
     }
-    
+
     return render(request, 'clinicalcode/about/reference_data.html', context)

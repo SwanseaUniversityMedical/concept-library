@@ -804,3 +804,4 @@ def chk_valid_id(request, set_class, pk, chk_permission=False):
         ret_id = set_class.objects.get(pk=actual_pk).id
 
     return is_valid_id, err, ret_id
+    
