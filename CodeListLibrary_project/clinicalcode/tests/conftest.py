@@ -164,7 +164,7 @@ def setup_webdriver(request):
         None
     """
     if REMOTE_TEST:
-        driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub', options=chrome_options)
+        driver = webdriver.Chrome(options=chrome_options)
     else:
         driver = webdriver.Remote(command_executor=REMOTE_TEST_HOST, options=chrome_options)
     wait = WebDriverWait(driver, 10)
