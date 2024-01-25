@@ -259,6 +259,14 @@ For more advanced usage and additional options, refer to the [Pytest Fixture Doc
 ## 6. Running Tests
 
 Instructions on how to run tests locally, covering running specific tests or modules and generating test coverage reports if applicable.
+To run tests you will have to take several steps:
+1. Put your dev git.token file to the docker/selenium-testing/db/git.token
+
+2. Run ```docker compose -p cll -f docker-compose.selenium.yaml up --build```
+
+3. Make sure that in PGadmin you will see the clluser_test user
+
+4. Inside of the web-test container type ```pytest -s -v```
 
 ## 7. Mocking
 
