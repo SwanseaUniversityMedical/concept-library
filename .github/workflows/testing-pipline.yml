@@ -3,7 +3,7 @@ name: Integration-test
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - "CodeListLibrary_project/**"
   pull_request:
