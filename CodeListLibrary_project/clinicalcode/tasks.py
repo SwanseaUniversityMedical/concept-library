@@ -2,6 +2,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, BadHeaderError
+from django.test.client import RequestFactory
 from django.core import management
 
 import time
@@ -56,12 +57,18 @@ def run_daily_statistics(self):
     '''
     logger = get_task_logger('cll')
     try:
-        stats_utils.collect_statistics()
+        stats_utils.collect_statistics(None)
+
+        request = RequestFactory().get('/')
+        request.user = stats_utils.MockStatsUser()
+        # setattr(request, 'CURRENT_BRAND', )
+        stats_utils.save_homepage_stats(request, is_mock=True)
     except Exception as e:
         logger.warning(f'Unable to run daily statistics job, got error {e}')
+        return False
     else:
         logger.info(f'Successfully updated statistics')
-    return True
+        return True
 
 @shared_task(bind=True)
 def run_weekly_cleanup(self):
