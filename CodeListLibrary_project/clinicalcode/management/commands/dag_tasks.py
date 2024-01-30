@@ -8,8 +8,11 @@ import enum
 import time
 
 from ...generators.graphs.generator import Graph as GraphGenerator
+
 from ...models.CodingSystem import CodingSystem
 from ...models.ClinicalDiseaseCategory import ClinicalDiseaseCategoryEdge, ClinicalDiseaseCategoryNode
+from ...models.ClinicalAnatomicalCategory import ClinicalAnatomicalCategoryEdge, ClinicalAnatomicalCategoryNode
+from ...models.ClinicalSpecialityCategory import ClinicalSpecialityCategoryEdge, ClinicalSpecialityCategoryNode
 
 
 ######################################################
@@ -43,6 +46,8 @@ class GraphType(int, enum.Enum, metaclass=IterableMeta):
 
     """
     CODE_CATEGORIES = 0
+    ANATOMICAL_CATEGORIES = 1
+    SPECIALITY_CATEGORIES = 2
 
 class LogType(int, enum.Enum, metaclass=IterableMeta):
     """
@@ -93,6 +98,14 @@ class GraphBuilders:
         """
             ICD-10 Disease Category builder test(s)
 
+            Note:
+
+                ICD-10 codes were scraped from the ICD-10 classification website,
+                and matched with the Atlas phecodes
+
+                This builder generates a DAG of ICD-10 codes, matched with the codes
+                within our database and selects the appropriate CodingSystem
+
         """
 
         ''' [!] Warning: This is only partially optimised '''
@@ -101,8 +114,8 @@ class GraphBuilders:
 
         # process nodes
         nodes = [ ]
-        linkage = [ ]
         result = [ ]
+        linkage = [ ]
         name_hashmap = { }
         started = time.time()
 
@@ -124,13 +137,13 @@ class GraphBuilders:
 
                 descendants = child_data.get('children')
                 child_count = len(descendants) if isinstance(descendants, list) else 0
-                result.append(f'\t\tChildNode<name: {node.name}, code: {node.code}, children: {child_count}>')
+                result.append(f'\t\tChildDiseaseNode<name: {node.name}, code: {node.code}, children: {child_count}>')
 
                 if isinstance(descendants, list):
                     create_linkage(node, index, descendants)
 
         for root_data in data:
-            # clean up the section name(s)
+            # clean up the section name(s) from scraped data
             root_name = root_data.get('name').strip()
             matched_code = re.search(r'(\b(?=[a-zA-Z\d]+)[a-zA-Z]*\d[a-zA-Z\d]*-\b(?=[A-Z\d]+)[a-zA-Z]*\d[a-zA-Z\d]*)', root_name)
 
@@ -143,7 +156,7 @@ class GraphBuilders:
             nodes.append(root)
 
             children = root_data.get('sections')
-            result.append(f'\tRootNode<name: {root.name}, code: {root.code}, children: {len(children)}>')
+            result.append(f'\tRootDiseaseNode<name: {root.name}, code: {root.code}, children: {len(children)}>')
 
             create_linkage(root, index, children)
 
@@ -168,7 +181,7 @@ class GraphBuilders:
         icd_10_id = CodingSystem.objects.get(name='ICD10 codes').id
 
         with connection.cursor() as cursor:
-            ''' [!] Note: We could probably optimise this '''
+            ''' [!] Note: We could probably optimise this? '''
 
             sql = """
             -- update matched values
@@ -193,7 +206,121 @@ class GraphBuilders:
 
         # create result string for log
         elapsed = (time.time() - started)
-        result = 'Created Nodes<coding_system: %d, elapsed: %.2f s> {\n%s\n}' % (icd_10_id, elapsed, '\n'.join(result))
+        result = 'Created DiseaseNodes<coding_system: %d, elapsed: %.2f s> {\n%s\n}' % (icd_10_id, elapsed, '\n'.join(result))
+
+        return True, result
+
+    @classmethod
+    def ANATOMICAL_CATEGORIES(cls, data):
+        """
+            Anatomical category builder
+
+            Note:
+
+                Currently, there are no known links between anatomical categories
+                provided by the Atlas dataset.
+
+                As such, this method creates a tree without any children.
+
+        """
+
+        if not isinstance(data, list):
+            return False, 'Invalid data type, expected list but got %s' % type(data)
+
+        # process nodes
+        nodes = [ ]
+        result = [ ]
+        started = time.time()
+
+        for root_node in data:
+            node_id = root_node.get('id')
+            node_name = root_node.get('name')
+
+            if not isinstance(node_id, int) or not isinstance(node_name, str):
+                err = 'Failed to create Node, expected <id: number, name: string> but got Node<id: %s, name: %s>' \
+                    % (type(node_id), type(node_name))
+                return False, err
+
+            node = ClinicalAnatomicalCategoryNode(atlas_id=node_id, name=node_name.strip())
+            nodes.append(node)
+            result.append(f'\tAnatomicalRootNode<name: {node_name}, id: {node_id}>')
+
+        # bulk create nodes
+        nodes = ClinicalAnatomicalCategoryNode.objects.bulk_create(nodes)
+
+        # create result string for log
+        elapsed = (time.time() - started)
+        result = 'Created AnatomicalNodes<elapsed: %.2f s, count: %d> {\n%s\n}' % (elapsed, len(nodes), '\n'.join(result))
+
+        return True, result
+
+    @classmethod
+    def SPECIALITY_CATEGORIES(cls, data):
+        """
+            Clinical domain builder
+
+            Note:
+
+                This speciality data was scraped from the Atlas datasources,
+                it creates a tree hierarchy of clinical specialities and subspecialities
+
+                DAG required as there are some specialities with overlap, e.g.:
+                    
+                    - Pre-hospital Emergency Medicine as as child of Anaesthetics, ICM and EM
+                    - Paediatric Intensive Care Medicine as a child of Paediatrics and ICM
+
+        """
+
+        if not isinstance(data, dict):
+            return False, 'Invalid data type, expected list but got %s' % type(data)
+
+        # process nodes
+        nodes = [ ]
+        result = [ ]
+        linkage = [ ]
+        started = time.time()
+
+        for root_key, children in data.items():
+            root_name = root_key.strip()
+            root_node = ClinicalSpecialityCategoryNode(name=root_name)
+
+            root_index = len(nodes)
+            nodes.append(root_node)
+            result.append(f'\tSpecialityRootNode<name: {root_name}>')
+
+            if len(children) > 0:
+                for child_key in children:
+                    child_name = child_key.strip()
+
+                    related_index = next((i for i, e in enumerate(nodes) if e.name == child_name), None)
+                    if related_index is None:
+                        related_index = len(nodes)
+                        child = ClinicalSpecialityCategoryNode(name=child_name)
+                        nodes.append(child)
+
+                    linkage.append([root_index, related_index])
+                    result.append(f'\t\tChildSpecialityNode<name: {child_name}>')
+
+        # bulk create nodes & children
+        nodes = ClinicalSpecialityCategoryNode.objects.bulk_create(nodes)
+
+        # bulk create edges
+        ClinicalSpecialityCategoryNode.children.through.objects.bulk_create(
+            [
+                # list comprehension here is required because we need to match the instance(s)
+                ClinicalSpecialityCategoryNode.children.through(
+                    name=f'{nodes[link[0]].name} | {nodes[link[1]].name}',
+                    parent=nodes[link[0]],
+                    child=nodes[link[1]]
+                )
+                for link in linkage
+            ],
+            batch_size=7000
+        )
+
+        # create result string for log
+        elapsed = (time.time() - started)
+        result = 'Created SpecialityNodes<elapsed: %.2f s> {\n%s\n}' % (elapsed, '\n'.join(result))
 
         return True, result
 
@@ -346,7 +473,7 @@ class Command(BaseCommand):
         self.__log('Building Graph from File<%s> was completed successfully' % filepath, LogType.SUCCESS)
 
         if isinstance(result, str):
-            self.__log(result, LogType.SUCCESS)
+            self.__log_to_file(result, LogType.SUCCESS)
 
     def __generate_debug_dag(self):
         """
@@ -406,7 +533,7 @@ class Command(BaseCommand):
 
         # det. handle
         self._verbose = verbose
-        self._log_dir = log_file
+        self._log_dir = log_file if isinstance(log_file, str) and len(log_file) > 0 else None
 
         if is_debug:
             self.__generate_debug_dag()

@@ -16,7 +16,7 @@
     {
       "title": "Overview",
       "description": "An overview of the phenotype with basic metadata.",
-      "fields": ["type", "coding_system", "data_sources", "collections", "tags", "source_reference"]
+      "fields": ["type", "coding_system", "data_sources", "collections", "tags"]
     },
     {
       "title": "Definition",
@@ -37,9 +37,10 @@
       "hide_if_empty": true
     },
     {
-      "title": "Phecode",
-      "description": "The associated clinical code",
-      "fields": ["phecode"]
+      "title": "Phecodes",
+      "documentation": "clinical-coded-phenotype-docs",
+      "description": "Clinical codes used to define this phenotype.",
+      "fields": ["concept_information"]
     },
     {
       "title": "Publication",
@@ -113,13 +114,13 @@
       },
       "hide_on_create": true
     },
-    "phecode": {
-      "title": "Phecode",
-      "description": "The clinical code that captures this clinical concept",
-      "field_type": "phecode",
+    "concept_information": {
+      "title": "Phecodes",
+      "description": "A set of concepts, each of which defines a list of Phecodes derived from clinical codes.",
+      "field_type": "concept_information",
       "active": true,
       "validation": {
-        "type": "phecode",
+        "type": "concept",
         "mandatory": false,
         "has_children": true
       }
