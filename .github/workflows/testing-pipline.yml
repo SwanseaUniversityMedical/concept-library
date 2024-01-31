@@ -155,3 +155,4 @@ jobs:
           PUBLISH_DIR: allure-history
         with:
           keepFiles: true
+
