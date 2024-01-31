@@ -3,7 +3,7 @@ name: Integration-test
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - "CodeListLibrary_project/**"
   pull_request:
@@ -115,8 +115,8 @@ jobs:
         if: (success() || failure()) && github.event_name != 'pull_request'
         continue-on-error: true
         with:
-          ref: gh-pages
-          path: gh-pages
+          ref: testing-result-pages
+          path: testing-result-pages
 
       - name: Allure report action # Step to generate Allure report
         if: (success() || failure()) && github.event_name != 'pull_request'
@@ -124,22 +124,34 @@ jobs:
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
           allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report
-          allure_history: allure-history
-          gh_pages: gh-pages
-          keep_reports: 10 # Specify the number of previous reports to keep
+          allure_history: allure-history 
+          gh_pages: testing-result-pages
+          report_url: https://meek-florentine-a03d43.netlify.app
+          keep_reports: 15 # Specify the number of previous reports to keep
 
-      - name: Upload an artifact for GitHub Pages
+      - name: Upload an artifact files for record
         uses: actions/upload-pages-artifact@v2
         if: (success() || failure()) && github.event_name != 'pull_request'
         with:
           name: allure-report
           path: CodeListLibrary_project/clinicalcode/tests/allure-report
+      
+      - name: Publish to Netlify
+        uses: netlify/actions/cli@master
+        if: (success() || failure()) && github.event_name != 'pull_request'
+        with:
+          args: deploy --dir=allure-history --prod --functions=functions
+        env:
+          NETLIFY_SITE_ID:   ${{secrets.NETLIFY_SITE_ID}}
+          NETLIFY_AUTH_TOKEN: ${{secrets.NETLIFY_AUTH_TOKEN}}
+        timeout-minutes: 1
 
       - name: Deploy report to gh-pages branch
         if: (success() || failure()) && github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v2
         env:
           PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISH_BRANCH: gh-pages
+          PUBLISH_BRANCH: testing-result-pages
           PUBLISH_DIR: allure-history
-          keep_files: true
+        with:
+          keepFiles: true
