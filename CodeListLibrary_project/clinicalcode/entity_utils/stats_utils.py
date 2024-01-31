@@ -8,6 +8,16 @@ import json
 from ..models import GenericEntity, Template, Statistics, Brand, CodingSystem, DataSource, PublishedGenericEntity, Tag
 from . import template_utils, constants, model_utils, entity_db_utils, concept_utils
 
+class MockStatsUser:
+    """
+        Fake user for use within a RequestFactory
+        to simulate the request used for computation of statistics
+    """
+    is_active = True
+    is_superuser = False
+    is_authenticated = True
+    is_superuser = True
+
 def sort_by_count(a, b):
     """
         Used to sort filter statistics in descending order
@@ -274,13 +284,13 @@ def clear_statistics_history():
         cursor.execute(sql)
 
 
-def compute_homepage_stats(request, brand):
+def compute_homepage_stats(request, brand, is_mock=False):
     stat = get_homepage_stats(request, brand)
 
     if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
         stats = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
         stats.stat = stat
-        stats.updated_by = [None, request.user][request.user.is_authenticated]
+        stats.updated_by = [None, request.user][request.user.is_authenticated] if not is_mock else None
         stats.modified = datetime.datetime.now()
         stats.save()
 
@@ -291,22 +301,27 @@ def compute_homepage_stats(request, brand):
         org=brand,
         type='landing-page',
         stat=stat,
-        created_by=[None, request.user][request.user.is_authenticated]
+        created_by=[None, request.user][request.user.is_authenticated] if not is_mock else None
     )
 
     clear_statistics_history()
     return [stat, obj.id]
 
 
-def save_homepage_stats(request, brand=None):
+def save_homepage_stats(request, brand=None, is_mock=False):
     if brand is not None:
-        return compute_homepage_stats(request, brand)
+        return compute_homepage_stats(request, brand, is_mock)
     
     brands = Brand.objects.all()
     result = [ ]
     for brand in brands:
-        result.append(compute_homepage_stats(request, brand.name))
-    result.append(compute_homepage_stats(request, 'ALL'))
+        if is_mock:
+            setattr(request, 'CURRENT_BRAND', brand)
+        result.append(compute_homepage_stats(request, brand.name, is_mock))
+    
+    if is_mock:
+        setattr(request, 'CURRENT_BRAND', None)
+    result.append(compute_homepage_stats(request, 'ALL', is_mock))
     return result
 
 
@@ -317,7 +332,7 @@ def get_homepage_stats(request, brand=None):
 
     if brand is None:
         brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-    
+
     collection_ids = [ ]
     if brand == 'ALL':
         collection_ids = Tag.objects.filter(tag_type=2)
