@@ -1,5 +1,10 @@
 # Pytest Module - Ways of Working
 
+Roshan Toby, Artur Zinnurov  
+*Document last updated on 29/01/2024*
+---
+
+
 ## Purpose
 
 This document outlines guidelines and best practices for working with the Pytest module in our project. These guidelines are designed to ensure consistency, maintainability, and efficiency in our testing processes.
@@ -13,9 +18,7 @@ This document outlines guidelines and best practices for working with the Pytest
 6. [Mocking](#mocking)
 7. [Documentation](#documentation)
 8. [Continuous Integration](#continuous-integration)
-9. [Code Review](#code-review)
-10. [Troubleshooting](#troubleshooting)
-11. [Resources](#resources)
+9. [Resources](#resources)
 
 ## 1. Setting Up Pytest
 
@@ -26,7 +29,7 @@ pip install pytest
 ```
 All test requirements are present in `docker/requirements/test-requirements.txt`
 
-## 3. Test Organization
+## 2. Test Organization
 
 In our project, we follow a structured approach to organizing tests, ensuring clarity and consistency across different 
 types of tests.
@@ -71,7 +74,7 @@ folder and common python constants used across different tests are centralized i
 This organizational structure enhances maintainability and readability while ensuring that test-related resources 
 are neatly categorized.
 
-## 4. Writing Tests
+## 3. Writing Tests
 
 Writing effective tests is crucial for maintaining a reliable codebase. Follow these best practices to ensure clarity, 
 maintainability, and effectiveness in your test suite.
@@ -180,7 +183,7 @@ tests/
 ```
 By leveraging conftest.py, you can avoid duplication of setup code and create a consistent environment for your tests.
 
-## 5. Test Fixtures
+## 4. Test Fixtures
 
 Fixtures are a powerful feature in Pytest that allows you to set up and provide a consistent environment for your tests. 
 This guide will walk you through the basics of fixtures, how to create them, and best practices for using them effectively in your test suite.
@@ -256,10 +259,11 @@ def setup_and_teardown_fixture():
 ```
 For more advanced usage and additional options, refer to the [Pytest Fixture Documentation](https://docs.pytest.org/en/7.1.x/reference/fixtures.html#).
 
-## 6. Running Tests
+## 5. Running Tests
 
-Instructions on how to run tests locally, covering running specific tests or modules and generating test coverage reports if applicable.
-To run tests you will have to take several steps:
+Instructions on how to run tests locally:
+
+
 1. Put your dev git.token file to the docker/selenium-testing/db/git.token
 
 2. Run ```docker compose -p cll -f docker-compose.selenium.yaml up --build```
@@ -268,14 +272,17 @@ To run tests you will have to take several steps:
 
 4. Inside of the web-test container type ```pytest -s -v``` or ```pytest ``` if you do not want to see print statement
 
-5. If you will  encounter problem run ```docker compose -p cll -f docker-compose.selenium.yaml down --volumes```
+5. For functional test using selenium you can view local sessions at http://localhost:4444/.
+
+6. If you encounter any problems run ```docker compose -p cll -f docker-compose.selenium.yaml down --volumes```
 
 
-## 7. Mocking
+## 6. Mocking
 
 Best practices for using mocks, including the recommendation to use `pytest-mock` and a reminder not to overuse mocks.
 
-## 8. Documentation
+## 7. Documentation
+
 
 Well-documented test code is essential for ensuring that team members can understand, maintain, and 
 extend the test suite effectively. Follow these guidelines to ensure thorough documentation in your Pytest module.
@@ -289,21 +296,15 @@ extend the test suite effectively. Follow these guidelines to ensure thorough do
 - Document constants stored in `CodeListLibrary_project/clinicalcode/tests/constants/constants.py`. Maintain a 
   dedicated file for constants and provide descriptions for each constant.
 
-## 9. Continuous Integration
+## 8. Continuous Integration
 
-Integration of Pytest into the project's CI/CD pipeline, specifying Python versions, and including test coverage checks in CI.
-Concept Library has integrated pipline for the tests but it is advisable to not change the /env/remotetest.compose.env file 
+Our Continuous Integration (CI) pipeline triggers with every Pull Request (PR) into the master branch, running Pytest 
+tests and providing code coverage insights directly in the PR. Additionally, Allure reports are generated to showcase 
+detailed test results and statistics. These reports are published on GitHub Pages, ensuring quick access to essential 
+information during the review process. Concept Library has integrated pipline for the tests but it is advisable to not change the /env/remotetest.compose.env file.
 
+## 9. Resources
 
-## 10. Code Review
-
-Inclusion of testing aspects in the code review process, ensuring new tests accompany new features or bug fixes, and reviewing adherence to testing best practices.
-
-## 11. Troubleshooting
-
-Guidance on common testing issues, debugging tips for failed tests, and any project-specific troubleshooting procedures.
-
-## 12. Resources
 
  - [Pytest Documentation](https://docs.pytest.org/en/7.1.x/how-to/index.html)
  - Tutorials
