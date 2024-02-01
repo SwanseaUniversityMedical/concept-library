@@ -10,6 +10,14 @@ if [ ! -z $AWAIT_POSTGRES ] && [ $AWAIT_POSTGRES = "True" ]; then
   /bin/wait-for-it.sh -t 0 $DB_HOST:5432 -- echo "Postgres is live"
 fi
 
+echo "==========================================="
+echo "=========== Clear static files ============"
+echo "==========================================="
+
+if [ ! -d "staticroot" ]; then
+  rm -rf staticroot
+fi
+
 if [ ! -z $CLL_READ_ONLY ] && [ $CLL_READ_ONLY = "False" ]; then
   echo "==========================================="
   echo "============== Migrating app =============="
@@ -22,26 +30,17 @@ fi
 echo "==========================================="
 echo "============== Compiling app =============="
 echo "==========================================="
+
+chown -R www-data:www-data /var/www/concept_lib_sites
+
 if [ ! -z $DEBUG ] && [ $DEBUG = "False" ]; then
   python manage.py compilescss
-  python manage.py collectstatic --noinput --clear --ignore=*.scss -v 0
+  python manage.py collectstatic --noinput --clear -v 0
   python manage.py compress
-  python manage.py collectstatic --noinput --ignore=*.scss -v 0
-  
-  chown -R www-data:www-data /var/www/concept_lib_sites
-  
-  # test if re-run avoid compress issues
-  python manage.py compilescss
-  python manage.py collectstatic --noinput --clear --ignore=*.scss -v 0
-  python manage.py compress
-  python manage.py collectstatic --noinput --ignore=*.scss -v 0
-  
-  chown -R www-data:www-data /var/www/concept_lib_sites
+  python manage.py collectstatic --noinput -v 0
 else
   python manage.py compilescss --delete-files
   python manage.py collectstatic --clear --noinput -v 0
-
-  chown -R www-data:www-data /var/www/concept_lib_sites
 fi
 
 echo "==========================================="
