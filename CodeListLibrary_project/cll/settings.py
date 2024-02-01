@@ -20,7 +20,18 @@ import ldap
 import numbers
 
 ''' Utilities '''
+class Symbol:
+    """
+        Used as a primitive to describe an optional argument.
+        
+        In this case, it's just a basic impl. of JS symbol.
+            See ref @ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
+    """
+    def __init__(self, name='Symbol'):
+        self.name = f'Symbol({name})'
 
+    def __repr__(self):
+        return self.name
 
 def strtobool(val):
     """
@@ -63,7 +74,7 @@ def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
     return IP
 
 
-def get_env_value(env_variable, cast=None):
+def get_env_value(env_variable, cast=None, default=Symbol('None')):
     """
         Attempts to get env variable from OS
     """
@@ -77,8 +88,13 @@ def get_env_value(env_variable, cast=None):
         else:
             return os.environ[env_variable]
     except KeyError:
-        error_msg = 'Set the {} environment variable'.format(env_variable)
-        raise ImproperlyConfigured(error_msg)
+        if isinstance(default, Symbol):
+            error_msg = 'Expected environment variable "{}" of type<{}>, please set a valid "{}" environment variable' \
+                .format(env_variable, cast or 'string', env_variable)
+
+            raise ImproperlyConfigured(error_msg)
+
+        return default
 
 
 # ==============================================================================#
@@ -187,14 +203,16 @@ GRAPH_MODELS = {
 }
 
 ## Message template settings
-MESSAGE_TAGS = {messages.ERROR: 'danger'}
+MESSAGE_TAGS = { messages.ERROR: 'danger' }
 
 ### Icon settings for demo sites, incl. cookie alert(s)
 DEV_PRODUCTION = ''
-if IS_DEMO:  # Demo server
+
+# Demo server
+if IS_DEMO:
     DEV_PRODUCTION = '<i class="glyphicon glyphicon-cog" aria-hidden="true">&#9881; </i> DEMO SITE <i class="glyphicon glyphicon-cog" aria-hidden="true">&#9881;</i>'
 
-SHOW_COOKIE_ALERT = get_env_value('SHOW_COOKIE_ALERT', cast='bool')
+SHOW_COOKIE_ALERT = get_env_value('SHOW_COOKIE_ALERT', cast='bool', default=False)
 
 # ==============================================================================#
 
@@ -204,10 +222,10 @@ SHOW_COOKIE_ALERT = get_env_value('SHOW_COOKIE_ALERT', cast='bool')
 ENABLE_LDAP_AUTH = get_env_value('ENABLE_LDAP_AUTH', cast='bool')
 
 AUTH_LDAP_SERVER_URI = get_env_value('AUTH_LDAP_SERVER_URI')
+
 AUTH_LDAP_BIND_DN = get_env_value('AUTH_LDAP_BIND_DN')
 
 AUTH_LDAP_BIND_PASSWORD = get_env_value('AUTH_LDAP_BIND_PASSWORD')
-
 
 AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE, '(sAMAccountName=%(user)s)'), )
 
