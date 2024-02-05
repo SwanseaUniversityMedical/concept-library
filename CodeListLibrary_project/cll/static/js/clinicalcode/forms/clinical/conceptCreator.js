@@ -789,7 +789,7 @@ export default class ConceptCreator {
   #getImportedName(data) {
     const name = data.details.name;
     const { concept_id: id, concept_version_id: history_id } = data;
-    return `C${id}/${history_id} - ${name}`;
+    return `C${id} - ${name}`;
   }
 
   /**
