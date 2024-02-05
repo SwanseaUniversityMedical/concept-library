@@ -777,7 +777,7 @@ export default class ConceptCreator {
    * @returns {string} the source name
    */
   #generateConceptRuleSource(data) {
-    return `C${data.concept_id}/${data.concept_version_id}`;
+    return `C${data.concept_id}`;
   }
 
   /**
@@ -788,7 +788,7 @@ export default class ConceptCreator {
    */
   #getImportedName(data) {
     const name = data.details.name;
-    const { concept_id: id, concept_version_id: history_id } = data;
+    const { concept_id: id } = data;
     return `C${id} - ${name}`;
   }
 
