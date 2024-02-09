@@ -552,7 +552,6 @@ def reorder_search_results(search_results, order=None, searchterm=''):
     
     return results
 
-@gen_utils.measure_perf
 def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
     """
         Method gets searchable, published entities and applies filters retrieved from the request param(s)

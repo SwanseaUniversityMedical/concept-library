@@ -1,14 +1,10 @@
 from django.db import connection
-from django.db.models import F, Value, ForeignKey, Subquery, OuterRef
+from django.db.models import ForeignKey
 from django.http.request import HttpRequest
 
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
-from ..models.Component import Component
-from ..models.CodeList import CodeList
-from ..models.ConceptCodeAttribute import ConceptCodeAttribute
-from ..models.Code import Code
 
 from . import model_utils, permission_utils
 from .constants import (
@@ -334,123 +330,136 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
     if not historical_concept:
         return None
 
-    # Find the associated components (or now, rulesets) given the concept and its historical date
-    components = Component.history.filter(
-        concept__id=historical_concept.id,
-        history_date__lte=historical_concept.history_date
-    ) \
-    .annotate(
-        was_deleted=Subquery(
-            Component.history.filter(
-                id=OuterRef('id'),
-                concept__id=historical_concept.id,
-                history_date__lte=historical_concept.history_date,
-                history_type='-'
+    with connection.cursor() as cursor:
+        sql = '''
+            with components as (
+                select c0.id,
+                       max(c0.history_id) as history_id
+                  from public.clinicalcode_historicalcomponent as c0
+                  left join public.clinicalcode_historicalcomponent as c1
+                    on c1.id = c0.id
+                   and c1.concept_id = c0.concept_id
+                   and c1.history_date <= %(hc_date)s::timestamptz
+                   and c1.history_type = '-'
+                 where c0.concept_id = %(hc_id)s
+                   and c0.history_date <= %(hc_date)s::timestamptz
+                   and c0.history_type <> '-'
+                   and c1.id is null
+                 group by c0.id
+                 order by c0.id asc
             )
-            .order_by('id', '-history_id')
-            .distinct('id')
-            .values('id')
+
+            select c0.*
+              from public.clinicalcode_historicalcomponent as c0
+              join components as c1
+                on c0.id = c1.id
+               and c0.history_id = c1.history_id
+        '''
+
+        cursor.execute(
+            sql,
+            params={ 'hc_id': historical_concept.id, 'hc_date': historical_concept.history_date }
         )
-    ) \
-    .exclude(was_deleted__isnull=False) \
-    .order_by('id', '-history_id') \
-    .distinct('id')
 
-    if not components.exists():
-        return None
+        columns = [col[0] for col in cursor.description]
+        components = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    components_data = []
-    codelist_data = []
-    seen_codes = set()
-    for component in components:
-        component_data = {
-            'id': component.id,
-            'name': component.name,
-            'logical_type': CLINICAL_RULE_TYPE(component.logical_type).name,
-            'source_type': CLINICAL_CODE_SOURCE(component.component_type).name,
-            'source': component.source,
-        }
-
-        if include_source_data:
-            component_data |= {
-                'used_description': component.used_description,
-                'used_wildcard': component.used_wildcard,
-                'was_wildcard_sensitive': component.was_wildcard_sensitive,
+        codelist_data = []
+        components_data = []
+        for component in components:
+            component_data = {
+                'id': component.get('id'),
+                'name': component.get('name'),
+                'logical_type': CLINICAL_RULE_TYPE(component.get('logical_type')).name,
+                'source_type': CLINICAL_CODE_SOURCE(component.get('component_type')).name,
+                'source': component.get('source'),
             }
 
-        # Find the codelist associated with this component
-        codelist = CodeList.history.exclude(history_type='-') \
-        .filter(
-            component__id=component.id,
-            history_date__lte=historical_concept.history_date
-        ) \
-        .order_by('-history_date', '-history_id')
+            if include_source_data:
+                component_data |= {
+                    'used_description': component.get('used_description'),
+                    'used_wildcard': component.get('used_wildcard'),
+                    'was_wildcard_sensitive': component.get('was_wildcard_sensitive'),
+                }
 
-        if not codelist.exists():
-            continue
+            if not include_codes and not aggregate_codes:
+                components_data.append(component_data)
+                continue
 
-        if include_codes or aggregate_codes:
-            codelist = codelist.first()
-
-            # Find the codes associated with this codelist
-            codes = Code.history.filter(
-                code_list__id=codelist.id,
-                history_date__lte=historical_concept.history_date
-            ) \
-            .annotate(
-                was_deleted=Subquery(
-                    Code.history.filter(
-                        id=OuterRef('id'),
-                        code_list__id=codelist.id,
-                        history_date__lte=historical_concept.history_date,
-                        history_type='-'
-                    )
-                    .order_by('code', '-history_id')
-                    .distinct('code')
-                    .values('id')
-                )
-            ) \
-            .exclude(was_deleted__isnull=False) \
-            .order_by('id', '-history_id') \
-            .distinct('id')
-
-            component_data['code_count'] = codes.count()
-
+            codes = []
             if attribute_headers is None:
-                # Add each code
-                codes = codes.values('id', 'code', 'description')
-                codes = list(codes)
-            else:
-                # Annotate each code with its list of attribute values based on the code_attribute_header
-                codes = codes.annotate(
-                    attributes=Subquery(
-                        ConceptCodeAttribute.history.filter(
-                            concept__id=historical_concept.id,
-                            history_date__lte=historical_concept.history_date,
-                            code=OuterRef('code')
-                        )
-                        .annotate(
-                            was_deleted=Subquery(
-                                ConceptCodeAttribute.history.filter(
-                                    concept__id=historical_concept.id,
-                                    history_date__lte=historical_concept.history_date,
-                                    code=OuterRef('code'),
-                                    history_type='-'
-                                )
-                                .order_by('code', '-history_id')
-                                .distinct('code')
-                                .values('id')
-                            )
-                        )
-                        .exclude(was_deleted__isnull=False)
-                        .order_by('id', '-history_id')
-                        .distinct('id')
-                        .values('attributes')
-                    )
-                ) \
-                .values('id', 'code', 'description', 'attributes')
+                sql = '''
+                    select code.id,
+                           code.code,
+                           code.description
+                      from public.clinicalcode_historicalcodelist as codelist
+                      join public.clinicalcode_historicalcode as code
+                        on code.code_list_id = codelist.id
+                       and code.history_date <= %(hc_date)s::timestamptz
+                      left join public.clinicalcode_historicalcode as deletedcode
+                        on deletedcode.id = code.id
+                       and deletedcode.code_list_id = codelist.id
+                       and deletedcode.history_date <= %(hc_date)s::timestamptz
+                       and deletedcode.history_type = '-'
+                     where codelist.component_id = %(hc_c_id)s
+                       and codelist.history_date <= %(hc_date)s::timestamptz
+                       and codelist.history_type <> '-'
+                       and code.history_type <> '-'
+                       and deletedcode.id is null
+                '''
 
-                codes = list(codes)
+                cursor.execute(
+                    sql,
+                    params={ 'hc_c_id': component.get('id'), 'hc_date': historical_concept.history_date }
+                )
+
+                columns = [col[0] for col in cursor.description]
+                codes = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            else:
+                sql = '''
+                    select code.id,
+                           code.code,
+                           code.description,
+                           attributes.attributes
+                      from public.clinicalcode_historicalcodelist as codelist
+                      join public.clinicalcode_historicalcode as code
+                        on code.code_list_id = codelist.id
+                       and code.history_date <= %(hc_date)s::timestamptz
+                      left join public.clinicalcode_historicalcode as deleted_code
+                        on deleted_code.id = code.id
+                       and deleted_code.code_list_id = codelist.id
+                       and deleted_code.history_date <= %(hc_date)s::timestamptz
+                       and deleted_code.history_type = '-'
+                      left join (
+                        select attr.*
+                          from public.clinicalcode_historicalconceptcodeattribute as attr
+                          left join public.clinicalcode_historicalconceptcodeattribute as deleted_attr
+                            on deleted_attr.id = attr.id
+                           and deleted_attr.history_type = '-'
+                           and deleted_attr.history_date <= %(hc_date)s::timestamptz
+                         where attr.concept_id = %(hc_id)s
+                           and attr.history_date <= %(hc_date)s::timestamptz
+                           and attr.history_type <> '-'
+                           and deleted_attr.id is null
+                      ) as attributes
+                        on attributes.concept_id = %(hc_id)s
+                       and attributes.history_date <= %(hc_date)s::timestamptz
+                       and attributes.code = code.code
+                     where codelist.component_id = %(hc_c_id)s
+                       and codelist.history_date <= %(hc_date)s::timestamptz
+                       and codelist.history_type <> '-'
+                       and code.history_type <> '-'
+                       and deleted_code.id is null
+                '''
+
+                cursor.execute(
+                    sql,
+                    params={ 'hc_c_id': component.get('id'), 'hc_id': historical_concept.id, 'hc_date': historical_concept.history_date }
+                )
+
+                columns = [col[0] for col in cursor.description]
+                codes = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
                 if format_for_api:
                     for code in codes:
                         attributes = code.get('attributes')
@@ -460,30 +469,26 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                                 headers, attributes
                             ))
 
-            # Append codes to component if required
             if include_codes:
                 component_data['codes'] = codes
 
-            # Append aggregated codes if required
             if aggregate_codes:
-                codes = [
-                    seen_codes.add(obj.get('code')) or obj
-                    for obj in codes
-                    if obj.get('code') not in seen_codes
-                ]
                 codelist_data += codes
 
-        components_data.append(component_data)
+            components_data.append(component_data)
+
+    result = { 'components': components_data }
 
     if aggregate_codes:
-        return {
-            'codelist': codelist_data,
-            'components': components_data,
-        }
+        seen_codes = set([])
+        codes = [
+            seen_codes.add(obj.get('code')) or obj
+            for obj in codes
+            if obj.get('code') not in seen_codes
+        ]
+        codelist_data += codes
 
-    return {
-        'components': components_data
-    }
+    return result
 
 def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
     """
