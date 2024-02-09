@@ -1132,17 +1132,19 @@ export default class ConceptCreator {
   #tryRenderConceptComponent(concept) {
     const template = this.templates['concept-item'];
     const access = this.#deriveEditAccess(concept);
+    const phenotype_url = `${window.location.origin}/phenotypes/${concept.details.phenotype_owner}/detail`;
     const html = interpolateHTML(template, {
       'subheader': access ? 'Codelist' : 'Imported Codelist',
       'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
       'concept_id': concept?.concept_id,
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
+      'phenotype_owner': concept?.details?.phenotype_owner || '',
+      'phenotype_owner_url': phenotype_url,
       'coding_system': concept?.coding_system?.description,
       'out_of_date': !access ? concept?.details?.latest_version?.is_out_of_date : false,
       'can_edit': access,
     });
-
     const containerList = this.element.querySelector('#concept-content-list');
     const doc = parseHTMLFromString(html);
     const conceptItem = containerList.appendChild(doc.body.children[0]);
