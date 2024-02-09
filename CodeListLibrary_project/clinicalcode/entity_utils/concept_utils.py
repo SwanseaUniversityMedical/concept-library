@@ -330,6 +330,8 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
     if not historical_concept:
         return None
 
+    seen_codes = set([])
+    components_data = []
     with connection.cursor() as cursor:
         sql = '''
             with components as (
@@ -364,8 +366,6 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
         columns = [col[0] for col in cursor.description]
         components = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-        codelist_data = []
-        components_data = []
         for component in components:
             component_data = {
                 'id': component.get('id'),
@@ -473,20 +473,14 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                 component_data['codes'] = codes
 
             if aggregate_codes:
-                codelist_data += codes
+                map(lambda obj: seen_codes.add(obj.get('code')) if obj.get('code') else None, codes)
 
             components_data.append(component_data)
 
     result = { 'components': components_data }
 
     if aggregate_codes:
-        seen_codes = set([])
-        codes = [
-            seen_codes.add(obj.get('code')) or obj
-            for obj in codes
-            if obj.get('code') not in seen_codes
-        ]
-        codelist_data += codes
+        result.update({ 'codelist': list(seen_codes) })
 
     return result
 
@@ -810,7 +804,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         
         if not latest_version:
             latest_version = historical_concept
-        
+
         concept_data['latest_version'] = {
             'id': latest_version.id,
             'history_id': latest_version.history_id,
