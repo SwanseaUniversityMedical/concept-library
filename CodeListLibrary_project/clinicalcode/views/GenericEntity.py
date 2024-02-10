@@ -389,7 +389,7 @@ class CreateEntityView(TemplateView):
             concept_utils.get_clinical_concept_data(
                 concept[0],
                 concept[1],
-                aggregate_component_codes=True,
+                aggregate_component_codes=False,
             ) | {
                 'has_edit_access': False,
             }
