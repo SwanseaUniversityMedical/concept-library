@@ -162,7 +162,7 @@ class EntityDescendantSelection(APIView):
             @desc Gets the filter specification for this template
         """
         context = self.get_context_data(*args, **kwargs)
-        
+
         template = self.__get_template(context.get('template_id'))
         template_filters = search_utils.get_template_filters(request, template, default=[])
         metadata_filters = search_utils.get_metadata_filters(request)

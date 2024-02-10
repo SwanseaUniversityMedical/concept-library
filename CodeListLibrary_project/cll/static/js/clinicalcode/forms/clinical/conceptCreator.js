@@ -463,7 +463,9 @@ export default class ConceptCreator {
     const prompt = new ConceptSelectionService({
       promptTitle: 'Import Concepts',
       template: this.template?.id,
-      allowMultiple: true
+      entity_id: this.entity?.id,
+      entity_history_id: this.entity?.history_id,
+      allowMultiple: true,
     });
 
     return prompt.show()
