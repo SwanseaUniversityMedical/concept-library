@@ -340,7 +340,7 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                   from public.clinicalcode_historicalcomponent as c0
                   left join public.clinicalcode_historicalcomponent as c1
                     on c1.id = c0.id
-                   and c1.concept_id = c0.concept_id
+                   and c1.concept_id = %(hc_id)s
                    and c1.history_date <= %(hc_date)s::timestamptz
                    and c1.history_type = '-'
                  where c0.concept_id = %(hc_id)s
@@ -351,9 +351,9 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                  order by c0.id asc
             )
 
-            select c0.*
-              from public.clinicalcode_historicalcomponent as c0
-              join components as c1
+            select c1.*
+              from components as c0
+              left join public.clinicalcode_historicalcomponent as c1
                 on c0.id = c1.id
                and c0.history_id = c1.history_id
         '''
