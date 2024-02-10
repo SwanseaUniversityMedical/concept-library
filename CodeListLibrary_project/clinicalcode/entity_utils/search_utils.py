@@ -915,9 +915,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
 
     # Generate layouts for use in templates
     layouts = { }
-    count = 0
     for template in templates:
-        count = count + 1
         layouts[f'{template.id}/{template.template_version}'] = {
             'id': template.id,
             'version': template.template_version,
