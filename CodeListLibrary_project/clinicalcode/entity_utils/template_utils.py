@@ -122,14 +122,14 @@ def get_ordered_definition(definition, clean_fields=False):
     for field in layout_order:
         content = try_get_content(fields, field)
         if clean_fields:
-            content.pop('order')
+            content.pop('order', None)
         
         ordered_fields[field] = content
 
     definition['fields'] = ordered_fields
 
     if clean_fields:
-        definition.pop('layout_order')
+        definition.pop('layout_order', None)
 
     return definition
 

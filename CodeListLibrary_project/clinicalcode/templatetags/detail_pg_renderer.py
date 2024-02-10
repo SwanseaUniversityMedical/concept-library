@@ -241,6 +241,8 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
             value = concept_utils.get_clinical_concept_data(
                 item['concept_id'],
                 item['concept_version_id'],
+                remove_userdata=True,
+                hide_user_details=True,
                 include_component_codes=False, 
                 include_attributes=True, 
                 include_reviewed_codes=True,

@@ -708,7 +708,7 @@ def get_minimal_concept_data(concept):
         ]
 
     # Clean coding system for top level field use
-    concept_data.pop('coding_system')
+    concept_data.pop('coding_system', None)
 
     # If userdata is requested, try to grab all related
     for field in concept._meta.fields:
@@ -730,9 +730,9 @@ def get_minimal_concept_data(concept):
 
     # Clean data if required
     if not concept_data.get('is_deleted'):
-        concept_data.pop('is_deleted')
-        concept_data.pop('deleted_by')
-        concept_data.pop('deleted')
+        concept_data.pop('is_deleted', None)
+        concept_data.pop('deleted_by', None)
+        concept_data.pop('deleted', None)
 
     return {
         'concept_id': concept.id,
@@ -827,7 +827,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         ]
 
     # Clean coding system for top level field use
-    concept_data.pop('coding_system')
+    concept_data.pop('coding_system', None)
 
     # If userdata is requested, try to grab all related
     if not remove_userdata:
@@ -855,9 +855,9 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
     # Clean data if required
     if not concept_data.get('is_deleted'):
-        concept_data.pop('is_deleted')
-        concept_data.pop('deleted_by')
-        concept_data.pop('deleted')
+        concept_data.pop('is_deleted', None)
+        concept_data.pop('deleted_by', None)
+        concept_data.pop('deleted', None)
 
     # Build codelist and components from concept (modified by params)
     attribute_headers = concept_data.pop('code_attribute_header', None) if include_attributes else None
