@@ -15,6 +15,14 @@
   <meta http-equiv="Expires" content="0" />
 {% endblock cache_tags %}
 
+{% block embedding_wrapper %}
+  {% if form_method.value == 1 %}
+    {% render_og_tags header='Create Phenotype' %}
+  {% else %}
+    {% render_og_tags header='Update Phenotype' %}
+  {% endif %}
+{% endblock embedding_wrapper %}
+
 {% block indexing_robots %}
   {% with stop_robot_indexing=True %}
     {{ block.super }}
