@@ -2,16 +2,16 @@ import { parse as parseCSV } from '../../../lib/csv.min.js';
 import { ConceptSelectionService } from '../../services/conceptSelectionService.js';
 
 /**
- * tryCleanCodingCSV
- * @desc Attempts to clean a coding CSV such that:
+ * tryCleanCodingFile
+ * @desc Attempts to clean a coding files such that:
  *          1. leading and trailing null/empty rows are removed
  *          2. separates the first row as a header and the rest as data
  * 
- * @param {array[array[string]]} csv the CSV result array
+ * @param {array[array[string]]} file the file result array
  * @returns {object} that describes {header: [], data: []}
  */
-const tryCleanCodingCSV = (csv) => {
-  csv = csv.reduce((filtered, row) => {
+const tryCleanCodingFile = (file) => {
+  file = file.reduce((filtered, row) => {
     let testRow = row.filter(val => !isNullOrUndefined(val) && !isStringEmpty(val));
     if (testRow.length > 0) {
       filtered.push(testRow);
@@ -20,13 +20,13 @@ const tryCleanCodingCSV = (csv) => {
     return filtered;
   }, []);
 
-  if (csv.length < 2) {
+  if (file.length < 2) {
     return { };
   }
 
   return {
-    'header': csv[0],
-    'data': csv.slice(1)
+    'header': file[0],
+    'data': file.slice(1)
   }
 }
 
@@ -68,7 +68,40 @@ const tryParseCodingCSVFile = (file) => {
     fr.readAsText(file, 'UTF-8');
   })
   .then(content => parseCSV(content, {typed: false}, (val, row, col) => tryCleanCodingItem(val, row, col)))
-  .then(csv => tryCleanCodingCSV(csv))
+  .then(csv => tryCleanCodingFile(csv))
+}
+
+const tryParseCodingExcelFile = (file) => {
+  return new Promise((resolve, reject) => {
+    let fr = new FileReader()
+    fr.onerror = reject;
+    fr.onload = (e) => {
+      const data = fr.result;
+
+      let doc = XLSX.read(data);
+      doc = doc.Sheets[doc.SheetNames[0]];
+      doc = XLSX.utils.sheet_to_json(doc);
+
+      resolve(doc);
+    };
+    fr.readAsArrayBuffer(file);
+  })
+  .then(doc => {
+    let content = doc.reduce((result, row) => {
+      const [ code, desc ] = Object.values(row);
+      result.push([ code, desc ]);
+  
+      return result;
+    }, []);
+
+    const header = Object.keys(doc?.[0]);
+    if (!isNullOrUndefined(header)) {
+      content.unshift([ ...header ]);
+    }
+
+    content = tryCleanCodingFile(content);
+    return content;
+  })
 }
 
 /**
@@ -171,7 +204,13 @@ const CONCEPT_CREATOR_KEYCODES = {
  */
 const CONCEPT_CREATOR_FILE_UPLOAD = {
   allowMultiple: false,
-  extensions: ['.csv'],
+  extensions: [
+    '.csv',
+    'text/csv',
+    '.xlsx',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ],
 }
 
 /**
@@ -582,14 +621,33 @@ export default class ConceptCreator {
             if (!selected) {
               return reject();
             }
-    
+
             const file = files[0];
-            tryParseCodingCSVFile(file)
-              .then(res => resolve({
-                content: toCodeObjects(res),
-                fileType: file.type,
-              }))
-              .catch(e => reject);
+            const extension = file?.name.split('.').pop().toLocaleLowerCase();
+
+            switch (extension) {
+              // handle csv files
+              case 'csv': {
+                tryParseCodingCSVFile(file)
+                  .then(res => resolve({
+                    content: toCodeObjects(res),
+                    fileType: file.type,
+                  }))
+                  .catch(e => reject);
+              } break;
+
+              // attempt to handle any other file, which likely will be xlsx related
+              default: {
+                tryParseCodingExcelFile(file)
+                  .then(res => {
+                    resolve({
+                      content: toCodeObjects(res),
+                      fileType: file.type,
+                    })
+                  })
+                  .catch(e => reject);
+              } break
+            }
           }
         }
       });
