@@ -497,6 +497,8 @@ export default class ConceptCreator {
       promptTitle: `Import Concept as Rule (${codingSystemName})`,
       template: this.template?.id,
       allowMultiple: false,
+      entity_id: this.entity?.id,
+      entity_history_id: this.entity?.history_id,
       ignoreFilters: ['coding_system'],
       forceFilters: {
         coding_system: codingSystemId,
