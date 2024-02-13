@@ -71,6 +71,20 @@ const tryParseCodingCSVFile = (file) => {
   .then(csv => tryCleanCodingFile(csv))
 }
 
+/**
+  * tryParseCodingExcelFile
+  * @desc Attempts to parse a file upload using SheetJS' CE XLSX library
+  *
+  *       See ref @ https://docs.sheetjs.com/
+  * 
+  *       The wrapped promise returned does NOT catch errors - it is expected
+  *       that exceptions are handled by the caller
+  * 
+  * @param {object} file The file object as returned by a file input element
+  * @returns {promise} A promise that resolves an 2D array, with each outer index 
+  *                    representing a row of the file's values, and the inner index
+  *                    representing a column
+  */
 const tryParseCodingExcelFile = (file) => {
   return new Promise((resolve, reject) => {
     let fr = new FileReader()
