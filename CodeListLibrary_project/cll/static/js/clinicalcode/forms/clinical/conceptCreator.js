@@ -101,9 +101,12 @@ const tryParseCodingExcelFile = (file) => {
     fr.readAsArrayBuffer(file);
   })
   .then(doc => {
-    let content = doc.reduce((result, row) => {
+    let content = doc.reduce((result, row, i) => {
       const [ code, desc ] = Object.values(row);
-      result.push([ code, desc ]);
+      result.push([
+        tryCleanCodingItem(code, i, 1),
+        tryCleanCodingItem(desc, i, 1),
+      ]);
   
       return result;
     }, []);
