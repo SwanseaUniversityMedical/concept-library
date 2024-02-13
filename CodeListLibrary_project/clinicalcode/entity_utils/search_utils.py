@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.db import connection
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.db.models.expressions import RawSQL
@@ -341,7 +342,7 @@ def apply_param_to_query(query, where, params, template, param, data,
         else:
             query[f'{param}'] = data
         return True
-    
+
     return False
 
 def try_get_template_children(entity, default=None):
@@ -377,23 +378,305 @@ def try_get_template_children(entity, default=None):
         field_type = template_utils.try_get_content(validation, 'type')
         if field_type == 'concept':
             child_data = concept_utils.get_concept_dataset(packet, field_name=field, default=None)
-        
+
         if child_data is None:
             continue
         children = children + child_data
     return children
+
+def exclude_childless_entities(entities, template_fields, child_fields):
+    """
+        Method to exclude entities from a HistoricalGenericEntity QuerySet
+        where rows do not contain valid children, e.g. in the case of a 
+        Phenotype that lacks any associated Concepts and any child codes
+
+        Args:
+            entities {QuerySet<HistoricalGenericEntity>}: a HistoricalGenericEntity QuerySet
+
+            template_fields {dict}: the template layout
+
+            child_fields {str[]}: a list of field names that are considered
+                                  to contain children
+
+        Returns:
+            QuerySet<HistoricalGenericEntity> containing the results
+            of the exlusion
+
+    """
+    entity_ids = list(entities.values_list('id', flat=True))
+    if len(entity_ids) < 1:
+        return entities
+
+    history_ids = list(entities.values_list('history_id', flat=True))
+    with connection.cursor() as cursor:
+        base = '''
+        with entities as (
+            select *
+              from public.clinicalcode_historicalgenericentity
+             where id = ANY(%(entity_ids)s)
+               and history_id = ANY(%(history_ids)s)
+        )
+        '''
+
+        for field in child_fields:
+            template_field = template_utils.try_get_content(template_fields, field)
+            if template_field is None:
+                continue
+
+            validation = template_utils.try_get_content(template_field, 'validation')
+            if validation is None:
+                continue
+
+            field_type = template_utils.try_get_content(validation, 'type')
+            if field_type == 'concept':
+                sql = base + '''
+                select entity.id,
+                       entity.history_id
+                  from entities as entity,
+                       json_array_elements(entity.template_data::json->'concept_information') as concepts
+                  join public.clinicalcode_historicalconcept as concept
+                    on concept.id = cast(concepts->>'concept_id' as integer)
+                   and concept.history_id = cast(concepts->>'concept_version_id' as integer)
+                  join public.clinicalcode_codingsystem as codingsystem
+                    on codingsystem.id = concept.coding_system_id
+                  join public.clinicalcode_historicalcomponent as component
+                    on component.concept_id = concept.id
+                   and component.history_date <= concept.history_date
+                   and component.logical_type = 1
+                   and component.history_type != '-'
+                  join public.clinicalcode_historicalcodelist as codelist
+                    on codelist.component_id = component.id
+                   and codelist.history_date <= concept.history_date
+                   and codelist.history_type != '-'
+                  join public.clinicalcode_historicalcode as code
+                    on code.code_list_id = codelist.id
+                   and code.history_date <= concept.history_date
+                   and code.history_type != '-'
+                 group by entity.id,
+                          entity.history_id
+                '''
+
+                cursor.execute(
+                    sql,
+                    params={ 'entity_ids': entity_ids, 'history_ids': history_ids }
+                )
+
+                results = cursor.fetchall()
+                rowcount = len(results)
+                if rowcount < 1:
+                    entity_ids = []
+                    history_ids = []
+                    break
+
+                entity_ids = [None]*rowcount
+                history_ids = [None]*rowcount
+                for index, row in enumerate(results):
+                    entity_ids[index] = row[0]
+                    history_ids[index] = row[1]
+
+    if len(entity_ids) > 0:
+        return entities.filter(
+            id__in=entity_ids,
+            history_id__in=history_ids
+        )
+
+    return GenericEntity.history.none()
+
+def try_search_child_concepts(entities, search=None, order_clause=None):
+    """
+        Method to collect concept children of a HistoricalGenericEntity QuerySet
+
+        [!] NOTE:
+            1. `order_clause` is unsafe:
+                Do not allow unknown inputs, only allow those defined
+                within *entity_utils/constants.py*
+            
+            2. This method ignores permissions:
+                It should only be called from a method that
+                has previously considered accessibility
+
+        Args:
+            entities {QuerySet<HistoricalGenericEntity>}: a HistoricalGenericEntity QuerySet
+
+            search {str | None}: an optional search parameter
+
+            order_clause {str | None}: an optional order clause
+
+        Returns:
+            Either (a) dict[] array containing the results;
+            or (b) a null value
+
+    """
+    results = None
+    with connection.cursor() as cursor:
+        sql = ''
+        if not gen_utils.is_empty_string(search):
+            sql = '''
+            with
+                entities as (
+                    select *,
+                        cast(regexp_replace(id, '[a-zA-Z]+', '') as integer) as true_id,
+                        ts_rank_cd(
+                            hge.search_vector,
+                            websearch_to_tsquery('pg_catalog.english', %(searchterm)s)
+                        ) as score
+                      from public.clinicalcode_historicalgenericentity as hge
+                     where id = ANY(%(entity_ids)s)
+                       and history_id = ANY(%(history_ids)s)
+                       and hge.search_vector @@ to_tsquery(
+                            'pg_catalog.english',
+                            replace(
+                                websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*',
+                                '<->', '|'
+                            )
+                       )
+                     {0}
+                ),
+            '''
+        else:
+            sql = '''
+            with
+                entities as (
+                    select *,
+                           cast(regexp_replace(id, '[a-zA-Z]+', '') as integer) as true_id
+                      from public.clinicalcode_historicalgenericentity
+                     where id = ANY(%(entity_ids)s)
+                       and history_id = ANY(%(history_ids)s)
+                     {0}
+                ),
+            '''
+        sql = sql.format(order_clause)
+
+        sql = sql + '''
+            children as (
+                select entity.id as parent_id,
+                       entity.history_id as parent_history_id,
+                       concept.id as id,
+                       concept.history_id as history_id,
+                       concept.name as name,
+                       codingsystem.id as coding_system,
+                       codingsystem.name as coding_system_name,
+                       'C' as prefix,
+                       'concept' as type,
+                       'concept_information' as field
+                  from entities as entity,
+                       json_array_elements(entity.template_data::json->'concept_information') as concepts
+                  join public.clinicalcode_historicalconcept as concept
+                    on concept.id = cast(concepts->>'concept_id' as integer)
+                   and concept.history_id = cast(concepts->>'concept_version_id' as integer)
+                  join public.clinicalcode_codingsystem as codingsystem
+                    on codingsystem.id = concept.coding_system_id
+            )
+
+        select
+            json_agg(
+                json_build_object(
+                    'id', entity.id,
+                    'history_id', entity.history_id,
+                    'name', entity.name,
+                    'author', entity.author,
+                    'children', child.children_data
+                )
+            )
+          from entities as entity
+          left join (
+            select elem.parent_id,
+                   elem.parent_history_id,
+                   json_agg(
+                        json_build_object(
+                            'id', elem.id,
+                            'history_id', elem.history_id,
+                            'name', elem.name,
+                            'prefix', elem.prefix,
+                            'type', elem.type,
+                            'field', elem.field,
+                            'coding_system', elem.coding_system,
+                            'coding_system_name', elem.coding_system_name
+                        )
+                   ) as children_data
+              from children as elem
+             group by elem.parent_id, elem.parent_history_id
+          ) as child
+            on entity.id = child.parent_id
+           and entity.history_id = child.parent_history_id;
+        '''
         
-def get_template_entities(request, template_id, method='GET', force_term=True):
+        entity_ids = list(entities.values_list('id', flat=True))
+        history_ids = list(entities.values_list('history_id', flat=True))
+        cursor.execute(
+            sql,
+            params={
+                'entity_ids': entity_ids,
+                'history_ids': history_ids,
+                'searchterm': search,
+            }
+        )
+
+        (results, ) = cursor.fetchone()
+    
+    return results
+
+def try_search_template_descendants(entities, field_type, search=None, order_clause=None):
+    """
+        Method to search and collect descendants associated with Phenotypes
+        from a HistoricalGenericEntity QuerySet
+
+        [!] NOTE:
+            1. `order_clause` is unsafe:
+                Do not allow unknown inputs, only allow those defined
+                within *entity_utils/constants.py*
+
+            2. This method ignores permissions:
+                It should only be called from a method that
+                has previously considered accessibility
+
+        Args:
+            entities {QuerySet<HistoricalGenericEntity>}: a HistoricalGenericEntity QuerySet
+
+            field_type {str}: describes the `field_type` within a template `field`'s `validation`
+
+            search {str | None}: an optional search parameter
+
+            order_clause {str | None}: an optional order clause
+
+        Returns:
+            Either (a) dict[] array containing the results;
+            or (b) a null value
+
+    """
+    search = search if isinstance(search, str) else None
+    order_clause = order_clause if isinstance(order_clause, str) else ''
+
+    results = None
+    if field_type == 'concept':
+        results = try_search_child_concepts(entities, search=search, order_clause=order_clause)
+
+    return results
+
+@gen_utils.measure_perf
+def get_template_entities(request, template_id, method='GET', force_term=True, field_type='concept'):
     """
         Method to get a Template's entities that:
             1. Are accessible to the RequestContext's user
             2. Match the query parameters
-        
+
+        Args:
+            request {RequestContext}: the HTTP Request Context
+            template_id {int | None}: optional template_id
+            method {str}: the HTTP request method
+            force_term {boolean}: whether to ensure validity and cleanliness of query parameters
+            child_field {str}: the entity & template's field to consider when computing descendants
+
         Returns:
             A page of the results as defined by the query param
                 - Contains the entities and their related children
                 - Contains the pagination details
+
     """
+    url_parameters = getattr(request, method, None)
+    if not isinstance(url_parameters, dict):
+        return None
+
     template = model_utils.try_get_instance(Template, pk=template_id)
     if template is None:
         return None
@@ -404,103 +687,83 @@ def get_template_entities(request, template_id, method='GET', force_term=True):
     template_fields = template_utils.get_layout_fields(template)
     if template_fields is None:
         return None
-    
+
+    child_fields = template_utils.try_get_children_field_details(fields=template_fields)
+    has_children = isinstance(child_fields, list) and len(child_fields) > 0
+    valid_relation = next((x for x in child_fields if x.get('type') == field_type), None) if has_children else None
+    if valid_relation is None:
+        return {
+            'results': [ ],
+            'details': {
+                'page': 1,
+                'total': 1,
+                'max_results': 0,
+                'start_index': 0,
+                'end_index': 0,
+                'has_previous': False,
+                'has_next': False,
+            },
+        }
+
     entities = permission_utils.get_accessible_entities(
         request,
         status=[constants.APPROVAL_STATUS.ANY]
     )
-    entities = entities.filter(template__id=template_id)
-    entities = GenericEntity.history.filter(
-        id__in=entities.values_list('id', flat=True),
-        history_id__in=entities.values_list('history_id', flat=True)
-    )
 
     metadata_filters = [key for key, value in constants.metadata.items() if 'search' in value and 'filterable' in value.get('search')]
     template_filters = [ ]
-    
+
     for key, value in template_fields.items():
         if 'search' not in value or 'filterable' not in value.get('search'):
             continue
         template_filters.append(key)
-    
+
     query = { }
     where = [ ]
     params = [ ]
-    for param, data in getattr(request, method).items():
+    for param, data in url_parameters.items():
         if param in metadata_filters:
             apply_param_to_query(query, where, params, constants.metadata, param, data, force_term=force_term)
         elif param in template_filters:
             if template_fields is None:
                 continue
             apply_param_to_query(query, where, params, template_fields, param, data, is_dynamic=True, force_term=force_term)
-    
-    entities = entities.filter(Q(**query))
-    entities = entities.extra(where=where, params=params)
-    
+
+    entities = entities \
+            .filter(Q(template__id=template_id) & Q(**query)) \
+            .extra(where=where, params=params)
+
+    parent_id = url_parameters.get('parent_id', None)
+    parent_id = parent_id if not gen_utils.is_empty_string(parent_id) else None
+    parent_history_id = gen_utils.parse_int(url_parameters.get('parent_history_id', None)) if parent_id is not None else None
+    if parent_id and parent_history_id:
+        entities = entities.exclude(id=parent_id, history_id=parent_history_id)
+
+    search = gen_utils.try_get_param(request, 'search', None)
     search_order = gen_utils.try_get_param(request, 'order_by', '1', method)
-    should_order_search = search_order == '1'
     search_order = template_utils.try_get_content(constants.ORDER_BY, search_order)
     if search_order is None:
         search_order = constants.ORDER_BY['1']
-    
-    search = gen_utils.try_get_param(request, 'search', None)
-    if not gen_utils.is_empty_string(search):
-        entity_ids = list(entities.values_list('id', flat=True))
-        entities = entities.filter(
-            id__in=RawSQL(
-                """
-                select id
-                from clinicalcode_historicalgenericentity
-                where id = ANY(%s)
-                  and search_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %s)::text || ':*', '<->', '|'))
-                """,
-                [entity_ids, search]
-            )
-        ) \
-        .annotate(
-            score=RawSQL(
-                """ts_rank_cd(search_vector, websearch_to_tsquery('pg_catalog.english', %s))""",
-                [search]
-            )
-        )
 
-        if should_order_search:
-            entities = entities.order_by('-score')
+    order_clause = 'order by true_id asc'
+    if search_order == constants.ORDER_BY.get('1') and not gen_utils.is_empty_string(search):
+        order_clause = 'order by score desc'
+    elif search_order != constants.ORDER_BY.get('1'):
+        order_clause = 'order by %s %s' % (search_order.get('property'), search_order.get('order'))
 
-    if search_order != constants.ORDER_BY['1']:
-        search_order = search_order.get('clause')
-        entities = entities.order_by(search_order)
-    else:
-        if gen_utils.is_empty_string(search):
-            entities = entities.all().extra(
-                select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
-            ) \
-            .order_by('true_id', 'id')
-    
-    page_obj = try_get_paginated_results(request, entities, page_size=10)
-    
-    results = [ ]
-    for obj in page_obj.object_list:
-        entity = {
-            'id': obj.id,
-            'name': obj.name,
-            'history_id': obj.history_id,
-            'author': template_utils.get_entity_field(obj, 'author') or 'null'
-        }
+    results = try_search_template_descendants(entities, field_type=field_type, search=search, order_clause=order_clause)
+    results = results or [ ]
 
-        children = try_get_template_children(obj, default=[])
-        if len(children) > 0:
-            entity.update({ 'children': children })
-            results.append(entity)
-
+    page_obj = try_get_paginated_results(request, results, page_size=10)
+    obj_list = page_obj.object_list
     return {
-        'results': results,
+        'results': obj_list,
         'details': {
             'page': page_obj.number,
             'total': page_obj.paginator.num_pages,
             'max_results': page_obj.paginator.count,
             'start_index': page_obj.start_index() if len(results) > 0 else 0,
-            'end_index': page_obj.end_index() - (len(page_obj.object_list) - len(results)),
+            'end_index': page_obj.end_index() - (len(obj_list) - len(results)),
             'has_previous': page_obj.has_previous(),
             'has_next': page_obj.has_next(),
         },
@@ -652,9 +915,7 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
 
     # Generate layouts for use in templates
     layouts = { }
-    count = 0
     for template in templates:
-        count = count + 1
         layouts[f'{template.id}/{template.template_version}'] = {
             'id': template.id,
             'version': template.template_version,

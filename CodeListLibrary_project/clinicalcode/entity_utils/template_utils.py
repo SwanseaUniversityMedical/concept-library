@@ -179,6 +179,89 @@ def get_entity_field(entity, field, default=None):
 
     return default
 
+def try_get_children_field_names(template=None, fields=None, default=None):
+    """
+        Attempts to get the names of fields containing children that
+        are associated with a template's definition
+
+        Args:
+            template (Model<Template> | dict | None): optional kwarg that describes the template 
+
+            fields (dict | None): an optional template's field dict, as defined by get_layout_fields()
+
+            default (any): the default return value on failure
+
+        Returns:
+            Either (a) a str[] array containing the associated fields,
+            or (b) the default value if none are found
+            
+    """
+    if template is not None and is_layout_safe(template):
+        fields = get_layout_fields(template)
+
+    if not isinstance(fields, dict):
+        return default
+
+    child_fields = None
+    for field, packet in fields.items():
+        validation = packet.get('validation')
+        if validation is None:
+            continue
+
+        has_children = validation.get('has_children')
+        if not has_children:
+            continue
+
+        if child_fields is None:
+            child_fields = set([])
+
+        child_fields.add(field)
+
+    return list(child_fields) if child_fields is not None else default
+
+def try_get_children_field_details(template=None, fields=None, default=None):
+    """
+        Attempts to get the details of fields containing children that
+        are associated with a template's definition
+
+        Args:
+            template (Model<Template> | dict | None): optional kwarg that describes the template 
+
+            fields (dict | None): an optional template's field dict, as defined by get_layout_fields()
+
+            default (any): the default return value on failure
+
+        Returns:
+            Either (a) a dict[] array containing the associated fields and its details,
+            or (b) the default value if none are found
+
+    """
+    if template is not None and is_layout_safe(template):
+        fields = get_layout_fields(template)
+
+    if not isinstance(fields, dict):
+        return default
+
+    child_fields = None
+    for field, packet in fields.items():
+        validation = packet.get('validation')
+        if validation is None:
+            continue
+
+        has_children = validation.get('has_children')
+        if not has_children:
+            continue
+
+        if child_fields is None:
+            child_fields = []
+
+        child_fields.append({
+            'field': field,
+            'type': validation.get('type')
+        })
+
+    return list(child_fields) if child_fields is not None else default
+
 def is_valid_field(entity, field):
     """
         Checks to see if a field is a valid member of a template

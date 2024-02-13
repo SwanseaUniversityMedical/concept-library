@@ -463,7 +463,9 @@ export default class ConceptCreator {
     const prompt = new ConceptSelectionService({
       promptTitle: 'Import Concepts',
       template: this.template?.id,
-      allowMultiple: true
+      entity_id: this.entity?.id,
+      entity_history_id: this.entity?.history_id,
+      allowMultiple: true,
     });
 
     return prompt.show()
@@ -495,6 +497,8 @@ export default class ConceptCreator {
       promptTitle: `Import Concept as Rule (${codingSystemName})`,
       template: this.template?.id,
       allowMultiple: false,
+      entity_id: this.entity?.id,
+      entity_history_id: this.entity?.history_id,
       ignoreFilters: ['coding_system'],
       forceFilters: {
         coding_system: codingSystemId,
