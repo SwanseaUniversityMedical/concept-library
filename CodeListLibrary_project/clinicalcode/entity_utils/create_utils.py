@@ -45,6 +45,7 @@ def get_createable_entities(request):
     templates = Template.objects.filter(
         entity_class__id__in=entities.values_list('id', flat=True)
     ) \
+    .exclude(hide_on_create=True) \
     .values('id', 'template_version', 'entity_class__id', 'name', 'description')
 
     return {

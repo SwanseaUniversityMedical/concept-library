@@ -37,14 +37,31 @@ const resolveWizardStepsArea = (aside, content) => {
  */
 const initStepsWizard = () => {
   document.querySelectorAll('.steps-wizard__item').forEach(elem => {
+    const trg = elem.getAttribute('data-target');
+    const node = document.querySelector(`[id='${trg}']`);
+    if (isNullOrUndefined(node)) {
+      elem.remove()
+      return;
+    }
+
     elem.addEventListener('click', e => {
-      const target = document.querySelector(`#${elem.getAttribute('data-target')}`);
-      if (target) {
-        window.scrollTo({ top: target.offsetTop, left: 0, behavior: 'smooth' });
+      if (node) {
+        window.scrollTo({ top: node.offsetTop, left: 0, behavior: 'smooth' });
       }
     });
   });
-  
+
+  const elems = Array.from(document.querySelectorAll('.steps-wizard__item'));
+  elems.sort((a, b) => {
+    a = parseInt(a.getAttribute('data-value')) || Infinity;
+    b = parseInt(b.getAttribute('data-value')) || Infinity;
+
+    return a - b;
+  });
+  elems.forEach((elem, index) => {
+    elem.setAttribute('data-value', index + 1);
+  });
+
   const navbar = document.querySelector('.page-navigation');
   const header = document.querySelector('.main-header');
   const trackers = document.querySelectorAll('.phenotype-progress__item');
