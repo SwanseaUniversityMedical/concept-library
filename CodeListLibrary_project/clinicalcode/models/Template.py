@@ -26,6 +26,7 @@ class Template(TimeStampedModel):
     definition = JSONField(blank=True, null=True, default=dict)
     entity_class = models.ForeignKey(EntityClass, on_delete=models.SET_NULL, null=True, related_name="entity_class_type")
     template_version = models.IntegerField(null=True, editable=False)
+    hide_on_create = models.BooleanField(null=False, default=False)
 
     ''' Instance data '''
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="template_created")
