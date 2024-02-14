@@ -1,9 +1,11 @@
-name: Generate Docs Update
+name: Generate Docs and Allure Reports
 
 on:
   push:
     branches: 
           - test-ghpages-override
+          - allure-reports
+
 jobs:
   build_docs_job:
     name: Code Reference Generator
@@ -13,14 +15,14 @@ jobs:
 
     steps:
       - name: Checkout 
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
               token: ${{ secrets.GITHUB_TOKEN }}
               
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v2
         with: 
-              python-version: 3.11
+              python-version: 3.9.0
 
       - name: Install dependencies
         run: |
@@ -35,21 +37,18 @@ jobs:
               pip install sphinxjp
               pip install -r base.txt
 
-
-
       - name: Make the Codebase Reference sphinx docs
         run: |
               cd docs/codebase_docs/ 
               sphinx-apidoc -o source ../../CodeListLibrary_project
-              sphinx-build -b html source ..
+              sphinx-build -b html source ../gh-pages/docs/
 
       - name: Copy Documentation
+        if: startsWith(github.ref, 'refs/heads/test-ghpages-override')
         run: |
-          dir
           rm -r docker
           rm -r CodeListLibrary_project  
           cd docs           
-          dir
           rm -r _modules
           rm -r _sources
           rm -r _static 
@@ -62,16 +61,11 @@ jobs:
 
       - name: Init new codebase docs repo
         run: |
-              git config pull.rebase true 
-              git stash
-              git pull origin github-pages
               touch .nojekyll
-              git stash apply
               git add -A
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action"
-              git commit -m "Update documentation"
-
+              git commit -m "Update documentation and Allure reports"
 
 
       - name: Push to destination branch
@@ -80,3 +74,5 @@ jobs:
             github_token: ${{ secrets.GITHUB_TOKEN }}
             branch: gh-pages
             force: true
+
+
