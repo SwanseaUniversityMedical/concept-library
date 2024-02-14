@@ -56,6 +56,10 @@ jobs:
           rm -r clinicalcode.migrations.html
           cd _modules/clinicalcode
           rm -r migrations
+          cd ../../_sources
+          rm -r clinicalcode.migrations.rst.txt
+          cd ../../.doctrees/
+          rm -r clinicalcode.migrations.doctree
           
 
       - name: Init new codebase docs repo
