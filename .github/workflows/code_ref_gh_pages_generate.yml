@@ -1,25 +1,26 @@
-name: Codebase Sphinx Documentation
+name: Generate Docs Update
 
 on:
   push:
-    branches: [ test-ghpages-override]
+    branches: 
+          - gh-pages
 jobs:
   build_docs_job:
     name: Code Reference Generator
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env: 
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
               token: ${{ secrets.GITHUB_TOKEN }}
               
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with: 
-              python-version: 3.9.0
+              python-version: 3.11
 
       - name: Install dependencies
         run: |
@@ -28,35 +29,55 @@ jobs:
               python -m pip install django
               python -m pip install mock
               pip install sphinxjp.themes.basicstrap
+              sudo apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev libpq-dev
               cd docker 
               cd requirements
-              pip install python_ldap-3.3.1-cp39-cp39-win_amd64.whl
-              pip install sphinxjp
               pip install -r base.txt
+
 
       - name: Make the Codebase Reference sphinx docs
         run: |
-              cd docs/codebase_docs/
-              sphinx-apidoc -o source ../../CodeListLibrary_project  
-              cd source
-              del "clinicalcode.migrations.rst"
-              cd ..
+              cd docs/codebase_docs/ 
+              sphinx-apidoc -o source ../../CodeListLibrary_project
               sphinx-build -b html source ..
+
+      - name: Copy Documentation
+        run: |
+          ls -l 
+          rm -r docker
+          rm -r CodeListLibrary_project  
+          cd docs           
+          rm -r _modules
+          rm -r _sources
+          rm -r _static 
+          rm -r assets
+          rm -r codebase_docs
+          rm -r sql-scripts
+          rm -r unit-testing
+          rm -r .doctrees
+          rm -r .buildinfo
+          rm -r objects.inv
+          mkdir docs
 
       - name: Init new codebase docs repo
         run: |
+              git config pull.rebase true 
+              git stash
+              git pull origin github-pages
               touch .nojekyll
+              git stash apply
               git add -A
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action"
-              git commit -m "deployed documentation"
+              git commit -m "Update documentation"
 
 
-      - name: Push to destination branch
-        uses: ad-m/github-push-action@master
-        with: 
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            branch: gh-pages
-            force: true
 
-
+      - name: Deploy report to gh-pages branch
+        if: (success() || failure()) && github.event_name != 'pull_request'
+        uses: peaceiris/actions-gh-pages@v2
+        env:
+          PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: docs
+          keep_files: true
