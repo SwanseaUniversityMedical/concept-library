@@ -49,30 +49,14 @@ jobs:
           dir
           rm -r docker
           rm -r CodeListLibrary_project  
-          cd docs           
-          dir
-          rm -r _modules
-          rm -r _sources
-          rm -r _static 
-          rm -r codebase_docs
-          rm -r sql-scripts
-          rm -r unit-testing
-          rm -r .doctrees
-          rm -r .buildinfo
-          rm -r objects.inv
 
       - name: Init new codebase docs repo
         run: |
-              git config pull.rebase true 
-              git stash
-              git pull origin github-pages
               touch .nojekyll
-              git stash apply
               git add -A
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action"
               git commit -m "Update documentation"
-
 
 
       - name: Push to destination branch
