@@ -1,0 +1,547 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="clinicalcode.management package" href="clinicalcode.management.html" /><link rel="prev" title="clinicalcode.entity_utils package" href="clinicalcode.entity_utils.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>clinicalcode.forms package - Library Code Reference Data</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Library Code Reference Data</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/header_logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Library Code Reference Data</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">CodeListLibrary_project</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of CodeListLibrary_project</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="clinicalcode.html">clinicalcode package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of clinicalcode package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="clinicalcode.api.html">clinicalcode.api package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of clinicalcode.api package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="clinicalcode.api.views.html">clinicalcode.api.views package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.context_processors.html">clinicalcode.context_processors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.entity_utils.html">clinicalcode.entity_utils package</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">clinicalcode.forms package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="clinicalcode.management.html">clinicalcode.management package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of clinicalcode.management package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="clinicalcode.management.commands.html">clinicalcode.management.commands package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.middleware.html">clinicalcode.middleware package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.migrations.html">clinicalcode.migrations package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.models.html">clinicalcode.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.storage.html">clinicalcode.storage package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.templatetags.html">clinicalcode.templatetags package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="clinicalcode.views.html">clinicalcode.views package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of clinicalcode.views package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="clinicalcode.views.tests.html">clinicalcode.views.tests package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cll.html">cll package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manage.html">manage module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="clinicalcode-forms-package">
+<h1>clinicalcode.forms package<a class="headerlink" href="#clinicalcode-forms-package" title="Link to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-clinicalcode.forms.ArchiveForm">
+<span id="clinicalcode-forms-archiveform-module"></span><h2>clinicalcode.forms.ArchiveForm module<a class="headerlink" href="#module-clinicalcode.forms.ArchiveForm" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.forms.ArchiveForm.ArchiveForm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.forms.ArchiveForm.</span></span><span class="sig-name descname"><span class="pre">ArchiveForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/ArchiveForm.html#ArchiveForm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.ArchiveForm.ArchiveForm" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Form</span></code></p>
+<p>Generates the archive form widget to allow users
+to archive their content</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.ArchiveForm.ArchiveForm.base_fields">
+<span class="sig-name descname"><span class="pre">base_fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'comments':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'entity_id':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'passphrase':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;}</span></em><a class="headerlink" href="#clinicalcode.forms.ArchiveForm.ArchiveForm.base_fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.forms.ArchiveForm.ArchiveForm.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/ArchiveForm.html#ArchiveForm.clean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.ArchiveForm.ArchiveForm.clean" title="Link to this definition">#</a></dt>
+<dd><p>Hook for doing any extra form-wide cleaning after Field.clean() has been
+called on every field. Any ValidationError raised by this method will
+not be associated with a particular field; it will have a special-case
+association with the field named ‘__all__’.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.ArchiveForm.ArchiveForm.declared_fields">
+<span class="sig-name descname"><span class="pre">declared_fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'comments':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'entity_id':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'passphrase':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;}</span></em><a class="headerlink" href="#clinicalcode.forms.ArchiveForm.ArchiveForm.declared_fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="clinicalcode.forms.ArchiveForm.ArchiveForm.media">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">media</span></span><a class="headerlink" href="#clinicalcode.forms.ArchiveForm.ArchiveForm.media" title="Link to this definition">#</a></dt>
+<dd><p>Return all media required to render the widgets on this form.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-clinicalcode.forms.ContactUsForm">
+<span id="clinicalcode-forms-contactusform-module"></span><h2>clinicalcode.forms.ContactUsForm module<a class="headerlink" href="#module-clinicalcode.forms.ContactUsForm" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.forms.ContactUsForm.ContactForm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.forms.ContactUsForm.</span></span><span class="sig-name descname"><span class="pre">ContactForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/ContactUsForm.html#ContactForm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.ContactUsForm.ContactForm" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Form</span></code></p>
+<p>Generates the contact us form widgets</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.ContactUsForm.ContactForm.base_fields">
+<span class="sig-name descname"><span class="pre">base_fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'categories':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'from_email':</span> <span class="pre">&lt;django.forms.fields.EmailField</span> <span class="pre">object&gt;,</span> <span class="pre">'message':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'name':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;}</span></em><a class="headerlink" href="#clinicalcode.forms.ContactUsForm.ContactForm.base_fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.ContactUsForm.ContactForm.declared_fields">
+<span class="sig-name descname"><span class="pre">declared_fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'categories':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'from_email':</span> <span class="pre">&lt;django.forms.fields.EmailField</span> <span class="pre">object&gt;,</span> <span class="pre">'message':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'name':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;}</span></em><a class="headerlink" href="#clinicalcode.forms.ContactUsForm.ContactForm.declared_fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="clinicalcode.forms.ContactUsForm.ContactForm.media">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">media</span></span><a class="headerlink" href="#clinicalcode.forms.ContactUsForm.ContactForm.media" title="Link to this definition">#</a></dt>
+<dd><p>Return all media required to render the widgets on this form.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-clinicalcode.forms.EntityClassForm">
+<span id="clinicalcode-forms-entityclassform-module"></span><h2>clinicalcode.forms.EntityClassForm module<a class="headerlink" href="#module-clinicalcode.forms.EntityClassForm" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.forms.EntityClassForm.</span></span><span class="sig-name descname"><span class="pre">EntityAdminForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_id='id_%s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_class=&lt;class</span> <span class="pre">'django.forms.utils.ErrorList'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_suffix=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_permitted=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_required_attribute=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/EntityClassForm.html#EntityAdminForm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ModelForm</span></code></p>
+<p>excludes the created_by field so that the request.user who creates/updates this form is set as the
+created_by User()</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Meta</span></span><a class="reference internal" href="_modules/clinicalcode/forms/EntityClassForm.html#EntityAdminForm.Meta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.exclude">
+<span class="sig-name descname"><span class="pre">exclude</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['created_by',</span> <span class="pre">'created',</span> <span class="pre">'modified_by',</span> <span class="pre">'modified']</span></em><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.exclude" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'__all__'</span></em><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>alias of <a class="reference internal" href="clinicalcode.models.html#clinicalcode.models.EntityClass.EntityClass" title="clinicalcode.models.EntityClass.EntityClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityClass</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.base_fields">
+<span class="sig-name descname"><span class="pre">base_fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'description':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'entity_prefix':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'name':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;}</span></em><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.base_fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.clean_created_by">
+<span class="sig-name descname"><span class="pre">clean_created_by</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/EntityClassForm.html#EntityAdminForm.clean_created_by"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.clean_created_by" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.clean_modified_by">
+<span class="sig-name descname"><span class="pre">clean_modified_by</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/EntityClassForm.html#EntityAdminForm.clean_modified_by"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.clean_modified_by" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.declared_fields">
+<span class="sig-name descname"><span class="pre">declared_fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.declared_fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="clinicalcode.forms.EntityClassForm.EntityAdminForm.media">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">media</span></span><a class="headerlink" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.media" title="Link to this definition">#</a></dt>
+<dd><p>Return all media required to render the widgets on this form.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-clinicalcode.forms.TemplateForm">
+<span id="clinicalcode-forms-templateform-module"></span><h2>clinicalcode.forms.TemplateForm module<a class="headerlink" href="#module-clinicalcode.forms.TemplateForm" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.PrettyPrintOrderedDefinition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.forms.TemplateForm.</span></span><span class="sig-name descname"><span class="pre">PrettyPrintOrderedDefinition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_keys</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/TemplateForm.html#PrettyPrintOrderedDefinition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.TemplateForm.PrettyPrintOrderedDefinition" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">JSONEncoder</span></code></p>
+<p>Indents and prettyprints the definition field so that it’s readable
+Preserves order that was given by template_utils.get_ordered_definition</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.TemplateAdminForm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.forms.TemplateForm.</span></span><span class="sig-name descname"><span class="pre">TemplateAdminForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/TemplateForm.html#TemplateAdminForm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ModelForm</span></code></p>
+<dl class="simple">
+<dt>Template form to override behaviour to meet requirements of:</dt><dd><ol class="arabic simple">
+<li><p>Render the JSON definition of a template as described by its ‘layout_field’ and ‘order’ fields</p></li>
+<li><p>On submission, update the [name] and [description] fields to reflect the template’s JSON definition</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Meta</span></span><a class="reference internal" href="_modules/clinicalcode/forms/TemplateForm.html#TemplateAdminForm.Meta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'__all__'</span></em><a class="headerlink" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta.fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>alias of <a class="reference internal" href="clinicalcode.models.html#clinicalcode.models.Template.Template" title="clinicalcode.models.Template.Template"><code class="xref py py-class docutils literal notranslate"><span class="pre">Template</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.TemplateAdminForm.base_fields">
+<span class="sig-name descname"><span class="pre">base_fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'created_by':</span> <span class="pre">&lt;django.forms.models.ModelChoiceField</span> <span class="pre">object&gt;,</span> <span class="pre">'definition':</span> <span class="pre">&lt;django.forms.fields.JSONField</span> <span class="pre">object&gt;,</span> <span class="pre">'description':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'entity_class':</span> <span class="pre">&lt;django.forms.models.ModelChoiceField</span> <span class="pre">object&gt;,</span> <span class="pre">'name':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'template_version':</span> <span class="pre">&lt;django.forms.fields.IntegerField</span> <span class="pre">object&gt;,</span> <span class="pre">'updated_by':</span> <span class="pre">&lt;django.forms.models.ModelChoiceField</span> <span class="pre">object&gt;}</span></em><a class="headerlink" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.base_fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.TemplateAdminForm.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/forms/TemplateForm.html#TemplateAdminForm.clean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.clean" title="Link to this definition">#</a></dt>
+<dd><p>Hook for doing any extra form-wide cleaning after Field.clean() has been
+called on every field. Any ValidationError raised by this method will
+not be associated with a particular field; it will have a special-case
+association with the field named ‘__all__’.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.TemplateAdminForm.declared_fields">
+<span class="sig-name descname"><span class="pre">declared_fields</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'definition':</span> <span class="pre">&lt;django.forms.fields.JSONField</span> <span class="pre">object&gt;,</span> <span class="pre">'description':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'name':</span> <span class="pre">&lt;django.forms.fields.CharField</span> <span class="pre">object&gt;,</span> <span class="pre">'template_version':</span> <span class="pre">&lt;django.forms.fields.IntegerField</span> <span class="pre">object&gt;}</span></em><a class="headerlink" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.declared_fields" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="clinicalcode.forms.TemplateForm.TemplateAdminForm.media">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">media</span></span><a class="headerlink" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.media" title="Link to this definition">#</a></dt>
+<dd><p>Return all media required to render the widgets on this form.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-clinicalcode.forms">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-clinicalcode.forms" title="Link to this heading">#</a></h2>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="clinicalcode.management.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">clinicalcode.management package</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="clinicalcode.entity_utils.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">clinicalcode.entity_utils package</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, alex
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">clinicalcode.forms package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-clinicalcode.forms.ArchiveForm">clinicalcode.forms.ArchiveForm module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.ArchiveForm.ArchiveForm"><code class="docutils literal notranslate"><span class="pre">ArchiveForm</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.ArchiveForm.ArchiveForm.base_fields"><code class="docutils literal notranslate"><span class="pre">ArchiveForm.base_fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.ArchiveForm.ArchiveForm.clean"><code class="docutils literal notranslate"><span class="pre">ArchiveForm.clean()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.ArchiveForm.ArchiveForm.declared_fields"><code class="docutils literal notranslate"><span class="pre">ArchiveForm.declared_fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.ArchiveForm.ArchiveForm.media"><code class="docutils literal notranslate"><span class="pre">ArchiveForm.media</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.forms.ContactUsForm">clinicalcode.forms.ContactUsForm module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.ContactUsForm.ContactForm"><code class="docutils literal notranslate"><span class="pre">ContactForm</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.ContactUsForm.ContactForm.base_fields"><code class="docutils literal notranslate"><span class="pre">ContactForm.base_fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.ContactUsForm.ContactForm.declared_fields"><code class="docutils literal notranslate"><span class="pre">ContactForm.declared_fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.ContactUsForm.ContactForm.media"><code class="docutils literal notranslate"><span class="pre">ContactForm.media</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.forms.EntityClassForm">clinicalcode.forms.EntityClassForm module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.Meta</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.exclude"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.Meta.exclude</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.fields"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.Meta.fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.Meta.model"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.base_fields"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.base_fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.clean_created_by"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.clean_created_by()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.clean_modified_by"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.clean_modified_by()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.declared_fields"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.declared_fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.EntityClassForm.EntityAdminForm.media"><code class="docutils literal notranslate"><span class="pre">EntityAdminForm.media</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.forms.TemplateForm">clinicalcode.forms.TemplateForm module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.PrettyPrintOrderedDefinition"><code class="docutils literal notranslate"><span class="pre">PrettyPrintOrderedDefinition</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm"><code class="docutils literal notranslate"><span class="pre">TemplateAdminForm</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta"><code class="docutils literal notranslate"><span class="pre">TemplateAdminForm.Meta</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta.fields"><code class="docutils literal notranslate"><span class="pre">TemplateAdminForm.Meta.fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.Meta.model"><code class="docutils literal notranslate"><span class="pre">TemplateAdminForm.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.base_fields"><code class="docutils literal notranslate"><span class="pre">TemplateAdminForm.base_fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.clean"><code class="docutils literal notranslate"><span class="pre">TemplateAdminForm.clean()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.declared_fields"><code class="docutils literal notranslate"><span class="pre">TemplateAdminForm.declared_fields</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.forms.TemplateForm.TemplateAdminForm.media"><code class="docutils literal notranslate"><span class="pre">TemplateAdminForm.media</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.forms">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
+</html>

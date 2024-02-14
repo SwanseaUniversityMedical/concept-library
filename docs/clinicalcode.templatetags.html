@@ -1,0 +1,925 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="clinicalcode.views package" href="clinicalcode.views.html" /><link rel="prev" title="clinicalcode.storage package" href="clinicalcode.storage.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>clinicalcode.templatetags package - Library Code Reference Data</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Library Code Reference Data</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/header_logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Library Code Reference Data</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">CodeListLibrary_project</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of CodeListLibrary_project</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="clinicalcode.html">clinicalcode package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of clinicalcode package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="clinicalcode.api.html">clinicalcode.api package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of clinicalcode.api package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="clinicalcode.api.views.html">clinicalcode.api.views package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.context_processors.html">clinicalcode.context_processors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.entity_utils.html">clinicalcode.entity_utils package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.forms.html">clinicalcode.forms package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="clinicalcode.management.html">clinicalcode.management package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of clinicalcode.management package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="clinicalcode.management.commands.html">clinicalcode.management.commands package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.middleware.html">clinicalcode.middleware package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.migrations.html">clinicalcode.migrations package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.models.html">clinicalcode.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clinicalcode.storage.html">clinicalcode.storage package</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">clinicalcode.templatetags package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="clinicalcode.views.html">clinicalcode.views package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of clinicalcode.views package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="clinicalcode.views.tests.html">clinicalcode.views.tests package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cll.html">cll package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manage.html">manage module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="clinicalcode-templatetags-package">
+<h1>clinicalcode.templatetags package<a class="headerlink" href="#clinicalcode-templatetags-package" title="Link to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-clinicalcode.templatetags.breadcrumbs">
+<span id="clinicalcode-templatetags-breadcrumbs-module"></span><h2>clinicalcode.templatetags.breadcrumbs module<a class="headerlink" href="#module-clinicalcode.templatetags.breadcrumbs" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.breadcrumbs.</span></span><span class="sig-name descname"><span class="pre">BreadcrumbsNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodelist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#BreadcrumbsNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.DEFAULT_STR">
+<span class="sig-name descname"><span class="pre">DEFAULT_STR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'&lt;section</span> <span class="pre">class=&quot;breadcrumbs&quot;&gt;&lt;/section&gt;'</span></em><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.DEFAULT_STR" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.get_crumb">
+<span class="sig-name descname"><span class="pre">get_crumb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crumb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#BreadcrumbsNode.get_crumb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.get_crumb" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.map_path">
+<span class="sig-name descname"><span class="pre">map_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rqst</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#BreadcrumbsNode.map_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.map_path" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.map_resolver">
+<span class="sig-name descname"><span class="pre">map_resolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rqst</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#BreadcrumbsNode.map_resolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.map_resolver" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#BreadcrumbsNode.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.render" title="Link to this definition">#</a></dt>
+<dd><p>Return the node rendered as a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.breadcrumbs">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.breadcrumbs.</span></span><span class="sig-name descname"><span class="pre">breadcrumbs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#breadcrumbs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.breadcrumbs" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.find_matching_url">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.breadcrumbs.</span></span><span class="sig-name descname"><span class="pre">find_matching_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desired</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#find_matching_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.find_matching_url" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.generate_breadcrumbs">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.breadcrumbs.</span></span><span class="sig-name descname"><span class="pre">generate_breadcrumbs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crumbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#generate_breadcrumbs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.generate_breadcrumbs" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.get_url">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.breadcrumbs.</span></span><span class="sig-name descname"><span class="pre">get_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desired</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#get_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.get_url" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.sort_ratio_list">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.breadcrumbs.</span></span><span class="sig-name descname"><span class="pre">sort_ratio_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#sort_ratio_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.sort_ratio_list" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.breadcrumbs.try_add_crumb">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.breadcrumbs.</span></span><span class="sig-name descname"><span class="pre">try_add_crumb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crumbs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crumb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/breadcrumbs.html#try_add_crumb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.breadcrumbs.try_add_crumb" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-clinicalcode.templatetags.cards_dropdown_render">
+<span id="clinicalcode-templatetags-cards-dropdown-render-module"></span><h2>clinicalcode.templatetags.cards_dropdown_render module<a class="headerlink" href="#module-clinicalcode.templatetags.cards_dropdown_render" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cards_dropdown_render.render_card">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cards_dropdown_render.</span></span><span class="sig-name descname"><span class="pre">render_card</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url_drop</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cards_dropdown_render.html#render_card"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cards_dropdown_render.render_card" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-clinicalcode.templatetags.cl_extras">
+<span id="clinicalcode-templatetags-cl-extras-module"></span><h2>clinicalcode.templatetags.cl_extras module<a class="headerlink" href="#module-clinicalcode.templatetags.cl_extras" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.addStr">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">addStr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#addStr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.addStr" title="Link to this definition">#</a></dt>
+<dd><p>concatenate value &amp; arg</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.concat_doi">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">concat_doi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">details</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#concat_doi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.concat_doi" title="Link to this definition">#</a></dt>
+<dd><p>concat publications details + doi</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.concat_str">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">concat_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#concat_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.concat_str" title="Link to this definition">#</a></dt>
+<dd><p>concat 2 strings</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.cut">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">cut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#cut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.cut" title="Link to this definition">#</a></dt>
+<dd><p>Removes all occurrences of arg from the given string</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.from_phenotype">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">from_phenotype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#from_phenotype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.from_phenotype" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.getBrandLogo">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">getBrandLogo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#getBrandLogo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.getBrandLogo" title="Link to this definition">#</a></dt>
+<dd><p>get brand logos</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.get_title">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">get_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">makeCapital</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#get_title"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.get_title" title="Link to this definition">#</a></dt>
+<dd><p>get title case</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.get_ws_type_name">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">get_ws_type_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#get_ws_type_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.get_ws_type_name" title="Link to this definition">#</a></dt>
+<dd><p>get working set type name</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.has_group">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">has_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#has_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.has_group" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.highlight">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">highlight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#highlight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.highlight" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.highlight_all_search_text">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">highlight_all_search_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#highlight_all_search_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.highlight_all_search_text" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.is_in_list">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">is_in_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#is_in_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.is_in_list" title="Link to this definition">#</a></dt>
+<dd><p>check is value is in list</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.islist">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">islist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#islist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.islist" title="Link to this definition">#</a></dt>
+<dd><p>Check if value is of type list</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.legacy">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">legacy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#legacy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.legacy" title="Link to this definition">#</a></dt>
+<dd><p>Function used to transform old style settings to new style settings</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.markdownify">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">markdownify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#markdownify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.markdownify" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.markdownify00">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">markdownify00</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#markdownify00"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.markdownify00" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.size">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.title">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#title"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.title" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.toString">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">toString</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#toString"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.toString" title="Link to this definition">#</a></dt>
+<dd><p>Convert value to string</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.cl_extras.tolist">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.cl_extras.</span></span><span class="sig-name descname"><span class="pre">tolist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/cl_extras.html#tolist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.cl_extras.tolist" title="Link to this definition">#</a></dt>
+<dd><p>Convert comma separated value to a list of type arg</p>
+</dd></dl>
+
+</section>
+<section id="module-clinicalcode.templatetags.detail_pg_renderer">
+<span id="clinicalcode-templatetags-detail-pg-renderer-module"></span><h2>clinicalcode.templatetags.detail_pg_renderer module<a class="headerlink" href="#module-clinicalcode.templatetags.detail_pg_renderer" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.EntityWizardAside">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">EntityWizardAside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodelist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#EntityWizardAside"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.EntityWizardAside" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.EntityWizardAside.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#EntityWizardAside.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.EntityWizardAside.render" title="Link to this definition">#</a></dt>
+<dd><p>Return the node rendered as a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.EntityWizardSections">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">EntityWizardSections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodelist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#EntityWizardSections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.EntityWizardSections" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.EntityWizardSections.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#EntityWizardSections.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.EntityWizardSections.render" title="Link to this definition">#</a></dt>
+<dd><p>Return the node rendered as a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.get_data_sources">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">get_data_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#get_data_sources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.get_data_sources" title="Link to this definition">#</a></dt>
+<dd><p>Tries to get the sourced value of data_sources id/name/url</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.get_template_creation_data">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">get_template_creation_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#get_template_creation_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.get_template_creation_data" title="Link to this definition">#</a></dt>
+<dd><p>Used to retrieve assoc. data values for specific keys, e.g.
+concepts, in its expanded format for use with create/update pages</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.is_member">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">is_member</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#is_member"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.is_member" title="Link to this definition">#</a></dt>
+<dd><p>Det. whether has a group membership</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>user {RequestContext.user()} - the user model
+args {string} - a string, can be deliminated by ‘,’ to confirm membership in multiple groups</p>
+</dd>
+<dt>Returns:</dt><dd><p>{boolean} that reflects membership status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.jsonify">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">jsonify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_print</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#jsonify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.jsonify" title="Link to this definition">#</a></dt>
+<dd><p>Attempts to dump a value to JSON</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.render_aside_wizard">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">render_aside_wizard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#render_aside_wizard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.render_aside_wizard" title="Link to this definition">#</a></dt>
+<dd><p>Responsible for rendering the &lt;aside/&gt; sidemenu item for detail pages</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.render_steps_wizard">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">render_steps_wizard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#render_steps_wizard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.render_steps_wizard" title="Link to this definition">#</a></dt>
+<dd><p>Responsible for rendering the &lt;li/&gt; sections for detail pages</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.stylise_date">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">stylise_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#stylise_date"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.stylise_date" title="Link to this definition">#</a></dt>
+<dd><p>Stylises a datetime object in the YY-MM-DD format</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.stylise_number">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">stylise_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#stylise_number"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.stylise_number" title="Link to this definition">#</a></dt>
+<dd><p>Stylises a number so that it adds a comma delimiter for numbers greater than 1000</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.trimmed">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">trimmed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#trimmed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.trimmed" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.detail_pg_renderer.truncate">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.detail_pg_renderer.</span></span><span class="sig-name descname"><span class="pre">truncate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/detail_pg_renderer.html#truncate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.detail_pg_renderer.truncate" title="Link to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Truncates a string if its length is greater than the limit</dt><dd><ul class="simple">
+<li><p>can append an ending, e.g. an ellipsis, by passing the ‘ending’ parameter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-clinicalcode.templatetags.entity_publish_renderer">
+<span id="clinicalcode-templatetags-entity-publish-renderer-module"></span><h2>clinicalcode.templatetags.entity_publish_renderer module<a class="headerlink" href="#module-clinicalcode.templatetags.entity_publish_renderer" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_publish_renderer.render_errors_approval">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_publish_renderer.</span></span><span class="sig-name descname"><span class="pre">render_errors_approval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_publish_renderer.html#render_errors_approval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_publish_renderer.render_errors_approval" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_publish_renderer.render_publish_button">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_publish_renderer.</span></span><span class="sig-name descname"><span class="pre">render_publish_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_publish_renderer.html#render_publish_button"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_publish_renderer.render_publish_button" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-clinicalcode.templatetags.entity_renderer">
+<span id="clinicalcode-templatetags-entity-renderer-module"></span><h2>clinicalcode.templatetags.entity_renderer module<a class="headerlink" href="#module-clinicalcode.templatetags.entity_renderer" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.EntityCardsNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">EntityCardsNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodelist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#EntityCardsNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.EntityCardsNode" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.EntityCardsNode.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#EntityCardsNode.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.EntityCardsNode.render" title="Link to this definition">#</a></dt>
+<dd><p>Return the node rendered as a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.EntityFiltersNode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">EntityFiltersNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodelist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#EntityFiltersNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.EntityFiltersNode" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.EntityFiltersNode.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#EntityFiltersNode.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.EntityFiltersNode.render" title="Link to this definition">#</a></dt>
+<dd><p>Return the node rendered as a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.EntityWizardAside">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">EntityWizardAside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodelist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#EntityWizardAside"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.EntityWizardAside" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.EntityWizardAside.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#EntityWizardAside.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.EntityWizardAside.render" title="Link to this definition">#</a></dt>
+<dd><p>Return the node rendered as a string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.EntityWizardSections">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">EntityWizardSections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodelist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#EntityWizardSections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.EntityWizardSections" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.EntityWizardSections.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#EntityWizardSections.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.EntityWizardSections.render" title="Link to this definition">#</a></dt>
+<dd><p>Renders the wizard</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.get_brand_base_embed_desc">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">get_brand_base_embed_desc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brand</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#get_brand_base_embed_desc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.get_brand_base_embed_desc" title="Link to this definition">#</a></dt>
+<dd><p>Gets the brand-related site desc if available, otherwise returns
+the APP_DESC per settings.py</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.get_brand_base_embed_img">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">get_brand_base_embed_img</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brand</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#get_brand_base_embed_img"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.get_brand_base_embed_img" title="Link to this definition">#</a></dt>
+<dd><p>Gets the brand-related site desc if available, otherwise returns
+the APP_DESC per settings.py</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.get_brand_base_icons">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">get_brand_base_icons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brand</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#get_brand_base_icons"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.get_brand_base_icons" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.get_brand_base_title">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">get_brand_base_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brand</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#get_brand_base_title"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.get_brand_base_title" title="Link to this definition">#</a></dt>
+<dd><p>Gets the brand-related site title if available, otherwise returns
+the APP_TITLE per settings.py</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.is_member">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">is_member</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#is_member"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.is_member" title="Link to this definition">#</a></dt>
+<dd><p>Det. whether has a group membership</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>user (RequestContext.user()) - the user model
+args (string) - a string, can be deliminated by ‘,’ to confirm membership in multiple groups</p>
+</dd>
+<dt>Returns:</dt><dd><p>(boolean) that reflects membership status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.jsonify">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">jsonify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_print</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#jsonify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.jsonify" title="Link to this definition">#</a></dt>
+<dd><p>Attempts to dump a value to JSON</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.parse_as_json_object">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">parse_as_json_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_userdata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">should_print</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#parse_as_json_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.parse_as_json_object" title="Link to this definition">#</a></dt>
+<dd><p>Attempts to dump a value to JSON</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.render_aside_wizard">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">render_aside_wizard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#render_aside_wizard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.render_aside_wizard" title="Link to this definition">#</a></dt>
+<dd><p>Responsible for rendering the &lt;aside/&gt; navigation item for create pages</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.render_entities">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">render_entities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#render_entities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.render_entities" title="Link to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Responsible for rendering the entity cards on a search page</dt><dd><ul class="simple">
+<li><p>Uses the entity’s template to determine how to render the card (e.g. which to use)</p></li>
+<li><p>Each card is rendered with its own context pertaining to that entity</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.render_field_value">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">render_field_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">through</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#render_field_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.render_field_value" title="Link to this definition">#</a></dt>
+<dd><dl>
+<dt>Responsible for rendering fields after transforming them using their respective layouts</dt><dd><ul class="simple">
+<li><p>in the case of ‘type’ (in this case, phenotype clinical types) where pk__eq=1 would be ‘Disease or Syndrome’</p></li>
+</ul>
+<p>instead of returning the pk, it would return the field’s string representation from either (a) its source or (b) the options parameter</p>
+<ul class="simple">
+<li><p>in the case of ‘coding_system’, it would read each individual element within the ArrayField,</p></li>
+</ul>
+<dl class="simple">
+<dt>and return a rendered output based on the ‘desired_output’ parameter</dt><dd><p>OR
+it would render output based on the ‘through’ parameter, which points to a component to be rendered</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.render_filters">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">render_filters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#render_filters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.render_filters" title="Link to this definition">#</a></dt>
+<dd><p>Responsible for rendering filters for entities on the search pages</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.render_pagination">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">render_pagination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#render_pagination"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.render_pagination" title="Link to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Renders pagination button(s) for search pages</dt><dd><ul class="simple">
+<li><p>Provides page range so that it always includes the first and last page,
+and if available, provides the page numbers 1 page to the left and the right of the current page</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.render_steps_wizard">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">render_steps_wizard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#render_steps_wizard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.render_steps_wizard" title="Link to this definition">#</a></dt>
+<dd><p>Responsible for rendering the &lt;li/&gt; sections for create pages</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.renderable_field_values">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">renderable_field_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#renderable_field_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.renderable_field_values" title="Link to this definition">#</a></dt>
+<dd><p>Gets the field’s value from an entity, compares it with it’s expected layout (per the template), and returns
+a list of values that relate to that field</p>
+<blockquote>
+<div><p>e.g. in the case of CodingSystems it would return [{name: ‘ICD-10’, value: 1}] where ‘value’ is the PK</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.sort_by_alpha">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">sort_by_alpha</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'name'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'desc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#sort_by_alpha"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.sort_by_alpha" title="Link to this definition">#</a></dt>
+<dd><p>Sorts an array of objects by the defined column, and orders by
+asc/desc given its params</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.stylise_date">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">stylise_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">date</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#stylise_date"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.stylise_date" title="Link to this definition">#</a></dt>
+<dd><p>Stylises a datetime object in the YY-MM-DD format</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.stylise_number">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">stylise_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#stylise_number"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.stylise_number" title="Link to this definition">#</a></dt>
+<dd><p>Stylises a number so that it adds a comma delimiter for numbers greater than 1000</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.trimmed">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">trimmed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#trimmed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.trimmed" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clinicalcode.templatetags.entity_renderer.truncate">
+<span class="sig-prename descclassname"><span class="pre">clinicalcode.templatetags.entity_renderer.</span></span><span class="sig-name descname"><span class="pre">truncate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/clinicalcode/templatetags/entity_renderer.html#truncate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#clinicalcode.templatetags.entity_renderer.truncate" title="Link to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Truncates a string if its length is greater than the limit</dt><dd><ul class="simple">
+<li><p>can append an ending, e.g. an ellipsis, by passing the ‘ending’ parameter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-clinicalcode.templatetags">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-clinicalcode.templatetags" title="Link to this heading">#</a></h2>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="clinicalcode.views.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">clinicalcode.views package</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="clinicalcode.storage.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">clinicalcode.storage package</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, alex
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">clinicalcode.templatetags package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-clinicalcode.templatetags.breadcrumbs">clinicalcode.templatetags.breadcrumbs module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode"><code class="docutils literal notranslate"><span class="pre">BreadcrumbsNode</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.DEFAULT_STR"><code class="docutils literal notranslate"><span class="pre">BreadcrumbsNode.DEFAULT_STR</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.get_crumb"><code class="docutils literal notranslate"><span class="pre">BreadcrumbsNode.get_crumb()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.map_path"><code class="docutils literal notranslate"><span class="pre">BreadcrumbsNode.map_path()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.map_resolver"><code class="docutils literal notranslate"><span class="pre">BreadcrumbsNode.map_resolver()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.BreadcrumbsNode.render"><code class="docutils literal notranslate"><span class="pre">BreadcrumbsNode.render()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.breadcrumbs"><code class="docutils literal notranslate"><span class="pre">breadcrumbs()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.find_matching_url"><code class="docutils literal notranslate"><span class="pre">find_matching_url()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.generate_breadcrumbs"><code class="docutils literal notranslate"><span class="pre">generate_breadcrumbs()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.get_url"><code class="docutils literal notranslate"><span class="pre">get_url()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.sort_ratio_list"><code class="docutils literal notranslate"><span class="pre">sort_ratio_list()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.breadcrumbs.try_add_crumb"><code class="docutils literal notranslate"><span class="pre">try_add_crumb()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.templatetags.cards_dropdown_render">clinicalcode.templatetags.cards_dropdown_render module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cards_dropdown_render.render_card"><code class="docutils literal notranslate"><span class="pre">render_card()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.templatetags.cl_extras">clinicalcode.templatetags.cl_extras module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.addStr"><code class="docutils literal notranslate"><span class="pre">addStr()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.concat_doi"><code class="docutils literal notranslate"><span class="pre">concat_doi()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.concat_str"><code class="docutils literal notranslate"><span class="pre">concat_str()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.cut"><code class="docutils literal notranslate"><span class="pre">cut()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.from_phenotype"><code class="docutils literal notranslate"><span class="pre">from_phenotype()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.getBrandLogo"><code class="docutils literal notranslate"><span class="pre">getBrandLogo()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.get_title"><code class="docutils literal notranslate"><span class="pre">get_title()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.get_ws_type_name"><code class="docutils literal notranslate"><span class="pre">get_ws_type_name()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.has_group"><code class="docutils literal notranslate"><span class="pre">has_group()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.highlight"><code class="docutils literal notranslate"><span class="pre">highlight()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.highlight_all_search_text"><code class="docutils literal notranslate"><span class="pre">highlight_all_search_text()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.is_in_list"><code class="docutils literal notranslate"><span class="pre">is_in_list()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.islist"><code class="docutils literal notranslate"><span class="pre">islist()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.legacy"><code class="docutils literal notranslate"><span class="pre">legacy()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.markdownify"><code class="docutils literal notranslate"><span class="pre">markdownify()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.markdownify00"><code class="docutils literal notranslate"><span class="pre">markdownify00()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.size"><code class="docutils literal notranslate"><span class="pre">size()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.title"><code class="docutils literal notranslate"><span class="pre">title()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.toString"><code class="docutils literal notranslate"><span class="pre">toString()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.cl_extras.tolist"><code class="docutils literal notranslate"><span class="pre">tolist()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.templatetags.detail_pg_renderer">clinicalcode.templatetags.detail_pg_renderer module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.EntityWizardAside"><code class="docutils literal notranslate"><span class="pre">EntityWizardAside</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.EntityWizardAside.render"><code class="docutils literal notranslate"><span class="pre">EntityWizardAside.render()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.EntityWizardSections"><code class="docutils literal notranslate"><span class="pre">EntityWizardSections</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.EntityWizardSections.render"><code class="docutils literal notranslate"><span class="pre">EntityWizardSections.render()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.get_data_sources"><code class="docutils literal notranslate"><span class="pre">get_data_sources()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.get_template_creation_data"><code class="docutils literal notranslate"><span class="pre">get_template_creation_data()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.is_member"><code class="docutils literal notranslate"><span class="pre">is_member()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.jsonify"><code class="docutils literal notranslate"><span class="pre">jsonify()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.render_aside_wizard"><code class="docutils literal notranslate"><span class="pre">render_aside_wizard()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.render_steps_wizard"><code class="docutils literal notranslate"><span class="pre">render_steps_wizard()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.stylise_date"><code class="docutils literal notranslate"><span class="pre">stylise_date()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.stylise_number"><code class="docutils literal notranslate"><span class="pre">stylise_number()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.trimmed"><code class="docutils literal notranslate"><span class="pre">trimmed()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.detail_pg_renderer.truncate"><code class="docutils literal notranslate"><span class="pre">truncate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.templatetags.entity_publish_renderer">clinicalcode.templatetags.entity_publish_renderer module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_publish_renderer.render_errors_approval"><code class="docutils literal notranslate"><span class="pre">render_errors_approval()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_publish_renderer.render_publish_button"><code class="docutils literal notranslate"><span class="pre">render_publish_button()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.templatetags.entity_renderer">clinicalcode.templatetags.entity_renderer module</a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.EntityCardsNode"><code class="docutils literal notranslate"><span class="pre">EntityCardsNode</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.EntityCardsNode.render"><code class="docutils literal notranslate"><span class="pre">EntityCardsNode.render()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.EntityFiltersNode"><code class="docutils literal notranslate"><span class="pre">EntityFiltersNode</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.EntityFiltersNode.render"><code class="docutils literal notranslate"><span class="pre">EntityFiltersNode.render()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.EntityWizardAside"><code class="docutils literal notranslate"><span class="pre">EntityWizardAside</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.EntityWizardAside.render"><code class="docutils literal notranslate"><span class="pre">EntityWizardAside.render()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.EntityWizardSections"><code class="docutils literal notranslate"><span class="pre">EntityWizardSections</span></code></a><ul>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.EntityWizardSections.render"><code class="docutils literal notranslate"><span class="pre">EntityWizardSections.render()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.get_brand_base_embed_desc"><code class="docutils literal notranslate"><span class="pre">get_brand_base_embed_desc()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.get_brand_base_embed_img"><code class="docutils literal notranslate"><span class="pre">get_brand_base_embed_img()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.get_brand_base_icons"><code class="docutils literal notranslate"><span class="pre">get_brand_base_icons()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.get_brand_base_title"><code class="docutils literal notranslate"><span class="pre">get_brand_base_title()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.is_member"><code class="docutils literal notranslate"><span class="pre">is_member()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.jsonify"><code class="docutils literal notranslate"><span class="pre">jsonify()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.parse_as_json_object"><code class="docutils literal notranslate"><span class="pre">parse_as_json_object()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.render_aside_wizard"><code class="docutils literal notranslate"><span class="pre">render_aside_wizard()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.render_entities"><code class="docutils literal notranslate"><span class="pre">render_entities()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.render_field_value"><code class="docutils literal notranslate"><span class="pre">render_field_value()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.render_filters"><code class="docutils literal notranslate"><span class="pre">render_filters()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.render_pagination"><code class="docutils literal notranslate"><span class="pre">render_pagination()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.render_steps_wizard"><code class="docutils literal notranslate"><span class="pre">render_steps_wizard()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.renderable_field_values"><code class="docutils literal notranslate"><span class="pre">renderable_field_values()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.sort_by_alpha"><code class="docutils literal notranslate"><span class="pre">sort_by_alpha()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.stylise_date"><code class="docutils literal notranslate"><span class="pre">stylise_date()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.stylise_number"><code class="docutils literal notranslate"><span class="pre">stylise_number()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.trimmed"><code class="docutils literal notranslate"><span class="pre">trimmed()</span></code></a></li>
+<li><a class="reference internal" href="#clinicalcode.templatetags.entity_renderer.truncate"><code class="docutils literal notranslate"><span class="pre">truncate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-clinicalcode.templatetags">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
+</html>

@@ -1,0 +1,1050 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>clinicalcode.templatetags.entity_renderer - Library Code Reference Data</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">Library Code Reference Data</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../../_static/header_logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Library Code Reference Data</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../modules.html">CodeListLibrary_project</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of CodeListLibrary_project</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../clinicalcode.html">clinicalcode package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of clinicalcode package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../clinicalcode.api.html">clinicalcode.api package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of clinicalcode.api package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../clinicalcode.api.views.html">clinicalcode.api.views package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.context_processors.html">clinicalcode.context_processors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.entity_utils.html">clinicalcode.entity_utils package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.forms.html">clinicalcode.forms package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../clinicalcode.management.html">clinicalcode.management package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of clinicalcode.management package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../clinicalcode.management.commands.html">clinicalcode.management.commands package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.middleware.html">clinicalcode.middleware package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.migrations.html">clinicalcode.migrations package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.models.html">clinicalcode.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.storage.html">clinicalcode.storage package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.templatetags.html">clinicalcode.templatetags package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../clinicalcode.views.html">clinicalcode.views package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of clinicalcode.views package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../clinicalcode.views.tests.html">clinicalcode.views.tests package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cll.html">cll package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../manage.html">manage module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for clinicalcode.templatetags.entity_renderer</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">template</span>
+<span class="kn">from</span> <span class="nn">jinja2.exceptions</span> <span class="kn">import</span> <span class="n">TemplateSyntaxError</span>
+<span class="kn">from</span> <span class="nn">django.template.loader</span> <span class="kn">import</span> <span class="n">render_to_string</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">..entity_utils</span> <span class="kn">import</span> <span class="n">permission_utils</span><span class="p">,</span> <span class="n">template_utils</span><span class="p">,</span> <span class="n">search_utils</span><span class="p">,</span> <span class="n">model_utils</span><span class="p">,</span> <span class="n">create_utils</span><span class="p">,</span> <span class="n">gen_utils</span><span class="p">,</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..models.GenericEntity</span> <span class="kn">import</span> <span class="n">GenericEntity</span>
+
+<span class="n">register</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Library</span><span class="p">()</span>
+
+<div class="viewcode-block" id="sort_by_alpha">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.sort_by_alpha">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span>
+<span class="k">def</span> <span class="nf">sort_by_alpha</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;desc&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sorts an array of objects by the defined column, and orders by</span>
+<span class="sd">        asc/desc given its params</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sorted_arr</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">reverse</span> <span class="o">=</span> <span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;asc&#39;</span>
+        <span class="n">sorted_arr</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">sorted_arr</span> <span class="o">=</span> <span class="n">arr</span>
+    <span class="k">return</span> <span class="n">sorted_arr</span></div>
+
+
+<div class="viewcode-block" id="get_brand_base_icons">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.get_brand_base_icons">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span>
+<span class="k">def</span> <span class="nf">get_brand_base_icons</span><span class="p">(</span><span class="n">brand</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">APP_LOGO_PATH</span>
+    <span class="k">if</span> <span class="n">brand</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">brand</span><span class="p">,</span> <span class="s1">&#39;logo_path&#39;</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">brand</span><span class="o">.</span><span class="n">logo_path</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;favicon&#39;</span><span class="p">:</span> <span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;favicon-32x32.png&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;apple&#39;</span><span class="p">:</span> <span class="n">path</span> <span class="o">+</span> <span class="s1">&#39;apple-touch-icon.png&#39;</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="get_brand_base_title">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.get_brand_base_title">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span>
+<span class="k">def</span> <span class="nf">get_brand_base_title</span><span class="p">(</span><span class="n">brand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the brand-related site title if available, otherwise returns</span>
+<span class="sd">        the APP_TITLE per settings.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">brand</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">brand</span><span class="p">,</span> <span class="s1">&#39;site_title&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">APP_TITLE</span>
+    <span class="k">return</span> <span class="n">brand</span><span class="o">.</span><span class="n">site_title</span></div>
+
+
+<div class="viewcode-block" id="get_brand_base_embed_desc">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.get_brand_base_embed_desc">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span>
+<span class="k">def</span> <span class="nf">get_brand_base_embed_desc</span><span class="p">(</span><span class="n">brand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the brand-related site desc if available, otherwise returns</span>
+<span class="sd">        the APP_DESC per settings.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">brand</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">brand</span><span class="p">,</span> <span class="s1">&#39;site_title&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">APP_DESC</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">app_title</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_TITLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">APP_DESC</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">app_title</span><span class="o">=</span><span class="n">brand</span><span class="o">.</span><span class="n">site_title</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_brand_base_embed_img">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.get_brand_base_embed_img">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span>
+<span class="k">def</span> <span class="nf">get_brand_base_embed_img</span><span class="p">(</span><span class="n">brand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the brand-related site desc if available, otherwise returns</span>
+<span class="sd">        the APP_DESC per settings.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">brand</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">brand</span><span class="p">,</span> <span class="s1">&#39;logo_path&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">APP_EMBED_ICON</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">logo_path</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">APP_LOGO_PATH</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">APP_EMBED_ICON</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">logo_path</span><span class="o">=</span><span class="n">brand</span><span class="o">.</span><span class="n">logo_path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="render_pagination">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.render_pagination">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">inclusion_tag</span><span class="p">(</span><span class="s1">&#39;components/search/pagination/pagination.html&#39;</span><span class="p">,</span> <span class="n">takes_context</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;render_entity_pagination&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">render_pagination</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renders pagination button(s) for search pages</span>
+<span class="sd">            - Provides page range so that it always includes the first and last page,</span>
+<span class="sd">              and if available, provides the page numbers 1 page to the left and the right of the current page</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">page_obj</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;page_obj&#39;</span><span class="p">]</span>
+
+    <span class="n">page</span> <span class="o">=</span> <span class="n">page_obj</span><span class="o">.</span><span class="n">number</span>
+    <span class="n">num_pages</span> <span class="o">=</span> <span class="n">page_obj</span><span class="o">.</span><span class="n">paginator</span><span class="o">.</span><span class="n">num_pages</span>
+
+    <span class="n">packet</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;page&#39;</span><span class="p">:</span> <span class="n">page</span><span class="p">,</span>
+        <span class="s1">&#39;page_range&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_pages</span><span class="p">],</span>
+        <span class="s1">&#39;has_previous&#39;</span><span class="p">:</span> <span class="n">page_obj</span><span class="o">.</span><span class="n">has_previous</span><span class="p">(),</span>
+        <span class="s1">&#39;has_next&#39;</span><span class="p">:</span> <span class="n">page_obj</span><span class="o">.</span><span class="n">has_next</span><span class="p">(),</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">num_pages</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">:</span>
+        <span class="n">packet</span><span class="p">[</span><span class="s1">&#39;pages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_pages</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">packet</span>
+
+    <span class="n">page_items</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">min_page</span> <span class="o">=</span> <span class="n">page</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">max_page</span> <span class="o">=</span> <span class="n">page</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">min_page</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">min_page</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">max_page</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">page</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num_pages</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">page_items</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;divider&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">max_page</span> <span class="o">&gt;</span> <span class="n">num_pages</span><span class="p">:</span>
+        <span class="n">min_page</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">page</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">max_page</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">num_pages</span><span class="p">)</span>
+
+    <span class="n">page_items</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">min_page</span><span class="p">,</span> <span class="n">max_page</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">num_pages</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">page_items</span><span class="p">:</span>
+        <span class="n">page_items</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;divider&#39;</span><span class="p">,</span> <span class="n">num_pages</span><span class="p">]</span>
+
+    <span class="n">packet</span><span class="p">[</span><span class="s1">&#39;pages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">page_items</span>
+    <span class="k">return</span> <span class="n">packet</span></div>
+
+
+<div class="viewcode-block" id="is_member">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.is_member">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;is_member&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">is_member</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Det. whether has a group membership</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            user (RequestContext.user()) - the user model</span>
+<span class="sd">            args (string) - a string, can be deliminated by &#39;,&#39; to confirm membership in multiple groups</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            (boolean) that reflects membership status</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">permission_utils</span><span class="o">.</span><span class="n">is_member</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="jsonify">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.jsonify">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;jsonify&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">jsonify</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">should_print</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Attempts to dump a value to JSON</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">should_print</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+    
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">gen_utils</span><span class="o">.</span><span class="n">ModelEncoder</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_utils</span><span class="o">.</span><span class="n">jsonify_object</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_as_json_object">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.parse_as_json_object">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span>
+<span class="k">def</span> <span class="nf">parse_as_json_object</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">remove_userdata</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">should_print</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Attempts to dump a value to JSON</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">should_print</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">{</span> <span class="p">}</span>
+    
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">gen_utils</span><span class="o">.</span><span class="n">ModelEncoder</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_utils</span><span class="o">.</span><span class="n">jsonify_object</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">remove_userdata</span><span class="o">=</span><span class="n">remove_userdata</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="trimmed">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.trimmed">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;trimmed&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">trimmed</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="stylise_number">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.stylise_number">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;stylise_number&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">stylise_number</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stylises a number so that it adds a comma delimiter for numbers greater than 1000</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{:,}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="stylise_date">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.stylise_date">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;stylise_date&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">stylise_date</span><span class="p">(</span><span class="n">date</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stylises a datetime object in the YY-MM-DD format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="truncate">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.truncate">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;truncate&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">truncate</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">lim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ending</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Truncates a string if its length is greater than the limit</span>
+<span class="sd">            - can append an ending, e.g. an ellipsis, by passing the &#39;ending&#39; parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">lim</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">truncated</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">truncated</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">lim</span><span class="p">:</span>
+            <span class="n">truncated</span> <span class="o">=</span> <span class="n">truncated</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">lim</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ending</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">truncated</span> <span class="o">=</span> <span class="n">truncated</span> <span class="o">+</span> <span class="n">ending</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">truncated</span></div>
+
+
+<div class="viewcode-block" id="render_field_value">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.render_field_value">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;render_field_value&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">render_field_value</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">through</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Responsible for rendering fields after transforming them using their respective layouts</span>
+<span class="sd">            - in the case of &#39;type&#39; (in this case, phenotype clinical types) where pk__eq=1 would be &#39;Disease or Syndrome&#39;</span>
+<span class="sd">            instead of returning the pk, it would return the field&#39;s string representation from either (a) its source or (b) the options parameter</span>
+<span class="sd">            </span>
+<span class="sd">            - in the case of &#39;coding_system&#39;, it would read each individual element within the ArrayField, </span>
+<span class="sd">            and return a rendered output based on the &#39;desired_output&#39; parameter</span>
+<span class="sd">                OR</span>
+<span class="sd">                it would render output based on the &#39;through&#39; parameter, which points to a component to be rendered</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_entity_field</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_layout_field</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">info</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    
+    <span class="n">validation</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="s1">&#39;validation&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">validation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">field_type</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">validation</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">field_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    
+    <span class="k">if</span> <span class="n">field_type</span> <span class="o">==</span> <span class="s1">&#39;enum&#39;</span> <span class="ow">or</span> <span class="n">field_type</span> <span class="o">==</span> <span class="s1">&#39;int&#39;</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_template_data_values</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">field_type</span> <span class="o">==</span> <span class="s1">&#39;int_array&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;source&#39;</span> <span class="ow">in</span> <span class="n">validation</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_template_data_values</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">through</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Use override template</span>
+                    <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Use desired output</span>
+                    <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span></div>
+
+
+<div class="viewcode-block" id="renderable_field_values">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.renderable_field_values">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">simple_tag</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;renderable_field_values&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">renderable_field_values</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the field&#39;s value from an entity, compares it with it&#39;s expected layout (per the template), and returns</span>
+<span class="sd">        a list of values that relate to that field</span>
+<span class="sd">            e.g. in the case of CodingSystems it would return [{name: &#39;ICD-10&#39;, value: 1}] where &#39;value&#39; is the PK</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">is_metadata</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="c1"># handle metadata e.g. collections, tags etc</span>
+        <span class="k">return</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_metadata_value_from_source</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+    
+    <span class="k">return</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_template_data_values</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span></div>
+
+
+<div class="viewcode-block" id="render_entities">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.render_entities">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;render_entity_cards&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">render_entities</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Responsible for rendering the entity cards on a search page</span>
+<span class="sd">            - Uses the entity&#39;s template to determine how to render the card (e.g. which to use)</span>
+<span class="sd">            - Each card is rendered with its own context pertaining to that entity</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Any future params that modifies behaviour</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">parsed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;with&#39;</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">parsed</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+            <span class="n">params</span><span class="p">[</span><span class="n">ctx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s1">&#39;Unable to parse entity cards renderer&#39;</span><span class="p">)</span>
+
+    <span class="n">nodelist</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">((</span><span class="s1">&#39;endrender_entity_cards&#39;</span><span class="p">))</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">delete_first_token</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">EntityCardsNode</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">nodelist</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EntityCardsNode">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.EntityCardsNode">[docs]</a>
+<span class="k">class</span> <span class="nc">EntityCardsNode</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">nodelist</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodelist</span> <span class="o">=</span> <span class="n">nodelist</span>
+    
+<div class="viewcode-block" id="EntityCardsNode.render">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.EntityCardsNode.render">[docs]</a>
+    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">entities</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;page_obj&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">object_list</span>
+        <span class="n">layouts</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;layouts&#39;</span><span class="p">]</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
+            <span class="n">layout</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">layouts</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">template_version</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">is_layout_safe</span><span class="p">(</span><span class="n">layout</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">card</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">layout</span><span class="p">[</span><span class="s1">&#39;definition&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;template_details&#39;</span><span class="p">),</span> <span class="s1">&#39;card_type&#39;</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">DEFAULT_CARD</span><span class="p">)</span>
+            <span class="n">card</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">constants</span><span class="o">.</span><span class="n">CARDS_DIRECTORY</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">card</span><span class="si">}</span><span class="s1">.html&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">html</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span><span class="n">card</span><span class="p">,</span> <span class="p">{</span>
+                    <span class="s1">&#39;entity&#39;</span><span class="p">:</span> <span class="n">entity</span><span class="p">,</span>
+                    <span class="s1">&#39;layout&#39;</span><span class="p">:</span> <span class="n">layout</span>
+                <span class="p">})</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="n">html</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+</div>
+
+
+<div class="viewcode-block" id="render_filters">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.render_filters">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;render_entity_filters&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">render_filters</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Responsible for rendering filters for entities on the search pages</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Any future modifiers</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">parsed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;with&#39;</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">parsed</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+            <span class="n">params</span><span class="p">[</span><span class="n">ctx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s1">&#39;Unable to parse entity filters renderer&#39;</span><span class="p">)</span>
+
+    <span class="n">nodelist</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">((</span><span class="s1">&#39;endrender_entity_filters&#39;</span><span class="p">))</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">delete_first_token</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">EntityFiltersNode</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">nodelist</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EntityFiltersNode">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.EntityFiltersNode">[docs]</a>
+<span class="k">class</span> <span class="nc">EntityFiltersNode</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">nodelist</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodelist</span> <span class="o">=</span> <span class="n">nodelist</span>
+    
+    <span class="k">def</span> <span class="nf">__try_compile_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Attempts to compile the reference data for a metadata field</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s1">&#39;template&#39;</span><span class="p">:</span>
+            <span class="n">layouts</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;layouts&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">modifier</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;entity_class__id__in&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">layout</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">modifier</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">search_utils</span><span class="o">.</span><span class="n">get_source_references</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[],</span> <span class="n">modifier</span><span class="o">=</span><span class="n">modifier</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__render_metadata_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Renders a metadata field, as defined by constants.py</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">filter_info</span> <span class="o">=</span> <span class="n">search_utils</span><span class="o">.</span><span class="n">get_filter_info</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filter_info</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    
+        <span class="n">component</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FILTER_COMPONENTS</span><span class="p">,</span> <span class="n">filter_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">component</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">options</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s1">&#39;compute_statistics&#39;</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">:</span>
+            <span class="n">current_brand</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">CURRENT_BRAND</span> <span class="ow">or</span> <span class="s1">&#39;ALL&#39;</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">search_utils</span><span class="o">.</span><span class="n">get_metadata_stats_by_field</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">brand</span><span class="o">=</span><span class="n">current_brand</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">validation</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="s1">&#39;validation&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">validation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;source&#39;</span> <span class="ow">in</span> <span class="n">validation</span><span class="p">:</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__try_compile_reference</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+                
+        <span class="n">filter_info</span><span class="p">[</span><span class="s1">&#39;options&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;filter_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_info</span>
+        <span class="k">return</span> <span class="n">render_to_string</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">constants</span><span class="o">.</span><span class="n">FILTER_DIRECTORY</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s1">.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__render_template_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">layout</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Renders a component for a template field after computing its reference data</span>
+<span class="sd">            as defined by its validation &amp; field type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">filter_info</span> <span class="o">=</span> <span class="n">search_utils</span><span class="o">.</span><span class="n">get_filter_info</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filter_info</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    
+        <span class="n">component</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FILTER_COMPONENTS</span><span class="p">,</span> <span class="n">filter_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">component</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        
+        <span class="n">current_brand</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">CURRENT_BRAND</span> <span class="ow">or</span> <span class="s1">&#39;ALL&#39;</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="n">search_utils</span><span class="o">.</span><span class="n">try_get_template_statistics</span><span class="p">(</span><span class="n">filter_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;field&#39;</span><span class="p">),</span> <span class="n">brand</span><span class="o">=</span><span class="n">current_brand</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">statistics</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">statistics</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;filter_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="n">filter_info</span><span class="p">,</span>
+            <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">statistics</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">render_to_string</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">constants</span><span class="o">.</span><span class="n">FILTER_DIRECTORY</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s1">.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__generate_metadata_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">is_single_search</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Generates the filters for all metadata fields within a template</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">constants</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">search</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="s1">&#39;search&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">search</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s1">&#39;filterable&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">search</span><span class="p">:</span>
+                <span class="k">continue</span>
+            
+            <span class="n">output</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__render_metadata_component</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output</span>
+    
+    <span class="k">def</span> <span class="nf">__generate_template_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">layouts</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Generates a filter for each field of a template</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">layouts</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">is_layout_safe</span><span class="p">(</span><span class="n">layout</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">output</span>
+
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;definition&#39;</span><span class="p">),</span> <span class="s1">&#39;fields&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output</span>
+        
+        <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="n">order</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">layouts</span><span class="p">,</span> <span class="s1">&#39;order&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">order</span> <span class="k">if</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">is_filterable</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">field</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">template_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span> <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">structure</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">is_filterable</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">field</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">template_fields</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__render_template_component</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">),</span> <span class="n">layout</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output</span>
+
+<div class="viewcode-block" id="EntityFiltersNode.render">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.EntityFiltersNode.render">[docs]</a>
+    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">entity_type</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;entity_type&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">layouts</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;layouts&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">layouts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        
+        <span class="n">is_single_search</span> <span class="o">=</span> <span class="n">entity_type</span> <span class="ow">is</span> <span class="kc">None</span>
+
+        <span class="c1"># Render metadata</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__generate_metadata_filters</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">is_single_search</span><span class="p">)</span>
+
+        <span class="c1"># Render template specific filters</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_single_search</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__generate_template_filters</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">layouts</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
+</div>
+
+
+<div class="viewcode-block" id="render_aside_wizard">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.render_aside_wizard">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;render_wizard_navigation&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">render_aside_wizard</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Responsible for rendering the &lt;aside/&gt; navigation item for create pages</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Any future modifiers</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">parsed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;with&#39;</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">parsed</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+            <span class="n">params</span><span class="p">[</span><span class="n">ctx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s1">&#39;Unable to parse wizard aside renderer tag&#39;</span><span class="p">)</span>
+
+    <span class="n">nodelist</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">((</span><span class="s1">&#39;endrender_wizard_navigation&#39;</span><span class="p">))</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">delete_first_token</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">EntityWizardAside</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">nodelist</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EntityWizardAside">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.EntityWizardAside">[docs]</a>
+<span class="k">class</span> <span class="nc">EntityWizardAside</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">nodelist</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodelist</span> <span class="o">=</span> <span class="n">nodelist</span>
+    
+<div class="viewcode-block" id="EntityWizardAside.render">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.EntityWizardAside.render">[docs]</a>
+    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;template&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">template</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output</span>
+        
+        <span class="n">sections</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sections&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sections</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">final_sections</span> <span class="o">=</span> <span class="p">[</span><span class="n">section</span> <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">sections</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">section</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hide_on_create&#39;</span><span class="p">)]</span>
+        <span class="n">final_sections</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">APPENDED_SECTIONS</span><span class="p">)</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CREATE_WIZARD_ASIDE</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;create_sections&#39;</span><span class="p">:</span> <span class="n">final_sections</span>
+        <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">output</span></div>
+</div>
+
+
+<div class="viewcode-block" id="render_steps_wizard">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.render_steps_wizard">[docs]</a>
+<span class="nd">@register</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;render_wizard_sections&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">render_steps_wizard</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Responsible for rendering the &lt;li/&gt; sections for create pages</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Any future modifiers</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">split_contents</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">parsed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;with&#39;</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">parsed</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+            <span class="n">params</span><span class="p">[</span><span class="n">ctx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">ctx</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TemplateSyntaxError</span><span class="p">(</span><span class="s1">&#39;Unable to parse wizard aside renderer tag&#39;</span><span class="p">)</span>
+
+    <span class="n">nodelist</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">((</span><span class="s1">&#39;endrender_wizard_sections&#39;</span><span class="p">))</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">delete_first_token</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">EntityWizardSections</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">nodelist</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EntityWizardSections">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.EntityWizardSections">[docs]</a>
+<span class="k">class</span> <span class="nc">EntityWizardSections</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">nodelist</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;request&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodelist</span> <span class="o">=</span> <span class="n">nodelist</span>
+    
+    <span class="k">def</span> <span class="nf">__try_get_entity_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Attempts to safely generate the creation data for field within a template</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">create_utils</span><span class="o">.</span><span class="n">get_template_creation_data</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_entity_field</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">__try_render_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Attempts to safely render the HTML to string and sinks exceptions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">html</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">html</span>
+    
+    <span class="k">def</span> <span class="nf">__try_get_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Attempts to safely get the properties of a validation field, if present</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">struct</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_layout_field</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span>
+        
+        <span class="n">validation</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;validation&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validation</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">return</span> <span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__try_get_computed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Attempts to safely parse computed fields</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">struct</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_layout_field</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">struct</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">validation</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="s1">&#39;validation&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">validation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;computed&#39;</span><span class="p">):</span>
+            <span class="k">return</span>
+        
+        <span class="c1"># append other computed fields if required</span>
+        <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s1">&#39;group&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">permission_utils</span><span class="o">.</span><span class="n">get_user_groups</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">__apply_mandatory_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Returns boolean that reflects the mandatory status of a field given its</span>
+<span class="sd">            template&#39;s validation field (if present)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">validation</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="s1">&#39;validation&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">validation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="n">mandatory</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">validation</span><span class="p">,</span> <span class="s1">&#39;mandatory&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mandatory</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mandatory</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__generate_wizard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Generates the creation wizard template</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;template&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;entity&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">template</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">output</span>
+        
+        <span class="n">field_types</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">FIELD_TYPES</span>
+        <span class="n">sections</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">definition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sections&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sections</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">sections</span> <span class="o">=</span> <span class="p">[</span><span class="n">section</span> <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">sections</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">section</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hide_on_create&#39;</span><span class="p">)]</span>
+        <span class="n">sections</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">APPENDED_SECTIONS</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">sections</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__try_render_item</span><span class="p">(</span><span class="n">template_name</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">CREATE_WIZARD_SECTION_START</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">|</span> <span class="p">{</span> <span class="s1">&#39;section&#39;</span><span class="p">:</span> <span class="n">section</span> <span class="p">})</span>
+
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">section</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fields&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">is_metadata</span><span class="p">(</span><span class="n">GenericEntity</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+                    <span class="n">template_field</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">template_field</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_field_item</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">definition</span><span class="p">,</span> <span class="s1">&#39;fields&#39;</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">template_field</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">active</span> <span class="o">=</span> <span class="n">template_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">active</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">active</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                
+                <span class="k">if</span> <span class="n">template_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hide_on_create&#39;</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                
+                <span class="n">component</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">field_types</span><span class="p">,</span> <span class="n">template_field</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;field_type&#39;</span><span class="p">))</span>                
+                <span class="k">if</span> <span class="n">component</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">is_metadata</span><span class="p">(</span><span class="n">GenericEntity</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+                    <span class="n">field_data</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">field_data</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_layout_field</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">field_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">component</span><span class="p">[</span><span class="s1">&#39;field_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span>
+                <span class="n">component</span><span class="p">[</span><span class="s1">&#39;field_data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_data</span>
+                
+                <span class="n">desc</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">try_get_content</span><span class="p">(</span><span class="n">template_field</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">component</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">desc</span>
+                    <span class="n">component</span><span class="p">[</span><span class="s1">&#39;hide_input_details&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">component</span><span class="p">[</span><span class="s1">&#39;hide_input_details&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                
+                <span class="k">if</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">is_metadata</span><span class="p">(</span><span class="n">GenericEntity</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_template_sourced_values</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__try_get_computed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="n">template_utils</span><span class="o">.</span><span class="n">get_template_sourced_values</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">component</span><span class="p">[</span><span class="s1">&#39;options&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span>
+                
+                <span class="n">field_properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__try_get_props</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">field_properties</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">component</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_properties</span>
+                
+                <span class="k">if</span> <span class="n">entity</span><span class="p">:</span>
+                    <span class="n">component</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__try_get_entity_value</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">component</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="n">component</span><span class="p">[</span><span class="s1">&#39;mandatory&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__apply_mandatory_property</span><span class="p">(</span><span class="n">template_field</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+
+                <span class="n">uri</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">constants</span><span class="o">.</span><span class="n">CREATE_WIZARD_INPUT_DIR</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">component</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_type&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">.html&#39;</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__try_render_item</span><span class="p">(</span><span class="n">template_name</span><span class="o">=</span><span class="n">uri</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">|</span> <span class="p">{</span> <span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="n">component</span> <span class="p">})</span>
+
+        <span class="n">output</span> <span class="o">+=</span> <span class="n">render_to_string</span><span class="p">(</span><span class="n">template_name</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">CREATE_WIZARD_SECTION_END</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">|</span> <span class="p">{</span> <span class="s1">&#39;section&#39;</span><span class="p">:</span> <span class="n">section</span> <span class="p">})</span>
+        <span class="k">return</span> <span class="n">output</span>
+    
+<div class="viewcode-block" id="EntityWizardSections.render">
+<a class="viewcode-back" href="../../../clinicalcode.templatetags.html#clinicalcode.templatetags.entity_renderer.EntityWizardSections.render">[docs]</a>
+    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Renders the wizard</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__generate_wizard</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, alex
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
+</html>

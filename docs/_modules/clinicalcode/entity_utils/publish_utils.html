@@ -1,0 +1,598 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>clinicalcode.entity_utils.publish_utils - Library Code Reference Data</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">Library Code Reference Data</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../../_static/header_logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Library Code Reference Data</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../modules.html">CodeListLibrary_project</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of CodeListLibrary_project</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../clinicalcode.html">clinicalcode package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of clinicalcode package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../clinicalcode.api.html">clinicalcode.api package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of clinicalcode.api package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../clinicalcode.api.views.html">clinicalcode.api.views package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.context_processors.html">clinicalcode.context_processors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.entity_utils.html">clinicalcode.entity_utils package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.forms.html">clinicalcode.forms package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../clinicalcode.management.html">clinicalcode.management package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of clinicalcode.management package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../clinicalcode.management.commands.html">clinicalcode.management.commands package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.middleware.html">clinicalcode.middleware package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.migrations.html">clinicalcode.migrations package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.models.html">clinicalcode.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.storage.html">clinicalcode.storage package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../clinicalcode.templatetags.html">clinicalcode.templatetags package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../clinicalcode.views.html">clinicalcode.views package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of clinicalcode.views package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../clinicalcode.views.tests.html">clinicalcode.views.tests package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cll.html">cll package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../manage.html">manage module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>Source code for clinicalcode.entity_utils.publish_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">django.urls</span> <span class="kn">import</span> <span class="n">reverse</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span>  <span class="n">User</span>
+<span class="kn">from</span> <span class="nn">django.urls</span> <span class="kn">import</span> <span class="n">reverse</span><span class="p">,</span> <span class="n">reverse_lazy</span>
+<span class="kn">from</span> <span class="nn">django.template.loader</span> <span class="kn">import</span> <span class="n">render_to_string</span>
+<span class="kn">from</span> <span class="nn">clinicalcode.tasks</span> <span class="kn">import</span> <span class="n">send_review_email</span>
+<span class="kn">from</span> <span class="nn">clinicalcode.entity_utils</span> <span class="kn">import</span> <span class="n">constants</span><span class="p">,</span> <span class="n">permission_utils</span><span class="p">,</span> <span class="n">entity_db_utils</span>
+
+<span class="kn">from</span> <span class="nn">clinicalcode.models.Concept</span> <span class="kn">import</span> <span class="n">Concept</span>
+<span class="kn">from</span> <span class="nn">clinicalcode.models.GenericEntity</span> <span class="kn">import</span> <span class="n">GenericEntity</span>
+<span class="kn">from</span> <span class="nn">clinicalcode.models.PublishedGenericEntity</span> <span class="kn">import</span> <span class="n">PublishedGenericEntity</span>
+
+<div class="viewcode-block" id="form_validation">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.form_validation">[docs]</a>
+<span class="k">def</span> <span class="nf">form_validation</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span><span class="n">checks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update correct historical table and send email message, and success message to screen</span>
+<span class="sd">    @param request: user request object</span>
+<span class="sd">    @param data: from any current operations with publish</span>
+<span class="sd">    @param entity_history_id: entity historical id</span>
+<span class="sd">    @param pk: entity id for database query</span>
+<span class="sd">    @param entity: object</span>
+<span class="sd">    @param checks: additional utils checks  before approval</span>
+<span class="sd">    @return: updated data dictionary to update historical table and request message</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;form_is_valid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;latest_history_ID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">entity_history_id</span>  <span class="c1"># entity.history.latest().pk</span>
+    <span class="c1">#send email message state and client side message</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">send_message</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">)[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="send_message">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.send_message">[docs]</a>
+<span class="k">def</span> <span class="nf">send_message</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Send email message with variational decisions approved/pending/declined and show message to the  client side</span>
+<span class="sd">    @param pk: entity id</span>
+<span class="sd">    @param data: dictionary data of approval stage</span>
+<span class="sd">    @param entity: entity object</span>
+<span class="sd">    @param entity_history_id: entity history id</span>
+<span class="sd">    @param checks: additional checks of entity</span>
+<span class="sd">    @return: updated data dictionary with client side message</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Message templates</span>
+    <span class="n">approved_template</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;The </span><span class="si">{entity_type}</span><span class="s2"> version has been successfully published.&lt;a href=&#39;</span><span class="si">{url}</span><span class="s2">&#39; class=&quot;alert-link&quot;&gt;(</span><span class="si">{entity_type}</span><span class="s2"> ID: </span><span class="si">{pk}</span><span class="s2">, VERSION ID:</span><span class="si">{history}</span><span class="s2"> )&lt;/a&gt;&quot;&quot;&quot;</span>
+    <span class="n">rejected_template</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;The </span><span class="si">{entity_type}</span><span class="s2"> version has been rejected .&lt;a href=&#39;</span><span class="si">{url}</span><span class="s2">&#39; class=&quot;alert-link&quot;&gt;(</span><span class="si">{entity_type}</span><span class="s2"> ID: </span><span class="si">{pk}</span><span class="s2">, VERSION ID:</span><span class="si">{history}</span><span class="s2"> )&lt;/a&gt;&quot;&quot;&quot;</span>
+    <span class="n">pending_template</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;The </span><span class="si">{entity_type}</span><span class="s2"> version is going to be reviewed by the moderator.&lt;a href=&#39;</span><span class="si">{url}</span><span class="s2">&#39; class=&quot;alert-link&quot;&gt;(</span><span class="si">{entity_type}</span><span class="s2"> ID: </span><span class="si">{pk}</span><span class="s2">, VERSION ID:</span><span class="si">{history}</span><span class="s2"> )&lt;/a&gt;&quot;&quot;&quot;</span>
+
+    <span class="c1"># Determine the appropriate message template and send email</span>
+    <span class="n">approval_status</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approval_status&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">approval_status</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">APPROVED</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">format_message_and_send_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">,</span> <span class="n">approved_template</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">approval_status</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">REJECTED</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">format_message_and_send_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">,</span> <span class="n">rejected_template</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">approval_status</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">PENDING</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">format_message_and_send_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">,</span> <span class="n">pending_template</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">approval_status</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">checks</span><span class="p">[</span><span class="s1">&#39;is_moderator&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">format_message_and_send_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">,</span> <span class="n">approved_template</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">PublishedGenericEntity</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">entity</span><span class="o">=</span><span class="n">GenericEntity</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> 
+            <span class="n">approval_status</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">APPROVED</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">approval_status</span> <span class="o">!=</span> <span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">REJECTED</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">format_message_and_send_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">,</span> <span class="n">approved_template</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="check_entity_to_publish">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.check_entity_to_publish">[docs]</a>
+<span class="k">def</span> <span class="nf">check_entity_to_publish</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Allow to publish if:</span>
+<span class="sd">        - entity is not deleted</span>
+<span class="sd">        - user is an owner</span>
+<span class="sd">        - Workingset contains codes</span>
+<span class="sd">        - all conceots are published</span>
+<span class="sd">        @param request: user request object</span>
+<span class="sd">        @param pk: entity id</span>
+<span class="sd">        @param entity_history_id: historical id of entity</span>
+<span class="sd">        @return: dictionary containing all conditions to publish</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># Fetch the required objects from the database only once</span>
+    <span class="n">generic_entity</span> <span class="o">=</span> <span class="n">GenericEntity</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">user_is_moderator</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Moderators&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="n">user_is_owner</span> <span class="o">=</span> <span class="n">permission_utils</span><span class="o">.</span><span class="n">can_user_edit_entity</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">generic_entity</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="c1">#generic_entity.owner == request.user</span>
+
+    <span class="n">latest_pending_version_exists</span> <span class="o">=</span> <span class="n">PublishedGenericEntity</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">entity_id</span><span class="o">=</span><span class="n">pk</span><span class="p">,</span> 
+        <span class="n">entity_history_id</span><span class="o">=</span><span class="n">entity_history_id</span><span class="p">,</span> 
+        <span class="n">approval_status</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">PENDING</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+
+    <span class="c1"># Determine the status of the entity</span>
+    <span class="n">entity_is_deleted</span> <span class="o">=</span> <span class="n">generic_entity</span><span class="o">.</span><span class="n">is_deleted</span>
+    <span class="n">is_owner</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">entity_is_deleted</span> <span class="ow">and</span> <span class="n">user_is_owner</span>
+    <span class="n">is_publisher</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">entity_is_deleted</span> <span class="ow">and</span> <span class="n">generic_entity</span><span class="o">.</span><span class="n">owner</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="ow">and</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;publishers&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="n">is_moderator</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">entity_is_deleted</span> <span class="ow">and</span> <span class="n">user_is_moderator</span>
+    <span class="n">is_latest_pending_version</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">entity_is_deleted</span> <span class="ow">and</span> <span class="n">latest_pending_version_exists</span>
+
+    <span class="c1"># Determine the final permission to publish</span>
+    <span class="n">allow_to_publish</span> <span class="o">=</span> <span class="n">is_owner</span> <span class="ow">or</span> <span class="n">is_moderator</span> <span class="ow">or</span> <span class="n">is_publisher</span>
+
+    <span class="n">generic_entity</span> <span class="o">=</span> <span class="n">GenericEntity</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">published_entity_approved</span> <span class="o">=</span> <span class="n">PublishedGenericEntity</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">entity</span><span class="o">=</span><span class="n">generic_entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> 
+        <span class="n">approval_status</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">APPROVED</span>
+    <span class="p">)</span>
+    <span class="n">published_entity_pending</span> <span class="o">=</span> <span class="n">PublishedGenericEntity</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">entity</span><span class="o">=</span><span class="n">generic_entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> 
+        <span class="n">approval_status</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">PENDING</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Initialize the status variables based on the fetched data</span>
+    <span class="n">entity_ver</span> <span class="o">=</span> <span class="n">GenericEntity</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">pk</span><span class="p">,</span> <span class="n">history_id</span><span class="o">=</span><span class="n">entity_history_id</span><span class="p">)</span>
+    <span class="n">is_published</span> <span class="o">=</span> <span class="n">permission_utils</span><span class="o">.</span><span class="n">check_if_published</span><span class="p">(</span><span class="n">GenericEntity</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">)</span>
+    <span class="n">approval_status</span> <span class="o">=</span> <span class="n">permission_utils</span><span class="o">.</span><span class="n">get_publish_approval_status</span><span class="p">(</span><span class="n">GenericEntity</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">)</span>
+    <span class="n">is_lastapproved</span> <span class="o">=</span> <span class="n">published_entity_approved</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="n">other_pending</span> <span class="o">=</span> <span class="n">published_entity_pending</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+
+    <span class="c1"># Get historical version</span>
+    <span class="n">highlight_result</span> <span class="o">=</span> <span class="n">entity_db_utils</span><span class="o">.</span><span class="n">is_referred_from_search_page</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">q_highlight</span> <span class="o">=</span> <span class="n">entity_db_utils</span><span class="o">.</span><span class="n">get_q_highlight</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;generic_entity_search&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+    <span class="n">entity</span> <span class="o">=</span> <span class="n">entity_db_utils</span><span class="o">.</span><span class="n">get_historical_entity</span><span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">highlight_result</span><span class="p">,</span> <span class="n">q_highlight</span><span class="p">)</span>
+
+    <span class="c1"># Entity class</span>
+    <span class="n">entity_class</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">entity_class</span><span class="o">.</span><span class="n">name</span> 
+
+    <span class="c1"># Check children</span>
+    <span class="k">if</span> <span class="n">is_valid_entity_class</span><span class="p">(</span><span class="n">entity_class</span><span class="p">):</span>
+        <span class="n">is_ok</span><span class="p">,</span> <span class="n">all_not_deleted</span><span class="p">,</span> <span class="n">all_are_published</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">check_child_validity</span><span class="p">(</span><span class="n">request</span><span class="p">,</span><span class="n">entity</span><span class="p">,</span><span class="n">get_entity_class</span><span class="p">(</span><span class="n">entity_class</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ok</span><span class="p">:</span>
+            <span class="n">allow_to_publish</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">entity_has_data</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">GenericEntity</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">pk</span><span class="p">,</span> <span class="n">history_id</span><span class="o">=</span><span class="n">entity_history_id</span><span class="p">)</span><span class="o">.</span><span class="n">template_data</span><span class="p">[</span><span class="n">get_table_of_entity</span><span class="p">(</span><span class="n">entity_class</span><span class="p">)])</span>
+
+    <span class="c1"># Check entity data and class</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">entity_has_data</span> <span class="ow">and</span> <span class="n">entity_class</span> <span class="o">==</span> <span class="s2">&quot;Workingset&quot;</span><span class="p">:</span>
+        <span class="n">allow_to_publish</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;entity_type&#39;</span><span class="p">:</span> <span class="n">entity_class</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">entity_ver</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;errors&#39;</span><span class="p">:</span> <span class="n">errors</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;allowed_to_publish&#39;</span><span class="p">:</span> <span class="n">allow_to_publish</span><span class="p">,</span>
+        <span class="s1">&#39;entity_is_deleted&#39;</span><span class="p">:</span> <span class="n">entity_is_deleted</span><span class="p">,</span>
+        <span class="s1">&#39;is_owner&#39;</span><span class="p">:</span> <span class="n">is_owner</span><span class="p">,</span>
+        <span class="s1">&#39;is_moderator&#39;</span><span class="p">:</span> <span class="n">is_moderator</span><span class="p">,</span>
+        <span class="s1">&#39;is_publisher&#39;</span><span class="p">:</span> <span class="n">is_publisher</span><span class="p">,</span>
+        <span class="s1">&#39;approval_status&#39;</span><span class="p">:</span> <span class="n">approval_status</span><span class="p">,</span>
+        <span class="s1">&#39;is_lastapproved&#39;</span><span class="p">:</span> <span class="n">is_lastapproved</span><span class="p">,</span>
+        <span class="s1">&#39;other_pending&#39;</span><span class="p">:</span> <span class="n">other_pending</span><span class="p">,</span>
+        <span class="s1">&#39;entity_has_data&#39;</span><span class="p">:</span> <span class="n">entity_has_data</span><span class="p">,</span>
+        <span class="s1">&#39;is_published&#39;</span><span class="p">:</span> <span class="n">is_published</span><span class="p">,</span>
+        <span class="s1">&#39;is_latest_pending_version&#39;</span><span class="p">:</span> <span class="n">is_latest_pending_version</span><span class="p">,</span>
+        <span class="s1">&#39;all_are_published&#39;</span><span class="p">:</span> <span class="n">all_are_published</span><span class="p">,</span>
+        <span class="s1">&#39;all_not_deleted&#39;</span><span class="p">:</span> <span class="n">all_not_deleted</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">checks</span></div>
+
+
+<div class="viewcode-block" id="check_child_validity">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.check_child_validity">[docs]</a>
+<span class="k">def</span> <span class="nf">check_child_validity</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_class</span><span class="p">,</span> <span class="n">check_publication_validity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper for &#39;check_children&#39; method authored by @zinnurov</span>
+<span class="sd">    to optionally test publication &amp; deletion status</span>
+
+<span class="sd">    [!] Implementation required until we can discuss how to handle the issues</span>
+<span class="sd">    surrounding legacy Phenotypes / Concepts that have imported entities from</span>
+<span class="sd">    archived and/or unpublished entities.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        request {RequestContext}: the request context of the form</span>
+<span class="sd">        entity {instance}: an instance of an entity</span>
+<span class="sd">        entity_class {Model()}: the model entity class</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        {boolean} - a boolean that describes the validity of the child entity</span>
+<span class="sd">        {boolean} - a boolean that describes whether the entity passed the deleted test</span>
+<span class="sd">        {boolean} - a boolean that describes whether the entity passed the publication check</span>
+<span class="sd">        {list} - a list of any errors that may have been encountered when testing each entity</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">check_publication_validity</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">check_children</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_class</span><span class="p">)</span>
+    
+    <span class="c1"># defaults to true</span>
+    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="check_children">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.check_children">[docs]</a>
+<span class="k">def</span> <span class="nf">check_children</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_class</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if entity child data is validated</span>
+<span class="sd">        @param request: user request object</span>
+<span class="sd">        @param entity: historical entity object</span>
+<span class="sd">        @return: collection of boolean conditions</span>
+<span class="sd">        &quot;&quot;&quot;</span>         
+        <span class="k">if</span> <span class="n">entity_class</span> <span class="o">==</span> <span class="s2">&quot;Phenotype&quot;</span><span class="p">:</span>
+            <span class="n">name_table</span> <span class="o">=</span> <span class="s1">&#39;concept_information&#39;</span>
+            <span class="n">child_id</span> <span class="o">=</span> <span class="s1">&#39;concept_id&#39;</span>
+            <span class="n">child_version_id</span> <span class="o">=</span> <span class="s1">&#39;concept_version_id&#39;</span>
+            <span class="n">name_child</span> <span class="o">=</span> <span class="s1">&#39;concept&#39;</span>
+        <span class="k">elif</span> <span class="n">entity_class</span> <span class="o">==</span> <span class="s2">&quot;Workingset&quot;</span><span class="p">:</span>
+            <span class="n">name_table</span> <span class="o">=</span> <span class="s1">&#39;workingset_concept_information&#39;</span>
+            <span class="n">child_id</span> <span class="o">=</span> <span class="s1">&#39;phenotype_id&#39;</span>
+            <span class="n">child_version_id</span> <span class="o">=</span> <span class="s1">&#39;phenotype_version_id&#39;</span>
+            <span class="n">name_child</span> <span class="o">=</span> <span class="s1">&#39;phenotype&#39;</span>
+        
+        <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">template_data</span><span class="p">[</span><span class="n">name_table</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">template_data</span><span class="p">[</span><span class="n">name_table</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">child_entitys_versions</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">child_entitys_versions</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="p">[</span><span class="n">child_id</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">child_version_id</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">entity</span><span class="o">.</span><span class="n">template_data</span><span class="p">[</span><span class="n">name_table</span><span class="p">]]</span>
+
+        <span class="c1"># Now check all the child concepts for deletion(from live version) and Publish(from historical version)</span>
+        <span class="c1"># we check access(from live version) here.</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_not_deleted</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">all_are_published</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Collect all ids from child_entitys_versions</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">child_entitys_versions</span><span class="p">]</span>
+
+        <span class="c1"># Query the database once for each model</span>
+        <span class="n">deleted_objects</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">is_deleted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity_class</span> <span class="o">==</span> <span class="s2">&quot;Phenotype&quot;</span> <span class="k">else</span> <span class="n">GenericEntity</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">ids</span><span class="p">,</span> <span class="n">is_deleted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Iterate through deleted objects and update errors dictionary</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[{</span><span class="n">obj</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Child </span><span class="si">{</span><span class="n">name_child</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="n">obj</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">) is deleted&#39;</span><span class="p">,</span><span class="s2">&quot;url_parent&quot;</span><span class="p">:</span><span class="kc">None</span><span class="p">}</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">deleted_objects</span><span class="p">]</span>
+        <span class="c1"># Check if all objects are not deleted</span>
+        <span class="n">all_not_deleted</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">entity_child</span> <span class="ow">in</span> <span class="n">child_entitys_versions</span><span class="p">:</span>
+            <span class="n">entity_child_id</span> <span class="o">=</span> <span class="n">entity_child</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">entity_child_version</span> <span class="o">=</span> <span class="n">entity_child</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">concept_owner_id</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">entity_child_id</span><span class="p">)</span><span class="o">.</span><span class="n">phenotype_owner_id</span>
+            <span class="k">if</span> <span class="n">concept_owner_id</span> <span class="o">!=</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                <span class="n">entity_from_concept</span> <span class="o">=</span> <span class="n">GenericEntity</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="n">concept_owner_id</span><span class="p">,</span>
+                    <span class="n">publish_status</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">APPROVAL_STATUS</span><span class="o">.</span><span class="n">APPROVED</span><span class="o">.</span><span class="n">value</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">entity_from_concept</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="n">inheritated_childs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">[</span><span class="n">child_id</span><span class="p">],</span><span class="n">i</span><span class="p">[</span><span class="n">child_version_id</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">entity_from_concept</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s2">&quot;template_data&quot;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="n">name_table</span><span class="p">]]</span>
+                    <span class="n">is_published</span> <span class="o">=</span> <span class="p">(</span><span class="n">entity_child_id</span><span class="p">,</span><span class="n">entity_child_version</span><span class="p">)</span> <span class="ow">in</span> <span class="n">inheritated_childs</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">is_published</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">is_published</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_published</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="nb">str</span><span class="p">(</span><span class="n">entity_child_id</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">entity_child_version</span><span class="p">):</span><span class="s2">&quot;&quot;&quot;</span><span class="si">{name}</span><span class="s2">(</span><span class="si">{id}</span><span class="s2">/</span><span class="si">{version}</span><span class="s2">) is not published&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">name_child</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">entity_child_id</span><span class="p">),</span>
+                    <span class="n">version</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">entity_child_version</span><span class="p">)</span>
+                <span class="p">),</span><span class="s2">&quot;url_parent&quot;</span><span class="p">:</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;entity_detail&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pk&#39;</span><span class="p">:</span> <span class="n">concept_owner_id</span><span class="p">})})</span>
+                <span class="n">all_are_published</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">all_not_deleted</span> <span class="ow">and</span> <span class="n">all_are_published</span><span class="p">,</span> <span class="n">all_not_deleted</span><span class="p">,</span> <span class="n">all_are_published</span><span class="p">,</span> <span class="n">errors</span></div>
+
+
+<div class="viewcode-block" id="is_valid_entity_class">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.is_valid_entity_class">[docs]</a>
+<span class="k">def</span> <span class="nf">is_valid_entity_class</span><span class="p">(</span><span class="n">entity_class</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Regex function to check entity class name</span>
+<span class="sd">    @param entity_class: entity class to check</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?i)^(Phenotype|Workingset)$&quot;</span><span class="p">,</span> <span class="n">entity_class</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_entity_class">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.get_entity_class">[docs]</a>
+<span class="k">def</span> <span class="nf">get_entity_class</span><span class="p">(</span><span class="n">entity_class</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decide either phenotype or workingset is present so that we can use only one word</span>
+<span class="sd">    @param entity_class: entity class to check</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">final_entity</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">entity_class</span><span class="p">:</span> <span class="s1">&#39;Phenotype&#39;</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?i)Phenotype&quot;</span><span class="p">,</span> <span class="n">entity_class</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;Workingset&#39;</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?i)Workingset&quot;</span><span class="p">,</span> <span class="n">entity_class</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">final_entity</span><span class="p">(</span><span class="n">entity_class</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_table_of_entity">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.get_table_of_entity">[docs]</a>
+<span class="k">def</span> <span class="nf">get_table_of_entity</span><span class="p">(</span><span class="n">entity_class</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decide either table data from phenotype or workingset</span>
+<span class="sd">    @param entity_class: entity class to check</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s1">&#39;concept_information&#39;</span> <span class="k">if</span> <span class="n">entity_class</span> <span class="o">==</span> <span class="s2">&quot;Phenotype&quot;</span> <span class="k">else</span> <span class="s1">&#39;workingset_concept_information&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="format_message_and_send_email">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.format_message_and_send_email">[docs]</a>
+<span class="k">def</span> <span class="nf">format_message_and_send_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">,</span> <span class="n">message_template</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Format the message, send an email, and update data with the new message</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">message_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">entity_type</span><span class="o">=</span><span class="n">checks</span><span class="p">[</span><span class="s1">&#39;entity_type&#39;</span><span class="p">],</span> 
+        <span class="n">url</span><span class="o">=</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;entity_history_detail&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">pk</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">)),</span> 
+        <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">,</span>
+        <span class="n">history</span><span class="o">=</span><span class="n">entity_history_id</span>
+    <span class="p">)</span>
+    <span class="n">send_email_decision_entity</span><span class="p">(</span><span class="n">request</span><span class="p">,</span><span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">checks</span><span class="p">[</span><span class="s1">&#39;entity_type&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="send_email_decision_entity">
+<a class="viewcode-back" href="../../../clinicalcode.entity_utils.html#clinicalcode.entity_utils.publish_utils.send_email_decision_entity">[docs]</a>
+<span class="k">def</span> <span class="nf">send_email_decision_entity</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">entity_history_id</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Call util function to send email decision</span>
+<span class="sd">    @param workingset: workingset object</span>
+<span class="sd">    @param approved: approved status flag</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#print(entity_db_utils.send_review_email_generic(entity.id,entity.name, entity.owner_id, &quot;Published&quot;, &quot;review_message&quot;))</span>
+    <span class="n">url_redirect</span> <span class="o">=</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;entity_history_detail&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;pk&#39;</span><span class="p">:</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s1">&#39;history_id&#39;</span><span class="p">:</span> <span class="n">entity_history_id</span><span class="p">})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="s2">&quot;history_id&quot;</span><span class="p">:</span><span class="n">entity_history_id</span><span class="p">,</span> <span class="s2">&quot;entity_name&quot;</span><span class="p">:</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;entity_name_requested&#39;</span><span class="p">],</span> <span class="s2">&quot;owner_id&quot;</span><span class="p">:</span> <span class="n">entity</span><span class="o">.</span><span class="n">owner_id</span><span class="p">,</span><span class="s2">&quot;url_redirect&quot;</span><span class="p">:</span><span class="n">url_redirect</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approval_status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Pending&quot;</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;submitted and is under review&quot;</span>
+        <span class="n">send_review_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approval_status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># This line for the case when user want to get notification of same workingset id but different version</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Published&quot;</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;approved and successfully published&quot;</span>
+        <span class="n">send_review_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approval_status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Rejected&quot;</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;rejected by the moderator&quot;</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;custom_message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Please adjust changes and try again&quot;</span> <span class="c1">#TODO add custom message logic</span>
+        <span class="n">send_review_email</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, alex
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
+</html>

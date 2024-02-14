@@ -1,9 +1,0 @@
-{% load entity_renderer %}
-<aside class="steps-wizard" id="steps-wizard-area">
-  <section class="steps-wizard__panel" onselectstart="return false;">
-    <span class="steps-wizard__header">Skip to step...</span>
-    {% for section in create_sections %}
-      <span class="steps-wizard__item" id="{{ section.title|trimmed }}-step" data-value="{{ forloop.counter0|add:'1' }}" data-target="{{ section.title|trimmed }}-progress">{{ section.title }}</span>
-    {% endfor %}
-  </section>
-</aside>

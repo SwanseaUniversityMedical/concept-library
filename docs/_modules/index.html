@@ -1,0 +1,471 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+        <title>Overview: module code - Library Code Reference Data</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Library Code Reference Data</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/header_logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Library Code Reference Data</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../modules.html">CodeListLibrary_project</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of CodeListLibrary_project</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../clinicalcode.html">clinicalcode package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of clinicalcode package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../clinicalcode.api.html">clinicalcode.api package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of clinicalcode.api package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../clinicalcode.api.views.html">clinicalcode.api.views package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../clinicalcode.context_processors.html">clinicalcode.context_processors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../clinicalcode.entity_utils.html">clinicalcode.entity_utils package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../clinicalcode.forms.html">clinicalcode.forms package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../clinicalcode.management.html">clinicalcode.management package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of clinicalcode.management package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../clinicalcode.management.commands.html">clinicalcode.management.commands package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../clinicalcode.middleware.html">clinicalcode.middleware package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../clinicalcode.migrations.html">clinicalcode.migrations package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../clinicalcode.models.html">clinicalcode.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../clinicalcode.storage.html">clinicalcode.storage package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../clinicalcode.templatetags.html">clinicalcode.templatetags package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../clinicalcode.views.html">clinicalcode.views package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of clinicalcode.views package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../clinicalcode.views.tests.html">clinicalcode.views.tests package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../cll.html">cll package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../manage.html">manage module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <h1>All modules for which code is available</h1>
+<ul><li><a href="clinicalcode/api/serializers.html">clinicalcode.api.serializers</a></li>
+<li><a href="clinicalcode/api/urls.html">clinicalcode.api.urls</a></li>
+<li><a href="clinicalcode/api/views/Collection.html">clinicalcode.api.views.Collection</a></li>
+<li><a href="clinicalcode/api/views/Concept.html">clinicalcode.api.views.Concept</a></li>
+<li><a href="clinicalcode/api/views/DataSource.html">clinicalcode.api.views.DataSource</a></li>
+<li><a href="clinicalcode/api/views/GenericEntity.html">clinicalcode.api.views.GenericEntity</a></li>
+<li><a href="clinicalcode/api/views/Tag.html">clinicalcode.api.views.Tag</a></li>
+<li><a href="clinicalcode/api/views/Template.html">clinicalcode.api.views.Template</a></li>
+<li><a href="clinicalcode/api/views/View.html">clinicalcode.api.views.View</a></li>
+<li><a href="clinicalcode/clinicalcode.html">clinicalcode.clinicalcode</a></li>
+<li><a href="clinicalcode/context_processors/app.html">clinicalcode.context_processors.app</a></li>
+<li><a href="clinicalcode/context_processors/general.html">clinicalcode.context_processors.general</a></li>
+<li><a href="clinicalcode/entity_utils/api_utils.html">clinicalcode.entity_utils.api_utils</a></li>
+<li><a href="clinicalcode/entity_utils/concept_utils.html">clinicalcode.entity_utils.concept_utils</a></li>
+<li><a href="clinicalcode/entity_utils/constants.html">clinicalcode.entity_utils.constants</a></li>
+<li><a href="clinicalcode/entity_utils/create_utils.html">clinicalcode.entity_utils.create_utils</a></li>
+<li><a href="clinicalcode/entity_utils/data_utils.html">clinicalcode.entity_utils.data_utils</a></li>
+<li><a href="clinicalcode/entity_utils/email_utils.html">clinicalcode.entity_utils.email_utils</a></li>
+<li><a href="clinicalcode/entity_utils/entity_db_utils.html">clinicalcode.entity_utils.entity_db_utils</a></li>
+<li><a href="clinicalcode/entity_utils/filter_utils.html">clinicalcode.entity_utils.filter_utils</a></li>
+<li><a href="clinicalcode/entity_utils/gen_utils.html">clinicalcode.entity_utils.gen_utils</a></li>
+<li><a href="clinicalcode/entity_utils/model_utils.html">clinicalcode.entity_utils.model_utils</a></li>
+<li><a href="clinicalcode/entity_utils/permission_utils.html">clinicalcode.entity_utils.permission_utils</a></li>
+<li><a href="clinicalcode/entity_utils/publish_utils.html">clinicalcode.entity_utils.publish_utils</a></li>
+<li><a href="clinicalcode/entity_utils/search_utils.html">clinicalcode.entity_utils.search_utils</a></li>
+<li><a href="clinicalcode/entity_utils/stats_utils.html">clinicalcode.entity_utils.stats_utils</a></li>
+<li><a href="clinicalcode/entity_utils/template_utils.html">clinicalcode.entity_utils.template_utils</a></li>
+<li><a href="clinicalcode/forms/ArchiveForm.html">clinicalcode.forms.ArchiveForm</a></li>
+<li><a href="clinicalcode/forms/ContactUsForm.html">clinicalcode.forms.ContactUsForm</a></li>
+<li><a href="clinicalcode/forms/EntityClassForm.html">clinicalcode.forms.EntityClassForm</a></li>
+<li><a href="clinicalcode/forms/TemplateForm.html">clinicalcode.forms.TemplateForm</a></li>
+<li><a href="clinicalcode/management/commands/clear_sessions.html">clinicalcode.management.commands.clear_sessions</a></li>
+<li><a href="clinicalcode/management/commands/dftm_migrate.html">clinicalcode.management.commands.dftm_migrate</a></li>
+<li><a href="clinicalcode/middleware/brands.html">clinicalcode.middleware.brands</a></li>
+<li><a href="clinicalcode/middleware/compression.html">clinicalcode.middleware.compression</a></li>
+<li><a href="clinicalcode/middleware/sessions.html">clinicalcode.middleware.sessions</a></li>
+<li><a href="clinicalcode/migrations/0001_initial.html">clinicalcode.migrations.0001_initial</a></li>
+<li><a href="clinicalcode/migrations/0002_get_concept_tree_by_concept_id_sql.html">clinicalcode.migrations.0002_get_concept_tree_by_concept_id_sql</a></li>
+<li><a href="clinicalcode/migrations/0003_get_parent_concept_tree_by_concept_id_sql.html">clinicalcode.migrations.0003_get_parent_concept_tree_by_concept_id_sql</a></li>
+<li><a href="clinicalcode/migrations/0004_concept_unique_codes_sql.html">clinicalcode.migrations.0004_concept_unique_codes_sql</a></li>
+<li><a href="clinicalcode/migrations/0005_get_concept_structure_live_sql.html">clinicalcode.migrations.0005_get_concept_structure_live_sql</a></li>
+<li><a href="clinicalcode/migrations/0006_get_concept_unique_codes_live_v2_sql.html">clinicalcode.migrations.0006_get_concept_unique_codes_live_v2_sql</a></li>
+<li><a href="clinicalcode/migrations/0007_auto_20200403_2215.html">clinicalcode.migrations.0007_auto_20200403_2215</a></li>
+<li><a href="clinicalcode/migrations/0008_auto_20200408_1250.html">clinicalcode.migrations.0008_auto_20200408_1250</a></li>
+<li><a href="clinicalcode/migrations/0009_auto_20201109_1338.html">clinicalcode.migrations.0009_auto_20201109_1338</a></li>
+<li><a href="clinicalcode/migrations/0010_auto_20201203_1322.html">clinicalcode.migrations.0010_auto_20201203_1322</a></li>
+<li><a href="clinicalcode/migrations/0011_auto_20201203_1346.html">clinicalcode.migrations.0011_auto_20201203_1346</a></li>
+<li><a href="clinicalcode/migrations/0012_auto_20201209_1115.html">clinicalcode.migrations.0012_auto_20201209_1115</a></li>
+<li><a href="clinicalcode/migrations/0013_remove_phenotype_data_sources.html">clinicalcode.migrations.0013_remove_phenotype_data_sources</a></li>
+<li><a href="clinicalcode/migrations/0014_historicalphenotypedatasourcemap_phenotypedatasourcemap.html">clinicalcode.migrations.0014_historicalphenotypedatasourcemap_phenotypedatasourcemap</a></li>
+<li><a href="clinicalcode/migrations/0015_auto_20210119_1347.html">clinicalcode.migrations.0015_auto_20210119_1347</a></li>
+<li><a href="clinicalcode/migrations/0016_auto_20210226_1744.html">clinicalcode.migrations.0016_auto_20210226_1744</a></li>
+<li><a href="clinicalcode/migrations/0017_auto_20210312_1700.html">clinicalcode.migrations.0017_auto_20210312_1700</a></li>
+<li><a href="clinicalcode/migrations/0018_bnf_codes_med_codes_prod_codes_snomed_codes_ukbiobank_codes.html">clinicalcode.migrations.0018_bnf_codes_med_codes_prod_codes_snomed_codes_ukbiobank_codes</a></li>
+<li><a href="clinicalcode/migrations/0019_auto_20210319_1200.html">clinicalcode.migrations.0019_auto_20210319_1200</a></li>
+<li><a href="clinicalcode/migrations/0020_auto_20210323_1424.html">clinicalcode.migrations.0020_auto_20210323_1424</a></li>
+<li><a href="clinicalcode/migrations/0021_auto_20210323_1503.html">clinicalcode.migrations.0021_auto_20210323_1503</a></li>
+<li><a href="clinicalcode/migrations/0022_auto_20210323_1518.html">clinicalcode.migrations.0022_auto_20210323_1518</a></li>
+<li><a href="clinicalcode/migrations/0023_historicalphenotypecomponent_phenotypecomponent.html">clinicalcode.migrations.0023_historicalphenotypecomponent_phenotypecomponent</a></li>
+<li><a href="clinicalcode/migrations/0024_auto_20210329_2046.html">clinicalcode.migrations.0024_auto_20210329_2046</a></li>
+<li><a href="clinicalcode/migrations/0025_auto_20210407_1858.html">clinicalcode.migrations.0025_auto_20210407_1858</a></li>
+<li><a href="clinicalcode/migrations/0026_auto_20210409_1454.html">clinicalcode.migrations.0026_auto_20210409_1454</a></li>
+<li><a href="clinicalcode/migrations/0027_conceptcodeattribute_historicalconceptcodeattribute.html">clinicalcode.migrations.0027_conceptcodeattribute_historicalconceptcodeattribute</a></li>
+<li><a href="clinicalcode/migrations/0028_auto_20210514_1940.html">clinicalcode.migrations.0028_auto_20210514_1940</a></li>
+<li><a href="clinicalcode/migrations/0029_historicalstatistics_statistics.html">clinicalcode.migrations.0029_historicalstatistics_statistics</a></li>
+<li><a href="clinicalcode/migrations/0030_auto_20210609_1541.html">clinicalcode.migrations.0030_auto_20210609_1541</a></li>
+<li><a href="clinicalcode/migrations/0031_auto_20210712_1451.html">clinicalcode.migrations.0031_auto_20210712_1451</a></li>
+<li><a href="clinicalcode/migrations/0032_auto_20210719_2015.html">clinicalcode.migrations.0032_auto_20210719_2015</a></li>
+<li><a href="clinicalcode/migrations/0033_auto_20210806_1431.html">clinicalcode.migrations.0033_auto_20210806_1431</a></li>
+<li><a href="clinicalcode/migrations/0034_auto_20210806_1448.html">clinicalcode.migrations.0034_auto_20210806_1448</a></li>
+<li><a href="clinicalcode/migrations/0035_auto_20210810_1320.html">clinicalcode.migrations.0035_auto_20210810_1320</a></li>
+<li><a href="clinicalcode/migrations/0036_auto_20210810_1340.html">clinicalcode.migrations.0036_auto_20210810_1340</a></li>
+<li><a href="clinicalcode/migrations/0037_auto_20210812_1302.html">clinicalcode.migrations.0037_auto_20210812_1302</a></li>
+<li><a href="clinicalcode/migrations/0038_auto_20210813_1611.html">clinicalcode.migrations.0038_auto_20210813_1611</a></li>
+<li><a href="clinicalcode/migrations/0039_publishedconcept_code_count.html">clinicalcode.migrations.0039_publishedconcept_code_count</a></li>
+<li><a href="clinicalcode/migrations/0040_non_standard_codes.html">clinicalcode.migrations.0040_non_standard_codes</a></li>
+<li><a href="clinicalcode/migrations/0041_auto_20210917_2146.html">clinicalcode.migrations.0041_auto_20210917_2146</a></li>
+<li><a href="clinicalcode/migrations/0042_auto_20210920_1501.html">clinicalcode.migrations.0042_auto_20210920_1501</a></li>
+<li><a href="clinicalcode/migrations/0043_auto_20210927_1654.html">clinicalcode.migrations.0043_auto_20210927_1654</a></li>
+<li><a href="clinicalcode/migrations/0044_auto_20210928_1656.html">clinicalcode.migrations.0044_auto_20210928_1656</a></li>
+<li><a href="clinicalcode/migrations/0045_auto_20211001_1858.html">clinicalcode.migrations.0045_auto_20211001_1858</a></li>
+<li><a href="clinicalcode/migrations/0046_auto_20211005_1814.html">clinicalcode.migrations.0046_auto_20211005_1814</a></li>
+<li><a href="clinicalcode/migrations/0047_auto_20211019_0955.html">clinicalcode.migrations.0047_auto_20211019_0955</a></li>
+<li><a href="clinicalcode/migrations/0048_auto_20211109_1556.html">clinicalcode.migrations.0048_auto_20211109_1556</a></li>
+<li><a href="clinicalcode/migrations/0048_auto_20211110_1741.html">clinicalcode.migrations.0048_auto_20211110_1741</a></li>
+<li><a href="clinicalcode/migrations/0049_merge_0048_auto_20211109_1556_0048_auto_20211110_1741.html">clinicalcode.migrations.0049_merge_0048_auto_20211109_1556_0048_auto_20211110_1741</a></li>
+<li><a href="clinicalcode/migrations/0050_auto_20220203_0750.html">clinicalcode.migrations.0050_auto_20220203_0750</a></li>
+<li><a href="clinicalcode/migrations/0051_auto_20220203_0948.html">clinicalcode.migrations.0051_auto_20220203_0948</a></li>
+<li><a href="clinicalcode/migrations/0052_auto_20220203_1027.html">clinicalcode.migrations.0052_auto_20220203_1027</a></li>
+<li><a href="clinicalcode/migrations/0053_auto_20220203_1027.html">clinicalcode.migrations.0053_auto_20220203_1027</a></li>
+<li><a href="clinicalcode/migrations/0054_auto_20220222_0632.html">clinicalcode.migrations.0054_auto_20220222_0632</a></li>
+<li><a href="clinicalcode/migrations/0055_auto_20220222_0634.html">clinicalcode.migrations.0055_auto_20220222_0634</a></li>
+<li><a href="clinicalcode/migrations/0056_ctv3_codes_gprd_product_codes_icd_11_codes_icd_9_codes_icpc_2_codes_multilex_codes_oxmis_codes.html">clinicalcode.migrations.0056_ctv3_codes_gprd_product_codes_icd_11_codes_icd_9_codes_icpc_2_codes_multilex_codes_oxmis_codes</a></li>
+<li><a href="clinicalcode/migrations/0057_auto_20220506_1703.html">clinicalcode.migrations.0057_auto_20220506_1703</a></li>
+<li><a href="clinicalcode/migrations/0058_auto_20220525_2108.html">clinicalcode.migrations.0058_auto_20220525_2108</a></li>
+<li><a href="clinicalcode/migrations/0059_auto_20220525_2136.html">clinicalcode.migrations.0059_auto_20220525_2136</a></li>
+<li><a href="clinicalcode/migrations/0060_auto_20220526_1529.html">clinicalcode.migrations.0060_auto_20220526_1529</a></li>
+<li><a href="clinicalcode/migrations/0061_auto_20220601_0917.html">clinicalcode.migrations.0061_auto_20220601_0917</a></li>
+<li><a href="clinicalcode/migrations/0062_auto_20220601_1824.html">clinicalcode.migrations.0062_auto_20220601_1824</a></li>
+<li><a href="clinicalcode/migrations/0063_auto_20220801_1931.html">clinicalcode.migrations.0063_auto_20220801_1931</a></li>
+<li><a href="clinicalcode/migrations/0064_auto_20220811_2111.html">clinicalcode.migrations.0064_auto_20220811_2111</a></li>
+<li><a href="clinicalcode/migrations/0065_auto_20220815_2006.html">clinicalcode.migrations.0065_auto_20220815_2006</a></li>
+<li><a href="clinicalcode/migrations/0066_alter_historicalbrand_options_and_more.html">clinicalcode.migrations.0066_alter_historicalbrand_options_and_more</a></li>
+<li><a href="clinicalcode/migrations/0067_alter_historicalphenotype_phenotype_uuid_and_more.html">clinicalcode.migrations.0067_alter_historicalphenotype_phenotype_uuid_and_more</a></li>
+<li><a href="clinicalcode/migrations/0068_phenotypeworkingset_historicalpublishedworkingset_and_more.html">clinicalcode.migrations.0068_phenotypeworkingset_historicalpublishedworkingset_and_more</a></li>
+<li><a href="clinicalcode/migrations/0069_remove_historicalphenotype_title_and_more.html">clinicalcode.migrations.0069_remove_historicalphenotype_title_and_more</a></li>
+<li><a href="clinicalcode/migrations/0070_alter_historicalphenotype_id_alter_phenotype_id.html">clinicalcode.migrations.0070_alter_historicalphenotype_id_alter_phenotype_id</a></li>
+<li><a href="clinicalcode/migrations/0071_remove_historicalphenotype_friendly_id_and_more.html">clinicalcode.migrations.0071_remove_historicalphenotype_friendly_id_and_more</a></li>
+<li><a href="clinicalcode/migrations/0072_historicalphenotype_collections_and_more.html">clinicalcode.migrations.0072_historicalphenotype_collections_and_more</a></li>
+<li><a href="clinicalcode/migrations/0073_concept_collections_historicalconcept_collections.html">clinicalcode.migrations.0073_concept_collections_historicalconcept_collections</a></li>
+<li><a href="clinicalcode/migrations/0074_alter_concept_citation_requirements_and_more.html">clinicalcode.migrations.0074_alter_concept_citation_requirements_and_more</a></li>
+<li><a href="clinicalcode/migrations/0075_genericentity_and_more.html">clinicalcode.migrations.0075_genericentity_and_more</a></li>
+<li><a href="clinicalcode/migrations/0076_alter_genericentity_entity_id_and_more.html">clinicalcode.migrations.0076_alter_genericentity_entity_id_and_more</a></li>
+<li><a href="clinicalcode/migrations/0077_historicalpublishedgenericentity_entity_prefix_and_more.html">clinicalcode.migrations.0077_historicalpublishedgenericentity_entity_prefix_and_more</a></li>
+<li><a href="clinicalcode/migrations/0078_remove_historicaltemplate_entity_count_and_more.html">clinicalcode.migrations.0078_remove_historicaltemplate_entity_count_and_more</a></li>
+<li><a href="clinicalcode/migrations/0079_install_extensions.html">clinicalcode.migrations.0079_install_extensions</a></li>
+<li><a href="clinicalcode/migrations/0080_genericentity_search_vector_and_more.html">clinicalcode.migrations.0080_genericentity_search_vector_and_more</a></li>
+<li><a href="clinicalcode/migrations/0081_search_vector_triggers.html">clinicalcode.migrations.0081_search_vector_triggers</a></li>
+<li><a href="clinicalcode/migrations/0082_genericentity_clinicalcod_search__a075f3_gin_and_more.html">clinicalcode.migrations.0082_genericentity_clinicalcod_search__a075f3_gin_and_more</a></li>
+<li><a href="clinicalcode/migrations/0083_remove_genericentity_entity_id_and_more.html">clinicalcode.migrations.0083_remove_genericentity_entity_id_and_more</a></li>
+<li><a href="clinicalcode/migrations/0084_historicaltemplate_template_version_and_more.html">clinicalcode.migrations.0084_historicaltemplate_template_version_and_more</a></li>
+<li><a href="clinicalcode/migrations/0085_remove_historicaltemplate_entity_order_and_more.html">clinicalcode.migrations.0085_remove_historicaltemplate_entity_order_and_more</a></li>
+<li><a href="clinicalcode/migrations/0086_remove_historicaltemplate_entity_filters_and_more.html">clinicalcode.migrations.0086_remove_historicaltemplate_entity_filters_and_more</a></li>
+<li><a href="clinicalcode/migrations/0087_genericentity_template_version_and_more.html">clinicalcode.migrations.0087_genericentity_template_version_and_more</a></li>
+<li><a href="clinicalcode/migrations/0088_alter_genericentity_group_access_and_more.html">clinicalcode.migrations.0088_alter_genericentity_group_access_and_more</a></li>
+<li><a href="clinicalcode/migrations/0089_component_source_historicalcomponent_source_and_more.html">clinicalcode.migrations.0089_component_source_historicalcomponent_source_and_more</a></li>
+<li><a href="clinicalcode/migrations/0090_icd10_codes_and_titles_and_metadata_icd10_code_ln_gin_idx_and_more.html">clinicalcode.migrations.0090_icd10_codes_and_titles_and_metadata_icd10_code_ln_gin_idx_and_more</a></li>
+<li><a href="clinicalcode/migrations/0091_conceptreviewstatus.html">clinicalcode.migrations.0091_conceptreviewstatus</a></li>
+<li><a href="clinicalcode/migrations/0092_concept_is_legacy_historicalconcept_is_legacy.html">clinicalcode.migrations.0092_concept_is_legacy_historicalconcept_is_legacy</a></li>
+<li><a href="clinicalcode/migrations/0093_alter_component_component_type_and_more.html">clinicalcode.migrations.0093_alter_component_component_type_and_more</a></li>
+<li><a href="clinicalcode/migrations/0094_genericentity_ge_impl_ln_gin_idx_and_more.html">clinicalcode.migrations.0094_genericentity_ge_impl_ln_gin_idx_and_more</a></li>
+<li><a href="clinicalcode/migrations/0095_hge_indexing.html">clinicalcode.migrations.0095_hge_indexing</a></li>
+<li><a href="clinicalcode/migrations/0096_alter_genericentity_group_access_and_more.html">clinicalcode.migrations.0096_alter_genericentity_group_access_and_more</a></li>
+<li><a href="clinicalcode/migrations/0097_entityclass_created_entityclass_modified_and_more.html">clinicalcode.migrations.0097_entityclass_created_entityclass_modified_and_more</a></li>
+<li><a href="clinicalcode/migrations/0098_brand_footer_images_historicalbrand_footer_images.html">clinicalcode.migrations.0098_brand_footer_images_historicalbrand_footer_images</a></li>
+<li><a href="clinicalcode/migrations/0099_emis_codes_vision_codes.html">clinicalcode.migrations.0099_emis_codes_vision_codes</a></li>
+<li><a href="clinicalcode/migrations/0100_alter_genericentity_world_access_and_more.html">clinicalcode.migrations.0100_alter_genericentity_world_access_and_more</a></li>
+<li><a href="clinicalcode/migrations/0101_genericentity_publish_status_and_more.html">clinicalcode.migrations.0101_genericentity_publish_status_and_more</a></li>
+<li><a href="clinicalcode/migrations/0102_alter_genericentity_publish_status_and_more.html">clinicalcode.migrations.0102_alter_genericentity_publish_status_and_more</a></li>
+<li><a href="clinicalcode/migrations/0103_alter_genericentity_publish_status_and_more.html">clinicalcode.migrations.0103_alter_genericentity_publish_status_and_more</a></li>
+<li><a href="clinicalcode/migrations/0104_remove_concept_is_legacy_and_more.html">clinicalcode.migrations.0104_remove_concept_is_legacy_and_more</a></li>
+<li><a href="clinicalcode/migrations/0105_genericentity_brands_historicalgenericentity_brands.html">clinicalcode.migrations.0105_genericentity_brands_historicalgenericentity_brands</a></li>
+<li><a href="clinicalcode/migrations/0106_component_used_description_component_used_wildcard_and_more.html">clinicalcode.migrations.0106_component_used_description_component_used_wildcard_and_more</a></li>
+<li><a href="clinicalcode/migrations/0107_brand_index_path_historicalbrand_index_path.html">clinicalcode.migrations.0107_brand_index_path_historicalbrand_index_path</a></li>
+<li><a href="clinicalcode/migrations/0108_alter_concept_group_access_and_more.html">clinicalcode.migrations.0108_alter_concept_group_access_and_more</a></li>
+<li><a href="clinicalcode/migrations/0109_read_cd_cv2_scd_description_and_more.html">clinicalcode.migrations.0109_read_cd_cv2_scd_description_and_more</a></li>
+<li><a href="clinicalcode/migrations/0110_read_cd_cv2_scd_readv2_defn_ln_gin_idx_and_more.html">clinicalcode.migrations.0110_read_cd_cv2_scd_readv2_defn_ln_gin_idx_and_more</a></li>
+<li><a href="clinicalcode/models/BNF_CODES.html">clinicalcode.models.BNF_CODES</a></li>
+<li><a href="clinicalcode/models/Brand.html">clinicalcode.models.Brand</a></li>
+<li><a href="clinicalcode/models/CTV3_CODES.html">clinicalcode.models.CTV3_CODES</a></li>
+<li><a href="clinicalcode/models/Code.html">clinicalcode.models.Code</a></li>
+<li><a href="clinicalcode/models/CodeList.html">clinicalcode.models.CodeList</a></li>
+<li><a href="clinicalcode/models/CodeRegex.html">clinicalcode.models.CodeRegex</a></li>
+<li><a href="clinicalcode/models/CodingSystem.html">clinicalcode.models.CodingSystem</a></li>
+<li><a href="clinicalcode/models/CodingSystemFilter.html">clinicalcode.models.CodingSystemFilter</a></li>
+<li><a href="clinicalcode/models/Component.html">clinicalcode.models.Component</a></li>
+<li><a href="clinicalcode/models/Concept.html">clinicalcode.models.Concept</a></li>
+<li><a href="clinicalcode/models/ConceptCodeAttribute.html">clinicalcode.models.ConceptCodeAttribute</a></li>
+<li><a href="clinicalcode/models/ConceptReviewStatus.html">clinicalcode.models.ConceptReviewStatus</a></li>
+<li><a href="clinicalcode/models/DataSource.html">clinicalcode.models.DataSource</a></li>
+<li><a href="clinicalcode/models/EMIS_CODES.html">clinicalcode.models.EMIS_CODES</a></li>
+<li><a href="clinicalcode/models/EntityClass.html">clinicalcode.models.EntityClass</a></li>
+<li><a href="clinicalcode/models/GPRD_PRODUCT_CODES.html">clinicalcode.models.GPRD_PRODUCT_CODES</a></li>
+<li><a href="clinicalcode/models/GenericEntity.html">clinicalcode.models.GenericEntity</a></li>
+<li><a href="clinicalcode/models/ICD10_CODES_AND_TITLES_AND_METADATA.html">clinicalcode.models.ICD10_CODES_AND_TITLES_AND_METADATA</a></li>
+<li><a href="clinicalcode/models/ICD_11_CODES.html">clinicalcode.models.ICD_11_CODES</a></li>
+<li><a href="clinicalcode/models/ICD_9_CODES.html">clinicalcode.models.ICD_9_CODES</a></li>
+<li><a href="clinicalcode/models/ICPC_2_CODES.html">clinicalcode.models.ICPC_2_CODES</a></li>
+<li><a href="clinicalcode/models/MED_CODES.html">clinicalcode.models.MED_CODES</a></li>
+<li><a href="clinicalcode/models/MULTILEX_CODES.html">clinicalcode.models.MULTILEX_CODES</a></li>
+<li><a href="clinicalcode/models/NON_STANDARD_CODES.html">clinicalcode.models.NON_STANDARD_CODES</a></li>
+<li><a href="clinicalcode/models/OPCS4_CODES_AND_TITLES.html">clinicalcode.models.OPCS4_CODES_AND_TITLES</a></li>
+<li><a href="clinicalcode/models/OXMIS_CODES.html">clinicalcode.models.OXMIS_CODES</a></li>
+<li><a href="clinicalcode/models/Operator.html">clinicalcode.models.Operator</a></li>
+<li><a href="clinicalcode/models/PROD_CODES.html">clinicalcode.models.PROD_CODES</a></li>
+<li><a href="clinicalcode/models/Phenotype.html">clinicalcode.models.Phenotype</a></li>
+<li><a href="clinicalcode/models/PhenotypeWorkingset.html">clinicalcode.models.PhenotypeWorkingset</a></li>
+<li><a href="clinicalcode/models/PublishedConcept.html">clinicalcode.models.PublishedConcept</a></li>
+<li><a href="clinicalcode/models/PublishedGenericEntity.html">clinicalcode.models.PublishedGenericEntity</a></li>
+<li><a href="clinicalcode/models/PublishedPhenotype.html">clinicalcode.models.PublishedPhenotype</a></li>
+<li><a href="clinicalcode/models/PublishedWorkingset.html">clinicalcode.models.PublishedWorkingset</a></li>
+<li><a href="clinicalcode/models/READ_CD_CV2_SCD.html">clinicalcode.models.READ_CD_CV2_SCD</a></li>
+<li><a href="clinicalcode/models/READ_CD_CV3_TERMS_SCD.html">clinicalcode.models.READ_CD_CV3_TERMS_SCD</a></li>
+<li><a href="clinicalcode/models/SNOMED_CODES.html">clinicalcode.models.SNOMED_CODES</a></li>
+<li><a href="clinicalcode/models/Statistics.html">clinicalcode.models.Statistics</a></li>
+<li><a href="clinicalcode/models/Tag.html">clinicalcode.models.Tag</a></li>
+<li><a href="clinicalcode/models/Template.html">clinicalcode.models.Template</a></li>
+<li><a href="clinicalcode/models/TimeStampedModel.html">clinicalcode.models.TimeStampedModel</a></li>
+<li><a href="clinicalcode/models/UKBIOBANK_CODES.html">clinicalcode.models.UKBIOBANK_CODES</a></li>
+<li><a href="clinicalcode/models/VISION_CODES.html">clinicalcode.models.VISION_CODES</a></li>
+<li><a href="clinicalcode/models/WorkingSet.html">clinicalcode.models.WorkingSet</a></li>
+<li><a href="clinicalcode/models/WorkingSetTagMap.html">clinicalcode.models.WorkingSetTagMap</a></li>
+<li><a href="clinicalcode/storage/files_manifest.html">clinicalcode.storage.files_manifest</a></li>
+<li><a href="clinicalcode/templatetags/breadcrumbs.html">clinicalcode.templatetags.breadcrumbs</a></li>
+<li><a href="clinicalcode/templatetags/cards_dropdown_render.html">clinicalcode.templatetags.cards_dropdown_render</a></li>
+<li><a href="clinicalcode/templatetags/cl_extras.html">clinicalcode.templatetags.cl_extras</a></li>
+<li><a href="clinicalcode/templatetags/detail_pg_renderer.html">clinicalcode.templatetags.detail_pg_renderer</a></li>
+<li><a href="clinicalcode/templatetags/entity_publish_renderer.html">clinicalcode.templatetags.entity_publish_renderer</a></li>
+<li><a href="clinicalcode/templatetags/entity_renderer.html">clinicalcode.templatetags.entity_renderer</a></li>
+<li><a href="clinicalcode/test_permissions.html">clinicalcode.test_permissions</a></li>
+<li><a href="clinicalcode/views/Admin.html">clinicalcode.views.Admin</a></li>
+<li><a href="clinicalcode/views/Decline.html">clinicalcode.views.Decline</a></li>
+<li><a href="clinicalcode/views/DocumentationViewer.html">clinicalcode.views.DocumentationViewer</a></li>
+<li><a href="clinicalcode/views/GenericEntity.html">clinicalcode.views.GenericEntity</a></li>
+<li><a href="clinicalcode/views/Moderation.html">clinicalcode.views.Moderation</a></li>
+<li><a href="clinicalcode/views/Profile.html">clinicalcode.views.Profile</a></li>
+<li><a href="clinicalcode/views/Publish.html">clinicalcode.views.Publish</a></li>
+<li><a href="clinicalcode/views/View.html">clinicalcode.views.View</a></li>
+<li><a href="clinicalcode/views/adminTemp.html">clinicalcode.views.adminTemp</a></li>
+<li><a href="clinicalcode/views/site.html">clinicalcode.views.site</a></li>
+<li><a href="cll/settings.html">cll.settings</a></li>
+</ul>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2022, alex
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
+</html>
