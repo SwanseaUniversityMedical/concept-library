@@ -3,7 +3,7 @@ name: Generate Docs Update
 on:
   push:
     branches: 
-          - gh-pages
+          - test-ghpages-override
 jobs:
   build_docs_job:
     name: Code Reference Generator
