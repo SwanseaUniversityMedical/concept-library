@@ -50,7 +50,6 @@ jobs:
           rm -r _modules
           rm -r _sources
           rm -r _static 
-          rm -r assets
           rm -r codebase_docs
           rm -r sql-scripts
           rm -r unit-testing
