@@ -4,13 +4,16 @@
 {% load entity_renderer %}
 
 <div class="detailed-input-group fill">
+  <p class="detailed-input-group__description">
+    {{ component.field_data.title }}
+  </p>
   <div class="publication-list-group">
     <section class="publication-list-group__list mg-sm show" id="string_inputlist-group">
       {% if component.value|length %}
         <ul>
           {% for p in component.value %}
             <li>
-              <p>{{ p }}</p>
+              <a href="{{ p }}">{{ p }}</a>
             </li>
           {% endfor %}
         </ul>

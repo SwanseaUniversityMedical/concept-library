@@ -39,7 +39,7 @@
     {
       "title": "References",
       "description": "",
-      "fields": ["references", "source_reference"]
+      "fields": ["source_reference", "references"]
     },
     {
       "title": "Clinical Code List",
@@ -120,7 +120,7 @@
     "references": {
       "title": "References",
       "description": "",
-      "field_type": "string_inputlist",
+      "field_type": "url_list",
       "active": true,
       "validation": {
         "type": "string_array",
@@ -174,7 +174,7 @@
     "source_reference": {
       "title": "Source Reference",
       "description": "If this phenotype is derived from a third-party source, define that here.",
-      "field_type": "string_inputbox",
+      "field_type": "source_reference",
       "active": true,
       "validation": {
         "type": "string",

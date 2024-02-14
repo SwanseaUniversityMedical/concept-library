@@ -62,6 +62,10 @@
     max-width: 100%;
     margin-top: 1rem;
 
+    &.mg-sm {
+      margin-top: 0rem;
+    }
+
     &-header {
       width: 100%;
       border-bottom: 1px solid col(accent-dark);
