@@ -798,5 +798,14 @@ FIELD_TYPES = {
     'string_inputlist': {
         'input_type': 'string_inputlist',
         'output_type': 'string_inputlist',
-    }
+    },
+    'url_list': {
+        'input_type': 'string_inputlist',
+        'output_type': 'url_list',
+    },
+    'source_reference': {
+        'data_type': 'string',
+        'input_type': 'inputbox',
+        'output_type': 'source_reference'
+    },
 }
