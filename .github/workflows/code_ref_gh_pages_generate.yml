@@ -58,7 +58,7 @@ jobs:
           rm -r migrations
           cd ../../_sources
           rm -r clinicalcode.migrations.rst.txt
-          cd ../../.doctrees/
+          cd ../.doctrees/
           rm -r clinicalcode.migrations.doctree
           
 
