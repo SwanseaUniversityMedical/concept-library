@@ -49,6 +49,9 @@ jobs:
           dir
           rm -r docker
           rm -r CodeListLibrary_project  
+          cd docs
+          rm -r .doctrees
+          rm -r _modules
 
       - name: Init new codebase docs repo
         run: |
