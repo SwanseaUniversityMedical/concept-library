@@ -53,8 +53,10 @@ jobs:
           rm -r codebase_docs
           rm -r sql-scripts
           rm -r unit-testing
+          rm -r clinicalcode.migrations.html
           cd _modules/clinicalcode
           rm -r migrations
+          
 
       - name: Init new codebase docs repo
         run: |
