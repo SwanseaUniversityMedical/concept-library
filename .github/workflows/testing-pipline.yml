@@ -7,6 +7,8 @@ on:
     paths:
       - "CodeListLibrary_project/**"
   pull_request:
+    branches:
+      - master
     paths:
       - "CodeListLibrary_project/**"
 
