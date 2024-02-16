@@ -1131,7 +1131,6 @@ export default class ConceptCreator {
    */
   #tryRenderConceptComponent(concept) {
     const template = this.templates['concept-item'];
-    console.log();
     const access = this.#deriveEditAccess(concept);
     const phenotype_url = `${window.location.origin}/phenotypes/${concept.details.phenotype_owner}/detail`;
     const html = interpolateHTML(template, {
@@ -1644,13 +1643,11 @@ export default class ConceptCreator {
     conceptGroup.setAttribute('editing', true);
     console.log(information)
 
-    const phenotype_url = `{% url 'entity_detail' pk=${dataset?.details?.phenotype_owner} %}`;
 
     const systemOptions = await this.#fetchCodingOptions(dataset);
     const template = this.templates['concept-editor'];
     const html = interpolateHTML(template, {
       'concept_name': dataset?.details?.name,
-      'concept_phenotype_owner_url': phenotype_url,
       'coding_system_id': dataset?.coding_system?.id,
       'coding_system_options': systemOptions,
       'has_inclusions': false,
