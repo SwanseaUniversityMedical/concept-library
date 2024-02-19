@@ -102,7 +102,7 @@ def render_aside_wizard(parser, token):
         parsed = token.split_contents()[1:]
         if len(parsed) > 0 and parsed[0] == 'with':
             parsed = parsed[1:]
-        
+
         for param in parsed:
             ctx = param.split('=')
             params[ctx[0]] = eval(ctx[1])
@@ -118,7 +118,7 @@ class EntityWizardAside(template.Node):
         self.request = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
-    
+
     def render(self, context):
         request = self.request.resolve(context)
         output = ''
@@ -132,13 +132,13 @@ class EntityWizardAside(template.Node):
         template_sections.extend(constants.DETAIL_PAGE_APPENDED_SECTIONS)
         for section in template_sections:
             if section.get('hide_on_detail', False):
-                continue   
-                
+                continue
+
             if section.get('requires_auth', False):
                 if not request.user.is_authenticated:
                     #print('SECTION: requires_auth')
-                    continue                   
-                
+                    continue
+
             if section.get('do_not_show_in_production', False):
                 if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
                     #print('SECTION: do_not_show_in_production')
@@ -332,10 +332,11 @@ class EntityWizardSections(template.Node):
             # don't show section description in detail page
             section['hide_description'] = True
             
-            output += self.__try_render_item(template_name=constants.DETAIL_WIZARD_SECTION_START
+            section_content = self.__try_render_item(template_name=constants.DETAIL_WIZARD_SECTION_START
                                              , request=request
                                              , context=context.flatten() | { 'section': section })
 
+            field_count = 0
             for field in section.get('fields'):
                 template_field = template_utils.get_field_item(template.definition, 'fields', field)
                 if not template_field:
@@ -413,15 +414,18 @@ class EntityWizardSections(template.Node):
                     component['value'] = ''
 
                 if template_field.get('hide_if_empty', False):
-                    if component['value'] is None or str(component['value']) == '':
+                    comp_value = component.get('value')
+                    if comp_value is None or str(comp_value) == '' or comp_value == [] or comp_value == {}:
                         continue    
-                                    
 
                 output_type = component.get("output_type")
                 uri = f'{constants.DETAIL_WIZARD_OUTPUT_DIR}/{output_type}.html'
-                output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
+                field_count += 1
+                section_content += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
 
-        output += render_to_string(template_name=constants.DETAIL_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
+            if field_count > 0:
+                output += section_content
+                output += render_to_string(template_name=constants.DETAIL_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
         return output
     
     def render(self, context):

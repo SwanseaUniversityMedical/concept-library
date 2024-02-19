@@ -766,7 +766,6 @@ FIELD_TYPES = {
         'input_type': 'inputbox',
         'output_type': 'phenoflowid',
     },
-
     'group_field': {
         'input_type': 'group_select',
     },
@@ -776,7 +775,6 @@ FIELD_TYPES = {
     'access_field_editable': {
         'input_type': 'access_select_editable',
     },
-
     'permissions_section': {
         'system_defined': True,
         'output_type': 'permissions'
@@ -796,5 +794,18 @@ FIELD_TYPES = {
     'history_id': {
         'system_defined': True,
         'output_type': 'history_id'
-    }
+    },
+    'string_inputlist': {
+        'input_type': 'string_inputlist',
+        'output_type': 'string_inputlist',
+    },
+    'url_list': {
+        'input_type': 'string_inputlist',
+        'output_type': 'url_list',
+    },
+    'source_reference': {
+        'data_type': 'string',
+        'input_type': 'inputbox',
+        'output_type': 'source_reference'
+    },
 }

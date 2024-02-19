@@ -7,6 +7,7 @@ from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operat
 from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
+from .models.DMD_CODES import DMD_CODES
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
 
