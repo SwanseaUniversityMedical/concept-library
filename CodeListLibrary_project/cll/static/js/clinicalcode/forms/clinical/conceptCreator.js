@@ -1132,7 +1132,7 @@ export default class ConceptCreator {
   #tryRenderConceptComponent(concept) {
     const template = this.templates['concept-item'];
     const access = this.#deriveEditAccess(concept);
-    const phenotype_url = `${window.location.origin}/phenotypes/${concept.details.phenotype_owner}/detail`;
+    const phenotype_version_url = `${window.location.origin}/phenotypes/${concept.details.phenotype_owner}/version/${concept.details.phenotype_owner_history_id}/detail`;
     const html = interpolateHTML(template, {
       'subheader': access ? 'Codelist' : 'Imported Codelist',
       'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
@@ -1140,7 +1140,8 @@ export default class ConceptCreator {
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
       'phenotype_owner': concept?.details?.phenotype_owner || '',
-      'phenotype_owner_url': phenotype_url,
+      'phenotype_owner_history_id': concept?.details?.phenotype_owner_history_id || '',
+      'phenotype_owner_version_url': phenotype_version_url,
       'coding_system': concept?.coding_system?.description,
       'out_of_date': !access ? concept?.details?.latest_version?.is_out_of_date : false,
       'can_edit': access,
@@ -1641,7 +1642,6 @@ export default class ConceptCreator {
     information.classList.remove('show');
     accordian.classList.add('is-open');
     conceptGroup.setAttribute('editing', true);
-    console.log(information)
 
 
     const systemOptions = await this.#fetchCodingOptions(dataset);
