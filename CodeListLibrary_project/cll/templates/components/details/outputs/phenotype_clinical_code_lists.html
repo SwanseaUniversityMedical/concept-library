@@ -62,10 +62,8 @@
         <label class="fill-accordian__label" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
             for="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" role="button" tabindex="0">
           <span>
-            <strong>
-              C{{ c.concept_id }}
-            </strong>
-
+            <a href="{% url 'entity_history_detail' pk=c.details.phenotype_owner history_id=c.details.phenotype_owner_history_id %}">{{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}</a>
+           
             &nbsp;-&nbsp;{{ c.details.name }}
             &nbsp;|&nbsp;<em>{{ c.coding_system.name }}</em>
 
