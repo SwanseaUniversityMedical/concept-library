@@ -10,6 +10,7 @@ from .models.Template import Template
 from .models.ClinicalDiseaseCategory import ClinicalDiseaseCategoryNode
 from .models.ClinicalAnatomicalCategory import ClinicalAnatomicalCategoryNode
 from .models.ClinicalSpecialityCategory import  ClinicalSpecialityCategoryNode
+from .models.DMD_CODES import DMD_CODES
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
 

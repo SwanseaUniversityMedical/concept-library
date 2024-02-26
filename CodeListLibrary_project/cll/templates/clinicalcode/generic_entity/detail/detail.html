@@ -10,12 +10,18 @@
 {% load sass_tags %}
 
 {% block title %}| {{ entity_class }}: {{ entity.name }}{% endblock title %}
-{% block description %}{{ entity.name }}{% endblock description %}
-{% block keywords %}, {{ entity.name }}{% endblock keywords %}
+{% block description %}{{ entity_class }} {{ entity.id }}/{{ entity.history_id }} - {{ entity.name }}{% endblock description %}
+{% block keywords %}, {{ entity.name }}, {{ entity.id }}/{{ entity.history_id }}, {{ entity_class }}{% endblock keywords %}
 
 {% block canonical_path %}
 	<link rel="canonical" href="{{ page_canonical_path }}" />
 {% endblock canonical_path %}
+
+{% block embedding_wrapper %}
+  {% with entity.history_id|stringformat:"i" as hxid %}
+    {% render_og_tags header=entity_class|add:': '|add:entity.id|add:'/'|add:hxid %}
+  {% endwith %}
+{% endblock embedding_wrapper %}
 
 {% block container %}
 <!-- Vendor -->
@@ -48,7 +54,9 @@
       <section class="breadcrumbs">
         <span class="breadcrumb-item">
           <span class="marker"></span>
-          <span class="breadcrumb"><a href="{% url 'search_phenotypes' %}">Search</a></span>
+          <span class="breadcrumb">
+            <a href="{% url 'search_phenotypes' %}">Search</a>
+          </span>
         </span>
         <span class="breadcrumb-item">
           <span class="marker"></span>
@@ -65,29 +73,33 @@
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="phenotype-creation">
         {% include './detail_buttons.html' %}
-        
-          <section class="phenotype-creation__header">
-            <h1>{{ entity.name }}</h1>
-            <p><i>{{ entity.author }}</i></p>
-            <p>
-              <strong>{{ entity.id }} / {{ entity.history_id }}</strong>
-              {% if user.is_authenticated %}
-                (
-                {% if is_latest_version %}
-                  <span class="tag label label-highlighted">LATEST VERSION</span>
-                {% else %}
-                  <span class="tag label label-default">LEGACY VERSION</span>
-                {% endif %}
-                )
-              {% endif %}
-              <span class="badge"><strong>{{ template.definition.template_details.name }}</strong></span>
-            </p>
-          </section>
 
-          <ol class="phenotype-progress" id="main-wizard">
-            {% render_wizard_sections_detail_pg %}
-            {% endrender_wizard_sections_detail_pg %}
-          </ol>
+        <section class="phenotype-creation__header">
+          <h1>{{ entity.name }}</h1>
+          <p><i>{{ entity.author }}</i></p>
+          <p>
+            <strong>{{ entity.id }} / {{ entity.history_id }}</strong>
+            {% if user.is_authenticated %}
+              (
+              {% if is_latest_version %}
+                <span class="tag label label-highlighted">LATEST VERSION</span>
+              {% else %}
+                <span class="tag label label-default">LEGACY VERSION</span>
+              {% endif %}
+              )
+            {% endif %}
+            <span class="badge">
+              <strong>
+                {{ template.definition.template_details.name }}
+              </strong>
+            </span>
+          </p>
+        </section>
+
+        <ol class="phenotype-progress" id="main-wizard">
+          {% render_wizard_sections_detail_pg %}
+          {% endrender_wizard_sections_detail_pg %}
+        </ol>
       </article>
     </div>
   </main>

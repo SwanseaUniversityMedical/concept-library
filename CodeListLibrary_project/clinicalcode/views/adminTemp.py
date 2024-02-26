@@ -38,7 +38,6 @@ def sort_pk_list(a, b):
     return 0
 
 def try_parse_doi(publications):
-    import re
     pattern = re.compile(r'\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b')
 
     output = [ ]

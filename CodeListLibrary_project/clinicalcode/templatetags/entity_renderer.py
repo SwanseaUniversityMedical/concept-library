@@ -1,8 +1,8 @@
 from django import template
+from django.conf import settings
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
 
 import re
 import json
@@ -172,7 +172,9 @@ def stylise_number(n):
     """
         Stylises a number so that it adds a comma delimiter for numbers greater than 1000
     """
-    return '{:,}'.format(n)
+    if n is not None:
+        return '{:,}'.format(n)
+    return ''
 
 @register.filter(name='stylise_date')
 def stylise_date(date):

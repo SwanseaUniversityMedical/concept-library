@@ -4,6 +4,7 @@ Roshan Toby, Artur Zinnurov
 *Document last updated on 29/01/2024*
 ---
 
+
 ## Purpose
 
 This document outlines guidelines and best practices for working with the Pytest module in our project. These guidelines are designed to ensure consistency, maintainability, and efficiency in our testing processes.
@@ -262,6 +263,7 @@ For more advanced usage and additional options, refer to the [Pytest Fixture Doc
 
 Instructions on how to run tests locally:
 
+
 1. Put your dev git.token file to the docker/selenium-testing/db/git.token
 
 2. Run ```docker compose -p cll -f docker-compose.selenium.yaml up --build```
@@ -280,6 +282,7 @@ Instructions on how to run tests locally:
 Best practices for using mocks, including the recommendation to use `pytest-mock` and a reminder not to overuse mocks.
 
 ## 7. Documentation
+
 
 Well-documented test code is essential for ensuring that team members can understand, maintain, and 
 extend the test suite effectively. Follow these guidelines to ensure thorough documentation in your Pytest module.
@@ -301,6 +304,7 @@ detailed test results and statistics. These reports are published on GitHub Page
 information during the review process. Concept Library has integrated pipline for the tests but it is advisable to not change the /env/remotetest.compose.env file.
 
 ## 9. Resources
+
 
  - [Pytest Documentation](https://docs.pytest.org/en/7.1.x/how-to/index.html)
  - Tutorials

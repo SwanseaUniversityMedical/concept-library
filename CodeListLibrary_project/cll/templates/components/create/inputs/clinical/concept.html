@@ -32,7 +32,7 @@
       <span class="concept-list__group-item" id="concept-accordian-header">
         <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
         <span class="concept-name" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">
-          ${concept_name} | ${coding_system}${out_of_date ? ' | <strong>Legacy Version</strong>' : ''}
+          ${concept_name} ${coding_system ? '| ' + coding_system : ''}${out_of_date ? ' | <strong>Legacy Version</strong>' : ''}
         </span>
         <span class="concept-buttons">
           ${can_edit

@@ -1,9 +1,12 @@
 from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
+from django.utils.safestring import mark_safe
+from django.conf.urls.static import static
 from functools import partial
 from re import IGNORECASE, compile, escape as rescape
 
+import os
 import re
 import bleach
 import markdown
@@ -11,6 +14,50 @@ import markdown
 from ..entity_utils.constants import TypeStatus
 
 register = template.Library()
+
+@register.simple_tag(takes_context=True)
+def render_og_tags(context, *args, **kwargs):
+    request = context['request']
+    brand = request.BRAND_OBJECT
+
+    title = None
+    embed = None
+    if not brand or not getattr(brand, 'site_title'):
+        title = settings.APP_TITLE
+        embed = settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
+    else:
+        title = brand.site_title
+        embed = settings.APP_EMBED_ICON.format(logo_path=brand.logo_path)
+
+    desc = kwargs.pop('desc', settings.APP_DESC.format(app_title=title))
+    title = kwargs.pop('title', title)
+    embed = kwargs.pop('embed', embed)
+
+    header = kwargs.pop('header', None)
+    if isinstance(header, str):
+        title = '{0} | {1}'.format(title, header)
+
+    return mark_safe(
+        '''
+            <meta property="og:type" content="website">
+            <meta property="og:url" content="{url}">
+            <meta property="og:title" content="{title}">
+            <meta property="og:description" content="{desc}">
+            <meta property="og:image" content="{img_path}">
+
+            <meta property="twitter:card" content="summary_large_image">
+            <meta property="twitter:url" content="{url}">
+            <meta property="twitter:title" content="{title}">
+            <meta property="twitter:description" content="{desc}">
+            <meta property="twitter:image" content="{img_path}">
+        ''' \
+        .format(
+            url=request.build_absolute_uri(),
+            desc=desc,
+            title=title,
+            img_path=os.path.join(settings.STATIC_URL, embed)
+        )
+    )
 
 @register.filter(name='from_phenotype')
 def from_phenotype(value, index, default=''):

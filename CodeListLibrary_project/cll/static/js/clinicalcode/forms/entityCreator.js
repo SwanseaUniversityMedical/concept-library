@@ -1,4 +1,5 @@
 import Tagify from '../components/tagify.js';
+import StringInputListCreator from './stringInputListCreator.js';
 import PublicationCreator from './clinical/publicationCreator.js';
 import ConceptCreator from './clinical/conceptCreator.js';
 import GroupedEnum from '../components/groupedEnumSelector.js';
@@ -247,7 +248,13 @@ const ENTITY_HANDLERS = {
     const toolbar = element.parentNode.querySelector(`div[for="${element.getAttribute('data-field')}"]`);
     const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
 
-    let value = data.innerText;
+    let value = data?.innerHTML;
+    if (!isStringEmpty(value) && !isStringWhitespace(value)) {
+      value = convertMarkdownData(data)
+    } else {
+      value = '';
+    }
+
     if (isStringEmpty(value) || isStringWhitespace(value)) {
       value = ' ';
     }
@@ -270,6 +277,21 @@ const ENTITY_HANDLERS = {
       editor: mde,
       toolbar: bar,
     };
+  },
+
+  // Generates a list component for an element
+  'string_inputlist': (element) => {
+    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new StringInputListCreator(element, parsed)
   },
 
   // Generates a clinical publication list component for an element
@@ -613,6 +635,36 @@ const ENTITY_FIELD_COLLECTOR = {
       }
     }
     
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates list components
+  'string_inputlist': (field, packet) => {
+    const handler = packet.handler;
+    const listItems = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(listItems) || listItems.length < 1) {
+        return {
+          valid: false,
+          value: listItems,
+          message: (isNullOrUndefined(listItems) || listItems.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, listItems);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: listItems,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
     return {
       valid: true,
       value: parsedValue?.value

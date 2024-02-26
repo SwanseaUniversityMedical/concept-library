@@ -8,6 +8,10 @@
 
 {% block title %}| Search Phenotypes {% endblock title %}
 
+{% block embedding_wrapper %}
+  {% render_og_tags header='Search Phenotypes' %}
+{% endblock embedding_wrapper %}
+
 {% block container %}
 
 <!-- Include search banner component -->
@@ -16,8 +20,8 @@
 <!-- Include required components -->
 <script src="{% static 'js/lib/moment.min.js' %}"></script>
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
 {% endcompress %}
 
 <!-- Main search page -->
