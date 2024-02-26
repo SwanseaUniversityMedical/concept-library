@@ -1,5 +1,5 @@
 import { parse as parseCSV } from '../../../lib/csv.min.js';
-import { ConceptSelectionService } from '../../services/conceptSelectionService.js';
+import { ConceptSelectionService } from './conceptSelectionService.js';
 
 /**
  * tryCleanCodingFile
