@@ -248,7 +248,13 @@ const ENTITY_HANDLERS = {
     const toolbar = element.parentNode.querySelector(`div[for="${element.getAttribute('data-field')}"]`);
     const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
 
-    let value = data.innerText;
+    let value = data?.innerHTML;
+    if (!isStringEmpty(value) && !isStringWhitespace(value)) {
+      value = convertMarkdownData(data)
+    } else {
+      value = '';
+    }
+
     if (isStringEmpty(value) || isStringWhitespace(value)) {
       value = ' ';
     }
