@@ -1,8 +1,8 @@
 from django import template
+from django.conf import settings
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
 
 import re
 import json

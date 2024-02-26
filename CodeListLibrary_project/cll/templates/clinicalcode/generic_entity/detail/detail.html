@@ -10,12 +10,18 @@
 {% load sass_tags %}
 
 {% block title %}| {{ entity_class }}: {{ entity.name }}{% endblock title %}
-{% block description %}{{ entity.name }}{% endblock description %}
-{% block keywords %}, {{ entity.name }}{% endblock keywords %}
+{% block description %}{{ entity_class }} {{ entity.id }}/{{ entity.history_id }} - {{ entity.name }}{% endblock description %}
+{% block keywords %}, {{ entity.name }}, {{ entity.id }}/{{ entity.history_id }}, {{ entity_class }}{% endblock keywords %}
 
 {% block canonical_path %}
 	<link rel="canonical" href="{{ page_canonical_path }}" />
 {% endblock canonical_path %}
+
+{% block embedding_wrapper %}
+  {% with entity.history_id|stringformat:"i" as hxid %}
+    {% render_og_tags header=entity_class|add:': '|add:entity.id|add:'/'|add:hxid %}
+  {% endwith %}
+{% endblock embedding_wrapper %}
 
 {% block container %}
 <!-- Vendor -->
