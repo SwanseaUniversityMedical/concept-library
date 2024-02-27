@@ -7,7 +7,11 @@ from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from .views import Concept, GenericEntity, Template, DataSource, Tag, Collection
+from .views import (
+  Concept, GenericEntity,
+  Template, DataSource,
+  Tag, Collection, Ontology
+)
 
 """ Router
     Use the default REST API router to access the API details explicitly. These paths will 
@@ -135,19 +139,30 @@ urlpatterns += [
 
     # Tags
     url(r'^tags/$',
-        Tag.get_tags, 
+        Tag.get_tags,
         name='tag_list'),
     url(r'^tags/(?P<tag_id>\d+)/detail/$',
-        Tag.get_tag_detail, 
+        Tag.get_tag_detail,
         name='tag_list_by_id'),
 
     # Collections
     url(r'^collections/$',
-        Collection.get_collections, 
+        Collection.get_collections,
         name='collection_list'),
     url(r'^collections/(?P<collection_id>\d+)/detail/$',
-        Collection.get_collection_detail, 
-        name='collections_list_by_id'),    
+        Collection.get_collection_detail,
+        name='collections_list_by_id'),
+
+    # Ontology
+    url(r'^ontology/$',
+        Ontology.get_ontologies,
+        name='ontology_list'),
+    url(r'^ontology/(?P<ontology_name>\w+)/$',
+        Ontology.get_ontology_detail,
+        name='ontology_list_by_name'),
+    url(r'^ontology/(?P<ontology_name>\w+)/(?P<ontology_id>\d+)/$',
+        Ontology.get_ontology_node,
+        name='ontology_node_by_id'),
 ]
 
 """ Create/Update urls """

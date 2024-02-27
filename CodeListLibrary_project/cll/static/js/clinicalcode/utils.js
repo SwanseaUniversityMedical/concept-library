@@ -315,14 +315,14 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
 }
 
 /**
- * interpolateHTML
- * @desc Get a template from a string
+ * interpolateString
+ * @desc Interpolate string template
  *       Ref @ https://stackoverflow.com/posts/41015840/revisions
  * @param  {str} str The string to interpolate
  * @param  {object} params The parameters
  * @return {str} The interpolated string
  */
-const interpolateHTML = (str, params) => {
+const interpolateString = (str, params) => {
   let names = Object.keys(params);
   let values = Object.values(params);
   return new Function(...names, `return \`${str}\`;`)(...values);
@@ -493,6 +493,33 @@ const waitForElement = (selector) => {
 
     observer.observe(document.body, { childList: true, subtree: true });
   });
+}
+
+/**
+ * observeMatchingElements
+ * @desc observes current and any future element(s) that matches the given selector
+ * @param {string} selector the string to match 
+ * @param {function} callback the callback method to handle the observed element 
+ * @returns {null} no result
+ */
+const observeMatchingElements = (selector, callback) => {
+  let elements = [];
+  const observer = new MutationObserver(_ => {
+    if (document.querySelector(selector)) {
+      elements = [...document.querySelectorAll(selector)].reduce((filtered, elem) => {
+        if (filtered.indexOf(elem) >= 0) {
+          return filtered;
+        }
+
+        callback(elem);
+        filtered.push(elem);
+
+        return filtered;
+      }, elements);
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 /**

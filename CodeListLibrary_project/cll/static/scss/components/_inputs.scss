@@ -4,8 +4,13 @@
 @import '../_media';
 @import '../_utils';
 
-/// Inputs
-///   @desc Defines all input-like elements and their assoc. containers for use across website
+/* Inputs
+ *   @desc Defines all input-like elements and their assoc. containers for use across website
+ *
+ */
+
+/// publication-list-group
+///   @desc Defines the publication component controlled by publicationCreator.js
 .publication-list-group {
   @include flex-col();
   position: relative;
@@ -17,7 +22,7 @@
     flex-flow: column nowrap;
     height: min-content;
 
-    &-children{
+    &-children {
       display: flex;
       flex-flow: row wrap;
       align-items: center;
@@ -187,6 +192,88 @@
       &:not(:last-child) {
         border-bottom: 1px solid col(accent-washed);
       }
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+}
+
+/// ontology-group
+///   @desc Defines the ontology creator display form within create page
+.ontology-group-creator {
+  @include flex-col();
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+
+  &__header {
+    display: flex;
+    flex-flow: row nowrap;
+    height: min-content;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    &-actions {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: flex-end;
+
+      button {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        font-weight: normal;
+        margin-bottom: 0.25rem;
+      }
+    }
+  }
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__list {
+    @include flex-col();
+    flex-wrap: nowrap;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 1rem;
+
+    &-header {
+      width: 100%;
+      border-bottom: 1px solid col(accent-dark);
+
+      h3 {
+        padding: 0;
+        margin: 0 0 0.25rem 0;
+      }
+    }
+
+    &-container {
+      @include flex-col();
+      position: relative;
+      flex-wrap: nowrap;
+      align-self: center;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      width: calc(100% - 0.5rem);
+      max-width: calc(100% - 0.5rem);
+      max-height: 200px;
+      overflow-y: auto;
+      overflow-x: none;
     }
 
     &:not(.show) {

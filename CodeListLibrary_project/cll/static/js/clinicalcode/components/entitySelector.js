@@ -31,7 +31,7 @@ const getDescriptor = (description, name) => {
 const createGroup = (container, template, id, title, description) => {
   description = getDescriptor(description, title);
 
-  const html = interpolateHTML(template, {
+  const html = interpolateString(template, {
     'id': id,
     'title': title.toLocaleUpperCase(),
     'description': description,
@@ -54,7 +54,7 @@ const createGroup = (container, template, id, title, description) => {
  * @returns {node} the interpolated element after appending to the container node
  */
 const createCard = (container, template, id, type, hint, title, description) => {
-  const html = interpolateHTML(template, {
+  const html = interpolateString(template, {
     'type': type,
     'id': id,
     'hint': hint,

@@ -13,11 +13,11 @@ const TEMPLATE_ELEMENTS = {
 
 const renderTemplateDetail = (parent, data) => {
   data.template.forEach((e, _) => {
-    let templateDetail = interpolateHTML(TEMPLATE_ELEMENTS.DETAIL, e);
+    let templateDetail = interpolateString(TEMPLATE_ELEMENTS.DETAIL, e);
     if ('field_inputs' in e) {
       let itemList = '';
       e.field_inputs.forEach((v, _) => {
-        itemList += interpolateHTML(TEMPLATE_ELEMENTS.LIST_ITEM, v);
+        itemList += interpolateString(TEMPLATE_ELEMENTS.LIST_ITEM, v);
       });
 
       templateDetail += `

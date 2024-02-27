@@ -180,7 +180,7 @@ class ModalFactory {
 
       const { id, title, content, showFooter, buttons, size } = options;
     
-      const html = interpolateHTML(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content, size: size });
+      const html = interpolateString(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content, size: size });
       const doc = parseHTMLFromString(html);
       const currentHeight = window.scrollY;
       const modal = document.body.appendChild(doc.body.children[0]);

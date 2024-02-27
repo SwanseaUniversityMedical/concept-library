@@ -16,7 +16,7 @@
     {
       "title": "Overview",
       "description": "An overview of the phenotype with basic metadata.",
-      "fields": ["type", "coding_system", "data_sources", "collections", "tags"]
+      "fields": ["type", "coding_system", "data_sources", "collections", "tags", "ontology", "source_reference"]
     },
     {
       "title": "Definition",
@@ -93,6 +93,27 @@
         "api": true
       }
     },
+    "ontology": {
+      "title": "Ontology",
+      "description": "A set of taggable categories and concepts that describe this Phenotype.",
+      "field_type": "ontology",
+      "active": true,
+      "validation": {
+        "type": "ontology",
+        "mandatory": false,
+        "source": {
+          "trees": [
+            { "label": "Clinical Disease Category (ICD-10)", "source": "ClinicalDiseaseCategoryNode" },
+            { "label": "Clinical Domain", "source": "ClinicalSpecialityCategoryNode" },
+            { "label": "Anatomical Category", "source": "ClinicalAnatomicalCategoryNode" }
+          ]
+        }
+      },
+      "search": {
+        "filterable": false,
+        "api": false
+      }
+    },
     "coding_system": {
       "title": "Coding System",
       "description":"Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
@@ -126,8 +147,8 @@
       }
     },
     "source_reference": {
-      "title": "Atlas Source Reference",
-      "description": "The Atlas Phenotype associated with this entity (if any)",
+      "title": "Disease Atlas Reference",
+      "description": "If applicable: the Disease Atlas Phenotype URL associated with this entity.",
       "field_type": "string_inputbox",
       "active": true,
       "validation": {

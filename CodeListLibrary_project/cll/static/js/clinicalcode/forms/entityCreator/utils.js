@@ -1,87 +1,15 @@
-import Tagify from '../components/tagify.js';
-import StringInputListCreator from './stringInputListCreator.js';
-import PublicationCreator from './clinical/publicationCreator.js';
-import ConceptCreator from './clinical/conceptCreator.js';
-import GroupedEnum from '../components/groupedEnumSelector.js';
+import Tagify from '../../components/tagify.js';
+import ConceptCreator from '../clinical/conceptCreator.js';
+import GroupedEnum from '../../components/groupedEnumSelector.js';
+import PublicationCreator from '../clinical/publicationCreator.js';
+import StringInputListCreator from '../stringInputListCreator.js';
+import { OntologySelectionService } from '../generic/ontologySelector/index.js';
 
-/**
- * ENTITY_OPTIONS
- * @desc Defines the ID for the form submission and save draft button(s)
- */
-const ENTITY_OPTIONS = {
-  // Whether to prompt that the form has been modified when the user tries to leave
-  promptUnsaved: true,
-  // Whether to force toast errors instead of using the field group
-  forceErrorToasts: false,
-};
-
-/**
- * ENTITY_DATEPICKER_FORMAT
- * @desc Defines how the creator should format dates when producing form values
- */
-const ENTITY_DATEPICKER_FORMAT = 'YYYY/MM/DD';
-
-/**
- * ENTITY_ACCEPTABLE_DATE_FORMAT
- * @desc Defines acceptable date formats
- */
-const ENTITY_ACCEPTABLE_DATE_FORMAT = ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD'];
-
-/**
- * ENTITY_TOAST_MIN_DURATION
- * @desc the minimum message time for a toast notification
- */
-const ENTITY_TOAST_MIN_DURATION = 5000; // ms, or 5s
-
-/**
- * ENTITY_FORM_BUTTONS
- * @desc Defines the ID for the form submission and save draft button(s)
- */
-const ENTITY_FORM_BUTTONS = {
-  'cancel': 'cancel-entity-btn',
-  'submit': 'submit-entity-btn',
-};
-
-/**
- * ENTITY_TEXT_PROMPTS
- * @desc any text that is used throughout the enjtity creator & presented to the user
- */
-const ENTITY_TEXT_PROMPTS = {
-  // Prompt when cancellation is requested and the data is dirty
-  CANCEL_PROMPT: {
-    title: 'Are you sure?',
-    content: '<p>Are you sure you want to exit this form?</p>'
-  },
-  // Prompt when attempting to save changes to a legacy version
-  HISTORICAL_PROMPT: {
-    title: 'Are you sure?',
-    content: `
-      <p>
-        <strong>
-          You are saving a legacy Phenotype.
-          Updating this Phenotype will overwrite the most recent version.
-        </strong>
-      </p>
-      <p>Are you sure you want to do this?</p>
-    `
-  },
-  // Informs user that they're trying to change group access to null when they've derived access
-  DERIVED_GROUP_ACCESS: 'Unable to change group when you\'re deriving access from a group!',
-  // Validation error when a field is null
-  REQUIRED_FIELD: '${field} field is required, it cannot be empty',
-  // Validation error when a field is empty
-  INVALID_FIELD: '${field} field is invalid',
-  // Message when form is invalid
-  FORM_IS_INVALID: 'You need to fix the highlighted fields before saving',
-  // Message when user attempts to POST without changing the form
-  NO_FORM_CHANGES: 'You need to update the form before saving',
-  // Message when POST submission fails due to server error
-  SERVER_ERROR_MESSAGE: 'It looks like we couldn\'t save. Please try again',
-  // Message when the API fails
-  API_ERROR_INFORM: 'We can\'t seem to process your form. Please context an Admin',
-  // Message when a user has failed to confirm / cancel an editable component before attemping to save
-  CLOSE_EDITOR: 'Please close the ${field} editor first.'
-}
+import {
+  ENTITY_DATEPICKER_FORMAT,
+  ENTITY_ACCEPTABLE_DATE_FORMAT,
+  ENTITY_TEXT_PROMPTS
+} from '../entityFormConstants.js';
 
 /**
  * ENTITY_HANDLERS
@@ -89,7 +17,7 @@ const ENTITY_TEXT_PROMPTS = {
  *       as described by their data-class attribute
  * 
  */
-const ENTITY_HANDLERS = {
+export const ENTITY_HANDLERS = {
   // Generates a groupedenum component context
   'groupedenum': (element) => {
     const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
@@ -323,6 +251,36 @@ const ENTITY_HANDLERS = {
 
     return new ConceptCreator(element, dataset, parsed);
   },
+
+  // Generates an ontology selection component for an element
+  'ontology': (element, dataset) => {
+    const nodes = element.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+
+    const data = { };
+    for (let i = 0; i < nodes.length; ++i) {
+      let node = nodes[i];
+
+      const datatype = node.getAttribute('data-type');
+      if (isStringEmpty(datatype)) {
+        continue;
+      }
+
+      let innerText = node.innerText;
+      if (isStringEmpty(innerText) || isStringWhitespace(innerText)) {
+        continue;
+      }
+
+      try {
+        innerText = JSON.parse(innerText);
+        data[datatype] = innerText;
+      }
+      catch (e) {
+        console.warn('Failed to parse Ontology data:', e)
+      }
+    }
+
+    return new OntologySelectionService(element, dataset, data);
+  }
 };
 
 /**
@@ -332,7 +290,7 @@ const ENTITY_HANDLERS = {
  * 
  * @return {object} that describes { valid: bool, value: *, message: string|null }
  */
-const ENTITY_FIELD_COLLECTOR = {
+export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates text inputbox components
   'inputbox': (field, packet) => {
     const element = packet.element;
@@ -765,7 +723,7 @@ const ENTITY_FIELD_COLLECTOR = {
  * @return {object} An object describing the data, with each key representing
  *                  the name of the <data/> element
  */
-const collectFormData = () => {
+export const collectFormData = () => {
   const values = document.querySelectorAll('data[data-owner="entity-creator"]');
 
   // collect the form data
@@ -813,7 +771,7 @@ const collectFormData = () => {
  * @param {object} template The template object as provided by context
  * @return {object} The template's fields
  */
-const getTemplateFields = (template) => {
+export const getTemplateFields = (template) => {
   return template?.definition?.fields;
 }
 
@@ -824,7 +782,7 @@ const getTemplateFields = (template) => {
  * @param {string} cls The data-class attribute value of that particular element
  * @return {object} An interface to control the behaviour of the component
  */
-const createFormHandler = (element, cls, data) => {
+export const createFormHandler = (element, cls, data) => {
   if (!ENTITY_HANDLERS.hasOwnProperty(cls)) {
     return;
   }
@@ -838,7 +796,7 @@ const createFormHandler = (element, cls, data) => {
  * @param {object} packet the field data
  * @returns {boolean} that reflects whether the field is mandatory
  */
-const isMandatoryField = (packet) => {
+export const isMandatoryField = (packet) => {
   const validation = packet?.validation;
   if (isNullOrUndefined(validation)) {
     return false;
@@ -854,7 +812,7 @@ const isMandatoryField = (packet) => {
  * @param {*} value the value retrieved from the form
  * @returns {object} that returns the success state of the parsing & the parsed value, if applicable
  */
-const parseAsFieldType = (packet, value) => {
+export const parseAsFieldType = (packet, value) => {
   const validation = packet?.validation;
   if (isNullOrUndefined(validation)) {
     return {
@@ -947,7 +905,7 @@ const parseAsFieldType = (packet, value) => {
  * @param {object} packet the field's associated template data
  * @return {string} the title of this field
  */
-const tryGetFieldTitle = (field, packet) => {
+export const tryGetFieldTitle = (field, packet) => {
   const group = tryGetRootElement(packet.element, 'detailed-input-group');
   const title = !isNullOrUndefined(group) ? group.querySelector('.detailed-input-group__title') : null;
   if (!isNullOrUndefined(title)) {
@@ -963,719 +921,3 @@ const tryGetFieldTitle = (field, packet) => {
 
   return transformTitleCase(field.replace('_', ' '));
 }
-
-/**
- * EntityCreator
- * @desc A class that can be used to control forms for templated dynamic content
- * 
- */
-class EntityCreator {
-  #locked = false;
-
-  constructor(data, options) {
-    this.data = data;
-    this.formChanged = false;
-
-    this.#buildOptions(options || { });
-    this.#collectForm();
-    this.#setUpForm();
-    this.#setUpSubmission();
-  }
-
-  /*************************************
-   *                                   *
-   *               Getter              *
-   *                                   *
-   *************************************/
-  /**
-   * isLocked
-   * @desc whether we're still awaiting the promise to resolve
-   * @returns {boolean} represents status of promise
-   */
-  isLocked() {
-    return this.#locked;
-  }
-
-  /**
-   * getFormMethod
-   * @desc describes whether the form is a create or an update form, where 1 = create & 2 = update
-   * @returns {int} int representation of the form method enum
-   */
-  getFormMethod() {
-    return this.data?.method;
-  }
-
-  /**
-   * getData
-   * @returns {object} the template, metadata, any assoc. entity and the form method
-   */
-  getData() {
-    return this.data;
-  }
-
-  /**
-   * getForm
-   * @returns {object} form describing the key/value pair of the form as defined
-   *                   by its template
-   */
-  getForm() {
-    return this.form;
-  }
-
-  /**
-   * getFormButtons
-   * @returns {object} returns the assoc. buttons i.e. save as draft, submit button
-   */
-  getFormButtons() {
-    return this.buttons;
-  }
-
-  /**
-   * getOptions
-   * @returns {object} the parameters used to build this form
-   */
-  getOptions() {
-    return this.options;
-  }
-
-  /**
-   * isDirty
-   * @returns {boolean} whether the form has been modified and its data is now dirty
-   */
-  isDirty() {
-    return this.data?.is_historical === 1 || this.formChanged;
-  }
-
-  /**
-   * isEditingChildren
-   * @desc checks whether the user is editing a child component
-   * @returns {boolean} reflects editing state
-   */
-  isEditingChildren() {
-    for (const [field, packet] of Object.entries(this.form)) {
-      if (!packet.handler || !packet.handler.isInEditor) {
-        continue;
-      }
-
-      if (packet.handler.isInEditor()) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * getActiveEditor
-   * @desc finds the active editor that the user is interacting with
-   * @returns {object|null} the active component
-   */
-  getActiveEditor() {
-    for (const [field, packet] of Object.entries(this.form)) {
-      if (!packet.handler || !packet.handler.isInEditor) {
-        continue;
-      }
-
-      if (packet.handler.isInEditor()) {
-        return {
-          field: field,
-          packet: packet,
-        };
-      }
-    }
-  }
-
-  /**
-   * getSafeGroupId
-   * @desc attempts to safely get the default group id if the 
-   *       user attempts to change the group when they have derived
-   *       access from another group
-   * @param {integer|null} groupId optional parameter to test
-   * @returns {integer|null} the safe group id
-   */
-  getSafeGroupId(groupId) {
-    groupId = !isNullOrUndefined(groupId) && groupId >= 0 ? groupId : null;
-
-    if (this.data?.derived_access !== 1) {
-      return groupId;
-    }
-
-    if (isNullOrUndefined(groupId) || groupId < 0) {
-      if (window.ToastFactory) {
-        window.ToastFactory.push({
-          type: 'error',
-          message: ENTITY_TEXT_PROMPTS.DERIVED_GROUP_ACCESS,
-          duration: ENTITY_TOAST_MIN_DURATION,
-        });
-      }
-
-      return this.form?.group?.value;
-    }
-
-    return groupId;
-  }
-
-  /*************************************
-   *                                   *
-   *               Setter              *
-   *                                   *
-   *************************************/  
-  /**
-   * makeDirty
-   * @desc sets the form as dirty - used by child components
-   * @returns this, for chaining
-   */
-  makeDirty() {
-    this.formChanged = true;
-    return this;
-  }
-
-  /**
-   * submitForm
-   * @desc submits the form to create/update an entity
-   */
-  submitForm() {
-    // Check that our children aren't in an editor state
-    const child = this.getActiveEditor();
-    if (child) {
-      let title = tryGetFieldTitle(child.field, child.packet);
-      title = title || child.field;
-
-      return window.ToastFactory.push({
-        type: 'warning',
-        message: interpolateHTML(ENTITY_TEXT_PROMPTS.CLOSE_EDITOR, { field: title }),
-        duration: ENTITY_TOAST_MIN_DURATION,
-      });
-    }
-
-    // Clear prev. error messages
-    this.#clearErrorMessages();
-
-    // Collect form data & validate
-    const { data, errors } = this.#collectFieldData();
-
-    // If there are errors, update the assoc. fields & prompt the user
-    if (errors.length > 0) {
-      let minimumScrollY;
-      for (let i = 0; i < errors.length; ++i) {
-        const error = errors[i];
-        const packet = this.form?.[error.field];
-        if (isNullOrUndefined(packet)) {
-          continue;
-        }
-
-        const elem = this.#displayError(packet, error);
-        if (!isNullOrUndefined(elem)) {
-          if (isNullOrUndefined(minimumScrollY) || elem.offsetTop < minimumScrollY) {
-            minimumScrollY = elem.offsetTop;
-          }
-        }
-      }
-
-      minimumScrollY = !isNullOrUndefined(minimumScrollY) ? minimumScrollY : 0;
-      window.scrollTo({ top: minimumScrollY, behavior: 'smooth' });
-      
-      return window.ToastFactory.push({
-        type: 'danger',
-        message: ENTITY_TEXT_PROMPTS.FORM_IS_INVALID,
-        duration: ENTITY_TOAST_MIN_DURATION,
-      });
-    }
-
-    // Peform dict diff to see if any changes, if not, inform the user to do so
-    if (!this.isDirty() && !hasDeltaDiff(this.initialisedData, data)) {
-      return window.ToastFactory.push({
-        type: 'warning',
-        message: ENTITY_TEXT_PROMPTS.NO_FORM_CHANGES,
-        duration: ENTITY_TOAST_MIN_DURATION,
-      });
-    }
-
-    // If no errors and it is different, then attempt to POST
-    if (this.#locked) {
-      return;
-    }
-    this.#locked = true;
-
-    const spinner = startLoadingSpinner();
-    try {
-      const token = getCookie('csrftoken');
-      const request = {
-        method: 'POST',
-        cache: 'no-cache',
-        credentials: 'same-origin',
-        withCredentials: true,
-        headers: {
-          'X-CSRFToken': token,
-          'Authorization': `Bearer ${token}`
-        },
-        body: this.#generateSubmissionData(data),
-      };
-  
-      fetch('', request)
-        .then(response => {
-          if (!response.ok) {
-            return Promise.reject(response);
-          }
-          return response.json();
-        })
-        .then(content => {
-          this.formChanged = false;
-          this.initialisedData = data;
-          return content;
-        })
-        .then(content => {
-          this.#redirectFormClosure(content);
-        })
-        .catch(error => {
-          if (typeof error.json === 'function') {
-            this.#handleAPIError(error);
-          } else {
-            this.#handleServerError(error);
-          }
-          spinner.remove();
-        })
-        .finally(() => {
-          this.#locked = false;
-        });
-    }
-    catch (e){
-      this.#locked = false;
-      spinner.remove();
-    }
-  }
-
-  /**
-   * cancelForm
-   * @desc Prompts the user to cancel the form if changes have been made and then either:
-   *        a) redirects the user to the search page if the entity does not exist
-   *          *OR*
-   *        b) redirects the user to the detail page if the entity exists
-   * 
-   *      If no changes have been made, the user is immediately redirected
-   */
-  cancelForm() {
-    if (!this.isDirty()) {
-      this.#redirectFormClosure();
-      return;
-    }
-
-    window.ModalFactory.create(ENTITY_TEXT_PROMPTS.CANCEL_PROMPT)
-      .then(() => {
-        this.#redirectFormClosure();
-      })
-      .catch(() => { /* SINK */ });
-  }
-
-  /*************************************
-   *                                   *
-   *               Private             *
-   *                                   *
-   *************************************/
-  /**
-   * handleAPIError
-   * @desc handles error responses from the POST request
-   * @param {*} error the API error response
-   */
-  #handleAPIError(error) {
-    error.json()
-      .then(e => {
-        const message = e?.message;
-        if (!message) {
-          this.#handleServerError(e);
-        }
-
-        const { type: errorType, errors } = message;
-        console.error(`API Error<${errorType}> occurred:`, errors);
-
-        window.ToastFactory.push({
-          type: 'danger',
-          message: ENTITY_TEXT_PROMPTS.API_ERROR_INFORM,
-          duration: ENTITY_TOAST_MIN_DURATION,
-        });
-      })
-      .catch(e => this.#handleServerError);
-  }
-
-  /**
-   * handleServerError
-   * @desc handles server errors when POSTing data
-   * @param {*} error the server error response
-   */
-  #handleServerError(error) {
-    if (error?.statusText) {
-      console.error(error.statusText);
-    } else {
-      console.error(error);
-    }
-    
-    window.ToastFactory.push({
-      type: 'danger',
-      message: ENTITY_TEXT_PROMPTS.SERVER_ERROR_MESSAGE,
-      duration: ENTITY_TOAST_MIN_DURATION,
-    });
-  }
-
-  /**
-   * generateSubmissionData
-   * @desc packages & jsonifies the form data for POST submission
-   * @param {object} data the data we wish to submit
-   * @returns {string} jsonified data packet
-   */
-  #generateSubmissionData(data) {
-    // update the data with legacy fields (if still present in template)
-    const templateData = this.data?.entity?.template_data;
-    if (!isNullOrUndefined(templateData)) {
-      const templateFields = getTemplateFields(this.data?.template);
-      for (const [key, value] of Object.entries(templateData)) {
-        if (data.hasOwnProperty(key) || !templateFields.hasOwnProperty(key)) {
-          continue;
-        }
-        
-        data[key] = value;
-      }
-    }
-    
-    // package the data
-    const packet = {
-      method: this.getFormMethod(),
-      data: data,
-    };
-
-    if (this.data?.object) {
-      const { id, history_id } = this.data.object;
-      packet.entity = { id: id, version_id: history_id };
-    }
-
-    if (this.data?.template) {
-      packet.template = {
-        id: this.data.template.id,
-        version: this.data.template?.definition?.template_details?.version
-      }
-    }
-
-    return JSON.stringify(packet);
-  }
-
-  /**
-   * redirectFormClosure
-   * @desc redirection after canellation or submission of a form
-   * @param {object|null} reference optional parameter to redirect to newly created entity
-   */
-  #redirectFormClosure(reference = null) {
-    // Redirect to newly created object if available
-    if (!isNullOrUndefined(reference)) {
-      window.location.href = reference.redirect;
-      return;
-    }
-
-    // Redirect to previous entity if available
-    const object = this.data?.object;
-    if (object?.referralURL) {
-      window.location.href = object.referralURL;
-      return;
-    }
-
-    // Redirect to search page
-    window.location.href = this.data.links.referralURL;
-  }
-
-  /**
-   * collectFieldData
-   * @desc iteratively collects the form data and validates it against the template data
-   * @returns {object} which describes the form data and associated errors
-   */
-  #collectFieldData() {
-    const data = { };
-    const errors = [ ];
-    for (const [field, packet] of Object.entries(this.form)) {
-      if (!ENTITY_FIELD_COLLECTOR.hasOwnProperty(packet?.dataclass)) {
-        continue;
-      }
-
-      // Collect the field value & validate it
-      const result = ENTITY_FIELD_COLLECTOR[packet?.dataclass](field, packet, this);
-      if (result && result?.valid) {
-        data[field] = result.value;
-        continue;
-      }
-
-      // Validation has failed, append the error message
-      const title = tryGetFieldTitle(field, packet);
-      result.field = field;
-      result.message = interpolateHTML(result.message, { field: title });
-      errors.push(result);
-    }
-    
-    return {
-      data: data,
-      errors: errors,
-    };
-  }
-
-  /**
-   * buildOptions
-   * @desc private method to merge the expected options with the passed options - passed takes priority
-   * @param {dict} options the option parameter 
-   */
-  #buildOptions(options) {
-    this.options = mergeObjects(options, ENTITY_OPTIONS);
-  }
-
-  /**
-   * collectForm
-   * @desc collects the form data associated with the template's fields
-   */
-  #collectForm() {
-    const fields = getTemplateFields(this.data.template);
-    if (!fields) {
-      return console.error('Unable to initialise, no template fields passed');
-    }
-    
-    const form = { };
-    for (let field in fields) {
-      const element = document.querySelector(`[data-field="${field}"]`);
-      if (!element) {
-        continue;
-      }
-
-      form[field] = {
-        element: element,
-        validation: this.#getFieldValidation(field),
-        value: this.#getFieldInitialValue(field),
-      };
-    }
-
-    this.form = form;
-  }
-
-  /**
-   * getFieldValidation
-   * @desc attempts to retrieve the validation data associated with a field, given by its template
-   * @param {string} field 
-   * @returns {object|null} a dict containing the validation information, if present
-   */
-  #getFieldValidation(field) {
-    const fields = getTemplateFields(this.data.template);
-    const packet = fields[field];
-    if (packet?.is_base_field) {
-      let metadata = this.data?.metadata;
-      if (!metadata) {
-        return null;
-      }
-      
-      return metadata[field]?.validation;
-    }
-
-    return packet?.validation;
-  }
-
-  /**
-   * getFieldInitialValue
-   * @desc attempts to determine the initial value of a field based on the entity's template data
-   * @param {string} field 
-   * @returns {*} any field's initial value
-   */
-  #getFieldInitialValue(field) {
-    // const fields = getTemplateFields(this.data.template);
-    // const packet = fields[field];
-    // if (packet?.is_base_field) {
-    //   let metadata = this.data?.metadata;
-    //   if (!metadata) {
-    //     return null;
-    //   }
-      
-    //   return metadata[field]?.validation;
-    // }
-
-    // // return packet?.validation;
-    const entity = this.data?.entity;
-    if (!entity) {
-      return;
-    }
-
-    if (entity.hasOwnProperty(field)) {
-      return entity[field];
-    }
-
-    if (!entity?.template_data.hasOwnProperty(field)) {
-      return;
-    }
-    
-    return entity.template_data[field];
-  }
-
-
-  /*************************************
-   *                                   *
-   *               Render              *
-   *                                   *
-   *************************************/
-  /**
-   * setUpForm
-   * @desc Initialises the form by instantiating handlers for the components,
-   *       renders any assoc. components, and responsible for handling the
-   *       prompt when users leave the page with unsaved data
-   */
-  #setUpForm() {
-    for (let field in this.form) {
-      const pkg = this.form[field];
-      const cls = pkg.element.getAttribute('data-class');
-      if (!cls) {
-        continue;
-      }
-
-      this.form[field].handler = createFormHandler(pkg.element, cls, this.data);
-      this.form[field].dataclass = cls;
-    }
-
-    if (this.options.promptUnsaved) {
-      window.addEventListener('beforeunload', this.#handleOnLeaving.bind(this), { capture: true });
-    }
-
-    const { data, errors } = this.#collectFieldData();
-    this.initialisedData = data;
-  }
-
-  /**
-   * setUpSubmission
-   * @desc initialiser for the submit and cancel buttons associated with this form
-   */
-  #setUpSubmission() {
-    this.formButtons = { }
-
-    const submitBtn = document.querySelector(`#${ENTITY_FORM_BUTTONS['submit']}`);
-    if (submitBtn) {
-      if (this.data?.is_historical === 1) {
-        submitBtn.addEventListener('click', (e) => {
-          window.ModalFactory.create(ENTITY_TEXT_PROMPTS.HISTORICAL_PROMPT)
-            .then(() => {
-              this.submitForm();
-            })
-            .catch(() => { /* SINK */ });
-        })
-      } else {
-        submitBtn.addEventListener('click', this.submitForm.bind(this));
-      }
-    }
-
-    const cancelBtn = document.querySelector(`#${ENTITY_FORM_BUTTONS['cancel']}`);
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', this.cancelForm.bind(this));
-    }
-  }
-
-  /**
-   * setAriaErrorLabels
-   * @desc appends aria attributes to the element input field
-   *       so that screen readers / accessibility tools are
-   *       able to inform the user of the field error
-   * @param {node} element the element to append aria attributes
-   * @param {object} error the error object as generated by the validation method
-   */
-  #setAriaErrorLabels(element, error) {
-    element.setAttribute('aria-invalid', true);
-    element.setAttribute('aria-description', error.message);
-  }
-
-  /**
-   * clearErrorMessages
-   * @desc clears all error messages currently rendered within the input groups
-   */
-  #clearErrorMessages() {
-    // Remove appended error messages
-    const items = document.querySelectorAll('.detailed-input-group__error');
-    for (let i = 0; i < items.length; ++i) {
-      const item = items[i];
-      item.remove();
-    }
-
-    for (const [field, packet] of Object.entries(this.form)) {
-      // Remove aria labels
-      const element = packet.element;
-      element.setAttribute('aria-invalid', false);
-      element.setAttribute('aria-description', null);
-
-      // Remove component error messages
-      if (!isNullOrUndefined(packet.handler) && typeof packet.handler?.clearErrorMessages == 'function') {
-        packet.handler.clearErrorMessages();
-      }
-    }
-  }
-
-  /**
-   * displayError
-   * @desc displays the error packets for individual fields as generated by
-   *       the field validation methods
-   * @param {object} packet the field's template packet
-   * @param {object} error the generated error object
-   * @returns {node|null} returns the error element if applicable
-   */
-  #displayError(packet, error) {
-    const element = packet.element;
-    this.#setAriaErrorLabels(element, error);
-
-    // Add __error class below title if available & the forceErrorToasts parameter was not passed
-    if (!this.options.forceErrorToasts) {
-      const inputGroup = tryGetRootElement(element, 'detailed-input-group');
-      if (!isNullOrUndefined(inputGroup)) {
-        const titleNode = inputGroup.querySelector('.detailed-input-group__title');
-        const errorNode = createElement('p', {
-          'aria-live': 'true',
-          'className': 'detailed-input-group__error',
-          'innerText': error.message,
-        });
-
-        titleNode.after(errorNode);
-        return errorNode;
-      }
-
-      if (packet.handler && typeof packet.handler?.displayError == 'function') {
-        return packet.handler.displayError(error);
-      }
-    }
-
-    // Display error toast if no appropriate input group
-    window.ToastFactory.push({
-      type: 'danger',
-      message: error.message,
-      duration: ENTITY_TOAST_MIN_DURATION,
-    });
-
-    return null;
-  }
-
-  /*************************************
-   *                                   *
-   *               Events              *
-   *                                   *
-   *************************************/
-  /**
-   * handleOnLeaving
-   * @desc responsible for prompting the user to confirm if they want to leave without saving the page data
-   * @param {event} e the associated event
-   */
-  #handleOnLeaving(e) {
-    if (this.#locked) {
-      return;
-    }
-    
-    const { data, errors } = this.#collectFieldData();
-    if (this.isDirty() || hasDeltaDiff(this.initialisedData, data)) {
-      e.preventDefault();
-      return e.returnValue = '';
-    }
-  }
-}
-
-/**
- * Main thread
- * @desc initialises the form after collecting the assoc. form data
- */
-domReady.finally(() => {
-  const data = collectFormData();
-
-  window.entityForm = new EntityCreator(data, {
-    promptUnsaved: true,
-  });
-});

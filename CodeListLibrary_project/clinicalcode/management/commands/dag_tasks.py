@@ -122,6 +122,7 @@ class GraphBuilders:
         def create_linkage(parent, parent_index, children):
             for child_data in children:
                 name = child_data.get('name').strip()
+                name = re.sub(r'\((\b(?=[a-zA-Z\d]+)[a-zA-Z]*\d[a-zA-Z\d]*-\b(?=[A-Z\d]+)[a-zA-Z]*\d[a-zA-Z\d]*)\)', '', name).strip()
                 code = child_data.get('code').strip()
 
                 # ICD-10 uses non-unique names, add code to vary them if required

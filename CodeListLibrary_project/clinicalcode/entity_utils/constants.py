@@ -376,6 +376,17 @@ DETAIL_PAGE_APPENDED_FIELDS = {
 }
 
 """
+    Used to define the known ontology names, e.g. ClinicalDiseaseCategoryNodes,
+    and defines their usual label(s), if applicable
+
+"""
+KNOWN_ONTOLOGY_SOURCES = [
+    { 'label': 'Clinical Disease Category (ICD-10)', 'source': 'ClinicalDiseaseCategoryNode' },
+    { 'label': 'Clinical Domain', 'source': 'ClinicalSpecialityCategoryNode' },
+    { 'label': 'Anatomical Category', 'source': 'ClinicalAnatomicalCategoryNode' }
+]
+
+"""
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
 
     Used to define:
@@ -710,6 +721,10 @@ FIELD_TYPES = {
         'input_type': 'grouped_enum',
         'output_type': 'radiobutton',
         'apply_badge_style': True
+    },
+
+    'ontology': {
+        'input_type': 'generic/ontology',
     },
 
     'enum_radio_badge': {

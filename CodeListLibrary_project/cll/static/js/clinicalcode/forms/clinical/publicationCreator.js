@@ -1,17 +1,4 @@
-/**
- * PUBLICATION_KEYCODES
- * @desc Keycodes used by publication creator
- */
-const PUBLICATION_KEYCODES = {
-  // Add publication
-  ENTER: 13,
-}
-
-/**
- * PUBLICATION_MIN_MSG_DURATION
- * @desc Min. message duration for toast notif popups
- */
-const PUBLICATION_MIN_MSG_DURATION = 5000;
+import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
 
 /**
  * PublicationCreator

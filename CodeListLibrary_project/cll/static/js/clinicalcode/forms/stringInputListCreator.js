@@ -1,19 +1,4 @@
 /**
- * STR_INPUT_LIST_KEYCODES
- * @desc Keycodes used by list creator
- */
-const STR_INPUT_LIST_KEYCODES = {
-  // Add list element
-  ENTER: 13,
-}
-
-/**
- * STR_INPUT_LIST_MIN_MSG_DURATION
- * @desc Min. message duration for toast notif popups
- */
-const STR_INPUT_LIST_MIN_MSG_DURATION = 5000;
-
-/**
  * StringInputListCreator
  * @desc A class that can be used to control input lists
  * 

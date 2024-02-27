@@ -561,6 +561,8 @@ def render_steps_wizard(parser, token):
     return EntityWizardSections(params, nodelist)
 
 class EntityWizardSections(template.Node):
+    SECTION_END = render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END)
+
     def __init__(self, params, nodelist):
         self.request = template.Variable('request')
         self.params = params
@@ -635,6 +637,11 @@ class EntityWizardSections(template.Node):
         mandatory = template_utils.try_get_content(validation, 'mandatory')
         return mandatory if isinstance(mandatory, bool) else False
 
+    def __append_section(self, output, section_content):
+        if gen_utils.is_empty_string(section_content):
+            return output
+        return output + section_content + self.SECTION_END
+
     def __generate_wizard(self, request, context):
         """
             Generates the creation wizard template
@@ -654,7 +661,7 @@ class EntityWizardSections(template.Node):
         sections.extend(constants.APPENDED_SECTIONS)
 
         for section in sections:
-            output += self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
+            section_content = self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
                 if template_utils.is_metadata(GenericEntity, field):
@@ -715,9 +722,9 @@ class EntityWizardSections(template.Node):
                 component['mandatory'] = self.__apply_mandatory_property(template_field, field)
 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
-                output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
+                section_content += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
+            output = self.__append_section(output, section_content)
 
-        output += render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
         return output
     
     def render(self, context):

@@ -118,7 +118,7 @@ const renderNameAnchor = (pageType, key, entity) => {
     : text;
 
   const brand = getBrandedHost();
-  const url = interpolateHTML(brand + DETAIL_URL, {
+  const url = interpolateString(brand + DETAIL_URL, {
     id: id,
     version_id: history_id
   });
@@ -131,7 +131,7 @@ const renderNameAnchor = (pageType, key, entity) => {
 
   switch (key) {
     case 'content': {
-      const update = interpolateHTML(brand + UPDATE_URL, {
+      const update = interpolateString(brand + UPDATE_URL, {
         id: id,
         version_id: history_id
       });

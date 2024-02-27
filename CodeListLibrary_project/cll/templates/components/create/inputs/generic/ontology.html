@@ -1,0 +1,53 @@
+{% load static %}
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <script src="{% static 'js/lib/eleTree.min.js' %}"></script>
+
+  {% if not component.hide_input_details %}
+    <h3 class="detailed-input-group__title">
+      {{ component.field_data.title }}
+      {% if component.mandatory %}
+        <span class="detailed-input-group__mandatory">*</span>
+      {% endif %}
+    </h3>
+    <p class="detailed-input-group__description">
+      {{ component.description }}
+    </p>
+  {% endif %}
+
+  <div class="ontology-group-creator" data-class="ontology" data-field="{{ component.field_name }}">
+    {% if component.options %}
+      <data aria-hidden="true" data-type="dataset" for="{{ component.field_name }}">
+        {{ component.options|jsonify|striptags }}
+      </data>
+    {% endif %}
+    <data aria-hidden="true" data-type="value" for="{{ component.field_name }}">
+      {% if component.value %}
+        {{ component.value|jsonify|striptags }}
+      {% endif %}
+    </data>
+
+    <div class="ontology-group-creator__header">
+      <p>
+        Add Ontology
+      </p>
+      <div class="ontology-group-creator__header-actions">
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Ontology" id="add-input-btn">Add Tag</button>
+      </div>
+    </div>
+
+    <section class="ontology-group-creator__none-available" id="no-available-ontology">
+      <p class="ontology-group-creator__none-available-message">You haven't added any ontology tags yet</p>
+    </section>
+
+    <section class="ontology-group-creator__list show" id="ontology-creator">
+      <div class="ontology-group-creator__list-header" id="ontology-header">
+        <h3>Your Ontology Tags</h3>
+      </div>
+      <div class="ontology-group-creator__list-container slim-scrollbar" id="ontology-list">
+        
+      </div>
+    </section>
+  </div>
+</div>
