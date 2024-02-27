@@ -188,14 +188,12 @@
           A multi-institutional, interdisciplinary team is responsible for ongoing development.
         </p>
 
-        {% if not CLL_READ_ONLY %}
-          <div class="homepage-about__info-buttons">
-            <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Contact Us"
-              id="contact-btn" href="{% url 'contact_us' %}">
-              Get in touch
-            </a>
-          </div>
-        {% endif %}
+        <div class="homepage-about__info-buttons">
+          <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Contact Us"
+            id="contact-btn" href="{% url 'contact_us' %}">
+            Get in touch
+          </a>
+        </div>
       </div>
     </section>
 
@@ -306,20 +304,18 @@
               Search
             </a>
           </div>
-          {% if not CLL_READ_ONLY %}
-            <div class="homepage-carousel__item">
-              <span class="homepage-carousel__item-subtitle">
-                Create a Phenotype
-              </span>
-              <span class="homepage-carousel__item-text">
-                Start here to contribute to the Library.
-              </span>
-              <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a Phenotype" 
-                id="create-btn" href="{% url 'create_phenotype' %}">
-                Create
-              </a>
-            </div>
-          {% endif %}
+          <div class="homepage-carousel__item">
+            <span class="homepage-carousel__item-subtitle">
+              Create a Phenotype
+            </span>
+            <span class="homepage-carousel__item-text">
+              Start here to contribute to the Library.
+            </span>
+            <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a Phenotype" 
+              id="create-btn" href="{% url 'create_phenotype' %}">
+              Create
+            </a>
+          </div>
         </div>
       </div>
     </section>

@@ -29,7 +29,7 @@ def redirect_readonly(fn):
     @wraps(fn)
     def wrap(request, *args, **kwargs):
         if settings.CLL_READ_ONLY:
-            raise PermissionDenied
+            raise PermissionDenied("ERR_403_GATEWAY")
         return fn(request, *args, **kwargs)
 
     return wrap

@@ -364,14 +364,19 @@ class EntityFiltersNode(template.Node):
         """
         updated_options = options
         if field == 'collections':
-            if current_brand !='' and current_brand != 'ALL':
-                if Brand.objects.all().filter(name__iexact=current_brand).exists():
-                    brand = Brand.objects.get(name__iexact=current_brand)
-                    collections_excluded_from_filters = brand.collections_excluded_from_filters
-                    if collections_excluded_from_filters:
-                        updated_options = [o for o in options if o['pk'] not in collections_excluded_from_filters]
-                        
-        return updated_options   
+            if current_brand == '' or current_brand == 'ALL':
+                return updated_options
+
+            brand = Brand.objects.all().filter(name__iexact=current_brand)
+            brand = brand.first() if brand.exists() else None
+            if not brand:
+                return updated_options
+
+            collections_excluded_from_filters = brand.collections_excluded_from_filters
+            if isinstance(collections_excluded_from_filters, list):
+                updated_options = [o for o in options if 'pk' in o and o.get('pk') not in collections_excluded_from_filters]
+
+        return updated_options
 
     def __render_metadata_component(self, context, field, structure):
         """
