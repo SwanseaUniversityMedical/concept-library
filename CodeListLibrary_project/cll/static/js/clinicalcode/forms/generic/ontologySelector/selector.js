@@ -15,13 +15,21 @@ export default class OntologySelectionService {
     this.dataset = componentData?.dataset;
     this.element = element;
     this.phenotype = phenotype;
-    this.activeDataset = componentData?.dataset?.[0];
+
+    this.activeItem = componentData?.dataset?.[0];
+    this.activeData = deepCopy(this?.activeItem?.nodes);
 
     this.#initialise();
   }
 
+
+  /*************************************
+   *                                   *
+   *               Private             *
+   *                                   *
+   *************************************/
   async #fetchNodeData(id) {
-    const src = this?.activeDataset?.model?.source;
+    const src = this?.activeItem?.model?.source;
     if (isStringEmpty(src) || isStringWhitespace(src)) {
       throw new Error(`Expected valid string source, got ${typeof(src)}`); 
     }
@@ -47,11 +55,30 @@ export default class OntologySelectionService {
     return res;
   }
 
+  #pushDataset(index) {
+    const dataset = this.dataset?.[index];
+    if (isNullOrUndefined(dataset)) {
+      return;
+    }
+    this.activeItem = dataset;
+
+    const data = this.activeData;
+    data.splice(0, data.length);
+    data.push(...dataset.nodes);
+    this.treeComponent.reload();
+  }
+
+
+  /*************************************
+   *                                   *
+   *               Render              *
+   *                                   *
+   *************************************/
   #initialise() {
     const component = eleTree({
       el: '#ontology-list',
       lazy: true,
-      data: this.activeDataset?.nodes,
+      data: this.activeData,
       showCheckbox: true,
       highlightCurrent: true,
       icon: {
@@ -65,13 +92,37 @@ export default class OntologySelectionService {
     });
     this.treeComponent = component;
 
-    component.on('lazyload', (group) => {
-      const data = group.data;
-      const load = group.load;
+    component.on('lazyload', this.#handleLoading.bind(this));
+    component.on('checkbox', this.#handleCheckbox.bind(this));
+  
+    // Temp. debug
+    document.addEventListener('keyup', (e) => {
+      e.preventDefault();
 
-      this.#fetchNodeData(data.id)
-        .then(node => load(node.children))
-        .catch(console.error);
+      if (e.keyCode == 13) {
+        const index = Math.floor(Math.random() * 3);
+        this.#pushDataset(index)
+      }
     });
+  }
+
+
+  /*************************************
+   *                                   *
+   *               Events              *
+   *                                   *
+   *************************************/
+  #handleLoading(group) {
+    const data = group.data;
+    const load = group.load;
+
+    this.#fetchNodeData(data.id)
+      .then(node => load(node.children))
+      .catch(console.error);
+  }
+
+  #handleCheckbox(group) {
+    // Temp. debug
+    console.log(this.treeComponent.getChecked());
   }
 }
