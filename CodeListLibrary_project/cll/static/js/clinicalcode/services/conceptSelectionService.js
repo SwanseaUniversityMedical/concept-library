@@ -1258,7 +1258,7 @@ export class ConceptSelectionService {
           'id': child.id,
           'history_id': child.history_id,
           'field': child.type,
-          'title': `${child.prefix}${child.id}/${child.history_id} - ${child.name}`,
+          'title': `${child.prefix}${child.id} - ${child.name}`,
           'checked': this.isSelected(child.id, child.history_id),
           'coding_system': child.coding_system_name,
           'prefix': child.prefix,
