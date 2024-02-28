@@ -3,7 +3,7 @@ import ConceptCreator from '../clinical/conceptCreator.js';
 import GroupedEnum from '../../components/groupedEnumSelector.js';
 import PublicationCreator from '../clinical/publicationCreator.js';
 import StringInputListCreator from '../stringInputListCreator.js';
-import { OntologySelectionService } from '../generic/ontologySelector/index.js';
+import OntologySelectionService from '../generic/ontologySelector/index.js';
 
 import {
   ENTITY_DATEPICKER_FORMAT,

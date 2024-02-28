@@ -102,11 +102,7 @@
         "type": "ontology",
         "mandatory": false,
         "source": {
-          "trees": [
-            { "label": "Clinical Disease Category (ICD-10)", "source": "ClinicalDiseaseCategoryNode" },
-            { "label": "Clinical Domain", "source": "ClinicalSpecialityCategoryNode" },
-            { "label": "Anatomical Category", "source": "ClinicalAnatomicalCategoryNode" }
-          ]
+          "trees": [ 0, 1, 2 ]
         }
       },
       "search": {

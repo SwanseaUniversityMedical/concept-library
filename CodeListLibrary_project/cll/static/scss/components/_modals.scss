@@ -73,6 +73,14 @@
       width: 75%;
     }
   }
+
+  &-xl {
+    .target-modal__container {
+      top: 10%;
+      left: 7.5%;
+      width: 85%;
+    }
+  }
   
   &__container {
     @include prefix(transform, translate(0, 500%), webkit moz o ms);

@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 
 from . import concept_utils
 from . import filter_utils
-from . import tree_utils
+from . import ontology_utils
 from . import constants
 
 def try_get_content(body, key, default=None):
@@ -483,7 +483,7 @@ def get_template_sourced_values(template, field, default=None, request=None):
         tree_models = source_info.get('trees')
 
         if isinstance(tree_models, list):
-            output = tree_utils.try_get_tree_models_data(tree_models, default=default)
+            output = ontology_utils.try_get_ontology_model_data(tree_models, default=default)
             if isinstance(output, list):
                 return output
         elif isinstance(model_name, str):

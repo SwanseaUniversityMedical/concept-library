@@ -7,12 +7,10 @@ import json
 import enum
 import time
 
-from ...generators.graphs.generator import Graph as GraphGenerator
-
+from ...entity_utils import constants
 from ...models.CodingSystem import CodingSystem
-from ...models.ClinicalDiseaseCategory import ClinicalDiseaseCategoryEdge, ClinicalDiseaseCategoryNode
-from ...models.ClinicalAnatomicalCategory import ClinicalAnatomicalCategoryEdge, ClinicalAnatomicalCategoryNode
-from ...models.ClinicalSpecialityCategory import ClinicalSpecialityCategoryEdge, ClinicalSpecialityCategoryNode
+from ...models.OntologyTag import OntologyTagEdge, OntologyTag
+from ...generators.graphs.generator import Graph as GraphGenerator
 
 
 ######################################################
@@ -112,6 +110,9 @@ class GraphBuilders:
         if not isinstance(data, list):
             return False, 'Invalid data type, expected list but got %s' % type(data)
 
+        # const
+        icd_10_id = CodingSystem.objects.get(name='ICD10 codes').id
+
         # process nodes
         nodes = [ ]
         result = [ ]
@@ -131,14 +132,16 @@ class GraphBuilders:
                 name_hashmap[name] = True
 
                 # Create child node and process descendants
-                node = ClinicalDiseaseCategoryNode(name=name, code=code)
+                properties = { 'code': code, 'coding_system_id': icd_10_id }
+
+                node = OntologyTag(name=name, type_id=constants.ONTOLOGY_TYPES.CLINICAL_DISEASE, properties=properties)
                 index = len(nodes)
                 nodes.append(node)
                 linkage.append([parent_index, index])
 
                 descendants = child_data.get('children')
                 child_count = len(descendants) if isinstance(descendants, list) else 0
-                result.append(f'\t\tChildDiseaseNode<name: {node.name}, code: {node.code}, children: {child_count}>')
+                result.append(f'\t\tChildDiseaseNode<name: {node.name}, code: {code}, children: {child_count}>')
 
                 if isinstance(descendants, list):
                     create_linkage(node, index, descendants)
@@ -152,58 +155,58 @@ class GraphBuilders:
             derived_code = matched_code.group() if matched_code else None
 
             # process node and its branches
-            root = ClinicalDiseaseCategoryNode(name=root_name, code=derived_code)
+            properties = { 'code': derived_code, 'coding_system_id': icd_10_id }
+
+            root = OntologyTag(name=root_name, type_id=constants.ONTOLOGY_TYPES.CLINICAL_DISEASE, properties=properties)
             index = len(nodes)
             nodes.append(root)
 
             children = root_data.get('sections')
-            result.append(f'\tRootDiseaseNode<name: {root.name}, code: {root.code}, children: {len(children)}>')
+            result.append(f'\tRootDiseaseNode<name: {root.name}, code: {derived_code}, children: {len(children)}>')
 
             create_linkage(root, index, children)
 
-        # bulk create nodes & children
-        nodes = ClinicalDiseaseCategoryNode.objects.bulk_create(nodes)
+        with transaction.atomic():
+            # bulk create nodes & children
+            nodes = OntologyTag.objects.bulk_create(nodes)
 
-        # bulk create edges
-        ClinicalDiseaseCategoryNode.children.through.objects.bulk_create(
-            [
-                # list comprehension here is required because we need to match the instance(s)
-                ClinicalDiseaseCategoryNode.children.through(
-                    name=f'{nodes[link[0]].name} | {nodes[link[1]].name}',
-                    parent=nodes[link[0]],
-                    child=nodes[link[1]]
-                )
-                for link in linkage
-            ],
-            batch_size=7000
-        )
+            # bulk create edges
+            OntologyTag.children.through.objects.bulk_create(
+                [
+                    # list comprehension here is required because we need to match the instance(s)
+                    OntologyTag.children.through(
+                        name=f'{nodes[link[0]].name} | {nodes[link[1]].name}',
+                        parent=nodes[link[0]],
+                        child=nodes[link[1]]
+                    )
+                    for link in linkage
+                ],
+                batch_size=7000
+            )
 
         # update coding system and apply related code
-        icd_10_id = CodingSystem.objects.get(name='ICD10 codes').id
-
         with connection.cursor() as cursor:
             ''' [!] Note: We could probably optimise this? '''
 
             sql = """
             -- update matched values
-            update public.clinicalcode_clinicaldiseasecategorynode as trg
-               set coding_system_id = %(coding_id)s,
-                   code_id = src.code_id
+            update public.clinicalcode_ontologytag as trg
+               set properties = properties || jsonb_build_object('code_id', src.code_id)
               from (
                 select node.id as node_id,
                        code.id as code_id
-                  from public.clinicalcode_clinicaldiseasecategorynode as node
+                  from public.clinicalcode_ontologytag as node
                   join public.clinicalcode_icd10_codes_and_titles_and_metadata as code
-                    on node.code = code.code
+                    on replace(node.properties->>'code'::text, '.', '') = replace(code.code, '.', '')
+                 where node.properties is not null
+                   and node.properties ? 'code'
+                   and node.type_id = %(type_id)s
               ) src
-             where trg.id = src.node_id;
-
-            -- update null values
-            update public.clinicalcode_clinicaldiseasecategorynode as trg
-               set coding_system_id = %(coding_id)s
-             where coding_system_id is null;
+             where trg.id = src.node_id
+               and trg.type_id = %(type_id)s
+               and trg.properties is not null;
             """
-            cursor.execute(sql, { 'coding_id': icd_10_id })
+            cursor.execute(sql, { 'type_id': constants.ONTOLOGY_TYPES.CLINICAL_DISEASE.value })
 
         # create result string for log
         elapsed = (time.time() - started)
@@ -242,12 +245,13 @@ class GraphBuilders:
                     % (type(node_id), type(node_name))
                 return False, err
 
-            node = ClinicalAnatomicalCategoryNode(atlas_id=node_id, name=node_name.strip())
+            node = OntologyTag(name=node_name.strip(), atlas_id=node_id, type_id=constants.ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY)
             nodes.append(node)
             result.append(f'\tAnatomicalRootNode<name: {node_name}, id: {node_id}>')
 
         # bulk create nodes
-        nodes = ClinicalAnatomicalCategoryNode.objects.bulk_create(nodes)
+        with transaction.atomic():
+            nodes = OntologyTag.objects.bulk_create(nodes)
 
         # create result string for log
         elapsed = (time.time() - started)
@@ -283,7 +287,7 @@ class GraphBuilders:
 
         for root_key, children in data.items():
             root_name = root_key.strip()
-            root_node = ClinicalSpecialityCategoryNode(name=root_name)
+            root_node = OntologyTag(name=root_name, type_id=constants.ONTOLOGY_TYPES.CLINICAL_DOMAIN)
 
             root_index = len(nodes)
             nodes.append(root_node)
@@ -296,28 +300,29 @@ class GraphBuilders:
                     related_index = next((i for i, e in enumerate(nodes) if e.name == child_name), None)
                     if related_index is None:
                         related_index = len(nodes)
-                        child = ClinicalSpecialityCategoryNode(name=child_name)
+                        child = OntologyTag(name=child_name, type_id=constants.ONTOLOGY_TYPES.CLINICAL_DOMAIN)
                         nodes.append(child)
 
                     linkage.append([root_index, related_index])
                     result.append(f'\t\tChildSpecialityNode<name: {child_name}>')
 
         # bulk create nodes & children
-        nodes = ClinicalSpecialityCategoryNode.objects.bulk_create(nodes)
+        with transaction.atomic():
+            nodes = OntologyTag.objects.bulk_create(nodes)
 
-        # bulk create edges
-        ClinicalSpecialityCategoryNode.children.through.objects.bulk_create(
-            [
-                # list comprehension here is required because we need to match the instance(s)
-                ClinicalSpecialityCategoryNode.children.through(
-                    name=f'{nodes[link[0]].name} | {nodes[link[1]].name}',
-                    parent=nodes[link[0]],
-                    child=nodes[link[1]]
-                )
-                for link in linkage
-            ],
-            batch_size=7000
-        )
+            # bulk create edges
+            OntologyTag.children.through.objects.bulk_create(
+                [
+                    # list comprehension here is required because we need to match the instance(s)
+                    OntologyTag.children.through(
+                        name=f'{nodes[link[0]].name} | {nodes[link[1]].name}',
+                        parent=nodes[link[0]],
+                        child=nodes[link[1]]
+                    )
+                    for link in linkage
+                ],
+                batch_size=7000
+            )
 
         # create result string for log
         elapsed = (time.time() - started)
@@ -482,8 +487,15 @@ class Command(BaseCommand):
 
         """
         graph = GraphGenerator.generate(graph_type=GraphGenerator.Types.DirectedAcyclicGraph)
-        nodes = [ClinicalDiseaseCategoryNode(name=node.get('name'), code=str(node.get('id'))) for node in graph.nodes]
-        nodes = ClinicalDiseaseCategoryNode.objects.bulk_create(nodes)
+        nodes = [
+            OntologyTag(
+                name=node.get('name'),
+                type_id=constants.ONTOLOGY_TYPES.CLINICAL_DISEASE,
+                properties={'code': str(node.get('id')), 'coding_system_id': 4}
+            )
+            for node in graph.nodes
+        ]
+        nodes = OntologyTag.objects.bulk_create(nodes)
 
         output = ''
         for i, data in enumerate(graph.nodes):
@@ -494,13 +506,13 @@ class Command(BaseCommand):
             if not node:
                 continue
 
-            output = f'{output}\n\tNode<index: {i}, name: {node.name}, code: {node.code}> ['
+            output = f'{output}\n\tNode<index: {i}, name: {node.name}, code: {node.properties.get("code")}> ['
             if len(edges) > 0:
                 for j, element in enumerate(edges):
-                    connection = next((x for x in nodes if x.code == str(element)), None)
+                    connection = next((x for x in nodes if x.properties.get('code') == str(element)), None)
                     if not connection:
                         continue
-                    output = f'{output}\n\t\tConnection<index: {j}, name: {connection.name}, code: {connection.code}>'
+                    output = f'{output}\n\t\tConnection<index: {j}, name: {connection.name}, code: {connection.properties.get("code")}>'
                     node.add_child(connection)
                 output = output + '\n\t]'
             else:
@@ -520,7 +532,6 @@ class Command(BaseCommand):
         parser.add_argument('-d', '--debug', type=bool, help='If true, attempts to generate DAG and ignores the --file parameter')
         parser.add_argument('-l', '--log', type=str, help=f'Expects directory, will output logs incl. DOTS representation to file as {self.LOG_FILE_NAME}{self.LOG_FILE_EXT}')
 
-    @transaction.atomic
     def handle(self, *args, **kwargs):
         """
             Main command handle

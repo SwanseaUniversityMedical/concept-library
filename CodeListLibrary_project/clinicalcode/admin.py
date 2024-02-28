@@ -7,26 +7,14 @@ from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operat
 from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
-from .models.ClinicalDiseaseCategory import ClinicalDiseaseCategoryNode
-from .models.ClinicalAnatomicalCategory import ClinicalAnatomicalCategoryNode
-from .models.ClinicalSpecialityCategory import  ClinicalSpecialityCategoryNode
+from .models.OntologyTag import OntologyTag
 from .models.DMD_CODES import DMD_CODES
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
 
-@admin.register(ClinicalDiseaseCategoryNode)
-class ClinicalDiseaseCategoryNode(admin.ModelAdmin):
-    list_display = ['id', 'name', 'code', 'coding_system', 'code_id']
-
-
-@admin.register(ClinicalSpecialityCategoryNode)
-class ClinicalSpecialityCategoryNode(admin.ModelAdmin):
-    list_display = ['id', 'name']
-
-
-@admin.register(ClinicalAnatomicalCategoryNode)
-class ClinicalAnatomicalCategoryNode(admin.ModelAdmin):
-    list_display = ['id', 'name', 'atlas_id']
+@admin.register(OntologyTag)
+class OntologyTag(admin.ModelAdmin):
+    list_display = ['id', 'name', 'type_id', 'atlas_id']
 
 
 @admin.register(CodingSystemFilter)

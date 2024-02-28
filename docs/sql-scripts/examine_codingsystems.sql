@@ -105,3 +105,58 @@ update public.clinicalcode_historicalgenericentity as trg
    and array(
         select jsonb_array_elements_text(trg.template_data->'coding_system')
       )::int[] <> src.coding_system;
+
+
+-------------------------------------------------------------
+
+-- Update matched values for ontology
+
+update public.clinicalcode_ontologytag as trg
+   set properties = properties || jsonb_build_object('code_id', src.code_id)
+  from (
+    select node.id as node_id,
+           code.id as code_id
+      from public.clinicalcode_ontologytag as node
+      join public.clinicalcode_icd10_codes_and_titles_and_metadata as code
+        on replace(node.properties->>'code'::text, '.', '') = replace(code.code, '.', '')
+     where node.properties is not null
+       and node.properties ? 'code'
+       and node.type_id = 0
+       and code.effective_to is null
+  ) src
+  where trg.id = src.node_id
+    and trg.type_id = 0
+    and trg.properties is not null;
+
+
+
+-------------------------------------------------------------
+
+-- Test ontology selection
+
+select node.id as node_id,
+       code.id as code_id
+  from public.clinicalcode_ontologytag as node
+  join public.clinicalcode_icd10_codes_and_titles_and_metadata as code
+    on replace(node.properties->>'code'::text, '.', '') = replace(code.code, '.', '')
+ where node.properties is not null
+   and node.properties ? 'code'
+   and node.type_id = 0
+   and code.effective_to is null;
+
+
+
+-------------------------------------------------------------
+
+-- View valid rows
+
+select count(*) as total,
+       sum(case when node.properties is not null and node.properties ? 'code_id' then 1 else 0 end) as with_code_id,
+       sum(case when node.properties is not null and node.properties ? 'code_id' then 0 else 1 end) as without_code_id
+  from public.clinicalcode_ontologytag as node
+ where node.type_id = 0;
+
+select *
+  from public.clinicalcode_ontologytag as node
+ where node.type_id = 0
+   and node.properties->>'code_id' is null;

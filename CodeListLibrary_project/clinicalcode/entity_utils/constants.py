@@ -125,6 +125,26 @@ class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     CREATE = 1
     UPDATE = 2
 
+class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Defines the ontology internal type id,
+        which describes the ontology type
+
+    """
+    CLINICAL_DISEASE = 0
+    CLINICAL_DOMAIN = 1
+    CLINICAL_FUNCTIONAL_ANATOMY = 2
+
+"""
+    Used to define the labels for each
+    known ontology type
+
+"""
+ONTOLOGY_LABELS = {
+    ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
+    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (ICD-10)',
+    ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
+}
 
 """
     The excepted X-Requested-With header if a fetch request is made
@@ -374,17 +394,6 @@ DETAIL_PAGE_APPENDED_FIELDS = {
         "hide_on_create": True
     }
 }
-
-"""
-    Used to define the known ontology names, e.g. ClinicalDiseaseCategoryNodes,
-    and defines their usual label(s), if applicable
-
-"""
-KNOWN_ONTOLOGY_SOURCES = [
-    { 'label': 'Clinical Disease Category (ICD-10)', 'source': 'ClinicalDiseaseCategoryNode' },
-    { 'label': 'Clinical Domain', 'source': 'ClinicalSpecialityCategoryNode' },
-    { 'label': 'Anatomical Category', 'source': 'ClinicalAnatomicalCategoryNode' }
-]
 
 """
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'

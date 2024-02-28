@@ -1705,7 +1705,7 @@ export class ConceptSelectionService {
       'selectionUpdate',
       {
         detail: {
-          data: this.dialogue?.data,
+          data: data,
           type: CSEL_EVENTS.CONFIRMED,
         }
       }

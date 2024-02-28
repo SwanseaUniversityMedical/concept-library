@@ -200,6 +200,173 @@
   }
 }
 
+/// ontology-modal-body
+///   @desc Defines the ontology modal body panel(s)
+.ontology-modal-body {
+  display: flex;
+  flex-flow: column nowrap;
+  height: max-content;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  @include media('>=tablet', 'screen') {
+    display: grid;
+    grid-auto-rows: 1fr;
+    grid-template-columns: 1fr 2fr 1fr;
+    overflow-y: hidden;
+  }
+
+  &__header {
+    @include flex-col();
+    height: auto;
+    width: auto;
+    margin-bottom: 0.5rem;
+
+    & > h4 {
+      padding: 0;
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1;
+      color: col(text-darkest);
+    }
+
+    & > p {
+      padding: 0;
+      margin: 0.5rem 0 0 0;
+    }
+  }
+
+  &__window {
+    display: flex;
+    width: auto;
+    flex-grow: 1;
+    height: max-content;
+    max-height: max-content;
+    overflow-y: auto;
+
+    @include media('>=tablet', 'screen') {
+      height: auto;
+      max-height: 100%;
+      overflow-y: auto;
+    }
+  }
+
+  &__section {
+    display: flex;
+    flex-flow: column nowrap;
+    width: auto;
+    height: fit-content;
+    max-height: 100%;
+    overflow-y: unset;
+    padding: 0.5rem;
+
+    @include media('>=tablet', 'screen') {
+      height: auto;
+      overflow-y: hidden;
+      min-width: 175px;
+    }
+
+    &--flex-order-0-0 {
+      order: 0;
+
+      @include media('<tablet', 'screen') {
+        order: 0;
+      }
+    }
+
+    &--flex-order-1-2 {
+      order: 1;
+
+      @include media('<tablet', 'screen') {
+        order: 2;
+      }
+    }
+
+    &--flex-order-2-1 {
+      order: 2;
+
+      @include media('<tablet', 'screen') {
+        order: 1;
+      }
+    }
+  }
+
+  &__layout {
+    display: flex;
+    flex-flow: column nowrap;
+    flex-grow: 1;
+    width: auto;
+    height: auto;
+    max-height: 100%;
+    overflow-y: auto;
+
+    @include media('<tablet', 'screen') {
+      flex-flow: row wrap;
+      width: auto;
+      height: max-content;
+      max-height: max-content;
+      align-items: stretch;
+      justify-items: center;
+      overflow-y: auto;
+    }
+  }
+
+  &__selector {
+    @include flex-row($gap: 0);
+    @include bottom-divider($size_pad: 1px, $border_col: col(accent-washed));
+    align-items: center;
+    background-color: transparent;
+    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+    color: col(text-dark);
+
+    &__name {
+      @include clear-anchor();
+      font-weight: bold;
+    }
+
+    &.active {
+      background-color: col(accent-bubble);
+      color: col(text-darkest);
+    }
+  }
+
+  &__none-available {
+    display: flex;
+    flex-flow: row;
+    flex-grow: 1;
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+    align-items: center;
+    justify-content: center;
+
+    &-message {
+      text-align: center;
+      height: fit-content;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+
+    @include media('>=tablet', 'screen') {
+      overflow-x: hidden;
+      overflow-y: hidden;
+    }
+  }
+
+  &--constrained {
+    max-height: 60vh;
+
+    @include media('<desktop', 'screen') {
+      max-height: 50vh;
+    }
+  }
+}
+
 /// ontology-group
 ///   @desc Defines the ontology creator display form within create page
 .ontology-group-creator {

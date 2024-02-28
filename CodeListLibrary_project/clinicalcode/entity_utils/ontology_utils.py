@@ -1,16 +1,16 @@
-from django.apps import apps
 from django.db.models import F, Count, Max, Case, When
 from django.db.models.query import QuerySet
 from django.db.models.functions import JSONObject
 
-from . import gen_utils
+from . import gen_utils, constants
+from ..models.OntologyTag import OntologyTag
 
-def try_get_tree_data(model_source, model_label=None, default=None):
+def try_get_ontology_data(model_source, model_label=None, default=None):
     """
         Derives the tree model data given the model source name
 
         Args:
-            model_source (str): the tree model name
+            model_source (int|enum): the ontology id
 
             model_label (str|None): the associated model label
 
@@ -20,12 +20,13 @@ def try_get_tree_data(model_source, model_label=None, default=None):
             Either (a) the default value if none are found,
                 or (b) a dict containing the associated tree model data
     """
-    if not isinstance(model_source, str) or gen_utils.is_empty_string(model_source):
+    if isinstance(model_source, constants.ONTOLOGY_TYPES):
+        model_source = model_source.value
+    elif not isinstance(model_source, int) or model_source not in constants.ONTOLOGY_TYPES:
         return default
 
     try:
-        model = apps.get_model(app_label='clinicalcode', model_name=model_source)
-        model_roots = model.objects.roots() if model is not None else None
+        model_roots = OntologyTag.objects.roots().filter(type_id=model_source)
         model_roots_len = model_roots.count() if isinstance(model_roots, QuerySet) else 0
         if model_roots_len < 1:
             return default
@@ -47,27 +48,29 @@ def try_get_tree_data(model_source, model_label=None, default=None):
                         When(max_parent_id__isnull=True, then=True),
                         default=False
                     ),
+                    atlas_id=F('atlas_id'),
                     child_count=F('child_count')
                 )
             ) \
             .values_list('tree_dataset', flat=True)
-    except:
+    except Exception as e:
+        print(e)
         pass
     else:
+        model_label = model_label or constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(model_source)]
         return {
             'nodes': list(model_roots),
-            'model': { 'source': model_source, 'label': model_label or model_source },
+            'model': { 'source': model_source, 'label': model_label },
         }
-    
+
     return default
 
-def try_get_tree_models_data(desired_models, default=None):
+def try_get_ontology_model_data(ontology_ids, default=None):
     """
         Derives the tree model data given a list containing the model source and its associated label
 
         Args:
-            desired_models (dict{label: str|None, source: str}[]):
-                a list of dicts {label: str|None, source: str} describing the ontologies
+            ontology_ids (int[]|enum[]): a list of ontology model ids
 
             default (any|None): the default return value
 
@@ -76,18 +79,22 @@ def try_get_tree_models_data(desired_models, default=None):
                 or (b) a list of dicts containing the associated tree model data
 
     """
-    if not isinstance(desired_models, list):
+    if not isinstance(ontology_ids, list):
         return default
 
     output = None
-    for model_data in desired_models:
-        if not isinstance(model_data, dict):
+    for ontology_id in ontology_ids:
+        model_source = None
+        if isinstance(ontology_id, constants.ONTOLOGY_TYPES):
+            model_source = ontology_id.value
+        elif isinstance(ontology_id, int) and ontology_id in constants.ONTOLOGY_TYPES:
+            model_source = ontology_id
+
+        if not isinstance(model_source, int):
             continue
 
-        model_label = model_data.get('label')
-        model_source = model_data.get('source')
-
-        data = try_get_tree_data(model_source, model_label, default=default)
+        model_label = constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(ontology_id)]
+        data = try_get_ontology_data(model_source, model_label, default=default)
         if not isinstance(data, dict):
             continue
 
@@ -98,12 +105,12 @@ def try_get_tree_models_data(desired_models, default=None):
 
     return output
 
-def try_get_tree_node_data(model_source, node_id, model_label=None, default=None):
+def try_get_ontology_node_data(ontology_id, node_id, model_label=None, default=None):
     """
-        Derives the node data given the model source name and the node id
+        Derives the ontology node data given the model id name and the node id
 
         Args:
-            model_source (str): the tree model name
+            ontology_id (int|enum): the ontology model id
 
             node_id (int): the node id
 
@@ -114,16 +121,17 @@ def try_get_tree_node_data(model_source, node_id, model_label=None, default=None
                 or (b) a dict containing the associated node's data
     """
 
-    if not isinstance(model_source, str) or gen_utils.is_empty_string(model_source):
-        return default
+    model_source = None
+    if isinstance(ontology_id, constants.ONTOLOGY_TYPES):
+        model_source = ontology_id.value
+    elif isinstance(ontology_id, int) and ontology_id in constants.ONTOLOGY_TYPES:
+        model_source = ontology_id
 
-    if not isinstance(node_id, int):
+    if not isinstance(node_id, int) or not isinstance(model_source, int):
         return default
 
     try:
-        model = apps.get_model(app_label='clinicalcode', model_name=model_source)
-
-        node = model.objects.filter(id=node_id)
+        node = OntologyTag.objects.filter(id=node_id, type_id=model_source)
         node = node.first() if node.exists() else None
         if node is None:
             return default
@@ -141,7 +149,8 @@ def try_get_tree_node_data(model_source, node_id, model_label=None, default=None
                         isRoot=Case(
                             When(max_parent_id__isnull=True, then=True),
                             default=False
-                        )
+                        ),
+                        atlas_id=F('atlas_id')
                     )
                 ) \
                 .values_list('tree_dataset', flat=True)
@@ -167,6 +176,7 @@ def try_get_tree_node_data(model_source, node_id, model_label=None, default=None
                             When(child_count__lt=1, then=True),
                             default=False
                         ),
+                        atlas_id=F('atlas_id'),
                         child_count=F('child_count')
                     )
                 ) \
@@ -177,14 +187,17 @@ def try_get_tree_node_data(model_source, node_id, model_label=None, default=None
         is_root = node.is_root()
         is_leaf = node.is_leaf()
 
+        model_label = model_label or constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(model_source)]
+
         result = {
             'id': node_id,
             'label': node.name,
-            'model': { 'source': model_source, 'label': model_label or model_source },
+            'model': { 'source': model_source, 'label': model_label },
             'parents': parents,
             'children': children,
             'isRoot': is_root,
             'isLeaf': is_leaf,
+            'atlas_id': node.atlas_id,
         }
 
         if not is_root:
