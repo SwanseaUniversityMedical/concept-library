@@ -49,7 +49,7 @@ const TAGIFY__TAG_OPTIONS = {
 };
 
 /**
-  * Tagify
+  * @class Tagify
   * @desc A class that transforms an input field into a tag component
   * @param {string/node} obj The ID of the input element or the input element itself.
   * @param {object} options An object that defines any of the optional parameters as described within TAGIFY__TAG_OPTIONS
@@ -59,6 +59,7 @@ const TAGIFY__TAG_OPTIONS = {
   *           a the Tagify instance's element through the 'TagChanged' hook
   * 
   * e.g.
+  * ```js
   *   import Tagify from '../components/tagify.js'
   * 
   *   const tags = [
@@ -79,6 +80,7 @@ const TAGIFY__TAG_OPTIONS = {
   *     'restricted': true,
   *     'items': tags,
   *   });
+  * ```
   * 
   */
 export default class Tagify {

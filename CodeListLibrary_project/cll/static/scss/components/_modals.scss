@@ -103,6 +103,20 @@
     padding: 0.5rem 1rem;
     border-bottom: 1px solid col(accent-washed);
 
+    &--no-vertical-pad {
+      padding-top: 0rem;
+      padding-bottom: 0rem;
+    }
+
+    &--no-horizontal-pad {
+      padding-left: 0rem;
+      padding-right: 0rem;
+    }
+
+    &--no-border {
+      border-bottom: 0;
+    }
+
     &-close {
       width: 1rem;
       aspect-ratio: 1 / 1;

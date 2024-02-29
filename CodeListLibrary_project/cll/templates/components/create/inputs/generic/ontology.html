@@ -50,22 +50,43 @@
       </div>
     </section>
 
-    <template aria-hidden="true" data-target="ontology-service" data-name="group">
+    <template aria-hidden="true" data-target="ontology-service" data-name="source">
       <div class="ontology-modal-body__selector" data-source="${source}">
-        <a class="ontology-modal-body__selector__name" target="__blank" href="#">
+        <a class="ontology-modal-body__selector__name" target="__blank" href="#" aria-label="${label}">
           ${label}
         </a>
       </div>
     </template>
 
-    <template aria-hidden="true" data-target="ontology-service" data-name="selection">
+    <template aria-hidden="true" data-target="ontology-service" data-name="group">
+      <div class="ontology-modal-body__list-group" data-group="${source}">
+        <h3 class="ontology-modal-body__list-group-title">
+          ${label}
+        </h3>
+      </div>
+    </template>
 
+    <template aria-hidden="true" data-target="ontology-service" data-name="item">
+      <div class="ontology-modal-body__list-item" data-id="${id}"
+          data-group="${source}" data-label="${label}">
+        <p class="ontology-modal-body__list-item-label">
+          ${label}
+        </p>
+        <div class="ontology-modal-body__list-item-actions">
+          <span tooltip="Remove Item" direction="left">
+            <span class="ontology-modal-body__list-item-actions--delete-icon"
+                tabindex="0" role="button" aria-label="Delete Selected Item"
+                data-target="delete" data-id="${id}" data-group="${source}" data-label="${label}">
+            </span>
+          </span>
+        </div>
+      </div>
     </template>
 
     <template aria-hidden="true" data-target="ontology-modal" data-name="modal">
       <div class="target-modal target-modal-${modalSize}" id="${id}" aria-hidden="${hidden}"> \
         <div class="target-modal__container">
-          <div class="target-modal__header">
+          <div class="target-modal__header target-modal__header--no-vertical-pad target-modal__header--no-border">
             <h2 id="target-modal-title">${modalTitle}</h2>
           </div>
           <div class="target-modal__body target-modal__body--no-pad" id="target-modal-content">
@@ -95,13 +116,13 @@
                 <div class="ontology-modal-body__header">                  
                   <h4>Selected Items</h4>
                 </div>
-                <div class="ontology-modal-body__window slim-scrollbar">
-                  <div class="ontology-modal-body__none-available show" id="none-selected">
+                <div class="ontology-modal-body__window ontology-modal-body__window--max-vh slim-scrollbar">
+                  <div class="ontology-modal-body__none-available" id="no-items-selected">
                     <p class="ontology-modal-body__none-available-message">
                       You haven't selected any items yet
                     </p>
                   </div>
-                  <div class="ontology-modal-body__list" id="ontology-selected-view">
+                  <div class="ontology-modal-body__list show" id="ontology-selected-view">
 
                   </div>
                 </div>

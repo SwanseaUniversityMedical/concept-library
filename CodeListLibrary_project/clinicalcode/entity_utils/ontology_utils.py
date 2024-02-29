@@ -48,6 +48,7 @@ def try_get_ontology_data(model_source, model_label=None, default=None):
                         When(max_parent_id__isnull=True, then=True),
                         default=False
                     ),
+                    type_id=F('type_id'),
                     atlas_id=F('atlas_id'),
                     child_count=F('child_count')
                 )
@@ -150,6 +151,7 @@ def try_get_ontology_node_data(ontology_id, node_id, model_label=None, default=N
                             When(max_parent_id__isnull=True, then=True),
                             default=False
                         ),
+                        type_id=F('type_id'),
                         atlas_id=F('atlas_id')
                     )
                 ) \
@@ -176,6 +178,7 @@ def try_get_ontology_node_data(ontology_id, node_id, model_label=None, default=N
                             When(child_count__lt=1, then=True),
                             default=False
                         ),
+                        type_id=F('type_id'),
                         atlas_id=F('atlas_id'),
                         child_count=F('child_count')
                     )
@@ -197,6 +200,7 @@ def try_get_ontology_node_data(ontology_id, node_id, model_label=None, default=N
             'children': children,
             'isRoot': is_root,
             'isLeaf': is_leaf,
+            'type_id': node.type_id,
             'atlas_id': node.atlas_id,
         }
 

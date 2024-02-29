@@ -1,5 +1,5 @@
 /**
- * GroupedEnum
+ * @class GroupedEnum
  * @desc handler for GroupedEnum components, where:
  *        - Selection of individual values via checkboxes
  *        - Selection of another value through a combination of checkboxes

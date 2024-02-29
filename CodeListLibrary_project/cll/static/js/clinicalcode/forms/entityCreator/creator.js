@@ -13,7 +13,7 @@ import {
 } from './utils.js';
 
 /**
- * EntityCreator
+ * @class EntityCreator
  * @desc A class that can be used to control forms for templated dynamic content
  * 
  */

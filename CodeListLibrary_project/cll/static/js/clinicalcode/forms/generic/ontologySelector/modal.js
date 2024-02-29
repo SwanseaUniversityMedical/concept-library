@@ -1,7 +1,7 @@
 import * as Constants from './constants.js';
 
 /**
- * OntologySelectionService
+ * @class OntologySelectionService
  * @desc Class that allows the selection of items from arbitrary
  *       directed acyclic graphs that define taggable ontologies
  * 
@@ -102,7 +102,6 @@ export default class OntologySelectionModal {
     this?.dialogue?.close();
     return this;
   }
-
 
 
   /*************************************

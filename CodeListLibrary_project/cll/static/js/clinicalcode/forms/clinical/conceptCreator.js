@@ -348,7 +348,7 @@ const CONCEPT_CREATOR_TEXT = {
 }
 
 /**
- * ConceptCreator
+ * @class ConceptCreator
  * @desc A class that can be used to control concept creation
  * 
  */

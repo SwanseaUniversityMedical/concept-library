@@ -1,4 +1,4 @@
-import { collectFormData as collectEntityCreatorFormData, EntityCreator } from '../forms/entityCreator/index.js';
+import EntityCreator, { collectFormData as collectEntityCreatorFormData } from '../forms/entityCreator/index.js';
 
 /**
  * Main thread

@@ -484,7 +484,7 @@ const waitForElement = (selector) => {
       return resolve(document.querySelector(selector));
     }
 
-    const observer = new MutationObserver(_ => {
+    const observer = new MutationObserver(() => {
       if (document.querySelector(selector)) {
         observer.disconnect();
         resolve(document.querySelector(selector));
@@ -492,6 +492,26 @@ const waitForElement = (selector) => {
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
+  });
+}
+
+
+/**
+ * onElementRemoved
+ * @desc waits for an element to be removed from the document before resolving
+ * @param {node} element the element to observe
+ * @returns {promise} promise that resolves when the given element is removed
+ */
+const onElementRemoved = (element) => {
+  return new Promise(resolve => {
+    const observer = new MutationObserver(() => {
+      if (!document.body.contains(element)) {
+        observer.disconnect();
+        resolve();
+      }
+    });
+
+    observer.observe(element.parentElement, { childList: true });
   });
 }
 
@@ -504,7 +524,7 @@ const waitForElement = (selector) => {
  */
 const observeMatchingElements = (selector, callback) => {
   let elements = [];
-  const observer = new MutationObserver(_ => {
+  const observer = new MutationObserver(() => {
     if (document.querySelector(selector)) {
       elements = [...document.querySelectorAll(selector)].reduce((filtered, elem) => {
         if (filtered.indexOf(elem) >= 0) {
@@ -584,7 +604,7 @@ const startLoadingSpinner = (container) => {
 }
 
 /**
- * transpileMarkdownData
+ * convertMarkdownData
  * @desc converts HTML Markdown representation into a string
  * @param {node} parent the data node
  * @returns {string} a string representing the HTML Markdown Data

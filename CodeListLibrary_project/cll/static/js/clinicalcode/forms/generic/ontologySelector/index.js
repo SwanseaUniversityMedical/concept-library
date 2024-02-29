@@ -1,8 +1,9 @@
 import * as Constants from './constants.js';
 import OntologySelectionModal from './modal.js';
+import VirtualisedList from '../../../components/virtualisedList/index.js';
 
 /**
- * OntologySelectionService
+ * @class OntologySelectionService
  * @desc Class that allows the selection of items from arbitrary
  *       directed acyclic graphs that define taggable ontologies
  * 
@@ -77,20 +78,6 @@ export default class OntologySelectionService {
       );
     }
     this.templates = templates;
-
-    // debug
-    document.addEventListener('keyup', (e) => {
-      if (e.keyCode !== 13) {
-        return;
-      }
-
-      if (!this.isOpen()) {
-        return;
-      }
-
-      const activeSource = this.activeItem?.model?.source;
-      this.#pushDataset(activeSource === 0 ? 1 : 0);
-    })
   }
 
   /**
@@ -146,8 +133,63 @@ export default class OntologySelectionService {
     const data = this.activeData;
     data.splice(0, data.length);
     data.push(...dataset.nodes);
-
     this.renderable?.reload();
+  }
+
+  /**
+   * resolveSelected
+   * @desc resolves the selected item list based on currently checked item(s)
+   * @returns {object} this class for chaining
+   * 
+   */
+  #resolveSelectedItems() {
+    if (!this.isOpen()) {
+      return this;
+    }
+
+    const hashmap = { };
+    const sourceId = this.activeItem?.model?.source;
+    const selectedItems = this.selectedItems;
+    const treeComponent = this.renderable.treeComponent;
+    const selectionComponent = this.renderable.selectionComponent;
+
+    /* TODO: Sieve leaf nodes if their parents are completely selected */
+
+    treeComponent.getChecked().forEach(e => {
+      if (e?.type_id !== sourceId) {
+        return;
+      }
+
+      const id = e?.id;
+      const index = selectedItems.findIndex(x => x?.id === id && x?.type_id === sourceId);
+      if (index < 0) {
+        selectedItems.push({ id: id, type_id: sourceId, label: e?.label });
+      }
+
+      hashmap[id] = true;
+    });
+
+    let i = 0;
+    while (i < selectedItems.length) {
+      let elem = selectedItems[i];
+      if (elem?.type_id !== sourceId) {
+        i++;
+        continue;
+      }
+
+      const id = elem?.id;
+      if (isNullOrUndefined(hashmap?.[id])) {
+        selectedItems.splice(i, 1)
+        continue;
+      }
+
+      i++;
+    }
+
+    const length = selectedItems.length;
+    selectionComponent.setCount(length);
+    selectionComponent.refresh();
+    return this.#toggleSelectionView(length);
   }
 
 
@@ -170,10 +212,13 @@ export default class OntologySelectionService {
     }
 
     this.activeItem = dataset;
-    this.activeData = deepCopy(this?.activeItem?.nodes);
+    this.activeData = [...dataset.nodes];
+
+    /* TODO: Parse selected items from value list */
+    this.selectedItems = [];
 
     let renderable;
-    let modal = new OntologySelectionModal(this.element, this.activeData, this.options);
+    let modal = new OntologySelectionModal(this.element, this.options);
     modal.show((dialogue) => {
       const container = dialogue.container;
       renderable = {
@@ -191,6 +236,7 @@ export default class OntologySelectionService {
               target.classList.remove('active');
             }
           }
+
           this.renderable?.treeComponent.reload();
         }
       }
@@ -218,20 +264,23 @@ export default class OntologySelectionService {
    * 
    */
   #initialiseDialogue() {
-    const dialogue = this.renderable.dialogue;
-    const container = dialogue.container.querySelector('#ontology-tree-view');
-    const ontologyList = dialogue.container.querySelector('#ontology-source-view');
     const activeId = this.activeItem?.model?.source;
+    const dialogue = this.renderable.dialogue;
 
+    const treeContainer = dialogue.container.querySelector('#ontology-tree-view');
+    const ontologyContainer = dialogue.container.querySelector('#ontology-source-view');
+    const selectionContainer = dialogue.container.querySelector('#ontology-selected-view');
+
+    // Initialise ontology sources
     for (let i = 0; i < this.dataset.length; ++i) {
       let dataset = this.dataset[i];
-      let html = interpolateString(this.templates.group, {
+      let html = interpolateString(this.templates.source, {
         source: dataset.model.source,
         label: dataset.model.label,
       });
-  
+
       let component = parseHTMLFromString(html);
-      component = ontologyList.appendChild(component.body.children[0]);
+      component = ontologyContainer.appendChild(component.body.children[0]);
 
       let active = parseInt(component.getAttribute('data-source')) === activeId;
       if (active) {
@@ -239,13 +288,14 @@ export default class OntologySelectionService {
       } else {
         component.classList.remove('active');
       }
-      component = component.querySelector('a');
 
+      component = component.querySelector('a');
       component.addEventListener('click', this.#handleDatasetChange.bind(this));
     }
 
+    // Initialise tree view
     const treeComponent = eleTree({
-      el: container,
+      el: treeContainer,
       lazy: true,
       data: this.activeData,
       showCheckbox: true,
@@ -263,6 +313,77 @@ export default class OntologySelectionService {
     treeComponent.on('lazyload', this.#handleLoading.bind(this));
     treeComponent.on('checkbox', this.#handleCheckbox.bind(this));
     this.renderable.treeComponent = treeComponent;
+
+    // Initialise selection view
+    const selectedItems = this.selectedItems;
+    const selectedLength = selectedItems.length;
+    const selectionComponent = new VirtualisedList(
+      selectionContainer,
+      {
+        count: selectedLength,
+        height: 0,
+        onRender: (index, height) => {
+          let selectedItem = selectedItems[index];
+          if (!selectedItem) {
+            return document.createElement('div');
+          }
+
+          const html = interpolateString(this.templates.item, {
+            id: selectedItem?.id,
+            source: selectedItem?.type_id,
+            label: selectedItem?.label,
+          });
+
+          let component = parseHTMLFromString(html);
+          component = component.body.children[0];
+          
+          const btn = component.querySelector('[data-target="delete"]');
+          btn.addEventListener('click', this.#handleDeleteButton.bind(this));
+
+          if (height == 0) {
+            setTimeout(() => {
+              selectionComponent.setItemHeight(index, component.clientHeight);
+            }, 100);
+          }
+
+          return component;
+        }
+      }
+    );
+
+    const { scrollingFrame } = selectionComponent.getComponents();
+    scrollingFrame.classList.add('slim-scrollbar');
+
+    this.renderable.selectionComponent = selectionComponent;
+    this.#toggleSelectionView(selectedLength);
+  }
+
+  /**
+   * toggleSelectionView
+   * @desc responsible for toggling the 'no-items-selected' renderable section
+   *       for the selected view
+   * @param {number} size expects the size of the selection list to derive visibility
+   * @returns {object} returns this for chaining
+   * 
+   */
+  #toggleSelectionView(size) {
+    if (!this.isOpen()) {
+      return this;
+    }
+
+    const dialogue = this.renderable.dialogue;
+    const noneSelected = dialogue.container.querySelector('#no-items-selected');
+    const listSelection = dialogue.container.querySelector('#ontology-selected-view');
+
+    if (size > 0) {
+      noneSelected.classList.remove('show');
+      listSelection.classList.add('show');
+    } else {
+      noneSelected.classList.add('show');
+      listSelection.classList.remove('show');
+    }
+
+    return this;
   }
 
 
@@ -282,6 +403,26 @@ export default class OntologySelectionService {
   }
 
   /**
+   * handleDeleteButton
+   * @desc handles the trash icon button for selected item(s)
+   * @param {event} e the assoc. event
+   */
+  #handleDeleteButton(e) {
+    if (!this.isOpen()) {
+      return;
+    }
+
+    const target = e.target;
+    if (isNullOrUndefined(target)) {
+      return;
+    }
+
+    const targetId = target.getAttribute('data-id');
+    this.renderable.treeComponent.unChecked([parseInt(targetId)]);
+    this.#resolveSelectedItems();
+  }
+
+  /**
    * handleLoading
    * @desc handles the lazyloading functionality derived from eleTree
    * @param {object} group the assoc. eleTree data
@@ -292,6 +433,7 @@ export default class OntologySelectionService {
 
     this.#fetchNodeData(data.id)
       .then(node => load(node.children))
+      .then(() => this.#resolveSelectedItems())
       .catch(console.error);
   }
 
@@ -326,6 +468,6 @@ export default class OntologySelectionService {
       return;
     }
 
-    console.log(this.renderable?.treeComponent.getChecked());
+    this.#resolveSelectedItems();
   }
 }

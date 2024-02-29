@@ -1,18 +1,20 @@
 import TouchHandler from './touchHandler.js';
 
 /**
- * ToastNotificationFactory
+ * @class ToastNotificationFactory
  * @desc Instantiable toast factory that handles toast notifications for pages
  *       with snackbar/toast element alerts
  * 
  *       The factory is accessible through the window object via window.ToastFactory
  * 
  * e.g.
+ * ```js
  *    window.ToastFactory.push({
  *      type: 'warning',
  *      message: 'Some warning message',
  *      duration: 2000, // 2s
  *    });
+ * ```
  */
 class ToastNotificationFactory {
   constructor() {

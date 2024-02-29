@@ -1,14 +1,16 @@
 import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
 
 /**
- * PublicationCreator
+ * @class PublicationCreator
  * @desc A class that can be used to control publication lists
  * 
  * e.g.
  * 
- * const startValue = ['Publication 1', 'Publication 2'];
- * const element = document.querySelector('#publication-component');
- * const creator = new PublicationCreator(element, startValue);
+ * ```js
+ *  const startValue = ['Publication 1', 'Publication 2'];
+ *  const element = document.querySelector('#publication-component');
+ *  const creator = new PublicationCreator(element, startValue);
+ * ```
  * 
  */
 export default class PublicationCreator {

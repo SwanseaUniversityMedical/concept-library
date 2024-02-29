@@ -1,5 +1,5 @@
 /**
- * PublishModal
+ * @class PublishModal
  * @author @zinnurov - Artur Zinnurov
  * @notes originally located within `./forms/clinical` - relocated to `./forms/`
  * @desc A class that controls the publication modal used to publish entities within the detail page,

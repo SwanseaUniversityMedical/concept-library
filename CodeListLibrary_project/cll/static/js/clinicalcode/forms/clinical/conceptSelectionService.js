@@ -446,7 +446,7 @@ const CSEL_FILTER_GENERATORS = {
 }
 
 /**
- * ConceptSelectionService
+ * @class ConceptSelectionService
  * @desc Class that can be used to prompt users to select 1 or more concepts
  *       from a list given by the server, where:
  *          

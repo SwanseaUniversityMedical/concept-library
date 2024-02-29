@@ -67,16 +67,19 @@ const PROMPT_DEFAULT_PARAMS = {
 };
 
 /**
- * CancellablePromise
+ * @class CancellablePromise
  * @desc Creates an instance of a promise that can be cancelled
  * 
  * e.g.
+ * ```js
  *  const promise = new CancellablePromise((resolve, reject) => {
  *    // do something
  *  });
  * 
  *  // e.g. after n seconds
  *  promise.cancel();
+ * ```
+ * 
  */
 class CancellablePromise {
   constructor(executor) {
@@ -92,8 +95,9 @@ class CancellablePromise {
 };
 
 /**
- * ModalResult
+ * @class ModalResult
  * @desc Creates an instance that is passed as a parameter when resolved/rejected via closure / button interaction
+ * 
  */
 class ModalResult {
   constructor(name, type, data) {
@@ -104,10 +108,11 @@ class ModalResult {
 };
 
 /**
- * ModalFactory
+ * @class ModalFactory
  * @desc A window-level instance to create modals
  * 
  * e.g.
+ * ```js
  *  const ModalFactory = window.ModalFactory;
  *  ModalFactory.create({
  *    id: 'test-dialog',
@@ -159,6 +164,7 @@ class ModalResult {
  *      console.log('[failure] rejected', result);
  *    }
  *  });
+ * ```
  * 
  */
 class ModalFactory {

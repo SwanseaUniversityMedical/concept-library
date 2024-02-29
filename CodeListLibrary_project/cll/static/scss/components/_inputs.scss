@@ -219,8 +219,10 @@
 
   &__header {
     @include flex-col();
+    @include bottom-divider($size_pad: false, $border_col: col(accent-washed));
     height: auto;
     width: auto;
+    padding: 0.5rem;
     margin-bottom: 0.5rem;
 
     & > h4 {
@@ -240,11 +242,17 @@
 
   &__window {
     display: flex;
+    flex-flow: column nowrap;
     width: auto;
     flex-grow: 1;
     height: max-content;
     max-height: max-content;
     overflow-y: auto;
+    padding: 0 0.5rem;
+
+    &--max-vh {
+      max-height: 20vh;
+    }
 
     @include media('>=tablet', 'screen') {
       height: auto;
@@ -260,7 +268,7 @@
     height: fit-content;
     max-height: 100%;
     overflow-y: unset;
-    padding: 0.5rem;
+    padding: 0.5rem 0;
 
     @include media('>=tablet', 'screen') {
       height: auto;
@@ -315,11 +323,19 @@
 
   &__selector {
     @include flex-row($gap: 0);
-    @include bottom-divider($size_pad: 1px, $border_col: col(accent-washed));
     align-items: center;
-    background-color: transparent;
     padding: 0.5rem 0.5rem 0.5rem 0.5rem;
     color: col(text-dark);
+
+    &:not(:only-child) {
+      &:nth-child(odd) {
+        background-color: var(--item-list-odd-bg-color);
+      }
+  
+      &:nth-child(even) {
+        background-color: var(--item-list-even-bg-color);
+      }
+    }
 
     &__name {
       @include clear-anchor();
@@ -327,8 +343,90 @@
     }
 
     &.active {
-      background-color: col(accent-bubble);
       color: col(text-darkest);
+      font-weight: bold;
+      background-color: col(accent-bubble) !important;
+    }
+  }
+
+  &__list {
+    @include flex-col($gap: 0);
+    width: auto;
+    height: fit-content;
+    flex-grow: 1;
+    max-height: calc(100% - 0.5rem);
+    max-width: 100%;
+    padding-top: 0.5rem;
+
+    &:not(.show) {
+      display: none;
+    }
+
+    &-group {
+      @include flex-col($gap: 0);
+      color: col(text-dark);
+
+      &-title {
+        padding: 0;
+        margin: 0 0 0.5rem 0;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1;
+      }
+    
+      &-description {
+        margin: 0;
+        font-size: 12px;
+      }
+    }
+
+    &-item {
+      cursor: default;
+      display: grid;
+      grid-auto-rows: 1fr;
+      grid-template-columns: auto 2rem;
+      position: relative;
+      color: col(text-darkest);
+      padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+      width: auto;
+      height: fit-content;
+      box-sizing: border-box;
+      max-height: max-content;
+      max-width: 100%;
+      align-items: center;
+
+      &:not(:only-child) {
+        &:nth-child(odd) {
+          background-color: var(--item-list-odd-bg-color);
+        }
+    
+        &:nth-child(even) {
+          background-color: var(--item-list-even-bg-color);
+        }
+      }
+
+      &-label {
+        font-weight: normal;
+        white-space: break-spaces;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        padding: 0;
+        margin: 0;
+        max-height: max-content;
+      }
+
+      &-actions {
+        @include flex-row($gap: 1rem);
+        cursor: pointer;
+        pointer-events: auto;
+        margin-left: auto;
+
+        &--delete-icon:after {
+          @include fontawesome-icon();
+          content: '\f1f8';
+          color: col(accent-danger);
+        }
+      }
     }
   }
 
@@ -568,9 +666,9 @@
 .radio-chips-group {
   @include flex-row($gap: 0.5rem);
 
-	margin: 0;
-	padding: 0;
-	list-style-type: none;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
 }
 
 // hstack-checkbox-group
@@ -1139,7 +1237,6 @@
   height: 18px;
   width: 18px;
   outline: none;
-  vertical-align: top;
   border-radius: 0.2rem;
   margin: 0;
   padding: 0;
