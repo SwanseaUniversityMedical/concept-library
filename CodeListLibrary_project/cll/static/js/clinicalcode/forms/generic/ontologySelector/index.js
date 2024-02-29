@@ -22,6 +22,32 @@ export default class OntologySelectionService {
     this.#initialise(options);
   }
 
+  static applyToTree(data, callback) {
+    assert(Array.isArray(data), `Expected array as data, got "${typeof(data)}"`)
+    assert(typeof(callback) === 'function', `Expected function as callback, got "${typeof(callback)}"`);
+
+    let length = data.length;
+    let result = false;
+    for (let i = 0; i < length; ++i) {
+      let node = data[i];
+      result = callback(node);
+
+      if (result) {
+        break;
+      }
+
+      if (Array.isArray(node?.children) && node.children.length > 0) {
+        result = OntologySelectionService.applyToTree(node.children, callback);
+
+        if (result) {
+          break;
+        }
+      }
+    }
+
+    return result;
+  }
+
 
   /*************************************
    *                                   *
@@ -132,7 +158,7 @@ export default class OntologySelectionService {
 
     const data = this.activeData;
     data.splice(0, data.length);
-    data.push(...dataset.nodes);
+    data.push(...deepCopy(dataset.nodes));
     this.renderable?.reload();
   }
 
@@ -148,22 +174,19 @@ export default class OntologySelectionService {
     }
 
     const hashmap = { };
-    const sourceId = this.activeItem?.model?.source;
     const selectedItems = this.selectedItems;
+    const activeSourceId = this.activeItem?.model?.source;
+
     const treeComponent = this.renderable.treeComponent;
     const selectionComponent = this.renderable.selectionComponent;
 
     /* TODO: Sieve leaf nodes if their parents are completely selected */
 
     treeComponent.getChecked().forEach(e => {
-      if (e?.type_id !== sourceId) {
-        return;
-      }
-
       const id = e?.id;
-      const index = selectedItems.findIndex(x => x?.id === id && x?.type_id === sourceId);
+      const index = selectedItems.findIndex(x => x?.id === id && x?.type_id === activeSourceId);
       if (index < 0) {
-        selectedItems.push({ id: id, type_id: sourceId, label: e?.label });
+        selectedItems.push({ id: id, type_id: activeSourceId, label: e?.label });
       }
 
       hashmap[id] = true;
@@ -172,13 +195,9 @@ export default class OntologySelectionService {
     let i = 0;
     while (i < selectedItems.length) {
       let elem = selectedItems[i];
-      if (elem?.type_id !== sourceId) {
-        i++;
-        continue;
-      }
-
       const id = elem?.id;
-      if (isNullOrUndefined(hashmap?.[id])) {
+      const sourceId = elem?.type_id;
+      if (sourceId === activeSourceId && isNullOrUndefined(hashmap?.[id])) {
         selectedItems.splice(i, 1)
         continue;
       }
@@ -212,7 +231,7 @@ export default class OntologySelectionService {
     }
 
     this.activeItem = dataset;
-    this.activeData = [...dataset.nodes];
+    this.activeData = [...deepCopy(dataset.nodes)];
 
     /* TODO: Parse selected items from value list */
     this.selectedItems = [];
@@ -237,7 +256,20 @@ export default class OntologySelectionService {
             }
           }
 
+          const checked = this.selectedItems.reduce((filtered, e) => {
+            const id = e?.id;
+            const sourceId = e?.type_id;
+            if (!isNullOrUndefined(id) && sourceId === activeId) {
+              filtered.push(id);
+            }
+
+            return filtered;
+          }, []);
           this.renderable?.treeComponent.reload();
+
+          if (checked.length > 0) {
+            this.renderable?.treeComponent.setChecked(checked, true);
+          }
         }
       }
       this.renderable = renderable;
@@ -417,8 +449,18 @@ export default class OntologySelectionService {
       return;
     }
 
-    const targetId = target.getAttribute('data-id');
-    this.renderable.treeComponent.unChecked([parseInt(targetId)]);
+    const targetId = parseInt(target.getAttribute('data-id'));
+    const targetSourceId = parseInt(target.getAttribute('data-group'));
+    const activeSourceId = this.activeItem?.model?.source;
+
+    if (targetSourceId === activeSourceId) {
+      this.renderable.treeComponent.unChecked([parseInt(targetId)]);
+    } else {
+      const index = this.selectedItems.findIndex(x => x?.id === targetId && x?.type_id === targetSourceId);
+      if (index >= 0) {
+        this.selectedItems.splice(index, 1);
+      }
+    }
     this.#resolveSelectedItems();
   }
 
@@ -431,9 +473,57 @@ export default class OntologySelectionService {
     const data = group.data;
     const load = group.load;
 
+    const sourceId = data.type_id;
+    const dataIndex = this.dataset.findIndex(e => e?.model?.source == sourceId);
+    const dataset = dataIndex >= 0 ? this.dataset[dataIndex] : null;
+    if (isNullOrUndefined(dataset)) {
+      return;
+    }
+
+    let children;
+    OntologySelectionService.applyToTree(dataset.nodes, elem => {
+      if (elem?.id === data.id) {
+        if (Array.isArray(elem?.children) && elem.children.length > 0) {
+          children = elem.children;
+        }
+
+        return true;
+      }
+
+      return false;
+    });
+
+    if (!isNullOrUndefined(children)) {
+      load(children);
+      this.#resolveSelectedItems()
+      return;
+    }
+
     this.#fetchNodeData(data.id)
-      .then(node => load(node.children))
-      .then(() => this.#resolveSelectedItems())
+      .then(node => {
+        const isRoot = node.isRoot;
+        const isLeaf = node.isLeaf;
+        if (isRoot) {
+          const index = dataset.nodes.findIndex(x => x?.id === node.id && x?.type_id === sourceId);
+          if (index >= 0) {
+            dataset.nodes[index].children = deepCopy(node.children);
+          }
+        } else if (!isLeaf) {
+          OntologySelectionService.applyToTree(dataset.nodes, elem => {
+            if (elem?.id === node.id) {
+              elem.children = deepCopy(node.children);
+              return true;
+            }
+
+            return false;
+          });
+        }
+
+        load(node.children);
+      })
+      .then(() => {
+        this.#resolveSelectedItems()
+      })
       .catch(console.error);
   }
 
@@ -456,6 +546,7 @@ export default class OntologySelectionService {
     }
 
     this.#pushDataset(sourceId);
+    this.#resolveSelectedItems();
   }
 
   /**

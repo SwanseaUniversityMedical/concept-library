@@ -18,7 +18,7 @@ const DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm
   * @returns {object} The cloned object
   */
 const deepCopy = (obj) => {
-  return JSON.parse(JSON.stringify(obj));
+  return structuredClone(obj); // JSON.parse(JSON.stringify(obj));
 }
 
 /**
