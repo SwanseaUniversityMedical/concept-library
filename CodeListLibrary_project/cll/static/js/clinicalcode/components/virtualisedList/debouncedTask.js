@@ -29,8 +29,12 @@ export default class DebouncedTask extends Function {
    *************************************/
 
   /**
+   * flush
+   * @desc flushes the current task list and attempts to call
+   *       the associated task with the current context and varargs
    * 
-   * @returns 
+   * @returns {object} this instance, for chaining
+   * 
    */
   flush() {
     const hnd = this.#handle;
@@ -48,8 +52,10 @@ export default class DebouncedTask extends Function {
   }
 
   /**
+   * clear
+   * @desc clears the current task queue
+   * @returns {object} this instance, for chaining
    * 
-   * @returns 
    */
   clear() {
     const hnd = this.#handle;
@@ -71,8 +77,9 @@ export default class DebouncedTask extends Function {
    *************************************/
 
   /**
+   * deferredCall
+   * @desc handles the deferred method call of the associated task
    * 
-   * @returns 
    */
   #deferredCall() {
     const delay = this.#delay
@@ -98,9 +105,15 @@ export default class DebouncedTask extends Function {
    *************************************/
 
   /**
+   * __call__
+   * @prototype DebouncedTask.prototype.call
+   * @desc defines the __call__ prototype for this class,
+   *       allowing its instances to be called in a similar
+   *       manner to method(s)
    * 
-   * @param  {...any} args 
-   * @returns 
+   * @param  {...any} args variadic arguments relating to the inner task
+   * @returns the last result (if any)
+   *  
    */
   __call__(...args) {
     console.log('CALL');

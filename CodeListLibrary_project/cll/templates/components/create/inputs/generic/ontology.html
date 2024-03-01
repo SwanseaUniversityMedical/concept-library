@@ -46,7 +46,7 @@
         <h3>Your Ontology Tags</h3>
       </div>
       <div class="ontology-group-creator__list-container slim-scrollbar" id="ontology-list">
-        
+
       </div>
     </section>
 
@@ -55,14 +55,6 @@
         <a class="ontology-modal-body__selector__name" target="__blank" href="#" aria-label="${label}">
           ${label}
         </a>
-      </div>
-    </template>
-
-    <template aria-hidden="true" data-target="ontology-service" data-name="group">
-      <div class="ontology-modal-body__list-group" data-group="${source}">
-        <h3 class="ontology-modal-body__list-group-title">
-          ${label}
-        </h3>
       </div>
     </template>
 
@@ -80,6 +72,22 @@
             </span>
           </span>
         </div>
+      </div>
+    </template>
+
+    <template aria-hidden="true" data-target="ontology-service" data-name="group">
+      <div class="ontology-group-creator__list-group" data-group="${source}">
+        <h3 class="ontology-group-creator__list-group-title">
+          ${label}
+        </h3>
+      </div>
+    </template>
+
+    <template aria-hidden="true" data-target="ontology-service" data-name="value">
+      <div class="ontology-group-creator__list-item">
+        <p class="ontology-group-creator__list-item-label">
+          ${label}
+        </p>
       </div>
     </template>
 

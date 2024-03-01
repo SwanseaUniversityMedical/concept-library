@@ -714,6 +714,24 @@ export const ENTITY_FIELD_COLLECTOR = {
       value: data,
     }
   },
+
+  // Generates an ontology selection component for an element
+  'ontology': (field, packet) => {
+    const handler = packet.handler;
+    const data = handler.getValue(true);
+    if (isMandatoryField(packet) && data.length < 1) {
+      return {
+        valid: false,
+        value: data,
+        message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: data,
+    }
+  }
 };
 
 /**

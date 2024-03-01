@@ -73,11 +73,13 @@ export default class VirtualisedList extends EventTarget {
    *************************************/
 
   /**
+   * findBoundary
+   * @desc binary search implementation to derive best index in O(logN) time
+   * @param {array} list the array to assess
+   * @param {any} value the value to compare with each item in the array
+   * @param {function} comparator the comparator function
+   * @returns {number} the best index
    * 
-   * @param {*} list 
-   * @param {*} value 
-   * @param {*} comparator 
-   * @returns 
    */
   static findBoundary(list, value, comparator) {
     comparator = comparator || boundaryComparator;
@@ -105,41 +107,52 @@ export default class VirtualisedList extends EventTarget {
    *************************************/
 
   /**
-   * 
-   * @returns 
+   * getElement
+   * @desc returns the element associated with this instance
+   * @returns {node} the associated list element
+   *  
    */
   getElement() {
     return this.#element;
   }
 
   /**
-   * 
-   * @returns 
+   * getComponents
+   * @desc returns the components associated with this instance
+   * @returns {object} an object containing the components
+   *  
    */
   getComponents() {
     return this.#components;
   }
 
   /**
-   * 
-   * @returns 
+   * getRenderables
+   * @desc returns the currently rendered items
+   * @returns {array} an array containing the rendered item(s)
+   *  
    */
   getRenderables() {
     return this.#renderables;
   }
 
   /**
+   * getCount
+   * @desc returns the total length of the virtual list
+   * @returns {number} the length
    * 
-   * @returns 
    */
   getCount() {
     return this.count;
   }
 
   /**
+   * getItem
+   * @desc returns a node, as rendered by the associated renderer,
+   *       for that particular index
+   * @param {number} index the list index
+   * @returns {node} an unattached node
    * 
-   * @param {*} index 
-   * @returns 
    */
   getItem(index) {
     let item = this.#computeRenderable(index, this.sizes[index] || this.height);
@@ -148,9 +161,11 @@ export default class VirtualisedList extends EventTarget {
   }
 
   /**
-   * 
+   * getVisibleIndices
+   * @desc computes the visible indices
    * @param {*} offsetY 
-   * @returns 
+   * @returns {array} an array containing the first and last visible indices
+   * 
    */
   getVisibleIndices(offsetY) {
     offsetY = (typeof offsetY === 'number' && !isNaN(offsetY)) ? Math.max(0, offsetY) : 0;
@@ -168,6 +183,25 @@ export default class VirtualisedList extends EventTarget {
     ]
   }
 
+  /**
+   * getHeight
+   * @desc get the height of an element at the given index,
+   *       or return get the default height
+   * @param {number|null} index an optional index
+   *                            returns the elem height if given, otherwise
+   *                            will return the default height
+   * 
+   * @returns {number} the elem / default height
+   * 
+   */
+  getHeight(index) {
+    if (typeof(index) === 'number') {
+      return this.sizes?.[index] || this.height;
+    }
+
+    return this.height;
+  }
+
 
   /*************************************
    *                                   *
@@ -176,8 +210,11 @@ export default class VirtualisedList extends EventTarget {
    *************************************/
 
   /**
+   * setCount
+   * @desc sets the virtual list size
+   * @param {number} n the size of the list
+   * @returns {object} this instance, for chaining
    * 
-   * @param {*} n 
    */
   setCount(n) {
     n = Math.max(0, n);
@@ -200,15 +237,23 @@ export default class VirtualisedList extends EventTarget {
 
     this.#computeCanvasSizes();
     this.#onScrollChanged();
+    return this;
   }
 
   /**
+   * setItemHeight
+   * @desc sets the height of the item in the list, and recomputes the list
+   * @param {number} index the list index associated with the element
+   * @param {number} height the height of the elem, as an integer - will be rounded otherwise
+   * @returns {object} this instance, for chaining
    * 
-   * @param {*} index 
-   * @param {*} height 
-   * @returns 
    */
   setItemHeight(index, height) {
+    height = typeof(height) === 'number' ? Math.round(height) : this.height;
+    if (typeof(index) !== 'number') {
+      return;
+    }
+
     const item = this.#components.contentContainer.querySelector(`[data-key="${index}"]`);
     if (!isNullOrUndefined(item) && 'height' in item.style) {
       item.style.height = `${height}px`;
@@ -221,9 +266,48 @@ export default class VirtualisedList extends EventTarget {
   }
 
   /**
+   * resizeItems
+   * @desc resizes a group of item(s)
+   * @param {array[]} itemSizes an 2d array containing the index and height of each item
+   * @returns {object} this instance, for chaining
    * 
-   * @param {*} fn 
-   * @returns 
+   */
+  resizeItems(itemSizes) {
+    if (!Array.isArray(itemSizes)) {
+      return this;
+    }
+
+    const container = this.#components.contentContainer;
+    for (let i =  0; i < itemSizes.length; ++i) {
+      let group = itemSizes[i];
+      if (!Array.isArray(group)) {
+        continue;
+      }
+
+      let [ index, height ] = group;
+      if (typeof(index) !== 'number' || typeof(height) !== 'number') {
+        continue;
+      }
+
+      let item = container.querySelector(`[data-key="${index}"]`);
+      if (!isNullOrUndefined(item) && 'height' in item.style) {
+        item.style.height = `${height}px`;
+      }
+
+      this.sizes[index] = height;
+    }
+
+    this.#computeCanvasSizes();
+    this.#onScrollChanged();
+    return this;
+  }
+
+  /**
+   * setRenderer
+   * @desc sets the renderer for the list elements, and forces recomputation
+   * @param {callback} fn the renderer
+   * @returns {object} this instance, for chaining
+   * 
    */
   setRenderer(fn) {
     this.#computeRenderable = fn;
@@ -240,22 +324,31 @@ export default class VirtualisedList extends EventTarget {
    *************************************/
 
   /**
+   * scrollToIndex
+   * @desc attempts to scroll to an element given its list index
+   * @param {number} index the list index of the element
+   * @returns {object} this instance, for chaining
    * 
-   * @param {*} index 
-   * @returns 
    */
   scrollToIndex(index) {
-    this.#components.scrollingFrame.scrollTop = this.computedSizes[index] || 0;
+    if (typeof(index) !== 'number') {
+      return;
+    }
+
+    this.#components.scrollingFrame.scrollTop = this.computedSizes?.[index] || 0;
     return this;
   }
 
   /**
+   * refresh
+   * @desc forces a refresh of the entire virtual list
+   * @returns {object} this instance, for chaining
    * 
-   * @returns
    */
   refresh() {
     clearAllChildren(this.#components.contentContainer);
     this.#onScrollChanged();
+    return this;
   }
 
 
@@ -266,11 +359,16 @@ export default class VirtualisedList extends EventTarget {
    *************************************/
 
   /**
+   * initialise
+   * @desc attempts to intiialise the list given a set of
+   *       options associated with the instantiation of this class
    * 
-   * @param {*} options 
+   * @param {object|any|null} options the optional argument(s), will be merged with the default args
+   * 
    */
   #initialise(options) {
-    options = mergeObjects(options || { }, Constants.VL_DEFAULT_OPTS);
+    options = (typeof(options) === 'object' && !Array.isArray(options)) ? options : { };
+    options = mergeObjects(options, Constants.VL_DEFAULT_OPTS);
 
     this.count = options.count;
     this.sizes = new Array(this.count).fill(options.height);
@@ -284,11 +382,16 @@ export default class VirtualisedList extends EventTarget {
     const components = this.#buildComponent();
     this.#components = components;
     this.#element.appendChild(components.scrollingFrame);
+    this.#renderables = [...components.contentContainer.children];
   }
 
   /**
+   * computeCanvasSizes
+   * @desc computes the canvas size by incrementally computing the height
+   *       through iteratively summing the height of each element
    * 
-   * @returns 
+   * @returns {array} the incremental, computed sizes of the list and its children
+   * 
    */
   #computeCanvasSizes() {
     const length = this.count;
@@ -328,8 +431,10 @@ export default class VirtualisedList extends EventTarget {
    *************************************/
 
   /**
+   * buildComponents
+   * @desc builds the components associated with this instance
+   * @returns {object} containing the associated component(s) of this instance
    * 
-   * @returns 
    */
   #buildComponent() {
     const element = this.#element;
@@ -341,7 +446,7 @@ export default class VirtualisedList extends EventTarget {
       this.#onScrollChanged();
     });
     resizeObserver.observe(element);
-    
+
     onElementRemoved(element)
       .then(() => {
         resizeObserver.disconnect();
@@ -387,8 +492,10 @@ export default class VirtualisedList extends EventTarget {
   }
 
   /**
+   * onPaint
+   * @desc repaints the canvas and updates the renderables
+   *       based ont the current scroll position of the canvas
    * 
-   * @returns 
    */
   #onPaint() {
     const {
@@ -448,6 +555,8 @@ export default class VirtualisedList extends EventTarget {
       }
     }
     scrollingFrame.scrollTop = offsetY;
+
+    this.#renderables = [...contentContainer.children];
   }
 
 
@@ -458,8 +567,14 @@ export default class VirtualisedList extends EventTarget {
    *************************************/
 
   /**
+   * onScrollChanged
+   * @desc handles the `scroll` signal received from
+   *       this instance's scrolling frame, and
+   *       throttle defers both (1) the `scrollend`
+   *       event dispatch; and (2) the render method
    * 
-   * @param {*} e 
+   * @param {object<Event>} e the associated event
+   * 
    */
   #onScrollChanged(e) {
     if (this.#handle) {
@@ -471,8 +586,12 @@ export default class VirtualisedList extends EventTarget {
   }
 
   /**
+   * onScrollEnd
+   * @desc dispatches the `scrollend` event to inform
+   *       listeners that the scrolling has finished
    * 
-   * @param {*} e 
+   * @param {object<Event>} e the associated event
+   * 
    */
   #onScrollEnd(e) {
     this.dispatchEvent(

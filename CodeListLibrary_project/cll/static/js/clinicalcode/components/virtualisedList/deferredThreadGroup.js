@@ -24,9 +24,14 @@ export default class DeferredThreadGroup {
    *************************************/
 
   /**
+   * push
+   * @desc pushes the callback to the deferred task queue,
+   *       which will be called after _n_ delay - dependent
+   *       on when the task group was last called
    * 
-   * @param {*} callback 
-   * @returns 
+   * @param {function} callback the deferred task callback
+   * @returns {number} the handle id associated with this task
+   * 
    */
   push(callback) {
     if (this.#queue.length < 1) {
@@ -62,14 +67,38 @@ export default class DeferredThreadGroup {
   }
 
   /**
+   * cancel
+   * @desc cancels a task given its handle id, as derived by the `::push()` method
+   * @param {number} hnd the task group handle to cancel
+   * @returns {object} this instance, for chaining
    * 
-   * @param {*} hnd 
-   * @returns 
    */
   cancel(hnd) {
     const handle = this.#queue.find(e => e?.handle == hnd);
     if (!isNullOrUndefined(handle)) {
       handle.cancelled = true;
+    }
+
+    return this;
+  }
+
+  /**
+   * clear
+   * @desc clears all queued tasks
+   * @returns {object} this instance, for chaining
+   * 
+   */
+  clear() {
+    const queue = this.#queue.slice(0);
+    const length = queue.length;
+    this.#queue.length = 0;
+
+    if (length < 1) {
+      return this;
+    }
+
+    for (let i = 0; i < length; ++i) {
+      queue[i].cancelled = true;
     }
 
     return this;
@@ -83,9 +112,13 @@ export default class DeferredThreadGroup {
    *************************************/
 
   /**
+   * silentlyThrow
+   * @desc throws the error outside of the current thread for it to be raised
+   *       without blocking the current thread 
    * 
-   * @param {*} e 
-   * @returns 
+   * @param {object<Error>} e an error that was thrown during task execution
+   * @returns {object} this instance, for chaining
+   * 
    */
   #silentlyThrow(e) {
     setTimeout(() => {

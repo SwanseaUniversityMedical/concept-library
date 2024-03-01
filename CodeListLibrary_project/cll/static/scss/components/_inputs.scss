@@ -362,22 +362,8 @@
       display: none;
     }
 
-    &-group {
-      @include flex-col($gap: 0);
-      color: col(text-dark);
-
-      &-title {
-        padding: 0;
-        margin: 0 0 0.5rem 0;
-        font-size: 14px;
-        font-weight: bold;
-        line-height: 1;
-      }
-    
-      &-description {
-        margin: 0;
-        font-size: 12px;
-      }
+    .vl-scrolling-frame {
+      flex-grow: 1;
     }
 
     &-item {
@@ -543,6 +529,70 @@
 
     &:not(.show) {
       display: none;
+    }
+
+    &-group {
+      @include flex-col($gap: 0);
+      color: col(text-dark);
+
+      &-title {
+        padding: 0;
+        margin: 0.5rem 0 0.5rem 0;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1;
+      }
+    
+      &-description {
+        margin: 0;
+        font-size: 12px;
+      }
+    }
+
+    &-item {
+      cursor: default;
+      display: flex;
+      flex-flow: row wrap;
+      gap: 1rem;
+      justify-content: space-between;
+      position: relative;
+      color: col(text-darkest);
+      padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+      width: auto;
+      height: fit-content;
+      box-sizing: border-box;
+      max-height: max-content;
+      max-width: 100%;
+      align-items: flex-start;
+
+      &:not(:only-child) {
+        &:nth-child(odd) {
+          background-color: var(--item-list-odd-bg-color);
+        }
+    
+        &:nth-child(even) {
+          background-color: var(--item-list-even-bg-color);
+        }
+      }
+
+      &-label {
+        font-weight: normal;
+        white-space: break-spaces;
+        padding: 0;
+        margin: 0;
+        max-height: max-content;
+      }
+
+      &-source {
+        font-weight: normal;
+        white-space: break-spaces;
+        text-align: right;
+        overflow: hidden;
+        padding: 0;
+        margin: 0;
+        min-width: fit-content;
+        max-height: max-content;
+      }
     }
   }
 }

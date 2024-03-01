@@ -1,8 +1,9 @@
-from django.db.models import F, Count, Max, Case, When
+from django.db.models import F, Count, Max, Case, When, Exists, OuterRef
 from django.db.models.query import QuerySet
 from django.db.models.functions import JSONObject
+from django.contrib.postgres.aggregates.general import ArrayAgg
 
-from . import gen_utils, constants
+from . import constants
 from ..models.OntologyTag import OntologyTag
 
 def try_get_ontology_data(model_source, model_label=None, default=None):
@@ -139,18 +140,21 @@ def try_get_ontology_node_data(ontology_id, node_id, model_label=None, default=N
 
         parents = node.parents.all()
         if parents.count() > 0:
-            parents = parents.values('id', 'name') \
-                .annotate(
-                    max_parent_id=Max(F('parents'))
-                ) \
-                .annotate(
+            parents = parents.annotate(
                     tree_dataset=JSONObject(
                         id=F('id'),
                         label=F('name'),
+                        parents=ArrayAgg('parents', distinct=True),
                         isRoot=Case(
-                            When(max_parent_id__isnull=True, then=True),
-                            default=False
+                            When(
+                                Exists(OntologyTag.parents.through.objects.filter(
+                                    child_id=OuterRef('pk'),
+                                )),
+                                then=False
+                            ),
+                            default=True
                         ),
+                        isLeaf=False,
                         type_id=F('type_id'),
                         atlas_id=F('atlas_id')
                     )
@@ -161,23 +165,20 @@ def try_get_ontology_node_data(ontology_id, node_id, model_label=None, default=N
 
         children = node.children.all()
         if children.count() > 0:
-            children = children.values('id', 'name') \
+            children = OntologyTag.objects.filter(id__in=children) \
                 .annotate(
-                    max_parent_id=Max(F('parents')),
                     child_count=Count(F('children'))
                 ) \
                 .annotate(
                     tree_dataset=JSONObject(
                         id=F('id'),
                         label=F('name'),
-                        isRoot=Case(
-                            When(max_parent_id__isnull=True, then=True),
-                            default=False
-                        ),
+                        isRoot=False,
                         isLeaf=Case(
                             When(child_count__lt=1, then=True),
                             default=False
                         ),
+                        parents=ArrayAgg('parents', distinct=True),
                         type_id=F('type_id'),
                         atlas_id=F('atlas_id'),
                         child_count=F('child_count')

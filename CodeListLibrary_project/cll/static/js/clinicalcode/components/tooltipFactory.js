@@ -1,4 +1,3 @@
-
 /**
  * @class Tooltip Factory
  * @desc Instantiable tooltip factory that handles tooltips for nodes

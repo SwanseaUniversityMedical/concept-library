@@ -1,21 +1,24 @@
 /**
- * Default description string if none provided
+ * ES_DEFAULT_DESCRIPTOR
+ * @desc Default description string if none provided
+ * 
  */
-const DEFAULT_DESCRIPTOR = 'Create a ${name}'
+const ES_DEFAULT_DESCRIPTOR = 'Create a ${name}'
 
 /**
  * getDescriptor
  * @desc gets the descriptor if valid, otherwise uses default format
- * @param {string} description 
- * @param {string} name 
- * @returns {string} the descriptor
+ * @param {string} description the description associated with the item
+ * @param {string} name the name associated with the item
+ * @returns {string} the formatted descriptor
+ * 
  */
 const getDescriptor = (description, name) => {
   if (!isNullOrUndefined(description) && !isStringEmpty(description)) {
     return description;
   }
 
-  return new Function('name', `return \`${DEFAULT_DESCRIPTOR}\`;`)(name);
+  return new Function('name', `return \`${ES_DEFAULT_DESCRIPTOR}\`;`)(name);
 }
 
 /**
@@ -23,10 +26,11 @@ const getDescriptor = (description, name) => {
  * @desc method to interpolate a card using a template
  * @param {node} container the container element
  * @param {string} template the template fragment
- * @param {*} id any data value
- * @param {*} title any data value
- * @param {*} description any data value
+ * @param {number} id the id of the associated element
+ * @param {string} title string, as formatted by the `getDescriptor` method
+ * @param {string} description string, as formatted by the `getDescriptor` method
  * @returns {node} the interpolated element after appending to the container node
+ * 
  */
 const createGroup = (container, template, id, title, description) => {
   description = getDescriptor(description, title);
@@ -46,12 +50,13 @@ const createGroup = (container, template, id, title, description) => {
  * @desc method to interpolate a card using a template
  * @param {node} container the container element
  * @param {string} template the template fragment
- * @param {*} id any data value
- * @param {*} type any data value
- * @param {*} hint any data value
- * @param {*} title any data value
- * @param {*} description any data value
+ * @param {number} id the id of the associated element
+ * @param {any} type any data value relating to the type of the element
+ * @param {string} hint a string that defines the hint text of the element
+ * @param {string} title string, as formatted by the `getDescriptor` method
+ * @param {string} description string, as formatted by the `getDescriptor` method
  * @returns {node} the interpolated element after appending to the container node
+ * 
  */
 const createCard = (container, template, id, type, hint, title, description) => {
   const html = interpolateString(template, {
@@ -71,6 +76,7 @@ const createCard = (container, template, id, type, hint, title, description) => 
  * @desc Method that retrieves all relevant <data/> and <template/> elements with
  *       its data-owner attribute pointing to the entity selector
  * @return {object} An object describing the data collected
+ * 
  */
 const collectEntityData = () => {
   const output = {
@@ -108,7 +114,8 @@ const collectEntityData = () => {
 /**
  * initialiseSelector
  * @desc initialises the selector form, creates the initial entity cards and handles user interaction
- * @param {*} formData 
+ * @param {object} formData the associated form data
+ * 
  */
 const initialiseSelector = (formData) => {
   const { templates, datasets } = formData;
@@ -153,7 +160,11 @@ const initialiseSelector = (formData) => {
   }
 }
 
-// Main
+/**
+ * Main thread
+ * @desc initialises the component once the dom is ready
+ * 
+ */
 domReady.finally(() => {
   const formData = collectEntityData();
   initialiseSelector(formData);

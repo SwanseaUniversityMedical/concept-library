@@ -19,4 +19,3 @@ const removeGATags = () => {
 };
 
 window.removeGATags = removeGATags;
-  

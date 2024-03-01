@@ -1,11 +1,29 @@
-const REFERENCE_TABLE_LIMITS = {
-  PER_PAGE: 5,
-  PER_PAGE_SELECT: [5, 25, 50]
-};
+const
+  /**
+   * RDS_REFERENCE_TABLE_LIMITS
+   * @desc describes the default params for the table element(s)
+   * 
+   */
+  RDS_REFERENCE_TABLE_LIMITS = {
+    PER_PAGE: 5,
+    PER_PAGE_SELECT: [5, 25, 50]
+  },
+  /**
+   * RDS_REFERENCE_HEADINGS
+   * @desc describes the headings of the table(s)
+   * 
+   */
+  RDS_REFERENCE_HEADINGS = ['index', 'ID', 'Name'];
 
-const REFERENCE_HEADINGS = ['index', 'ID', 'Name']
-
-const REFERENCE_MAP = (item, index) => {
+/**
+ * RDS_REFERENCE_MAP
+ * @desc maps the reference item to a flat array
+ * @param {object} item the item to map
+ * @param {number} index the associated index
+ * @returns {array} the mapped array
+ * 
+ */
+const RDS_REFERENCE_MAP = (item, index) => {
   return [
     index,
     item.id,
@@ -13,8 +31,8 @@ const REFERENCE_MAP = (item, index) => {
   ];
 }
 
-/** getReferenceData
- * 
+/** 
+ * getReferenceData
  * @desc Method that retrieves all relevant <data/> elements with
  *       its data-owner attribute pointing to the entity creator.
  * 
@@ -47,11 +65,15 @@ const getReferenceData = () => {
 };
 
 /**
+ * renderReferenceComponent
+ * @desc given the data associated with the `<data/>` elements,
+ *       attempt to render the component(s) for each of the reference
+ *       item(s)
  * 
- * @param {*} key 
- * @param {*} container 
- * @param {*} data 
- * @returns 
+ * @param {string|any} key the data associated key
+ * @param {node} container the relevant container node
+ * @param {object} data the associated data object
+ * 
  */
 const renderReferenceComponent = (key, container, data) => {
   if (isNullOrUndefined(data) || Object.keys(data).length == 0) {
@@ -64,8 +86,8 @@ const renderReferenceComponent = (key, container, data) => {
   }));
 
   const datatable = new window.simpleDatatables.DataTable(table, {
-    perPage: REFERENCE_TABLE_LIMITS.PER_PAGE,
-    perPageSelect: REFERENCE_TABLE_LIMITS.PER_PAGE_SELECT,
+    perPage: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE,
+    perPageSelect: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE_SELECT,
     fixedColumns: false,
     classes: {
       wrapper: 'overflow-table-constraint',
@@ -76,14 +98,19 @@ const renderReferenceComponent = (key, container, data) => {
       { select: 2, type: 'string' }
     ],
     data: {
-      headings: REFERENCE_HEADINGS,
-      data: data.map((item, index) => REFERENCE_MAP(item, index)),
+      headings: RDS_REFERENCE_HEADINGS,
+      data: data.map((item, index) => RDS_REFERENCE_MAP(item, index)),
     },
   });
 
   return datatable.columns.sort(1, 'asc');
 };
 
+/**
+ * Main thread
+ * @desc initialises the component(s) once the DOM resolves
+ * 
+ */
 domReady.finally(() => {
   const data = getReferenceData();
   for (let [key, value] of Object.entries(data)) {

@@ -7,6 +7,7 @@
  * @param {string/node} obj The ID of the input element or the input element itself
  * @param {object} data Should contain both (1) the available options and (2) the available groups
  * @return {object} An interface to control the behaviour of the component
+ * 
  */
 export default class GroupedEnum {
   constructor(obj, data, defaultValue) {

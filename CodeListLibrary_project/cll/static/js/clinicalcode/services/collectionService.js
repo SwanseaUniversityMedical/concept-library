@@ -1,29 +1,62 @@
-const DETAIL_URL = '/phenotypes/${id}/version/${version_id}/detail/'
-const UPDATE_URL = '/update/${id}/${version_id}';
-
-const COLLECTION_HEADINGS = {
-  PROFILE_COLLECTIONS: ['index', 'Name', 'ID', 'Version ID', 'Updated', 'Owner', 'Status'],
-  MODERATION_COLLECTIONS: ['index', 'Name', 'ID', 'Version ID', 'Requested', 'Owner', 'Status']
-};
-
-const COLLECTION_TABLE_LIMITS = {
-  PER_PAGE: 5,
-  PER_PAGE_SELECT: [5, 10, 20]
-};
-
 let ARCHIVE_TEMPLATE;
-const MAX_NAME_LENGTH = 50;
 
-const STATUSES = ['REQUESTED', 'PENDING', 'PUBLISHED', 'REJECTED', 'ARCHIVED', 'DRAFT'];
-const PUBLISH_STATUS_TAGS = [
-  { text: 'REQUESTED', bg_colour: 'bubble-accent',   text_colour: 'accent-dark' }, 
-  { text: 'PENDING',   bg_colour: 'bubble-accent',   text_colour: 'accent-dark' }, 
-  { text: 'PUBLISHED', bg_colour: 'tertiary-accent', text_colour: 'accent-dark' }, 
-  { text: 'REJECTED',  bg_colour: 'danger-accent',   text_colour: 'accent-dark' },
-  { text: 'ARCHIVED',  bg_colour: 'dark-accent',     text_colour: 'accent-brightest' }, 
-  { text: 'DRAFT',     bg_colour: 'washed-accent',   text_colour: 'accent-dark' }
-];
+const
+  /**
+   * DETAIL_URL & UPDATE_URL
+   * @desc describes the URL(s) associated with the action button(s)
+   * 
+   */
+  DETAIL_URL = '/phenotypes/${id}/version/${version_id}/detail/',
+  UPDATE_URL = '/update/${id}/${version_id}',
+  /**
+   * COLLECTION_HEADINGS
+   * @desc describes the headings associated with each key's table
+   * 
+   */
+  COLLECTION_HEADINGS = {
+    PROFILE_COLLECTIONS: ['index', 'Name', 'ID', 'Version ID', 'Updated', 'Owner', 'Status'],
+    MODERATION_COLLECTIONS: ['index', 'Name', 'ID', 'Version ID', 'Requested', 'Owner', 'Status']
+  },
+  /**
+   * COLLECTION_TABLE_LIMITS
+   * @desc describes the default params for each table
+   * 
+   */
+  COLLECTION_TABLE_LIMITS = {
+    PER_PAGE: 5,
+    PER_PAGE_SELECT: [5, 10, 20]
+  },
+  /**
+   * MAX_NAME_LENGTH
+   * @desc describes the max length of a name field
+   * 
+   */
+  MAX_NAME_LENGTH = 50,
+  /**
+   * STATUSES
+   * @desc describes the status element name(s)
+   * 
+   */
+  STATUSES = ['REQUESTED', 'PENDING', 'PUBLISHED', 'REJECTED', 'ARCHIVED', 'DRAFT'],
+  /**
+   * PUBLISH_STATUS_TAGS
+   * @desc describes the attributes associated with a status
+   * 
+   */
+  PUBLISH_STATUS_TAGS = [
+    { text: 'REQUESTED', bg_colour: 'bubble-accent',   text_colour: 'accent-dark' }, 
+    { text: 'PENDING',   bg_colour: 'bubble-accent',   text_colour: 'accent-dark' }, 
+    { text: 'PUBLISHED', bg_colour: 'tertiary-accent', text_colour: 'accent-dark' }, 
+    { text: 'REJECTED',  bg_colour: 'danger-accent',   text_colour: 'accent-dark' },
+    { text: 'ARCHIVED',  bg_colour: 'dark-accent',     text_colour: 'accent-brightest' }, 
+    { text: 'DRAFT',     bg_colour: 'washed-accent',   text_colour: 'accent-dark' }
+  ];
 
+/**
+ * COLLECTION_MAP
+ * @desc handler methods for mapping data into its respective table
+ * 
+ */
 const COLLECTION_MAP = {
   PROFILE_COLLECTIONS: (item, index) => {
     let status;
@@ -67,8 +100,8 @@ const COLLECTION_MAP = {
   }
 }
 
-/** getCollectionData
- * 
+/**
+ * getCollectionData
  * @desc Method that retrieves all relevant <data/> elements with
  *       its data-owner attribute pointing to the entity creator.
  * 
@@ -103,11 +136,13 @@ const getCollectionData = () => {
 };
 
 /**
+ * renderNameAnchor
+ * @desc method to render the anchor associated with an element
+ * @param {object} data the data associated with the element
+ * @param {number|any} id the `id` of the element
+ * @param {number|any} version_id the `version_id` of the element
+ * @returns {string} returns the formatted render html target
  * 
- * @param {*} data 
- * @param {*} id 
- * @param {*} version_id 
- * @returns 
  */
 const renderNameAnchor = (pageType, key, entity) => {
   const { id, history_id, name, publish_status } = entity;
@@ -185,10 +220,12 @@ const renderNameAnchor = (pageType, key, entity) => {
 };
 
 /**
+ * renderStatusTag
+ * @desc method to render the status associated with an element
+ * @param {object} data the data associated with the element
+ * @param {boolean|any} is_deleted whether that item is considered to be deleted
+ * @returns {string} the html render target
  * 
- * @param {*} data 
- * @param {*} is_deleted 
- * @returns 
  */
 const renderStatusTag = (data) => {
   let tagData = STATUSES.findIndex(e => e == data);
@@ -204,11 +241,13 @@ const renderStatusTag = (data) => {
 }
 
 /**
+ * renderCollectionComponent
+ * @desc method to render the collection component
+ * @param {string} pageType the component page type, e.g. in the case of profile/moderation pages
+ * @param {string} key the component type associated with this component, e.g. collection
+ * @param {node} container the container node associated with this element
+ * @param {object} data the data associated with this element
  * 
- * @param {*} key 
- * @param {*} container 
- * @param {*} data 
- * @returns 
  */
 const renderCollectionComponent = (pageType, key, container, data) => {
   if (isNullOrUndefined(data) || Object.keys(data).length == 0) {
@@ -360,11 +399,20 @@ const renderCollectionComponent = (pageType, key, container, data) => {
 
       datatable.search('', undefined);
     });
-  })
+  });
 
-  return datatable.columns.sort(2, 'desc');
+  datatable.columns.sort(2, 'desc');
 };
 
+/**
+ * tryArchivePhenotype
+ * @desc instantiates a modal that allows users to confirm
+ *       whether they want to archive a phenotype; and then
+ *       attempts to send a request to the server to archive a phenotype
+ * 
+ * @param {number} id the associated phenotype id
+ * 
+ */
 const tryArchivePhenotype = (id) => {
   window.ModalFactory.create({
     title: `Are you sure you want to archive ${id}?`,
@@ -408,6 +456,13 @@ const tryArchivePhenotype = (id) => {
     });
 }
 
+/**
+ * tryRestorePhenotype
+ * @desc attempts to send a request to the server to restore a phenotype
+ * @param {number} id the associated phenotype id
+ * @returns {object<Promise>} returns the request promise
+ * 
+ */
 const tryRestorePhenotype = (id) => {
   const token = getCookie('csrftoken');
   return fetch(
@@ -438,6 +493,11 @@ const tryRestorePhenotype = (id) => {
     });
 }
 
+/**
+ * Main thread
+ * @desc initialises the component(s) once the DOM resolves
+ * 
+ */
 domReady.finally(() => {
   ARCHIVE_TEMPLATE = document.querySelector('#archive-form');
 

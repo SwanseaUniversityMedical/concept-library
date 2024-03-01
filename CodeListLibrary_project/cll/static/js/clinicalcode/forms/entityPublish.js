@@ -6,7 +6,6 @@
  *       controls both moderator & normal client usage
  * 
  */
-
 class PublishModal {
   constructor(publish_url, decline_url,redirect_url) {
     this.publish_url = publish_url;

@@ -1,4 +1,10 @@
-const TRANSITION_METHODS = {
+/**
+ * CLU_TRANSITION_METHODS
+ * @desc defines the transition methods associated
+ *       with the animation of an element
+ * 
+ */
+const CLU_TRANSITION_METHODS = {
   'transition': 'transitionend',
   'WebkitTransition': 'webkitTransitionEnd',
   'OTransition': 'oTransitionEnd otransitionend',
@@ -6,10 +12,10 @@ const TRANSITION_METHODS = {
 };
 
 /**
- * DOI_PATTERN
- * Regex pattern to match DOI
+ * CLU_DOI_PATTERN
+ * @desc Regex pattern to match DOI
  */
-const DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm;
+const CLU_DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm;
 
 /**
   * deepCopy
@@ -40,6 +46,8 @@ const mergeObjects = (a, b) => {
 /**
  * generateUUID
  * @desc Generates a UUID
+ *       Ref @ https://en.wikipedia.org/wiki/Universally_unique_identifier
+ * 
  * @returns {string} a UUID
  */
 const generateUUID = () => {
@@ -58,9 +66,9 @@ const generateUUID = () => {
   */
 const getTransitionMethod = () => {
   const root = document.documentElement;
-  for (let method in TRANSITION_METHODS) {
+  for (let method in CLU_TRANSITION_METHODS) {
     if (typeof root.style[method] !== 'undefined') {
-      return TRANSITION_METHODS[method];
+      return CLU_TRANSITION_METHODS[method];
     }
   }
 
@@ -128,8 +136,9 @@ const elementScrolledIntoView = (elem, offset = 0) => {
   * getCookie
   * @desc Gets the CSRF token
   *       Ref @ https://docs.djangoproject.com/en/4.1/howto/csrf/
+  * 
   * @param {string} name the name of the cookie
-  * @returns {*} the cookie's value
+  * @returns {any} the cookie's value
   */
 const getCookie = (name) => {
   let cookieValue = null;
@@ -220,6 +229,9 @@ const domReady = new Promise(resolve => {
 /**
   * assert
   * @desc Throws an error message if a condition is not met
+  * @param {boolean} condition a conditional value
+  * @param {message} string a message to log if the condition resolves to a falsy value
+  * 
   */
 const assert = (condition, message) => {
   if (!condition) {
@@ -230,18 +242,27 @@ const assert = (condition, message) => {
 /**
  * isNullOrUndefined
  * @desc returns true if the parameter is null or undefined
+ * @param {any} value the value to consider
+ * @returns {boolean} reflecting whether the value is null or undefined
+ * 
  */
 const isNullOrUndefined = (value) => typeof value === 'undefined' || value === null;
 
 /**
  * isStringEmpty
  * @desc checks if a string is empty
+ * @param {string|any} value the value to consider
+ * @returns {boolean} determines whether the value is (a) undefined; or (b) empty
+ * 
  */
 const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
 
 /**
  * isStringWhitespace
  * @desc checks if a string is compose of only whitespace
+ * @param {string} value the value to consider
+ * @returns {boolean} reflecting whether the string contains only whitespace
+ * 
  */
 const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;
 
@@ -285,12 +306,16 @@ const redirectToTarget = (elem) => {
  * 
  * e.g. usage:
  * 
- * const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
- *  if (!selected) {
- *    return;
- *  }
- *  console.log(files); --> [file_1, ..., file_n]
- * }});
+ * ```js
+ *  const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
+ *    if (!selected) {
+ *      return;
+ *    }
+ * 
+ *    console.log(files); --> [file_1, ..., file_n]
+ *  }});
+ * ```
+ * 
  */
 const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {
   const input = document.createElement('input');
@@ -318,9 +343,11 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
  * interpolateString
  * @desc Interpolate string template
  *       Ref @ https://stackoverflow.com/posts/41015840/revisions
+ * 
  * @param  {str} str The string to interpolate
  * @param  {object} params The parameters
  * @return {str} The interpolated string
+ * 
  */
 const interpolateString = (str, params) => {
   let names = Object.keys(params);
@@ -416,9 +443,10 @@ const tryGetRootNode = (item, expectedNode) => {
 /**
  * getDeltaDiff
  * @desc gets the delta diff between two objects
- * @param {*} lhs the original object
- * @param {*} rhs the object to compare it with
+ * @param {array} lhs the original object
+ * @param {array} rhs the object to compare it with
  * @returns {array} an array where the rows reflect the diff between both objects
+ * 
  */
 const getDeltaDiff = (lhs, rhs) => {
   return [...new Set([...Object.keys(lhs), ...Object.keys(rhs)])].reduce((filtered, key) => {
@@ -469,7 +497,7 @@ const hasDeltaDiff = (lhs, rhs) => {
  * @returns {list} a list of matches
  */
 const parseDOI = (value) => {
-  return value.match(DOI_PATTERN);
+  return value.match(CLU_DOI_PATTERN);
 }
 
 /**
@@ -559,7 +587,8 @@ const isArrayEqual = (a, b, shouldSort = true) => {
 }
 
 /**
- * showing loader when fetching data
+ * showLoader
+ * @desc showing loader when fetching data
  */
 const showLoader = () => {
   const loader = document.querySelector('.loading');
@@ -570,7 +599,8 @@ const showLoader = () => {
 }
 
 /**
- * hide loader when fetching data
+ * hideLoader
+ * @desc hide loader when fetching data
  */
 const hideLoader = () => {
   const loader = document.querySelector('.loading');

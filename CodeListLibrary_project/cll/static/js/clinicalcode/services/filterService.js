@@ -686,6 +686,13 @@ class FilterService {
   }
 }
 
+/**
+ * Main thread
+ * @desc initialises the filter service once the DOM
+ *       is resolved; and adds itself to the global scope
+ *       for use within other script(s)
+ * 
+ */
 domReady.finally(() => {
   const filters = new FilterService();
   window.filterService = filters;
