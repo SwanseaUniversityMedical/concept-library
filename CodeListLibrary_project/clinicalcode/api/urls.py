@@ -157,10 +157,10 @@ urlpatterns += [
     url(r'^ontology/$',
         Ontology.get_ontologies,
         name='ontology_list'),
-    url(r'^ontology/(?P<ontology_id>\d+)/$',
+    url(r'^ontology/detail/(?P<ontology_id>\d+)/$',
         Ontology.get_ontology_detail,
         name='ontology_list_by_name'),
-    url(r'^ontology/(?P<ontology_id>\d+)/(?P<node_id>\d+)/$',
+    url(r'^ontology/node/(?P<node_id>\d+)/$',
         Ontology.get_ontology_node,
         name='ontology_node_by_id'),
 ]

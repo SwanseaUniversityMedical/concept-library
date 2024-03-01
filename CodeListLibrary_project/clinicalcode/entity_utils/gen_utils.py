@@ -278,7 +278,7 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
             if limits is not None and (field_value < limits[0] or field_value > limits[1]):
                 return default
         return parse_int(field_value, default)
-    elif field_type == 'int_array':
+    elif field_type == 'int_array' or field_type == 'ontology':
         if isinstance(field_value, int):
             return [field_value]
         

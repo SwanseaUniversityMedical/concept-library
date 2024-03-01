@@ -25,7 +25,7 @@ def get_ontologies(request):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_ontology_detail(request, ontology_id):
     """
-        Get detail of specified ontology by ontology_id, including associated
+        Get specified ontology group detail by the ontology_id type, including associated
         data e.g. root nodes, children etc
     """
     ontology_id = gen_utils.parse_int(ontology_id, default=None)
@@ -39,7 +39,6 @@ def get_ontology_detail(request, ontology_id):
         )
 
     result = ontology_utils.try_get_ontology_data(ontology_id, default=None)
-
     if not isinstance(result, dict):
         return Response(
             data={
@@ -56,22 +55,14 @@ def get_ontology_detail(request, ontology_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_ontology_node(request, ontology_id, node_id):
+def get_ontology_node(request, node_id):
     """
         Get the element details of the specified ontology element by its
-        ontology_id and its source ontology_name, including associated data
-        e.g. tree-related information
-    """
-    ontology_id = gen_utils.parse_int(ontology_id, default=None)
-    if not isinstance(ontology_id, int):
-        return Response(
-            data={
-                'message': 'Invalid ontology id, expected valid integer'
-            },
-            content_type='json',
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        node_id including associated data
 
+            e.g. tree-related information
+
+    """
     node_id = gen_utils.parse_int(node_id, default=None)
     if not isinstance(node_id, int):
         return Response(
@@ -82,7 +73,7 @@ def get_ontology_node(request, ontology_id, node_id):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    result = ontology_utils.try_get_ontology_node_data(ontology_id, node_id, default=None)
+    result = ontology_utils.try_get_ontology_node_data(node_id, default=None)
     return Response(
         data=result,
         status=status.HTTP_200_OK

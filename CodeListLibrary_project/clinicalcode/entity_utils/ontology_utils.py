@@ -107,7 +107,105 @@ def try_get_ontology_model_data(ontology_ids, default=None):
 
     return output
 
-def try_get_ontology_node_data(ontology_id, node_id, model_label=None, default=None):
+def try_get_ontology_node_data(node_id, model_label=None, default=None):
+    """
+        Derives the ontology node data given the node id
+
+        Args:
+            node_id (int): the node id
+
+            default (any|None): the default return value
+
+        Returns:
+            Either (a) the default value if none are found,
+                or (b) a dict containing the associated node's data
+    """
+
+    try:
+        node = OntologyTag.objects.filter(id=node_id)
+        node = node.first() if node.exists() else None
+        if node is None:
+            return default
+
+        model_source = node.type_id
+        parents = node.parents.all()
+        if parents.count() > 0:
+            parents = parents.annotate(
+                    tree_dataset=JSONObject(
+                        id=F('id'),
+                        label=F('name'),
+                        parents=ArrayAgg('parents', distinct=True),
+                        isRoot=Case(
+                            When(
+                                Exists(OntologyTag.parents.through.objects.filter(
+                                    child_id=OuterRef('pk'),
+                                )),
+                                then=False
+                            ),
+                            default=True
+                        ),
+                        isLeaf=False,
+                        type_id=F('type_id'),
+                        atlas_id=F('atlas_id')
+                    )
+                ) \
+                .values_list('tree_dataset', flat=True)
+        else:
+            parents = []
+
+        children = node.children.all()
+        if children.count() > 0:
+            children = OntologyTag.objects.filter(id__in=children) \
+                .annotate(
+                    child_count=Count(F('children'))
+                ) \
+                .annotate(
+                    tree_dataset=JSONObject(
+                        id=F('id'),
+                        label=F('name'),
+                        isRoot=False,
+                        isLeaf=Case(
+                            When(child_count__lt=1, then=True),
+                            default=False
+                        ),
+                        parents=ArrayAgg('parents', distinct=True),
+                        type_id=F('type_id'),
+                        atlas_id=F('atlas_id'),
+                        child_count=F('child_count')
+                    )
+                ) \
+                .values_list('tree_dataset', flat=True)
+        else:
+            children = []
+
+        is_root = node.is_root()
+        is_leaf = node.is_leaf()
+
+        model_label = model_label or constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(model_source)]
+
+        result = {
+            'id': node_id,
+            'label': node.name,
+            'model': { 'source': model_source, 'label': model_label },
+            'parents': parents,
+            'children': children,
+            'isRoot': is_root,
+            'isLeaf': is_leaf,
+            'type_id': node.type_id,
+            'atlas_id': node.atlas_id,
+        }
+
+        if not is_root:
+            roots = [ { 'id': x.id, 'label': x.name } for x in node.roots() ]
+            result.update({ 'roots': roots })
+
+        return result
+    except:
+        pass
+
+    return default
+
+def try_get_ontology_group_node_data(ontology_id, node_id, model_label=None, default=None):
     """
         Derives the ontology node data given the model id name and the node id
 

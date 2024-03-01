@@ -214,7 +214,7 @@ export default class OntologySelectionService {
 
     const url = interpolateString(
       Constants.ENDPOINTS.FETCH_NODE,
-      { host: this.domain, source: src.toString(), id: id.toString() }
+      { host: this.domain, id: id.toString() }
     );
 
     const response = await fetch(url, { method: 'GET' });

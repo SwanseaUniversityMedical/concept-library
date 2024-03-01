@@ -16,6 +16,7 @@ from ..models.Code import Code
 from ..models.Tag import Tag
 from . import gen_utils
 from . import model_utils
+from . import ontology_utils
 from . import permission_utils
 from . import template_utils
 from . import concept_utils
@@ -90,7 +91,15 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 values.append(value)
         
         return values
-    
+    elif field_type == 'ontology':
+        values = []
+        for ontology_id in data:
+            item = ontology_utils.try_get_ontology_node_data(node_id=ontology_id, default=None)
+            if isinstance(item, dict):
+                values.append(item)
+
+        return values
+
     if template_utils.is_metadata(entity, field):
         return template_utils.get_metadata_value_from_source(entity, field, default=default)
     
@@ -132,32 +141,50 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
     validation = template_utils.try_get_content(template, 'validation')
     if validation:
         if 'source' in validation:
-            try:
-                source_info = validation.get('source')
-                model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
+            source_info = validation.get('source') or { }
+            model_name = source_info.get('table')
+            tree_models = source_info.get('trees')
 
-                if isinstance(data, list):
-                    query = {
-                        'pk__in': data
-                    }
+            if isinstance(tree_models, list):
+                try:
+                    model = apps.get_model(app_label='clinicalcode', model_name='OntologyTag')
+                    queryset = model.objects.filter(pk__in=data, type_id__in=tree_models)
+                    queryset = list(queryset.values_list('id', flat=True))
+
+                    if isinstance(data, list):
+                        return queryset if len(queryset) > 0 else default
+                except:
+                    return default
                 else:
-                    query = {
-                        'pk': data
-                    }
+                    return default
+            elif isinstance(model_name, str):
+                try:
+                    source_info = validation.get('source')
+                    model = apps.get_model(app_label='clinicalcode', model_name=model_name)
 
-                if 'filter' in source_info:
-                    filter_query = template_utils.try_get_filter_query(field, source_info.get('filter'), request=request)
-                    query = {**query, **filter_query}
-                
-                queryset = model.objects.filter(Q(**query))
-                queryset = list(queryset.values_list('id', flat=True))
+                    if isinstance(data, list):
+                        query = {
+                            'pk__in': data
+                        }
+                    else:
+                        query = {
+                            'pk': data
+                        }
 
-                if isinstance(data, list):
-                    return queryset if len(queryset) > 0 else default
-                else:
-                    return queryset[0] if len(queryset) > 0 else default
-            except:
-                return default
+                    if 'filter' in source_info:
+                        filter_query = template_utils.try_get_filter_query(field, source_info.get('filter'), request=request)
+                        query = {**query, **filter_query}
+                    
+                    queryset = model.objects.filter(Q(**query))
+                    queryset = list(queryset.values_list('id', flat=True))
+
+                    if isinstance(data, list):
+                        return queryset if len(queryset) > 0 else default
+                    else:
+                        return queryset[0] if len(queryset) > 0 else default
+                except:
+                    return default
+            return default
         elif 'options' in validation:
             options = validation['options']
 
