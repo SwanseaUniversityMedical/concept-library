@@ -30,7 +30,7 @@ class EntityModeration(TemplateView):
 
     return list(annotated.values(*self.template_fields))
 
-  @method_decorator([login_required])
+  @method_decorator([login_required, permission_utils.redirect_readonly])
   def dispatch(self, request, *args, **kwargs):
     user = request.user
     if user and (user.is_superuser or permission_utils.is_member(user, "Moderators")):

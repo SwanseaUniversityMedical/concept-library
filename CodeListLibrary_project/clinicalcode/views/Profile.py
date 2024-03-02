@@ -16,7 +16,7 @@ from ..entity_utils import permission_utils, model_utils, gen_utils
 class MyProfile(TemplateView):
   template_name = 'clinicalcode/profile/index.html'
 
-  @method_decorator([login_required])
+  @method_decorator([login_required, permission_utils.redirect_readonly])
   def dispatch(self, request, *args, **kwargs):
     return super(MyProfile, self).dispatch(request, *args, **kwargs)
 
@@ -52,7 +52,7 @@ class MyCollection(TemplateView):
 
     return list(annotated.values(*self.template_fields))
 
-  @method_decorator([login_required])
+  @method_decorator([login_required, permission_utils.redirect_readonly])
   def dispatch(self, request, *args, **kwargs):
     return super(MyCollection, self).dispatch(request, *args, **kwargs)
 
@@ -82,7 +82,7 @@ class MyCollection(TemplateView):
     context = self.get_context_data(*args, **kwargs)
     return render(request, self.template_name, context)
 
-  @method_decorator([login_required])
+  @method_decorator([login_required, permission_utils.redirect_readonly])
   def post(self, request, *args, **kwargs):
     if settings.CLL_READ_ONLY:
       return JsonResponse({

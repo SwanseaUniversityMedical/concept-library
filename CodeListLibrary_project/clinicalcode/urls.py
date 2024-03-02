@@ -70,6 +70,23 @@ urlpatterns = [
 
     ## Documentation for create
     url(r'^documentation/(?P<documentation>([A-Za-z0-9\-]+))/?$', DocumentationViewer.as_view(), name='documentation_viewer'),
+
+    ## Moderation
+    url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
+
+    ## Contact
+    url(r'^contact-us/$', View.contact_us, name='contact_us'),
+
+    # GenericEnities (Phenotypes)
+    ## Create / Update
+    url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+    url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
+    url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_phenotype'),
+
+    ## Publication
+    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/publish/$', Publish.Publish.as_view(),name='generic_entity_publish'),
+    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/decline/$', Decline.EntityDecline.as_view(),name='generic_entity_decline'),
+    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/submit/$', Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
 ]
 
 # Add sitemaps & robots if required
@@ -82,26 +99,8 @@ if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
 # Add non-readonly pages
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
-        # Base
-        ## Moderation
-        url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
-
-        ## Contact
-        url(r'^contact-us/$', View.contact_us, name='contact_us'),
-
         ## Data Source syncing with HDRUK
         url(r'^admin/run-datasource-sync/$', Admin.run_datasource_sync, name='datasource_sync'),
-
-        # GenericEnities (Phenotypes)
-        ## Create / Update
-        url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
-        url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
-        url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_phenotype'),
-
-        ## Publication
-        url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/publish/$', Publish.Publish.as_view(),name='generic_entity_publish'),
-        url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/decline/$', Decline.EntityDecline.as_view(),name='generic_entity_decline'),
-        url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/submit/$', Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
     ]
 
 # Tooling
