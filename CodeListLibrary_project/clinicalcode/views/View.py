@@ -20,6 +20,7 @@ from ..models.CodingSystem import CodingSystem
 from ..models.DataSource import DataSource
 from ..models.Statistics import Statistics
 from ..models.Tag import Tag
+from ..entity_utils.permission_utils import redirect_readonly
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ def technicalpage(request):
 def cookies_settings(request):
     return render(request, 'cookielaw/en.html', {})
 
-
+@redirect_readonly
 def contact_us(request):
     """
         Generation of Contact us page/form and email send functionality.

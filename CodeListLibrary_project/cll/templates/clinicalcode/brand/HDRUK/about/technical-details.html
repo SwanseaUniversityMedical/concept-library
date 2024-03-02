@@ -187,13 +187,9 @@
               <ul>
                 <li>
                   By using the
-                  {% if not CLL_READ_ONLY %}
-                    <a href="{% url 'create_phenotype' %}">
-                      Phenotype Builder
-                    </a>
-                  {% else %}
+                  <a href="{% url 'create_phenotype' %}">
                     Phenotype Builder
-                  {% endif %}
+                  </a>
                 </li>
                 <li>
                   By using the 
@@ -209,13 +205,9 @@
                 </li>
                 <li>
                   By 
-                  {% if not CLL_READ_ONLY %}
                     <a href="{% url 'contact_us' %}">
                       contacting us
                     </a>
-                  {% else %}
-                    contacting us
-                  {% endif %}
                 </li>
               </ul>
             </section>

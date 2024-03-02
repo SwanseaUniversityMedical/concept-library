@@ -21,13 +21,11 @@
           {% endfor %}
         {% endif %}
       
-        {% if not CLL_READ_ONLY %}
         {% url 'contact_us' as contact_us %}
         {% include "components/navigation/dropdown_list_item_full.html" with icon='message_icon' separator=True url=contact_us title="Contact us" %}
-      {% endif %}
 
-      {% url 'reference_data' as reference_data %}
-      {% include "components/navigation/dropdown_list_item.html" with icon='folder_icon' url=reference_data title="Reference data" %}
+        {% url 'reference_data' as reference_data %}
+        {% include "components/navigation/dropdown_list_item.html" with icon='folder_icon' url=reference_data title="Reference data" %}
       </ul>
     </div>
   </div>

@@ -23,6 +23,10 @@
           <h2>You don't have permission to view this</h2>
           <p>It looks like you're trying to access content that's not published yet.</p>
           <p>You'll be able to view this content once it's been published by the author.</p>
+        {% elif exception == "ERR_403_GATEWAY" %}
+          <h2>403: Forbidden</h2>
+          <p>You cannot complete this action whilst inside of the SAIL Gateway</p>
+          <p>Please visit the site outside of the gateway to continue with this action</p>
         {% else %}
           <h2>403: Forbidden</h2>
           <p>Apologies, but it seems as if you're not allowed to access this page.</p>
