@@ -290,7 +290,7 @@ class CreateEntityView(TemplateView):
         template_id = gen_utils.parse_int(template_id, default=None)
         if template_id is not None:
             template = model_utils.try_get_instance(Template, pk=template_id)
-            if template is None:
+            if template is None or template.hide_on_create:
                 raise BadRequest('Invalid request.')
             return self.create_form(request, context, template)
 
