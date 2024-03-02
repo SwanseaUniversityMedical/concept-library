@@ -211,7 +211,7 @@ export default class OntologySelectionService {
    * @returns {object} this class for chaining
    * 
    */
-  #computeComponentValue({ ancestors, value }) {
+  #computeComponentValue({ ancestors = undefined, value = [] } = { }) {
     this.value = Array.isArray(value) ? value : [];
     this.#originalValue = deepCopy(this.value);
 
