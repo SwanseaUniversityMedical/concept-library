@@ -224,12 +224,15 @@ def parse_int(value, default=0):
     """
         Attempts to parse an int from a value, if it fails to do so, returns the default value
     """
+    if isinstance(value, int):
+        return value
+
     if value is None:
         return default
-    
+
     try:
         value = int(value)
-    except ValueError:
+    except:
         return default
     else:
         return value
@@ -278,7 +281,7 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
             if limits is not None and (field_value < limits[0] or field_value > limits[1]):
                 return default
         return parse_int(field_value, default)
-    elif field_type == 'int_array' or field_type == 'ontology':
+    elif field_type == 'int_array':
         if isinstance(field_value, int):
             return [field_value]
         

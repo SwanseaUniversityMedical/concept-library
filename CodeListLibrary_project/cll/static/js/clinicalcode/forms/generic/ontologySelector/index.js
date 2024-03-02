@@ -14,15 +14,11 @@ export default class OntologySelectionService {
   #originalValue = null;
 
   constructor(element, phenotype, componentData, options) {
-    this.value = Array.isArray(componentData?.value) ? componentData.value : [];
-    this.#originalValue = deepCopy(this.value);
-
     this.domain = getBrandedHost();
-    this.dataset = componentData?.dataset;
     this.element = element;
     this.phenotype = phenotype;
 
-    this.#initialise(options);
+    this.#initialise(componentData, options);
   }
 
   /**
@@ -168,11 +164,17 @@ export default class OntologySelectionService {
    * initialise
    * @desc Initialises the class by resolving its component templates,
    *       handles any data & event initialisation, incl. any rendering
+   * @param {object} componentData component data, e.g. the dataset and associated value(s)
    * @param {object|null} options optional parameters
    */
-  #initialise(options) {
+  #initialise(componentData, options) {
     this.options = mergeObjects(options || { }, Constants.OPTIONS);
 
+    // Initialise component data
+    this.dataset = componentData?.dataset;
+    this.#computeComponentValue(componentData?.value);
+
+    // Initialise element & child template(s)
     const button = this.element.querySelector('#add-input-btn');
     button.addEventListener('click', this.#handleAddButton.bind(this));
 
@@ -198,6 +200,60 @@ export default class OntologySelectionService {
     }
     this.templates = templates;
     this.#renderCreateComponent();
+  }
+
+  /**
+   * computeComponentValue
+   * @desc computes the component data, given a dict containing the ancestry & value
+   * @param {object} param
+   * @param {object|null} param.ancestors   optional ancestor-related data to be spliced into the tree
+   * @param {array|null}  param.value       optional value for this field, e.g. when editing
+   * @returns {object} this class for chaining
+   * 
+   */
+  #computeComponentValue({ ancestors, value }) {
+    this.value = Array.isArray(value) ? value : [];
+    this.#originalValue = deepCopy(this.value);
+
+    if (Array.isArray(ancestors)) {
+      for (let i = 0; i < ancestors.length; ++i) {
+        let nodeList = ancestors[i];
+        if (!Array.isArray(nodeList)) {
+          continue;
+        }
+
+        for (let j = 0; j < nodeList.length; ++j) {
+          let node = nodeList[j];
+          let dataset = this.dataset.findIndex(x => x.model.source == node.type_id);
+          dataset = dataset >= 0 ? this.dataset[dataset] : null;
+          if (isNullOrUndefined(dataset)) {
+            continue;
+          }
+
+          OntologySelectionService.applyToTree(dataset.nodes, elem => {
+            if (elem.id !== node.id) {
+              return false;
+            }
+
+            if (node?.children && elem?.children) {
+              for (let k = 0; k < node.children; ++k) {
+                let child = node.children[k];
+                if (!isNullOrUndefined(elem.children.find(x => x.id === child.id))) {
+                  continue;
+                }
+
+                elem.children.push(child);
+              }
+            } else {
+              elem.children = node.children;
+            }
+            elem.parents = node.parents;
+
+            return true;
+          });
+        }
+      }
+    }
   }
 
   /**
@@ -761,7 +817,7 @@ export default class OntologySelectionService {
             const elem = dataset.nodes[i];
             const { id } = elem;
             if (id === node.id) {
-              const newChildren = node.children.filter(x => !elem?.children || elem.children.indexOf(e => e.id === x.id) < 0);
+              const newChildren = node.children.filter(x => !elem?.children || elem.children.findIndex(e => e.id === x.id) < 0);
               const newAncestors = node.parents.filter(x => !elem?.parents || !elem.parents.includes(x.id));
               elem.children = [...deepCopy(newChildren), ...(elem?.children || [])];
               elem.parents = [...deepCopy(newAncestors), ...(elem?.parents || [])];
@@ -771,7 +827,7 @@ export default class OntologySelectionService {
           OntologySelectionService.applyToTree(dataset.nodes, elem => {
             const { id } = elem;
             if (id === node.id) {
-              const newChildren = node.children.filter(x => !elem?.children || elem.children.indexOf(e => e.id === x.id) < 0);
+              const newChildren = node.children.filter(x => !elem?.children || elem.children.findIndex(e => e.id === x.id) < 0);
               const newAncestors = node.parents.filter(x => !elem?.parents || !elem.parents.includes(x.id));
               elem.children = [...deepCopy(newChildren), ...(elem?.children || [])];
               elem.parents = [...deepCopy(newAncestors), ...(elem?.parents || [])];
@@ -810,7 +866,7 @@ export default class OntologySelectionService {
             if (!Array.isArray(elem.children)) {
               elem.children = [...deepCopy(mapped[id])];
             } else {
-              const related = mapped[id].filter(e => elem.children.indexOf(x => x.id === e.id) < 0);
+              const related = mapped[id].filter(e => elem.children.findIndex(x => x.id === e.id) < 0);
               for (let i = 0; i < related; ++i) {
                 elem.children.push(deepCopy(related[i]));
               }

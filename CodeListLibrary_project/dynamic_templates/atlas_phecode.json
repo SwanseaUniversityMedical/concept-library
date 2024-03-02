@@ -2,7 +2,7 @@
   "template_details": {
     "version": 1,
     "name": "Atlas Phecode Phenotype",
-    "description": "A manually curated group of clinical codes intended to capture clinically meaningful concepts for research",
+    "description": "A manually curated group of clinical codes intended to capture clinically meaningful concepts for research.",
     "card_type": "clinical"
   },
 
@@ -99,7 +99,7 @@
       "field_type": "ontology",
       "active": true,
       "validation": {
-        "type": "ontology",
+        "type": "int_array",
         "mandatory": false,
         "source": {
           "trees": [ 0, 1, 2 ]
@@ -145,7 +145,7 @@
     "source_reference": {
       "title": "Disease Atlas Reference",
       "description": "If applicable: the Disease Atlas Phenotype URL associated with this entity.",
-      "field_type": "string_inputbox",
+      "field_type": "source_reference",
       "active": true,
       "validation": {
         "type": "string",

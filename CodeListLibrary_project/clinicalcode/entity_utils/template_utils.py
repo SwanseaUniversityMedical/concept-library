@@ -651,7 +651,16 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
         if output is not None:
             return [output]
     elif field_type == 'int_array':
-        if 'source' in validation:
+        source_info = validation.get('source')
+        if not source_info:
+            return default
+
+        model_name = source_info.get('table')
+        tree_models = source_info.get('trees')
+
+        if isinstance(tree_models, list):
+            return ontology_utils.get_detailed_sourced_ontology_value(data, tree_models, default=default)
+        elif isinstance(model_name, str):
             values = [ ]
             for item in data:
                 value = get_detailed_sourced_value(item, info) 

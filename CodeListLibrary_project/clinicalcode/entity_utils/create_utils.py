@@ -1,7 +1,7 @@
+from django.db import transaction, IntegrityError
 from django.apps import apps
 from django.db.models import Q
 from django.utils.timezone import make_aware
-from django.db import transaction, IntegrityError
 from datetime import datetime
 
 from ..models.EntityClass import EntityClass
@@ -91,14 +91,11 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 values.append(value)
         
         return values
-    elif field_type == 'ontology':
-        values = []
-        for ontology_id in data:
-            item = ontology_utils.try_get_ontology_node_data(node_id=ontology_id, default=None)
-            if isinstance(item, dict):
-                values.append(item)
-
-        return values
+    elif field_type == 'int_array':
+        source_info = validation.get('source')
+        tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
+        if isinstance(tree_models, list):
+            return ontology_utils.try_get_ontology_creation_data(node_ids=data, type_ids=tree_models, default=default)
 
     if template_utils.is_metadata(entity, field):
         return template_utils.get_metadata_value_from_source(entity, field, default=default)
