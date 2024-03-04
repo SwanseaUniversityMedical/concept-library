@@ -1,5 +1,3 @@
-from faker import Faker
-
 import json
 
 from . import utils
@@ -60,6 +58,8 @@ class Graph:
 
     @property
     def nodes(self):
+        from faker import Faker
+
         fake = Faker()
         nodes = [ ]
         for edge in self.network:
