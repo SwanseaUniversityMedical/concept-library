@@ -4,8 +4,9 @@ from django.db.models.query import QuerySet
 
 from . import concept_utils
 from . import filter_utils
-from . import ontology_utils
 from . import constants
+
+from ..models.OntologyTag import OntologyTag
 
 def try_get_content(body, key, default=None):
     """
@@ -483,7 +484,7 @@ def get_template_sourced_values(template, field, default=None, request=None):
         tree_models = source_info.get('trees')
 
         if isinstance(tree_models, list):
-            output = ontology_utils.try_get_ontology_model_data(tree_models, default=default)
+            output = OntologyTag.get_groups(tree_models, default=default)
             if isinstance(output, list):
                 return output
         elif isinstance(model_name, str):
@@ -659,7 +660,7 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
         tree_models = source_info.get('trees')
 
         if isinstance(tree_models, list):
-            return ontology_utils.get_detailed_sourced_ontology_value(data, tree_models, default=default)
+            return OntologyTag.get_detailed_source_value(data, tree_models, default=default)
         elif isinstance(model_name, str):
             values = [ ]
             for item in data:

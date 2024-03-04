@@ -12,11 +12,12 @@ from ..models.Concept import Concept
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Component import Component
 from ..models.CodeList import CodeList
+from ..models.OntologyTag import OntologyTag
 from ..models.Code import Code
 from ..models.Tag import Tag
+
 from . import gen_utils
 from . import model_utils
-from . import ontology_utils
 from . import permission_utils
 from . import template_utils
 from . import concept_utils
@@ -95,7 +96,7 @@ def get_template_creation_data(request, entity, layout, field, default=None):
         source_info = validation.get('source')
         tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
         if isinstance(tree_models, list):
-            return ontology_utils.try_get_ontology_creation_data(node_ids=data, type_ids=tree_models, default=default)
+            return OntologyTag.get_creation_data(node_ids=data, type_ids=tree_models, default=default)
 
     if template_utils.is_metadata(entity, field):
         return template_utils.get_metadata_value_from_source(entity, field, default=default)
