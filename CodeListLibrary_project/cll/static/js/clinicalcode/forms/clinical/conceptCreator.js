@@ -347,6 +347,8 @@ const CONCEPT_CREATOR_TEXT = {
   CONCEPT_UPDATE_FAILED: 'Failed to update Concept, please try again.',
 }
 
+
+
 /**
  * ConceptCreator
  * @desc A class that can be used to control concept creation
@@ -842,6 +844,9 @@ export default class ConceptCreator {
 
     const importBtn = this.element.querySelector('#import-concept-btn');
     importBtn.addEventListener('click', this.#handleConceptImporting.bind(this));
+
+    const addAttrBtn = this.element.querySelector('#add-concept-attribute-btn');
+    addAttrBtn.addEventListener('click', this.#handleAttributeCreation.bind(this));
   }
 
   /*************************************
@@ -2312,6 +2317,21 @@ export default class ConceptCreator {
       })
   }
 
+  /**
+   * handleAttributeCreation
+   * @desc handles the creation of a new attribute
+   */
+
+  #handleAttributeCreation(e){
+    this.tryCloseEditor()
+    .then(() => {
+      window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CLOSE_EDITOR)
+        .then(resolve)
+        .catch(reject);
+    })
+
+
+  }
   /**
    * handleConceptCreation
    * @desc handles the creation of a concept when the user selects the 'Add Concept' button
