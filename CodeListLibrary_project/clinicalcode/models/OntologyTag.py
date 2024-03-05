@@ -223,6 +223,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					tree_dataset=JSONObject(
 						id=F('id'),
 						label=F('name'),
+						properties=F('properties'),
 						isLeaf=Case(
 							When(child_count__lt=1, then=True),
 							default=False
@@ -291,6 +292,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 						tree_dataset=JSONObject(
 							id=F('id'),
 							label=F('name'),
+							properties=F('properties'),
 							isRoot=Case(
 								When(
 									Exists(OntologyTag.parents.through.objects.filter(
@@ -321,6 +323,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 						tree_dataset=JSONObject(
 							id=F('id'),
 							label=F('name'),
+							properties=F('properties'),
 							isRoot=False,
 							isLeaf=Case(
 								When(child_count__lt=1, then=True),
@@ -345,6 +348,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 				'id': node_id,
 				'label': node.name,
 				'model': { 'source': model_source, 'label': model_label },
+				'properties': node.properties,
 				'isRoot': is_root,
 				'isLeaf': is_leaf,
 				'type_id': node.type_id,
@@ -429,6 +433,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 							   jsonb_build_object(
 									'id', nodes.id,
 									'label', nodes.name,
+									'properties', nodes.properties,
 									'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
 									'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
 									'type_id', nodes.type_id,

@@ -740,7 +740,7 @@ const isElementSizeExplicit = (element, axes = undefined) => {
     container.appendTo(document.body);
   }
 
-  let elementClone = element.clone();
+  let elementClone = element.cloneNode(true);
   elementClone.appendTo(container);
 
   let elementRect = elementClone.getBoundingClientRect();

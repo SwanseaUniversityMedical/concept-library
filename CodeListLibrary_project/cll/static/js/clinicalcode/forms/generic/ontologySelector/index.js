@@ -22,6 +22,30 @@ export default class OntologySelectionService {
   }
 
   /**
+   * getLabel
+   * @desc derives the label from a given node,
+   *       adding any additional properties if available
+   * @param {object} node the given node
+   * @returns {string} the associated label
+   * 
+   */
+  static getLabel(node) {
+    if (typeof(node) !== 'object' || Array.isArray(node)) {
+      return '';
+    }
+
+    let { label = '', properties = undefined } = node;
+    if (!isNullOrUndefined(properties)) {
+      let code = properties?.code;
+      if (typeof(code) === 'string') {
+        label = `${label} (${code})`;
+      }
+    }
+
+    return label;
+  }
+
+  /**
    * applyToTree
    * @desc static method to apply a callback to each node in a tree.
    * 
@@ -87,7 +111,7 @@ export default class OntologySelectionService {
     for (let i = 0; i < length; ++i) {
       node = data[i];
       if (node?.checked === true && (!node?.children || node?.children.length === node?.child_count)) {
-        const result = { id: node.id, type_id: node.type_id, label: node.label };
+        const result = { id: node.id, type_id: node.type_id, label: node?.label };
         if (callback) {
           callback(result);
         }
@@ -171,7 +195,19 @@ export default class OntologySelectionService {
     this.options = mergeObjects(options || { }, Constants.OPTIONS);
 
     // Initialise component data
-    this.dataset = componentData?.dataset;
+    const dataset = componentData?.dataset;
+    if (!isNullOrUndefined(dataset)) {
+      for (let i = 0; i < dataset.length; ++i) {
+        OntologySelectionService.applyToTree(dataset[i].nodes, elem => {
+          if (typeof(elem?.label) === 'string' && !elem?.processed) {
+            elem.label = OntologySelectionService.getLabel(elem);
+            elem.processed = true;
+          }
+        });
+      }
+    }
+
+    this.dataset = dataset || [];
     this.#computeComponentValue(componentData?.value);
 
     // Initialise element & child template(s)
@@ -213,9 +249,15 @@ export default class OntologySelectionService {
    */
   #computeComponentValue({ ancestors = undefined, value = [] } = { }) {
     this.value = Array.isArray(value) ? value : [];
-    this.#originalValue = deepCopy(this.value);
 
     if (Array.isArray(ancestors)) {
+      OntologySelectionService.applyToTree(ancestors, elem => {
+        if (typeof(elem?.label) === 'string' && !elem?.processed) {
+          elem.label = OntologySelectionService.getLabel(elem);
+          elem.processed = true;
+        }
+      });
+
       for (let i = 0; i < ancestors.length; ++i) {
         let nodeList = ancestors[i];
         if (!Array.isArray(nodeList)) {
@@ -254,6 +296,18 @@ export default class OntologySelectionService {
         }
       }
     }
+
+    for (let j = 0; j < this.value.length; ++j) {
+      let selected = this.value[j];
+      if (selected?.processed) {
+        continue;
+      }
+
+      selected.label = OntologySelectionService.getLabel(selected);
+      selected.processed = true;
+    }
+
+    this.#originalValue = deepCopy(this.value);
   }
 
   /**
@@ -417,7 +471,6 @@ export default class OntologySelectionService {
       component.resizeItems(sizes);
     }
   }
-
 
   /*************************************
    *                                   *
@@ -803,6 +856,13 @@ export default class OntologySelectionService {
       .then(async node => {
         const isRoot = node.isRoot;
         const isLeaf = node.isLeaf;
+
+        OntologySelectionService.applyToTree(node.children, elem => {
+          if (typeof(elem?.label) === 'string' && !elem?.processed) {
+            elem.label = OntologySelectionService.getLabel(elem);
+            elem.processed = true;
+          }
+        });
 
         if (isRoot) {
           for (let i = 0; i < dataset.nodes.length; ++i) {
