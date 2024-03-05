@@ -3,6 +3,7 @@ from django.db import models, transaction, connection
 from django.db.models import F, Count, Max, Case, When, Exists, OuterRef
 from django.db.models.query import QuerySet
 from django.db.models.functions import JSONObject
+from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django_postgresql_dag.models import node_factory, edge_factory
 
@@ -67,6 +68,14 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 	# Metadata
 	class Meta:
 		ordering = ('type_id', 'id', )
+
+		indexes = [
+			models.Index(fields=['id', 'type_id']),
+			GinIndex(
+				name='ot_name_gin_idx',
+				fields=['name']
+			),
+		]
 
 	# Dunder methods
 	def __str__(self):
