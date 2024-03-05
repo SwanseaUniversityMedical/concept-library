@@ -54,6 +54,7 @@ export default class VirtualisedList extends EventTarget {
   #renderables = [];
   #containerHeight = 0;
   #computeRenderable = (index, height) => { };
+  #paintRenderable = (elem, index, height) => { };
   #debouncedScrollEnd = null;
 
   constructor(element, options) {
@@ -255,7 +256,8 @@ export default class VirtualisedList extends EventTarget {
     }
 
     const item = this.#components.contentContainer.querySelector(`[data-key="${index}"]`);
-    if (!isNullOrUndefined(item) && 'height' in item.style) {
+    const size = !isNullOrUndefined(item) ? hasFixedElementSize(item, ['height']) : false;
+    if (size && size?.height) {
       item.style.height = `${height}px`;
     }
 
@@ -290,7 +292,8 @@ export default class VirtualisedList extends EventTarget {
       }
 
       let item = container.querySelector(`[data-key="${index}"]`);
-      if (!isNullOrUndefined(item) && 'height' in item.style) {
+      let size = !isNullOrUndefined(item) ? hasFixedElementSize(item, ['height']) : false;
+      if (size && size?.height) {
         item.style.height = `${height}px`;
       }
 
@@ -377,6 +380,7 @@ export default class VirtualisedList extends EventTarget {
     this.overscanLength = options.overscanLength;
 
     this.#computeRenderable = options.onRender;
+    this.#paintRenderable = options.onPaint;
     this.#debouncedScrollEnd = new DebouncedTask(this.#onScrollEnd.bind(this), Constants.VL_DEBOUNCE);
 
     const components = this.#buildComponent();
@@ -479,7 +483,8 @@ export default class VirtualisedList extends EventTarget {
         continue;
       }
 
-      contentContainer.appendChild(child);
+      child = contentContainer.appendChild(child);
+      this.#paintRenderable(child, i, this.sizes[i] || this.height);
     }
     scrollingFrame.append(topPadding, contentContainer, bottomPadding);
 
@@ -548,10 +553,15 @@ export default class VirtualisedList extends EventTarget {
       let anchor = VirtualisedList.findBoundary(elements, index, siblingComparator);
       anchor = !isNullOrUndefined(anchor) ? elements[anchor] : null;
 
+      let child;
       if (isNullOrUndefined(anchor)) {
-        contentContainer.appendChild(this.getItem(index));
+        child = contentContainer.appendChild(this.getItem(index));
       } else if (index != anchor?.dataset?.key) {
-        contentContainer.insertBefore(this.getItem(index), anchor);
+        child = contentContainer.insertBefore(this.getItem(index), anchor);
+      }
+
+      if (!isNullOrUndefined(child)) {
+        this.#paintRenderable(child, index, this.sizes[index] || this.height);
       }
     }
     scrollingFrame.scrollTop = offsetY;

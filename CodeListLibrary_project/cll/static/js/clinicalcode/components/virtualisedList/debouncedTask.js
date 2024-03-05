@@ -4,21 +4,22 @@
  * 
  */
 export default class DebouncedTask extends Function {
-  #task = () => { };
-  #delay = 100;
-  #handle = null;
-  #result = null;
-  #params = { ctx: undefined, args: undefined };
-  #lastCalled = 0;
+  handle = null;
+
+  task = () => { };
+  delay = 100;
+  result = null;
+  params = { ctx: undefined, args: undefined };
+  lastCalled = 0;
 
   constructor(task, delay) {
     assert(typeof(task) === 'function', `Expected fn for task but got "${typeof(task)}"`);
 
     super();
-    this.#task = task;
-    this.#delay = (typeof(delay) === 'number' && !isNaN(delay)) ? Math.max(0, delay) : this.#delay;
+    this.task = task;
+    this.delay = (typeof(delay) === 'number' && !isNaN(delay)) ? Math.max(0, delay) : this.delay;
 
-    return Object.setPrototypeOf(task, new.target.prototype);
+    return Object.setPrototypeOf(this.__proto__.__call__.bind(this), new.target.prototype);
   }
 
 
@@ -37,16 +38,18 @@ export default class DebouncedTask extends Function {
    * 
    */
   flush() {
-    const hnd = this.#handle;
+    const hnd = this.handle;
     if (isNullOrUndefined(hnd)) {
       return;
     }
 
-    const { ctx, args } = this.#params;
-    this.#params.ctx = undefined;
-    this.#params.args = undefined;
+    const now = performance.now();
+    const { ctx, args = undefined } = this.params;
+    this.params.ctx = undefined;
+    this.params.args = undefined;
 
-    this.#result = this.#task.apply(ctx, args);
+    this.result = this.task.apply(ctx, args);
+    this.lastCalled = now;
 
     return this.clear();
   }
@@ -58,14 +61,13 @@ export default class DebouncedTask extends Function {
    * 
    */
   clear() {
-    const hnd = this.#handle;
+    const hnd = this.handle;
     if (isNullOrUndefined(hnd)) {
       return;
     }
-
     clearTimeout(hnd);
 
-    this.#handle = null;
+    this.handle = null;
     return this;
   }
 
@@ -81,20 +83,28 @@ export default class DebouncedTask extends Function {
    * @desc handles the deferred method call of the associated task
    * 
    */
-  #deferredCall() {
-    const delay = this.#delay
-    const elapsed = performance.now() - this.#lastCalled;
+  deferredCall() {
+    const now = performance.now();
+    const delay = this.delay;
+    const elapsed = now - this.lastCalled;
+
     if (elapsed < delay && elapsed > 0) {
-      this.#handle = setTimeout(later, delay - elapsed);
+      let hnd = this?.handle;
+      if (hnd) {
+        clearTimeout(hnd);
+      }
+
+      this.handle = setTimeout(() => this.deferredCall(true), elapsed - delay);
       return;
     }
 
-    this.#handle = null;
+    this.handle = null;
 
-    const { ctx, args } = this.#params;
-    this.#params.ctx = undefined;
-    this.#params.args = undefined;
-    this.#result = this.#task.apply(ctx, args);
+    const { ctx, args = undefined } = this.params;
+    this.params.ctx = undefined;
+    this.params.args = undefined;
+    this.result = this.task.apply(ctx, args);
+    this.lastCalled = now;
   }
 
 
@@ -116,19 +126,18 @@ export default class DebouncedTask extends Function {
    *  
    */
   __call__(...args) {
-    console.log('CALL');
-    const { ctx } = this.#params;
+    const { ctx } = this.params;
     if (ctx && this !== ctx) {
-      throw new Error('huh?');
+      throw new Error('[DebouncedTask] Context mismatch');
     }
 
-    this.#params.ctx = this;
-    this.#params.args = args;
+    this.params.ctx = this;
+    this.params.args = args;
 
-    if (isNullOrUndefined(this.#handle)) {
-      this.#handle = setTimeout(this.#deferredCall.bind(this), this.#delay);
+    if (isNullOrUndefined(this.handle)) {
+      this.handle = setTimeout(this.deferredCall.bind(this), this.delay);
     }
 
-    return this.#result;
+    return this.result;
   }
 }

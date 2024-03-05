@@ -1,6 +1,6 @@
 import * as Constants from './constants.js';
 import OntologySelectionModal from './modal.js';
-import VirtualisedList, { DeferredThreadGroup } from '../../../components/virtualisedList/index.js';
+import VirtualisedList, { DebouncedTask } from '../../../components/virtualisedList/index.js';
 
 /**
  * @class OntologySelectionService
@@ -375,22 +375,15 @@ export default class OntologySelectionService {
    * 
    *       Ref @ https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
    * 
-   * @returns {object<observer: ResizeObserver, group: DeferredThreadGroup>} the resulting instances
+   * @returns {object{observer: ResizeObserver, group: DebouncedTask}} the resulting instances
    * 
    */
   #instantiateObserverGroup() {
-    let handle = undefined,
-        computeBlockSizes = this.#computeBlockSizes.bind(this);
-
-    const threadGroup = new DeferredThreadGroup();
+    let debouncedTask = new DebouncedTask(this.#computeBlockSizes.bind(this), 200);
     return {
-      group: threadGroup,
+      group: debouncedTask,
       observer: new ResizeObserver(() => {
-        if (handle) {
-          threadGroup.cancel(handle);
-        }
-
-        handle = threadGroup.push(computeBlockSizes);
+        debouncedTask();
       }),
     }
   }
@@ -512,19 +505,23 @@ export default class OntologySelectionService {
       })
       .finally(() => {
         if (renderable === this.renderable) {
-          let resizeObserverGroup = this?.resizeObserverGroup;
-          if (!isNullOrUndefined(resizeObserverGroup)) {
-            resizeObserverGroup.observer.disconnect();
-            delete resizeObserverGroup.observer;
-
-            resizeObserverGroup.group.clear();
-            delete resizeObserverGroup.group;
-          }
-
           this.renderable = null;
           this.activeData = null;
           this.activeItem = null;
           this.selectedItems = null;
+        }
+
+        let resizeObserverGroup = renderable.resizeObserverGroup;
+        if (!isNullOrUndefined(resizeObserverGroup)) {
+          if (resizeObserverGroup?.observer) {
+            resizeObserverGroup.observer.disconnect();
+            delete resizeObserverGroup.observer;
+          }
+
+          if (resizeObserverGroup?.group) {
+            resizeObserverGroup.group.clear();
+            delete resizeObserverGroup.group;
+          }
         }
       });
   }
@@ -596,6 +593,17 @@ export default class OntologySelectionService {
       {
         count: selectedLength,
         height: 0,
+        onPaint: (elem, index, height) => {
+          if (!elem.parentElement) {
+            return;
+          }
+
+          onElementRemoved(elem)
+            .then(() => resizeObserverGroup?.observer?.unobserve(elem))
+            .catch(console.error);
+
+          resizeObserverGroup?.observer?.observe(elem);
+        },
         onRender: (index, height) => {
           let selectedItem = selectedItems[index];
           if (!selectedItem) {
@@ -613,22 +621,6 @@ export default class OntologySelectionService {
           
           const btn = component.querySelector('[data-target="delete"]');
           btn.addEventListener('click', this.#handleDeleteButton.bind(this));
-
-          if (height == 0) {
-            setTimeout(() => {
-              if (!component.parentElement) {
-                return;
-              }
-
-              onElementRemoved(component)
-                .then(() => {
-                  resizeObserverGroup.observer.unobserve(component);
-                })
-                .catch(console.error);
-
-              resizeObserverGroup.observer.observe(component);
-            }, 100);
-          }
 
           return component;
         }

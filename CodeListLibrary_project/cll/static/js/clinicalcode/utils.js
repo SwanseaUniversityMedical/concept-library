@@ -666,3 +666,98 @@ const convertMarkdownData = (parent) => {
 
   return content;
 }
+
+/**
+ * hasFixedElementSize
+ * @desc det. whether an element's height/width is fixed
+ * @param {node} element
+ * @param {string[]} axes which axes to consider - if undefined/null is passed then both height and width will be examined
+ * @returns {object} an object describing whether the element is has a fixed size for the given axis
+ *                   _e.g._ `{ width: false, height: true }`
+ * 
+ */
+const hasFixedElementSize = (element, axes = undefined) => {
+  if (Array.isArray(axes)) {
+    axes = axes.reduce((filtered, e) => {
+      if (typeof(e) === 'string') {
+        let value = e.toLowerCase();
+        if (value === 'width' || value === 'height') {
+          filtered.push(value);
+        }
+      }
+
+      return filtered;
+    }, []);
+  }
+
+  if (!Array.isArray(axes) || axes.length < 1) {
+    axes = ['width', 'height'];
+  }
+
+  const results = { };
+  for (let i = 0; i < axes.length; ++i) {
+    let axis = axes[i];
+    let size = element.style?.[axis];
+    results[axis] = typeof(size) === 'string' ? (/\d/.test(size) && !/^(100|9\d)\%/.test(size)) : false;
+  }
+
+  return results;
+}
+
+
+/**
+ * isElementSizeExplicit
+ * @desc det. whether an element's height or width is explicit
+ * @param {node} element the element to examine
+ * @param {string[]} axes which axes to consider - if undefined/null is passed then both height and width will be examined
+ * @returns {object} an object describing whether the element is explicitly sized alongside its current size
+ *                   _e.g._ `{ width: { size: 10, explicit: false } }`
+ * 
+ */
+const isElementSizeExplicit = (element, axes = undefined) => {
+  const results = { };
+  if (Array.isArray(axes)) {
+    axes = axes.reduce((filtered, e) => {
+      if (typeof(e) === 'string') {
+        let value = e.toLowerCase();
+        if (value === 'width' || value === 'height') {
+          filtered.push(value);
+        }
+      }
+
+      return filtered;
+    }, []);
+  }
+
+  if (!Array.isArray(axes) || axes.length < 1) {
+    axes = ['width', 'height'];
+  }
+
+  let container = document.querySelector('div#util-explicit-size');
+  if (isNullOrUndefined(container)) {
+    container = document.createElement('div');
+    container.setAttribute('style', 'visibility: hidden !important; position: absolute !important;');
+    container.appendTo(document.body);
+  }
+
+  let elementClone = element.clone();
+  elementClone.appendTo(container);
+
+  let elementRect = elementClone.getBoundingClientRect();
+  for (let i = 0; i < axes.length; ++i) {
+    let axis = axes[i];
+    results[axis] = { size: elementRect?.[axis], explicit: true };
+  }
+  elementClone.innerHTML = '';
+
+  elementRect = elementClone.getBoundingClientRect();
+  for (const [ axis, packet ] of Object.entries(results)) {
+    let size = packet?.size;
+    let curr = elementRect?.[axis];
+    if (curr < size) {
+      results[axis].explicit = false;
+    }
+  }
+
+  return results;
+}

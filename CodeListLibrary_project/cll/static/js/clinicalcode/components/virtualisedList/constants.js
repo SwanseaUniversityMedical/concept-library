@@ -19,6 +19,7 @@ export const
   VL_DEFAULT_OPTS = {
     count: 0,
     height: 0,
+    onPaint: (elem, index, height) => { },
     onRender: (index, height) => { },
     overscanLength: 0,
   },
