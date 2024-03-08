@@ -526,6 +526,7 @@ export default class ConceptCreator {
       allowMultiple: true,
     });
 
+
     return prompt.show()
       .then((data) => {
         return this.#tryRetrieveCodelists(data);
@@ -2323,15 +2324,15 @@ export default class ConceptCreator {
    */
 
   #handleAttributeCreation(e){
-    this.tryCloseEditor()
-    .then(() => {
-      window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CLOSE_EDITOR)
-        .then(resolve)
-        .catch(reject);
-    })
+    const attribute_component = this.templates['attribute-component'];
 
+    console.log(attribute_component)
+      window.ModalFactory.create({
+        title: 'Add attribute',
+        content: attribute_component
 
-  }
+    }
+    )}
   /**
    * handleConceptCreation
    * @desc handles the creation of a concept when the user selects the 'Add Concept' button
