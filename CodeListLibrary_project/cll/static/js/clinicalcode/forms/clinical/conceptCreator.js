@@ -2325,12 +2325,10 @@ export default class ConceptCreator {
 
   #handleAttributeCreation(e){
     const attribute_component = this.templates['attribute-component'];
-
     console.log(attribute_component)
       window.ModalFactory.create({
         title: 'Add attribute',
         content: attribute_component
-
     }
     )}
   /**
