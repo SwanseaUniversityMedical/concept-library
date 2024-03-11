@@ -555,3 +555,37 @@ const startLoadingSpinner = (container) => {
 
   return spinner;
 }
+
+/**
+ * transpileMarkdownData
+ * @desc converts HTML Markdown representation into a string
+ * @param {node} parent the data node
+ * @returns {string} a string representing the HTML Markdown Data
+ */
+const convertMarkdownData = (parent) => {
+  let content = '';
+  for (const child of parent.childNodes) {
+    const tagName = child.tagName;
+    if (tagName == 'BR' || (tagName == 'DIV' && !child.querySelector('br'))) {
+      content += '\n';
+    }
+
+    if (child instanceof Text) {
+      let textContent = child.textContent
+      let isEmptyContent = isStringEmpty(textContent) || isStringWhitespace(textContent);
+      if (child.previousSibling && !isEmptyContent) {
+        textContent = '\n' + textContent;
+      } else if (isEmptyContent) {
+        textContent = '\n';
+      }
+
+      content += textContent;
+      continue;
+    }
+
+    const prefix = child.previousSibling ? '\n' : '';
+    content += prefix + convertMarkdownData(child);
+  }
+
+  return content;
+}

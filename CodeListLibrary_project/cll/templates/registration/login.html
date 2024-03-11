@@ -29,13 +29,9 @@
 							<p>
 								We're registering users by request at the moment. If you would like to
 								request an account, please use the 
-								{% if not CLL_READ_ONLY %}
-									<a href="{% url 'contact_us' %}">
-										contact form.
-									</a>
-								{% else %}
+								<a href="{% url 'contact_us' %}">
 									contact form.
-								{% endif %}
+								</a>
 							</p>
             </div>
             <div class="login-container__info-container__section">

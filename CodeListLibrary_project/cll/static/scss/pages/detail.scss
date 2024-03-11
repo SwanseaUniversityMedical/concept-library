@@ -64,26 +64,35 @@
   
     padding: 0.5rem 0.5rem 0.5rem 0.5rem;
   
+    span {
+      padding-left: 0rem;
+      color: col(text-dark);
+      font-weight: normal;
+      line-height: 1;
+      margin: 0.25rem auto;
+    }
+  
+    p {
+      line-height: 1;
+      padding: 0.5rem 0rem 0.2rem 0rem;
+      margin: 0.5rem 0 0.2rem 0;
+    }
+
     h1 {
       font-size: var(--phenotype-article-h1-size);
       font-weight: var(--phenotype-article-h1-weight);
       color: col(text-darkest);
       line-height: 1;
-      margin: 1rem auto;
-    }
-  
-    span {
-      padding-left: 1rem;
-      color: col(text-dark);
-      font-weight: normal;
-      line-height: 1;
-      margin: 0.5rem auto;
-    }
-  
-    p {
-      line-height: 1;
-      padding: 0.2rem 0.2rem 0.2rem 0.2rem;
-      margin: 0.2rem 0.2rem;
+      margin: 0 0 0.5rem 0;
+
+      & + p {
+        position: relative;
+        display: inline;
+        color: col(text-dark);
+        font-weight: normal;
+        line-height: 1;
+        margin: 0;
+      }
     }
   }
 }

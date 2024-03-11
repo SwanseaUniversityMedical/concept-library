@@ -1,7 +1,7 @@
 # Pytest Module - Ways of Working
 
 Roshan Toby, Artur Zinnurov  
-*Document last updated on 29/01/2024*
+*Document last updated on 15/02/2024*
 ---
 
 
@@ -302,6 +302,8 @@ Our Continuous Integration (CI) pipeline triggers with every Pull Request (PR) i
 tests and providing code coverage insights directly in the PR. Additionally, Allure reports are generated to showcase 
 detailed test results and statistics. These reports are published on GitHub Pages, ensuring quick access to essential 
 information during the review process. Concept Library has integrated pipline for the tests but it is advisable to not change the /env/remotetest.compose.env file.
+
+After succesfull run of CI you can go to this URL to check test results remotely - https://meek-florentine-a03d43.netlify.app/ 
 
 ## 9. Resources
 

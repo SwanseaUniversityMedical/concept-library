@@ -20,6 +20,7 @@ from ..models.CodingSystem import CodingSystem
 from ..models.DataSource import DataSource
 from ..models.Statistics import Statistics
 from ..models.Tag import Tag
+from ..entity_utils.permission_utils import redirect_readonly
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,10 @@ logger = logging.getLogger(__name__)
 # --------------------------------------------------------------------------
 def get_brand_index_stats(request, brand):
     if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
-        stat = Statistics.objects.get(org__iexact=brand, type__iexact='landing-page')
-        stats = stat.stat
+        stat = Statistics.objects.filter(org__iexact=brand, type__iexact='landing-page')
+        if stat.exists():
+            stat = stat.order_by('-modified').first()
+        stats = stat.stat if stat else None
     else:
         from ..entity_utils.stats_utils import save_homepage_stats
         # update stat
@@ -64,11 +67,11 @@ def index_home(request, index_path):
 
     return render(request, index_path, {
         'known_brands': brands,
-        'published_concept_count': stats['published_concept_count'],
-        'published_phenotype_count': stats['published_phenotype_count'],
-        'published_clinical_codes': stats['published_clinical_codes'],
-        'datasources_component_count': stats['datasources_component_count'],
-        'clinical_terminologies': stats['clinical_terminologies']
+        'published_concept_count': stats.get('published_concept_count'),
+        'published_phenotype_count': stats.get('published_phenotype_count'),
+        'published_clinical_codes': stats.get('published_clinical_codes'),
+        'datasources_component_count': stats.get('datasources_component_count'),
+        'clinical_terminologies': stats.get('clinical_terminologies')
     })
 
 
@@ -90,11 +93,11 @@ def index_HDRUK(request, index_path):
         index_path,
         {
             # ONLY PUBLISHED COUNTS HERE
-            'published_concept_count': stats['published_concept_count'],
-            'published_phenotype_count': stats['published_phenotype_count'],
-            'published_clinical_codes': stats['published_clinical_codes'],
-            'datasources_component_count': stats['datasources_component_count'],
-            'clinical_terminologies': stats['clinical_terminologies']
+            'published_concept_count': stats.get('published_concept_count'),
+            'published_phenotype_count': stats.get('published_phenotype_count'),
+            'published_clinical_codes': stats.get('published_clinical_codes'),
+            'datasources_component_count': stats.get('datasources_component_count'),
+            'clinical_terminologies': stats.get('clinical_terminologies')
         })
 
 
@@ -177,7 +180,7 @@ def technicalpage(request):
 def cookies_settings(request):
     return render(request, 'cookielaw/en.html', {})
 
-
+@redirect_readonly
 def contact_us(request):
     """
         Generation of Contact us page/form and email send functionality.

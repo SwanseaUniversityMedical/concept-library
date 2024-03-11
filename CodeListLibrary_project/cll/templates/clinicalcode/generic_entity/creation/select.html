@@ -9,6 +9,10 @@
 
 {% block title %}| Create a Phenotype {% endblock title %}
 
+{% block embedding_wrapper %}
+  {% render_og_tags header='Create your Phenotype' %}
+{% endblock embedding_wrapper %}
+
 {% block indexing_robots %}
   {% with stop_robot_indexing=True %}
     {{ block.super }}

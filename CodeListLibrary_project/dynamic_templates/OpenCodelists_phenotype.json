@@ -1,0 +1,187 @@
+{
+  "template_details": {
+    "version": 1,
+    "name": "OpenCodelists Phenotype",
+    "description": "",
+    "card_type": "generic"
+  },
+
+  "sections": [
+    {
+      "title": "Name & Organisation",
+      "description": "",
+      "fields": ["name", "author"],
+      "hide_on_detail": true
+    },
+    {
+      "title": "Overview",
+      "description": "An overview of the phenotype with basic metadata.",
+      "fields": [
+        "open_codelist_id", "open_codelist_version_id", "open_codelist_version_tag", 
+        "coding_system", "coding_system_release", "collections", "tags"
+      ]
+    },
+    {
+      "title": "Definition",
+      "description": "",
+      "fields": ["definition"]
+    },
+    {
+      "title": "Methodology",
+      "description": "",
+      "fields": ["methodology"]
+    },
+    {
+      "title": "Signed Off By",
+      "description": "",
+      "fields": ["signed_off"]
+    },
+    {
+      "title": "References",
+      "description": "",
+      "fields": ["source_reference", "references"]
+    },
+    {
+      "title": "Clinical Code List",
+      "documentation": "clinical-coded-phenotype-docs",
+      "description": "Clinical codes used to define this phenotype.",
+      "fields": ["concept_information"]
+    }
+  ],
+
+  "fields": {
+    "open_codelist_id": {
+      "title": "Codelist ID",
+      "description": "",
+      "field_type": "string_inputbox",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 500]
+      },
+      "search": {
+        "api": true
+      },
+      "hide_if_empty": true
+    },
+    "open_codelist_version_id": {
+      "title": "Version ID",
+      "description": "",
+      "field_type": "string_inputbox",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 500]
+      },
+      "search": {
+        "api": true
+      },
+      "hide_if_empty": true
+    },
+    "open_codelist_version_tag": {
+      "title": "Version Tag",
+      "description": "",
+      "field_type": "string_inputbox",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 500]
+      },
+      "search": {
+        "api": true
+      },
+      "hide_if_empty": true
+    },
+    "methodology": {
+      "title": "Methodology",
+      "description": "",
+      "field_type": "textarea_markdown",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false
+      },
+      "hide_if_empty": true
+    },
+    "signed_off": {
+      "title": "Signed Off By",
+      "description": "",
+      "field_type": "string_inputlist",
+      "active": true,
+      "validation": {
+        "type": "string_array",
+        "mandatory": false
+      },
+      "hide_if_empty": true
+    },
+    "references": {
+      "title": "References",
+      "description": "",
+      "field_type": "url_list",
+      "active": true,
+      "validation": {
+        "type": "string_array",
+        "mandatory": false
+      },
+      "hide_if_empty": true
+    },
+    "coding_system_release": {
+      "title": "Coding System Release",
+      "description": "",
+      "field_type": "string_inputbox",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 250]
+      }
+    },
+    "coding_system": {
+      "title": "Coding System",
+      "description":"Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
+      "field_type": "coding_system",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "computed": true,
+        "source": {
+          "table": "CodingSystem",
+          "query": "codingsystem_id",
+          "relative": "name"
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      },
+      "hide_on_create": true
+    },
+    "concept_information": {
+      "title": "Clinical Codes",
+      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this phenotype.",
+      "field_type": "concept_information",
+      "active": true,
+      "validation": {
+        "type": "concept",
+        "mandatory": false,
+        "has_children": true
+      }
+    },
+    "source_reference": {
+      "title": "Source Reference",
+      "description": "If this phenotype is derived from a third-party source, define that here.",
+      "field_type": "source_reference",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 500]
+      },
+      "hide_if_empty": true
+    }
+  }
+}

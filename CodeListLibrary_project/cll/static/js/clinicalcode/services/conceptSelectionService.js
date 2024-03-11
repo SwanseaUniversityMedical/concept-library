@@ -67,6 +67,10 @@ const CSEL_OPTIONS = {
   // Which template to query when retrieving accessible entities
   template: 1,
 
+  // Related entity ids to filter the entity from results
+  entity_id: null,
+  entity_history_id: null,
+
   // Allow more than a single Concept to be selected
   allowMultiple: true,
 
@@ -265,7 +269,8 @@ const CSEL_INTERFACE = {
   CHILD_SELECTOR: ' \
   <div class="checkbox-item-container ${!isSelector? "ignore-overflow" : ""}" id="${isSelector ? "child-selector" : "selected-item" }"> \
     <input id="${field}-${id}" aria-label="${title}" type="checkbox" ${checked ? "checked" : ""} data-index="${index}" \
-      class="checkbox-item" data-id="${id}" data-history="${history_id}" data-name="${title}" data-field="${field}" data-prefix="${prefix}"/> \
+      class="checkbox-item" data-id="${id}" data-history="${history_id}" \
+      data-name="${title}" data-field="${field}" data-prefix="${prefix}" data-coding="${coding_system}"/> \
     <label for="${field}-${id}" class="constrained-filter-item">${title} [${coding_system}]</label> \
   </div>',
 };
@@ -651,6 +656,13 @@ export class ConceptSelectionService {
       cleaned[key] = value;
     }
 
+    const entity_id = this.options?.entity_id;
+    const entity_history_id = this.options?.entity_history_id;
+    if (!isNullOrUndefined(entity_id) && !isNullOrUndefined(entity_history_id)) {
+      cleaned['parent_id'] = entity_id;
+      cleaned['parent_history_id'] = entity_history_id;
+    }
+
     return cleaned;
   }
 
@@ -778,7 +790,6 @@ export class ConceptSelectionService {
         let filter = childFilters[j];
         let query = this.query?.[filter];
         if (isNullOrUndefined(child?.[filter])) {
-          passed = false;
           continue;
         }
 
@@ -1060,7 +1071,7 @@ export class ConceptSelectionService {
         'id': selected.id,
         'history_id': selected.history_id,
         'field': selected.type,
-        'title': `${selected.prefix}${selected.id}/${selected.history_id} - ${selected.name}`,
+        'title': selected.name,
         'coding_system': selected.coding_system_name,
         'prefix': selected.prefix,
         'checked': true,
@@ -1247,7 +1258,7 @@ export class ConceptSelectionService {
           'id': child.id,
           'history_id': child.history_id,
           'field': child.type,
-          'title': `${child.prefix}${child.id}/${child.history_id} - ${child.name}`,
+          'title': `${child.prefix}${child.id} - ${child.name}`,
           'checked': this.isSelected(child.id, child.history_id),
           'coding_system': child.coding_system_name,
           'prefix': child.prefix,
@@ -1428,6 +1439,7 @@ export class ConceptSelectionService {
     const field = target.getAttribute('data-field');
     const name = target.getAttribute('data-name');
     const prefix = target.getAttribute('data-prefix');
+    const codingSystem = target.getAttribute('data-coding');
 
     let childId = target.getAttribute('data-id');
     let childVersion = target.getAttribute('data-history');
@@ -1449,6 +1461,7 @@ export class ConceptSelectionService {
         type: field,
         history_id: childVersion,
         prefix: prefix,
+        coding_system_name: codingSystem,
       };
       
       if (this.options.allowMultiple) {
