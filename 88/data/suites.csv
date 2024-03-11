@@ -1,0 +1,2 @@
+"Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
+"broken","Mon Mar 11 19:18:54 GMT 2024","Mon Mar 11 19:18:54 GMT 2024","0","clinicalcode.tests.unit_tests","test_read_only_permmisions","TestReadOnlyPermissions","","","test_user_not_allowed_to_create",""
