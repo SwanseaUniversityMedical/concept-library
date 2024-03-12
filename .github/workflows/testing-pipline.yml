@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - Development
     paths:
       - "CodeListLibrary_project/**"
   pull_request:
