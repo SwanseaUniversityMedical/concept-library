@@ -139,7 +139,7 @@ jobs:
           path: CodeListLibrary_project/clinicalcode/tests/allure-report
       
       - name: Publish to Netlify
-        uses: netlify/actions/cli@master
+        uses: South-Paw/action-netlify-cli@v2
         if: (success() || failure()) && github.event_name != 'pull_request'
         with:
           args: deploy --dir=allure-history --prod --functions=functions
