@@ -114,14 +114,14 @@ jobs:
 
       - name: Get Allure history
         uses: actions/checkout@v3
-        if: (success() || failure()) && github.event_name != 'pull_request'
+        if: always()
         continue-on-error: true
         with:
           ref: testing-result-pages
           path: testing-result-pages
 
       - name: Allure report action # Step to generate Allure report
-        if: (success() || failure()) && github.event_name != 'pull_request'
+        if: always()
         uses: simple-elf/allure-report-action@v1.7
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
@@ -140,6 +140,7 @@ jobs:
       
       - name: Publish to Netlify
         uses: South-Paw/action-netlify-cli@v2
+        if: always()
         with:
           args: deploy --dir=allure-history --prod --functions=functions
         env:
