@@ -10,6 +10,8 @@ on:
     branches:
       - master
       - Development
+    paths:
+      - "CodeListLibrary_project/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -111,14 +113,14 @@ jobs:
 
       - name: Get Allure history
         uses: actions/checkout@v3
-        if: always()
+        if: (success() || failure()) && github.event_name != 'pull_request'
         continue-on-error: true
         with:
           ref: testing-result-pages
           path: testing-result-pages
 
       - name: Allure report action # Step to generate Allure report
-        if: always()
+        if: (success() || failure()) && github.event_name != 'pull_request'
         uses: simple-elf/allure-report-action@v1.7
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
@@ -137,7 +139,7 @@ jobs:
 
       - name: Publish to Netlify
         uses: nwtgck/actions-netlify@v3.0
-        if: always()
+        if: (success() || failure()) && github.event_name != 'pull_request'
         with:
           publish-dir: './allure-history'
           production-deploy: true
