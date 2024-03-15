@@ -1,0 +1,76 @@
+"Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
+"passed","Fri Mar 15 16:31:58 GMT 2024","Fri Mar 15 16:31:58 GMT 2024","3","clinicalcode.tests.unit_tests","test_read_only_permmisions","TestReadOnlyPermissions","","","test_users_to_edit[owner_user]",""
+"passed","Fri Mar 15 16:31:37 GMT 2024","Fri Mar 15 16:31:38 GMT 2024","63","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_api_data_updated[super_user]","
+        Test whether API data is updated correctly after modifying the template version.
+
+        Args:
+            generate_user (dict): Dictionary containing user instances.
+            user_type (str): Type of user for the test.
+            template_v2 (Template): An instance of the Template model with version 2.
+            live_server: Pytest fixture providing the live server URL.
+
+        Returns:
+            None
+        "
+"passed","Fri Mar 15 16:31:39 GMT 2024","Fri Mar 15 16:31:40 GMT 2024","525","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_template_api[super_user]","
+        Test the API endpoint related to template version.
+
+        Args:
+            generate_user (dict): Dictionary containing user instances.
+            user_type (str): Type of user for the test.
+            live_server: Pytest fixture providing the live server URL.
+            template_v2 (Template): An instance of the Template model with version 2.
+            login: Pytest fixture providing a login function.
+
+        Returns:
+            None
+        "
+"passed","Fri Mar 15 16:31:58 GMT 2024","Fri Mar 15 16:31:58 GMT 2024","1","clinicalcode.tests.unit_tests","test_read_only_permmisions","TestReadOnlyPermissions","","","test_user_not_allowed_to_create",""
+"passed","Fri Mar 15 16:31:42 GMT 2024","Fri Mar 15 16:31:44 GMT 2024","2485","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_edit_phenotype[super_user]","
+        Test if an entity with template version 1 is updated with fields from
+        template version 2 on edit.
+
+        Args:
+            live_server: Pytest fixture providing the live server URL.
+            generate_entity (GenericEntity): An instance of the GenericEntity model.
+            user_type (str): Type of user for the test.
+            generate_user (dict): Dictionary containing user instances.
+            login: Pytest fixture providing a login function.
+            template_v2 (Template): An instance of the Template model with version 2.
+            logout: Pytest fixture providing a logout function.
+
+        Returns:
+            None
+        "
+"passed","Fri Mar 15 16:31:53 GMT 2024","Fri Mar 15 16:31:53 GMT 2024","1","clinicalcode.tests.unit_tests","test_read_only_permmisions","TestReadOnlyPermissions","","","test_my_user",""
+"passed","Fri Mar 15 16:31:55 GMT 2024","Fri Mar 15 16:31:55 GMT 2024","1","clinicalcode.tests.unit_tests","test_read_only_permmisions","TestReadOnlyPermissions","","","test_genereic_entity[super_user]",""
+"passed","Fri Mar 15 16:31:47 GMT 2024","Fri Mar 15 16:31:48 GMT 2024","1181","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_export_json[super_user]","
+        Test exporting entity data in JSON format is reflected for entity created using template version 2.
+
+        Args:
+            live_server: Pytest fixture providing the live server URL.
+            generate_user (dict): Dictionary containing user instances.
+            generic_entity_v2 (GenericEntity): An instance of the GenericEntity model with version 2.
+            user_type (str): Type of user for the test.
+            login: Pytest fixture providing a login function.
+            logout: Pytest fixture providing a logout function.
+
+        Returns:
+            None
+        "
+"passed","Fri Mar 15 16:31:50 GMT 2024","Fri Mar 15 16:31:51 GMT 2024","1610","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_entity_published[super_user]","
+        Test if the publishing of a GenericEntity with version 2 reflects in the home page statistics.
+
+        Args:
+            live_server: Pytest fixture providing the live server URL.
+            generate_user (dict): Dictionary containing user instances.
+            login: Pytest fixture providing a login function.
+            logout: Pytest fixture providing a logout function.
+            user_type (str): Type of user for the test.
+            generic_entity_v2 (GenericEntity): An instance of the GenericEntity model with version 2.
+
+       Returns:
+           None
+       "
+"passed","Fri Mar 15 16:31:28 GMT 2024","Fri Mar 15 16:31:35 GMT 2024","7001","clinicalcode.tests.functional_tests","test_search_filters","TestSearchFilters","","","test_tags_filter[super_user]",""
+"passed","Fri Mar 15 16:31:56 GMT 2024","Fri Mar 15 16:31:56 GMT 2024","4","clinicalcode.tests.unit_tests","test_read_only_permmisions","TestReadOnlyPermissions","","","test_users_to_edit[super_user]",""
