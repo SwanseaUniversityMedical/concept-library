@@ -1219,6 +1219,7 @@ export default class ConceptCreator {
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
       'phenotype_owner': concept?.details?.phenotype_owner || '',
+      'requested_entity_id':concept?.details?.requested_entity_id || '',
       'phenotype_owner_history_id': concept?.details?.phenotype_owner_history_id || '',
       'phenotype_owner_version_url': phenotype_version_url,
       'coding_system': concept?.coding_system?.description,
