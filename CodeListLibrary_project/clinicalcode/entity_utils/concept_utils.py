@@ -894,7 +894,6 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
                 concept_data['phenotype_owner_history_id'] = entity_from_concept.values_list('history_id',flat=True)[index]
     
     # Set the requested entity id
-    
     concept_data['requested_entity_id'] = requested_entity_id
         
 
