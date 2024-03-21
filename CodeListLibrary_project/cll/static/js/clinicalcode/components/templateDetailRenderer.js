@@ -1,4 +1,9 @@
-const TEMPLATE_ELEMENTS = {
+/**
+ * DETAIL_PG_TEMPLATE_ELEMENTS
+ * @desc HTML elements associated with the template element(s)
+ * 
+ */
+const DETAIL_PG_TEMPLATE_ELEMENTS = {
   DETAIL: ' \
     <p><strong>Name: </strong>${field_name}<p> \
     <p><strong>Type: </strong>${field_type}<p> \
@@ -11,13 +16,22 @@ const TEMPLATE_ELEMENTS = {
     </li>'
 }
 
+/**
+ * renderTemplateDetail
+ * @desc responsible for rendering the details of each
+ *       template within the `./technical-details.html` page
+ * 
+ * @param {node} parent the parent container
+ * @param {object} data the template data as derived from the API
+ * 
+ */
 const renderTemplateDetail = (parent, data) => {
   data.template.forEach((e, _) => {
-    let templateDetail = interpolateHTML(TEMPLATE_ELEMENTS.DETAIL, e);
+    let templateDetail = interpolateString(DETAIL_PG_TEMPLATE_ELEMENTS.DETAIL, e);
     if ('field_inputs' in e) {
       let itemList = '';
       e.field_inputs.forEach((v, _) => {
-        itemList += interpolateHTML(TEMPLATE_ELEMENTS.LIST_ITEM, v);
+        itemList += interpolateString(DETAIL_PG_TEMPLATE_ELEMENTS.LIST_ITEM, v);
       });
 
       templateDetail += `

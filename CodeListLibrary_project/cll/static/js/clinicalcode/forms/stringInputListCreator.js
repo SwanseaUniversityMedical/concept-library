@@ -1,28 +1,14 @@
 /**
- * STR_INPUT_LIST_KEYCODES
- * @desc Keycodes used by list creator
- */
-const STR_INPUT_LIST_KEYCODES = {
-  // Add list element
-  ENTER: 13,
-}
-
-/**
- * STR_INPUT_LIST_MIN_MSG_DURATION
- * @desc Min. message duration for toast notif popups
- */
-const STR_INPUT_LIST_MIN_MSG_DURATION = 5000;
-
-/**
- * StringInputListCreator
+ * @class StringInputListCreator
  * @desc A class that can be used to control input lists
  * 
  * e.g.
  * 
- * const startValue = ['item 1', 'item 2'];
- * const element = document.querySelector('#publication-component');
- * const creator = new StringInputListCreator(element, startValue);
- * 
+ * ```js
+ *  const startValue = ['item 1', 'item 2'];
+ *  const element = document.querySelector('#publication-component');
+ *  const creator = new StringInputListCreator(element, startValue);
+ * ```
  */
 export default class StringInputListCreator {
   constructor(element, data) {

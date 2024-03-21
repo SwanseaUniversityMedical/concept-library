@@ -3,8 +3,13 @@
 @import '../_media';
 @import '../_utils';
 
-/// Create template
-///   @desc Stylesheet relating to create and update form
+/* Create template
+ *   @desc Stylesheet relating to create and update form
+ *
+ */
+
+/// Phenotype-creation
+///   @desc describes phenotype create interface
 .phenotype-creation {
   @include flex-col();
   position: relative;
@@ -135,16 +140,18 @@
     min-height: var(--progress-item-min-step-height);
     counter-increment: item;
 
-    &:not(:last-child):before {
-      content: "";
-      position: absolute;
-      height: 100%;
-      width: var(--progress-tracker-width);
-      left: calc(var(--progress-tracker-offset) - var(--progress-tracker-width)/2);
-      top: var(--progress-tracker-size);
-      background-image: linear-gradient(to bottom, var(--progress-tracker-active-color) var(--progress-percentage), var(--progress-tracker-color) var(--progress-percentage));
-      background-image: -webkit-linear-gradient(top, var(--progress-tracker-active-color) var(--progress-percentage), var(--progress-tracker-color) var(--progress-percentage));
-      z-index: 1;
+    &:not(:last-child) {
+      &:before {
+        content: "";
+        position: absolute;
+        height: 100%;
+        width: var(--progress-tracker-width);
+        left: calc(var(--progress-tracker-offset) - var(--progress-tracker-width)/2);
+        top: var(--progress-tracker-size);
+        background-image: linear-gradient(to bottom, var(--progress-tracker-active-color) var(--progress-percentage), var(--progress-tracker-color) var(--progress-percentage));
+        background-image: -webkit-linear-gradient(top, var(--progress-tracker-active-color) var(--progress-percentage), var(--progress-tracker-color) var(--progress-percentage));
+        z-index: 1;
+      }
     }
 
     &:after {
@@ -500,4 +507,55 @@
     content: '\f056';
     color: col(accent-danger);
   }
+}
+
+/// Ontology/Eletree style
+///   @desc Ontology selector and its eletree style(s)
+[class^="eletree_icon-"],
+[class*=" eletree_icon-"] {
+  font-family: var(--icons-name);
+  font-style: var(--icons-style);
+  font-size: var(--icons-size);
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tree style */
+.eletree_icon-dropdown_bottom:before {
+  content: '\f0d7';
+}
+
+.eletree_icon-dropdown_right:before {
+  content: '\f0da';
+}
+
+/* Checkbox style */
+.eletree_icon-check_full:before {
+  content: '\f14a';
+}
+
+.eletree_icon-check_half:before {
+  content: '\f146';
+}
+
+.eletree_icon-check_none:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid col(accent-washed);
+  background: col(bg);
+  border-radius: 0.2rem;
+  transition: all 250ms ease;
+}
+
+/* Loading style */
+.eletree_icon-loading1:before {
+  content: '\f110';
 }

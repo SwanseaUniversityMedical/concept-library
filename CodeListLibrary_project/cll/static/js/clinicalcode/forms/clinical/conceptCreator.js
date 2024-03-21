@@ -1,5 +1,5 @@
 import { parse as parseCSV } from '../../../lib/csv.min.js';
-import { ConceptSelectionService } from '../../services/conceptSelectionService.js';
+import { ConceptSelectionService } from './conceptSelectionService.js';
 
 /**
  * tryCleanCodingFile
@@ -348,7 +348,7 @@ const CONCEPT_CREATOR_TEXT = {
 }
 
 /**
- * ConceptCreator
+ * @class ConceptCreator
  * @desc A class that can be used to control concept creation
  * 
  */
@@ -1212,7 +1212,7 @@ export default class ConceptCreator {
     const template = this.templates['concept-item'];
     const access = this.#deriveEditAccess(concept);
     const phenotype_version_url = `${window.location.origin}/phenotypes/${concept.details.phenotype_owner}/version/${concept.details.phenotype_owner_history_id}/detail`;
-    const html = interpolateHTML(template, {
+    const html = interpolateString(template, {
       'subheader': access ? 'Codelist' : 'Imported Codelist',
       'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
       'concept_id': concept?.concept_id,
@@ -1335,7 +1335,7 @@ export default class ConceptCreator {
     const promise = this.tryQueryOptionsParameter('coding_system')
       .then(codingSystems => {
         // Build <select/> option HTML
-        let options = interpolateHTML(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_HIDDEN_OPTION, {
+        let options = interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_HIDDEN_OPTION, {
           'is_unselected': codingSystems.length  < 1,
         });
 
@@ -1351,7 +1351,7 @@ export default class ConceptCreator {
         // Build each coding system option
         for (let i = 0; i < codingSystems.length; ++i) {
           const item = codingSystems[i];
-          options += interpolateHTML(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_ACTIVE_OPTION, {
+          options += interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_ACTIVE_OPTION, {
             'is_selected': item.value == dataset?.coding_system?.id,
             'name': item.name,
             'value': item.value,
@@ -1487,7 +1487,7 @@ export default class ConceptCreator {
 
     const sourceInfo = CONCEPT_CREATOR_SOURCE_TYPES[sourceType];
     const template = this.templates[sourceInfo.template];
-    const html = interpolateHTML(template, {
+    const html = interpolateString(template, {
       'id': rule?.id,
       'index': index,
       'name': rule?.name,
@@ -1725,7 +1725,7 @@ export default class ConceptCreator {
 
     const systemOptions = await this.#fetchCodingOptions(dataset);
     const template = this.templates['concept-editor'];
-    const html = interpolateHTML(template, {
+    const html = interpolateString(template, {
       'concept_name': dataset?.details?.name,
       'coding_system_id': dataset?.coding_system?.id,
       'coding_system_options': systemOptions,
@@ -2021,7 +2021,7 @@ export default class ConceptCreator {
             if (prevCodeLength) {
               this.#pushToast({
                 type: 'danger',
-                message: interpolateHTML(
+                message: interpolateString(
                   CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_EXCHANGE,
                   {
                     value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
@@ -2035,7 +2035,7 @@ export default class ConceptCreator {
 
             this.#pushToast({
               type: 'danger',
-              message: interpolateHTML(
+              message: interpolateString(
                 CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_MATCH,
                 {
                   value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
@@ -2050,7 +2050,7 @@ export default class ConceptCreator {
           if (prevCodeLength) {
             this.#pushToast({
               type: 'success',
-              message: interpolateHTML(
+              message: interpolateString(
                 CONCEPT_CREATOR_TEXT.EXCHANGED_SEARCH_CODES,
                 {
                   prev_code_len: prevCodeLength,
@@ -2066,7 +2066,7 @@ export default class ConceptCreator {
           // Inform user of result count
           this.#pushToast({
             type: 'success',
-            message: interpolateHTML(
+            message: interpolateString(
               CONCEPT_CREATOR_TEXT.ADDED_SEARCH_CODES,
               {
                 code_len: codes.length.toLocaleString(),
@@ -2114,7 +2114,7 @@ export default class ConceptCreator {
               this.#tryAddNewRule(logicalType, sourceType, file);
               this.#pushToast({
                 type: 'success',
-                message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_FILE_CODES, {
+                message: interpolateString(CONCEPT_CREATOR_TEXT.ADDED_FILE_CODES, {
                   code_len: file?.content?.data.length.toLocaleString(),
                 })
               });
@@ -2161,7 +2161,7 @@ export default class ConceptCreator {
               this.#tryAddNewRule(logicalType, sourceType, result);
               this.#pushToast({
                 type: 'success',
-                message: interpolateHTML(CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES, {
+                message: interpolateString(CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES, {
                   code_len: result?.codelist.length.toLocaleString(),
                 })
               });
@@ -2303,7 +2303,7 @@ export default class ConceptCreator {
         if (failedImports.length > 0) {
           this.#pushToast({
             type: 'danger',
-            message: interpolateHTML(CONCEPT_CREATOR_TEXT.CONCEPT_IMPORTS_ARE_PRESENT, {
+            message: interpolateString(CONCEPT_CREATOR_TEXT.CONCEPT_IMPORTS_ARE_PRESENT, {
               failed: failedImports.join(', '),
             }),
           });
@@ -2468,7 +2468,7 @@ export default class ConceptCreator {
         this.#tryUpdateRenderConceptComponents(updatedConcept.concept_id, updatedConcept.concept_version_id, true);
         this.#pushToast({
           type: 'success',
-          message: interpolateHTML(CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_SUCCESS, {
+          message: interpolateString(CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_SUCCESS, {
             version: updatedConcept.concept_version_id.toString(),
           })
         });

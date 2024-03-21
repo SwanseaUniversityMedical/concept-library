@@ -224,12 +224,15 @@ def parse_int(value, default=0):
     """
         Attempts to parse an int from a value, if it fails to do so, returns the default value
     """
+    if isinstance(value, int):
+        return value
+
     if value is None:
         return default
-    
+
     try:
         value = int(value)
-    except ValueError:
+    except:
         return default
     else:
         return value

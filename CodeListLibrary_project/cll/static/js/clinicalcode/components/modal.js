@@ -67,16 +67,19 @@ const PROMPT_DEFAULT_PARAMS = {
 };
 
 /**
- * CancellablePromise
+ * @class CancellablePromise
  * @desc Creates an instance of a promise that can be cancelled
  * 
  * e.g.
+ * ```js
  *  const promise = new CancellablePromise((resolve, reject) => {
  *    // do something
  *  });
  * 
  *  // e.g. after n seconds
  *  promise.cancel();
+ * ```
+ * 
  */
 class CancellablePromise {
   constructor(executor) {
@@ -92,8 +95,9 @@ class CancellablePromise {
 };
 
 /**
- * ModalResult
+ * @class ModalResult
  * @desc Creates an instance that is passed as a parameter when resolved/rejected via closure / button interaction
+ * 
  */
 class ModalResult {
   constructor(name, type, data) {
@@ -104,10 +108,11 @@ class ModalResult {
 };
 
 /**
- * ModalFactory
+ * @class ModalFactory
  * @desc A window-level instance to create modals
  * 
  * e.g.
+ * ```js
  *  const ModalFactory = window.ModalFactory;
  *  ModalFactory.create({
  *    id: 'test-dialog',
@@ -159,6 +164,7 @@ class ModalResult {
  *      console.log('[failure] rejected', result);
  *    }
  *  });
+ * ```
  * 
  */
 class ModalFactory {
@@ -171,6 +177,20 @@ class ModalFactory {
     this.modal = null;
   }
 
+  /**
+   * create
+   * @desc instantiates a modal, given a set of options that
+   *       relate to this instance
+   * 
+   * @param {object|null} options the options associated with this
+   *                              instance, see `PROMPT_DEFAULT_PARAMS`
+   *                              for more details
+   * 
+   * @returns {object<Promise>} that will resolve or reject after
+   *                            either (a) button-related actions;
+   *                            or (b) due to an error occurring
+   * 
+   */
   create(options) {
     options = options || { };
     this.closeCurrentModal();
@@ -180,7 +200,7 @@ class ModalFactory {
 
       const { id, title, content, showFooter, buttons, size } = options;
     
-      const html = interpolateHTML(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content, size: size });
+      const html = interpolateString(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content, size: size });
       const doc = parseHTMLFromString(html);
       const currentHeight = window.scrollY;
       const modal = document.body.appendChild(doc.body.children[0]);
@@ -291,6 +311,12 @@ class ModalFactory {
     }
   }
 
+  /**
+   * closeCurrentModal
+   * @desc closes the current modal and resolves its associated
+   *       promise
+   * 
+   */
   closeCurrentModal() {
     if (isNullOrUndefined(this.modal)) {
       return;
@@ -301,6 +327,14 @@ class ModalFactory {
   }
 };
 
+
+/**
+ * Main thread
+ * @desc initialises the modal factory once the DOM
+ *       is resolved; and adds itself to the global scope
+ *       for use within other script(s)
+ * 
+ */
 domReady.finally(() => {
   window.ModalFactory = new ModalFactory();
 });

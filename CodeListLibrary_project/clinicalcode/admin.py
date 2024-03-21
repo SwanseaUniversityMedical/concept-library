@@ -7,9 +7,14 @@ from .models import (Brand, CodingSystem, CodingSystemFilter, DataSource, Operat
 from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
+from .models.OntologyTag import OntologyTag
 from .models.DMD_CODES import DMD_CODES
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
+
+@admin.register(OntologyTag)
+class OntologyTag(admin.ModelAdmin):
+    list_display = ['id', 'name', 'type_id', 'atlas_id']
 
 
 @admin.register(CodingSystemFilter)

@@ -1,7 +1,9 @@
 /**
   * stickifyTable
-  * @desc A function that makes a row's cells fixed in position (when scrolling) if they include the case '.sticky'
+  * @desc A function that makes a row's cells
+  *       fixed in position (when scrolling) if they include the case '.sticky'
   * @param {node} table the table to modify
+  * 
   */
 const stickifyTable = (table) => {
   const rows = table.querySelectorAll('tr');

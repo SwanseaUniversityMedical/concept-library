@@ -78,6 +78,7 @@ class GenericEntity(models.Model):
     ''' Historical data '''
     history = HistoricalRecords()
 
+    @transaction.atomic
     def save(self, ignore_increment=False, *args, **kwargs):
         """
             [!] Note:
@@ -90,25 +91,23 @@ class GenericEntity(models.Model):
             entity_class = getattr(template_layout, 'entity_class')
             if entity_class is not None:
                 if ignore_increment:
-                    with transaction.atomic():
-                        entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
-                        entity_id = gen_utils.parse_int(
-                            self.id.replace(entitycls.entity_prefix, ''), 
-                            default=None
-                        )
+                    entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
+                    entity_id = gen_utils.parse_int(
+                        self.id.replace(entitycls.entity_prefix, ''), 
+                        default=None
+                    )
 
-                        if not entity_id: 
-                            raise ValidationError('Unable to parse entity id')
+                    if not entity_id: 
+                        raise ValidationError('Unable to parse entity id')
 
-                        if entitycls.entity_count < entity_id:
-                            entitycls.entity_count = entity_id
-                            entitycls.save()
-                elif not self.pk and not ignore_increment:
-                    with transaction.atomic():
-                        entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
-                        index = entitycls.entity_count = entitycls.entity_count + 1
-                        self.id = f'{entitycls.entity_prefix}{index}'
+                    if entitycls.entity_count < entity_id:
+                        entitycls.entity_count = entity_id
                         entitycls.save()
+                elif not self.pk and not ignore_increment:
+                    entitycls = EntityClass.objects.select_for_update().get(pk=entity_class.id)
+                    index = entitycls.entity_count = entitycls.entity_count + 1
+                    self.id = f'{entitycls.entity_prefix}{index}'
+                    entitycls.save()
 
         if self.template_data and 'version' in self.template_data:
             self.template_version = self.template_data.get('version')
