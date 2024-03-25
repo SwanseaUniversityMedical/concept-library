@@ -1,3 +1,4 @@
+
 from django.db import connection
 from django.db.models import ForeignKey
 from django.http.request import HttpRequest
@@ -745,7 +746,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
                               aggregate_component_codes=False, include_component_codes=True,
                               include_attributes=False, strippable_fields=None,
                               remove_userdata=False, hide_user_details=False,
-                              derive_access_from=None, format_for_api=False,
+                              derive_access_from=None,requested_entity_id=None, format_for_api=False,
                               include_source_data=False):
     """
       [!] Note: This method ignores permissions to derive data - it should only be called from a
@@ -878,7 +879,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         concept_data['code_attribute_header'] = attribute_headers
     
     # Set phenotype owner
-    phenotype_owner = concept.phenotype_owner
+    phenotype_owner = concept.phenotype_owner   
     if phenotype_owner:
         concept_data['phenotype_owner'] = phenotype_owner.id
         entity_from_concept = GenericEntity.history.filter(
@@ -891,6 +892,9 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
             history_ids_concept = [j['concept_version_id'] for j in value['concept_information']]
             if concept_history_id in history_ids_concept:
                 concept_data['phenotype_owner_history_id'] = entity_from_concept.values_list('history_id',flat=True)[index]
+    
+    # Set the requested entity id
+    concept_data['requested_entity_id'] = requested_entity_id
         
 
 

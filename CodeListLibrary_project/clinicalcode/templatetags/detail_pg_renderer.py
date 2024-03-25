@@ -244,7 +244,8 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
                 remove_userdata=True,
                 hide_user_details=True,
                 include_component_codes=False, 
-                include_attributes=True, 
+                include_attributes=True,
+                requested_entity_id=entity.id, 
                 include_reviewed_codes=True,
                 derive_access_from=request
             )
