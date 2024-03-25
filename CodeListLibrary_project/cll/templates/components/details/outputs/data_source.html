@@ -1,6 +1,5 @@
 {% load entity_renderer %}
 <div class="detailed-input-group fill">
-
   <div class="box-container">
     <div class="row">
       <span id="entity-{{ component.field_name }}"></span>
@@ -9,22 +8,15 @@
           {% if component.value|length %}
             {% for ds in component.value %}
               {% if ds.url|length %}
-                  <a href="{{ ds.url }}" target=_blank rel="noopener noreferrer">{{ ds.name }}</a>
+                  <a href="{{ ds.url }}" target=_blank rel="noopener noreferrer">{{ ds.name }}</a>{% if not forloop.last %},{% endif %}
               {% else %}
-                  {{ ds.name }}
-              {% endif %}
-              {% if not forloop.last %}
-                , 
+                  {{ ds.name }}{% if not forloop.last %},{% endif %}
               {% endif %}
             {% endfor %}
           {% else %}
-          <span class="card-no-data">No data</span>
+            <span class="card-no-data">No data</span>
           {% endif %}
       </div>
     </div>
   </div>
-
 </div>
-
-
-

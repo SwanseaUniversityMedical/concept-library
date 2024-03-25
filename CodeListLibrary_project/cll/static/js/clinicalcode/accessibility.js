@@ -15,6 +15,17 @@ const CL_ACCESSIBILITY_KEYS = {
  *       determine whether to initialise an interaction with that component
  */
 domReady.finally(() => {
+  observeMatchingElements('[data-page]', (elem) => {
+    if (isNullOrUndefined(elem)) {
+      return;
+    }
+
+    if (!elem.getAttribute('target') && !elem.getAttribute('href')) {
+      elem.setAttribute('target', '_blank');
+      elem.setAttribute('href', '#');
+    }
+  });
+
   document.addEventListener('keydown', e => {
     const elem = document.activeElement;
     const code = e.keyIdentifier || e.which || e.keyCode;    
@@ -22,7 +33,7 @@ domReady.finally(() => {
       return;
     }
 
-    if (elem.matches('[role="button"]')) {
+    if (elem.matches('[role="button"]') || elem.matches('[data-page]')) {
       elem.click();
     } else if (elem.matches('[role="dropdown"]')) {
       const radio = elem.querySelector('input[type="radio"]');

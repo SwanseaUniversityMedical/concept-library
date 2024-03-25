@@ -4,6 +4,7 @@ import FuzzyQuery from './fuzzyQuery.js';
   * updateNavBarStyle
   * @desc Updates the navigation bar style from transparent to opaque dependent on whether the user has scrolled down the page
   * @param {node} navbar The navigation bar element
+  * 
   */
 const updateNavBarStyle = (navbar) => {
   const y = window.scrollY;
@@ -27,6 +28,7 @@ const updateNavBarStyle = (navbar) => {
   * @desc Computes the --as-burger CSS property, see SCSS for further information
   * @param {node} burger The hamburger element
   * @returns {value} The value of the computed property
+  * 
   */
 const computeBurgerProperty = (burger) => {
   return window.getComputedStyle(burger, ':after').getPropertyValue('--as-burger').replace(/[^\w!?]/g, '');
@@ -35,6 +37,7 @@ const computeBurgerProperty = (burger) => {
 /**
   * initHamburgerMenu
   * @desc Initialises the hamburger menu for mobiles on the navigation bar
+  * 
   */
 const initHamburgerMenu = () => {
   const burger = document.querySelector('.page-navigation__buttons');
@@ -75,6 +78,11 @@ const initHamburgerMenu = () => {
   })
 }
 
+/**
+ * submenuMobile
+ * @desc ...?
+ * 
+ */
 const submenuMobile = () => {
   // JavaScript for submenu behavior
   const navText = document.querySelector('.nav-dropdown__text');
@@ -98,30 +106,39 @@ const submenuMobile = () => {
   if (avatarMenu) {
     avataText.addEventListener('click', (e) => {
       e.preventDefault(); // Prevent the default link behavior
+
       avatarMenu.classList.toggle('open');
       submenu.classList.remove('open');
     });
   }
 }
 
+/**
+ * searchBar
+ * @desc ...?
+ * 
+ */
 const searchBar = () => {
-
   const searchIcon = document.querySelector('.search-navigation__search-icon');
   const searchInput = document.querySelector('.search-navigation__search-input');
   searchIcon.addEventListener('mouseover', (e) => {
     searchInput.focus();
   });
+
   document.addEventListener('mouseout', (e) => {
     if (searchInput.contains(e.target) || searchIcon.contains(e.target)) {
       return;
     }
+
     searchInput.blur();
   });
-  
-
 }
 
-
+/**
+ * nestedMenu
+ * @desc ...?
+ * 
+ */
 const nestedMenu = () => {
   const nestedContainer = document.querySelector('.content-container__nested > a');
   const nestedMenu = document.querySelector('.nested-menu');
@@ -184,6 +201,12 @@ const setNavigation = (navbar) => {
   }
 }
 
+
+/**
+ * Main thread
+ * @desc initialises the component once the dom is ready
+ * 
+ */
 domReady.finally(() => {
   const navbar = document.querySelector('.page-navigation');
   updateNavBarStyle(navbar);

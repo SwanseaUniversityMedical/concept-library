@@ -73,6 +73,14 @@
       width: 75%;
     }
   }
+
+  &-xl {
+    .target-modal__container {
+      top: 10%;
+      left: 7.5%;
+      width: 85%;
+    }
+  }
   
   &__container {
     @include prefix(transform, translate(0, 500%), webkit moz o ms);
@@ -94,6 +102,20 @@
     align-items: center;
     padding: 0.5rem 1rem;
     border-bottom: 1px solid col(accent-washed);
+
+    &--no-vertical-pad {
+      padding-top: 0rem;
+      padding-bottom: 0rem;
+    }
+
+    &--no-horizontal-pad {
+      padding-left: 0rem;
+      padding-right: 0rem;
+    }
+
+    &--no-border {
+      border-bottom: 0;
+    }
 
     &-close {
       width: 1rem;

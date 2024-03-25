@@ -1,9 +1,12 @@
 /**
  * updateTrackerStyle
- * @desc updates the progress-percentage property of a progress-item dependent on scroll position
+ * @desc updates the progress-percentage property of a
+ *       progress-item dependent on scroll position
+ * 
  * @param {node} navbar the navbar node
  * @param {list} trackers the list of tracker elements to update
  * @param {int} headerOffset the offset of the <header/> element, incl. navigation
+ * 
  */
 const updateTrackerStyle = (navbar, trackers, headerOffset) => {
   for (let i = 0; i < trackers.length; i++) {
@@ -24,6 +27,7 @@ const updateTrackerStyle = (navbar, trackers, headerOffset) => {
  * @desc resolve the wizard step area location
  * @param {node} aside the aside wizard area
  * @param {node} content the content area
+ * 
  */
 const resolveWizardStepsArea = (aside, content) => {
   const asideRect = aside.getBoundingClientRect();
@@ -34,6 +38,7 @@ const resolveWizardStepsArea = (aside, content) => {
 /**
  * initStepsWizard
  * @desc initialises the wizard steps form
+ * 
  */
 const initStepsWizard = () => {
   document.querySelectorAll('.steps-wizard__item').forEach(elem => {
@@ -80,6 +85,11 @@ const initStepsWizard = () => {
   }
 }
 
+/**
+ * Main thread
+ * @desc initialises the component once the dom is ready
+ * 
+ */
 domReady.finally(() => {
   initStepsWizard();
 });

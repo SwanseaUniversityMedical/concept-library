@@ -266,6 +266,8 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
 
 
 class EntityWizardSections(template.Node):
+    SECTION_END = render_to_string(template_name=constants.DETAIL_WIZARD_SECTION_END)
+
     def __init__(self, params, nodelist):
         self.request = template.Variable('request')
         self.params = params
@@ -300,6 +302,11 @@ class EntityWizardSections(template.Node):
         
         if field == 'group':
             return permission_utils.get_user_groups(request)
+
+    def __append_section(self, output, section_content):
+        if gen_utils.is_empty_string(section_content):
+            return output
+        return output + section_content + self.SECTION_END
 
     def __generate_wizard(self, request, context):
         output = ''
@@ -427,8 +434,8 @@ class EntityWizardSections(template.Node):
                 section_content += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
 
             if field_count > 0:
-                output += section_content
-                output += render_to_string(template_name=constants.DETAIL_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
+                output = self.__append_section(output, section_content)
+
         return output
     
     def render(self, context):

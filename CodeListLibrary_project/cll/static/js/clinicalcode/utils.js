@@ -1,4 +1,10 @@
-const TRANSITION_METHODS = {
+/**
+ * CLU_TRANSITION_METHODS
+ * @desc defines the transition methods associated
+ *       with the animation of an element
+ * 
+ */
+const CLU_TRANSITION_METHODS = {
   'transition': 'transitionend',
   'WebkitTransition': 'webkitTransitionEnd',
   'OTransition': 'oTransitionEnd otransitionend',
@@ -6,10 +12,10 @@ const TRANSITION_METHODS = {
 };
 
 /**
- * DOI_PATTERN
- * Regex pattern to match DOI
+ * CLU_DOI_PATTERN
+ * @desc Regex pattern to match DOI
  */
-const DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm;
+const CLU_DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm;
 
 /**
   * deepCopy
@@ -18,7 +24,7 @@ const DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm
   * @returns {object} The cloned object
   */
 const deepCopy = (obj) => {
-  return JSON.parse(JSON.stringify(obj));
+  return structuredClone(obj); // JSON.parse(JSON.stringify(obj));
 }
 
 /**
@@ -40,6 +46,8 @@ const mergeObjects = (a, b) => {
 /**
  * generateUUID
  * @desc Generates a UUID
+ *       Ref @ https://en.wikipedia.org/wiki/Universally_unique_identifier
+ * 
  * @returns {string} a UUID
  */
 const generateUUID = () => {
@@ -58,9 +66,9 @@ const generateUUID = () => {
   */
 const getTransitionMethod = () => {
   const root = document.documentElement;
-  for (let method in TRANSITION_METHODS) {
+  for (let method in CLU_TRANSITION_METHODS) {
     if (typeof root.style[method] !== 'undefined') {
-      return TRANSITION_METHODS[method];
+      return CLU_TRANSITION_METHODS[method];
     }
   }
 
@@ -128,8 +136,9 @@ const elementScrolledIntoView = (elem, offset = 0) => {
   * getCookie
   * @desc Gets the CSRF token
   *       Ref @ https://docs.djangoproject.com/en/4.1/howto/csrf/
+  * 
   * @param {string} name the name of the cookie
-  * @returns {*} the cookie's value
+  * @returns {any} the cookie's value
   */
 const getCookie = (name) => {
   let cookieValue = null;
@@ -220,6 +229,9 @@ const domReady = new Promise(resolve => {
 /**
   * assert
   * @desc Throws an error message if a condition is not met
+  * @param {boolean} condition a conditional value
+  * @param {message} string a message to log if the condition resolves to a falsy value
+  * 
   */
 const assert = (condition, message) => {
   if (!condition) {
@@ -230,18 +242,27 @@ const assert = (condition, message) => {
 /**
  * isNullOrUndefined
  * @desc returns true if the parameter is null or undefined
+ * @param {any} value the value to consider
+ * @returns {boolean} reflecting whether the value is null or undefined
+ * 
  */
 const isNullOrUndefined = (value) => typeof value === 'undefined' || value === null;
 
 /**
  * isStringEmpty
  * @desc checks if a string is empty
+ * @param {string|any} value the value to consider
+ * @returns {boolean} determines whether the value is (a) undefined; or (b) empty
+ * 
  */
 const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
 
 /**
  * isStringWhitespace
  * @desc checks if a string is compose of only whitespace
+ * @param {string} value the value to consider
+ * @returns {boolean} reflecting whether the string contains only whitespace
+ * 
  */
 const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;
 
@@ -285,12 +306,16 @@ const redirectToTarget = (elem) => {
  * 
  * e.g. usage:
  * 
- * const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
- *  if (!selected) {
- *    return;
- *  }
- *  console.log(files); --> [file_1, ..., file_n]
- * }});
+ * ```js
+ *  const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
+ *    if (!selected) {
+ *      return;
+ *    }
+ * 
+ *    console.log(files); --> [file_1, ..., file_n]
+ *  }});
+ * ```
+ * 
  */
 const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {
   const input = document.createElement('input');
@@ -315,14 +340,16 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
 }
 
 /**
- * interpolateHTML
- * @desc Get a template from a string
+ * interpolateString
+ * @desc Interpolate string template
  *       Ref @ https://stackoverflow.com/posts/41015840/revisions
+ * 
  * @param  {str} str The string to interpolate
  * @param  {object} params The parameters
  * @return {str} The interpolated string
+ * 
  */
-const interpolateHTML = (str, params) => {
+const interpolateString = (str, params) => {
   let names = Object.keys(params);
   let values = Object.values(params);
   return new Function(...names, `return \`${str}\`;`)(...values);
@@ -416,9 +443,10 @@ const tryGetRootNode = (item, expectedNode) => {
 /**
  * getDeltaDiff
  * @desc gets the delta diff between two objects
- * @param {*} lhs the original object
- * @param {*} rhs the object to compare it with
+ * @param {array} lhs the original object
+ * @param {array} rhs the object to compare it with
  * @returns {array} an array where the rows reflect the diff between both objects
+ * 
  */
 const getDeltaDiff = (lhs, rhs) => {
   return [...new Set([...Object.keys(lhs), ...Object.keys(rhs)])].reduce((filtered, key) => {
@@ -469,7 +497,7 @@ const hasDeltaDiff = (lhs, rhs) => {
  * @returns {list} a list of matches
  */
 const parseDOI = (value) => {
-  return value.match(DOI_PATTERN);
+  return value.match(CLU_DOI_PATTERN);
 }
 
 /**
@@ -484,7 +512,7 @@ const waitForElement = (selector) => {
       return resolve(document.querySelector(selector));
     }
 
-    const observer = new MutationObserver(_ => {
+    const observer = new MutationObserver(() => {
       if (document.querySelector(selector)) {
         observer.disconnect();
         resolve(document.querySelector(selector));
@@ -493,6 +521,53 @@ const waitForElement = (selector) => {
 
     observer.observe(document.body, { childList: true, subtree: true });
   });
+}
+
+
+/**
+ * onElementRemoved
+ * @desc waits for an element to be removed from the document before resolving
+ * @param {node} element the element to observe
+ * @returns {promise} promise that resolves when the given element is removed
+ */
+const onElementRemoved = (element) => {
+  return new Promise(resolve => {
+    const observer = new MutationObserver(() => {
+      if (!document.body.contains(element)) {
+        observer.disconnect();
+        resolve();
+      }
+    });
+
+    observer.observe(element.parentElement, { childList: true });
+  });
+}
+
+/**
+ * observeMatchingElements
+ * @desc observes current and any future element(s) that matches the given selector
+ * @param {string} selector the string to match 
+ * @param {function} callback the callback method to handle the observed element 
+ * @returns {null} no result
+ */
+const observeMatchingElements = (selector, callback) => {
+  let elements = [];
+  const observer = new MutationObserver(() => {
+    if (document.querySelector(selector)) {
+      elements = [...document.querySelectorAll(selector)].reduce((filtered, elem) => {
+        if (filtered.indexOf(elem) >= 0) {
+          return filtered;
+        }
+
+        callback(elem);
+        filtered.push(elem);
+
+        return filtered;
+      }, elements);
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 /**
@@ -512,7 +587,8 @@ const isArrayEqual = (a, b, shouldSort = true) => {
 }
 
 /**
- * showing loader when fetching data
+ * showLoader
+ * @desc showing loader when fetching data
  */
 const showLoader = () => {
   const loader = document.querySelector('.loading');
@@ -523,7 +599,8 @@ const showLoader = () => {
 }
 
 /**
- * hide loader when fetching data
+ * hideLoader
+ * @desc hide loader when fetching data
  */
 const hideLoader = () => {
   const loader = document.querySelector('.loading');
@@ -557,7 +634,7 @@ const startLoadingSpinner = (container) => {
 }
 
 /**
- * transpileMarkdownData
+ * convertMarkdownData
  * @desc converts HTML Markdown representation into a string
  * @param {node} parent the data node
  * @returns {string} a string representing the HTML Markdown Data
@@ -588,4 +665,99 @@ const convertMarkdownData = (parent) => {
   }
 
   return content;
+}
+
+/**
+ * hasFixedElementSize
+ * @desc det. whether an element's height/width is fixed
+ * @param {node} element
+ * @param {string[]} axes which axes to consider - if undefined/null is passed then both height and width will be examined
+ * @returns {object} an object describing whether the element is has a fixed size for the given axis
+ *                   _e.g._ `{ width: false, height: true }`
+ * 
+ */
+const hasFixedElementSize = (element, axes = undefined) => {
+  if (Array.isArray(axes)) {
+    axes = axes.reduce((filtered, e) => {
+      if (typeof(e) === 'string') {
+        let value = e.toLowerCase();
+        if (value === 'width' || value === 'height') {
+          filtered.push(value);
+        }
+      }
+
+      return filtered;
+    }, []);
+  }
+
+  if (!Array.isArray(axes) || axes.length < 1) {
+    axes = ['width', 'height'];
+  }
+
+  const results = { };
+  for (let i = 0; i < axes.length; ++i) {
+    let axis = axes[i];
+    let size = element.style?.[axis];
+    results[axis] = typeof(size) === 'string' ? (/\d/.test(size) && !/^(100|9\d)\%/.test(size)) : false;
+  }
+
+  return results;
+}
+
+
+/**
+ * isElementSizeExplicit
+ * @desc det. whether an element's height or width is explicit
+ * @param {node} element the element to examine
+ * @param {string[]} axes which axes to consider - if undefined/null is passed then both height and width will be examined
+ * @returns {object} an object describing whether the element is explicitly sized alongside its current size
+ *                   _e.g._ `{ width: { size: 10, explicit: false } }`
+ * 
+ */
+const isElementSizeExplicit = (element, axes = undefined) => {
+  const results = { };
+  if (Array.isArray(axes)) {
+    axes = axes.reduce((filtered, e) => {
+      if (typeof(e) === 'string') {
+        let value = e.toLowerCase();
+        if (value === 'width' || value === 'height') {
+          filtered.push(value);
+        }
+      }
+
+      return filtered;
+    }, []);
+  }
+
+  if (!Array.isArray(axes) || axes.length < 1) {
+    axes = ['width', 'height'];
+  }
+
+  let container = document.querySelector('div#util-explicit-size');
+  if (isNullOrUndefined(container)) {
+    container = document.createElement('div');
+    container.setAttribute('style', 'visibility: hidden !important; position: absolute !important;');
+    container.appendTo(document.body);
+  }
+
+  let elementClone = element.cloneNode(true);
+  elementClone.appendTo(container);
+
+  let elementRect = elementClone.getBoundingClientRect();
+  for (let i = 0; i < axes.length; ++i) {
+    let axis = axes[i];
+    results[axis] = { size: elementRect?.[axis], explicit: true };
+  }
+  elementClone.innerHTML = '';
+
+  elementRect = elementClone.getBoundingClientRect();
+  for (const [ axis, packet ] of Object.entries(results)) {
+    let size = packet?.size;
+    let curr = elementRect?.[axis];
+    if (curr < size) {
+      results[axis].explicit = false;
+    }
+  }
+
+  return results;
 }

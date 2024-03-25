@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.core.exceptions import BadRequest
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponseBadRequest
 from django.http.response import HttpResponse, JsonResponse, Http404
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
@@ -290,8 +290,8 @@ class CreateEntityView(TemplateView):
         template_id = gen_utils.parse_int(template_id, default=None)
         if template_id is not None:
             template = model_utils.try_get_instance(Template, pk=template_id)
-            if template is None:
-                raise BadRequest('Invalid request.')
+            if template is None or template.hide_on_create:
+                raise Http404
             return self.create_form(request, context, template)
 
         # Send to update form if entity_id is selected
@@ -299,16 +299,16 @@ class CreateEntityView(TemplateView):
         if entity_id is not None and entity_history_id is not None:
             entity = create_utils.try_validate_entity(request, entity_id, entity_history_id)
             if not entity:
-                raise PermissionDenied
+                raise Http404
             
             template = entity.template
             if template is None:
-                raise BadRequest('Invalid request.')
+                raise Http404
             
             return self.update_form(request, context, template, entity)
         
         # Raise 400 if no param matches views
-        raise BadRequest('Invalid request.')
+        raise HttpResponseBadRequest('Invalid request.')
     
     ''' Forms '''
     def select_form(self, request, context):

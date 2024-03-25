@@ -1,0 +1,154 @@
+{% load static %}
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <script src="{% static 'js/lib/eleTree.min.js' %}"></script>
+
+  {% if not component.hide_input_details %}
+    <h3 class="detailed-input-group__title">
+      {{ component.field_data.title }}
+      {% if component.mandatory %}
+        <span class="detailed-input-group__mandatory">*</span>
+      {% endif %}
+    </h3>
+    <p class="detailed-input-group__description">
+      {{ component.description }}
+    </p>
+  {% endif %}
+
+  <div class="ontology-group-creator" data-class="ontology" data-field="{{ component.field_name }}">
+    {% if component.options %}
+      <data aria-hidden="true" data-type="dataset" for="{{ component.field_name }}">
+        {{ component.options|jsonify|striptags }}
+      </data>
+    {% endif %}
+    <data aria-hidden="true" data-type="value" for="{{ component.field_name }}">
+      {% if component.value %}
+        {{ component.value|jsonify|striptags }}
+      {% endif %}
+    </data>
+
+    <div class="ontology-group-creator__header">
+      <p>
+        Add or Remove Ontology
+      </p>
+      <div class="ontology-group-creator__header-actions">
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Edit Ontology Tags" id="add-input-btn">Edit Ontology</button>
+      </div>
+    </div>
+
+    <section class="ontology-group-creator__none-available show" id="no-available-ontology">
+      <p class="ontology-group-creator__none-available-message">You haven't added any ontology tags yet.</p>
+    </section>
+
+    <section class="ontology-group-creator__list" id="ontology-creator">
+      <div class="ontology-group-creator__list-header">
+        <h3>Your Ontology Tags</h3>
+      </div>
+      <div class="ontology-group-creator__list-container slim-scrollbar" id="ontology-list">
+
+      </div>
+    </section>
+
+    <template aria-hidden="true" data-target="ontology-service" data-name="source">
+      <div class="ontology-modal-body__selector" data-source="${source}">
+        <a class="ontology-modal-body__selector__name" target="__blank" href="#" aria-label="${label}">
+          ${label}
+        </a>
+      </div>
+    </template>
+
+    <template aria-hidden="true" data-target="ontology-service" data-name="item">
+      <div class="ontology-modal-body__list-item" data-id="${id}"
+          data-group="${source}" data-label="${label}">
+        <p class="ontology-modal-body__list-item-label">
+          ${label}
+        </p>
+        <div class="ontology-modal-body__list-item-actions">
+          <span tooltip="Remove Item" direction="left">
+            <span class="ontology-modal-body__list-item-actions--delete-icon"
+                tabindex="0" role="button" aria-label="Delete Selected Item"
+                data-target="delete" data-id="${id}" data-group="${source}" data-label="${label}">
+            </span>
+          </span>
+        </div>
+      </div>
+    </template>
+
+    <template aria-hidden="true" data-target="ontology-service" data-name="group">
+      <div class="ontology-group-creator__list-group" data-group="${source}">
+        <h3 class="ontology-group-creator__list-group-title">
+          ${label}
+        </h3>
+      </div>
+    </template>
+
+    <template aria-hidden="true" data-target="ontology-service" data-name="value">
+      <div class="ontology-group-creator__list-item">
+        <p class="ontology-group-creator__list-item-label">
+          ${label}
+        </p>
+      </div>
+    </template>
+
+    <template aria-hidden="true" data-target="ontology-modal" data-name="modal">
+      <div class="target-modal target-modal-${modalSize}" id="${id}" aria-hidden="${hidden}"> \
+        <div class="target-modal__container">
+          <div class="target-modal__header target-modal__header--no-vertical-pad target-modal__header--no-border">
+            <h2 id="target-modal-title">${modalTitle}</h2>
+          </div>
+          <div class="target-modal__body target-modal__body--no-pad" id="target-modal-content">
+            <div class="ontology-modal-body ontology-modal-body--constrained slim-scrollbar">
+              <div id="ontology-selector"
+                  class="ontology-modal-body__section ontology-modal-body__section--flex-order-0-0">
+                <div class="ontology-modal-body__header">                  
+                  <h4>Ontologies</h4>
+                </div>
+                <div class="ontology-modal-body__window slim-scrollbar">
+                  <div class="ontology-modal-body__layout" id="ontology-source-view">
+                    
+                  </div>
+                </div>
+              </div>
+              <div id="ontology-container"
+                  class="ontology-modal-body__section ontology-modal-body__section--flex-order-1-2">
+                <div class="ontology-modal-body__header">                  
+                  <h4>Available Items</h4>
+                </div>
+                <div class="ontology-modal-body__window slim-scrollbar" id="ontology-tree-view">
+
+                </div>
+              </div>
+              <div id="ontology-items" 
+                  class="ontology-modal-body__section ontology-modal-body__section--flex-order-2-1">
+                <div class="ontology-modal-body__header">                  
+                  <h4>Selected Items</h4>
+                </div>
+                <div class="ontology-modal-body__window ontology-modal-body__window--max-vh slim-scrollbar">
+                  <div class="ontology-modal-body__none-available" id="no-items-selected">
+                    <p class="ontology-modal-body__none-available-message">
+                      You haven't selected any items yet.
+                    </p>
+                  </div>
+                  <div class="ontology-modal-body__list show" id="ontology-selected-view">
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="target-modal__footer" id="target-modal-footer">
+            <button class="primary-btn text-accent-darkest bold secondary-accent"
+                aria-label="Confirm" id="confirm">
+              ${modalConfirm}
+            </button>
+            <button class="secondary-btn text-accent-darkest bold washed-accent"
+                aria-label="Cancel" id="cancel">
+              ${modalCancel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>

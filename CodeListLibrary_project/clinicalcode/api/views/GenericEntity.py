@@ -318,7 +318,7 @@ def get_entity_detail(request, phenotype_id, version_id=None, field=None):
                 historical_entity, 
                 user_authed, 
                 target_field=field, 
-                return_data=True
+                return_data=False
             )
         
         if field == 'codes':

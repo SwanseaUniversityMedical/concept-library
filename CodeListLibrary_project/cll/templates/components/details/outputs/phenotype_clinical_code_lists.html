@@ -21,11 +21,8 @@
       <div class="col-md-6 text-align-right">
 
         <label class="dropdown-group">
-
           <div class="dropdown-group__button">Export Code List </div>
-        
           <input type="checkbox" class="dropdown-group__input"  id="dd_2">
-        
           <ul class="dropdown-group__menu dropdown-group__menu--fall-right" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} >
             <li aria-label="Export code list as CSV" role="button" tabindex="0">
               <a {% if user_can_export %}
@@ -43,13 +40,12 @@
               </a>
             </li>
           </ul>
-          
         </label>
 
-        </div>
       </div>
-      
+
     </div>
+  </div>
 </div>
 {% endif %}
 
@@ -65,10 +61,11 @@
             {% if c.details.phenotype_owner == c.details.requested_entity_id %}
               {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}
             {% else %}
-            {% if c.details.phenotype_owner %}
-            <a href="{% url 'entity_history_detail' pk=c.details.phenotype_owner history_id=c.details.phenotype_owner_history_id %}">{{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}</a>
+              {% if c.details.phenotype_owner %}
+                <a href="{% url 'entity_history_detail' pk=c.details.phenotype_owner history_id=c.details.phenotype_owner_history_id %}">{{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}</a>
+              {% endif %}
             {% endif %}
-            {% endif %}
+
             &nbsp;-&nbsp;{{ c.details.name }}
             &nbsp;|&nbsp;<em>{{ c.coding_system.name }}</em>
 
@@ -130,9 +127,8 @@
       {
         codelistContainerId: '#concept-codelist-${concept_id}_${concept_version_id}',
         showAttributes: true,
-        perPageSelect: [10, 50, 100, ['All', -1]]
+        perPageSelect: [ 10, 50, 100, [ 'All', -1 ] ],
       }
     );
   });
 </script>
-
