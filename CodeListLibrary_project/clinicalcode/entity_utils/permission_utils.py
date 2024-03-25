@@ -264,7 +264,7 @@ def get_accessible_entities(
 
     return entities.distinct('id')
 
-def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_version_id, default=None):
+def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_version_id=None, default=None):
     """
         Gets the latest phenotype owner version id from a given concept
         and its expected owner id
@@ -274,7 +274,7 @@ def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_vers
 
             concept_id (int): The child concept id
 
-            concept_version_id (int): The child concept version id
+            concept_version_id (int): An optional child concept version id
 
             default (any): An optional default return value
 
@@ -284,7 +284,11 @@ def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_vers
     """
     latest_version = default
     with connection.cursor() as cursor:
-        sql = '''
+        version_id_clause = ''
+        if isinstance(concept_version_id, int):
+            version_id_clause = '''and (concepts->>'concept_version_id')::int = %(concept_version_id)s'''
+
+        sql = f'''
 
         with
           phenotype_children as (
@@ -302,7 +306,7 @@ def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_vers
                    and id = %(phenotype_id)s
               ) hge_concepts
              where (concepts->>'concept_id')::int = %(concept_id)s
-               and (concepts->>'concept_version_id')::int = %(concept_version_id)s
+               {version_id_clause}
           )
 
         select phenotype_id,
