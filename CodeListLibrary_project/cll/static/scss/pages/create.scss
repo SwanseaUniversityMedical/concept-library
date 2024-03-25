@@ -352,14 +352,19 @@
         content: '\f1f8';
         color: col(accent-danger);
       }
-    
+
       .concept-name {
+        @include wrap-words();
         cursor: pointer;
         pointer-events: auto;
         font-weight: normal;
-        white-space: break-spaces;
         text-overflow: ellipsis;
         overflow: hidden;
+        max-width: 80%;
+
+        a {
+          @include wrap-words();
+        }
       }
     
       .concept-buttons {

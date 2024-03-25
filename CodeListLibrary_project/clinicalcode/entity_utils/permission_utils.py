@@ -264,6 +264,72 @@ def get_accessible_entities(
 
     return entities.distinct('id')
 
+def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_version_id, default=None):
+    """
+        Gets the latest phenotype owner version id from a given concept
+        and its expected owner id
+
+        Args:
+            phenotype_id (int): The phenotype owner id
+
+            concept_id (int): The child concept id
+
+            concept_version_id (int): The child concept version id
+
+            default (any): An optional default return value
+
+        Returns:
+            Returns either (a) an integer representing the version id
+                       OR; (b) the optional default value
+    """
+    latest_version = default
+    with connection.cursor() as cursor:
+        sql = '''
+
+        with
+          phenotype_children as (
+            select id as phenotype_id,
+                   history_id as phenotype_version_id,
+                   cast(concepts->>'concept_id' as integer) as concept_id,
+                   cast(concepts->>'concept_version_id' as integer) as concept_version_id
+              from (
+                select id,
+                       history_id,
+                       concepts
+                  from public.clinicalcode_historicalgenericentity as entity,
+                       json_array_elements(entity.template_data::json->'concept_information') as concepts
+                 where json_array_length(entity.template_data::json->'concept_information') > 0
+                   and id = %(phenotype_id)s
+              ) hge_concepts
+             where (concepts->>'concept_id')::int = %(concept_id)s
+               and (concepts->>'concept_version_id')::int = %(concept_version_id)s
+          )
+
+        select phenotype_id,
+               max(phenotype_version_id) as phenotype_version_id
+          from phenotype_children as pheno
+          join public.clinicalcode_historicalgenericentity as entity
+            on pheno.phenotype_id = entity.id
+            and pheno.phenotype_version_id = entity.history_id
+         group by phenotype_id;
+
+        '''
+
+        cursor.execute(
+            sql,
+            params={ 'phenotype_id': phenotype_id, 'concept_id': concept_id, 'concept_version_id': concept_version_id }
+        )
+
+        columns = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+
+        if row is not None:
+            row = dict(zip(columns, row))
+            latest_version = row.get('phenotype_version_id')
+
+    return latest_version
+        
+
 def get_accessible_concepts(
     request,
     group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]

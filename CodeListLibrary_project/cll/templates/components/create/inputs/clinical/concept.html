@@ -32,7 +32,11 @@
       <span class="concept-list__group-item" id="concept-accordian-header">
         <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
         <span class="concept-name"  tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">
-          ${phenotype_owner !== requested_entity_id ? `<a href="${phenotype_owner_version_url}" target="_blank">${phenotype_owner} / ${phenotype_owner_history_id} / ${concept_name}</a>` : phenotype_owner ? `${phenotype_owner} / ${phenotype_owner_history_id} / ${concept_name}` : ''}${coding_system ? ' | ' + coding_system : ''}${out_of_date ? ' | <strong>Legacy Version</strong>' : ''}        
+          ${is_imported_item
+            ? `<a href="${phenotype_owner_version_url}" target="_blank">${phenotype_owner} / ${phenotype_owner_history_id} / ${concept_name}</a>`
+            : (phenotype_owner ? `${phenotype_owner} / ${phenotype_owner_history_id} / ${concept_name}` : (concept_name || '')) }
+
+          ${coding_system ? ' | ' + coding_system : ''}${out_of_date ? ' | <strong>Legacy Version</strong>' : ''}
         </span>
         <span class="concept-buttons">
           ${can_edit
