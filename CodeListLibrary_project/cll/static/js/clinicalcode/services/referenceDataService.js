@@ -134,7 +134,15 @@ const renderTreeViewComponent = (key, container, sources) => {
         loading: '.eleTree-animate-rotate.eletree_icon-loading1',
       },
       customText: (data) => {
-        return `<span class="ref-ontology-node"><b>NodeID:</b><b>${data.id}</b></span>${data.label}`;
+        return `<span class="ref-ontology-node">
+          <span>
+            ${data.label}
+          </span>
+          <span class="ref-ontology-node__source">
+            <b>NodeID:</b>
+            <b>${data.id}</b>
+          </span>
+        </span>`;
       }
     });
 
