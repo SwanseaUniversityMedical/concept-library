@@ -3,6 +3,8 @@ from django.conf import settings
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
+from datetime import datetime
 
 import re
 import json
@@ -68,6 +70,23 @@ def get_brand_base_embed_img(brand):
     if not brand or not getattr(brand, 'logo_path'):
         return settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
     return settings.APP_EMBED_ICON.format(logo_path=brand.logo_path)
+
+@register.simple_tag
+def render_citation_block(entity, request):
+    phenotype_id = f'{entity.id} / {entity.history_id}'
+    name = entity.name
+    author = entity.author
+    updated = entity.updated.strftime('%d %B %Y')
+    date = datetime.now().strftime('%d %B %Y')
+    url = request.build_absolute_uri(reverse(
+        'entity_history_detail', 
+        kwargs={ 'pk': entity.id, 'history_id': entity.history_id }
+    ))
+
+    brand = request.BRAND_OBJECT
+    site_name = settings.APP_TITLE if not brand or not getattr(brand, 'site_title') else brand.site_title
+
+    return f'{author}. *{phenotype_id} - {name}*. {site_name} [Online]. {updated}. Available from: [{url}]({url}). [Accessed {date}]'
 
 @register.inclusion_tag('components/search/pagination/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
