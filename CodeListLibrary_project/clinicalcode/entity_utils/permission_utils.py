@@ -284,45 +284,95 @@ def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_vers
     """
     latest_version = default
     with connection.cursor() as cursor:
-        version_id_clause = ''
+        sql = None
+        params = { 'phenotype_id': phenotype_id, 'concept_id': concept_id }
         if isinstance(concept_version_id, int):
-            version_id_clause = '''and (concepts->>'concept_version_id')::int = %(concept_version_id)s'''
+            sql = '''
 
-        sql = f'''
+            with
+              phenotype_children as (
+                select id as phenotype_id,
+                       history_id as phenotype_version_id,
+                       cast(concepts->>'concept_id' as integer) as concept_id,
+                       cast(concepts->>'concept_version_id' as integer) as concept_version_id
+                  from (
+                    select id,
+                           history_id,
+                           concepts
+                      from public.clinicalcode_historicalgenericentity as entity,
+                           json_array_elements(entity.template_data::json->'concept_information') as concepts
+                     where json_array_length(entity.template_data::json->'concept_information') > 0
+                       and id = %(phenotype_id)s
+                  ) hge_concepts
+                 where (concepts->>'concept_id')::int = %(concept_id)s
+              ),
+              priorities as (
+                select t1.*, 1 as sel_priority
+                  from phenotype_children as t1
+                 where t1.concept_version_id = %(concept_version_id)s
+                 union all
+                select t2.*, 2 as sel_priority
+                  from phenotype_children as t2
+              ),
+              sorted_ref as (
+                select phenotype_id,
+                       phenotype_version_id,
+                       concept_id,
+                       concept_version_id,
+                       row_number() over (
+                         partition by concept_version_id
+                             order by sel_priority
+                       ) as reference
+                  from priorities
+              )
 
-        with
-          phenotype_children as (
-            select id as phenotype_id,
-                   history_id as phenotype_version_id,
-                   cast(concepts->>'concept_id' as integer) as concept_id,
-                   cast(concepts->>'concept_version_id' as integer) as concept_version_id
+            select phenotype_id,
+                   max(phenotype_version_id) as phenotype_version_id
               from (
-                select id,
-                       history_id,
-                       concepts
-                  from public.clinicalcode_historicalgenericentity as entity,
-                       json_array_elements(entity.template_data::json->'concept_information') as concepts
-                 where json_array_length(entity.template_data::json->'concept_information') > 0
-                   and id = %(phenotype_id)s
-              ) hge_concepts
-             where (concepts->>'concept_id')::int = %(concept_id)s
-               {version_id_clause}
-          )
+                select *
+                  from sorted_ref
+                 where reference = 1
+              ) as pheno
+              join public.clinicalcode_historicalgenericentity as entity
+                on pheno.phenotype_id = entity.id
+                and pheno.phenotype_version_id = entity.history_id
+             group by phenotype_id;
 
-        select phenotype_id,
-               max(phenotype_version_id) as phenotype_version_id
-          from phenotype_children as pheno
-          join public.clinicalcode_historicalgenericentity as entity
-            on pheno.phenotype_id = entity.id
-            and pheno.phenotype_version_id = entity.history_id
-         group by phenotype_id;
+            '''
 
-        '''
+            params.update({ 'concept_version_id': concept_version_id })
+        else:
+            sql = '''
 
-        cursor.execute(
-            sql,
-            params={ 'phenotype_id': phenotype_id, 'concept_id': concept_id, 'concept_version_id': concept_version_id }
-        )
+            with
+              phenotype_children as (
+                select id as phenotype_id,
+                       history_id as phenotype_version_id,
+                       cast(concepts->>'concept_id' as integer) as concept_id,
+                       cast(concepts->>'concept_version_id' as integer) as concept_version_id
+                  from (
+                    select id,
+                           history_id,
+                           concepts
+                      from public.clinicalcode_historicalgenericentity as entity,
+                           json_array_elements(entity.template_data::json->'concept_information') as concepts
+                     where json_array_length(entity.template_data::json->'concept_information') > 0
+                       and id = %(phenotype_id)s
+                  ) hge_concepts
+                 where (concepts->>'concept_id')::int = %(concept_id)s
+              )
+
+            select phenotype_id,
+                   max(phenotype_version_id) as phenotype_version_id
+              from phenotype_children as pheno
+              join public.clinicalcode_historicalgenericentity as entity
+                on pheno.phenotype_id = entity.id
+                and pheno.phenotype_version_id = entity.history_id
+             group by phenotype_id;
+
+            '''
+
+        cursor.execute(sql, params=params)
 
         columns = [col[0] for col in cursor.description]
         row = cursor.fetchone()

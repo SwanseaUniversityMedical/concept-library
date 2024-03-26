@@ -429,12 +429,35 @@ with
          where json_array_length(entity.template_data::json->'concept_information') > 0
            and id = %(phenotype_id)s
       ) hge_concepts
-     where concept_id = %(concept_id)s
+     where (concepts->>'concept_id')::int = %(concept_id)s
+  ),
+  priorities as (
+    select t1.*, 1 as sel_priority
+      from phenotype_children as t1
+     where t1.concept_version_id = %(concept_version_id)s
+     union all
+    select t2.*, 2 as sel_priority
+      from phenotype_children as t2
+  ),
+  sorted_ref as (
+    select phenotype_id,
+           phenotype_version_id,
+           concept_id,
+           concept_version_id,
+           row_number() over (
+             partition by concept_version_id
+                 order by sel_priority
+           ) as reference
+      from priorities
   )
 
 select phenotype_id,
        max(phenotype_version_id) as phenotype_version_id
-  from phenotype_children as pheno
+  from (
+    select *
+      from sorted_ref
+     where reference = 1
+  ) as pheno
   join public.clinicalcode_historicalgenericentity as entity
     on pheno.phenotype_id = entity.id
     and pheno.phenotype_version_id = entity.history_id

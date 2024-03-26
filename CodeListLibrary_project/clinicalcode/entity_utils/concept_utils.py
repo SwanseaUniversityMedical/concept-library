@@ -885,7 +885,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
 
         latest_version_id = permission_utils.get_latest_owner_version_from_concept(
             phenotype_id=phenotype_owner.id,
-            concept_id=concept.id
+            concept_id=historical_concept.id,
+            concept_version_id=historical_concept.history_id
         )
 
         if latest_version_id is not None:
