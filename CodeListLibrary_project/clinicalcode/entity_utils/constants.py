@@ -496,7 +496,7 @@ metadata = {
     "citation_requirements": {
         "title": "Citation Requirements",
         "description": "A request for how this phenotype is referenced if used in other work.",
-        "field_type": "textarea_markdown",
+        "field_type": "citation_requirements",
         "active": True,
         "validation": {
             "type": "string",
@@ -717,6 +717,12 @@ FIELD_TYPES = {
         'data_type': 'string',
         'input_type': 'list_of_inputboxes',
         'output_type': 'list_of_inputboxes'
+    },
+
+    'citation_requirements': {
+        'data_type': 'string',
+        'input_type': 'markdown',
+        'output_type': 'citation_requirements'
     },
 
     'enum': {
