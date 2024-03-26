@@ -740,6 +740,7 @@ FIELD_TYPES = {
 
     'ontology': {
         'input_type': 'generic/ontology',
+        'output_type': 'generic/ontology'
     },
 
     'enum_radio_badge': {

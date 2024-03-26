@@ -12,6 +12,7 @@
 {% block container %}
   <!-- Vendor -->
   <script src="{% static 'js/lib/moment.min.js' %}"></script>
+  <script src="{% static 'js/lib/eleTree.min.js' %}"></script>
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
 
   <!-- Dependencies -->
@@ -116,6 +117,27 @@
           <p>Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.</p>
           <div class="reference-collection__table-container constrained-codelist-table" id="data-sources-area">
 
+          </div>
+        </section>
+        <section class="reference-collection__inner-container" id="ontology">
+          <data aria-hidden="true" data-owner="reference-data-service" name="ontology" type="text/json">
+            {% if ontology %}
+              {{ ontology|jsonify|safe }}
+            {% endif %}
+          </data>
+
+          <h3>Ontology</h3>
+          <p>A set of taggable categories and concepts that describes a Phenotype.</p>
+
+          <div class="reference-collection__table-container constrained-codelist-table" id="ontology-area" type="tree">
+            <div class="tab-view" id="tab-view">
+              <div class="tab-view__tabs tab-view__tabs-z-buffer" id="tab-items">
+                
+              </div>
+              <div class="tab-view__content" id="tab-content">
+
+              </div>
+            </div>
           </div>
         </section>
       </article>
