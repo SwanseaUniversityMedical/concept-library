@@ -3,8 +3,8 @@ from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from .TimeStampedModel import TimeStampedModel
 from .EntityClass import EntityClass
+from .TimeStampedModel import TimeStampedModel
 
 class Template(TimeStampedModel):
     '''

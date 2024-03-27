@@ -7,6 +7,7 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 
 from ..models.Concept import Concept
+from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedGenericEntity import PublishedGenericEntity
@@ -34,7 +35,39 @@ def redirect_readonly(fn):
 
     return wrap
 
-""" Status helpers """
+
+""" Render helpers """
+
+def should_render_template(template=None, **kwargs):
+    """
+        Method to det. whether a template should be renderable
+        based on its `hide_on_create` property
+
+        Args:
+            template {model}: optional parameter to check a model instance directly
+
+            **kwargs (any): params to use when querying the template model
+        
+        Returns:
+            A boolean reflecting the renderable status of a template model
+
+    """
+    if template is None:
+        if len(kwargs.keys()) < 1:
+            return False
+
+        template = Template.objects.filter(**kwargs)
+    
+        if template.exists():
+            template = template.first()
+
+    if not isinstance(template, Template) or not hasattr(template, 'hide_on_create'):
+        return False
+
+    return not template.hide_on_create
+
+
+""" Status helpers """  
 
 def is_member(user, group_name):
     """
@@ -231,11 +264,14 @@ def get_accessible_entities(
         )
 
         entities = entities.filter(query) \
+            .exclude(
+                template__hide_on_create=True
+            ) \
             .annotate(
                 was_deleted=Subquery(
                     GenericEntity.objects.filter(
                         id=OuterRef('id'),
-                        is_deleted=True
+                        is_deleted=True,
                     ) \
                     .values('id')
                 )
@@ -249,7 +285,8 @@ def get_accessible_entities(
         return entities.distinct('id')
 
     entities = entities.filter(
-        publish_status=APPROVAL_STATUS.APPROVED
+        publish_status=APPROVAL_STATUS.APPROVED,
+        template__hide_on_create=False,
     ) \
         .annotate(
             was_deleted=Subquery(
