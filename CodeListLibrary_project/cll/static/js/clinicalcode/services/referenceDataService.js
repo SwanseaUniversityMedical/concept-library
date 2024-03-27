@@ -64,6 +64,17 @@ const getReferenceData = () => {
   return result;
 };
 
+/**
+ * renderTreeViewComponent
+ * @desc given the data associated with the `<data/>` elements,
+ *       attempt to render a tree view component for the
+ *       ontology API
+ * 
+ * @param {string|any} key the data associated key
+ * @param {node} container the relevant container node
+ * @param {object} data the associated data object
+ * @returns 
+ */
 const renderTreeViewComponent = (key, container, sources) => {
   const tabItems = container.querySelector('#tab-items');
   const tabContent = container.querySelector('#tab-content');
