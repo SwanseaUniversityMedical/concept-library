@@ -259,9 +259,4 @@ domReady.finally(() => {
 
     renderReferenceComponent(key, value.container, value.data);
   }
-
-  const trees = document.querySelectorAll('section[data-owner="reference-data-service"] > div[type="tree"]');
-  for (let i = 0; i < trees.length; ++i) {
-
-  }
 });
