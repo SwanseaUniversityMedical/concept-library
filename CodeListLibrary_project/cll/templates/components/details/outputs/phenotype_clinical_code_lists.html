@@ -61,8 +61,12 @@
             {% if c.details.phenotype_owner == c.details.requested_entity_id %}
               {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}
             {% else %}
-              {% if c.details.phenotype_owner %}
+              {% if c.details.phenotype_owner and c.details.phenotype_owner_history_id %}
                 <a href="{% url 'entity_history_detail' pk=c.details.phenotype_owner history_id=c.details.phenotype_owner_history_id %}">{{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}</a>
+              {% elif c.details.phenotype_owner %}
+                <a href="{% url 'entity_detail' pk=c.details.phenotype_owner %}">{{c.details.phenotype_owner}} / C{{ c.concept_id }}</a>
+              {% else %}
+                C{{ c.concept_id }}
               {% endif %}
             {% endif %}
 

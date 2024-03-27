@@ -227,6 +227,140 @@ def admin_fix_malformed_codes(request):
     )
 
 @login_required
+def admin_fix_concept_linkage(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_concept_linkage'),
+                'action_title': 'Fix Concept Linkage',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    row_count = 0
+    with connection.cursor() as cursor:
+
+        ''' Update from legacy reference first ... '''
+        sql = '''
+
+        with
+          legacy_reference as (
+            select phenotype.id as phenotype_id,
+                   concept->>'concept_id' as concept_id,
+                   concept->>'concept_version_id' as concept_version_id,
+                   created
+              from public.clinicalcode_phenotype as phenotype,
+                   json_array_elements(phenotype.concept_informations::json) as concept
+          ),
+          ranked_legacy_concepts as (
+            select phenotype_id,
+                   cast(concept_id as integer) as concept_id,
+                   cast(concept_version_id as integer) as concept_version_id,
+                   rank() over (
+                     partition by phenotype_id
+                         order by created asc
+                   ) as ranking
+              from legacy_reference
+          )
+
+        update public.clinicalcode_historicalconcept as trg
+           set phenotype_owner_id = src.phenotype_id
+          from (
+            select *
+              from ranked_legacy_concepts
+             where ranking = 1
+          ) as src
+         where trg.id = src.concept_id
+           and trg.phenotype_owner_id is null;
+
+        '''
+
+        cursor.execute(sql)
+        row_count += cursor.rowcount
+
+        ''' ... then update from current reference '''
+        sql = '''
+
+        with
+          entity_reference as (
+            select id as phenotype_id,
+                   history_id as phenotype_version_id,
+                   cast(concepts->>'concept_id' as integer) as concept_id,
+                   cast(concepts->>'concept_version_id' as integer) as concept_version_id
+              from (
+                select id,
+                       history_id,
+                       concepts
+                  from public.clinicalcode_historicalgenericentity as entity,
+                       json_array_elements(entity.template_data::json->'concept_information') as concepts
+                 where template_id = 1
+                   and json_array_length(entity.template_data::json->'concept_information') > 0
+              ) hge_concepts
+          ),
+          first_child_concept as (
+            select concept_id as concept_id,
+                   min(concept_version_id) as concept_version_id
+              from entity_reference as entity
+             group by concept_id
+          ),
+          earliest_entity as (
+            select phenotype_id,
+                   concept_id,
+                   concept_version_id
+              from (
+                select phenotype_id,
+                      rank() over (
+                        partition by phenotype_id
+                            order by phenotype_version_id asc
+                      ) as ranking,
+                      concept.concept_id,
+                      concept.concept_version_id
+                  from entity_reference as entity
+                  join first_child_concept as concept
+                    using (concept_id, concept_version_id)
+              ) as hci
+             where ranking = 1
+          )
+
+        update public.clinicalcode_historicalconcept as trg
+           set phenotype_owner_id = src.phenotype_id
+          from earliest_entity as src
+         where trg.id = src.concept_id
+           and trg.phenotype_owner_id is null;
+
+        '''
+
+        cursor.execute(sql)
+        row_count += cursor.rowcount
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': f'Updated {str(row_count)} entities' },
+            'action_title': 'Fix Concept Linkage',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_fix_coding_system_linkage(request):
     if settings.CLL_READ_ONLY: 
         raise PermissionDenied
@@ -295,6 +429,42 @@ def admin_fix_coding_system_linkage(request):
 
         cursor.execute(sql)
         row_count = cursor.rowcount
+
+        sql = '''
+
+        update public.clinicalcode_genericentity as trg
+           set template_data['coding_system'] = to_jsonb(src.coding_system)
+          from (
+            select entity.phenotype_id,
+                   array_agg(distinct concept.coding_system_id::integer) as coding_system
+              from public.clinicalcode_historicalconcept as concept
+              join (
+                select id as phenotype_id,
+                       cast(concepts->>'concept_id' as integer) as concept_id,
+                       cast(concepts->>'concept_version_id' as integer) as concept_version_id
+                  from (
+                    select id,
+                           concepts
+                      from public.clinicalcode_genericentity as entity,
+                           json_array_elements(entity.template_data::json->'concept_information') as concepts
+                     where template_id = 1
+                       and json_array_length(entity.template_data::json->'concept_information') > 0
+                  ) results
+              ) as entity
+            on entity.concept_id = concept.id
+               and entity.concept_version_id = concept.history_id
+            group by entity.phenotype_id
+          ) src
+        where trg.id = src.phenotype_id
+          and trg.template_id = 1
+          and array(
+            select jsonb_array_elements_text(trg.template_data->'coding_system')
+          )::int[] <> src.coding_system;
+
+        '''
+
+        cursor.execute(sql)
+        row_count += cursor.rowcount
 
     return render(
         request,

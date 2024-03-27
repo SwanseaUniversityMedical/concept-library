@@ -746,8 +746,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
                               aggregate_component_codes=False, include_component_codes=True,
                               include_attributes=False, strippable_fields=None,
                               remove_userdata=False, hide_user_details=False,
-                              derive_access_from=None,requested_entity_id=None, format_for_api=False,
-                              include_source_data=False):
+                              derive_access_from=None, requested_entity_id=None,
+                              format_for_api=False, include_source_data=False):
     """
       [!] Note: This method ignores permissions to derive data - it should only be called from a
                 a method that has previously considered accessibility
@@ -882,21 +882,18 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     phenotype_owner = concept.phenotype_owner   
     if phenotype_owner:
         concept_data['phenotype_owner'] = phenotype_owner.id
-        entity_from_concept = GenericEntity.history.filter(
-                    id=phenotype_owner.id
-                )
-        template_data = entity_from_concept.values_list('template_data',flat=True)
 
-        #Iterate through the concept_information to find the phenotype owner history
-        for index, value in enumerate(template_data):
-            history_ids_concept = [j['concept_version_id'] for j in value['concept_information']]
-            if concept_history_id in history_ids_concept:
-                concept_data['phenotype_owner_history_id'] = entity_from_concept.values_list('history_id',flat=True)[index]
+        latest_version_id = permission_utils.get_latest_owner_version_from_concept(
+            phenotype_id=phenotype_owner.id,
+            concept_id=historical_concept.id,
+            concept_version_id=historical_concept.history_id
+        )
+
+        if latest_version_id is not None:
+            concept_data['phenotype_owner_history_id'] = latest_version_id
     
     # Set the requested entity id
     concept_data['requested_entity_id'] = requested_entity_id
-        
-
 
     # Set base
     if not format_for_api:
