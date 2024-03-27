@@ -1,0 +1,32 @@
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <div class="box-container">
+    <div class="row">
+      <span id="entity-{{ component.field_name }}"></span>
+      <div class="col-sm-2 row-padding">
+        {{ component.field_data.title }}
+      </div>
+
+      {% if component.value|length %}
+        <div class="col-sm-10 ontology-group--shade">
+          <div class="ontology-group slim-scrollbar">
+            {% for item in component.value %}
+              <span class="ontology-group__item" style="--type: {{ item.type_id }};">
+                {% url 'api:ontology_node_by_id' node_id=item.id as node_api %}
+                <a class="chip-text" target="_blank"
+                    href="{{ node_api }}" title="'{{ item.label }}' {{ item.full_names }}">
+                  {{ item.label }}
+                </a>
+              </span>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="col-sm-10">
+          <span class="card-no-data">No data</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

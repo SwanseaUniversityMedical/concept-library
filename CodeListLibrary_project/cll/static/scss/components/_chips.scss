@@ -76,6 +76,71 @@
   }
 }
 
+/// Ontology chip
+///   @desc e.g. used to display ontology item(s) on the detail page
+.ontology-group {
+  @include flex-row($gap: 0.5rem);
+
+  position: relative;
+  margin: 0;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hide;
+  max-height: 100px;
+  padding: 0.5rem 0.5rem calc(0.5rem + 12px) 0.2rem;
+
+  &--shade:after {
+    content: '';
+    display:block;
+    position: absolute;
+    height: 24px;
+    width: calc(100% - 10px);
+    margin: 0 auto;
+    bottom: 0;
+    border: 0;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0), white 95%) center bottom,
+      radial-gradient(farthest-side at 50% 100%, rgba(255, 255, 255, 0.71), rgba(0, 0, 0, 0)) center bottom;
+  }
+
+  &__item {
+    --type: 1;
+    --maxValue: 10;
+    --shiftValue: 0.25;
+
+    --hue: calc(((var(--type) / var(--maxValue)) + var(--shiftValue)) * 360);
+    --text-color: var(--color-text-darkest);
+
+    display: flex;
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    background-color: hsla(var(--hue), 60%, 85%, 0.75);
+    border-radius: 0.5rem;
+    color: var(--text-color);
+    font-weight: bold;
+    transition: background-color 250ms ease, box-shadow 250ms ease;
+    box-shadow: 0 0 0 2px hsla(var(--hue), 40%, 30%, 0.25);
+    align-items: center;
+
+    & > a {
+      display: -webkit-box;
+      height: fit-content;
+      max-width: 400px;
+      max-height: 50px;
+      overflow: hidden;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      word-wrap:break-word;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+      text-decoration: none;
+    }
+  }
+}
+
 /// Chips
 ///   @desc e.g. used to make selections, filter content, trigger actions or present small tag-like information
 .chips-group {

@@ -106,8 +106,8 @@
         }
       },
       "search": {
-        "filterable": false,
-        "api": false
+        "filterable": true,
+        "api": true
       }
     },
     "coding_system": {

@@ -20,7 +20,10 @@ from ..models.CodingSystem import CodingSystem
 from ..models.DataSource import DataSource
 from ..models.Statistics import Statistics
 from ..models.Tag import Tag
+from ..models.OntologyTag import OntologyTag
+from ..entity_utils.constants import ONTOLOGY_TYPES
 from ..entity_utils.permission_utils import redirect_readonly
+
 
 logger = logging.getLogger(__name__)
 
@@ -289,7 +292,8 @@ def reference_data(request):
         'data_sources': list(DataSource.objects.all().order_by('id').values('id', 'name')),
         'coding_system': list(CodingSystem.objects.all().order_by('id').values('id', 'name')),
         'tags': list(tags),
-        'collections': list(collections)
+        'collections': list(collections),
+        'ontology': OntologyTag.get_groups([x.value for x in ONTOLOGY_TYPES], default=[]),
     }
 
     return render(request, 'clinicalcode/about/reference_data.html', context)
