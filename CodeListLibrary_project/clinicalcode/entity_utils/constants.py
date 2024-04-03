@@ -125,6 +125,26 @@ class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     CREATE = 1
     UPDATE = 2
 
+class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Defines the ontology internal type id,
+        which describes the ontology type
+
+    """
+    CLINICAL_DISEASE = 0
+    CLINICAL_DOMAIN = 1
+    CLINICAL_FUNCTIONAL_ANATOMY = 2
+
+"""
+    Used to define the labels for each
+    known ontology type
+
+"""
+ONTOLOGY_LABELS = {
+    ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
+    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (ICD-10)',
+    ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
+}
 
 """
     The excepted X-Requested-With header if a fetch request is made
@@ -476,7 +496,7 @@ metadata = {
     "citation_requirements": {
         "title": "Citation Requirements",
         "description": "A request for how this phenotype is referenced if used in other work.",
-        "field_type": "textarea_markdown",
+        "field_type": "citation_requirements",
         "active": True,
         "validation": {
             "type": "string",
@@ -699,6 +719,12 @@ FIELD_TYPES = {
         'output_type': 'list_of_inputboxes'
     },
 
+    'citation_requirements': {
+        'data_type': 'string',
+        'input_type': 'markdown',
+        'output_type': 'citation_requirements'
+    },
+
     'enum': {
         'data_type': 'int',
         'input_type': 'dropdown-list',
@@ -710,6 +736,11 @@ FIELD_TYPES = {
         'input_type': 'grouped_enum',
         'output_type': 'radiobutton',
         'apply_badge_style': True
+    },
+
+    'ontology': {
+        'input_type': 'generic/ontology',
+        'output_type': 'generic/ontology'
     },
 
     'enum_radio_badge': {

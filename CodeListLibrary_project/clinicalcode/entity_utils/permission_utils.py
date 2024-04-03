@@ -7,6 +7,7 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 
 from ..models.Concept import Concept
+from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedGenericEntity import PublishedGenericEntity
@@ -29,12 +30,44 @@ def redirect_readonly(fn):
     @wraps(fn)
     def wrap(request, *args, **kwargs):
         if settings.CLL_READ_ONLY:
-            raise PermissionDenied
+            raise PermissionDenied("ERR_403_GATEWAY")
         return fn(request, *args, **kwargs)
 
     return wrap
 
-""" Status helpers """
+
+""" Render helpers """
+
+def should_render_template(template=None, **kwargs):
+    """
+        Method to det. whether a template should be renderable
+        based on its `hide_on_create` property
+
+        Args:
+            template {model}: optional parameter to check a model instance directly
+
+            **kwargs (any): params to use when querying the template model
+        
+        Returns:
+            A boolean reflecting the renderable status of a template model
+
+    """
+    if template is None:
+        if len(kwargs.keys()) < 1:
+            return False
+
+        template = Template.objects.filter(**kwargs)
+    
+        if template.exists():
+            template = template.first()
+
+    if not isinstance(template, Template) or not hasattr(template, 'hide_on_create'):
+        return False
+
+    return not template.hide_on_create
+
+
+""" Status helpers """  
 
 def is_member(user, group_name):
     """
@@ -231,11 +264,14 @@ def get_accessible_entities(
         )
 
         entities = entities.filter(query) \
+            .exclude(
+                template__hide_on_create=True
+            ) \
             .annotate(
                 was_deleted=Subquery(
                     GenericEntity.objects.filter(
                         id=OuterRef('id'),
-                        is_deleted=True
+                        is_deleted=True,
                     ) \
                     .values('id')
                 )
@@ -249,7 +285,8 @@ def get_accessible_entities(
         return entities.distinct('id')
 
     entities = entities.filter(
-        publish_status=APPROVAL_STATUS.APPROVED
+        publish_status=APPROVAL_STATUS.APPROVED,
+        template__hide_on_create=False,
     ) \
         .annotate(
             was_deleted=Subquery(
@@ -263,6 +300,126 @@ def get_accessible_entities(
         .exclude(was_deleted__isnull=False)
 
     return entities.distinct('id')
+
+def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_version_id=None, default=None):
+    """
+        Gets the latest phenotype owner version id from a given concept
+        and its expected owner id
+
+        Args:
+            phenotype_id (int): The phenotype owner id
+
+            concept_id (int): The child concept id
+
+            concept_version_id (int): An optional child concept version id
+
+            default (any): An optional default return value
+
+        Returns:
+            Returns either (a) an integer representing the version id
+                       OR; (b) the optional default value
+    """
+    latest_version = default
+    with connection.cursor() as cursor:
+        sql = None
+        params = { 'phenotype_id': phenotype_id, 'concept_id': concept_id }
+        if isinstance(concept_version_id, int):
+            sql = '''
+
+            with
+              phenotype_children as (
+                select id as phenotype_id,
+                       history_id as phenotype_version_id,
+                       cast(concepts->>'concept_id' as integer) as concept_id,
+                       cast(concepts->>'concept_version_id' as integer) as concept_version_id
+                  from (
+                    select id,
+                           history_id,
+                           concepts
+                      from public.clinicalcode_historicalgenericentity as entity,
+                           json_array_elements(entity.template_data::json->'concept_information') as concepts
+                     where json_array_length(entity.template_data::json->'concept_information') > 0
+                       and id = %(phenotype_id)s
+                  ) hge_concepts
+                 where (concepts->>'concept_id')::int = %(concept_id)s
+              ),
+              priorities as (
+                select t1.*, 1 as sel_priority
+                  from phenotype_children as t1
+                 where t1.concept_version_id = %(concept_version_id)s
+                 union all
+                select t2.*, 2 as sel_priority
+                  from phenotype_children as t2
+              ),
+              sorted_ref as (
+                select phenotype_id,
+                       phenotype_version_id,
+                       concept_id,
+                       concept_version_id,
+                       row_number() over (
+                         partition by concept_version_id
+                             order by sel_priority
+                       ) as reference
+                  from priorities
+              )
+
+            select phenotype_id,
+                   max(phenotype_version_id) as phenotype_version_id
+              from (
+                select *
+                  from sorted_ref
+                 where reference = 1
+              ) as pheno
+              join public.clinicalcode_historicalgenericentity as entity
+                on pheno.phenotype_id = entity.id
+                and pheno.phenotype_version_id = entity.history_id
+             group by phenotype_id;
+
+            '''
+
+            params.update({ 'concept_version_id': concept_version_id })
+        else:
+            sql = '''
+
+            with
+              phenotype_children as (
+                select id as phenotype_id,
+                       history_id as phenotype_version_id,
+                       cast(concepts->>'concept_id' as integer) as concept_id,
+                       cast(concepts->>'concept_version_id' as integer) as concept_version_id
+                  from (
+                    select id,
+                           history_id,
+                           concepts
+                      from public.clinicalcode_historicalgenericentity as entity,
+                           json_array_elements(entity.template_data::json->'concept_information') as concepts
+                     where json_array_length(entity.template_data::json->'concept_information') > 0
+                       and id = %(phenotype_id)s
+                  ) hge_concepts
+                 where (concepts->>'concept_id')::int = %(concept_id)s
+              )
+
+            select phenotype_id,
+                   max(phenotype_version_id) as phenotype_version_id
+              from phenotype_children as pheno
+              join public.clinicalcode_historicalgenericentity as entity
+                on pheno.phenotype_id = entity.id
+                and pheno.phenotype_version_id = entity.history_id
+             group by phenotype_id;
+
+            '''
+
+        cursor.execute(sql, params=params)
+
+        columns = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+
+        if row is not None:
+            row = dict(zip(columns, row))
+            latest_version = row.get('phenotype_version_id')
+
+    return latest_version
+        
 
 def get_accessible_concepts(
     request,

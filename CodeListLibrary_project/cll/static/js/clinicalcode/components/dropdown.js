@@ -14,6 +14,7 @@ const DROPDOWN_KEYS = {
  * createDropdownSelectionElement
  * @desc Creates an accessible dropdown element
  * @param {node} element the element to apply a dropdown element to
+ * 
  */
 const createDropdownSelectionElement = (element) => {
   const container = createElement('div', {

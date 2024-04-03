@@ -23,7 +23,7 @@
   </section>
 
   <section class="concept-list__none-available" id="no-available-concepts">
-    <p class="concept-list__none-available-message">You haven't added any concepts yet</p>
+    <p class="concept-list__none-available-message">You haven't added any concepts yet.</p>
   </section>
   
   <section class="concept-list" id="concept-content-list">
@@ -34,8 +34,12 @@
     <section class="concept-list__group" data-concept-id="${concept_id}" data-concept-history-id="${concept_version_id}">
       <span class="concept-list__group-item" id="concept-accordian-header">
         <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
-        <span class="concept-name" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">
-          ${concept_name} ${coding_system ? '| ' + coding_system : ''}${out_of_date ? ' | <strong>Legacy Version</strong>' : ''}
+        <span class="concept-name"  tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">
+          ${is_imported_item
+            ? `<a href="${phenotype_owner_version_url}" target="_blank">${phenotype_owner} / ${phenotype_owner_history_id} / ${concept_name}</a>`
+            : (phenotype_owner ? `${phenotype_owner} / ${phenotype_owner_history_id} / ${concept_name}` : (concept_name || '')) }
+
+          ${coding_system ? ' | ' + coding_system : ''}${out_of_date ? ' | <strong>Legacy Version</strong>' : ''}
         </span>
         <span class="concept-buttons">
           ${can_edit
@@ -71,7 +75,7 @@
 
           <!-- Codelist section -->
           <section class="concept-group-content__no-codes" id="no-available-codelist">
-            <p class="concept-group-content__no-codes-message">You haven't added any codes yet</p>
+            <p class="concept-group-content__no-codes-message">You haven't added any codes yet.</p>
           </section>
           <div class="constrained-codelist-table" id="concept-codelist-table">
             
@@ -120,7 +124,7 @@
 
       <section class="ruleset-group" id="inclusion-rulesets">
         <section class="ruleset-group__none-available ${has_inclusions ? '' : 'show'}" id="no-rules">
-          <p class="ruleset-group__none-available-message">You haven't added any inclusion rules yet</p>
+          <p class="ruleset-group__none-available-message">You haven't added any inclusion rules yet.</p>
         </section>
         <section class="ruleset-group__container" id="rules-list">
 
@@ -150,7 +154,7 @@
       
       <section class="ruleset-group" id="exclusion-rulesets">
         <section class="ruleset-group__none-available ${has_exclusions ? '' : 'show'}" id="no-rules">
-          <p class="ruleset-group__none-available-message">You haven't added any exclusion rules yet</p>
+          <p class="ruleset-group__none-available-message">You haven't added any exclusion rules yet.</p>
         </section>
         <section class="ruleset-group__container" id="rules-list">
           
@@ -164,7 +168,7 @@
         </div>
       </section>
       <section class="concept-group-content__no-codes" id="no-available-codelist">
-        <p class="concept-group-content__no-codes-message">You haven't added any codes yet</p>
+        <p class="concept-group-content__no-codes-message">You haven't added any codes yet.</p>
       </section>
       <div class="constrained-codelist-table" id="aggregated-codelist-table">
         

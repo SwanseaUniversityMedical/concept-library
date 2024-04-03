@@ -40,7 +40,7 @@
     <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
-    <script type="module" src="{% static 'js/clinicalcode/forms/entityCreator.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/entityCreator.js' %}"></script>
     <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
     <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
   {% endcompress %}
@@ -136,7 +136,7 @@
   {% endif %}
 
   {% if object_reference is not None %}
-    <data aria-hidden="true" data-owner="entity-creator"id="entity-object" name="object" type="text/json"
+    <data aria-hidden="true" data-owner="entity-creator" id="entity-object" name="object" type="text/json"
       referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
 
       {{ object_reference|jsonify|striptags }}

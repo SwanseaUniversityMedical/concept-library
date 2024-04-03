@@ -43,7 +43,7 @@ $cornflower_blue: rgb(102, 126, 234);
 /* ADP COLOURS */
 // Legacy
   $dark_blue: rgb(0, 100, 148); // primary text
-    $darkish_blue: rgb(0, 121, 176);
+  $darkish_blue: rgb(0, 121, 176);
   $very_dark_blue: rgb(16, 43, 65); // used for borders
   $moderate_cyan: rgb(72, 176, 205); // anchors
   $bright_blue: rgb(126, 174, 251); // used for focus
@@ -202,4 +202,12 @@ $modifiers: (
       auto: auto
     )
   ),
+  'gap': (
+    property: gap,
+    values: (
+      sm: 0.2rem,
+      md: 0.5rem,
+      lg: 1.0rem
+    )
+  )
 );

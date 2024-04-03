@@ -140,7 +140,7 @@ const FILTER_APPLICATORS = {
 };
 
 /**
-  * FilterService
+  * @class FilterService
   * @desc A class that can be used to control filters for dynamic search
   *       pages with dynamic filters, search and pagination.
   *       
@@ -686,6 +686,13 @@ class FilterService {
   }
 }
 
+/**
+ * Main thread
+ * @desc initialises the filter service once the DOM
+ *       is resolved; and adds itself to the global scope
+ *       for use within other script(s)
+ * 
+ */
 domReady.finally(() => {
   const filters = new FilterService();
   window.filterService = filters;

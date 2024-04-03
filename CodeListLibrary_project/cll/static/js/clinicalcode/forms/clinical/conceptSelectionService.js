@@ -401,7 +401,7 @@ const CSEL_FILTER_GENERATORS = {
       return;
     }
 
-    let html = interpolateHTML(CSEL_FILTER_COMPONENTS.CHECKBOX_GROUP, {
+    let html = interpolateString(CSEL_FILTER_COMPONENTS.CHECKBOX_GROUP, {
       field: data.details.field,
       title: data.details.title,
       datatype: data.details.type,
@@ -413,7 +413,7 @@ const CSEL_FILTER_GENERATORS = {
     for (let i = 0; i < data.options.length; ++i) {
       let option = data.options[i];
 
-      html = interpolateHTML(CSEL_FILTER_COMPONENTS.CHECKBOX, {
+      html = interpolateString(CSEL_FILTER_COMPONENTS.CHECKBOX, {
         pk: option.pk,
         field: data.details.field,
         value: option.value,
@@ -427,7 +427,7 @@ const CSEL_FILTER_GENERATORS = {
 
   // creates a datepicker filter group
   DATEPICKER: (container, data) => {
-    let html = interpolateHTML(CSEL_FILTER_COMPONENTS.DATEPICKER_GROUP, {
+    let html = interpolateString(CSEL_FILTER_COMPONENTS.DATEPICKER_GROUP, {
       field: data.details.field,
       title: data.details.title,
       datatype: data.details.type,
@@ -446,7 +446,7 @@ const CSEL_FILTER_GENERATORS = {
 }
 
 /**
- * ConceptSelectionService
+ * @class ConceptSelectionService
  * @desc Class that can be used to prompt users to select 1 or more concepts
  *       from a list given by the server, where:
  *          
@@ -838,7 +838,7 @@ export class ConceptSelectionService {
   #buildDialogue(params) {
     // create dialogue
     const currentHeight = window.scrollY;
-    let html = interpolateHTML(CSEL_INTERFACE.DIALOGUE, {
+    let html = interpolateString(CSEL_INTERFACE.DIALOGUE, {
       id: this.id,
       promptTitle: this.options?.promptTitle,
       promptSize: this.options?.promptSize,
@@ -1003,7 +1003,7 @@ export class ConceptSelectionService {
    */
   #renderSelectionView() {
     // Draw page
-    let html = interpolateHTML(CSEL_INTERFACE.SELECTION_VIEW, {
+    let html = interpolateString(CSEL_INTERFACE.SELECTION_VIEW, {
       noneSelectedMessage: this.options?.noneSelectedMessage,
     });
   
@@ -1067,7 +1067,7 @@ export class ConceptSelectionService {
     // Render selected items if available
     for (let i = 0; i < selectedData.length; ++i) {
       let selected = selectedData?.[i];
-      let html = interpolateHTML(CSEL_INTERFACE.CHILD_SELECTOR, {
+      let html = interpolateString(CSEL_INTERFACE.CHILD_SELECTOR, {
         'id': selected.id,
         'history_id': selected.history_id,
         'field': selected.type,
@@ -1186,7 +1186,7 @@ export class ConceptSelectionService {
     pageContainer.innerHTML = '';
 
     // paint new pagination
-    let html = interpolateHTML(CSEL_INTERFACE.SEARCH_PAGINATION, {
+    let html = interpolateString(CSEL_INTERFACE.SEARCH_PAGINATION, {
       'page': response?.details?.page,
       'page_total': response?.details?.total,
       'prev_disabled': !response?.details?.has_previous,
@@ -1239,7 +1239,7 @@ export class ConceptSelectionService {
         continue;
       }
 
-      let html = interpolateHTML(CSEL_INTERFACE.RESULT_CARD, {
+      let html = interpolateString(CSEL_INTERFACE.RESULT_CARD, {
         'id': result?.id,
         'name': result?.name,
         'history_id': result?.history_id,
@@ -1254,11 +1254,11 @@ export class ConceptSelectionService {
       let childContents = '';
       for (let j = 0; j < children.length; ++j) {
         let child = children[j];
-        childContents += interpolateHTML(CSEL_INTERFACE.CHILD_SELECTOR, {
+        childContents += interpolateString(CSEL_INTERFACE.CHILD_SELECTOR, {
           'id': child.id,
           'history_id': child.history_id,
           'field': child.type,
-          'title': `${child.prefix}${child.id}/${child.history_id} - ${child.name}`,
+          'title': `${child.prefix}${child.id} - ${child.name}`,
           'checked': this.isSelected(child.id, child.history_id),
           'coding_system': child.coding_system_name,
           'prefix': child.prefix,
@@ -1267,7 +1267,7 @@ export class ConceptSelectionService {
         });
       }
 
-      html = interpolateHTML(CSEL_INTERFACE.CARD_ACCORDIAN, {
+      html = interpolateString(CSEL_INTERFACE.CARD_ACCORDIAN, {
         id: result?.id,
         title: `Available Concepts (${children.length})`,
         content: childContents,
@@ -1705,7 +1705,7 @@ export class ConceptSelectionService {
       'selectionUpdate',
       {
         detail: {
-          data: this.dialogue?.data,
+          data: data,
           type: CSEL_EVENTS.CONFIRMED,
         }
       }

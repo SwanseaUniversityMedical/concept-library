@@ -1,7 +1,7 @@
+from django.db import transaction, IntegrityError
 from django.apps import apps
 from django.db.models import Q
 from django.utils.timezone import make_aware
-from django.db import transaction, IntegrityError
 from datetime import datetime
 
 from ..models.EntityClass import EntityClass
@@ -12,8 +12,10 @@ from ..models.Concept import Concept
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Component import Component
 from ..models.CodeList import CodeList
+from ..models.OntologyTag import OntologyTag
 from ..models.Code import Code
 from ..models.Tag import Tag
+
 from . import gen_utils
 from . import model_utils
 from . import permission_utils
@@ -81,6 +83,7 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 item['concept_id'],
                 item['concept_version_id'],
                 aggregate_component_codes=False,
+                requested_entity_id=entity.id,
                 derive_access_from=request,
                 include_source_data=True,
                 include_attributes=True
@@ -90,7 +93,12 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 values.append(value)
         
         return values
-    
+    elif field_type == 'int_array':
+        source_info = validation.get('source')
+        tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
+        if isinstance(tree_models, list):
+            return OntologyTag.get_creation_data(node_ids=data, type_ids=tree_models, default=default)
+
     if template_utils.is_metadata(entity, field):
         return template_utils.get_metadata_value_from_source(entity, field, default=default)
     
@@ -132,32 +140,50 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
     validation = template_utils.try_get_content(template, 'validation')
     if validation:
         if 'source' in validation:
-            try:
-                source_info = validation.get('source')
-                model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
+            source_info = validation.get('source') or { }
+            model_name = source_info.get('table')
+            tree_models = source_info.get('trees')
 
-                if isinstance(data, list):
-                    query = {
-                        'pk__in': data
-                    }
+            if isinstance(tree_models, list):
+                try:
+                    model = apps.get_model(app_label='clinicalcode', model_name='OntologyTag')
+                    queryset = model.objects.filter(pk__in=data, type_id__in=tree_models)
+                    queryset = list(queryset.values_list('id', flat=True))
+
+                    if isinstance(data, list):
+                        return queryset if len(queryset) > 0 else default
+                except:
+                    return default
                 else:
-                    query = {
-                        'pk': data
-                    }
+                    return default
+            elif isinstance(model_name, str):
+                try:
+                    source_info = validation.get('source')
+                    model = apps.get_model(app_label='clinicalcode', model_name=model_name)
 
-                if 'filter' in source_info:
-                    filter_query = template_utils.try_get_filter_query(field, source_info.get('filter'), request=request)
-                    query = {**query, **filter_query}
-                
-                queryset = model.objects.filter(Q(**query))
-                queryset = list(queryset.values_list('id', flat=True))
+                    if isinstance(data, list):
+                        query = {
+                            'pk__in': data
+                        }
+                    else:
+                        query = {
+                            'pk': data
+                        }
 
-                if isinstance(data, list):
-                    return queryset if len(queryset) > 0 else default
-                else:
-                    return queryset[0] if len(queryset) > 0 else default
-            except:
-                return default
+                    if 'filter' in source_info:
+                        filter_query = template_utils.try_get_filter_query(field, source_info.get('filter'), request=request)
+                        query = {**query, **filter_query}
+                    
+                    queryset = model.objects.filter(Q(**query))
+                    queryset = list(queryset.values_list('id', flat=True))
+
+                    if isinstance(data, list):
+                        return queryset if len(queryset) > 0 else default
+                    else:
+                        return queryset[0] if len(queryset) > 0 else default
+                except:
+                    return default
+            return default
         elif 'options' in validation:
             options = validation['options']
 
@@ -172,7 +198,7 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
                 data = str(data)
                 if data in options:
                     return data
-    
+
     return default
 
 def validate_form_method(form_method, errors=[], default=None):
@@ -572,6 +598,24 @@ def validate_metadata_value(request, field, value, errors=[]):
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
     return field_value, True
 
+def is_computed_template_field(field, form_template):
+    """
+        Checks whether a field is considered a computed field within its template
+    """
+    field_data = template_utils.get_layout_field(form_template, field)
+    if field_data is None:
+        return False
+
+    validation = template_utils.try_get_content(field_data, 'validation')
+    if validation is None:
+        return False
+
+    field_computed = template_utils.try_get_content(validation, 'computed')
+    if field_computed is not None:
+        return True
+
+    return False
+
 def validate_template_value(request, field, form_template, value, errors=[]):
     """
         Validates the form's field value against the entity template
@@ -660,9 +704,13 @@ def validate_entity_form(request, content, errors=[], method=None):
                 continue
             top_level_data[field] = field_value
         elif validate_template_field(form_template, field):
+            if is_computed_template_field(field, form_template):
+                continue
+
             field_value, validated = validate_template_value(request, field, form_template, value, errors)
             if not validated or field_value is None:
                 continue
+
             template_data[field] = field_value
             try_add_computed_fields(field, form_data, form_template, template_data)
 

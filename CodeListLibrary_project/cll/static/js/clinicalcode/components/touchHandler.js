@@ -1,5 +1,5 @@
 /**
- * TouchHandler
+ * @class TouchHandler
  * @desc Static methods to derive meaningful information from touch input
  * 
  */

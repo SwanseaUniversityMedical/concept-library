@@ -1,7 +1,9 @@
+
 from django.db import connection
 from django.db.models import ForeignKey
 from django.http.request import HttpRequest
 
+from ..models.GenericEntity import GenericEntity
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
@@ -744,8 +746,8 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
                               aggregate_component_codes=False, include_component_codes=True,
                               include_attributes=False, strippable_fields=None,
                               remove_userdata=False, hide_user_details=False,
-                              derive_access_from=None, format_for_api=False,
-                              include_source_data=False):
+                              derive_access_from=None, requested_entity_id=None,
+                              format_for_api=False, include_source_data=False):
     """
       [!] Note: This method ignores permissions to derive data - it should only be called from a
                 a method that has previously considered accessibility
@@ -877,9 +879,21 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         concept_data['code_attribute_header'] = attribute_headers
     
     # Set phenotype owner
-    phenotype_owner = concept.phenotype_owner
+    phenotype_owner = concept.phenotype_owner   
     if phenotype_owner:
         concept_data['phenotype_owner'] = phenotype_owner.id
+
+        latest_version_id = permission_utils.get_latest_owner_version_from_concept(
+            phenotype_id=phenotype_owner.id,
+            concept_id=historical_concept.id,
+            concept_version_id=historical_concept.history_id
+        )
+
+        if latest_version_id is not None:
+            concept_data['phenotype_owner_history_id'] = latest_version_id
+    
+    # Set the requested entity id
+    concept_data['requested_entity_id'] = requested_entity_id
 
     # Set base
     if not format_for_api:

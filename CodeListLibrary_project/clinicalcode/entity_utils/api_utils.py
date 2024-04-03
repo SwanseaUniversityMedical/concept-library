@@ -385,13 +385,14 @@ def get_entity_detail_from_layout(
             validation = template_utils.get_field_item(
                 constants.metadata, field, 'validation', {}
             )
-            is_source = validation.get('source')
 
+            is_source = validation.get('source')
             if is_source:
-                value = template_utils.get_metadata_value_from_source(
-                    entity, field, default=None
-                )
-                if value is None:
+                if template_utils.is_metadata(entity, field=field):
+                    value = template_utils.get_metadata_value_from_source(
+                        entity, field, default=None
+                    )
+                else:
                     value = template_utils.get_entity_field(entity, field)
 
                 result[field] = value

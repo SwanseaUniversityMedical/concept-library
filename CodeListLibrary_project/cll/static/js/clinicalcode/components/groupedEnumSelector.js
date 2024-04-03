@@ -1,5 +1,5 @@
 /**
- * GroupedEnum
+ * @class GroupedEnum
  * @desc handler for GroupedEnum components, where:
  *        - Selection of individual values via checkboxes
  *        - Selection of another value through a combination of checkboxes
@@ -7,6 +7,7 @@
  * @param {string/node} obj The ID of the input element or the input element itself
  * @param {object} data Should contain both (1) the available options and (2) the available groups
  * @return {object} An interface to control the behaviour of the component
+ * 
  */
 export default class GroupedEnum {
   constructor(obj, data, defaultValue) {
