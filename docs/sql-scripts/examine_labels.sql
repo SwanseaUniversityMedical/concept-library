@@ -125,7 +125,151 @@ with
          group by concept.coding_system_id
       ) as counts
         on counts.cid = coding.id
+  ),
+  -- get aggregated coding system set for latest phenotype
+  coded_concepts as (
+     select entity.concept_id,
+            max(entity.concept_version_id) as concept_version_id,
+            array_agg(distinct concept.coding_system_id::integer) as coding_system
+       from public.clinicalcode_historicalconcept as concept
+       join (
+        select id as phenotype_id,
+               history_id as phenotype_version_id,
+               cast(concepts->>'concept_id' as integer) as concept_id,
+               cast(concepts->>'concept_version_id' as integer) as concept_version_id
+          from (
+            select id,
+                   history_id,
+                   concepts
+              from public.clinicalcode_historicalgenericentity as entity,
+                   json_array_elements(entity.template_data::json->'concept_information') as concepts
+             where json_array_length(entity.template_data::json->'concept_information') > 0
+               and entity.template_id = 1
+               and (entity.is_deleted is null or entity.is_deleted = false)
+          ) results
+       ) as entity
+         on entity.concept_id = concept.id
+        and entity.concept_version_id = concept.history_id
+       join codelists as codelist
+         on entity.phenotype_id = codelist.phenotype_id
+        and entity.phenotype_version_id = codelist.phenotype_version_id
+      group by entity.concept_id
   )
+
+-------------------------------------------------------------
+
+/**********************************
+ *                                *
+ *          View matches         *
+ *                                *
+ **********************************/
+
+--> [ ICD-9: 17, ICD-10: 4, ICD-11: 18, SNOMED: 9, ReadCodesV2: 5, ReadCodesV3: 6 ]
+
+
+/* Det. all phenotype matches */
+
+-- select count(*) as total_phenotype
+--   from (
+--     select entity.id,
+--            array_agg(coding::text::int) as coding_system
+--       from public.clinicalcode_genericentity as entity,
+--            json_array_elements(entity.template_data::json->'coding_system') as coding
+--      where entity.template_id = 1
+--        and (entity.is_deleted is null or entity.is_deleted = false)
+--        -- and coding::text::int = any(array[4, 5, 6, 17, 18])
+--      group by entity.id
+--   ) c
+
+
+
+/* Det. all concept matches */
+
+
+-- select count(*) as total_concept,
+--        sum(
+--          case
+--            when concept.coding_system_id = any(array[4, 5, 6, 17, 18]) then 1
+--            else 0
+--          end
+--        ) as total_matched
+--   from (
+--     select cast(concepts->>'concept_id' as integer) as concept_id
+--       from public.clinicalcode_historicalgenericentity as entity,
+--            json_array_elements(entity.template_data::json->'concept_information') as concepts
+--      where json_array_length(entity.template_data::json->'concept_information') > 0
+--        and entity.template_id = 1
+--        and (entity.is_deleted is null or entity.is_deleted = false)
+--      group by concept_id
+--   ) results
+--   join public.clinicalcode_concept as concept
+--     on results.concept_id = concept.id
+--   order by 1
+
+
+
+/* Det. phenotype matches */
+
+-- select sum(
+--            count_one_of_ICD_9_10_11
+--          + count_one_of_ReadV2_and_V3_noICD
+--          + count_SNOMED_noICDorSNOMED
+--        ) as count_matched,
+
+--        json_agg(json_build_object(
+--          'count_ICD9', count_ICD9,
+--          'count_ICD11', count_ICD11,
+--          'count_ICD10', count_ICD10,
+--          'count_one_of_ICD_9_10_11', count_one_of_ICD_9_10_11,
+--          'count_one_of_ReadV2_and_V3_noICD', count_one_of_ReadV2_and_V3_noICD,
+--          'count_SNOMED_noICDorSNOMED', count_SNOMED_noICDorSNOMED
+--        )) as obj
+--   from (
+--     select count(*) filter (where 4 = ANY(coding_system)) as count_ICD10,
+--            count(*) filter (where 17 = ANY(coding_system) and not (coding_system && ARRAY[4, 18])) as count_ICD9,
+--            count(*) filter (where 18 = ANY(coding_system) and not (coding_system && ARRAY[4, 17])) as count_ICD11,
+--            count(*) filter (where coding_system && ARRAY[17, 4, 18]) as count_one_of_ICD_9_10_11,
+--            count(*) filter (where coding_system && ARRAY[5, 6] and not (coding_system && ARRAY[17, 4, 18])) as count_one_of_ReadV2_and_V3_noICD,
+--            count(*) filter (where 9 = ANY(coding_system) and not (coding_system && ARRAY[17, 4, 18, 5, 6])) as count_SNOMED_noICDorSNOMED
+--       from (
+--         select entity.id,
+--                array_agg(coding::text::int) as coding_system
+--           from public.clinicalcode_genericentity as entity,
+--                json_array_elements(entity.template_data::json->'coding_system') as coding
+--          where entity.template_id = 1
+--            and (entity.is_deleted is null or entity.is_deleted = false)
+--          group by entity.id
+--       ) c
+--   ) c
+
+
+
+/* Det. concept matches */
+
+-- select sum(
+--            count_one_of_ICD_9_10_11
+--          + count_one_of_ReadV2_and_V3_noICD
+--          + count_SNOMED_noICDorSNOMED
+--        ) as count_matched,
+
+--        json_agg(json_build_object(
+--          'count_ICD9', count_ICD9,
+--          'count_ICD11', count_ICD11,
+--          'count_ICD10', count_ICD10,
+--          'count_one_of_ICD_9_10_11', count_one_of_ICD_9_10_11,
+--          'count_one_of_ReadV2_and_V3_noICD', count_one_of_ReadV2_and_V3_noICD,
+--          'count_SNOMED_noICDorSNOMED', count_SNOMED_noICDorSNOMED
+--        )) as obj
+--   from (
+--     select count(*) filter (where 4 = ANY(coding_system)) as count_ICD10,
+--            count(*) filter (where 17 = ANY(coding_system) and not (coding_system && ARRAY[4, 18])) as count_ICD9,
+--            count(*) filter (where 18 = ANY(coding_system) and not (coding_system && ARRAY[4, 17])) as count_ICD11,
+--            count(*) filter (where coding_system && ARRAY[17, 4, 18]) as count_one_of_ICD_9_10_11,
+--            count(*) filter (where coding_system && ARRAY[5, 6] and not (coding_system && ARRAY[17, 4, 18])) as count_one_of_ReadV2_and_V3_noICD,
+--            count(*) filter (where 9 = ANY(coding_system) and not (coding_system && ARRAY[17, 4, 18, 5, 6])) as count_SNOMED_noICDorSNOMED
+--       from coded_concepts
+--   ) c
+
 
 
 -------------------------------------------------------------
@@ -178,7 +322,6 @@ with
 --  group by phenotype_id,
 --           phenotype_version_id
 --  order by count(code) desc, count(distinct concept_id) desc;
-
 
 
 /* Count codelist sizes across all unique concepts */
@@ -236,6 +379,20 @@ with
 
 
 
+/* View minimum set */
+
+-- [ ICD-9: 17, ICD-10: 4, ICD-11: 18, SNOMED: 9, ReadCodesV2: 5, ReadCodesV3: 6 ]
+
+-- select count(*) as count_total,
+--        count(*) filter (where 17 = ANY(coding_system)) as count_ICD9,
+--        count(*) filter (where 18 = ANY(coding_system)) as count_ICD11,
+--        count(*) filter (where 4 = ANY(coding_system)) as count_ICD10,
+--        count(*) filter (where ARRAY[17, 4, 18] && coding_system) as count_one_of_ICD_9_10_11,
+--        count(*) filter (where ARRAY[5, 6] && coding_system and not (ARRAY[17, 4, 18] && coding_system)) as count_one_of_ReadV2_and_V3_noICD,
+--        count(*) filter (where 9 = ANY(coding_system) and not (ARRAY[17, 4, 18, 5, 6] && coding_system)) as count_SNOMED_noICDorSNOMED
+--   from coded_concepts
+
+
 /* View code frequency across coding systems */
 
 -- select c.code,
@@ -280,8 +437,8 @@ with
 
 /* View erroneous codes */
 
-select *
-  from codelists
- where code ~ '^\s*$';
+-- select count(*)
+--   from codelists
+--  where code ~ '^\s*$';
 
 -------------------------------------------------------------
