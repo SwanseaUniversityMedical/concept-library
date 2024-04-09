@@ -164,7 +164,38 @@ with
  *                                *
  **********************************/
 
+
 --> [ ICD-9: 17, ICD-10: 4, ICD-11: 18, SNOMED: 9, ReadCodesV2: 5, ReadCodesV3: 6 ]
+
+/* Det. code matches */
+
+select count(*) as total_codes,
+       sum(
+         case
+           when code.coding_system_id = any(array[4, 5, 6, 17, 18]) then 1
+           else 0
+         end
+       ) as codes_matches,
+       sum(
+         case
+           when (code.coding_system_id = ANY(ARRAY[17, 4, 18]) and coding_system_id != ANY(ARRAY[9, 5, 6])) then 1
+           else 0
+         end
+       ) as icd_10,
+       sum(
+         case
+           when (code.coding_system_id = ANY(ARRAY[9]) and coding_system_id != ANY(ARRAY[17, 4, 18, 5, 6])) then 1
+           else 0
+         end
+       ) as snomed,
+       sum(
+         case
+           when (code.coding_system_id = ANY(ARRAY[5, 6]) and coding_system_id != ANY(ARRAY[17, 4, 18, 9])) then 1
+           else 0
+         end
+       ) as readcodes
+  from codelists as code;
+
 
 
 /* Det. all phenotype matches */
@@ -181,6 +212,42 @@ with
 --      group by entity.id
 --   ) c
 
+-- select count(distinct id) as total_phenotypes,
+--        (
+--         select count(distinct id)
+--           from public.clinicalcode_genericentity as entity,
+--               json_array_elements(entity.template_data::json->'coding_system') as coding
+--         where entity.template_id = 1
+--           and (entity.is_deleted is null or entity.is_deleted = false)
+--           and coding::text::int = any(array[4, 5, 6, 17, 18])
+--        ) as total_phenotypes_matched,
+--        sum(
+--          case
+--            when (coding_system = ANY(ARRAY[17, 4, 18]) and coding_system != ANY(ARRAY[9, 5, 6])) then 1
+--            else 0
+--          end
+--        ) as icd_10,
+--        sum(
+--          case
+--            when (coding_system = ANY(ARRAY[9]) and coding_system != ANY(ARRAY[17, 4, 18, 5, 6])) then 1
+--            else 0
+--          end
+--        ) as snomed,
+--        sum(
+--          case
+--            when (coding_system = ANY(ARRAY[5, 6]) and coding_system != ANY(ARRAY[17, 4, 18, 9])) then 1
+--            else 0
+--          end
+--        ) as readcodes
+--   from (
+--     select entity.id,
+--            coding::text::int as coding_system
+--       from public.clinicalcode_genericentity as entity,
+--            json_array_elements(entity.template_data::json->'coding_system') as coding
+--      where entity.template_id = 1
+--        and (entity.is_deleted is null or entity.is_deleted = false)
+--   ) c
+--   order by 1
 
 
 /* Det. all concept matches */
@@ -207,6 +274,43 @@ with
 --   order by 1
 
 
+-- select count(distinct concept.id) as total_contepts,
+--        sum(
+--          case 
+--            when (concept.coding_system_id = ANY(array[4, 5, 6, 17, 18])) then 1
+--            else 0
+--          end
+--        ) as total_concepts_matched,
+--        sum(
+--          case
+--            when (concept.coding_system_id = ANY(ARRAY[17, 4, 18]) and concept.coding_system_id != ANY(ARRAY[9, 5, 6])) then 1
+--            else 0
+--          end
+--        ) as icd_10,
+--        sum(
+--          case
+--            when (concept.coding_system_id = ANY(ARRAY[9]) and concept.coding_system_id != ANY(ARRAY[17, 4, 18, 5, 6])) then 1
+--            else 0
+--          end
+--        ) as snomed,
+--        sum(
+--          case
+--            when (concept.coding_system_id = ANY(ARRAY[5, 6]) and concept.coding_system_id != ANY(ARRAY[17, 4, 18, 9])) then 1
+--            else 0
+--          end
+--        ) as readcodes
+--   from (
+--     select cast(concepts->>'concept_id' as integer) as concept_id
+--       from public.clinicalcode_historicalgenericentity as entity,
+--            json_array_elements(entity.template_data::json->'concept_information') as concepts
+--      where json_array_length(entity.template_data::json->'concept_information') > 0
+--        and entity.template_id = 1
+--        and (entity.is_deleted is null or entity.is_deleted = false)
+--      group by concept_id
+--   ) c
+--   join public.clinicalcode_concept as concept
+--     on c.concept_id = concept.id
+--   order by 1
 
 /* Det. phenotype matches */
 
