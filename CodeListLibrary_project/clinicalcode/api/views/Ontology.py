@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import F
+from django.db import connection
 
 from ...entity_utils import api_utils
 from ...entity_utils import gen_utils
