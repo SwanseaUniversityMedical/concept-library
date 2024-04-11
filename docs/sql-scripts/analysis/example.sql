@@ -9,9 +9,10 @@ with
      where json_array_length(entity.template_data::json->'concept_information') > 0
        and entity.template_id = 1
        and (entity.is_deleted is null or entity.is_deleted = false)
+       and 4 = any(array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[])
 	     and not (
         array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[]
-        && array[4, 17, 18, 5, 6, 9, 13]
+        && array[13]
        )
   ),
   latest_entities as (
@@ -134,22 +135,32 @@ with
             end
           ) as coding_system_name,
           codelist.code_id,
-          codelist.code,
+          lower(codelist.code) as code,
           codelist.description
       from computed_codelists as codelist
+      where coding_system_id = 4
+  ),
+  ontology_tags as (
+    select 
+          ontology.id as ontology_id,
+          ontology.name as ontology_descriptor,
+          ontology.properties as ontology_props,
+          icd10.id as ontology_coding_id,
+          lower(icd10.code) as ontology_dot_code,
+          lower(icd10.alt_code) as ontology_alt_code
+      from public.clinicalcode_ontologytag as ontology
+      join public.clinicalcode_icd10_codes_and_titles_and_metadata as icd10
+        on icd10.code = ontology.properties->>'code'::text
   )
 
 select
-        phenotype_id,
-        phenotype_name,
-        concept_id,
-        code_id,
-        coding_system_id,
-        coding_system_name,
-        code,
-        description
+      phenotype_id,
+      phenotype_name,
+      coding_system_id,
+      coding_system_name,
+      ontology.*,
+      code
   from codelists as codelist
- order by
-          cast(regexp_replace(phenotype_id, '[a-zA-Z]+', '') as integer) asc,
-          concept_id asc,
-          coding_system_id asc
+  join ontology_tags as ontology
+    on (ontology.ontology_dot_code = codelist.code 
+    or ontology.ontology_alt_code = codelist.code); --39,839

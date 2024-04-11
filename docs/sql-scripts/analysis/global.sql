@@ -11,7 +11,7 @@ with
        and (entity.is_deleted is null or entity.is_deleted = false)
 	     and not (
         array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[]
-        && array[4, 17, 18, 5, 6, 9, 13]
+        && array[13]
        )
   ),
   latest_entities as (
@@ -140,16 +140,10 @@ with
   )
 
 select
-        phenotype_id,
-        phenotype_name,
-        concept_id,
-        code_id,
-        coding_system_id,
-        coding_system_name,
-        code,
-        description
+	   phenotype_id,
+     phenotype_name,
+	   string_agg(distinct coding_system_name, ', ') as coding_systems,
+     string_agg(distinct code, ', ') as codes
   from codelists as codelist
- order by
-          cast(regexp_replace(phenotype_id, '[a-zA-Z]+', '') as integer) asc,
-          concept_id asc,
-          coding_system_id asc
+ group by phenotype_id, phenotype_name
+ order by cast(regexp_replace(phenotype_id, '[a-zA-Z]+', '') as integer) asc
