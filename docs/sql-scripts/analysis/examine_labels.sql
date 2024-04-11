@@ -169,32 +169,32 @@ with
 
 /* Det. code matches */
 
-select count(*) as total_codes,
-       sum(
-         case
-           when code.coding_system_id = any(array[4, 5, 6, 17, 18]) then 1
-           else 0
-         end
-       ) as codes_matches,
-       sum(
-         case
-           when (code.coding_system_id = ANY(ARRAY[17, 4, 18]) and coding_system_id != ANY(ARRAY[9, 5, 6])) then 1
-           else 0
-         end
-       ) as icd_10,
-       sum(
-         case
-           when (code.coding_system_id = ANY(ARRAY[9]) and coding_system_id != ANY(ARRAY[17, 4, 18, 5, 6])) then 1
-           else 0
-         end
-       ) as snomed,
-       sum(
-         case
-           when (code.coding_system_id = ANY(ARRAY[5, 6]) and coding_system_id != ANY(ARRAY[17, 4, 18, 9])) then 1
-           else 0
-         end
-       ) as readcodes
-  from codelists as code;
+-- select count(*) as total_codes,
+--        sum(
+--          case
+--            when code.coding_system_id = any(array[4, 5, 6, 9, 17, 18]) then 1
+--            else 0
+--          end
+--        ) as codes_matches,
+--        sum(
+--          case
+--            when (code.coding_system_id = ANY(ARRAY[17, 4, 18]) and coding_system_id != ANY(ARRAY[9, 5, 6])) then 1
+--            else 0
+--          end
+--        ) as icd_10,
+--        sum(
+--          case
+--            when (code.coding_system_id = ANY(ARRAY[9]) and coding_system_id != ANY(ARRAY[17, 4, 18, 5, 6])) then 1
+--            else 0
+--          end
+--        ) as snomed,
+--        sum(
+--          case
+--            when (code.coding_system_id = ANY(ARRAY[5, 6]) and coding_system_id != ANY(ARRAY[17, 4, 18, 9])) then 1
+--            else 0
+--          end
+--        ) as readcodes
+--   from codelists as code;
 
 
 
@@ -208,7 +208,7 @@ select count(*) as total_codes,
 --            json_array_elements(entity.template_data::json->'coding_system') as coding
 --      where entity.template_id = 1
 --        and (entity.is_deleted is null or entity.is_deleted = false)
---        -- and coding::text::int = any(array[4, 5, 6, 17, 18])
+--        -- and coding::text::int = any(array[4, 5, 6, 9, 17, 18])
 --      group by entity.id
 --   ) c
 
@@ -219,7 +219,7 @@ select count(*) as total_codes,
 --               json_array_elements(entity.template_data::json->'coding_system') as coding
 --         where entity.template_id = 1
 --           and (entity.is_deleted is null or entity.is_deleted = false)
---           and coding::text::int = any(array[4, 5, 6, 17, 18])
+--           and coding::text::int = any(array[4, 5, 6, 9, 17, 18])
 --        ) as total_phenotypes_matched,
 --        sum(
 --          case
@@ -256,7 +256,7 @@ select count(*) as total_codes,
 -- select count(*) as total_concept,
 --        sum(
 --          case
---            when concept.coding_system_id = any(array[4, 5, 6, 17, 18]) then 1
+--            when concept.coding_system_id = any(array[4, 5, 6, 9, 17, 18]) then 1
 --            else 0
 --          end
 --        ) as total_matched
@@ -277,7 +277,7 @@ select count(*) as total_codes,
 -- select count(distinct concept.id) as total_contepts,
 --        sum(
 --          case 
---            when (concept.coding_system_id = ANY(array[4, 5, 6, 17, 18])) then 1
+--            when (concept.coding_system_id = ANY(array[4, 5, 6, 9, 17, 18])) then 1
 --            else 0
 --          end
 --        ) as total_concepts_matched,
