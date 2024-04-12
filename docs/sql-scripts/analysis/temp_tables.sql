@@ -16,7 +16,7 @@ drop table if exists temp_matches;
  
 
 create temporary table if not exists temp_entities
-  on commit preserve rows
+  on commit drop
   as (
     select
           entity.id as phenotype_id,
@@ -41,7 +41,7 @@ create temporary table if not exists temp_entities
   );
 
 create temporary table if not exists temp_all_codes
-  on commit preserve rows
+  on commit drop
   as (
     select
           entity.phenotype_id as phenotype_id,
@@ -106,7 +106,7 @@ create temporary table if not exists temp_all_codes
   );
 
 create temporary table if not exists temp_codelists
-  on commit preserve rows
+  on commit drop
   as (
     select included_codes.*
       from temp_all_codes as included_codes
@@ -118,7 +118,7 @@ create temporary table if not exists temp_codelists
   );
 
 create temporary table if not exists temp_ontology_tags
-  on commit preserve rows
+  on commit drop
   as (
     select
           node.id as ontology_id,
@@ -140,7 +140,7 @@ create temporary table if not exists temp_ontology_tags
   );
 
 create temporary table if not exists temp_matches
-  on commit preserve rows
+  on commit drop
   as (
     select
           phenotype_id,
