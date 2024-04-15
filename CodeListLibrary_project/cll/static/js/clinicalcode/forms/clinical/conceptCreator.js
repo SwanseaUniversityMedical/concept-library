@@ -2338,7 +2338,6 @@ export default class ConceptCreator {
         title: 'Add attribute',
         content: attribute_component,
         beforeAccept: (modal) =>{
-          console.log(modal)
           const attribute_name = modal.querySelector('#attribute-name-input').value;
           const attribute_value = modal.querySelector('#attribute-value-input').value;
           const attribute_type = modal.querySelector('#type-input').value;
@@ -2347,6 +2346,7 @@ export default class ConceptCreator {
             type: attribute_type,
             value: attribute_value
           }
+          return attribute
         }
     }).then((result) => {
       console.log(result)
