@@ -2334,12 +2334,24 @@ export default class ConceptCreator {
 
   #handleAttributeCreation(e){
     const attribute_component = this.templates['attribute-component'];
-    console.log(attribute_component)
       window.ModalFactory.create({
         title: 'Add attribute',
-        content: attribute_component
-    }
-    )}
+        content: attribute_component,
+        beforeAccept: (modal) =>{
+          console.log(modal)
+          const attribute_name = modal.querySelector('#attribute-name-input').value;
+          const attribute_value = modal.querySelector('#attribute-value-input').value;
+          const attribute_type = modal.querySelector('#type-input').value;
+          const attribute = {
+            name: attribute_name,
+            type: attribute_type,
+            value: attribute_value
+          }
+        }
+    }).then((result) => {
+      console.log(result)
+    })
+  }
   /**
    * handleConceptCreation
    * @desc handles the creation of a concept when the user selects the 'Add Concept' button
