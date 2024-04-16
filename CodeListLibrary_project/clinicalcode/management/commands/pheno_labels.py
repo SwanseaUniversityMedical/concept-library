@@ -98,6 +98,8 @@ class Command(BaseCommand):
                       max(codelist.history_id) as codelist_history_id,
                       codes.id as code_id,
                       lower(codes.code) as code,
+                      lower(regexp_replace(codes.code, '[^aA-zZ0-9\-]', '', 'g')) as alt_code,
+                      lower(regexp_replace(codes.code, '-[^-]+$', '', 'g')) as min_code,
                       codes.description
                   from temp_entities as entity
                   join public.clinicalcode_historicalconcept as concept
@@ -168,7 +170,8 @@ class Command(BaseCommand):
                       node.type_id as ontology_type,
                       icd10.id as ontology_coding_id,
                       lower(icd10.code) as ontology_dot_code,
-                      lower(icd10.alt_code) as ontology_alt_code,
+                      lower(regexp_replace(icd10.alt_code, '[^aA-zZ0-9\-]', '', 'g')) as ontology_alt_code,
+                      lower(regexp_replace(icd10.code, '-[^-]+$', '', 'g')) as ontology_min_code,
                       node.atlas_id as ontology_atlas,
                       node.properties as ontology_props
                   from public.clinicalcode_ontologytag node
@@ -191,8 +194,8 @@ class Command(BaseCommand):
                       code
                   from temp_codelists as codelist
                   join temp_ontology_tags as ontology
-                    on (ontology.ontology_dot_code = codelist.code 
-                    or ontology.ontology_alt_code = codelist.code)
+                    on (ontology.ontology_dot_code = codelist.code
+                    or ontology.ontology_alt_code = codelist.alt_code)
               );
 
             select

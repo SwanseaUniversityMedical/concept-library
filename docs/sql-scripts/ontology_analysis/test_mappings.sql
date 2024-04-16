@@ -8,6 +8,7 @@ drop table if exists temp_all_codes;
 drop table if exists temp_codelists;
 drop table if exists temp_ontology_tags;
 drop table if exists temp_matches;
+drop function if exists reduce_ontology_set;
 
  
 /*markdown
@@ -267,4 +268,126 @@ select
 	  array_agg(distinct t0.ontology_id::int) as prev_ontol_ids
   from temp_matches t0
  group by phenotype_id
+ order by 2 desc
+
+
+/*markdown
+### Reduce ontology via fn
+*/
+
+
+create or replace function reduce_ontology_set(mapping int[])
+  returns int[] as $body$
+  declare
+    ontology_parent_id int;
+    ontology_children_set int[];
+    reduced_mapping int[];
+  begin
+    reduced_mapping := mapping;
+
+    loop
+      select
+            parent_id,
+            children
+        from (
+          select
+                edge.parent_id,
+                array_agg(edge.child_id::int) as children
+            from public.clinicalcode_ontologytagedge as edge
+           group by parent_id
+        ) t
+       where children <@ reduced_mapping
+        into ontology_parent_id, ontology_children_set;
+
+      if ontology_children_set is not null then
+        select
+              parent || array(
+                 select unnest(v1)
+                 except all
+                 select unnest(v2)
+              ) as children
+          from (values (reduced_mapping, ontology_children_set, ontology_parent_id))
+            as t(v1, v2, parent)
+          into reduced_mapping;
+      end if;
+
+      exit when ontology_children_set is null;      
+    end loop;
+    
+    return reduced_mapping;
+  end; $body$
+language plpgsql;
+
+
+/*markdown
+### Compute avg code count(s)
+*/
+ 
+
+select
+	  count(*) as count_all_rows,
+	  max(code_count) as count_max,
+	  avg(code_count) as avg_code_len,
+	  avg( (code_count >= 0 and code_count < 25)::int ) * 100 as "% of 1 - 24 codes",
+	  avg( (code_count >= 25 and code_count < 50)::int ) * 100 as "% of 25 - 50 codes",
+	  avg( (code_count >= 50)::int ) * 100 as "% above 50 codes"
+  from (
+    select
+          codes.phenotype_id,
+          count(distinct codes.code) as code_count
+      from temp_codelists as codes
+     group by 1
+  ) as t
+
+
+/*markdown
+### Compute avg mapping(s)
+*/
+ 
+
+select
+	    count(*) as count_all_rows,
+	    max(ontology_len) as count_max_ontology,
+  	  avg(ontology_len) as avg_ontology_len,
+  	  avg( (ontology_len >= 1 and ontology_len < 5)::int ) * 100 as percentage_1_to_4,
+  	  avg( (ontology_len >= 5 and ontology_len < 10)::int ) * 100 as percentage_5_to_9,
+	    avg( (ontology_len >= 10 and ontology_len < 20)::int ) * 100 as percentage_10_to_19,
+	    avg( (ontology_len >= 20 and ontology_len < 30)::int ) * 100 as percentage_20_to_29,
+	    avg( (ontology_len >= 30 and ontology_len < 40)::int ) * 100 as percentage_30_to_39,
+	    avg( (ontology_len >= 40 and ontology_len < 50)::int ) * 100 as percentage_40_to_49,
+	    avg( (ontology_len >= 50 and ontology_len < 100)::int ) * 100 as percentage_50_to_99,
+	    avg( (ontology_len >= 100)::int ) * 100 as percentage_above_100
+  from (
+    select
+    	   entity.id,
+    	   max(json_array_length(entity.template_data::json->'ontology')) as ontology_len
+      from public.clinicalcode_genericentity entity
+     where json_array_length(entity.template_data::json->'concept_information') > 0
+       and entity.template_id = 1
+       and (entity.is_deleted is null or entity.is_deleted = false)
+       and 4 = any(array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[])
+       and 13 != any(array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[])
+       and json_typeof(entity.template_data::json->'ontology') = 'array'
+     group by 1
+  ) as t
+
+
+/*markdown
+### Compute result set information
+*/
+ 
+
+select
+-- 	   count(distinct entity.id) as counted
+	   entity.id,
+	   max(json_array_length(entity.template_data::json->'ontology')) as ontology_len
+--  	   avg(json_array_length(entity.template_data::json->'ontology')) as avg_ontology
+  from public.clinicalcode_genericentity entity
+ where json_array_length(entity.template_data::json->'concept_information') > 0
+   and entity.template_id = 1
+   and (entity.is_deleted is null or entity.is_deleted = false)
+   and 4 = any(array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[])
+   and 13 != any(array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[])
+   and json_typeof(entity.template_data::json->'ontology') = 'array'
+ group by 1
  order by 2 desc
