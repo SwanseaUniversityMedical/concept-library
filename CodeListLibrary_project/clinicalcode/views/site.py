@@ -5,11 +5,16 @@ from django.conf import settings
 from django.urls import reverse
 
 from clinicalcode.entity_utils import entity_db_utils
+from django.core.exceptions import PermissionDenied
 
 cur_time = str(datetime.now().date())
 
 @require_GET
 def robots_txt(request):
+    if not(settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC):
+        raise PermissionDenied
+    
+    
     lines = [
         "User-Agent: *",
         "Allow: /",
@@ -28,6 +33,8 @@ def robots_txt(request):
 
 @require_GET
 def get_sitemap(request):
+    if not(settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC):
+        raise PermissionDenied    
 
     links = [
         (request.build_absolute_uri(reverse('concept_library_home')), cur_time, "1.00"), 
