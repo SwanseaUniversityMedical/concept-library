@@ -285,7 +285,9 @@ class Command(BaseCommand):
                   )
               ) as src
              where trg.id = src.phenotype_id
-               and trg.template_id = 1;
+               and trg.template_id = 1
+               and src.reduced_ids is not null
+               and array_length(src.reduced_ids, 1) > 0;
 
             update public.clinicalcode_genericentity as trg
                set template_data['ontology'] = to_jsonb(src.reduced_ids)
@@ -300,7 +302,9 @@ class Command(BaseCommand):
                   )
               ) as src
              where trg.id = src.phenotype_id
-               and trg.template_id = 1;
+               and trg.template_id = 1
+               and src.reduced_ids is not null
+               and array_length(src.reduced_ids, 1) > 0;
             '''
             cursor.execute(sql, { 'dataset': json.dumps(results, cls=SetEncoder) })
 
