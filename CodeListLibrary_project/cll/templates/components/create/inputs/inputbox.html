@@ -12,5 +12,5 @@
   {% endif %}
   <input class="text-input" aria-label="{{ component.field.title }}" id="entity-{{ component.field_name }}"
     placeholder=""  {% if component.field_data.validation and component.field_data.validation == 'string' %} minlength="3" pattern="^[a-zA-Z]{1,}.*?" {% endif %} data-class="inputbox"
-    data-field="{{ component.field_name }}" value="{% if component.value %} {{ component.value }} {% endif %}">
+    data-field="{{ component.field_name }}" value="{% if component.value %}{{ component.value }}{% endif %}">
 </div>

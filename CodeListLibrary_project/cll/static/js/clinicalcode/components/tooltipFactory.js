@@ -1,12 +1,12 @@
-
 /**
- * Tooltip Factory
+ * @class Tooltip Factory
  * @desc Instantiable tooltip factory that handles tooltips for nodes
  *       that require absolute positioning
  * 
  *       The factory is accessible through the window object via window.TooltipFactory
  * 
  * e.g.
+ * ```js
  *    window.TooltipFactory.addTooltip(
  *      // the element to observe
  *      document.querySelector('.some-element'),
@@ -17,6 +17,7 @@
  *      // the direction of the tooltip
  *      'right'
  *    );
+ * ```
  */
 class TooltipFactory {
   #handlers = {};

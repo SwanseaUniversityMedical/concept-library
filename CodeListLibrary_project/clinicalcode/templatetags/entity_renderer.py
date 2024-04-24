@@ -3,6 +3,8 @@ from django.conf import settings
 from jinja2.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
+from datetime import datetime
 
 import re
 import json
@@ -68,6 +70,23 @@ def get_brand_base_embed_img(brand):
     if not brand or not getattr(brand, 'logo_path'):
         return settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
     return settings.APP_EMBED_ICON.format(logo_path=brand.logo_path)
+
+@register.simple_tag
+def render_citation_block(entity, request):
+    phenotype_id = f'{entity.id} / {entity.history_id}'
+    name = entity.name
+    author = entity.author
+    updated = entity.updated.strftime('%d %B %Y')
+    date = datetime.now().strftime('%d %B %Y')
+    url = request.build_absolute_uri(reverse(
+        'entity_history_detail', 
+        kwargs={ 'pk': entity.id, 'history_id': entity.history_id }
+    ))
+
+    brand = request.BRAND_OBJECT
+    site_name = settings.APP_TITLE if not brand or not getattr(brand, 'site_title') else brand.site_title
+
+    return f'{author}. *{phenotype_id} - {name}*. {site_name} [Online]. {updated}. Available from: [{url}]({url}). [Accessed {date}]'
 
 @register.inclusion_tag('components/search/pagination/pagination.html', takes_context=True, name='render_entity_pagination')
 def render_pagination(context, *args, **kwargs):
@@ -566,6 +585,8 @@ def render_steps_wizard(parser, token):
     return EntityWizardSections(params, nodelist)
 
 class EntityWizardSections(template.Node):
+    SECTION_END = render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END)
+
     def __init__(self, params, nodelist):
         self.request = template.Variable('request')
         self.params = params
@@ -640,6 +661,11 @@ class EntityWizardSections(template.Node):
         mandatory = template_utils.try_get_content(validation, 'mandatory')
         return mandatory if isinstance(mandatory, bool) else False
 
+    def __append_section(self, output, section_content):
+        if gen_utils.is_empty_string(section_content):
+            return output
+        return output + section_content + self.SECTION_END
+
     def __generate_wizard(self, request, context):
         """
             Generates the creation wizard template
@@ -659,7 +685,7 @@ class EntityWizardSections(template.Node):
         sections.extend(constants.APPENDED_SECTIONS)
 
         for section in sections:
-            output += self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
+            section_content = self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
                 if template_utils.is_metadata(GenericEntity, field):
@@ -720,9 +746,9 @@ class EntityWizardSections(template.Node):
                 component['mandatory'] = self.__apply_mandatory_property(template_field, field)
 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
-                output += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
+                section_content += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
+            output = self.__append_section(output, section_content)
 
-        output += render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END, request=request, context=context.flatten() | { 'section': section })
         return output
     
     def render(self, context):

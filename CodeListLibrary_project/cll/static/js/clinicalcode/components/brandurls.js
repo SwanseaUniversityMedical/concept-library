@@ -1,3 +1,13 @@
+/**
+ * brandUrlsgen
+ * @desc ...?
+ * @param {*} all_brands 
+ * @param {*} prod 
+ * @param {*} element 
+ * @param {*} old_root 
+ * @param {*} path 
+ * 
+ */
 const brandUrlsgen = (all_brands,prod,element,old_root,path) =>{
   new_root = "";
   if (element.getAttribute('value') != '') {
@@ -52,6 +62,11 @@ const brandUrlsgen = (all_brands,prod,element,old_root,path) =>{
   }
 }
 
+/**
+ * generateOldPathRoot
+ * @desc ...?
+ * @returns {array} 
+ */
 const generateOldPathRoot = () =>{
   var lTrimRegex = new RegExp("^/");
   var lTrim = function (input) {

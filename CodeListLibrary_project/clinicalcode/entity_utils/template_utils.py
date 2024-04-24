@@ -1,9 +1,12 @@
 from django.apps import apps
 from django.db.models import Q, ForeignKey
+from django.db.models.query import QuerySet
 
-from . import filter_utils
 from . import concept_utils
+from . import filter_utils
 from . import constants
+
+from ..models.OntologyTag import OntologyTag
 
 def try_get_content(body, key, default=None):
     """
@@ -470,39 +473,50 @@ def get_template_sourced_values(template, field, default=None, request=None):
                 'name': v,
                 'value': i
             })
-        
+
         return output
     elif 'source' in validation:
         source_info = validation.get('source')
-        try:
-            model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
-            
-            column = 'id'
-            if 'query' in source_info:
-                column = source_info['query']
+        if not source_info:
+            return default
 
-            if 'filter' in source_info:
-                filter_query = try_get_filter_query(field, source_info.get('filter'), request=request)
-                query = {**filter_query}
-            else:
-                query = { }
-            
-            queryset = model.objects.filter(Q(**query))
-            if queryset.exists():
-                relative = 'name'
-                if 'relative' in source_info:
-                    relative = source_info['relative']
-                
-                output = []
-                for instance in queryset:
-                    output.append({
-                        'name': getattr(instance, relative),
-                        'value': getattr(instance, column)
-                    })
-                
-                return output if len(output) > 0 else default
-        except:
-            pass
+        model_name = source_info.get('table')
+        tree_models = source_info.get('trees')
+
+        if isinstance(tree_models, list):
+            output = OntologyTag.get_groups(tree_models, default=default)
+            if isinstance(output, list):
+                return output
+        elif isinstance(model_name, str):
+            try:
+                model = apps.get_model(app_label='clinicalcode', model_name=model_name)
+
+                column = 'id'
+                if 'query' in source_info:
+                    column = source_info.get('query')
+
+                if 'filter' in source_info:
+                    filter_query = try_get_filter_query(field, source_info.get('filter'), request=request)
+                    query = {**filter_query}
+                else:
+                    query = { }
+
+                queryset = model.objects.filter(Q(**query))
+                if queryset.exists():
+                    relative = 'name'
+                    if 'relative' in source_info:
+                        relative = source_info.get('relative')
+
+                    output = []
+                    for instance in queryset:
+                        output.append({
+                            'name': getattr(instance, relative),
+                            'value': getattr(instance, column)
+                        })
+
+                    return output if len(output) > 0 else default
+            except:
+                pass
 
     return default
 
@@ -638,7 +652,16 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
         if output is not None:
             return [output]
     elif field_type == 'int_array':
-        if 'source' in validation:
+        source_info = validation.get('source')
+        if not source_info:
+            return default
+
+        model_name = source_info.get('table')
+        tree_models = source_info.get('trees')
+
+        if isinstance(tree_models, list):
+            return OntologyTag.get_detailed_source_value(data, tree_models, default=default)
+        elif isinstance(model_name, str):
             values = [ ]
             for item in data:
                 value = get_detailed_sourced_value(item, info) 

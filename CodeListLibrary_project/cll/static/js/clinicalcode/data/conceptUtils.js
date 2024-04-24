@@ -27,7 +27,7 @@ const applyCodelistsFromConcepts = (conceptData, options) => {
   const { codelistContainerId, showAttributes, perPageSelect } = options;
   for (let i = 0; i < conceptData.length; i++) {
     const c = conceptData[i];
-    const containerId = interpolateHTML(codelistContainerId, {
+    const containerId = interpolateString(codelistContainerId, {
       concept_id: c?.concept_id,
       concept_version_id: c?.concept_version_id
     });
