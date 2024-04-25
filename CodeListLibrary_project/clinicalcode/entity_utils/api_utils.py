@@ -289,6 +289,153 @@ def get_layout_from_entity(entity):
         status=status.HTTP_404_NOT_FOUND
     )
 
+def build_query_string_from_param(param, data, validation, field_type, is_dynamic=False, prefix=''):
+    """
+      Builds query (terms and where clauses) based on a template
+
+      [!] NOTE: Parameters & types should be validated _BEFORE_ calling this function
+
+      Args:
+        param (string): the name of the request param that's been mapped to the template
+
+        data (any): the value portion of the key-value pair param
+
+        validation (dict): validation dictionary defined by the template
+
+        field_type (str): the associated field type as defined by the template
+
+        is_dynamic (boolean): (defaults to false) whether the query parameter is a metadata field or found within the template
+
+        prefix (str): (optional) used to vary the names across template version(s)
+
+      Returns:
+
+        1. boolean - reflects the success status of the call
+
+        2. string|None - the query string if successful
+
+        3. dict|None - the processed data if successful
+
+    """
+    if len(prefix) > 0:
+        prefix = prefix + '_'
+
+    query = None
+    if field_type == 'int' or field_type == 'enum':
+        if 'options' in validation or 'source' in validation:
+            data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) ]
+
+            if is_dynamic:
+                query = f'''(entity.template_data::json->>'{param}'::text)::int = any(%({prefix}{param}_data)s)'''
+            else:
+                query = f'''entity.{param}::int = any(%({prefix}{param}_data)s)'''
+        else:
+            data = data.split(',')
+            if is_dynamic:
+                query = f'''entity.template_data::json->>'{param}'::text = any(%({prefix}{param}_data)s)'''
+            else:
+                query = f'''entity.{param}::text = any(%({prefix}{param}_data)s)'''
+
+        return True, query, { f'{prefix}{param}_data': data }
+    elif field_type == 'int_array':
+        if is_dynamic:
+            source = validation.get('source')
+            trees = source.get('trees') if source and 'trees' in validation.get('source') else None
+            if trees:
+                data = [ str(x) for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') ]
+                model = source.get('model') if isinstance(source.get('model'), str) else None
+
+                if model:
+                    query = f'''
+                    exists(
+                        select 1
+                          from (
+                            select mid::text as val
+                              from jsonb_array_elements(
+                                case jsonb_typeof(entity.template_data->'{param}')
+                                when 'array'
+                                    then entity.template_data->'{param}'
+                                    else '[]'
+                                end
+                              ) as mid
+                          ) as t0
+                          join public.clinicalcode_{model.lower()} as t1
+                            on t0.val::int = t1.id
+                         where t1.type_id = any(%({prefix}{param}_trlink)s)
+                           and (
+                                t0.val = any(%({prefix}{param}_data)s)
+                                or (
+                                    t1.search_vector
+                                    @@ to_tsquery(
+                                        'pg_catalog.english',
+                                        replace(
+                                            websearch_to_tsquery('pg_catalog.english', %({prefix}{param}_trsearch)s)::text
+                                            || ':*', '<->', '|'
+                                        )
+                                    )
+                                )
+                           )
+                    )
+                    '''
+                    return True, query, {
+                        f'{prefix}{param}_data': data,
+                        f'{prefix}{param}_trlink': trees,
+                        f'{prefix}{param}_trsearch': ' '.join(data),
+                    }
+                else:
+                    query = f'''
+                    exists(
+                        select 1
+                        from (
+                            select mid::text as val
+                            from jsonb_array_elements(
+                                case jsonb_typeof(entity.template_data->'{param}')
+                                when 'array'
+                                    then entity.template_data->'{param}'
+                                    else '[]'
+                                end
+                            ) as mid
+                        ) t
+                        where val = any(%({prefix}{param}_data)s)
+                    )
+                    '''
+            else:
+                data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) ]
+                data = [ str(x) for x in data ]
+
+                query = f'''
+                exists(
+                    select 1
+                      from jsonb_array_elements(
+                            case jsonb_typeof(entity.template_data->'{param}')
+                            when 'array'
+                                then entity.template_data->'{param}'
+                                else '[]'
+                            end
+                      ) as val
+                     where val::text = any(%({prefix}{param}_data)s)
+                )
+                '''
+        else:
+            data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) ]
+            query = f'''entity.{param} && %({prefix}{param}_data)s'''
+
+        return True, query, { f'{prefix}{param}_data': data }
+    elif field_type == 'datetime':
+        data = [ gen_utils.parse_date(x) for x in data.split(',') if gen_utils.parse_date(x) ]
+        if len(data) > 1 and not is_dynamic:
+            data = gen_utils.get_start_and_end_dates(data[:2])
+            query = f'''(entity.{param}::timestamp >= %({prefix}{param}_start_data)s and entity.{param}::timestamp <= %({prefix}{param}_end_data)s)'''
+            return True, query, { f'{prefix}{param}_start_data': data[0], f'{prefix}{param}_end_data': data[1] }
+    elif field_type == 'string':
+        if is_dynamic:
+            query = f'''entity.template_data::json->>'{param}'::text = %({prefix}{param}_data)s'''
+        else:
+            query = f'''entity.{param} = %({prefix}{param}_data)s'''
+        return True, query, { f'{prefix}{param}_data': data }
+
+    return False, None, None
+
 def build_query_from_template(request, user_authed, template=None):
     """
       Builds query (terms and where clauses) based on a template

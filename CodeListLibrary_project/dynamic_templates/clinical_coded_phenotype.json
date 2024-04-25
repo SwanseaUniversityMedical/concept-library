@@ -99,6 +99,7 @@
         "type": "int_array",
         "mandatory": false,
         "source": {
+          "model": "OntologyTag",
           "trees": [ 0, 1, 2 ]
         }
       },

@@ -3,6 +3,7 @@ from django.db import models, transaction, connection
 from django.db.models import F, Count, Max, Case, When, Exists, OuterRef
 from django.db.models.query import QuerySet
 from django.db.models.functions import JSONObject
+from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django_postgresql_dag.models import node_factory, edge_factory
@@ -64,17 +65,20 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 	type_id = models.IntegerField(choices=[(e.name, e.value) for e in constants.ONTOLOGY_TYPES])
 	atlas_id = models.IntegerField(blank=True, null=True, unique=False)
 	properties = models.JSONField(blank=True, null=True)
+	search_vector = SearchVectorField(null=True)
 
 	# Metadata
 	class Meta:
 		ordering = ('type_id', 'id', )
 
 		indexes = [
+			models.Index(fields=['id']),
 			models.Index(fields=['id', 'type_id']),
 			GinIndex(
 				name='ot_name_gin_idx',
 				fields=['name']
 			),
+			GinIndex(fields=['search_vector']),
 		]
 
 	# Dunder methods
@@ -457,8 +461,8 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					)
 
 				select ancestor.child_id,
-					   ancestor.path,
-					   json_agg(obj.tree) as dataset
+					     ancestor.path,
+					     json_agg(obj.tree) as dataset
 				  from ancestors as ancestor
 				  join objects as obj
 					on obj.child_id = ancestor.child_id
