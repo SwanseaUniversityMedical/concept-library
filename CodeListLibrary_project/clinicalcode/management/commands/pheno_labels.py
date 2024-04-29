@@ -74,7 +74,7 @@ class Command(BaseCommand):
                 select
                       distinct on (t.read)
                       lower(t.read) as read,
-                      lower(regexp_replace(t.read, '[^aA-zZ0-9\-]', '', 'g')) as read_alt,
+                      substr(lower(regexp_replace(t.read, '[^aA-zZ0-9\-]', '', 'g')), 1, 5) as read_alt,
                       lower(t.icd) as icd,
                       lower(regexp_replace(t.icd, '[^aA-zZ0-9\-]', '', 'g')) as icd_alt
                   from jsonb_to_recordset(%(dataset)s::jsonb) as t (
@@ -129,7 +129,7 @@ class Command(BaseCommand):
                       max(codelist.history_id) as codelist_history_id,
                       codes.id as code_id,
                       lower(codes.code) as code,
-                      lower(regexp_replace(codes.code, '[^aA-zZ0-9\-]', '', 'g')) as code_alt,
+                      substr(lower(regexp_replace(codes.code, '[^aA-zZ0-9\-]', '', 'g')), 1, 5) as code_alt,
                       codes.description
                   from temp_entities as entity
                   join public.clinicalcode_historicalconcept as concept

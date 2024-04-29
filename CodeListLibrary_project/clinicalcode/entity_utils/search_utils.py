@@ -966,7 +966,7 @@ def get_source_references(struct, default=None, modifier=None):
     query = template_utils.try_get_content(source_info, 'query', 'pk')
     if not relative:
         return default
-    
+
     try:
         model = apps.get_model(app_label='clinicalcode', model_name=source)
         objs = model.objects.all()

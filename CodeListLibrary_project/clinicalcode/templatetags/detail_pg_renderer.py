@@ -258,9 +258,16 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
     elif field_type == 'int_array':
         source_info = validation.get('source')
         tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
-        if isinstance(tree_models, list):
-            return OntologyTag.get_detail_data(node_ids=data, default=default)
-    
+        model_source = source_info.get('model')
+        if isinstance(tree_models, list) and isinstance(model_source, str):
+            try:
+                model = apps.get_model(app_label='clinicalcode', model_name=model_source)
+                output = model.get_detail_data(node_ids=data, default=default)
+                if isinstance(output, list):
+                    return output
+            except Exception as e:
+                # Logging
+                return default
     if info.get('field_type') == 'data_sources':
         return get_data_sources(data, info, default=default)
     

@@ -1,6 +1,5 @@
 from django.db import migrations
 from django.db import connection
-from django.contrib.postgres.search import SearchVector
 
 def compute_search_vectors(apps, schema_editor):
     with connection.cursor() as cursor:

@@ -862,8 +862,8 @@ select
 -- Drop temp(s)
 
 drop table if exists temp_ancestors;
-drop table if exists temp_entities;
 drop table if exists temp_mappings;
+drop table if exists temp_entities;
 drop table if exists temp_all_codes;
 drop table if exists temp_codelists;
 drop table if exists temp_phenotypes;
@@ -912,6 +912,43 @@ with
 insert into temp_ancestors
 select * from ancestors;
 
+create temp table if not exists temp_mappings
+ on commit preserve rows
+ as (
+    select
+          entity.id as phenotype_id,
+          array(
+            select distinct ontology::text::integer as ontology_id
+              from json_array_elements(entity.template_data::json->'ontology') as ontology
+          ) as ontology_ids,
+          array(
+            select distinct tag.name
+              from json_array_elements(entity.template_data::json->'ontology') as ontology
+              join public.clinicalcode_ontologytag as tag
+                on tag.id = ontology::text::integer
+          ) as ontology_names,
+          array(
+            select 
+                  distinct coalesce(
+                    (
+                      select distinct tag.name
+                        from temp_ancestors as ancestor
+                        join public.clinicalcode_ontologytag as tag
+                          on tag.id = ancestor.path[1]
+                      where ancestor.child_id = ontology::text::integer
+					  limit 1
+                    ),
+					tag.name
+                  )
+              from json_array_elements(entity.template_data::json->'ontology') as ontology
+              join public.clinicalcode_ontologytag as tag
+                on tag.id = ontology::text::integer
+          ) as ontology_chapters
+      from public.clinicalcode_genericentity as entity
+     where json_typeof(entity.template_data::json->'ontology') = 'array'
+       and json_array_length(entity.template_data::json->'ontology') > 0
+ );
+
 create temp table if not exists temp_entities
  on commit preserve rows
  as (
@@ -950,43 +987,6 @@ create temp table if not exists temp_entities
        and entity.template_data->>'type' = '2'
        and array[4, 5] && array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[]
        and 13 != any(array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[])
- );
-
-create temp table if not exists temp_mappings
- on commit preserve rows
- as (
-    select
-          entity.id as phenotype_id,
-          array(
-            select distinct ontology::text::integer as ontology_id
-              from json_array_elements(entity.template_data::json->'ontology') as ontology
-          ) as ontology_ids,
-          array(
-            select distinct tag.name
-              from json_array_elements(entity.template_data::json->'ontology') as ontology
-              join public.clinicalcode_ontologytag as tag
-                on tag.id = ontology::text::integer
-          ) as ontology_names,
-          array(
-            select 
-                  distinct coalesce(
-                    (
-                      select distinct tag.name
-                        from temp_ancestors as ancestor
-                        join public.clinicalcode_ontologytag as tag
-                          on tag.id = ancestor.path[1]
-                      where ancestor.child_id = ontology::text::integer
-					  limit 1
-                    ),
-					tag.name
-                  )
-              from json_array_elements(entity.template_data::json->'ontology') as ontology
-              join public.clinicalcode_ontologytag as tag
-                on tag.id = ontology::text::integer
-          ) as ontology_chapters
-      from public.clinicalcode_genericentity as entity
-     where json_typeof(entity.template_data::json->'ontology') = 'array'
-       and json_array_length(entity.template_data::json->'ontology') > 0
  );
 
 create temp table if not exists temp_all_codes
