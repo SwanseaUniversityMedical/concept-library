@@ -753,7 +753,7 @@ with
        and entity.template_data->>'type' = '2'
        and not (
           array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[]
-          && array[4, 17, 18, 13]
+          && array[4, 5, 17, 18, 13]
        )
   ),
   all_codes as (
@@ -771,7 +771,7 @@ with
           codelist.id as codelist_id,
           max(codelist.history_id) as codelist_history_id,
           codes.id as code_id,
-          lower(codes.code) as code,
+          codes.code as code,
           codes.description
       from entities as entity
       join public.clinicalcode_historicalconcept as concept
@@ -943,7 +943,19 @@ create temp table if not exists temp_mappings
               from json_array_elements(entity.template_data::json->'ontology') as ontology
               join public.clinicalcode_ontologytag as tag
                 on tag.id = ontology::text::integer
-          ) as ontology_chapters
+          ) as ontology_chapters,
+          array(
+            select distinct tag.properties::jsonb->>'code'::text
+              from json_array_elements(entity.template_data::json->'ontology') as ontology
+              join public.clinicalcode_ontologytag as tag
+                on tag.id = ontology::text::integer
+          ) as ontology_codes,
+          array(
+            select distinct substr(tag.properties::jsonb->>'code'::text, 1, 3)
+              from json_array_elements(entity.template_data::json->'ontology') as ontology
+              join public.clinicalcode_ontologytag as tag
+                on tag.id = ontology::text::integer
+          ) as ontology_3codes
       from public.clinicalcode_genericentity as entity
      where json_typeof(entity.template_data::json->'ontology') = 'array'
        and json_array_length(entity.template_data::json->'ontology') > 0
@@ -985,8 +997,8 @@ create temp table if not exists temp_entities
        and json_array_length(entity.template_data::json->'concept_information') > 0
        and (entity.is_deleted is null or entity.is_deleted = false)
        and entity.template_data->>'type' = '2'
-       and array[4, 5] && array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[]
-       and 13 != any(array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[])
+       and array[5] && array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[]
+       and not (array[4, 13] && array(select json_array_elements_text(entity.template_data::json->'coding_system'))::int[])
  );
 
 create temp table if not exists temp_all_codes
@@ -1036,7 +1048,7 @@ create temp table if not exists temp_all_codes
        and deleted_code.id is null
        and component.history_type <> '-'
        and codes.history_type <> '-'
-       and entity.coding_system_id = any(array[4, 5])
+       and entity.coding_system_id = any(array[5])
        and (codes.code != '' and codes.code !~ '^\s*$')
      group by
               entity.phenotype_id,
@@ -1067,6 +1079,7 @@ create temp table if not exists temp_codelists
        and excluded_codes.code is null
  );
 
+-- temp_phenotypes if source = icd10
 create temp table if not exists temp_phenotypes
  on commit preserve rows
  as (
@@ -1093,3 +1106,36 @@ select
   join temp_mappings as mapped
     on mapped.phenotype_id = pheno.phenotype_id
  order by cast(regexp_replace(pheno.phenotype_id, '[a-zA-Z]+', '') as integer) asc;
+
+-- temp phenotypes if our source may or may not be icd10
+create temp table if not exists temp_phenotypes
+ on commit preserve rows
+ as (
+    select
+          codelist.phenotype_id,
+          codelist.phenotype_name,
+          string_agg(distinct codelist.coding_system_name, ', ') as coding_systems
+      from temp_codelists as codelist
+     group by codelist.phenotype_id, codelist.phenotype_name
+ );
+
+select
+      pheno.phenotype_id,
+      pheno.phenotype_name,
+      pheno.coding_systems,
+      array(
+        select distinct code
+          from unnest(mapped.ontology_codes) as code
+      ) as mapped_icd10_codes,
+      array(
+        select distinct code
+          from unnest(mapped.ontology_3codes) as code
+      ) as mapped_icd10_3char,
+      mapped.ontology_names,
+      mapped.ontology_chapters,
+      mapped.ontology_ids
+  from temp_phenotypes as pheno
+  join temp_mappings as mapped
+    on mapped.phenotype_id = pheno.phenotype_id
+ order by cast(regexp_replace(pheno.phenotype_id, '[a-zA-Z]+', '') as integer) asc;
+
