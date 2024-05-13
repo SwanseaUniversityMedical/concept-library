@@ -100,7 +100,7 @@ class Migration(migrations.Migration):
             begin
                 new.search_vector := 
                     setweight(to_tsvector('pg_catalog.english', coalesce(new.name,'')), 'A') ||
-                    setweight(to_tsvector('pg_catalog.english', coalesce(new.properties::json->>'code'::text, '')), 'B');
+                    setweight(to_tsvector('pg_catalog.english', coalesce(new.properties::json->>'code'::text, '')), 'A');
                 return new;
             end;
             $bd$;

@@ -204,7 +204,7 @@ def get_generic_entities(request, should_paginate=False):
         else:
             accessible_clauses.append('''template.id = %(template_id)s''')
 
-    # Finalise  accessibility clause(s)
+    # Finalise accessibility clause(s)
     user_id = None
     brand_id = None
     group_ids = None
