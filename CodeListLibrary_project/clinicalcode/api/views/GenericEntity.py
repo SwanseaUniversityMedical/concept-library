@@ -140,25 +140,12 @@ def get_generic_entity_version_history(request, phenotype_id=None):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
+@gen_utils.measure_perf
 def get_generic_entities(request, should_paginate=False):
     """
         Get all generic entities accessible to the user, optionally paginate result set
 
     """
-
-    # TODO
-    #
-    #   - [x] Change `atlas_id` to `reference_id`
-    #
-    #   - [x] Improve full-text search weight(s) for related entities
-    #
-    #   - [ ] Add subquery filter(s)
-    #       - See `.json` file
-    #
-    #   - [ ] Add ability to search for descendant(s)
-    #       - See `.json` file
-    #
-    #
 
     # Base params
     params = { key: value for key, value in request.query_params.items() }
@@ -352,30 +339,67 @@ def get_generic_entities(request, should_paginate=False):
         prefix = f'{template.id}_{template.template_version}'
         for key in template_filters:
             field_data = template_utils.try_get_content(template_fields, key)
-            if not field_data:
-                continue
+            if field_data is not None:
+                if not field_data.get('active') or not field_data.get('search') or field_data.get('ignore'):
+                    continue
 
-            if not field_data.get('active') or not field_data.get('search') or field_data.get('ignore'):
-                continue
+                if field_data.get('requires_auth') and not is_authed:
+                    continue
 
-            if field_data.get('requires_auth') and not is_authed:
-                continue
+                data = params.get(key)
 
-            data = params.get(key)
+                validation = field_data.get('validation')
+                field_type = validation.get('type') if validation is not None else None
+                if not field_type:
+                    continue
 
-            validation = field_data.get('validation')
-            field_type = validation.get('type') if validation is not None else None
-            if not field_type:
-                continue
+                success, query, query_params = api_utils.build_query_string_from_param(
+                    key, data, validation, field_type,
+                    prefix=prefix, is_dynamic=True
+                )
 
-            success, query, query_params = api_utils.build_query_string_from_param(
-                key, data, validation, field_type,
-                prefix=prefix, is_dynamic=True
-            )
+                if success:
+                    opts |= query_params
+                    clauses.append(query)
+            else:
+                query_opts = key.split('_')
+                if query_opts[0] == field_data and len(query_opts) > 1:
+                    continue
 
-            if success:
-                opts |= query_params
-                clauses.append(query)
+                field_ref = query_opts[0]
+                subquery_ref = query_opts[1]
+
+                field_data = template_utils.try_get_content(template_fields, field_ref)
+                if field_data is None:
+                    continue
+                
+                if not field_data.get('active') or not field_data.get('search') or field_data.get('ignore'):
+                    continue
+
+                if field_data.get('requires_auth') and not is_authed:
+                    continue
+
+                data = params.get(key)
+                validation = field_data.get('validation')
+
+                source = validation.get('source') if validation is not None else None
+                field_type = validation.get('type') if validation is not None else None
+                if source is None or field_type is None:
+                    continue
+
+                subqueries = source.get('subquery')
+                valid_subquery = isinstance(subqueries.get(subquery_ref), dict) if subqueries is not None else False
+                if not valid_subquery:
+                    continue
+
+                success, results = api_utils.build_template_subquery_from_string(
+                    key, data, field_ref, subquery_ref,
+                    validation, opts=query_opts[2:], prefix=prefix
+                )
+
+                if success:
+                    opts |= results[1]
+                    clauses.append(results[0])
 
         if len(clauses) > 0:
             clauses = ' and '.join(clauses)

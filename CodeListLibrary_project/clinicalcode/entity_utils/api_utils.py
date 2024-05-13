@@ -1,3 +1,4 @@
+from django.db import connection
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status
@@ -289,6 +290,314 @@ def get_layout_from_entity(entity):
         status=status.HTTP_404_NOT_FOUND
     )
 
+def build_template_subquery_from_string(param, data, top_ref, sub_ref, validation, opts=None, prefix=''):
+    """
+        Derives a valid query from the given
+        query and contextual subquery parameters
+
+      [!] NOTE: Parameters & types should be validated _BEFORE_ calling this function
+
+      Args:
+        param (string): the name of the request param that's been mapped to the template
+
+        data (any): the value portion of the key-value pair param
+
+        top_ref (string): the top-most field reference name
+
+        sub_ref (string): the subquery field reference name
+
+        validation (dict): validation dictionary defined by the template
+
+        opts (list): (optional) an optional list of modifiers as derived from the query params
+
+        prefix (str): (optional) used to vary the names across template version(s)
+
+      Returns:
+
+        1. boolean - reflects the success status of the call
+
+        2. list|None - if successful, will return a list where the 1st index is the query;
+                       and the 2nd is the derived query dataset
+
+    """
+    # Validate query
+    if not isinstance(validation, dict):
+        return False, None
+
+    if len(prefix) > 0:
+        prefix = prefix + '_'
+
+    source = validation.get('source')
+    if source is None:
+        return False, None
+
+    model = source.get('model')
+    subqueries = source.get('subquery')
+    sub_validation = subqueries.get(sub_ref) if subqueries is not None else None
+    if not isinstance(model, str) or not isinstance(sub_validation, dict):
+        return False, None
+
+    # Prepare modifier(s)
+    tree_data = source.get('trees') if source and 'trees' in validation.get('source') else None
+    tree_clause = ''
+    next_clause = 'where'
+
+    dataset = { }
+    if isinstance(tree_data, list) and len(tree_data) > 0:
+        next_clause = 'and'
+        tree_clause = f'''
+            where t1.type_id = any(%({prefix}{param}_trlink)s)
+        '''
+        dataset.update({ f'{prefix}{param}_trlink': tree_data })
+
+    modifiers = sub_validation.get('modifiers') or []
+    sub_type = sub_validation.get('type')
+    sub_field = sub_validation.get('field')
+    sub_field_type = sub_validation.get('field_type')
+
+    if sub_field_type == 'jsonb':
+        # Handle json subquqery
+        #   i.e. we need to match on a key-value pair within each
+        #        of the ontological tags
+        #
+
+        key_field = sub_validation.get('key')
+        if not isinstance(key_field, str):
+            return False, None
+
+        ltype = None
+        datatype = None
+        processor = ''
+        if sub_type == 'int_array':
+            data = [ int(x) for x in data.split(',') if isinstance(gen_utils.parse_int(x, default=None), int) ]
+            ltype = '::bigint'
+            datatype = '::bigint'
+        elif sub_type == 'string_array':
+            data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') ]
+            ltype = '::text'
+            datatype = ''
+            processor = 'lower'
+
+        if not isinstance(datatype, str):
+            return False, None
+
+        if 'descendants' in opts and (isinstance(modifiers, list) and 'descendants' in modifiers):
+            # Match first, then perform query
+            matched_records = []
+            with connection.cursor() as cursor:
+                sql = f'''
+                select
+                        t.id
+                from public.clinicalcode_{model.lower()} as t
+                where {processor}(t.{sub_field}::jsonb->>'{key_field}'::text{datatype}) = any(%(data)s{ltype}[])
+                '''
+                cursor.execute(sql, params={
+                    'data': data,
+                })
+
+                matched_records = [ row[0] for row in cursor.fetchall() ]
+
+            query = f'''
+            exists(
+                select 1
+                    from (
+                    select mid::bigint as val
+                        from jsonb_array_elements(
+                        case jsonb_typeof(entity.template_data->'{top_ref}')
+                        when 'array'
+                            then entity.template_data->'{top_ref}'
+                            else '[]'
+                        end
+                        ) as mid
+                    ) as t0
+                    join public.clinicalcode_{model.lower()} as t1
+                    on t0.val = t1.id
+                    {tree_clause}
+                    {next_clause} (
+                        t1.id::bigint = any(%({prefix}{param}_data)s::bigint[])
+                        or is_ontological_descendant(%({prefix}{param}_data)s::bigint[], array[t1.id]::bigint[])
+                    )
+                limit 1
+            )
+            '''
+            dataset.update({ f'{prefix}{param}_data': matched_records })
+            return True, [ query, dataset ]
+
+        query = f'''
+        exists(
+            select 1
+                from (
+                select mid::bigint as val
+                    from jsonb_array_elements(
+                    case jsonb_typeof(entity.template_data->'{top_ref}')
+                    when 'array'
+                        then entity.template_data->'{top_ref}'
+                        else '[]'
+                    end
+                    ) as mid
+                ) as t0
+                join public.clinicalcode_{model.lower()} as t1
+                  on t0.val = t1.id
+                {tree_clause}
+                {next_clause} (
+                    {processor}(t1.{sub_field}::jsonb->>'{key_field}'::text{datatype}) = any(%({prefix}{param}_data)s{ltype}[])
+                )
+                limit 1
+        )
+        '''
+        dataset.update({ f'{prefix}{param}_data': data })
+
+        return True, [ query, dataset ]
+    elif sub_type == 'int_array' and sub_field == 'id':
+        # Handle top-level field
+        #   i.e. we can skip cursor check since 
+        #        we already have the descendant search field
+        #
+
+        data = [ int(x) for x in data.split(',') if isinstance(gen_utils.parse_int(x, default=None), int) ]
+        dataset.update({ f'{prefix}{param}_data': data })
+
+        if 'descendants' in opts and (isinstance(modifiers, list) and 'descendants' in modifiers):
+            query = f'''
+            exists(
+                select 1
+                  from (
+                    select mid::bigint as val
+                      from jsonb_array_elements(
+                        case jsonb_typeof(entity.template_data->'{top_ref}')
+                        when 'array'
+                            then entity.template_data->'{top_ref}'
+                            else '[]'
+                        end
+                      ) as mid
+                  ) as t0
+                  join public.clinicalcode_{model.lower()} as t1
+                    on t0.val = t1.id
+                  {tree_clause}
+                  {next_clause} (
+                    t1.{sub_field}::bigint = any(%({prefix}{param}_data)s::bigint[])
+                    or is_ontological_descendant(%({prefix}{param}_data)s::bigint[], array[t0.val]::bigint[])
+                  )
+                limit 1
+            )
+            '''
+        else:
+            query = f'''
+            exists(
+                select 1
+                  from (
+                    select mid::bigint as val
+                      from jsonb_array_elements(
+                        case jsonb_typeof(entity.template_data->'{top_ref}')
+                        when 'array'
+                            then entity.template_data->'{top_ref}'
+                            else '[]'
+                        end
+                      ) as mid
+                  ) as t0
+                  join public.clinicalcode_{model.lower()} as t1
+                    on t0.val = t1.id
+                  {tree_clause}
+                  {next_clause} (
+                    t1.{sub_field}::bigint = any(%({prefix}{param}_data)s::bigint[])
+                  )
+                limit 1
+            )
+            '''
+
+        return True, [ query, dataset ]
+
+
+    # Match via cursor
+    #   i.e. if we need to match descendants, we need to perform
+    #        a query in advance of the search to ensure we have the match id(s)
+    #        so that we can meet the parameter requirements of `is_ontological_descendants`
+    #
+
+    datatype = None
+    processor = ''
+    if sub_type == 'int_array':
+        data = [ int(x) for x in data.split(',') if isinstance(gen_utils.parse_int(x, default=None), int) ]
+        datatype = 'bigint'
+    elif sub_type == 'string_array':
+        data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') ]
+        datatype = 'text'
+        processor = 'lower'
+
+    if not isinstance(datatype, str):
+        return False, None
+
+    if 'descendants' in opts and (isinstance(modifiers, list) and 'descendants' in modifiers):
+        # Match first, then perform query
+        matched_records = []
+        with connection.cursor() as cursor:
+            sql = f'''
+            select
+                    t.id
+              from public.clinicalcode_{model.lower()} as t
+             where {processor}(t.{sub_field}::{datatype}) = any(%(data)s::{datatype}[]);
+            '''
+            cursor.execute(sql, params={
+                'data': data,
+            })
+
+            matched_records = [ row[0] for row in cursor.fetchall() ]
+
+        query = f'''
+        exists(
+            select 1
+                from (
+                select mid::bigint as val
+                    from jsonb_array_elements(
+                    case jsonb_typeof(entity.template_data->'{top_ref}')
+                    when 'array'
+                        then entity.template_data->'{top_ref}'
+                        else '[]'
+                    end
+                    ) as mid
+                ) as t0
+                join public.clinicalcode_{model.lower()} as t1
+                  on t0.val = t1.id
+                {tree_clause}
+                {next_clause} (
+                    t1.id::bigint = any(%({prefix}{param}_data)s::bigint[])
+                    or is_ontological_descendant(%({prefix}{param}_data)s::bigint[], array[t1.id]::bigint[])
+                )
+                limit 1
+        )
+        '''
+        dataset.update({ f'{prefix}{param}_data': matched_records })
+    else:
+        # Simple query, we can advance without deriving
+        # appropriate match id(s)
+        #
+
+        query = f'''
+        exists(
+            select 1
+                from (
+                select mid::bigint as val
+                    from jsonb_array_elements(
+                    case jsonb_typeof(entity.template_data->'{top_ref}')
+                    when 'array'
+                        then entity.template_data->'{top_ref}'
+                        else '[]'
+                    end
+                    ) as mid
+                ) as t0
+                join public.clinicalcode_{model.lower()} as t1
+                  on t0.val = t1.id
+                {tree_clause}
+                {next_clause} (
+                    {processor}(t1.{sub_field}::{datatype}) = any(%({prefix}{param}_data)s::{datatype}[])
+                )
+                limit 1
+        )
+        '''
+        dataset.update({ f'{prefix}{param}_data': data })
+
+    return True, [ query, dataset ]
+
 def build_query_string_from_param(param, data, validation, field_type, is_dynamic=False, prefix=''):
     """
       Builds query (terms and where clauses) based on a template
@@ -323,7 +632,7 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
     query = None
     if field_type == 'int' or field_type == 'enum':
         if 'options' in validation or 'source' in validation:
-            data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) ]
+            data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None ]
 
             if is_dynamic:
                 query = f'''(entity.template_data::json->>'{param}'::text)::int = any(%({prefix}{param}_data)s)'''
@@ -408,9 +717,6 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
                     )
                     '''
             else:
-                data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) ]
-                data = [ str(x) for x in data ]
-
                 query = f'''
                 exists(
                     select 1
@@ -425,7 +731,7 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
                 )
                 '''
         else:
-            data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) ]
+            data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None ]
             query = f'''entity.{param} && %({prefix}{param}_data)s'''
 
         return True, query, { f'{prefix}{param}_data': data }

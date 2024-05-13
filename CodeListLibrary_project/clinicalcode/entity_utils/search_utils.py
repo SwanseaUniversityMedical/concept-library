@@ -286,7 +286,7 @@ def apply_param_to_query(query, where, params, template, param, data,
     
     if field_type == 'int' or field_type == 'enum':
         if 'options' in validation or 'source' in validation:
-            data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
+            data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None]
             clean = validate_query_param(param, template_data, data, default=None, request=request)
             if clean is None and force_term:
                 clean = data
@@ -305,7 +305,7 @@ def apply_param_to_query(query, where, params, template, param, data,
                 query[f'{param}__in'] = clean
             return True
     elif field_type == 'int_array':
-        data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
+        data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None]
         clean = validate_query_param(param, template_data, data, default=None, request=request)
         if clean is None and force_term:
             clean = data

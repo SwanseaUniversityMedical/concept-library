@@ -101,17 +101,16 @@
         "source": {
           "model": "OntologyTag",
           "trees": [ 0, 1, 2 ],
-          "modifiers": {
-            "descendants": {
-              "field": "id",
-              "relative": "OntologyTag",
-              "type": "boolean"
-            }
-          },
           "subquery": {
             "id": {
               "type": "int_array",
-              "field": "id"
+              "field": "id",
+              "modifiers": [ "descendants" ]
+            },
+            "name": {
+              "type": "string_array",
+              "field": "name",
+              "modifiers": [ "descendants" ]
             },
             "type": {
               "type": "int_array",
@@ -119,13 +118,15 @@
             },
             "reference": {
               "type": "int_array",
-              "field": "reference_id"
+              "field": "reference_id",
+              "modifiers": [ "descendants" ]
             },
             "code": {
               "key": "code",
               "type": "string_array",
               "field": "properties",
-              "field_type": "jsonb"
+              "field_type": "jsonb",
+              "modifiers": [ "descendants" ]
             }
           }
         }
