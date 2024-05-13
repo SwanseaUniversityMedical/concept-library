@@ -15,8 +15,8 @@ from ...models.OntologyTag import OntologyTag
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_ontologies(request):
     """
-        Get all ontology categories and their root
-        nodes, _incl._ associated data
+        Get all ontology groups and their root
+        nodes, _incl._ associated data such as the rood nodes, children _etc_
 
     """
     result = OntologyTag.get_groups([x.value for x in constants.ONTOLOGY_TYPES], default=[])
@@ -95,9 +95,10 @@ def get_ontology_nodes(request):
             - `codes` - one or more code(s) to filter on the related ontology code string
             - `search` - full-text search on ontology name(s)
             - `type_ids` - one or more id(s) to filter on ontology type
-            - `atlas_ids` - one or more id(s) to filter on atlas reference id
+            - `reference_ids` - one or more id(s) to filter on atlas reference id
 
     """
+
     response = { }
     params = { key: value for key, value in request.query_params.items() }
 
@@ -124,11 +125,11 @@ def get_ontology_nodes(request):
     if isinstance(type_ids, list):
         clauses.append('''node.type_id = any(%(type_ids)s)''')
 
-    atlas_ids = params.pop('atlas_ids', None)
-    atlas_ids = atlas_ids.split(',') if atlas_ids is not None else None
-    atlas_ids = gen_utils.try_value_as_type(atlas_ids, 'int_array')
-    if isinstance(atlas_ids, list):
-        clauses.append('''node.atlas_id = any(%(atlas_ids)s)''')
+    reference_ids = params.pop('reference_ids', None)
+    reference_ids = reference_ids.split(',') if reference_ids is not None else None
+    reference_ids = gen_utils.try_value_as_type(reference_ids, 'int_array')
+    if isinstance(reference_ids, list):
+        clauses.append('''node.reference_id = any(%(reference_ids)s)''')
 
     codes = params.pop('codes', None)
     codes = codes.split(',') if codes is not None else None
@@ -211,7 +212,7 @@ def get_ontology_nodes(request):
                             'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
                             'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
                             'type_id', node.type_id,
-                            'atlas_id', node.atlas_id,
+                            'reference_id', node.reference_id,
                             'child_count', count(edges1.child_id)
                         ) as res
                   from public.clinicalcode_ontologytag as node
@@ -244,7 +245,7 @@ def get_ontology_nodes(request):
             'alt_codes': alt_codes,
             'search': search,
             'type_ids': type_ids,
-            'atlas_ids': atlas_ids,
+            'reference_ids': reference_ids,
         })
 
         columns = [col[0] for col in cursor.description]

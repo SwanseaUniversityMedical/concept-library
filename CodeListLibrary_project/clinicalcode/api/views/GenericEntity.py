@@ -71,6 +71,7 @@ def update_generic_entity(request):
     """
         Update a generic entity from request body, must be formatted in terms
           of a specific layout and is validated against it
+
     """
     if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
         return Response(
@@ -118,6 +119,7 @@ def update_generic_entity(request):
 def get_generic_entity_version_history(request, phenotype_id=None):
     """
         Get version history of specific entity, using phenotype_id
+
     """    
     # Check if primary_key is valid, i.e. matches regex '^[a-zA-Z]\d+'
     entity_id_response = api_utils.is_malformed_entity_id(phenotype_id)
@@ -140,8 +142,23 @@ def get_generic_entity_version_history(request, phenotype_id=None):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_generic_entities(request, should_paginate=False):
     """
-        Get all generic entities accessible to the user, optionally paginate results
+        Get all generic entities accessible to the user, optionally paginate result set
+
     """
+
+    # TODO
+    #
+    #   - [x] Change `atlas_id` to `reference_id`
+    #
+    #   - [x] Improve full-text search weight(s) for related entities
+    #
+    #   - [ ] Add subquery filter(s)
+    #       - See `.json` file
+    #
+    #   - [ ] Add ability to search for descendant(s)
+    #       - See `.json` file
+    #
+    #
 
     # Base params
     params = { key: value for key, value in request.query_params.items() }

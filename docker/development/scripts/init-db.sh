@@ -13,7 +13,7 @@ if [ ! -z $BACKUP_FILE ] && [ -e $BACKUP_FILE ]; then
 elif [ ! -z $SQL_FILE ] && [ -e $SQL_FILE ]; then 
   echo "[!>] Found sql backup, restoring from local"
   echo "[!>] Restoring database from local .sql"
-  /usr/bin/psql -U $POSTGRES_USER -d $POSTGRES_DB -f $SQL_FILE $POSTGRES_DB;
+  /usr/bin/psql -U $POSTGRES_USER -d $POSTGRES_DB -f $SQL_FILE;
 elif [ -e /docker-entrypoint-initdb.d/db/git.token ]; then
   echo "[!>] Found token, restoring from git"
   GIT_TOKEN=`cat /docker-entrypoint-initdb.d/db/git.token`

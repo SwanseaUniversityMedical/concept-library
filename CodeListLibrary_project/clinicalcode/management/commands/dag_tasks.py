@@ -199,7 +199,7 @@ class GraphBuilders:
                     % (type(node_id), type(node_name))
                 return False, err
 
-            node = OntologyTag(name=node_name.strip(), atlas_id=node_id, type_id=constants.ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY)
+            node = OntologyTag(name=node_name.strip(), reference_id=node_id, type_id=constants.ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY)
             nodes.append(node)
             result.append(f'\tAnatomicalRootNode<name: {node_name}, id: {node_id}>')
 

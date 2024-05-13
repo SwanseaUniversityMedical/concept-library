@@ -346,6 +346,14 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
                 model = source.get('model') if isinstance(source.get('model'), str) else None
 
                 if model:
+                    # query by `id` or `search_vector`
+                    #
+                    #   _i.e._ matches one of:
+                    #
+                    #         - directly via `id`
+                    #     OR;
+                    #         - the associated `name` +/- other properties via `search_vector`
+                    #
                     query = f'''
                     exists(
                         select 1

@@ -130,7 +130,7 @@ create temporary table if not exists temp_ontology_tags
           icd10.id as ontology_coding_id,
           lower(icd10.code) as ontology_dot_code,
           lower(icd10.alt_code) as ontology_alt_code,
-          node.atlas_id as ontology_atlas,
+          node.reference_id as ontology_atlas,
           node.properties as ontology_props
       from public.clinicalcode_ontologytag node
       join public.clinicalcode_ontologytagedge edge
