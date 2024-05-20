@@ -186,17 +186,17 @@ const renderNameAnchor = (pageType, key, entity) => {
       if (publish_status != 2) {
         target += `
           <span tooltip="Archive Phenotype" direction="left">
-            <span class="profile-collection__delete-icon"
+            <button class="profile-collection__delete-icon"
                   tabindex="0" aria-label="Archive Phenotype"
                   role="button"
                   data-target="archive"
-                  data-id="${id}"></span>
+                  data-id="${id}"></button>
           </span>
         `;
-      }
     
       return target;
     }
+  }
 
     case 'archived': {
       return `

@@ -1170,6 +1170,7 @@ export default class ConceptCreator {
       // Render codelist
       let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
       dataset = dataset.shift();
+      console.log(dataset);
 
       return this.#tryRenderCodelist(container, dataset);
     }
