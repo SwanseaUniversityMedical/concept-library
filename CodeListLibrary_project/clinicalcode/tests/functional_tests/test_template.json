@@ -348,7 +348,7 @@
   ],
   "template_details": {
     "name": "Clinical-Coded Phenotype",
-    "version": 2,
+    "version": 1,
     "card_type": "clinical",
     "description": "Phenotype definitions that are based on lists of clinical codes, or algorithms using clinical codes."
   }
