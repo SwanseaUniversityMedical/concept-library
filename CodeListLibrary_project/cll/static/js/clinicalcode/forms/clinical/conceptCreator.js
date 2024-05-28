@@ -2341,7 +2341,7 @@ export default class ConceptCreator {
         beforeAccept: (modal) =>{
           const attribute_name = modal.querySelector('#attribute-name-input').value;
           const attribute_value = modal.querySelector('#attribute-value-input').value;
-          const attribute_type = modal.querySelector('#type-input').value;
+          const attribute_type = modal.querySelector('#attribute-type').value;
           const attribute = {
             name: attribute_name,
             type: attribute_type,
