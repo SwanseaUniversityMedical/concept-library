@@ -24,6 +24,7 @@ from clinicalcode.tests.constants.constants import ENTITY_CLASS_FIELDS, TEMPLATE
     TEMPLATE_DATA
 from cll.test_settings import REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
 
+
 @pytest.fixture
 def generate_user(create_groups):
     """
@@ -68,10 +69,24 @@ def generate_user(create_groups):
     for user in users.values():
         user.delete()
 
+
 @pytest.fixture
 def generate_entity_session(template, generate_user, brands=None):
     """
-        Generate known entity data for publication tests
+        Generate known entity data for publication tests through
+        fixture composition
+
+        Args:
+            template (pytest.Fixture): reference to template fixture
+
+            generate_user (pytest.Fixture): generate user(s) and group(s)
+
+            brands (list|optional): optional list of brands to consider,
+                                    defaults to 'None' which describes all
+                                    brands
+
+        Yields:
+            A dict containing the generated users and entities
     """
     entities, ge_cleanup, cc_cleanup = { }, [ ], [ ]
     if not isinstance(brands, list):
@@ -180,6 +195,7 @@ def generate_entity_session(template, generate_user, brands=None):
          where name = 'Some system';
         ''', params={ 'entity_ids': ge_cleanup, 'concept_ids': cc_cleanup })
 
+
 @pytest.fixture
 def create_groups():
     """
@@ -196,7 +212,7 @@ def create_groups():
                 'view_group': View group instance
                 'edit_group': Edit group instance
     """
-    moderator_group = Group.objects.get_or_create(name="Moderators")
+    moderator_group = Group.objects.create(name="Moderators")
     permitted_group = Group.objects.create(name="permitted_group")
     forbidden_group = Group.objects.create(name="forbidden_group")
     view_group = Group.objects.create(name="view_group")
@@ -212,7 +228,7 @@ def create_groups():
     }
 
     # Clean up the groups after the tests are finished
-    for group in [permitted_group, forbidden_group, view_group, edit_group]:
+    for group in [moderator_group, permitted_group, forbidden_group, view_group, edit_group]:
         group.delete()
 
 
