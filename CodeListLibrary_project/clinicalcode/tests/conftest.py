@@ -1,26 +1,31 @@
 import json
-from datetime import datetime
 import socket
 import time
-
 import pytest
-from django.contrib.auth.models import User, Group
+
+from datetime import datetime
+from django.db import connection
 from django.utils.timezone import make_aware
+from django.contrib.auth.models import User, Group
 from selenium import webdriver
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
+from clinicalcode.models import Brand
+from clinicalcode.models import Concept
+from clinicalcode.models import CodingSystem
 from clinicalcode.models import GenericEntity
+from clinicalcode.models import PublishedGenericEntity
 from clinicalcode.models.Template import Template
 from clinicalcode.models.EntityClass import EntityClass
+from clinicalcode.entity_utils.constants import OWNER_PERMISSIONS, APPROVAL_STATUS, ENTITY_STATUS, WORLD_ACCESS_PERMISSIONS
 from clinicalcode.tests.constants.constants import ENTITY_CLASS_FIELDS, TEMPLATE_JSON_V1_PATH, TEMPLATE_FIELDS, \
     TEMPLATE_DATA
 from cll.test_settings import REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
 
-
 @pytest.fixture
-def generate_user():
+def generate_user(create_groups):
     """
     Pytest fixture for generating test users with different roles.
 
@@ -41,14 +46,18 @@ def generate_user():
     nm_user = User.objects.create_user(username='normaluser', password='normaluserpassword', email=None)
     ow_user = User.objects.create_user(username='owneruser', password='owneruserpassword', email=None)
     gp_user = User.objects.create_user(username='groupuser', password='groupuserpassword', email=None)
+    md_user = User.objects.create_user(username='moderatoruser', password='moderatoruserpassword', email=None)
     vgp_user = User.objects.create_user(username='viewgroupuser', password='viewgroupuserpassword', email=None)
     egp_user = User.objects.create_user(username='editgroupuser', password='editgroupuserpassword', email=None)
+
+    md_user.groups.add(create_groups['moderator_group'])
 
     users = {
         'super_user': su_user,
         'normal_user': nm_user,
         'owner_user': ow_user,
         'group_user': gp_user,
+        'moderator_user': md_user,
         'view_group_user': vgp_user,
         'edit_group_user': egp_user,
     }
@@ -59,6 +68,117 @@ def generate_user():
     for user in users.values():
         user.delete()
 
+@pytest.fixture
+def generate_entity_session(template, generate_user, brands=None):
+    """
+        Generate known entity data for publication tests
+    """
+    entities, ge_cleanup, cc_cleanup = { }, [ ], [ ]
+    if not isinstance(brands, list):
+        brands = list(Brand.objects.all().values_list('id', flat=True))
+
+    user = generate_user['owner_user']
+    moderator = generate_user['moderator_user']
+
+    system = CodingSystem.objects.create(
+        name='Some system',
+        link='',
+        database_connection_name='',
+        table_name='',
+        code_column_name='',
+        desc_column_name='',
+    )
+
+    concept = Concept.objects.create(
+        name='Some concept',
+        owner_id=user.id,
+        entry_date=make_aware(datetime.now()),
+        created_by=user,
+        coding_system=system,
+        owner_access=OWNER_PERMISSIONS.EDIT,
+    )
+    cc_cleanup.append(concept.id)
+
+    template_data = {
+        'concept_information': [
+            { 'concept_id': concept.id, 'concept_version_id': concept.history.first().history_id }
+        ]
+    }
+
+    for status in APPROVAL_STATUS:
+        entity = GenericEntity.objects.create(
+            name='TEST_%s_Entity' % status.name,
+            author=user.username,
+            status=ENTITY_STATUS.DRAFT.value,
+            publish_status=APPROVAL_STATUS.ANY.value,
+            template=template,
+            template_version=1,
+            template_data=template_data,
+            created_by=user,
+            world_access=WORLD_ACCESS_PERMISSIONS.VIEW
+        )
+
+        record = { 'entity': entity }
+        ge_cleanup.append(entity.id)
+
+        if status != APPROVAL_STATUS.ANY:
+            metadata = { }
+            if status != APPROVAL_STATUS.PENDING:
+                metadata.update({ 'moderator_id': moderator.id })
+
+            record.update({
+                'published_entity': PublishedGenericEntity.objects.create(
+                    **metadata,
+                    entity=entity,
+                    entity_history_id=entity.history.first().history_id,
+                    modified=make_aware(datetime.now()),
+                    approval_status=status.value,
+                    created_by_id=user.id
+                )
+            })
+
+        entities[status.name] = record
+
+    yield {
+        'entities': entities,
+        'users': generate_user
+    }
+
+    with connection.cursor() as cursor:
+        cursor.execute('''
+        -- rm entities
+        delete from public.clinicalcode_genericentity
+         where id = any(%(entity_ids)s);
+
+        delete from public.clinicalcode_historicalgenericentity
+         where id = any(%(entity_ids)s);
+
+        delete from public.clinicalcode_publishedgenericentity
+         where entity_id = any(%(entity_ids)s);
+
+        delete from public.clinicalcode_historicalpublishedgenericentity
+         where entity_id = any(%(entity_ids)s);
+
+        -- rm concepts
+        delete from public.clinicalcode_concept
+         where id = any(%(concept_ids)s);
+
+        delete from public.clinicalcode_historicalconcept
+         where id = any(%(concept_ids)s);
+
+        delete from public.clinicalcode_publishedconcept
+         where concept_id = any(%(concept_ids)s);
+
+        delete from public.clinicalcode_historicalpublishedconcept
+         where concept_id = any(%(concept_ids)s);
+
+        -- rm coding system
+        delete from public.clinicalcode_codingsystem
+         where name = 'Some system';
+
+        delete from public.clinicalcode_historicalcodingsystem
+         where name = 'Some system';
+        ''', params={ 'entity_ids': ge_cleanup, 'concept_ids': cc_cleanup })
 
 @pytest.fixture
 def create_groups():
@@ -76,6 +196,7 @@ def create_groups():
                 'view_group': View group instance
                 'edit_group': Edit group instance
     """
+    moderator_group = Group.objects.get_or_create(name="Moderators")
     permitted_group = Group.objects.create(name="permitted_group")
     forbidden_group = Group.objects.create(name="forbidden_group")
     view_group = Group.objects.create(name="view_group")
@@ -83,6 +204,7 @@ def create_groups():
 
     # Yield the created groups, so they can be used in tests
     yield {
+        'moderator_group': moderator_group,
         'permitted_group': permitted_group,
         'forbidden_group': forbidden_group,
         'view_group': view_group,
