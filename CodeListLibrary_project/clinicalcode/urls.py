@@ -89,12 +89,11 @@ urlpatterns = [
     url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/submit/$', Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
 ]
 
-# Add sitemaps & robots if required
-if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
-    urlpatterns += [
-        url(r'^robots.txt/$', site.robots_txt, name='robots.txt'),
-        url(r'^sitemap.xml/$', site.get_sitemap, name='sitemap.xml'),
-    ]
+# Add sitemaps & robots if required (only for HDRUK .org site (or local dev.) -- check is done in site.py)
+urlpatterns += [
+    url(r'^robots.txt/$', site.robots_txt, name='robots.txt'),
+    url(r'^sitemap.xml/$', site.get_sitemap, name='sitemap.xml'),
+]
 
 # Add non-readonly pages
 if not settings.CLL_READ_ONLY:
