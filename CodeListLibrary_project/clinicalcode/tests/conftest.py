@@ -212,7 +212,7 @@ def create_groups():
                 'view_group': View group instance
                 'edit_group': Edit group instance
     """
-    moderator_group = Group.objects.create(name="Moderators")
+    moderator_group, created_moderator = Group.objects.get_or_create(name="Moderators")
     permitted_group = Group.objects.create(name="permitted_group")
     forbidden_group = Group.objects.create(name="forbidden_group")
     view_group = Group.objects.create(name="view_group")
@@ -228,8 +228,11 @@ def create_groups():
     }
 
     # Clean up the groups after the tests are finished
-    for group in [moderator_group, permitted_group, forbidden_group, view_group, edit_group]:
+    for group in [permitted_group, forbidden_group, view_group, edit_group]:
         group.delete()
+
+    if created_moderator:
+        moderator_group.delete()
 
 
 @pytest.fixture
