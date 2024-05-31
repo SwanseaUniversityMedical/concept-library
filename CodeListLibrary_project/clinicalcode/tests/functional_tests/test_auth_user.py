@@ -27,7 +27,7 @@ class TestAuthPhenoAccess:
         Returns:
             GenericEntity: A generic entity with defined attributes.
         """
-        with open('test_template.json') as f:
+        with open('../constants/test_template.json') as f:
             template_definition = json.load(f)
         template.definition = template_definition
         template.save()
@@ -164,7 +164,6 @@ class TestAuthPhenoAccess:
         Test to verify that non-authenticated users can't update phenotypes.
         """
         client = Client(public=True, url='http://127.0.0.1:8000/')
-        print("what is this")
         
         try:
             client.phenotypes.update('../constants/test_create_pheno_no_access.yaml')
