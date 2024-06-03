@@ -4,11 +4,16 @@ echo "===================================="
 echo "== Attempting to restore database =="
 echo "===================================="
 
+SQL_FILE=$(find /docker-entrypoint-initdb.d/db/ -name '*.sql'| head -1)
 BACKUP_FILE=$(find /docker-entrypoint-initdb.d/db/ -name '*.backup'| head -1)
 if [ ! -z $BACKUP_FILE ] && [ -e $BACKUP_FILE ]; then 
-  echo "[!>] Found backup, restoring from local"
+  echo "[!>] Found dump backup, restoring from local"
   echo "[!>] Restoring database from local .backup"
   /usr/bin/pg_restore -U $POSTGRES_USER -d $POSTGRES_DB $BACKUP_FILE;
+elif [ ! -z $SQL_FILE ] && [ -e $SQL_FILE ]; then 
+  echo "[!>] Found sql backup, restoring from local"
+  echo "[!>] Restoring database from local .sql"
+  /usr/bin/psql -U $POSTGRES_USER -d $POSTGRES_DB -f $SQL_FILE;
 elif [ -e /docker-entrypoint-initdb.d/db/git.token ]; then
   echo "[!>] Found token, restoring from git"
   GIT_TOKEN=`cat /docker-entrypoint-initdb.d/db/git.token`
