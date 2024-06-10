@@ -847,7 +847,7 @@ export default class ConceptCreator {
     importBtn.addEventListener('click', this.#handleConceptImporting.bind(this));
 
     const addAttrBtn = this.element.querySelector('#add-concept-attribute-btn');
-    addAttrBtn.addEventListener('click', this.#handleAttributeCreation.bind(this));
+    addAttrBtn.addEventListener('click', this.#handleAttributeSettings.bind(this));
   }
 
   /*************************************
@@ -2335,6 +2335,7 @@ export default class ConceptCreator {
 
   #handleAttributeCreation(e){
     const attribute_component = this.templates['attribute-component'];
+
       window.ModalFactory.create({
         title: 'Add attribute',
         content: attribute_component,
@@ -2353,6 +2354,19 @@ export default class ConceptCreator {
       console.log(result)
     })
   }
+
+  #handleAttributeSettings(e){
+    const attribute_settings = this.templates['attribute-settings'];
+
+      window.ModalFactory.create({
+        title: 'Attribute settings',
+        content: attribute_settings
+    }).then((result) => {
+      console.log(result)
+    })
+  }
+
+
   /**
    * handleConceptCreation
    * @desc handles the creation of a concept when the user selects the 'Add Concept' button
