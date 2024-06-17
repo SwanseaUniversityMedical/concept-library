@@ -2356,14 +2356,10 @@ export default class ConceptCreator {
   }
 
   #handleAttributeSettings(e){
-    const attribute_settings = this.templates['attribute-settings'];
-
-      window.ModalFactory.create({
-        title: 'Attribute settings',
-        content: attribute_settings
-    }).then((result) => {
-      console.log(result)
-    })
+    this.tryCloseEditor()
+      .then(() => {
+        return this.tryImportConcepts();
+      })
   }
 
 
