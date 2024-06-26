@@ -1,4 +1,5 @@
 import { parse as parseCSV } from '../../../lib/csv.min.js';
+import { AttributeSelectionService } from './attributeSelectionService.js';
 import { ConceptSelectionService } from './conceptSelectionService.js';
 
 /**
@@ -533,6 +534,21 @@ export default class ConceptCreator {
       });
   }
 
+  tryCallAttributeSettings() {
+    const prompt = new AttributeSelectionService({
+      promptTitle: 'Attribute settings',
+      template: this.template?.id,
+      entity_id: this.entity?.id,
+      entity_history_id: this.entity?.history_id,
+      allowMultiple: true,
+    });
+
+
+    return prompt.show()
+      .then((data) => {
+        return this.#tryRetrieveCodelists(data);
+      });
+  }
   /**
    * tryPromptConceptRuleImport
    * @desc tries to prompt the user to import a Concept as a rule,
@@ -847,7 +863,7 @@ export default class ConceptCreator {
     importBtn.addEventListener('click', this.#handleConceptImporting.bind(this));
 
     const addAttrBtn = this.element.querySelector('#add-concept-attribute-btn');
-    addAttrBtn.addEventListener('click', this.#handleAttributeSettings.bind(this));
+    addAttrBtn.addEventListener('click', this.#handleAttributeCreation.bind(this));
   }
 
   /*************************************
@@ -2358,7 +2374,7 @@ export default class ConceptCreator {
   #handleAttributeSettings(e){
     this.tryCloseEditor()
       .then(() => {
-        return this.tryImportConcepts();
+        return this.tryCallAttributeSettings();
       })
   }
 
