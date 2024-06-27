@@ -143,8 +143,8 @@ const CSEL_VIEWS = {
     TAB_VIEW: ' \
     <div class="tab-view" id="tab-view"> \
       <div class="tab-view__tabs tab-view__tabs-z-buffer"> \
-        <button aria-label="tab" id="SEARCH" class="tab-view__tab active">Search Concepts</button> \
-        <button aria-label="tab" id="SELECTION" class="tab-view__tab">Selected Concepts</button> \
+        <button aria-label="tab" id="SEARCH" class="tab-view__tab active">Attributed Concepts</button> \
+        <button aria-label="tab" id="SELECTION" class="tab-view__tab">All attributes</button> \
       </div> \
       <div class="tab-view__content" id="tab-content"> \
       </div> \
@@ -235,66 +235,6 @@ const CSEL_VIEWS = {
     </div>',
   };
   
-  const CSEL_FILTER_COMPONENTS = {
-    CHECKBOX: ' \
-    <div class="checkbox-item-container"> \
-      <input id="${field}-${pk}" aria-label="${value}" type="checkbox" class="checkbox-item" data-value="${pk}" data-name="${value}" data-class="checkbox" data-field="${field}" /> \
-      <label for="${field}-${pk}" class="constrained-filter-item">${value}</label> \
-    </div>',
-  
-    CHECKBOX_GROUP: ' \
-    <div class="accordian" data-class="checkbox" data-field="${field}" data-type="${datatype}" \
-      role="collapsible" tabindex="0" aria-labelledby="${title} Filters" aria-controls="filter-${field}"> \
-      <input class="accordian__input" id="filter-${field}" name="filter-${field}" type="checkbox" /> \
-      <label class="accordian__label" for="filter-${field}"> \
-        <h4>${title}</h4> \
-      </label> \
-      <article class="accordian__container"> \
-        <div class="filter-group filter-scrollbar"> \
-        </div> \
-      </article> \
-    </div>',
-  
-    DATEPICKER_GROUP: ' \
-    <div class="accordian" data-class="datepicker" data-field="${field}" data-type="${datatype}" \
-      role="collapsible" tabindex="0" aria-labelledby="${title} Filters" aria-controls="filter-${field}"> \
-      <input class="accordian__input" id="filter-${field}" name="filter-${field}" type="checkbox" /> \
-      <label class="accordian__label" for="filter-${field}"> \
-        <h4>${title}</h4> \
-      </label> \
-      <article class="accordian__container"> \
-        <fieldset class="date-range-field date-range-field--wrapped" id="filter-${field}-fields" data-class="daterange" data-field="${field}"> \
-          <div> \
-            <span class="date-range-field__label">Start:</span> \
-            <input type="date" value="" data-field="${field}" \
-              aria-label="${title} - Select start date" data-type="start" id="${field}-startdate"> \
-          </div> \
-          <div> \
-            <span class="date-range-field__label">End:</span> \
-            <input type="date" value="" data-field="${field}" \
-              aria-label="${title} - Select end date" data-type="end" id="${field}-enddate"> \
-          </div> \
-        </fieldset> \
-      </article> \
-    </div>',
-  
-    SEARCHBAR_GROUP: ' \
-    <div class="accordian" data-class="searchbar" data-field="search" data-type="string" \
-      role="collapsible" tabindex="0" aria-labelledby="Searchterm Filter" aria-controls="filter-search"> \
-      <input class="accordian__input" id="filter-search" name="filter-search" type="checkbox" checked /> \
-      <label class="accordian__label" for="filter-search"> \
-        <h4>Search</h4> \
-      </label> \
-      <article class="accordian__container"> \
-        <div class="filter-group filter-scrollbar"> \
-          <input class="code-text-input" aria-label="Search by term..." type="text" id="searchterm" \
-            placeholder="Search..." minlength="3" value="" data-class="searchbar" data-field="search" \
-            style="width: calc(100% - 3rem);"> \
-        </div> \
-      </article> \
-    </div>'
-  };
-  
   /**
    * CSEL_FILTER_CLEANSERS
    * @desc Cleans the value of a query by its class
@@ -326,19 +266,6 @@ const CSEL_VIEWS = {
       }
     },
   
-    DATEPICKER: (filterGroup, query) => {
-      const dateinputs = filterGroup.filter.querySelectorAll('input[type="date"]');
-      for (let i = 0; i < dateinputs.length; ++i) {
-        let input = dateinputs[i];
-        let value = !isNullOrUndefined(query) ? query?.[type] : null;
-        input.value = value;
-      }
-    },
-  
-    SEARCHBAR: (filterGroup, query) => {
-      const searchbar = filterGroup.filter.querySelector('#searchterm');
-      searchbar.value = !isNullOrUndefined(query) ? query : '';
-    },
   
     OPTION: (filterGroup, query) => {
       for (let i = 0; i < filterGroup.filter.options.length; ++i) {
@@ -350,60 +277,7 @@ const CSEL_VIEWS = {
     }
   };
   
-  /**
-   * CSEL_FILTER_GENERATORS
-   * @desc Describes how to generate filter groups by their class
-   */
-  const CSEL_FILTER_GENERATORS = {
-    // creates a checkbox filter group
-    CHECKBOX: (container, data) => {
-      if (!data?.options || data.options.length < 1) {
-        return;
-      }
-  
-      let html = interpolateString(CSEL_FILTER_COMPONENTS.CHECKBOX_GROUP, {
-        field: data.details.field,
-        title: data.details.title,
-        datatype: data.details.type,
-      });
-  
-      let doc = parseHTMLFromString(html);
-      let group = container.appendChild(doc.body.children[0]);
-      let descendants = group.querySelector('.filter-group');
-      for (let i = 0; i < data.options.length; ++i) {
-        let option = data.options[i];
-  
-        html = interpolateString(CSEL_FILTER_COMPONENTS.CHECKBOX, {
-          pk: option.pk,
-          field: data.details.field,
-          value: option.value,
-        });
-        doc = parseHTMLFromString(html);
-        descendants.appendChild(doc.body.children[0]);
-      }
-  
-      return group;
-    },
-  
-    // creates a datepicker filter group
-    DATEPICKER: (container, data) => {
-      let html = interpolateString(CSEL_FILTER_COMPONENTS.DATEPICKER_GROUP, {
-        field: data.details.field,
-        title: data.details.title,
-        datatype: data.details.type,
-      });
-  
-      let doc = parseHTMLFromString(html);
-      return container.appendChild(doc.body.children[0]);
-    },
-  
-    // creates a searchbar filter group
-    SEARCHBAR: (container, data) => {
-      let html = CSEL_FILTER_COMPONENTS.SEARCHBAR_GROUP;
-      let doc = parseHTMLFromString(html)
-      return container.appendChild(doc.body.children[0]);
-    },
-  }
+
   
   /**
    * @class ConceptSelectionService
@@ -1016,88 +890,6 @@ const CSEL_VIEWS = {
       }
     }
   
-    /**
-     * paintSearchFilters
-     * @desc renders the filters per the spec
-     */
-    #paintSearchFilters() {
-      const filterContainer = this.dialogue.page.querySelector('#search-filters');
-      if (isNullOrUndefined(filterContainer)) {
-        return;
-      }
-  
-      // Paint searchbar
-      const searchbar = CSEL_FILTER_GENERATORS.SEARCHBAR(filterContainer);
-      this.filters['search'] = {
-        name: 'search',
-        filter: searchbar,
-        component: 'searchbar',
-        datatype: 'string',
-      };
-      this.#handleClientInteraction(this.filters['search']);
-  
-      // Paint order by filter
-      const orderFilter = this.dialogue.page.querySelector('#order-by-filter');
-      createDropdownSelectionElement(orderFilter);
-      this.filters['order_by'] = {
-        name: 'order_by',
-        filter: orderFilter,
-        component: 'option',
-        datatype: 'int',
-      };
-      this.#handleClientInteraction(this.filters['order_by']);
-  
-      // Paint metadata -> template filterable fields
-      const { metadata, template } = this.filterGroups;
-      for (let i = 0; i < metadata.length; ++i) {
-        const group = metadata[i];
-        const handler = CSEL_FILTER_GENERATORS[group?.details?.component.toLocaleUpperCase()];
-        if (isNullOrUndefined(handler)) {
-          continue;
-        }
-  
-        const filterComponent = handler(filterContainer, group);
-        if (isNullOrUndefined(filterComponent)) {
-          continue;
-        }
-  
-        this.filters[group?.details?.field] = {
-          name: group?.details?.field,
-          fieldtype: 'metadata',
-          filter: filterComponent,
-          component: group?.details?.component,
-          datatype: group?.details?.type,
-        };
-        this.#handleClientInteraction(this.filters[group?.details?.field]);
-      }
-  
-      for (let i = 0; i < template.length; ++i) {
-        const group = template[i];
-        const handler = CSEL_FILTER_GENERATORS[group?.details?.component.toLocaleUpperCase()];
-        if (isNullOrUndefined(handler)) {
-          continue;
-        }
-  
-        const filterComponent = handler(filterContainer, group);
-        if (isNullOrUndefined(filterComponent)) {
-          continue;
-        }
-  
-        this.filters[group?.details?.field] = {
-          name: group?.details?.field,
-          fieldtype: 'template',
-          filter: filterComponent,
-          component: group?.details?.component,
-          datatype: group?.details?.type,
-        };
-        this.#handleClientInteraction(this.filters[group?.details?.field]);
-      }
-  
-      const resetButton = this.dialogue.page.querySelector('#reset-filter-btn');
-      if (!isNullOrUndefined(resetButton)) {
-        resetButton.addEventListener('click', this.#handleFilterReset.bind(this));
-      }
-    }
   
     /**
      * paintSearchPagination
@@ -1663,25 +1455,6 @@ const CSEL_VIEWS = {
       this.#renderView(CSEL_VIEWS[desired]);
     }
   
-    /**
-     * handleFilterReset
-     * @desc handles the reset of filters, if applied
-     * @params {event} e the assoc. event
-     */
-    #handleFilterReset(e) {
-      this.query = { };
-  
-      if (this.options?.forceFilters) {
-        this.query = mergeObjects(this.query, this.options.forceFilters);
-      }
-      
-      for (const [name, filterGroup] of Object.entries(this.filters)) {
-        this.#applyFilterStates(filterGroup);
-      }
-  
-      this.#tryGetSearchResults()
-        .then((results) => this.#paintSearchResults(results))
-        .catch(console.warn);
-    }
+
   }
   
