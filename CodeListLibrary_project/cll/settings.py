@@ -262,10 +262,39 @@ AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 INSTALLED_APPS = []
 if SHOWADMIN:
     INSTALLED_APPS = INSTALLED_APPS + [
+        #"djangocms_admin_style",
         'django.contrib.admin',
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
+    'django.contrib.sites',
+    'cms',
+    'menus',
+    'treebeard',
+    'djangocms_admin_style',
+    'sekizai',
+    'filer',
+    'easy_thumbnails',
+    'djangocms_text_ckeditor',
+    'djangocms_frontend',
+    'djangocms_file',
+    'djangocms_picture',
+    'djangocms_video',
+    'djangocms_googlemap',
+    'djangocms_snippet',
+    'djangocms_style',
+
+    #django blog
+    #'aldryn_apphooks_config',
+    #'parler',
+    #'taggit',
+    #'taggit_autosuggest',
+    #'meta',
+    #'sortedm2m',
+    #'djangocms_blog',
+
+
+
     'django.contrib.postgres',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -295,12 +324,44 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django_minify_html',
 ]
 
+LANGUAGES = [
+    ('en', 'English'),
+    ('de', 'German'),
+    ('it', 'Italian'),
+    ('fr', 'French'),  # Ensure this matches PARLER_LANGUAGES
+]
+
+LANGUAGE_CODE = 'en'
+
+SITE_ID = 1
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+CMS_TEMPLATES = [
+    ('home.html', 'Home page template'),
+]
+
+CMS_CONFIRM_VERSION4 = True
+
+
+
+
+
+
+
+
 # ==============================================================================#
 
 
 ''' Middleware '''
 
 MIDDLEWARE = [
+    'django.middleware.locale.LocaleMiddleware',
+    'cms.middleware.user.CurrentUserMiddleware',
+    'cms.middleware.page.CurrentPageMiddleware',
+    'cms.middleware.toolbar.ToolbarMiddleware',
+    'cms.middleware.language.LanguageCookieMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     # GZip
     'django.middleware.gzip.GZipMiddleware',
@@ -400,6 +461,10 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.i18n',
+                'sekizai.context_processors.sekizai',
+                'cms.context_processors.cms_settings',
+
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
