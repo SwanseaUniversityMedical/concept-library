@@ -36,21 +36,27 @@ tzdata==2022.2
 urllib3==1.26.12
 wget==3.2
 
+#django cms libraries
+
 #django-cms
-django-cms
-djangocms-text-ckeditor
-djangocms-frontend
-djangocms-versioning
-djangocms-alias
-djangocms-file
-djangocms-picture
-djangocms-video
-djangocms-googlemap
-djangocms-snippet
-djangocms-style
-django-filer
-easy-thumbnails
-#django blog
+#django-menus
+#django-treebeard
+#djangocms-admin-style
+#django-sekizai
+#django-filer
+#easy-thumbnails
+#djangocms-text-ckeditor
+#djangocms-frontend
+#djangocms-file
+#djangocms-picture
+#djangocms-video
+#djangocms-googlemap
+#djangocms-snippet
+#djangocms-style
+
+
+#django blog libraries
+
 #djangocms-blog
 #aldryn-apphooks-config
 #Django-parler
@@ -61,14 +67,5 @@ easy-thumbnails
 
 
 
-#djangocms-admin-style
-#djangocms-text-ckeditor
-#djangocms-frontend
-#django-filer
-#djangocms-versioning
-#djangocms-alias
-#django-cms
-#django-menus
-#django-treebeard
 
 

@@ -262,29 +262,31 @@ AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 INSTALLED_APPS = []
 if SHOWADMIN:
     INSTALLED_APPS = INSTALLED_APPS + [
-        #"djangocms_admin_style",
         'django.contrib.admin',
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
-    'django.contrib.sites',
-    'cms',
-    'menus',
-    'treebeard',
-    'djangocms_admin_style',
-    'sekizai',
-    'filer',
-    'easy_thumbnails',
-    'djangocms_text_ckeditor',
-    'djangocms_frontend',
-    'djangocms_file',
-    'djangocms_picture',
-    'djangocms_video',
-    'djangocms_googlemap',
-    'djangocms_snippet',
-    'djangocms_style',
+    #django cms apps
 
-    #django blog
+    #'django.contrib.sites',
+    #'cms',
+    #'menus',
+    #'treebeard',
+    #'djangocms_admin_style',
+    #'sekizai',
+    #'filer',
+    #'easy_thumbnails',
+    #'djangocms_text_ckeditor',
+    #'djangocms_frontend',
+    #'djangocms_file',
+    #'djangocms_picture',
+    #'djangocms_video',
+    #'djangocms_googlemap',
+    #'djangocms_snippet',
+    #'djangocms_style',
+
+    #django blog apps
+
     #'aldryn_apphooks_config',
     #'parler',
     #'taggit',
@@ -292,7 +294,6 @@ INSTALLED_APPS = INSTALLED_APPS + [
     #'meta',
     #'sortedm2m',
     #'djangocms_blog',
-
 
 
     'django.contrib.postgres',
@@ -343,6 +344,32 @@ CMS_TEMPLATES = [
 
 CMS_CONFIRM_VERSION4 = True
 
+
+#Django blog setting config
+THUMBNAIL_PROCESSORS = (
+    'easy_thumbnails.processors.colorspace',
+    'easy_thumbnails.processors.autocrop',
+    'filer.thumbnail_processors.scale_and_crop_with_subject_location',
+    'easy_thumbnails.processors.filters',
+)
+
+META_SITE_PROTOCOL = 'https'  # set 'http' for non-SSL enabled websites
+META_USE_SITES = True
+META_USE_OG_PROPERTIES = True
+META_USE_TWITTER_PROPERTIES = True
+META_USE_GOOGLEPLUS_PROPERTIES = True  # django-meta 1.x+
+META_USE_SCHEMAORG_PROPERTIES = True   # django-meta 2.x+
+
+PARLER_LANGUAGES = {
+    1: (
+        {'code': 'en',},
+        {'code': 'it',},
+        {'code': 'fr',},
+    ),
+    'default': {
+        'fallbacks': ['en', 'it', 'fr'],
+    }
+}
 
 
 
