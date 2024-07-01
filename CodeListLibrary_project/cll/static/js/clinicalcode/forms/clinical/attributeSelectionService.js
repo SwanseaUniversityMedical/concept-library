@@ -94,7 +94,7 @@ const CSEL_VIEWS = {
     promptSize: 'lg',
   
     // The message shown when no items are selected
-    noneSelectedMessage: 'You haven\'t selected any Concepts yet',
+    noneSelectedMessage: 'You haven\'t selected any attributes yet',
   
     // Whether to maintain applied filters when user enters/exits the search dialogue
     maintainFilters: true,
@@ -161,24 +161,6 @@ const CSEL_VIEWS = {
       </fieldset> \
     </div>',
 
-  
-    // Search view pagination controls
-    SEARCH_PAGINATION: ' \
-    <section class="pagination-container" data-field="page" data-class="pagination" data-value="${page}"> \
-      <div class="pagination-container__details"> \
-        <p class="pagination-container__details-number"><span id="page-number">${page}</span> / <span id="page-total">${page_total}</span></p> \
-      </div> \
-      <ul class="pagination-container__previous"> \
-        <li class="${prev_disabled ? "disabled" : ""}"> \
-          <a data-value="previous" data-field="page" aria-label="Go Previous Page" tabindex="0" role="button">Previous</a> \
-        </li> \
-      </ul> \
-      <ul class="pagination-container__next"> \
-        <li class="${next_disabled ? "disabled" : ""}"> \
-          <a data-value="next" data-field="page" aria-label="Go Next Page" tabindex="0" role="button">Next</a> \
-        </li> \
-      </ul> \
-    </section>',
   
     // Search result card
     RESULT_CARD: ' \
@@ -412,6 +394,7 @@ const CSEL_VIEWS = {
       return this.#fetchFilterGroups()
         .then(() => new Promise((resolve, reject) => {
           this.#buildDialogue(params);
+          console.log(this.dialogue)
           this.#renderView(view);
   
           this.dialogue.element.addEventListener('selectionUpdate', (e) => {
