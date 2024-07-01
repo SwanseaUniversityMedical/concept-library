@@ -153,9 +153,6 @@ const CSEL_VIEWS = {
     SELECTION_VIEW: ' \
     <div class="detailed-input-group fill no-margin"> \
       <div class="detailed-input-group__header"> \
-        <div class="detailed-input-group__header-item"> \
-          <p class="detailed-input-group__description">Your currently selected items:</p> \
-        </div> \
       </div> \
       <section class="detailed-input-group__none-available" id="no-items-selected"> \
         <p class="detailed-input-group__none-available-message">${noneSelectedMessage}</p> \
@@ -850,6 +847,7 @@ const CSEL_VIEWS = {
     #paintSelectionList() {
       const page = this.dialogue.page;
       const selectedData = this.dialogue?.data;
+      console.log(selectedData )
       if (!this.dialogue?.view == CSEL_VIEWS.SELECTION || isNullOrUndefined(page)) {
         return;
       }
@@ -890,49 +888,6 @@ const CSEL_VIEWS = {
       }
     }
   
-  
-    /**
-     * paintSearchPagination
-     * @desc paints the pagination controller
-     * @param {array} results the results as returned from the search api
-     */
-    #paintSearchPagination(response) {
-      const page = this.dialogue.page;
-      if (!this.dialogue?.view == CSEL_VIEWS.SEARCH || isNullOrUndefined(page)) {
-        return;
-      }
-  
-      const pageContainer = page.querySelector('#search-pagination-area');
-      if (isNullOrUndefined(pageContainer)) {
-        return;
-      }
-      pageContainer.innerHTML = '';
-  
-      // paint new pagination
-      let html = interpolateString(CSEL_INTERFACE.SEARCH_PAGINATION, {
-        'page': response?.details?.page,
-        'page_total': response?.details?.total,
-        'prev_disabled': !response?.details?.has_previous,
-        'next_disabled': !response?.details?.has_next,
-      });
-  
-      let doc = parseHTMLFromString(html);
-      let pagination = pageContainer.appendChild(doc.body.children[0]);
-  
-      this.filters['page'] = {
-        name: 'page',
-        filter: pagination,
-        component: 'pagination',
-        datatype: 'int',
-      };
-      this.#handleClientInteraction(this.filters['page']);
-  
-      // update page result count
-      const textCounter = page.querySelector('#search-response-header > p');
-      if (textCounter) {
-        textCounter.innerText = `${response?.details?.start_index}-${response?.details?.end_index} of over ${response?.details?.max_results.toLocaleString()}`;
-      }    
-    }
   
     /**
      * paintSearchResults
@@ -1005,8 +960,7 @@ const CSEL_VIEWS = {
         }
       }
   
-      // paint pagination
-      this.#paintSearchPagination(response);
+
     }
   
     /**
