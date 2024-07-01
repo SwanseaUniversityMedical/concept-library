@@ -38,32 +38,16 @@ wget==3.2
 
 #django cms libraries
 
-#django-cms
-#django-menus
-#django-treebeard
-#djangocms-admin-style
-#django-sekizai
-#django-filer
-#easy-thumbnails
-#djangocms-text-ckeditor
-#djangocms-frontend
-#djangocms-file
-#djangocms-picture
-#djangocms-video
-#djangocms-googlemap
-#djangocms-snippet
-#djangocms-style
+django-cms==4.1.0
+django-treebeard==4.7
+djangocms-admin-style==3.2.6
+django-filer==3.1.1
 
 
 #django blog libraries
 
-#djangocms-blog
-#aldryn-apphooks-config
-#Django-parler
-#django-taggit
-#Django-taggit-autosuggest
-#django-meta
-#django-sortedm2m
+djangocms-blog
+
 
 
 

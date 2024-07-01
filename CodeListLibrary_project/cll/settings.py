@@ -268,32 +268,24 @@ if SHOWADMIN:
 INSTALLED_APPS = INSTALLED_APPS + [
     #django cms apps
 
-    #'django.contrib.sites',
-    #'cms',
-    #'menus',
-    #'treebeard',
-    #'djangocms_admin_style',
-    #'sekizai',
-    #'filer',
-    #'easy_thumbnails',
-    #'djangocms_text_ckeditor',
-    #'djangocms_frontend',
-    #'djangocms_file',
-    #'djangocms_picture',
-    #'djangocms_video',
-    #'djangocms_googlemap',
-    #'djangocms_snippet',
-    #'djangocms_style',
+    'django.contrib.sites',
+    'cms',
+    'menus',
+    'treebeard',
+    'djangocms_admin_style',
+    'sekizai',
+    'filer',
+    'easy_thumbnails',
 
     #django blog apps
 
-    #'aldryn_apphooks_config',
-    #'parler',
-    #'taggit',
-    #'taggit_autosuggest',
-    #'meta',
-    #'sortedm2m',
-    #'djangocms_blog',
+    'aldryn_apphooks_config',
+    'parler',
+    'taggit',
+    'taggit_autosuggest',
+    'meta',
+    'sortedm2m',
+    'djangocms_blog',
 
 
     'django.contrib.postgres',
