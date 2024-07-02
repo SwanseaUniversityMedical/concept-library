@@ -41,7 +41,7 @@
           </div>
         </article>
 
-        {% if user|is_member:"Moderators" %}
+        {% if user|is_member:"Moderators" or user.is_superuser %}
           {% url 'moderation_page' as moderator_url %}
           <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
               data-target="{{ moderator_url }}" onclick="redirectToTarget(this);"

@@ -11,8 +11,9 @@ from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 
 def send_review_email_generic(request,data,message_from_reviewer=None):
-    owner_email = User.objects.get(id=data['owner_id']).email
-    if owner_email == '':
+    owner_email = User.objects.filter(id=data.get('owner_id')) if data.get('owner_id') is not None else None
+    owner_email = owner_email.first().email if owner_email and owner_email.exists() else None
+    if not isinstance(owner_email, str) or len(owner_email.strip()) < 1:
         return False
 
     email_subject = 'Concept Library - Phenotype %s has been %s' % (data['id'], data['message'])
