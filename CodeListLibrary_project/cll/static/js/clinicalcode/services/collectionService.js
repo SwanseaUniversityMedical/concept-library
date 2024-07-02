@@ -93,7 +93,7 @@ const COLLECTION_MAP = {
       `${item.id} - ${item.name}`,
       item.id,
       item.history_id,
-      new Date(item.updated),
+      new Date(item.created),
       item.group_name || item.owner_name,
       status
     ];
