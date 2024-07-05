@@ -282,6 +282,10 @@ def format_message_and_send_email(request, pk, data, entity, entity_history_id, 
     send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
     return data
 
+def get_emails_by_groupname(groupname):
+    user_list = User.objects.filter(groups__name=groupname)
+    return [i.email for i in user_list]
+
 def send_email_decision_entity(request, entity, entity_history_id, entity_type,data):
     """
     Call util function to send email decision
@@ -295,6 +299,7 @@ def send_email_decision_entity(request, entity, entity_history_id, entity_type,d
     if data['approval_status'].value == 1:
         context["status"] = "Pending"
         context["message"] = "submitted and is under review"
+        context["staff_emails"] = get_emails_by_groupname("Moderators")
         send_review_email(request, context)
     elif data['approval_status'].value == 2:
         # This line for the case when user want to get notification of same workingset id but different version
