@@ -82,7 +82,7 @@ def render_publish_button(context, *args, **kwargs):
                                  'title':  "Deleted phenotypes cannot be published!"
                                })
         return button_context
-    else:
+    elif user_is_owner:
         if not context["is_lastapproved"] and context["approval_status"] is None and user_is_owner and not context["live_ver_is_deleted"]:
             if user_is_publisher:
                 button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",

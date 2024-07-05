@@ -17,6 +17,7 @@
             <a {% if user_can_export %}
                href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
                target=_blank 
+               aria-label="Export JSON"
                {% endif %}>
               JSON
             </a>
@@ -29,18 +30,25 @@
           {% url 'update_phenotype' entity.id entity.history_id as update_entity_url %}
           <button role="link" 
                   class="primary-btn bold dropdown-btn__label"
+                  title="Edit Phenotype"
+                  aria-label="Edit Phenotype"
                   onClick="window.location.href='{{ update_entity_url }}';">
             &nbsp;Edit&nbsp;
           </button>
         {% endif %}
 
         {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
-          <button class="primary-btn bold dropdown-btn__label text-success"
-                  title="This version is already published"
-                  disabled>
-            &nbsp;Published&nbsp;
-          </button>
-        {% else %}    
+          {% if user_can_edit %}
+            <button 
+                    id="publication-information"
+                    class="primary-btn bold dropdown-btn__label text-success"
+                    title="This version is already published"
+                    aria-disabled="true"
+                    disabled>
+              &nbsp;Published&nbsp;
+            </button>
+          {% endif %}
+        {% else %}
           {% render_publish_button %} 
         {% endif %}
       {% endif %}
