@@ -42,6 +42,7 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
             print(error)
             return False
     else:
+        print(all_emails)
         print(email_content) 
         return True
     
