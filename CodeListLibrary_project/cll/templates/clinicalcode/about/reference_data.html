@@ -72,11 +72,9 @@
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="reference-collection">
         <section class="reference-collection__inner-container" id="tags">
-          <data aria-hidden="true" data-owner="reference-data-service" name="tags" type="text/json">
-            {% if tags %}
-              {{ tags|jsonify|safe }}
-            {% endif %}
-          </data>
+          {% if tags %}
+            {% to_json_script tags data-owner="reference-data-service" name="tags" desc-type="text/json" %}
+          {% endif %}
           <h3>Tags</h3>
           <p>Optional keywords helping to categorize this content.</p>
           <div class="reference-collection__table-container constrained-codelist-table" id="tags-area">
@@ -84,11 +82,9 @@
           </div>
         </section>
         <section class="reference-collection__inner-container" id="collections">
-          <data aria-hidden="true" data-owner="reference-data-service" name="collections" type="text/json">
-            {% if collections %}
-              {{ collections|jsonify|safe }}
-            {% endif %}
-          </data>
+          {% if collections %}
+            {% to_json_script collections data-owner="reference-data-service" name="collections" desc-type="text/json" %}
+          {% endif %}
           <h3>Collections</h3>
           <p>List of content collections this phenotype belongs to.</p>
           <div class="reference-collection__table-container constrained-codelist-table" id="collections-area">
@@ -96,11 +92,9 @@
           </div>
         </section>
         <section class="reference-collection__inner-container" id="coding_system">
-          <data aria-hidden="true" data-owner="reference-data-service" name="coding_system" type="text/json">
-            {% if coding_system %}
-              {{ coding_system|jsonify|safe }}
-            {% endif %}
-          </data>
+          {% if coding_system %}
+            {% to_json_script coding_system data-owner="reference-data-service" name="coding_system" desc-type="text/json" %}
+          {% endif %}
           <h3>Coding Systems</h3>
           <p>Clinical coding system(s) that relate to Phenotypes.</p>
           <div class="reference-collection__table-container constrained-codelist-table" id="coding-systems-area">
@@ -108,11 +102,9 @@
           </div>
         </section>
         <section class="reference-collection__inner-container" id="data_sources">
-          <data aria-hidden="true" data-owner="reference-data-service" name="data_sources" type="text/json">
-            {% if data_sources %}
-              {{ data_sources|jsonify|safe }}
-            {% endif %}
-          </data>
+          {% if data_sources %}
+            {% to_json_script data_sources data-owner="reference-data-service" name="data_sources" desc-type="text/json" %}
+          {% endif %}
           <h3>Data Sources</h3>
           <p>Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.</p>
           <div class="reference-collection__table-container constrained-codelist-table" id="data-sources-area">
@@ -122,9 +114,9 @@
 
         {% if ontology %}
           <section class="reference-collection__inner-container" id="ontology">
-            <data aria-hidden="true" data-owner="reference-data-service" name="ontology" type="text/json">
-              {{ ontology|jsonify|safe }}
-            </data>
+            {% if ontology %}
+              {% to_json_script ontology data-owner="reference-data-service" name="ontology" desc-type="text/json" %}
+            {% endif %}
 
             <h3>Ontology</h3>
             <p>A set of taggable categories and concepts that describes a Phenotype.</p>
