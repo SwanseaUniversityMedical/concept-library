@@ -306,15 +306,15 @@ const redirectToTarget = (elem) => {
  * 
  * e.g. usage:
  * 
- * ```js
- *  const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
- *    if (!selected) {
- *      return;
- *    }
- * 
- *    console.log(files); --> [file_1, ..., file_n]
- *  }});
- * ```
+  ```js
+    const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
+      if (!selected) {
+        return;
+      }
+
+      console.log(files); --> [file_1, ..., file_n]
+    }});
+  ```
  * 
  */
 const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {

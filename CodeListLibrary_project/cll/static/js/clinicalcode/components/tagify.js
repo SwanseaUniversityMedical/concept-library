@@ -59,28 +59,28 @@ const TAGIFY__TAG_OPTIONS = {
   *           a the Tagify instance's element through the 'TagChanged' hook
   * 
   * e.g.
-  * ```js
-  *   import Tagify from '../components/tagify.js'
-  * 
-  *   const tags = [
-  *     {
-  *       name: 'SomeTagName',
-  *       value: 'SomeTagValue',
-  *     },
-  *     {
-  *       name: 'SomeTagName',
-  *       value: 'SomeTagValue',
-  *     }
-  *   ];
-  * 
-  *   const tagComponent = new Tagify('phenotype-tags', {
-  *     'autocomplete': true,
-  *     'useValue': false,
-  *     'allowDuplicates': false,
-  *     'restricted': true,
-  *     'items': tags,
-  *   });
-  * ```
+  ```js
+    import Tagify from '../components/tagify.js';
+
+    const tags = [
+      {
+        name: 'SomeTagName',
+        value: 'SomeTagValue',
+      },
+      {
+        name: 'SomeTagName',
+        value: 'SomeTagValue',
+      }
+    ];
+
+    const tagComponent = new Tagify('phenotype-tags', {
+      'autocomplete': true,
+      'useValue': false,
+      'allowDuplicates': false,
+      'restricted': true,
+      'items': tags,
+    });
+  ```
   * 
   */
 export default class Tagify {
