@@ -6,11 +6,26 @@ import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
  * 
  * e.g.
  * 
- * ```js
- *  const startValue = ['Publication 1', 'Publication 2'];
- *  const element = document.querySelector('#publication-component');
- *  const creator = new PublicationCreator(element, startValue);
- * ```
+  ```js
+    // initialise
+    const startValue = [
+      { details: 'some publication title', doi?: 'some optional DOI' },
+      { details: 'some other title', doi?: 'some other optional DOI' }
+    ];
+
+    const element = document.querySelector('#publication-component');
+    const creator = new PublicationCreator(element, startValue);
+
+    // ...when retrieving data
+    if (creator.isDirty()) {
+      const data = creator.getData();
+      
+      // TODO: some save method
+
+
+    }
+  ```
+ *
  * 
  */
 export default class PublicationCreator {
