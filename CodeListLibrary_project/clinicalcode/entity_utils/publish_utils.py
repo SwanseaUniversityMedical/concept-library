@@ -294,8 +294,7 @@ def send_email_decision_entity(request, entity, entity_history_id, entity_type,d
     """
     #print(entity_db_utils.send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
-    context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user": entity.owner_id,"url_redirect":url_redirect}
-
+    context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user_id": entity.owner_id,"url_redirect":url_redirect}
     if data['approval_status'].value == constants.APPROVAL_STATUS.PENDING:
         context["status"] = "Pending"
         context["message"] = "submitted and is under review"
