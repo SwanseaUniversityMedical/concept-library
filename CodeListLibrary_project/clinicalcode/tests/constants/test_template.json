@@ -313,6 +313,14 @@
       "description": ""
     },
     {
+      "title": "Endorsement",
+      "fields": [
+        "endorsement_organisation",
+        "endorsement_date"
+      ],
+      "description": ""
+    },
+    {
       "title": "Implementation",
       "fields": [
         "phenoflowid",

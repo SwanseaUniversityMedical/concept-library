@@ -55,7 +55,7 @@ def strtobool(val):
         return 0
     raise ValueError(
         'Invalid truth value %r, expected one of (\'y/n\', \'yes/no\', \'t/f\', \'true/false\', \'on/off\', \'1/0\')' % (
-        val,))
+                    val,))
 
 
 def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
@@ -108,8 +108,8 @@ APP_EMBED_ICON = '{logo_path}embed_img.png'
 INDEX_PATH = 'clinicalcode/index.html'
 
 ADMIN = [
-    ('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
-    ('Dan', 'd.s.thayer@swansea.ac.uk')
+        ('Muhammad', 'Muhammad.Elmessary@Swansea.ac.uk'),
+        ('Dan', 'd.s.thayer@swansea.ac.uk')
 ]
 
 # ==============================================================================#
@@ -165,10 +165,10 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.saildatabank.com',
-    'https://phenotypes.healthdatagateway.org',
-    'http://conceptlibrary.serp.ac.uk',
-    'http://conceptlibrary.sail.ukserp.ac.uk'
+        'https://*.saildatabank.com',
+        'https://phenotypes.healthdatagateway.org',
+        'http://conceptlibrary.serp.ac.uk',
+        'http://conceptlibrary.sail.ukserp.ac.uk'
 ]
 
 # This variable was used for dev/admin and no longer maintained
@@ -198,12 +198,12 @@ BRAND_OBJECT = {}
 
 ## Graph settings
 GRAPH_MODELS = {
-    'all_applications': True,
-    'group_models': True,
+        'all_applications': True,
+        'group_models': True,
 }
 
 ## Message template settings
-MESSAGE_TAGS = { messages.ERROR: 'danger' }
+MESSAGE_TAGS = {messages.ERROR: 'danger'}
 
 ### Icon settings for demo sites, incl. cookie alert(s)
 DEV_PRODUCTION = ''
@@ -227,8 +227,8 @@ AUTH_LDAP_BIND_DN = get_env_value('AUTH_LDAP_BIND_DN')
 
 AUTH_LDAP_BIND_PASSWORD = get_env_value('AUTH_LDAP_BIND_PASSWORD')
 
-AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE, '(sAMAccountName=%(user)s)'), )
-
+AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
+        LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE, '(sAMAccountName=%(user)s)'), )
 
 # Set up the basic group parameters.
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(get_env_value('AUTH_LDAP_GROUP_SEARCH'), ldap.SCOPE_SUBTREE, '(objectClass=group)')
@@ -240,9 +240,9 @@ AUTH_LDAP_REQUIRE_GROUP = get_env_value('AUTH_LDAP_REQUIRE_GROUP')
 
 # Populate the django user from the LDAP directory.
 AUTH_LDAP_USER_ATTR_MAP = {
-    'first_name': 'givenName',
-    'last_name': 'sn',
-    'email': 'mail'
+        'first_name': 'givenName',
+        'last_name': 'sn',
+        'email': 'mail'
 }
 
 # This is the default, but I like to be explicit.
@@ -262,37 +262,39 @@ AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 INSTALLED_APPS = []
 if SHOWADMIN:
     INSTALLED_APPS = INSTALLED_APPS + [
-        'django.contrib.admin',
+            'django.contrib.admin',
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
-    'django.contrib.postgres',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'mathfilters',
-    'clinicalcode',
-    'cll',
-    'simple_history',
-    'rest_framework',
-    # 'mod_wsgi.server',
-    'django_extensions',
-    'markdownify',
-    'cookielaw',
-    'django_celery_results',
-    'django_celery_beat',
-    # 'rest_framework_swagger',
-    'drf_yasg',
-    'django.contrib.sitemaps',
-    'svg',
-    # SCSS
-    'sass_processor',
-    # Compressor
-    'compressor',
-    # HTML Minifier
-    'django_minify_html',
+        'django.contrib.postgres',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'mathfilters',
+        'clinicalcode',
+        'cll',
+        'simple_history',
+        'rest_framework',
+        # 'mod_wsgi.server',
+        'django_extensions',
+        'markdownify',
+        'cookielaw',
+        'django_celery_results',
+        'django_celery_beat',
+        # 'rest_framework_swagger',
+        'drf_yasg',
+        'django.contrib.sitemaps',
+        'svg',
+        # SCSS
+        'sass_processor',
+        # Compressor
+        'compressor',
+        # HTML Minifier
+        'django_minify_html',
+        # 'django_prometheus',
+        'easyaudit',
 ]
 
 # ==============================================================================#
@@ -301,24 +303,27 @@ INSTALLED_APPS = INSTALLED_APPS + [
 ''' Middleware '''
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    # GZip
-    'django.middleware.gzip.GZipMiddleware',
-    # Manage sessions across requests
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    # Associates users with requests using sessions
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'simple_history.middleware.HistoryRequestMiddleware',
-    # Minify HTML
-    'clinicalcode.middleware.compression.HTMLCompressionMiddleware',
-    # Handle brands
-    'clinicalcode.middleware.brands.BrandMiddleware',
-    # Handle user session expiry
-    'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
+        # 'django_prometheus.middleware.PrometheusBeforeMiddleware',
+        'django.middleware.security.SecurityMiddleware',
+        # GZip
+        'django.middleware.gzip.GZipMiddleware',
+        # Manage sessions across requests
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        # Associates users with requests using sessions
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'simple_history.middleware.HistoryRequestMiddleware',
+        # Minify HTML
+        'clinicalcode.middleware.compression.HTMLCompressionMiddleware',
+        # Handle brands
+        'clinicalcode.middleware.brands.BrandMiddleware',
+        # Handle user session expiry
+        'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
+        # 'django_prometheus.middleware.PrometheusAfterMiddleware',
+        'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
 ]
 
 # ==============================================================================#
@@ -329,33 +334,33 @@ MIDDLEWARE = [
 # Don't check AD on development PCs due to network connection
 if IS_DEVELOPMENT_PC or (not ENABLE_LDAP_AUTH):
     AUTHENTICATION_BACKENDS = [
-        # 'django_auth_ldap.backend.LDAPBackend',
-        'django.contrib.auth.backends.ModelBackend',
+            # 'django_auth_ldap.backend.LDAPBackend',
+            'django.contrib.auth.backends.ModelBackend',
     ]
 else:
     AUTHENTICATION_BACKENDS = [
-        'django_auth_ldap.backend.LDAPBackend',
-        'django.contrib.auth.backends.ModelBackend',
+            'django_auth_ldap.backend.LDAPBackend',
+            'django.contrib.auth.backends.ModelBackend',
     ]
 
 # Password validation, ref @ https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME':
-            'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME':
-            'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME':
-            'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME':
-            'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+        {
+                'NAME':
+                    'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        },
+        {
+                'NAME':
+                    'django.contrib.auth.password_validation.MinimumLengthValidator',
+        },
+        {
+                'NAME':
+                    'django.contrib.auth.password_validation.CommonPasswordValidator',
+        },
+        {
+                'NAME':
+                    'django.contrib.auth.password_validation.NumericPasswordValidator',
+        },
 ]
 
 # ==============================================================================#
@@ -363,30 +368,30 @@ AUTH_PASSWORD_VALIDATORS = [
 ''' REST framework settings '''
 
 REST_FRAMEWORK = {
-    #     'DEFAULT_RENDERER_CLASSES': (
-    #         'rest_framework.renderers.JSONRenderer',
-    #         'rest_framework_xml.renderers.XMLRenderer',
-    #         'rest_framework.renderers.BrowsableAPIRenderer',
-    #     ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-    # 'DEFAULT_PARSER_CLASSES': (
-    #     'rest_framework.parsers.FileUploadParser',
-    #     'rest_framework.parsers.JSONParser',
-    #     'rest_framework.parsers.FormParser',
-    #     'rest_framework.parsers.MultiPartParser',
-    # ),
+        #     'DEFAULT_RENDERER_CLASSES': (
+        #         'rest_framework.renderers.JSONRenderer',
+        #         'rest_framework_xml.renderers.XMLRenderer',
+        #         'rest_framework.renderers.BrowsableAPIRenderer',
+        #     ),
+        'DEFAULT_AUTHENTICATION_CLASSES': (
+                'rest_framework.authentication.SessionAuthentication',
+                'rest_framework.authentication.BasicAuthentication',
+                'rest_framework.authentication.TokenAuthentication',
+        ),
+        'DEFAULT_PERMISSION_CLASSES': (
+                'rest_framework.permissions.IsAuthenticated',
+        ),
+        # 'DEFAULT_PARSER_CLASSES': (
+        #     'rest_framework.parsers.FileUploadParser',
+        #     'rest_framework.parsers.JSONParser',
+        #     'rest_framework.parsers.FormParser',
+        #     'rest_framework.parsers.MultiPartParser',
+        # ),
 }
 
 if not BROWSABLEAPI:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
-        'clinicalcode.entity_utils.api_utils.PrettyJsonRenderer',
+            'clinicalcode.entity_utils.api_utils.PrettyJsonRenderer',
     )
 
 # ==============================================================================#
@@ -394,26 +399,26 @@ if not BROWSABLEAPI:
 ''' Templating settings '''
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'cookielaw.context_processors.cookielaw',
-                'clinicalcode.context_processors.general.general_var',
-            ],
-            'libraries': {
-                'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
-                'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
-                'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
-            }
+        {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'DIRS': [os.path.join(BASE_DIR, 'templates')],
+                'APP_DIRS': True,
+                'OPTIONS': {
+                        'context_processors': [
+                                'django.template.context_processors.debug',
+                                'django.template.context_processors.request',
+                                'django.contrib.auth.context_processors.auth',
+                                'django.contrib.messages.context_processors.messages',
+                                'cookielaw.context_processors.cookielaw',
+                                'clinicalcode.context_processors.general.general_var',
+                        ],
+                        'libraries': {
+                                'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
+                                'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
+                                'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
+                        }
+                },
         },
-    },
 ]
 
 # ==============================================================================#
@@ -422,14 +427,14 @@ TEMPLATES = [
 
 # Databases, ref @ https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': get_env_value('DB_NAME'),
-        'USER': get_env_value('DB_USER'),
-        'PASSWORD': get_env_value('DB_PASSWORD'),
-        'HOST': get_env_value('DB_HOST'),
-        'PORT': '',
-    }
+        'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': get_env_value('DB_NAME'),
+                'USER': get_env_value('DB_USER'),
+                'PASSWORD': get_env_value('DB_PASSWORD'),
+                'HOST': get_env_value('DB_HOST'),
+                'PORT': '',
+        }
 }
 
 # sslmode is required for production DB
@@ -442,20 +447,20 @@ if not IS_DEMO and (not IS_DEVELOPMENT_PC):
 
 if DEBUG:
     CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-        },
+            'default': {
+                    'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+            },
     }
 else:
     CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': 'redis://redis:6379/0',
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient'
-            },
-            'KEY_PREFIX': 'cll',
-        }
+            'default': {
+                    'BACKEND': 'django_redis.cache.RedisCache',
+                    'LOCATION': 'redis://redis:6379/0',
+                    'OPTIONS': {
+                            'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+                    },
+                    'KEY_PREFIX': 'cll',
+            }
     }
 
 # ==============================================================================#
@@ -473,16 +478,16 @@ WSGI_APPLICATION = 'cll.wsgi.application'
 STATICFILES_STORAGE = 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    # SCSS compilation
-    'sass_processor.finders.CssFinder',
-    # Compressor
-    'compressor.finders.CompressorFinder',
+        'django.contrib.staticfiles.finders.FileSystemFinder',
+        'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+        # SCSS compilation
+        'sass_processor.finders.CssFinder',
+        # Compressor
+        'compressor.finders.CompressorFinder',
 )
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'cll/static'),
+        os.path.join(BASE_DIR, 'cll/static'),
 ]
 
 # ==============================================================================#
@@ -498,56 +503,56 @@ MEDIA_URL = '/media/'
 
 if IS_LINUX or IS_DEVELOPMENT_PC:
     LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
+            'version': 1,
+            'disable_existing_loggers': False,
+            'handlers': {
+                    'console': {
+                            'class': 'logging.StreamHandler',
+                    },
             },
-        },
-        'loggers': {
-            'django': {
-                'handlers': ['console'],
-                'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'loggers': {
+                    'django': {
+                            'handlers': ['console'],
+                            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+                    },
             },
-        },
     }
 else:
     LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'verbose': {
-                'format':
-                    '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                    'verbose': {
+                            'format':
+                                '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+                    },
+                    'simple': {
+                            'format': '%(levelname)s %(message)s'
+                    },
             },
-            'simple': {
-                'format': '%(levelname)s %(message)s'
+            'handlers': {
+                    'file': {
+                            'level': 'DEBUG',
+                            'class': 'logging.FileHandler',
+                            'filename': os.path.join(BASE_DIR, 'debug.log'),
+                    },
+                    'stream_to_console': {
+                            'level': 'DEBUG',
+                            'class': 'logging.StreamHandler'
+                    },
             },
-        },
-        'handlers': {
-            'file': {
-                'level': 'DEBUG',
-                'class': 'logging.FileHandler',
-                'filename': os.path.join(BASE_DIR, 'debug.log'),
+            'loggers': {
+                    'django': {
+                            'handlers': ['file'],
+                            'level': 'DEBUG',
+                            'propagate': True,
+                    },
+                    'django_auth_ldap': {
+                            'handlers': ['stream_to_console'],
+                            'level': 'DEBUG',
+                            'propagate': True,
+                    },
             },
-            'stream_to_console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler'
-            },
-        },
-        'loggers': {
-            'django': {
-                'handlers': ['file'],
-                'level': 'DEBUG',
-                'propagate': True,
-            },
-            'django_auth_ldap': {
-                'handlers': ['stream_to_console'],
-                'level': 'DEBUG',
-                'propagate': True,
-            },
-        },
     }
 
 # ==============================================================================#
@@ -563,10 +568,10 @@ LOGOUT_URL = reverse_lazy('logout')
 
 ## User session expiry for middleware.SessionExpiryMiddleware
 SESSION_EXPIRY = {
-    # i.e. logout after 1 week (optional)
-    'SESSION_LIMIT': timedelta(weeks=1),
-    # i.e. logout after 1 day if no requests were made during this time (optional)
-    'IDLE_LIMIT': timedelta(days=1),
+        # i.e. logout after 1 week (optional)
+        'SESSION_LIMIT': timedelta(weeks=1),
+        # i.e. logout after 1 day if no requests were made during this time (optional)
+        'IDLE_LIMIT': timedelta(days=1),
 }
 
 ## Django cookie session settings
@@ -588,7 +593,7 @@ COMPRESS_ROOT = STATIC_ROOT
 if not DEBUG:
     # COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
     COMPRESS_PRECOMPILERS = (
-        ('module', 'esbuild {infile} --bundle --outfile={outfile}'),
+            ('module', 'esbuild {infile} --bundle --outfile={outfile}'),
     )
 
 ## SASS options
@@ -632,35 +637,35 @@ SWAGGER_TITLE = 'Concept Library API'
 
 ## Markdownify settings
 MARKDOWNIFY = {
-    'default': {
-        'WHITELIST_TAGS': [
-            'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol',
-            'p', 'strong', 'ul', 'img',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7'
-            # , 'span', 'div',  'code'
-        ],
-        'WHITELIST_ATTRS': [
-            'href',
-            'src',
-            'alt',
-            'style',
-            'class',
-        ],
-        'WHITELIST_STYLES': [
-            'color',
-            'font-weight',
-            'background-color',
-        ],
+        'default': {
+                'WHITELIST_TAGS': [
+                        'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol',
+                        'p', 'strong', 'ul', 'img',
+                        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7'
+                        # , 'span', 'div',  'code'
+                ],
+                'WHITELIST_ATTRS': [
+                        'href',
+                        'src',
+                        'alt',
+                        'style',
+                        'class',
+                ],
+                'WHITELIST_STYLES': [
+                        'color',
+                        'font-weight',
+                        'background-color',
+                ],
 
-        'MARKDOWN_EXTENSIONS': [
-            'markdown.extensions.fenced_code',
-            'markdown.extensions.extra',
-        ],
-        'WHITELIST_PROTOCOLS': [
-            'http',
-            'https',
-        ]
-    }
+                'MARKDOWN_EXTENSIONS': [
+                        'markdown.extensions.fenced_code',
+                        'markdown.extensions.extra',
+                ],
+                'WHITELIST_PROTOCOLS': [
+                        'http',
+                        'https',
+                ]
+        }
 }
 
 # ==============================================================================#
