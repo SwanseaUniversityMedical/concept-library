@@ -270,6 +270,7 @@ const CSEL_VIEWS = {
    */
   export class AttributeSelectionService {
     static Views = CSEL_VIEWS;
+    
   
     constructor(options, data) {
       this.id = generateUUID();
@@ -282,6 +283,8 @@ const CSEL_VIEWS = {
         this.data = [ ];
       }
     }
+
+   
   
   
     /*************************************
@@ -971,86 +974,13 @@ const CSEL_VIEWS = {
       }
     }
   
-    /**
-     * applyFilterStates
-     * @desc applies the filter's state to the filter's component
-     * @param {object} filterGroup the filter group and assoc. data
-     */
-    #applyFilterStates(filterGroup) {
-      const componentType = filterGroup?.component;
-      if (isNullOrUndefined(componentType)) {
-        return;
-      }
-  
-      const applicator = CSEL_FILTER_APPLICATORS?.[componentType.toLocaleUpperCase()];
-      if (isNullOrUndefined(applicator)) {
-        return;
-      }
-  
-      try {
-        applicator(filterGroup, this.query?.[filterGroup.name]);
-      }
-      catch (e) {
-        console.warn(e);
-      }
-    }
   
     /*************************************
      *                                   *
      *               Events              *
      *                                   *
      *************************************/
-    /**
-     * handleClientInteraction
-     * @desc initiates event handling for filters
-     * @param {object} filterGroup the filter group as described by the spec 
-     */
-    #handleClientInteraction(filterGroup) {
-      this.#applyFilterStates(filterGroup);
-  
-      switch (filterGroup.component) {
-        case 'checkbox': {
-          const checkboxes = filterGroup.filter.querySelectorAll('.checkbox-item');
-          for (let i = 0; i < checkboxes.length; ++i) {
-            let checkbox = checkboxes[i];
-            checkbox.addEventListener('change', this.#handleCheckboxUpdate.bind(this));
-          }
-        } break;
-  
-        case 'datepicker': {
-          const dateinputs = filterGroup.filter.querySelectorAll('input[type="date"]');
-          for (let i = 0; i < dateinputs.length; ++i) {
-            let input = dateinputs[i];
-            input.addEventListener('change', this.#handleDateUpdate.bind(this));
-          }
-        } break;
-  
-        case 'searchbar': {
-          const searchbar = filterGroup.filter.querySelector('#searchterm');
-          searchbar.addEventListener('keyup', this.#handleSearchbarUpdate.bind(this));
-        } break;
-  
-        case 'pagination': {
-          const value = this.query?.[filterGroup.name];
-          if (!isNullOrUndefined(value)) {
-            filterGroup.filter.setAttribute('data-value', value);
-          }
-  
-          const previous = filterGroup.filter.querySelector('a[data-value="previous"]');
-          previous.addEventListener('click', this.#handlePaginationUpdate.bind(this));
-  
-          const next = filterGroup.filter.querySelector('a[data-value="next"]');
-          next.addEventListener('click', this.#handlePaginationUpdate.bind(this));
-        } break;
-  
-        case 'option': {
-          filterGroup.filter.addEventListener('change', this.#handleOptionUpdate.bind(this));
-        } break;
-  
-        default: break;
-      }
-    }
-  
+ 
     /**
      * handleSelectedItem
      * @desc handles the change event for selected items within selection view
@@ -1232,102 +1162,9 @@ const CSEL_VIEWS = {
         .then((results) => this.#paintSearchResults(results))
         .catch(console.warn);
     }
+
   
-    /**
-     * handlePaginationUpdate
-     * @desc click event that handles pagination events
-     * @param {event} e the assoc. event
-     */
-    #handlePaginationUpdate(e) {
-      e.preventDefault();
-  
-      const target = e.target;
-      const field = target.getAttribute('data-field');
-      if (isNullOrUndefined(field)) {
-        return;
-      }
-      
-      let value = target.getAttribute('data-value');
-      if (isNullOrUndefined(value)) {
-        return;
-      }
-  
-      if (value === CSEL_BEHAVIOUR.PAGINATION.NEXT || value === CSEL_BEHAVIOUR.PAGINATION.PREVIOUS) {
-        const offset = value === CSEL_BEHAVIOUR.PAGINATION.NEXT ? 1 : -1;
-        const current = this.query.hasOwnProperty(field) ? this.query[field] : 1;
-        value = current + offset;
-      }
-  
-      value = parseInt(value);
-      if (isNaN(value)) {
-        return;
-      }
-  
-      if (this.options?.scrollOnResultChange) {
-        const container = this.dialogue?.page.querySelector('#search-response-content');
-        if (container) {
-          container.scroll({ top: 0, behaviour: 'smooth' });
-        }
-      }
-  
-      this.query[field] = value;
-      this.#tryGetSearchResults()
-        .then((results) => this.#paintSearchResults(results))
-        .catch(console.warn);
-    }
-  
-    /**
-     * handleSearchbarUpdate
-     * @desc handles the key up event when a searchbar is modified
-     * @param {event} e the assoc. event
-     */
-    #handleSearchbarUpdate(e) {
-      const code = e.keyIdentifier || e.which || e.keyCode;
-      if (code != CSEL_BEHAVIOUR.KEY_CODES.ENTER) {
-        return;
-      }
-  
-      const target = e.target;
-      const field = target.getAttribute('data-field');
-      const value = target.value;
-      if (isNullOrUndefined(field) || isNullOrUndefined(value)) {
-        return;
-      }
-  
-      const current = this.query.hasOwnProperty(field) ? this.query[field] : '';
-      if (current === value) {
-        return;
-      }
-  
-      this.query[field] = value;
-      this.#resetPage();
-      this.#tryGetSearchResults()
-        .then((results) => this.#paintSearchResults(results))
-        .catch(console.warn);
-    }
-  
-    /**
-     * handleOptionUpdate
-     * @desc handles dropdown event fired by option filters e.g. order_by
-     * @param {event} e the assoc. event
-     */
-    #handleOptionUpdate(e) {
-      const field = e.target.getAttribute('data-field');
-      if (isNullOrUndefined(field) || isStringEmpty(field)) {
-        return;
-      }
-  
-      if (!isNullOrUndefined(e.detail) && 'filterSet' in e.detail) {
-        return;
-      }
-  
-      const filterItem = this.filters[field];
-      this.query[field] = filterItem.filter.value;
-      this.#resetPage();
-      this.#tryGetSearchResults()
-        .then((results) => this.#paintSearchResults(results))
-        .catch(console.warn);
-    }
+
   
     /**
      * handleCancel
