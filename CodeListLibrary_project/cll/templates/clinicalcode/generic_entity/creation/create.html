@@ -32,6 +32,7 @@
 {% block container %}
   <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+  <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
   <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
   <script src="{% static 'js/lib/moment.min.js' %}"></script>
   <script src="{% static 'js/lib/xlsx.mini.min.js' %}"></script>
@@ -47,6 +48,7 @@
 
   {% compress css %}
     <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
   {% endcompress %}
 
   <header class="main-header">
