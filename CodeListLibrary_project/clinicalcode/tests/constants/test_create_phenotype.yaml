@@ -1,5 +1,5 @@
-phenotype_id: PH1
-phenotype_version_id: 1
+phenotype_id: PH1547
+phenotype_version_id: 3906
 name: Test name
 author: test author
 group_access: 1
@@ -9,7 +9,7 @@ type: '2'
 endorsement_date: 12/01/2024
 primary_clinical_trial: '2'
 regulatory_approval_date: 12/01/2024
-owner: superuser
+owner: tobyr
 template:
   id: 2
   version_id: 2

@@ -31,7 +31,7 @@ class TestTemplateVersioning:
         """
         with open(TEMPLATE_JSON_V2_PATH) as f:
             new_template = json.load(f)
-        return new_template
+        yield new_template
 
     @pytest.fixture
     def template_v2(self, template, new_template_definition):
@@ -48,7 +48,7 @@ class TestTemplateVersioning:
         template.save()
         template.definition = new_template_definition
         template.template_version = 2
-        return template
+        yield template
 
     @pytest.fixture
     def generic_entity_v2(self, create_groups, template_v2):
@@ -68,7 +68,7 @@ class TestTemplateVersioning:
                                         group=create_groups['permitted_group'],
                                         template_data=TEMPLATE_DATA_V2, updated=make_aware(datetime.now()),
                                         template=template_v2, template_version=template_v2.template_version)
-        return generate_entity
+        yield generate_entity
 
     @pytest.mark.parametrize('user_type', ['super_user'])
     def test_api_data_updated(self, generate_user, user_type, template_v2, live_server):

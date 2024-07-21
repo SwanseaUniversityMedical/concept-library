@@ -247,7 +247,7 @@ def entity_class():
     """
     entity_class = EntityClass.objects.create(**ENTITY_CLASS_FIELDS)
 
-    return entity_class
+    yield entity_class
 
 
 @pytest.fixture
@@ -270,7 +270,7 @@ def template(entity_class):
                                        definition=template_json,
                                        entity_class=entity_class,
                                        )
-    return template
+    yield template
 
 
 @pytest.fixture
@@ -290,7 +290,7 @@ def generate_entity(create_groups, template):
                                     group=create_groups['permitted_group'],
                                     template_data=TEMPLATE_DATA, updated=make_aware(datetime.now()),
                                     template=template, template_version=template.template_version)
-    return generate_entity
+    yield generate_entity
 
 
 @pytest.fixture(scope="class")
@@ -359,6 +359,7 @@ def login(live_server):
     yield _login
 
 
+
 @pytest.fixture(scope="function")
 def logout(live_server):
     """
@@ -388,3 +389,4 @@ def use_debug(settings):
         None
     """
     settings.DEBUG = True
+    yield
