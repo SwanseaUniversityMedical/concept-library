@@ -21,55 +21,6 @@ from clinicalcode.tests.constants.constants import API_LINK, CREATE_PHENOTYPE_TE
 @pytest.mark.usefixtures("setup_webdriver")
 class TestTemplateVersioning:
 
-    @pytest.fixture
-    def new_template_definition(self):
-        """
-        Pytest fixture for loading a new template definition from a JSON file.
-
-        Returns:
-            dict: A dictionary representing the new template definition.
-        """
-        with open(TEMPLATE_JSON_V2_PATH) as f:
-            new_template = json.load(f)
-        yield new_template
-
-    @pytest.fixture
-    def template_v2(self, template, new_template_definition):
-        """
-        Pytest fixture for creating a Template instance with version 2.
-
-        Args:
-            template (Template): An existing template instance.
-            new_template_definition (dict): The new template definition.
-
-        Returns:
-            Template: An instance of the Template model with version 2.
-        """
-        template.save()
-        template.definition = new_template_definition
-        template.template_version = 2
-        yield template
-
-    @pytest.fixture
-    def generic_entity_v2(self, create_groups, template_v2):
-        """
-        Pytest fixture for creating a GenericEntity instance with version 2.
-
-        Args:
-            create_groups (dict): A dictionary containing group instances.
-            template_v2 (Template): An instance of the Template model with version 2.
-
-        Returns:
-            GenericEntity: An instance of the GenericEntity model with template version 2.
-        """
-        template_v2.save()
-        generate_entity = GenericEntity(name="Test entity",
-                                        author="Tester author",
-                                        group=create_groups['permitted_group'],
-                                        template_data=TEMPLATE_DATA_V2, updated=make_aware(datetime.now()),
-                                        template=template_v2, template_version=template_v2.template_version)
-        yield generate_entity
-
     @pytest.mark.parametrize('user_type', ['super_user'])
     def test_api_data_updated(self, generate_user, user_type, template_v2, live_server):
         """
