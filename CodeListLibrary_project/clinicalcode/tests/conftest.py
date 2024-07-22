@@ -20,8 +20,8 @@ from clinicalcode.models import PublishedGenericEntity
 from clinicalcode.models.Template import Template
 from clinicalcode.models.EntityClass import EntityClass
 from clinicalcode.entity_utils.constants import OWNER_PERMISSIONS, APPROVAL_STATUS, ENTITY_STATUS, WORLD_ACCESS_PERMISSIONS
-from clinicalcode.tests.constants.constants import ENTITY_CLASS_FIELDS, TEMPLATE_JSON_V1_PATH, TEMPLATE_FIELDS, \
-    TEMPLATE_DATA
+from clinicalcode.tests.constants.constants import ENTITY_CLASS_FIELDS, TEMPLATE_DATA_V2, TEMPLATE_JSON_V1_PATH, TEMPLATE_FIELDS, \
+    TEMPLATE_DATA, TEMPLATE_JSON_V2_PATH
 from cll.test_settings import REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
 
 
@@ -271,6 +271,9 @@ def template(entity_class):
                                        entity_class=entity_class,
                                        )
     yield template
+    
+    if template.id is not None:
+        template.delete()
 
 
 @pytest.fixture
@@ -376,6 +379,45 @@ def logout(live_server):
 
     yield _logout
 
+@pytest.fixture
+def template_v2(template):
+    """
+    Pytest fixture for creating a Template instance with version 2.
+
+    Args:
+        template (Template): An existing template instance.
+        new_template_definition (dict): The new template definition.
+
+    Returns:
+        Template: An instance of the Template model with version 2.
+    """
+    with open(TEMPLATE_JSON_V2_PATH) as f:
+        new_template = json.load(f)
+
+    template.definition = new_template
+    template.template_version = 2
+    template.save()
+    yield template
+
+
+@pytest.fixture
+def generic_entity_v2(create_groups, template_v2):
+    """
+    Pytest fixture for creating a GenericEntity instance with version 2.
+
+    Args:
+        create_groups (dict): A dictionary containing group instances.
+        template_v2 (Template): An instance of the Template model with version 2.
+
+    Returns:
+        GenericEntity: An instance of the GenericEntity model with template version 2.
+    """
+    generate_entity = GenericEntity(name="Test entity",
+                                    author="Tester author",
+                                    group=create_groups['permitted_group'],
+                                    template_data=TEMPLATE_DATA_V2, updated=make_aware(datetime.now()),
+                                    template=template_v2, template_version=template_v2.template_version)
+    yield generate_entity
 
 @pytest.fixture(autouse=True)
 def use_debug(settings):
