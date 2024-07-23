@@ -1,6 +1,7 @@
 import json
 import shutil
 from datetime import datetime
+import time
 
 import pytest
 import requests
@@ -17,7 +18,7 @@ from clinicalcode.tests.constants.constants import API_LINK, CREATE_PHENOTYPE_TE
     TEST_CREATE_PHENOTYPE_PATH, TEMPLATE_JSON_V2_PATH, NEW_FIELDS, TEMPLATE_DATA_V2
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True, transaction=True)
 @pytest.mark.usefixtures("setup_webdriver")
 class TestTemplateVersioning:
 
@@ -104,7 +105,7 @@ class TestTemplateVersioning:
         template_v2.created_by = user
         template_v2.save()
 
-        self.driver.get(live_server.url + f"/phenotypes/{generate_entity.id}/version/12/detail/")
+        self.driver.get(live_server.url + f"/phenotypes/{generate_entity.id}/version/1/detail/")
         edit_button = self.driver.find_element(By.XPATH, "//*[@id='topButtons']/div/div/button[1]")
         edit_button.click()
 
@@ -164,8 +165,9 @@ class TestTemplateVersioning:
 
         def get_publisheed_entity_count():
             self.driver.get(live_server.url)
-            count = self.driver.find_element(By.ID, "entity-counter").text
-            return int(count)
+            counter_xpath = "//p[text()='Phenotypes']/following-sibling::p[@id='entity-counter']"
+            entity_counter = self.driver.find_element(By.XPATH, counter_xpath)
+            return int(entity_counter.text)
 
         user = generate_user[user_type]
         login(self.driver, user.username, user.username + "password")
@@ -175,11 +177,14 @@ class TestTemplateVersioning:
         generic_entity_v2.owner = user
         generic_entity_v2.created_by = user
         generic_entity_v2.save()
-        published_entity = PublishedGenericEntity(entity=generic_entity_v2, entity_history_id=2, moderator_id=user.id,
+        published_entity = PublishedGenericEntity(entity=generic_entity_v2, entity_history_id=generic_entity_v2.history.all().first().history_id, moderator_id=user.id,
                                                   created_by_id=generic_entity_v2.created_by.id,
                                                   approval_status=APPROVAL_STATUS.APPROVED)
         published_entity.save()
         self.driver.get(live_server + reverse("run_homepage_statistics"))
+        time.sleep(10)
 
         final_count = get_publisheed_entity_count()
+        logout(self.driver)
         assert final_count == init_count + 1
+   
