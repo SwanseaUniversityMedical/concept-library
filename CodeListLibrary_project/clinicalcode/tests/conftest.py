@@ -273,9 +273,6 @@ def template(entity_class):
                                        )
     yield template
     
-    if template.id is not None:
-        template.delete()
-
     # Teardown code
     Template.objects.all().delete()  # Delete all template instances
     with connection.cursor() as cursor:
