@@ -275,8 +275,6 @@ def template(entity_class):
     
     # Teardown code
     Template.objects.all().delete()  # Delete all template instances
-    with connection.cursor() as cursor:
-        cursor.execute("ALTER SEQUENCE clinicalcode_template_id_seq RESTART WITH 1;")
 
 
 @pytest.fixture
@@ -299,9 +297,6 @@ def generate_entity(create_groups, template):
     yield generate_entity
 
     GenericEntity.objects.all().delete()
-    with connection.cursor() as cursor:
-        cursor.execute("ALTER SEQUENCE clinicalcode_historicalgenericentity_history_id_seq RESTART WITH 1;")
-        cursor.execute("ALTER SEQUENCE clinicalcode_historicalphenotype_history_id_seq RESTART WITH 1;")
 
 
 
@@ -409,6 +404,8 @@ def template_v2(template):
     template.template_version = 2
     template.save()
     yield template
+    # Teardown code
+    Template.objects.all().delete()  # Delete all template instances
 
 
 @pytest.fixture
@@ -426,9 +423,12 @@ def generic_entity_v2(create_groups, template_v2):
     generate_entity = GenericEntity(name="Test entity",
                                     author="Tester author",
                                     group=create_groups['permitted_group'],
+                                    
                                     template_data=TEMPLATE_DATA_V2, updated=make_aware(datetime.now()),
                                     template=template_v2, template_version=template_v2.template_version)
+    
     yield generate_entity
+    GenericEntity.objects.all().delete()
 
 @pytest.fixture(autouse=True)
 def use_debug(settings):
