@@ -39,8 +39,8 @@ class TestTemplateVersioning:
 
         template_v2.created_by = user
         template_v2.save()
-
         api_request = requests.get(live_server.url + API_LINK)
+
         api_data = api_request.json()
 
         assert template_v2.template_version == api_data["version_id"]
@@ -66,9 +66,10 @@ class TestTemplateVersioning:
         template_v2.save()
 
         client = Client(
-            username=user.username, password=user.username + "password",
-            url=live_server.url
+                username=user.username, password=user.username + "password",
+                url=live_server.url
         )
+
         shutil.copy(CREATE_PHENOTYPE_TEMPLATE_PATH, TEST_CREATE_PHENOTYPE_PATH)
         client.phenotypes.create(TEST_CREATE_PHENOTYPE_PATH)
 
@@ -103,7 +104,7 @@ class TestTemplateVersioning:
         template_v2.created_by = user
         template_v2.save()
 
-        self.driver.get(live_server.url + f"/phenotypes/{generate_entity.id}/version/2/detail/")
+        self.driver.get(live_server.url + f"/phenotypes/{generate_entity.id}/version/12/detail/")
         edit_button = self.driver.find_element(By.XPATH, "//*[@id='topButtons']/div/div/button[1]")
         edit_button.click()
 
@@ -136,7 +137,7 @@ class TestTemplateVersioning:
         generic_entity_v2.created_by = user
         generic_entity_v2.save()
 
-        self.driver.get(live_server.url + f"/api/v1/phenotypes/{generic_entity_v2.id}/version/3/detail/?format=json")
+        self.driver.get(live_server.url + f"/api/v1/phenotypes/{generic_entity_v2.id}/version/1/detail/?format=json")
         pre = self.driver.find_element(By.TAG_NAME, "pre").text
         phenotype_data = json.loads(pre)[0]
 
@@ -160,6 +161,7 @@ class TestTemplateVersioning:
        Returns:
            None
        """
+
         def get_publisheed_entity_count():
             self.driver.get(live_server.url)
             count = self.driver.find_element(By.ID, "entity-counter").text
@@ -173,8 +175,7 @@ class TestTemplateVersioning:
         generic_entity_v2.owner = user
         generic_entity_v2.created_by = user
         generic_entity_v2.save()
-
-        published_entity = PublishedGenericEntity(entity=generic_entity_v2, entity_history_id=4, moderator_id=user.id,
+        published_entity = PublishedGenericEntity(entity=generic_entity_v2, entity_history_id=2, moderator_id=user.id,
                                                   created_by_id=generic_entity_v2.created_by.id,
                                                   approval_status=APPROVAL_STATUS.APPROVED)
         published_entity.save()
@@ -182,5 +183,3 @@ class TestTemplateVersioning:
 
         final_count = get_publisheed_entity_count()
         assert final_count == init_count + 1
-
-# pytest -v -s clinicalcode/tests/functional_tests/test_template_versions.py
