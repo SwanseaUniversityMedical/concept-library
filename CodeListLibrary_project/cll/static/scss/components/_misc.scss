@@ -55,3 +55,25 @@
     color: var(--loading-spinner-text-color);
   }
 }
+
+// Ontology node reference
+///   @desc used to define a the reference ontology node item
+///         within the reference data page
+.ref-ontology-node {
+  display: inline-flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: calc(100% - 1rem);
+
+  &__source {
+    display: inline-grid;
+    grid-template-columns: repeat(2, 75px);
+    min-width: 150px;
+    align-self: flex-start;
+
+    & > b:last-child {
+      text-align: right;
+    }
+  }
+}

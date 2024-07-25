@@ -202,4 +202,12 @@ $modifiers: (
       auto: auto
     )
   ),
+  'gap': (
+    property: gap,
+    values: (
+      sm: 0.2rem,
+      md: 0.5rem,
+      lg: 1.0rem
+    )
+  )
 );

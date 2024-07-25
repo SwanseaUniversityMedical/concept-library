@@ -1212,20 +1212,24 @@ export default class ConceptCreator {
     const template = this.templates['concept-item'];
     const access = this.#deriveEditAccess(concept);
     const phenotype_version_url = `${window.location.origin}/phenotypes/${concept.details.phenotype_owner}/version/${concept.details.phenotype_owner_history_id}/detail`;
+  
+    const isImportedItem = concept?.details?.phenotype_owner && !!concept?.details?.requested_entity_id && concept?.details?.phenotype_owner !== concept?.details?.requested_entity_id;
     const html = interpolateString(template, {
       'subheader': access ? 'Codelist' : 'Imported Codelist',
       'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
       'concept_id': concept?.concept_id,
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
-      'phenotype_owner': concept?.details?.phenotype_owner || '',
-      'requested_entity_id':concept?.details?.requested_entity_id || '',
+      'is_imported_item': isImportedItem,
+      'phenotype_owner': concept?.details?.phenotype_owner,
+      'requested_entity_id': concept?.details?.requested_entity_id,
       'phenotype_owner_history_id': concept?.details?.phenotype_owner_history_id || '',
       'phenotype_owner_version_url': phenotype_version_url,
       'coding_system': concept?.coding_system?.description,
       'out_of_date': !access ? concept?.details?.latest_version?.is_out_of_date : false,
       'can_edit': access,
     });
+
     const containerList = this.element.querySelector('#concept-content-list');
     const doc = parseHTMLFromString(html);
     const conceptItem = containerList.appendChild(doc.body.children[0]);

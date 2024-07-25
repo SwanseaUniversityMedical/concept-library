@@ -11,6 +11,7 @@ import json
 
 from ..entity_utils import permission_utils, template_utils, model_utils, gen_utils, constants, concept_utils
 from ..models.GenericEntity import GenericEntity
+from ..models.OntologyTag import OntologyTag
 
 register = template.Library()
 
@@ -250,11 +251,15 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
                 derive_access_from=request
             )
 
-
             if value:
                 values.append(value)
         
         return values
+    elif field_type == 'int_array':
+        source_info = validation.get('source')
+        tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
+        if isinstance(tree_models, list):
+            return OntologyTag.get_detail_data(node_ids=data, default=default)
     
     if info.get('field_type') == 'data_sources':
         return get_data_sources(data, info, default=default)

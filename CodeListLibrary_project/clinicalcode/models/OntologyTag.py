@@ -186,7 +186,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			output.append(data)
 
 		return output
-	
+
 	@classmethod
 	def get_group_data(cls, model_source, model_label=None, default=None):
 		"""
@@ -476,6 +476,85 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			pass
 
 		return ancestry
+
+	@classmethod
+	def get_full_names(cls, node, default=None):
+		"""
+			Derives the full name(s) of the root path
+			from a given node
+
+			Args:
+				node (OntologyTag<Instance>): the node instance
+				default (any): the default return value
+			
+			Returns:
+				Returns either (a) the full name string, if applicable;
+									  OR (b) the default return value if no roots available
+			
+		"""
+		roots = [node.name for node in node.roots()]
+		if len(roots) > 0:
+			roots = '; '.join(roots)
+			roots = f'from {roots}'
+			return roots
+
+		return default
+
+	@classmethod
+	def get_detail_data(cls, node_ids, default=None):
+		"""
+			Attempts to derive the ontology data associated with a given a list of nodes
+			as described by a GenericEntity's template data
+
+			[!] Note: No validation on the type of input is performed here, you are expected
+			          to perform this validation prior to calling this method
+
+			Args:
+				node_ids (int[]): a list of node ids
+
+				default (any|None): the default return value
+
+			Returns:
+				Either (a) the default value if we're unable to resolve the data,
+					 OR; (b) a list of dicts containing the associated data
+
+		"""
+		nodes = OntologyTag.objects.filter(id__in=node_ids)
+		roots = { node.id: OntologyTag.get_full_names(node) for node in nodes if not node.is_root() and not node.is_island() }
+
+		nodes = nodes \
+			.annotate(
+				child_count=Count(F('children'))
+			) \
+			.annotate(
+				tree_dataset=JSONObject(
+					id=F('id'),
+					label=F('name'),
+					isRoot=Case(
+						When(
+							Exists(OntologyTag.parents.through.objects.filter(
+								child_id=OuterRef('pk'),
+							)),
+							then=False
+						),
+						default=True
+					),
+					isLeaf=Case(
+						When(child_count__lt=1, then=True),
+						default=False
+					),
+					type_id=F('type_id')
+				)
+			) \
+			.values_list('tree_dataset', flat=True)
+
+		nodes = [
+			node | { 'full_names': roots.get(node.get('id')) }
+			if not node.get('isRoot') and roots.get(node.get('id')) else node
+			for node in nodes
+		]
+	
+		return nodes
 
 	@classmethod
 	def get_creation_data(cls, node_ids, type_ids, default=None):
