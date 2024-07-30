@@ -106,6 +106,7 @@ class TestTemplateVersioning:
         template_v2.save()
 
         self.driver.get(live_server.url + f"/phenotypes/{generate_entity.id}/version/1/detail/")
+        time.sleep(10)
         edit_button = self.driver.find_element(By.XPATH, "//*[@id='topButtons']/div/div/button[1]")
         edit_button.click()
 
