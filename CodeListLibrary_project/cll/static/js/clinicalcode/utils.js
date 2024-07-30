@@ -1,30 +1,170 @@
-/**
- * CLU_TRANSITION_METHODS
- * @desc defines the transition methods associated
- *       with the animation of an element
- * 
- */
-const CLU_TRANSITION_METHODS = {
-  'transition': 'transitionend',
-  'WebkitTransition': 'webkitTransitionEnd',
-  'OTransition': 'oTransitionEnd otransitionend',
-  'MozTransition': 'mozTransitionEnd',
-};
+/* CONSTANTS */
+const
+  /**
+   * CLU_TRANSITION_METHODS
+   * @desc defines the transition methods associated
+   *       with the animation of an element
+   * 
+   */
+  CLU_TRANSITION_METHODS = {
+    'transition': 'transitionend',
+    'WebkitTransition': 'webkitTransitionEnd',
+    'OTransition': 'oTransitionEnd otransitionend',
+    'MozTransition': 'mozTransitionEnd',
+  },
+  /**
+   * CLU_DOI_PATTERN
+   * @desc Regex pattern to match DOI
+   */
+  CLU_DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm,
+  /**
+   * CLU_OBJ_PATTERN
+   * @desc Regex pattern to match `[object (.*)]` classname
+   * 
+   */
+  CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/;
+
+
+/* METHODS */
 
 /**
- * CLU_DOI_PATTERN
- * @desc Regex pattern to match DOI
+ * getObjectClassName
+ * @desc derives the given object's classname
+ * @param {any} val the value to examine
+ * @returns {string} the classname describing the object
  */
-const CLU_DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm;
+const getObjectClassName = (val) => {
+  if (val === null) {
+    return 'null';
+  } else if (typeof val === 'undefined') {
+    return 'undefined';
+  }
+
+  try {
+    if (val.constructor == Object && !(typeof val === 'function')) {
+      return 'Object';
+    }
+  }
+  finally {
+    return Object.prototype.toString
+      .call(val)
+      .match(CLU_OBJ_PATTERN)[1];
+  }
+}
+
+/**
+ * isObjectType
+ * @desc determines whether a value is an Object type
+ * @param {any} val the value to check
+ * @returns {boolean} a boolean describing whether the value is an Object 
+ */
+const isObjectType = (val) => {
+  if (typeof val !== 'object' || val === null) {
+    return false;
+  }
+
+  let className = getObjectClassName(val);
+  return className === 'Object' || className === 'Map';
+}
+
+/**
+ * isCloneableType
+ * @desc determines whether a value is a structured-cloneable type
+ *       as described by its specification, reference to the supported
+ *       types can be found here: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#supported_types
+ * 
+ * @param {any} val the value to check
+ * @returns {boolean} a boolean describing whether the value is of a
+ *                    structured-cloneable type
+ */
+const isCloneableType = (val) => {
+  if (Object(val) !== val || val.constructor == Object) {
+    return true;
+  }
+
+  let className = getObjectClassName(val);
+  switch (className) {
+    case 'Date':
+    case 'Blob':
+    case 'Number':
+    case 'String':
+    case 'RegExp':
+    case 'Boolean':
+    case 'FileList':
+    case 'ImageData':
+    case 'ArrayBuffer':
+    case 'ImageBitmap':
+      return true;
+
+    case 'Set':
+      return [...val].every(isCloneableType);
+
+    case 'Map': {
+      return [...val.entries()]
+        .every(element => isCloneableType(element[0]) && isCloneableType(element[1]));
+    };
+
+    case 'Array':
+    case 'Object': {
+      return Object.keys(val)
+        .every(key => isCloneableType(val[key]))
+    };
+  }
+
+  return false;
+}
+
+/**
+ * cloneObject
+ * @desc Simplistic clone of an object/array
+ * @param {object|array} obj the object to clone
+ * @returns {array|object} the cloned object
+ */
+const cloneObject = (obj) => {
+  let result = { };
+  Object.keys(obj).forEach(key => {
+    result[key] = cloneObject(obj[key]);
+  });
+
+  return result;
+}
 
 /**
   * deepCopy
   * @desc Performs a deep clone of the object i.e. recursive clone
-  * @param {object} obj The object to clone
-  * @returns {object} The cloned object
+  * @param {any} obj The object to clone
+  * @returns {any} The cloned object
   */
 const deepCopy = (obj) => {
-  return structuredClone(obj); // JSON.parse(JSON.stringify(obj));
+  let className = getObjectClassName(obj);
+  if (isCloneableType(obj) && typeof structuredClone === 'function') {
+    let result;
+    try {
+      result = structuredClone(obj);
+    }
+    catch (err) {
+      if (className === 'Object' || className === 'Array') {
+        return cloneObject(obj);
+      }
+
+      throw err;
+    }
+
+    return result;
+  }
+
+  switch (className) {
+    case 'Set':
+    case 'Map':
+    case 'Array':
+    case 'Object':
+      return JSON.parse(JSON.stringify(obj));
+
+    default:
+      break
+  }
+
+  return obj;
 }
 
 /**
@@ -32,13 +172,32 @@ const deepCopy = (obj) => {
   * @desc Merges two objects together where the first object takes precedence (i.e., it's not overriden)
   * @param {object} a An object to clone that takes precedence
   * @param {object} b The object to clone and merge into the first object
+  * @param {boolean} copy Whether to copy the object(s)
   * @returns {object} The merged object
   */
-const mergeObjects = (a, b) => {
-  Object.keys(b).forEach(key => {
-    if (!(key in a))
-      a[key] = b[key];
-  });
+const mergeObjects = (a, b, copy = false) => {
+  if (copy) {
+    a = deepCopy(a);
+  }
+
+  Object.keys(b)
+    .forEach(key => {
+      if (key in a) {
+        return;
+      }
+
+      let value = b[key];
+      if (copy) {
+        if (!isCloneableType(value)) {
+          a[key] = value;
+          return;
+        }
+  
+        a[key] = deepCopy(value);
+      } else {
+        a[key] = value;
+      }
+    });
 
   return a;
 }
@@ -306,15 +465,15 @@ const redirectToTarget = (elem) => {
  * 
  * e.g. usage:
  * 
- * ```js
- *  const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
- *    if (!selected) {
- *      return;
- *    }
- * 
- *    console.log(files); --> [file_1, ..., file_n]
- *  }});
- * ```
+  ```js
+    const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
+      if (!selected) {
+        return;
+      }
+
+      console.log(files); --> [file_1, ..., file_n]
+    }});
+  ```
  * 
  */
 const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {
