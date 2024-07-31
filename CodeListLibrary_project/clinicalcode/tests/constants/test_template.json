@@ -300,9 +300,8 @@
       "description": "An overview of the phenotype with basic metadata."
     },
     {
-      "title": "Definition",
+      "title": "Clinical definition",
       "fields": [
-        "definition",
         "primary_clinical_trial",
         "endorsement_organisation",
         "endorsement_date",
@@ -310,7 +309,7 @@
         "regulatory_approval_organisation",
         "regulatory_approval_date"
       ],
-      "description": ""
+      "description": "Clinical definition of the phenotype."
     },
     {
       "title": "Implementation",
