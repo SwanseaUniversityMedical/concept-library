@@ -10,6 +10,8 @@ from django.urls import reverse
 from django.utils.timezone import make_aware
 from pyconceptlibraryclient import Client
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from clinicalcode.entity_utils.constants import APPROVAL_STATUS
 from clinicalcode.models import GenericEntity
@@ -104,14 +106,16 @@ class TestTemplateVersioning:
         generate_entity.save()
         template_v2.created_by = user
         template_v2.save()
+        time.sleep(10)
 
         self.driver.get(live_server.url + f"/phenotypes/{generate_entity.id}/version/1/detail/")
-        time.sleep(10)
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//*[@id='topButtons']/div/div/button[1]")))
         edit_button = self.driver.find_element(By.XPATH, "//*[@id='topButtons']/div/div/button[1]")
         edit_button.click()
-
+        
+        WebDriverWait(self.driver, 20).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "detailed-input-group__title")))
         titles = self.driver.find_elements(By.CLASS_NAME, "detailed-input-group__title")
-        title_texts = [title.text.replace("\n*", "") for title in titles]
+        title_texts = [title.text.replace("\n*", "").strip() for title in titles if title.text.replace("\n*", "").strip()]
 
         logout(self.driver)
 
