@@ -293,7 +293,7 @@ def generate_entity(create_groups, template):
                                     author="Tester author",
                                     group=create_groups['permitted_group'],
                                     template_data=TEMPLATE_DATA, updated=make_aware(datetime.now()),
-                                    template=template, template_version=template.template_version)
+                                    template=template, template_version=template.template_version,definition = 'Phenotype definition')
     yield generate_entity
 
     GenericEntity.objects.all().delete()
@@ -425,7 +425,8 @@ def generic_entity_v2(create_groups, template_v2):
                                     group=create_groups['permitted_group'],
                                     
                                     template_data=TEMPLATE_DATA_V2, updated=make_aware(datetime.now()),
-                                    template=template_v2, template_version=template_v2.template_version)
+                                    template=template_v2, template_version=template_v2.template_version,
+                                    definition = 'Phenotype definition')
     
     yield generate_entity
     GenericEntity.objects.all().delete()
