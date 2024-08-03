@@ -20,6 +20,8 @@ const PUBLICATION_OPTIONS = {
   textInputId: '#publication-input-box',
   //  - doiInputId: describes the DOI text input box
   doiInputId: '#doi-input-box',
+  //  - primaryPubCheckboxId: describes the primary publication checkbox
+  primaryPubCheckboxId: '#primary-publication-checkbox',
   //  - addButtonId: describes the 'Add' button used to add publications
   addButtonId: '#add-input-btn',
   //  - availabilityId: describes the 'No available publications' element
@@ -39,6 +41,7 @@ const PUBLICATION_OPTIONS = {
 const PUBLICATION_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
   <div class="publication-list-group__list-item-url"> \
     <p>${publication}${doiElement}</p> \
+    ${primary === 1 ? \'<p>Primary</p>\' : \'\'}\
   </div> \
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
@@ -168,10 +171,12 @@ export default class PublicationCreator {
   /**
    * drawItem
    * @param {integer} index the index of the publication in our data
-   * @param {string} publication the publication name 
+   * @param doi
+   * @param {string} publication the publication name
+   * @param {integer} primary Primary Publication Flag
    * @returns {string} html string representing the element
    */
-  #drawItem(index, doi, publication) {
+  #drawItem(index, doi, publication, primary) {
     let doiElement;
     if (!isNullOrUndefined(doi) && !isStringEmpty(doi)) {
       doiElement = interpolateString(PUBLICATION_DOI_ELEMENT, { doi: doi });
@@ -183,6 +188,8 @@ export default class PublicationCreator {
       index: index,
       doiElement: doiElement,
       publication: publication,
+      primary: primary
+
     });
   }
 
@@ -199,7 +206,7 @@ export default class PublicationCreator {
       this.renderables.none.classList.remove('show');
 
       for (let i = 0; i < this.data.length; ++i) {
-        const node = this.#drawItem(i, this.data[i]?.doi, this.data[i]?.details);
+        const node = this.#drawItem(i, this.data[i]?.doi, this.data[i]?.details,  this.data[i].primary);
         this.renderables.list.insertAdjacentHTML('beforeend', node);
       }
 
@@ -217,6 +224,7 @@ export default class PublicationCreator {
   #setUp() {
     this.publicationInput = this.element.querySelector(this.options.textInputId);
     this.doiInput = this.element.querySelector(this.options.doiInputId);
+    this.primaryPubCheckbox = this.element.querySelector(this.options.primaryPubCheckboxId);
 
     this.addButton = this.element.querySelector(this.options.addButtonId);
     this.addButton.addEventListener('click', this.#handleInput.bind(this));
@@ -251,6 +259,8 @@ export default class PublicationCreator {
 
     const publication = this.publicationInput.value;
     const doi = this.doiInput.value;
+    const primary= Number(this.primaryPubCheckbox.checked ? this.primaryPubCheckbox.dataset.value: '0');
+
     if (!this.publicationInput.checkValidity() || isNullOrUndefined(publication) || isStringEmpty(publication)) {
       return;
     }
@@ -266,7 +276,14 @@ export default class PublicationCreator {
 
     this.doiInput.value = '';
     this.publicationInput.value = '';
-    this.data.push({ details: publication, doi: matches?.[0] });
+    this.primaryPubCheckbox.checked = false;
+    this.data.push(
+        {
+          details: publication,
+          doi: matches?.[0],
+          primary: primary
+        }
+        );
     this.makeDirty();
     
     this.#redrawPublications();

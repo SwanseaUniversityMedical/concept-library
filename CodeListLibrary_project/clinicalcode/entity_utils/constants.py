@@ -476,6 +476,7 @@ metadata = {
         "title": "Publications",
         "description": "Publication(s) where the phenotype was defined or has been used.",
         "field_type": "publications",
+        "sort": {"key": lambda pub: 0 if pub.get('primary') == 1 else 1},
         "active": True,
         "validation": {
             "type": "publication",
