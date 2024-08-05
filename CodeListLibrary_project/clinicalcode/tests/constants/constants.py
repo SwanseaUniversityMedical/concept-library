@@ -13,7 +13,7 @@ TEMPLATE_FIELDS = {"name": "Clinical-Coded Phenotype",
                                   "clinical codes, or algorithms using clinical codes.",
                    "template_version": 1}
 
-TEMPLATE_JSON_V1_PATH = "../../../dynamic_templates/clinical_coded_phenotype.json"
+TEMPLATE_JSON_V1_PATH = "dynamic_templates/clinical_coded_phenotype.json"
 
 
 TEMPLATE_DATA = {
