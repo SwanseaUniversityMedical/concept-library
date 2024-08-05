@@ -1,3 +1,4 @@
+from CodeListLibrary_project.clinicalcode.tests.constants.constants import TEST_CREATE_PHENOTYPE_WITH_ACCESS_PATH,TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH
 import pytest
 
 from pyconceptlibraryclient import Client
@@ -33,7 +34,7 @@ class TestAuthPhenoAccess:
         generate_entity.created_by = user
         generate_entity.save()
 
-        client.phenotypes.create('../constants/test_create_phenotype_w_access.yaml')
+        client.phenotypes.create(TEST_CREATE_PHENOTYPE_WITH_ACCESS_PATH)
 
         normal_user_type = 'normal_user'
         normal_user = generate_user[normal_user_type]
@@ -77,7 +78,7 @@ class TestAuthPhenoAccess:
         template_list = client.templates.get()
         print("GET ALL TEMPLATE LIST:", template_list)
 
-        client.phenotypes.create('../constants/test_create_pheno_no_access.yaml')
+        client.phenotypes.create(TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH)
 
         normal_user_type = 'normal_user'
         normal_user = generate_user[normal_user_type]
@@ -121,7 +122,7 @@ class TestAuthPhenoAccess:
         client = Client(public=True, url='http://127.0.0.1:8000/')
         
         try:
-            client.phenotypes.create('../constants/test_create_pheno_no_access.yaml')
+            client.phenotypes.create(TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH)
         except RuntimeError as e:
             print(e, "Phenotype could not have been created due to user not being Authenticated")
             assert True, "Runtime error raised"
@@ -134,7 +135,7 @@ class TestAuthPhenoAccess:
         client = Client(public=True, url='http://127.0.0.1:8000/')
         
         try:
-            client.phenotypes.update('../constants/test_create_pheno_no_access.yaml')
+            client.phenotypes.update(TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH)
         except RuntimeError as e:
             print(e, "Phenotype could not have been updated due to user not being Authenticated")
             assert True, "Runtime error raised"
