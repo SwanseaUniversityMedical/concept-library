@@ -1,4 +1,4 @@
-from CodeListLibrary_project.clinicalcode.tests.constants.constants import TEST_CREATE_PHENOTYPE_WITH_ACCESS_PATH,TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH
+from clinicalcode.tests.constants.constants import TEST_CREATE_PHENOTYPE_WITH_ACCESS_PATH,TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH
 import pytest
 
 from pyconceptlibraryclient import Client
