@@ -137,6 +137,8 @@ const CSEL_VIEWS = {
         <div class="target-modal__body" id="target-modal-content"> \
         </div> \
       </div> \
+    </div> \
+    <div id="wrapper">\
     </div>',
   
     // Tabbed views when allowMultiple flag is active
@@ -397,8 +399,17 @@ const CSEL_VIEWS = {
       return this.#fetchFilterGroups()
         .then(() => new Promise((resolve, reject) => {
           this.#buildDialogue(params);
-          console.log(this.dialogue)
           this.#renderView(view);
+
+          
+          const table = new gridjs.Grid({
+            columns: ['Name', 'Email', 'Phone Number'],
+            data: [
+              ['John', 'john@example.com', '(353) 01 222 3333'],
+              ['Mark', 'mark@gmail.com',   '(01) 22 888 4444']
+            ]
+          });
+          table.render(document.getElementById('tab-content'));
   
           this.dialogue.element.addEventListener('selectionUpdate', (e) => {
             this.close();
