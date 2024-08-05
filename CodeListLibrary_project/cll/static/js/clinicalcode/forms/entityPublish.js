@@ -11,7 +11,7 @@ class PublishModal {
     this.publish_url = publish_url;
     this.decline_url = decline_url;
     this.redirect_url = redirect_url;
-    this.button = document.querySelector("#publish2");
+    this.button = document.querySelector("#publish-btn");
     this.button.addEventListener("click", this.handleButtonClick.bind(this));
   }
 

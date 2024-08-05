@@ -20,7 +20,7 @@ import {
 export const ENTITY_HANDLERS = {
   // Generates a groupedenum component context
   'groupedenum': (element) => {
-    const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     const packet = { };
     for (let i = 0; i < data.length; ++i) {
@@ -43,13 +43,13 @@ export const ENTITY_HANDLERS = {
 
   // Generates a tagify component for an element
   'tagify': (element) => {
-    const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let value = [];
     let options = [];
     for (let i = 0; i < data.length; ++i) {
       const datafield = data[i];
-      const type = datafield.getAttribute('data-type')
+      const type = datafield.getAttribute('desc-type');
       if (!datafield.innerText.trim().length) {
         continue;
       }
@@ -209,7 +209,7 @@ export const ENTITY_HANDLERS = {
 
   // Generates a list component for an element
   'string_inputlist': (element) => {
-    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let parsed;
     try {
@@ -224,7 +224,7 @@ export const ENTITY_HANDLERS = {
 
   // Generates a clinical publication list component for an element
   'clinical-publication': (element) => {
-    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let parsed;
     try {
@@ -239,7 +239,7 @@ export const ENTITY_HANDLERS = {
 
   // Generates a clinical concept component for an element
   'clinical-concept': (element, dataset) => {
-    const data = element.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
 
     let parsed;
     try {
@@ -254,7 +254,7 @@ export const ENTITY_HANDLERS = {
 
   // Generates an ontology selection component for an element
   'ontology': (element, dataset) => {
-    const nodes = element.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+    const nodes = element.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
 
     const data = { };
     for (let i = 0; i < nodes.length; ++i) {
@@ -736,20 +736,20 @@ export const ENTITY_FIELD_COLLECTOR = {
 
 /**
  * collectFormData
- * @desc Method that retrieves all relevant <data/> elements with
+ * @desc Method that retrieves all relevant <script type="application/json" /> elements with
  *       its data-owner attribute pointing to the entity creator.
  * @return {object} An object describing the data, with each key representing
- *                  the name of the <data/> element
+ *                  the name of the <script type="application/json" /> element
  */
 export const collectFormData = () => {
-  const values = document.querySelectorAll('data[data-owner="entity-creator"]');
+  const values = document.querySelectorAll('script[type="application/json"][data-owner="entity-creator"]');
 
   // collect the form data
   const result = { };
   for (let i = 0; i < values.length; ++i) {
     const data = values[i];
     const name = data.getAttribute('name');
-    const type = data.getAttribute('type');
+    const type = data.getAttribute('desc-type');
 
     let value = data.innerText;
     if (!isNullOrUndefined(value) && !isStringEmpty(value.trim())) {

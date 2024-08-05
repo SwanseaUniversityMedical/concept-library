@@ -34,7 +34,7 @@ services:
 
   celery_worker:
     image: cll/celery_worker
-    restart: on-failure:2
+    restart: on-failure
     command: >
       sh -c "/home/config_cll/worker-start.sh"
     env_file:
@@ -47,7 +47,7 @@ services:
 
   celery_beat:
     image: cll/celery_beat
-    restart: on-failure:2
+    restart: on-failure
     command: >
       sh -c "/home/config_cll/beat-start.sh"
     env_file:
