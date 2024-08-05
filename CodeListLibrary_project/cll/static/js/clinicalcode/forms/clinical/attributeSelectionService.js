@@ -403,10 +403,10 @@ const CSEL_VIEWS = {
 
           
           const table = new gridjs.Grid({
-            columns: ['Name', 'Email', 'Phone Number'],
+            columns: ['Concept', 'Attribute value'],
             data: [
-              ['John', 'john@example.com', '(353) 01 222 3333'],
-              ['Mark', 'mark@gmail.com',   '(01) 22 888 4444']
+              ['John', 'john@example.com'],
+              ['Mark', 'mark@gmail.com']
             ]
           });
           table.render(document.getElementById('tab-content'));
@@ -810,8 +810,6 @@ const CSEL_VIEWS = {
       let page = this.dialogue.content.appendChild(doc.body.children[0]);
       this.dialogue.page = page;
   
-      // Draw content
-      this.#paintSelectionList();
     }
   
     /**
@@ -837,53 +835,7 @@ const CSEL_VIEWS = {
       }
     }
   
-    /**
-     * paintSelectionList
-     * @desc renders the selected items
-     */
-    #paintSelectionList() {
-      const page = this.dialogue.page;
-      const selectedData = this.dialogue?.data;
-      console.log(selectedData )
-      if (!this.dialogue?.view == CSEL_VIEWS.SELECTION || isNullOrUndefined(page)) {
-        return;
-      }
-  
-      const content = page.querySelector('#item-list');
-      const noneAvailable = page.querySelector('#no-items-selected');
-      if (isNullOrUndefined(content) || isNullOrUndefined(noneAvailable)) {
-        return;
-      }
-  
-      const hasSelectedItems = !isNullOrUndefined(selectedData) && selectedData.length > 0;
-  
-      // Display none available if no items selected
-      if (!hasSelectedItems) {
-        content.classList.add('hide');
-        noneAvailable.classList.add('show');
-        return;
-      }
-  
-      // Render selected items if available
-      for (let i = 0; i < selectedData.length; ++i) {
-        let selected = selectedData?.[i];
-        let html = interpolateString(CSEL_INTERFACE.CHILD_SELECTOR, {
-          'id': selected.id,
-          'history_id': selected.history_id,
-          'field': selected.type,
-          'title': selected.name,
-          'coding_system': selected.coding_system_name,
-          'prefix': selected.prefix,
-          'checked': true,
-          'isSelector': false,
-          'index': i,
-        });
-  
-        let doc = parseHTMLFromString(html);
-        let checkbox = content.appendChild(doc.body.children[0]);
-        checkbox.addEventListener('change', this.#handleSelectedItem.bind(this));
-      }
-    }
+
   
   
     /**
