@@ -47,8 +47,6 @@ jobs:
           sudo apt-get install -y libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev libasound2 
           wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
       - uses: browser-actions/setup-chrome@v1
-        with:
-          install-chromedriver: true
       - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
@@ -70,10 +68,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --upgrade-strategy eager --default-timeout 100  -r docker/requirements/test-requirements.txt
 
-  
+      - name: Prepare Selenium
+        uses: nanasess/setup-chromedriver@v2
+
       - name: Run Browser
         run: |
           chrome --version
+      - name: Run chromedriver
+        run: |
+          export DISPLAY=:99
+          chromedriver --url-base=/wd/hub &
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
 
       - name: Run application
         run: |
@@ -88,6 +93,8 @@ jobs:
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
           pytest -vv -s --random-order --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=./clinicalcode/tests/allure-results
+        env:
+          DISPLAY: ":99"
 
       - name: Coverage report
         if: always()
