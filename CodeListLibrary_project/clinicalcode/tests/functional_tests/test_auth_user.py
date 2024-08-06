@@ -4,7 +4,7 @@ import pytest
 from pyconceptlibraryclient import Client
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True,transaction=True)
 @pytest.mark.usefixtures("setup_webdriver")
 class TestAuthPhenoAccess:
     """
