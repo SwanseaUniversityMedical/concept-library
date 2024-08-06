@@ -540,14 +540,11 @@ export default class ConceptCreator {
       template: this.template?.id,
       entity_id: this.entity?.id,
       entity_history_id: this.entity?.history_id,
-      allowMultiple: true,
+      concept_data: this.data,
     });
 
-
+    console.log(this.template)
     return prompt.show()
-      .then((data) => {
-        return this.#tryRetrieveCodelists(data);
-      });
   }
   /**
    * tryPromptConceptRuleImport
