@@ -130,21 +130,6 @@ const CSEL_VIEWS = {
     </div>',
 
   
-    // Search result card
-    RESULT_CARD: ' \
-    <article class="entity-card inactive" data-entity-id="${id}" data-entity-version-id="${history_id}" style="padding: 0;"> \
-      <div class="entity-card__header"> \
-        <div class="entity-card__header-item"> \
-          <h3 class="entity-card__title">${id}/${history_id} - ${name}</h3> \
-          <p class="entity-card__author">${author}</p> \
-        </div> \
-      </div> \
-      <div class="entity-card__snippet"> \
-        ${tags} \
-        <div class="entity-card__snippet-datagroup" id="datagroup"> \
-        </div> \
-      </div> \
-    </article>',
   
     // Card chip tags group
     CHIP_GROUP: ' \
@@ -324,16 +309,8 @@ const CSEL_VIEWS = {
       return new Promise((resolve, reject) => {
           this.#buildDialogue(params);
           this.#renderView(view);
+          this.#createGridTable(this.options.concept_data)
 
-          const table = new gridjs.Grid({
-            columns: ['Concept', 'Attribute value'],
-            data: [
-              ['John', 'john@example.com'],
-              ['Mark', 'mark@gmail.com']
-            ]
-          });
-          table.render(document.getElementById('tab-content'));
-  
           this.dialogue.element.addEventListener('selectionUpdate', (e) => {
             this.close();
     
@@ -488,7 +465,18 @@ const CSEL_VIEWS = {
       return this.dialogue;
     }
 
-    #createGridTable(params) {
+    #createGridTable(concept_data) {
+      const transformedData = concept_data.map(concept =>{
+        return [
+            `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`
+        ];
+    });
+
+      const table = new gridjs.Grid({
+        columns: ['Concept', 'Attribute value'],
+        data: transformedData
+      });
+      table.render(document.getElementById('tab-content'));
 
     }
   
@@ -569,30 +557,7 @@ const CSEL_VIEWS = {
 
   
   
-    /**
-     * toggleResetButton
-     * @desc toggles the reset button's visibility, dependent on whether
-     *       filters are currently applied
-     * @param {object} query the filters that are being currently applied
-     */
-    #toggleResetButton(query) {
-      const resetButton = this.dialogue.page.querySelector('#reset-filter-btn');
-      if (!isNullOrUndefined(resetButton)) {
-        const trueQuery = Object.keys(query)
-                                .filter(key => isNullOrUndefined(this.options?.forceFilters) || !this.options?.forceFilters.hasOwnProperty(key))
-                                .reduce((obj, key) => {
-                                  obj[key] = query[key];
-                                  return obj;
-                                }, {});
-  
-        const hasFilters = Object.values(trueQuery);
-        if (hasFilters.length > 0) {
-          resetButton.classList.add('show');
-        } else {
-          resetButton.classList.remove('show');
-        }
-      }
-    }
+
   
   
     /*************************************
@@ -601,65 +566,6 @@ const CSEL_VIEWS = {
      *                                   *
      *************************************/
  
-  
-    /**
-     * handleChildSelection
-     * @desc handles the change event for child selector components
-     * @param {event} e the assoc. event
-     */
-    #handleChildSelection(e) {
-      const target = e.target;
-      const field = target.getAttribute('data-field');
-      const name = target.getAttribute('data-name');
-      const prefix = target.getAttribute('data-prefix');
-      const codingSystem = target.getAttribute('data-coding');
-  
-      let childId = target.getAttribute('data-id');
-      let childVersion = target.getAttribute('data-history');
-      if (isNullOrUndefined(field) || isNullOrUndefined(childId) || isNullOrUndefined(childVersion)) {
-        return;
-      }
-  
-      childId = parseInt(childId);
-      childVersion = parseInt(childVersion);
-  
-      if (target.checked) {
-        if (this.isSelected(childId, childVersion)) {
-          return;
-        }
-  
-        const packet = {
-          id: childId,
-          name: name,
-          type: field,
-          history_id: childVersion,
-          prefix: prefix,
-          coding_system_name: codingSystem,
-        };
-        
-        if (this.options.allowMultiple) {
-          this.dialogue.data.push(packet);
-          return;
-        }
-  
-        const checkboxes = this.dialogue.page.querySelectorAll('#child-selector > input[type="checkbox"]');
-        for (let i = 0; i < checkboxes.length; ++i) {
-          let checkbox = checkboxes[i];
-          if (checkbox.checked && checkbox.getAttribute('id') != target.getAttribute('id')) {
-            checkbox.checked = false;
-          }
-        }
-        this.dialogue.data[0] = packet;
-        return;
-      }
-      
-      if (!this.isSelected(childId, childVersion)) {
-        return;
-      }
-      
-      const index = this.dialogue.data.findIndex(item => item.id == childId && item.history_id == childVersion);
-      this.dialogue.data.splice(index, 1);
-    }
   
   
     /**
