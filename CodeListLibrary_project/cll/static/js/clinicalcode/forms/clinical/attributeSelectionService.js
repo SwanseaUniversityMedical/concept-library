@@ -23,41 +23,6 @@ const CSEL_VIEWS = {
   };
   
   /**
-   * CSEL_BEHAVIOUR
-   * @desc describes base behaviour of the service
-   */
-  const CSEL_BEHAVIOUR = {
-    // Defines cache time for get requests (ms)
-    CACHE_TIME: 300_000, // i.e. 5 minutes
-  
-    // Defines the output format behaviour of datetime objects
-    DATE_FORMAT: 'YYYY-MM-DD',
-  
-    // Describes keycodes for filter-related events
-    KEY_CODES: {
-      ENTER: 13,
-    },
-  
-    // Describes non-numerical data-value targets for pagination buttons
-    PAGINATION: {
-      NEXT: 'next',
-      PREVIOUS: 'previous',
-    },
-  
-    // Describes the acceptable date formats when parsing
-    ACCEPTABLE_DATE_FORMAT: ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD'],
-  
-    // Describes the query URL
-    QUERY_URL: '/query',
-  
-    // Describes endpoints used to ret. data
-    ENDPOINTS: {
-      SPECIFICATION: 'get_filters',
-      RESULTS: 'get_results',
-    }
-  }
-  
-  /**
    * CSEL_OPTIONS
    * @desc Available options for this component,
    *       where each of the following options are used as default values
@@ -217,47 +182,6 @@ const CSEL_VIEWS = {
     </div>',
   };
   
-  /**
-   * CSEL_FILTER_CLEANSERS
-   * @desc Cleans the value of a query by its class
-   */
-  const CSEL_FILTER_CLEANSERS = {
-    CHECKBOX: (value) => value.length > 0 ? value.join(',') : null,
-    DATEPICKER: (value) => (!isNullOrUndefined(value.start) && !isNullOrUndefined(value.end)) ? `${value.start},${value.end}` : null,
-    SEARCHBAR: (value) => !isStringEmpty(value) ? value : null,
-    PAGINATION: (value) => value != 1 ? value : null,
-    OPTION: (value) => value != 1 ? value : null,
-  };
-  
-  /**
-   * CSEL_FILTER_APPLICATORS
-   * @desc Applies the value of the query to the filter component
-   */
-  const CSEL_FILTER_APPLICATORS = {
-    CHECKBOX: (filterGroup, query) => {
-      const checkboxes = filterGroup.filter.querySelectorAll('.checkbox-item');
-      for (let i = 0; i < checkboxes.length; ++i) {
-        let checkbox = checkboxes[i];
-        let value = checkbox.getAttribute('data-value');
-        if (!isNullOrUndefined(value) && !isNullOrUndefined(query)) {
-          let index = query.indexOf(value);
-          checkbox.checked = index >= 0;
-        } else {
-          checkbox.checked = false;
-        }
-      }
-    },
-  
-  
-    OPTION: (filterGroup, query) => {
-      for (let i = 0; i < filterGroup.filter.options.length; ++i) {
-        const option = filterGroup.filter.options[i];
-        option.selected = option.value == query;
-        option.dispatchEvent(new CustomEvent('change', { bubbles: true, detail: { filterSet: true } }));
-      }
-      filterGroup.filter.value = !isNullOrUndefined(query) ? query : 1;
-    }
-  };
   
 
   
@@ -454,160 +378,6 @@ const CSEL_VIEWS = {
     }
   
   
-    /*************************************
-     *                                   *
-     *              Private              *
-     *                                   *
-     *************************************/
-    /**
-     * cleanQuery
-     * @desc collects the data assoc. with each filter after cleaning & applies any forced filters
-     * @returns {object} the cleaned query
-     */
-    #cleanQuery() {
-      // clean the query object
-      let cleaned = { };
-      for (let key in this.query) {
-        let value = this.query[key];
-        if (this.filters.hasOwnProperty(key)) {
-          let filterItem = this.filters[key];
-          let uppercase = filterItem.component.toLocaleUpperCase();
-          if (CSEL_FILTER_CLEANSERS.hasOwnProperty(uppercase)) {
-            value = CSEL_FILTER_CLEANSERS[uppercase](value);
-          }
-        }
-  
-        if (isNullOrUndefined(value)) {
-          continue;
-        }
-        cleaned[key] = value;
-      }
-  
-      const entity_id = this.options?.entity_id;
-      const entity_history_id = this.options?.entity_history_id;
-      if (!isNullOrUndefined(entity_id) && !isNullOrUndefined(entity_history_id)) {
-        cleaned['parent_id'] = entity_id;
-        cleaned['parent_history_id'] = entity_history_id;
-      }
-  
-      return cleaned;
-    }
-
-    /**
-     * tryGetSearchResults
-     * @desc GET request to search endpoint for results that relate to options & filter params
-     * @param {string} cacheState which cache state to use
-     * @returns {array} the search results matching our current query 
-     */
-    async #tryGetSearchResults(cacheState = 'force-cache') {
-      if (!this.options?.useCachedResults) {
-        cacheState = 'reload';
-      }
-  
-      // build params
-      const query = this.#cleanQuery();
-      const params = new URLSearchParams(query);
-      const request = {
-        method: 'GET',
-        headers: {
-          'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.RESULTS,
-          'X-Requested-With': 'XMLHttpRequest',
-        }
-      };
-  
-      // toggle filter reset button visibility
-      this.#toggleResetButton(query);
-  
-      // query results
-      if (cacheState) {
-        request.cache = cacheState;
-      }
-  
-      const response = await fetch(
-        `${CSEL_BEHAVIOUR.QUERY_URL}/${this.options?.template}/?` + params,
-        request
-      );
-  
-      if (!response.ok) {
-        throw new Error(`An error has occurred: ${response.status}`);
-      }
-  
-      if (cacheState !== 'reload') {
-        const date = response.headers.get('date');
-        const delta = date ? new Date(date).getTime() : 0;
-        if (delta < Date.now() - CSEL_BEHAVIOUR.CACHE_TIME) {
-          return this.#tryGetSearchResults('reload');
-        }
-      }
-  
-      let res;
-      try {
-        res = await response.json();
-      }
-      catch (e) {
-        throw new Error(`An error has occurred: ${e}`); 
-      }
-  
-      return res;
-    }
-  
-    /**
-     * getFilterSafeChildren
-     * @desc applies filters to a child object if present within the query, e.g. coding system(s)
-     * @param {list|null} children the list of children associated with a child object
-     * @returns {list|null} the list of filtered children (or null if no children present)
-     */
-    #getFilterSafeChildren(children) {
-      if (isNullOrUndefined(children) || children.length < 1) {
-        return;
-      }
-  
-      const childFilters = this.options?.childFilters;
-      if (isNullOrUndefined(childFilters)) {
-        return children;
-      }
-  
-      let output = [ ];
-      for (let i = 0; i < children.length; ++i) {
-        let child = children[i];
-        let passed = true;
-        for (let j = 0; j < childFilters.length; ++j) {
-          let filter = childFilters[j];
-          let query = this.query?.[filter];
-          if (isNullOrUndefined(child?.[filter])) {
-            continue;
-          }
-  
-          if (!isNullOrUndefined(query)) {
-            if (typeof query === 'array' && !query.includes(child[filter])) {
-              passed = false;
-              continue;
-            } else if (typeof child[filter] === typeof query && child[filter] != query) {
-              passed = false;
-              continue;
-            }
-          }
-        }
-  
-        if (passed) {
-          output.push(child);
-        }
-      }
-  
-      return output;
-    }
-  
-    /**
-     * resetPage
-     * @desc Force reset page on filter mutation
-     */
-    #resetPage() {
-      if (isNullOrUndefined(this.query.page)) {
-        return;
-      }
-      this.query.page = 1;
-    }
-  
   
     /*************************************
      *                                   *
@@ -717,6 +487,10 @@ const CSEL_VIEWS = {
   
       return this.dialogue;
     }
+
+    #createGridTable(params) {
+
+    }
   
     /**
      * renderView
@@ -794,80 +568,6 @@ const CSEL_VIEWS = {
   
 
   
-  
-    /**
-     * paintSearchResults
-     * @desc makes a request to the endpoint to get search results and paints them to the screen
-     * @param {array} results the results as returned from the search api
-     */
-    #paintSearchResults(response) {
-      const page = this.dialogue.page;
-      if (!this.dialogue?.view == CSEL_VIEWS.SEARCH || isNullOrUndefined(page)) {
-        return;
-      }
-  
-      const resultContainer = page.querySelector('#search-response-content');
-      if (isNullOrUndefined(resultContainer)) {
-        return;
-      }
-  
-      // first clear prev. results
-      resultContainer.innerHTML = '';
-  
-      // then render cards, apply selection to concepts if found
-      const results = response?.results || [ ];
-      for (let i = 0; i < results.length; ++i) {
-        let result = results[i];
-        let children = this.#getFilterSafeChildren(result?.children);
-        if (isNullOrUndefined(children) || children.length < 1) {
-          continue;
-        }
-  
-        let html = interpolateString(CSEL_INTERFACE.RESULT_CARD, {
-          'id': result?.id,
-          'name': result?.name,
-          'history_id': result?.history_id,
-          'author': result?.author || '',
-          'tags': '',
-        });
-        
-        let doc = parseHTMLFromString(html);
-        let card = resultContainer.appendChild(doc.body.children[0]);
-        let datagroup = card.querySelector('#datagroup');
-  
-        let childContents = '';
-        for (let j = 0; j < children.length; ++j) {
-          let child = children[j];
-          childContents += interpolateString(CSEL_INTERFACE.CHILD_SELECTOR, {
-            'id': child.id,
-            'history_id': child.history_id,
-            'field': child.type,
-            'title': `${child.prefix}${child.id} - ${child.name}`,
-            'checked': this.isSelected(child.id, child.history_id),
-            'coding_system': child.coding_system_name,
-            'prefix': child.prefix,
-            'isSelector': true,
-            'index': -1,
-          });
-        }
-  
-        html = interpolateString(CSEL_INTERFACE.CARD_ACCORDIAN, {
-          id: result?.id,
-          title: `Available Concepts (${children.length})`,
-          content: childContents,
-        });
-        doc = parseHTMLFromString(html);
-  
-        let accordian = datagroup.appendChild(doc.body.children[0]);
-        let checkboxes = accordian.querySelectorAll('#child-selector > input[type="checkbox"]');
-        for (let j = 0; j < checkboxes.length; j++) {
-          let checkbox = checkboxes[j];
-          checkbox.addEventListener('change', this.#handleChildSelection.bind(this));
-        }
-      }
-  
-
-    }
   
     /**
      * toggleResetButton
@@ -961,93 +661,6 @@ const CSEL_VIEWS = {
       this.dialogue.data.splice(index, 1);
     }
   
-    /**
-     * handleCheckboxUpdate
-     * @desc handles the change event when a checkbox component is modified
-     * @param {event} e the assoc. event
-     */
-    #handleCheckboxUpdate(e) {
-      const target = e.target;
-      const field = target.getAttribute('data-field');
-      const value = target.getAttribute('data-value');
-      if (isNullOrUndefined(field) || isNullOrUndefined(value)) {
-        return;
-      }
-  
-      if (!this.query.hasOwnProperty(field)) {
-        this.query[field] = [];
-      }
-  
-      const index = this.query[field].indexOf(value);
-      if (target.checked) {
-        if (index >= 0) {
-          return;
-        }
-  
-        this.query[field].push(value);
-        this.#resetPage();
-        this.#tryGetSearchResults()
-          .then((results) => this.#paintSearchResults(results))
-          .catch(console.warn);
-  
-        return;
-      }
-  
-      if (index < 0) {
-        return;
-      }
-  
-      this.query[field].splice(index, 1);
-      this.#resetPage();
-      this.#tryGetSearchResults()
-        .then((results) => this.#paintSearchResults(results))
-        .catch(console.warn);
-      
-      return;
-    }
-  
-    /**
-     * handleDateUpdate
-     * @desc handles the change event when a input[type=date] component is modified
-     * @param {event} e the assoc. event
-     */
-    #handleDateUpdate(e) {
-      const target = e.target;
-      const field = target.getAttribute('data-field');
-      const type = target.getAttribute('data-type');
-      if (isNullOrUndefined(field) || isNullOrUndefined(type)) {
-        return;
-      }
-  
-      if (!target.checkValidity()) {
-        return;
-      }
-  
-      if (!this.query.hasOwnProperty(field)) {
-        this.query[field] = { start: null, end: null };
-      }
-      
-      let datetime = moment(target.value, CSEL_BEHAVIOUR.ACCEPTABLE_DATE_FORMAT);
-      this.query[field][type] = datetime.isValid() ? datetime.format(CSEL_BEHAVIOUR.DATE_FORMAT) : null;
-  
-      let dates = Object.values(this.query[field])
-        .filter(x => !isNullOrUndefined(x) && moment(x, CSEL_BEHAVIOUR.DATE_FORMAT).isValid())
-        .sort((a, b) => moment(a, CSEL_BEHAVIOUR.DATE_FORMAT).diff(moment(b, CSEL_BEHAVIOUR.DATE_FORMAT)));
-    
-      if (dates.length > 1) {
-        let [ startDate, endDate ] = dates;
-        this.query[field].start = startDate;
-        this.query[field].end = endDate;
-        this.#resetPage();
-      }
-  
-      this.#tryGetSearchResults()
-        .then((results) => this.#paintSearchResults(results))
-        .catch(console.warn);
-    }
-
-  
-
   
     /**
      * handleCancel
