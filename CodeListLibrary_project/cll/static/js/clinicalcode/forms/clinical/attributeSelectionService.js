@@ -70,6 +70,7 @@ const CSEL_VIEWS = {
     // Related entity ids to filter the entity from results
     entity_id: null,
     entity_history_id: null,
+    concept_data: null,
   
     // Allow more than a single Concept to be selected
     allowMultiple: true,
@@ -396,12 +397,10 @@ const CSEL_VIEWS = {
         return Promise.reject();
       }
   
-      return this.#fetchFilterGroups()
-        .then(() => new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
           this.#buildDialogue(params);
           this.#renderView(view);
 
-          
           const table = new gridjs.Grid({
             columns: ['Concept', 'Attribute value'],
             data: [
@@ -439,7 +438,7 @@ const CSEL_VIEWS = {
           });
           
           this.dialogue.show();
-        }));
+        })
     }
     
     /**
@@ -493,49 +492,7 @@ const CSEL_VIEWS = {
   
       return cleaned;
     }
-  
-    /**
-     * fetchFilterGroups
-     * @returns {object} the spec. for template & metadata filter groups if awaited, otherwise res. a promise
-     */
-    async #fetchFilterGroups() {
-      if (this.filterGroups) {
-        return this.filterGroups;
-      }
-  
-      const response = await fetch(
-        `${CSEL_BEHAVIOUR.QUERY_URL}/${this.options?.template}`,
-        {
-          method: 'GET',
-          headers: {
-            'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.SPECIFICATION,
-            'X-Requested-With': 'XMLHttpRequest',
-          }
-        }
-      );
-  
-      if (!response.ok) {
-        throw new Error(`An error has occurred: ${response.status}`);
-      }
-  
-      let res;
-      try {
-        res = await response.json();
-      }
-      catch (e) {
-        throw new Error(`An error has occurred: ${e}`); 
-      }
-  
-      if (this.options?.ignoreFilters) {
-        Object.keys(res).forEach((key, index) => {
-          res[key] = res[key].filter(item => !this.options.ignoreFilters.includes(item?.details?.field));
-        });
-      }
-  
-      this.filterGroups = res;
-      return this.filterGroups;
-    }
-  
+
     /**
      * tryGetSearchResults
      * @desc GET request to search endpoint for results that relate to options & filter params
@@ -944,43 +901,6 @@ const CSEL_VIEWS = {
      *                                   *
      *************************************/
  
-    /**
-     * handleSelectedItem
-     * @desc handles the change event for selected items within selection view
-     * @param {event} e the assoc. event
-     */
-    #handleSelectedItem(e) {
-      const target = e.target;
-      const targetId = parseInt(target.getAttribute('data-id'));
-      const targetHistoryId = parseInt(target.getAttribute('data-history'));
-      const index = this.dialogue.data.findIndex(x => x?.id == targetId && x?.history_id == targetHistoryId);
-      if (isNullOrUndefined(index)) {
-        return;
-      }
-      
-      this.dialogue.data.splice(index, 1);
-      target.parentNode.remove();
-  
-      const page = this.dialogue.page;
-      if (isNullOrUndefined(page)) {
-        return;
-      }
-  
-      const content = page.querySelector('#item-list');
-      const noneAvailable = page.querySelector('#no-items-selected');
-      if (isNullOrUndefined(content) || isNullOrUndefined(noneAvailable)) {
-        return;
-      }
-  
-      const hasSelectedItems = !isNullOrUndefined(this.dialogue.data) && this.dialogue.data.length > 0;
-      if (!hasSelectedItems) {
-        content.classList.add('hide');
-        noneAvailable.classList.add('show');
-      } else {
-        content.classList.remove('hide');
-        noneAvailable.classList.remove('show');
-      }
-    }
   
     /**
      * handleChildSelection
