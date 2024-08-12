@@ -310,7 +310,7 @@
         "regulatory_approval_organisation",
         "regulatory_approval_date"
       ],
-      "description": "Clinical definition of the phenotype."
+      "description": "Definition of the phenotype."
     },
     {
       "title": "Implementation",

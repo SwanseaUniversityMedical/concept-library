@@ -104,6 +104,7 @@ class TestTemplateVersioning:
         generate_entity.owner = user
         generate_entity.created_by = user
         generate_entity.save()
+
         template_v2.created_by = user
         template_v2.save()
         time.sleep(10)
