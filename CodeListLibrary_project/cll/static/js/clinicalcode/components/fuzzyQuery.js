@@ -3,19 +3,25 @@
   * @desc A static class that uses Levenshtein distance to search a haystack.
   * 
   * e.g.
-  * ```js
-  *   import FuzzyQuery from '../components/fuzzyQuery.js'
-  *   const haystack = [
-  *     'some_item1',
-  *     'some_item2',
-  *     'another_thing',
-  *     'another_thing_1',
-  *   ];
-  * 
-  *   const query = 'some_item';
-  *   const results = FuzzyQuery.Search(haystack, query, FuzzyQuery.Results.Sort, FuzzyQuery.Transformers.IgnoreCase);
-  *   console.log(results); // Will return ['some_item1', 'some_item2']
-  * ```
+  ```js
+    import FuzzyQuery from '../components/fuzzyQuery.js';
+
+    // i.e. some haystack of item(s)
+    const haystack = [
+      'some_item1',
+      'some_item2',
+      'another_thing',
+      'another_thing_1',
+    ];
+
+    // e.g. some search string
+    const query = 'some_item';
+
+    // ...attempt to search haystack
+    const results = FuzzyQuery.Search(haystack, query, FuzzyQuery.Results.Sort, FuzzyQuery.Transformers.IgnoreCase);
+    console.log(results); // --> Of result: ['some_item1', 'some_item2']
+
+  ```
   * 
   */
 export default class FuzzyQuery {

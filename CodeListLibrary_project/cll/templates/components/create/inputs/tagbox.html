@@ -13,15 +13,14 @@
   {% endif %}
 
   {% if component.options %}
-  <data aria-hidden="true" data-type="options" for="{{ component.field_name }}">
-    {{ component.options|jsonify|striptags }}
-  </data>
+    {% to_json_script component.options desc-type="options" for=component.field_name %}
   {% endif %}
-  <data aria-hidden="true" data-type="value" for="{{ component.field_name }}">
-    {% if component.value %}
-    {{ component.value|jsonify|striptags }}
-    {% endif %}
-  </data>
+
+  {% if component.value %}
+    {% to_json_script component.value desc-type="value" for=component.field_name %}
+  {% else %}
+    <script type="application/json" desc-type="value" for="{{ component.field_name }}"></script>
+  {% endif %}
 
   <input class="text-input" aria-label="{{ component.field_data.title }}" type="text" id="entity-{{ component.field_name }}"
     name="entity-{{ component.field_name }}" placeholder="" data-class="tagify" data-field="{{ component.field_name }}">
