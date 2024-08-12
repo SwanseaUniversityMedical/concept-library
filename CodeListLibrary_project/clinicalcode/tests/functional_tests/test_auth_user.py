@@ -104,17 +104,6 @@ class TestAuthPhenoAccess:
         print("User can view published phenotypes:", get_user_match_phenos)
         assert get_user_match_phenos != []
 
-    def test_non_authenticated_user_view_unpublished_phenos(self):
-        """
-        Test to verify that non-authenticated users can view published phenotypes.
-        """
-        client = Client(public=True)
-
-        get_user_match_phenos = client.phenotypes.get_versions('PH1')
-        print(get_user_match_phenos)
-        print("User can view published phenotypes:", get_user_match_phenos)
-        assert get_user_match_phenos != []
-
     def test_non_authenticated_user_create_phenos(self):
         """
         Test to verify that non-authenticated users can't create phenotypes.
