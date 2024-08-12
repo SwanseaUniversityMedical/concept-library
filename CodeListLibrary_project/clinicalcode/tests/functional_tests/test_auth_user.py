@@ -97,7 +97,7 @@ class TestAuthPhenoAccess:
         """
         Test to verify that non-authenticated users can view published phenotypes.
         """
-        client = Client(public=True, url='http://127.0.0.1:8000/')
+        client = Client(public=True)
 
         get_user_match_phenos = client.phenotypes.get_versions('PH1')
         print(get_user_match_phenos)
@@ -108,7 +108,7 @@ class TestAuthPhenoAccess:
         """
         Test to verify that non-authenticated users can view published phenotypes.
         """
-        client = Client(public=True, url='http://127.0.0.1:8000/')
+        client = Client(public=True)
 
         get_user_match_phenos = client.phenotypes.get_versions('PH1')
         print(get_user_match_phenos)
@@ -119,7 +119,7 @@ class TestAuthPhenoAccess:
         """
         Test to verify that non-authenticated users can't create phenotypes.
         """
-        client = Client(public=True, url='http://127.0.0.1:8000/')
+        client = Client(public=True)
         
         try:
             client.phenotypes.create(TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH)
@@ -132,7 +132,7 @@ class TestAuthPhenoAccess:
         """
         Test to verify that non-authenticated users can't update phenotypes.
         """
-        client = Client(public=True, url='http://127.0.0.1:8000/')
+        client = Client(public=True)
         
         try:
             client.phenotypes.update(TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH)
