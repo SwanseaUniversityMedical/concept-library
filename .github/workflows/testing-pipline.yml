@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - master
-      - test-fix-artur
     paths:
       - "CodeListLibrary_project/**"
   pull_request:
     branches:
+      - test-fix-artur
       - master
       - Development
     paths:
