@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - test-fix-artur
     paths:
       - "CodeListLibrary_project/**"
   pull_request:
