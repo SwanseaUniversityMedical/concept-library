@@ -300,8 +300,9 @@
       "description": "An overview of the phenotype with basic metadata."
     },
     {
-      "title": "Clinical definition",
+      "title": "Definition",
       "fields": [
+        "definition",
         "primary_clinical_trial",
         "endorsement_organisation",
         "endorsement_date",
@@ -346,8 +347,8 @@
     }
   ],
   "template_details": {
-    "name": "Clinical-Coded Phenotype",
-    "version": 2,
+    "name": "Test Phenotype",
+    "version": 1,
     "card_type": "clinical",
     "description": "Phenotype definitions that are based on lists of clinical codes, or algorithms using clinical codes."
   }
