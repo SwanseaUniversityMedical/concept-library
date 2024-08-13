@@ -1,0 +1,39 @@
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Endorsments {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+  {% if not component.hide_input_details %}
+    <p class="detailed-input-group__description">Add a endorsment by providing the reference details</p>
+  {% endif %}
+
+  <div class="publication-list-group">
+    {% if component.value %}
+      {% to_json_script component.value desc-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
+
+    <div class="publication-list-group__interface" data-class="clinical-endorsment" data-field="{{ component.field_name }}">
+      <div class="publication-list-group__interface-children">
+        <input class="text-input" aria-label="Endorsment details" type="text"
+          placeholder="e.g. Oracle"
+          minlength="3" pattern="^[a-zA-Z]{1,}.*?"
+          id="endorsment-input-box">
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Endorsment" id="add-input-btn">Add</button>
+      </div>
+    </div>
+
+    <section class="publication-list-group__none-available" id="no-available-endorsments">
+      <p class="publication-list-group__none-available-message">You haven't added any endorsments yet.</p>
+    </section>
+
+    <section class="publication-list-group__list show" id="endorsment-group">
+      <div class="publication-list-group__list-header" id="pub-header">
+        <h3>Your endorsments</h3>
+      </div>
+      <div class="publication-list-group__list-container slim-scrollbar" id="endorsment-list">
+        
+      </div>
+    </section>
+  </div>
+</div>
