@@ -18,20 +18,15 @@
         },
         "description": "Primary clinical trials used in with clinical trial reference."
       },
-      "endorsement_organisation": {
+      "endorsment_organisation": {
         "title": "Endorsement Organisation",
         "active": true,
         "search": {
           "api": true
         },
-        "field_type": "string_inputbox",
+        "field_type": "string_inputlist",
         "validation": {
-          "type": "string",
-          "length": [
-            0,
-            250
-          ],
-          "unique": false,
+          "type": "string_array",
           "mandatory": false
         },
         "description": "Name of endorsing organisation"
@@ -339,7 +334,7 @@
       {
         "title": "Endorsement Organisation",
         "fields": [
-          "endorsments"
+          "endorsment_organisation"
         ],
         "description": "Endorsments(s) where this phenotype is defined and/or used."
       },
