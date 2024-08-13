@@ -303,7 +303,6 @@
         "title": "Definition",
         "fields": [
           "primary_clinical_trial",
-          "endorsement_organisation",
           "endorsement_date",
           "regulatory_approval_study",
           "regulatory_approval_organisation",
@@ -338,6 +337,14 @@
         "description": "Clinical codes used to define this phenotype."
       },
       {
+        "title": "Endorsement Organisation",
+        "fields": [
+          "endorsments"
+        ],
+        "description": "Endorsments(s) where this phenotype is defined and/or used."
+      },
+      
+      {
         "title": "Publication",
         "fields": [
           "publications",
@@ -345,6 +352,7 @@
         ],
         "description": "Publication(s) where this phenotype is defined and/or used."
       }
+
     ],
     "template_details": {
       "name": "BHF Test",
