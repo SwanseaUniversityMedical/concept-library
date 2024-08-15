@@ -10,6 +10,7 @@ import {
   ENTITY_ACCEPTABLE_DATE_FORMAT,
   ENTITY_TEXT_PROMPTS
 } from '../entityFormConstants.js';
+import endorsmentCreator from '../clinical/endorsmentCreator.js';
 
 /**
  * ENTITY_HANDLERS
@@ -235,6 +236,21 @@ export const ENTITY_HANDLERS = {
     }
 
     return new PublicationCreator(element, parsed)
+  },
+
+  'clinical-endorsment':(element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new endorsmentCreator(element, parsed)
+
   },
 
   // Generates a clinical concept component for an element
