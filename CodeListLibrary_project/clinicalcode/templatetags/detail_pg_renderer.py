@@ -433,7 +433,7 @@ class EntityWizardSections(template.Node):
                 else:
                     component['value'] = ''
 
-                if 'sort' in component['field_data']:
+                if 'sort' in component['field_data'] and component['value'] is not None:
                     component['value'] = sorted(component['value'], **component['field_data']['sort'])
 
                 if template_field.get('hide_if_empty', False):
