@@ -301,10 +301,11 @@
         "title": "Name - Author",
         "fields": [
           "name",
-          "author"
+          "author",
+          "corresp_author",
+          "email_address"
         ],
-        "description": "",
-        "hide_on_detail": true
+        "description": ""
       },
       {
         "title": "Overview",
@@ -316,9 +317,7 @@
           "coding_system",
           "data_sources",
           "collections",
-          "tags",
-          "corresp_author",
-          "email_address"
+          "tags"
         ],
         "description": "An overview of the phenotype with basic metadata."
       },
@@ -373,8 +372,6 @@
       "name": "BHF Phenotype",
       "version": 1,
       "card_type": "clinical",
-      "description": "BHF definitions that are based on lists of clinical codes, or algorithms using clinical codes.",
-      "email_address": "Email address",
-      "corresp_author": "Corresp auth"
+      "description": "BHF definitions that are based on lists of clinical codes, or algorithms using clinical codes."
     }
   }
