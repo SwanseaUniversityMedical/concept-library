@@ -16,9 +16,10 @@
     <div class="publication-list-group__interface" data-class="clinical-endorsment" data-field="{{ component.field_name }}">
       <div class="publication-list-group__interface-children">
         <input class="text-input" aria-label="Endorsment details" type="text"
-          placeholder="e.g. Oracle"
+          placeholder="e.g. Med"
           minlength="3" pattern="^[a-zA-Z]{1,}.*?"
-          id="endorsment-input-box">
+          id="endorsment-input-box"/>
+          <input type="text" class="date-range-picker" aria-label="{{ component.field_data.title }}" id="entity-{{ component.field_name }}-input" data-class="datepicker" data-range="false" data-field="{{ component.field_name }}" data-value="{{ component.value }}" />
         <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Endorsment" id="add-input-btn">Add</button>
       </div>
     </div>
