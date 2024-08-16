@@ -24,7 +24,7 @@
         "search": {
           "api": true
         },
-        "field_type": "string_inputlist",
+        "field_type": "endorsments",
         "validation": {
           "type": "string_array",
           "mandatory": false
@@ -334,7 +334,7 @@
       {
         "title": "Endorsement Organisation",
         "fields": [
-          "endorsment_organisation"
+          "endorsments"
         ],
         "description": "Endorsments(s) where this phenotype is defined and/or used."
       },
