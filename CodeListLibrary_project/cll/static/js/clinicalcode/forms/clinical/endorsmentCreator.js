@@ -24,8 +24,12 @@ const endorsment_OPTIONS = {
   endorsmentGroupId: "#endorsment-group",
   //  - endorsmentListId: describes the endorsment list in which elements are held
   endorsmentListId: "#endorsment-list",
-};
 
+  endorsmentDatepickerId: "#entity-endorsments-input",
+};
+import {
+  ENTITY_HANDLERS,
+} from "../entityCreator/utils.js";
 /**
  * endorsment_ITEM_ELEMENT
  * @desc describes the endorsment item element and its interpolable targets
@@ -34,7 +38,7 @@ const endorsment_OPTIONS = {
 const endorsment_ITEM_ELEMENT =
   '<div class="publication-list-group__list-item" data-target="${index}"> \
   <div class="publication-list-group__list-item-url"> \
-    <p>${endorsment}</p> \
+    <p>${endorsment} - ${date}</p> \
   </div> \
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
@@ -183,6 +187,8 @@ export default class endorsmentCreator {
   #setUp() {
     this.endorsmentInput = this.element.querySelector(this.options.textInputId);
 
+    const datepicker = ENTITY_HANDLERS['datepicker'](this.element.querySelector(this.options.endorsmentDatepickerId), [])
+
     this.addButton = this.element.querySelector(this.options.addButtonId);
     this.addButton.addEventListener("click", this.#handleInput.bind(this));
     window.addEventListener("click", this.#handleClick.bind(this));
@@ -201,7 +207,6 @@ export default class endorsmentCreator {
       group: endorsmentGroup,
       list: endorsmentList,
     };
-    console.log(this.renderables);
 
     const attr = this.element.getAttribute(this.options.dataAttribute);
     this.dataResult = this.element.parentNode.querySelector(`[for="${attr}"]`);
