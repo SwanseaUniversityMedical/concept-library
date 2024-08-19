@@ -30,6 +30,11 @@ const endorsment_OPTIONS = {
 import {
   ENTITY_HANDLERS,
 } from "../entityCreator/utils.js";
+
+import {
+  ENTITY_ACCEPTABLE_DATE_FORMAT
+} from '../entityFormConstants.js';
+
 /**
  * endorsment_ITEM_ELEMENT
  * @desc describes the endorsment item element and its interpolable targets
@@ -146,10 +151,12 @@ export default class endorsmentCreator {
    * @param {string} endorsment the endorsment name
    * @returns {string} html string representing the element
    */
-  #drawItem(index, endorsment) {
+  #drawItem(index, endorsment,date) {
+
     return interpolateString(endorsment_ITEM_ELEMENT, {
       index: index,
-      endorsment: endorsment,
+      date: date,
+      endorsment: endorsment
     });
   }
 
@@ -168,6 +175,7 @@ export default class endorsmentCreator {
       for (let i = 0; i < this.data.length; ++i) {
         const node = this.#drawItem(
           i,
+          this.data[i]?.date,
           this.data[i]?.details
         );
         this.renderables.list.insertAdjacentHTML("beforeend", node);
@@ -187,7 +195,15 @@ export default class endorsmentCreator {
   #setUp() {
     this.endorsmentInput = this.element.querySelector(this.options.textInputId);
 
-    const datepicker = ENTITY_HANDLERS['datepicker'](this.element.querySelector(this.options.endorsmentDatepickerId), [])
+    this.datepicker = ENTITY_HANDLERS['datepicker'](this.element.querySelector(this.options.endorsmentDatepickerId), [])
+
+    let initialDate = moment(this.element.querySelector(this.options.endorsmentDatepickerId).getAttribute('data-value'), ENTITY_ACCEPTABLE_DATE_FORMAT);
+    initialDate = initialDate.isValid() ? initialDate : moment();
+    initialDate = initialDate.format('YYYY-MM-DD');
+    this.datepicker.setDate(initialDate,true);
+
+    this.element.querySelector(this.options.endorsmentDatepickerId).setAttribute('data-value',initialDate);
+
 
     this.addButton = this.element.querySelector(this.options.addButtonId);
     this.addButton.addEventListener("click", this.#handleInput.bind(this));
@@ -227,10 +243,22 @@ export default class endorsmentCreator {
     e.stopPropagation();
 
     const endorsment = this.endorsmentInput.value;
+    const date = this.element.querySelector(this.options.endorsmentDatepickerId);
+
+    
+    if (!this.endorsmentInput.checkValidity() || isNullOrUndefined(endorsment) || isStringEmpty(endorsment)) {
+      
+      return;
+    }
+
+    if (!date.getAttribute('data-value')) {
+      return;
+    }
 
     this.endorsmentInput.value = "";
-    this.data.push({ details: endorsment });
+    this.data.push({ details: endorsment, date: date.getAttribute('data-value')});
     this.makeDirty();
+    console.log(this.data);
 
     this.#redrawendorsments();
   }
