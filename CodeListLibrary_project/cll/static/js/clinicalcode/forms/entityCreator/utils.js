@@ -2,6 +2,7 @@ import Tagify from '../../components/tagify.js';
 import ConceptCreator from '../clinical/conceptCreator.js';
 import GroupedEnum from '../../components/groupedEnumSelector.js';
 import PublicationCreator from '../clinical/publicationCreator.js';
+import EndorsementCreator from '../clinical/endorsementCreator.js';
 import StringInputListCreator from '../stringInputListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
 
@@ -10,7 +11,7 @@ import {
   ENTITY_ACCEPTABLE_DATE_FORMAT,
   ENTITY_TEXT_PROMPTS
 } from '../entityFormConstants.js';
-import endorsmentCreator from '../clinical/endorsmentCreator.js';
+
 
 /**
  * ENTITY_HANDLERS
@@ -167,6 +168,7 @@ export const ENTITY_HANDLERS = {
       value = value.isValid() ? value : moment();
       value = value.format('YYYY-MM-DD');
       datepicker.setDate(value, true);
+      console.log(datepicker)
     }
 
     return datepicker;
@@ -238,7 +240,7 @@ export const ENTITY_HANDLERS = {
     return new PublicationCreator(element, parsed)
   },
 
-  'clinical-endorsment':(element) => {
+  'clinical-endorsement':(element) => {
     const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let parsed;
@@ -249,7 +251,7 @@ export const ENTITY_HANDLERS = {
       parsed = [];
     }
 
-    return new endorsmentCreator(element, parsed)
+    return new EndorsementCreator(element, parsed)
 
   },
 
@@ -665,6 +667,35 @@ export const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: publications,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  'clinical-endorsement': (field, packet) => {
+    const handler = packet.handler;
+    const endorsements = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(endorsements) || endorsements.length < 1) {
+        return {
+          valid: false,
+          value: endorsements,
+          message: (isNullOrUndefined(endorsements) || endorsements.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, endorsements);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: endorsements,
         message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }

@@ -479,17 +479,17 @@ metadata = {
         "active": True,
         "validation": {
             "type": "publication",
-            "mandatory": False
+            "mandatory": True
         },
         'is_base_field': True
     },
-    "endorsments": {
-        "title": "Endorsments",
-        "description": "Endorsments for this phenotype.",
-        "field_type": "endorsments",
+    "endorsements": {
+        "title": "Endorsements",
+        "description": "Endorsements for this phenotype.",
+        "field_type": "endorsements",
         "active": True,
         "validation": {
-            "type": "publication",
+            "type": "endorsement",
             "mandatory": False
         },
         'is_base_field': True
@@ -779,9 +779,9 @@ FIELD_TYPES = {
         'input_type': 'clinical/publication',
         'output_type': 'clinical/publication',
     },
-    'endorsments': {
-        'input_type': 'clinical/endorsment',
-        'output_type': 'clinical/endorsment',
+    'endorsements': {
+        'input_type': 'clinical/endorsement',
+        'output_type': 'clinical/endorsement',
     },
     'coding_system': {
         'system_defined': True,
