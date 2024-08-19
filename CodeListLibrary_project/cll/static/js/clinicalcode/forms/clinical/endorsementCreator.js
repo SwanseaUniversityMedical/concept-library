@@ -1,9 +1,9 @@
 /**
- * endorsment_OPTIONS
+ * endorsement_OPTIONS
  * @desc describes the optional parameters for this class
  *
  */
-const endorsment_OPTIONS = {
+const endorsement_OPTIONS = {
   // The minimum message duration for toast notif popups
   notificationDuration: 5000,
 
@@ -14,18 +14,18 @@ const endorsment_OPTIONS = {
   targetAttribute: "data-target",
 
   /* Related element IDs */
-  //  - textInputId: describes the text input box for endorsment details
-  textInputId: "#endorsment-input-box",
-  //  - addButtonId: describes the 'Add' button used to add endorsments
+  //  - textInputId: describes the text input box for endorsement details
+  textInputId: "#endorsement-input-box",
+  //  - addButtonId: describes the 'Add' button used to add endorsements
   addButtonId: "#add-input-btn",
-  //  - availabilityId: describes the 'No available endorsments' element
-  availabilityId: "#no-available-endorsments",
-  //  - endorsmentGroupId: describes the parent element of the endorsment list
-  endorsmentGroupId: "#endorsment-group",
-  //  - endorsmentListId: describes the endorsment list in which elements are held
-  endorsmentListId: "#endorsment-list",
+  //  - availabilityId: describes the 'No available endorsements' element
+  availabilityId: "#no-available-endorsements",
+  //  - endorsementGroupId: describes the parent element of the endorsement list
+  endorsementGroupId: "#endorsement-group",
+  //  - endorsementListId: describes the endorsement list in which elements are held
+  endorsementListId: "#endorsement-list",
 
-  endorsmentDatepickerId: "#entity-endorsments-input",
+  endorsementDatepickerId: "#entity-endorsements-input",
 };
 import {
   ENTITY_HANDLERS,
@@ -36,14 +36,14 @@ import {
 } from '../entityFormConstants.js';
 
 /**
- * endorsment_ITEM_ELEMENT
- * @desc describes the endorsment item element and its interpolable targets
+ * endorsement_ITEM_ELEMENT
+ * @desc describes the endorsement item element and its interpolable targets
  *
  */
-const endorsment_ITEM_ELEMENT =
+const endorsement_ITEM_ELEMENT =
   '<div class="publication-list-group__list-item" data-target="${index}"> \
   <div class="publication-list-group__list-item-url"> \
-    <p>${endorsment} - ${date}</p> \
+    <p>${endorsement} - ${date}</p> \
   </div> \
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
@@ -52,19 +52,19 @@ const endorsment_ITEM_ELEMENT =
 </div>';
 
 /**
- * @class endorsmentCreator
- * @desc A class that can be used to control endorsment lists
+ * @class endorsementCreator
+ * @desc A class that can be used to control endorsement lists
  * 
  * e.g.
  * 
   ```js
     // initialise
     const startValue = [
-      { details: 'some other title' }
+      { endorsement_organisation: 'some other title' }
     ];
 
-    const element = document.querySelector('#endorsment-component');
-    const creator = new endorsmentCreator(element, startValue);
+    const element = document.querySelector('#endorsement-component');
+    const creator = new endorsementCreator(element, startValue);
 
     // ...when retrieving data
     if (creator.isDirty()) {
@@ -77,7 +77,7 @@ const endorsment_ITEM_ELEMENT =
   ```
  * 
  */
-export default class endorsmentCreator {
+export default class endorsementCreator {
   constructor(element, data, options) {
     this.data = Array.isArray(data) ? data : [];
     this.dirty = false;
@@ -87,11 +87,11 @@ export default class endorsmentCreator {
     if (!isObjectType(options)) {
       options = {};
     }
-    this.options = mergeObjects(options, endorsment_OPTIONS);
+    this.options = mergeObjects(options, endorsement_OPTIONS);
 
     // init
     this.#setUp();
-    this.#redrawendorsments();
+    this.#redrawendorsements();
   }
 
   /*************************************
@@ -101,7 +101,7 @@ export default class endorsmentCreator {
    *************************************/
   /**
    * getData
-   * @returns {object} the endorsment data
+   * @returns {object} the endorsement data
    */
   getData() {
     return this.data;
@@ -147,24 +147,24 @@ export default class endorsmentCreator {
    *************************************/
   /**
    * drawItem
-   * @param {integer} index the index of the endorsment in our data
-   * @param {string} endorsment the endorsment name
+   * @param {integer} index the index of the endorsement in our data
+   * @param {string} endorsement the endorsement name
    * @returns {string} html string representing the element
    */
-  #drawItem(index, endorsment,date) {
+  #drawItem(index, endorsement,date) {
 
-    return interpolateString(endorsment_ITEM_ELEMENT, {
+    return interpolateString(endorsement_ITEM_ELEMENT, {
       index: index,
       date: date,
-      endorsment: endorsment
+      endorsement: endorsement
     });
   }
 
   /**
-   * redrawendorsments
-   * @desc redraws the entire endorsment list
+   * redrawendorsements
+   * @desc redraws the entire endorsement list
    */
-  #redrawendorsments() {
+  #redrawendorsements() {
     this.dataResult.innerText = JSON.stringify(this.data);
     this.renderables.list.innerHTML = "";
 
@@ -176,7 +176,7 @@ export default class endorsmentCreator {
         const node = this.#drawItem(
           i,
           this.data[i]?.date,
-          this.data[i]?.details
+          this.data[i]?.endorsement_organsation
         );
         this.renderables.list.insertAdjacentHTML("beforeend", node);
       }
@@ -190,19 +190,19 @@ export default class endorsmentCreator {
 
   /**
    * setUp
-   * @desc initialises the endorsment component
+   * @desc initialises the endorsement component
    */
   #setUp() {
-    this.endorsmentInput = this.element.querySelector(this.options.textInputId);
+    this.endorsementInput = this.element.querySelector(this.options.textInputId);
 
-    this.datepicker = ENTITY_HANDLERS['datepicker'](this.element.querySelector(this.options.endorsmentDatepickerId), [])
+    this.datepicker = ENTITY_HANDLERS['datepicker'](this.element.querySelector(this.options.endorsementDatepickerId), [])
 
-    let initialDate = moment(this.element.querySelector(this.options.endorsmentDatepickerId).getAttribute('data-value'), ENTITY_ACCEPTABLE_DATE_FORMAT);
+    let initialDate = moment(this.element.querySelector(this.options.endorsementDatepickerId).getAttribute('data-value'), ENTITY_ACCEPTABLE_DATE_FORMAT);
     initialDate = initialDate.isValid() ? initialDate : moment();
-    initialDate = initialDate.format('YYYY-MM-DD');
+    initialDate = initialDate.format('DD/MM/YYYY');
     this.datepicker.setDate(initialDate,true);
 
-    this.element.querySelector(this.options.endorsmentDatepickerId).setAttribute('data-value',initialDate);
+    this.element.querySelector(this.options.endorsementDatepickerId).setAttribute('data-value',initialDate);
 
 
     this.addButton = this.element.querySelector(this.options.addButtonId);
@@ -212,16 +212,16 @@ export default class endorsmentCreator {
     const noneAvailable = this.element.parentNode.querySelector(
       this.options.availabilityId
     );
-    const endorsmentGroup = this.element.parentNode.querySelector(
-      this.options.endorsmentGroupId
+    const endorsementGroup = this.element.parentNode.querySelector(
+      this.options.endorsementGroupId
     );
-    const endorsmentList = this.element.parentNode.querySelector(
-      this.options.endorsmentListId
+    const endorsementList = this.element.parentNode.querySelector(
+      this.options.endorsementListId
     );
     this.renderables = {
       none: noneAvailable,
-      group: endorsmentGroup,
-      list: endorsmentList,
+      group: endorsementGroup,
+      list: endorsementList,
     };
 
     const attr = this.element.getAttribute(this.options.dataAttribute);
@@ -235,19 +235,23 @@ export default class endorsmentCreator {
    *************************************/
   /**
    * handleInput
-   * @desc bindable event handler for key up events of the endorsment input box
+   * @desc bindable event handler for key up events of the endorsement input box
    * @param {event} e the event of the input
    */
   #handleInput(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    const endorsment = this.endorsmentInput.value;
-    const date = this.element.querySelector(this.options.endorsmentDatepickerId);
+    const endorsement = this.endorsementInput.value;
+    const date = this.element.querySelector(this.options.endorsementDatepickerId);
 
     
-    if (!this.endorsmentInput.checkValidity() || isNullOrUndefined(endorsment) || isStringEmpty(endorsment)) {
-      
+    if (!this.endorsementInput.checkValidity() || isNullOrUndefined(endorsement) || isStringEmpty(endorsement)) {
+      window.ToastFactory.push({
+        type: 'danger',
+        message: "Incorrect endorsement details provided",
+        duration: this.options.notificationDuration,
+      });
       return;
     }
 
@@ -255,17 +259,17 @@ export default class endorsmentCreator {
       return;
     }
 
-    this.endorsmentInput.value = "";
-    this.data.push({ details: endorsment, date: date.getAttribute('data-value')});
+    this.endorsementInput.value = "";
+    this.data.push({ endorsement_organisation: endorsement, date: date.getAttribute('data-value')});
     this.makeDirty();
     console.log(this.data);
 
-    this.#redrawendorsments();
+    this.#redrawendorsements();
   }
 
   /**
    * handleClick
-   * @desc bindable event handler for click events of the endorsment item's delete button
+   * @desc bindable event handler for click events of the endorsement item's delete button
    * @param {event} e the event of the input
    */
   #handleClick(e) {
@@ -284,7 +288,7 @@ export default class endorsmentCreator {
     }
 
     this.data.splice(parseInt(index), 1);
-    this.#redrawendorsments();
+    this.#redrawendorsements();
     this.makeDirty();
   }
 }
