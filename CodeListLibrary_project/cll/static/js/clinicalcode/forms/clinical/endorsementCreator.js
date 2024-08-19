@@ -43,7 +43,7 @@ import {
 const endorsement_ITEM_ELEMENT =
   '<div class="publication-list-group__list-item" data-target="${index}"> \
   <div class="publication-list-group__list-item-url"> \
-    <p>${endorsement} - ${date}</p> \
+    <p>${endorsement_organisation} - ${date}</p> \
   </div> \
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
@@ -151,12 +151,12 @@ export default class endorsementCreator {
    * @param {string} endorsement the endorsement name
    * @returns {string} html string representing the element
    */
-  #drawItem(index, endorsement,date) {
+  #drawItem(index, endorsement_organisation,date) {
 
     return interpolateString(endorsement_ITEM_ELEMENT, {
       index: index,
       date: date,
-      endorsement: endorsement
+      endorsement_organisation: endorsement_organisation
     });
   }
 
@@ -171,12 +171,11 @@ export default class endorsementCreator {
     if (this.data.length > 0) {
       this.renderables.group.classList.add("show");
       this.renderables.none.classList.remove("show");
-        console.log(this.data);
       for (let i = 0; i < this.data.length; ++i) {
         const node = this.#drawItem(
           i,
           this.data[i]?.date,
-          this.data[i]?.endorsement_organsation
+          this.data[i]?.endorsement_organisation
         );
         this.renderables.list.insertAdjacentHTML("beforeend", node);
       }
@@ -262,7 +261,6 @@ export default class endorsementCreator {
     this.endorsementInput.value = "";
     this.data.push({ endorsement_organisation: endorsement, date: date.getAttribute('data-value')});
     this.makeDirty();
-    console.log(this.data);
 
     this.#redrawendorsements();
   }
