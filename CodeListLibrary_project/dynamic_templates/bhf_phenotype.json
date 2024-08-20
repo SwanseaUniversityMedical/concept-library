@@ -31,17 +31,6 @@
         },
         "description": "Name of endorsing organisation"
       },
-      "endorsement_date": {
-        "title": "Endorsement Date",
-        "active": true,
-        "field_type": "date",
-        "validation": {
-          "type": "string",
-          "regex": "^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\\d{4}$",
-          "mandatory": false
-        },
-        "description": "Date of endorsement"
-      },
       "regulatory_approval_study": {
         "title": "Regulatory Approval Study",
         "active": true,
