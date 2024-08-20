@@ -168,7 +168,6 @@ export const ENTITY_HANDLERS = {
       value = value.isValid() ? value : moment();
       value = value.format('YYYY-MM-DD');
       datepicker.setDate(value, true);
-      console.log(datepicker)
     }
 
     return datepicker;
