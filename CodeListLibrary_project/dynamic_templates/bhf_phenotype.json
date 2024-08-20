@@ -89,6 +89,7 @@
         },
         "description": "Regulatory Approval Date"
       },
+
       "phenotype_uuid": {
         "title": "Phenotype UUID",
         "active": true,
@@ -132,6 +133,17 @@
         },
         "description": "The category of patient characteristic this phenotype falls under."
       },
+      "endorsements": {
+        "title": "Endorsements",
+        "description": "Endorsements for this phenotype.",
+        "field_type": "endorsements",
+        "active": true,
+        "validation": {
+            "type": "endorsement",
+            "mandatory": false
+        }
+      },
+     
       "data_sources": {
         "title": "Data Sources",
         "active": true,
