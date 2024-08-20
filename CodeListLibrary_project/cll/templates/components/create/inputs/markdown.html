@@ -18,5 +18,5 @@
   <div id="entity-{{ component.field_name }}" class="filter-scrollbar markdown-editor" data-class="md-editor" data-field="{{ component.field_name }}">
     
   </div>
-  <data aria-hidden="true" for="{{ component.field_name }}">{{ component.value|linebreaks }}</script>
+  <data aria-hidden="true" for="{{ component.field_name }}">{% if component.value %}{{ component.value|linebreaks }}{% endif %}</data>
 </div>

@@ -84,15 +84,13 @@ jobs:
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
-          python manage.py makemigrations
-          python manage.py migrate
           python manage.py runserver 0.0.0.0:8000 > /dev/null &
 
       - name: Run tests
         run: |
           export $(grep -v '^#' docker/selenium-testing/env/remotetest.compose.env | xargs)
           cd CodeListLibrary_project
-          pytest -vv -s --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=./clinicalcode/tests/allure-results
+          pytest -vv -s --random-order --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=./clinicalcode/tests/allure-results
         env:
           DISPLAY: ":99"
 

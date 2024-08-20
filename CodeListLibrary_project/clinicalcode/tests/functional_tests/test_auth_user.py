@@ -1,9 +1,10 @@
+from clinicalcode.tests.constants.constants import TEST_CREATE_PHENOTYPE_WITH_ACCESS_PATH,TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH
 import pytest
 
 from pyconceptlibraryclient import Client
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True,transaction=True)
 @pytest.mark.usefixtures("setup_webdriver")
 class TestAuthPhenoAccess:
     """
@@ -33,7 +34,7 @@ class TestAuthPhenoAccess:
         generate_entity.created_by = user
         generate_entity.save()
 
-        client.phenotypes.create('../constants/test_create_phenotype_w_access.yaml')
+        client.phenotypes.create(TEST_CREATE_PHENOTYPE_WITH_ACCESS_PATH)
 
         normal_user_type = 'normal_user'
         normal_user = generate_user[normal_user_type]
@@ -77,7 +78,7 @@ class TestAuthPhenoAccess:
         template_list = client.templates.get()
         print("GET ALL TEMPLATE LIST:", template_list)
 
-        client.phenotypes.create('../constants/test_create_pheno_no_access.yaml')
+        client.phenotypes.create(TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH)
 
         normal_user_type = 'normal_user'
         normal_user = generate_user[normal_user_type]
@@ -96,18 +97,7 @@ class TestAuthPhenoAccess:
         """
         Test to verify that non-authenticated users can view published phenotypes.
         """
-        client = Client(public=True, url='http://127.0.0.1:8000/')
-
-        get_user_match_phenos = client.phenotypes.get_versions('PH1')
-        print(get_user_match_phenos)
-        print("User can view published phenotypes:", get_user_match_phenos)
-        assert get_user_match_phenos != []
-
-    def test_non_authenticated_user_view_unpublished_phenos(self):
-        """
-        Test to verify that non-authenticated users can view published phenotypes.
-        """
-        client = Client(public=True, url='http://127.0.0.1:8000/')
+        client = Client(public=True)
 
         get_user_match_phenos = client.phenotypes.get_versions('PH1')
         print(get_user_match_phenos)
@@ -118,10 +108,10 @@ class TestAuthPhenoAccess:
         """
         Test to verify that non-authenticated users can't create phenotypes.
         """
-        client = Client(public=True, url='http://127.0.0.1:8000/')
+        client = Client(public=True)
         
         try:
-            client.phenotypes.create('../constants/test_create_pheno_no_access.yaml')
+            client.phenotypes.create(TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH)
         except RuntimeError as e:
             print(e, "Phenotype could not have been created due to user not being Authenticated")
             assert True, "Runtime error raised"
@@ -131,10 +121,10 @@ class TestAuthPhenoAccess:
         """
         Test to verify that non-authenticated users can't update phenotypes.
         """
-        client = Client(public=True, url='http://127.0.0.1:8000/')
+        client = Client(public=True)
         
         try:
-            client.phenotypes.update('../constants/test_create_pheno_no_access.yaml')
+            client.phenotypes.update(TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH)
         except RuntimeError as e:
             print(e, "Phenotype could not have been updated due to user not being Authenticated")
             assert True, "Runtime error raised"
