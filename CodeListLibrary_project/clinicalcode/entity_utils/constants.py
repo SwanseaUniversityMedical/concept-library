@@ -483,18 +483,6 @@ metadata = {
         },
         'is_base_field': True
     },
-    "endorsements": {
-        "title": "Endorsements",
-        "description": "Endorsements for this phenotype.",
-        "field_type": "endorsements",
-        "active": True,
-        "validation": {
-            "type": "endorsement",
-            "mandatory": False
-        },
-        'is_base_field': True
-
-    },
     'validation': {
         'title': 'Validation',
         'field_type': 'textarea_markdown',
