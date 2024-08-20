@@ -262,6 +262,11 @@ export default class endorsementCreator {
     }
 
     this.endorsementInput.value = "";
+    let filteredDate = moment(date.getAttribute('data-value'), ENTITY_ACCEPTABLE_DATE_FORMAT);
+    filteredDate = filteredDate.isValid() ? filteredDate : moment();
+    filteredDate = filteredDate.format('DD/MM/YYYY');
+    this.element.querySelector(this.options.endorsementDatepickerId).setAttribute('data-value',filteredDate);
+    
     this.data.push({ endorsement_organisation: endorsement, date: date.getAttribute('data-value')});
     this.makeDirty();
 
