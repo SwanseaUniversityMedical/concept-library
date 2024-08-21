@@ -1,0 +1,31 @@
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <div class="publication-list-group">
+    <section class="publication-list-group__list show" id="trial-group">
+      <!-- <div class="publication-list-group__list-container " id="trial-list"> -->
+        {% if component.value|length %}
+          <ul>
+              {% for p in component.value %}
+                  <li>
+                      ID: {{ p.id }}
+                      Link: {{ p.link }}
+                      Name: {{ p.name }}
+                      {% if p.primary and p.primary == 1 %}
+                        <span class="badge">
+                            <strong>Primary</strong>
+                        </span>
+                      {% endif %}
+                  </li>
+              {% endfor %}
+          </ul>
+        {% else %}
+        <span class="card-no-data">No Trials</span>
+        {% endif %}
+      <!-- </div> -->
+    </section>
+  </div>
+</div>

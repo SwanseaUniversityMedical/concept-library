@@ -503,7 +503,7 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
  * @desc Interpolate string template
  *       Ref @ https://stackoverflow.com/posts/41015840/revisions
  * 
- * @param  {str} str The string to interpolate
+ * @param  {string} str The string to interpolate
  * @param  {object} params The parameters
  * @return {str} The interpolated string
  * 

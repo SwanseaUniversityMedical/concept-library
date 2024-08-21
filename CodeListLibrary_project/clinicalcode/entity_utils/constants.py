@@ -768,6 +768,10 @@ FIELD_TYPES = {
         'input_type': 'clinical/publication',
         'output_type': 'clinical/publication',
     },
+    'trials': {
+        'input_type': 'clinical/trial',
+        'output_type': 'clinical/trial',
+    },
     'coding_system': {
         'system_defined': True,
         'description': 'list of coding system ids (calculated from phenotype concepts) (managed by code snippet)',

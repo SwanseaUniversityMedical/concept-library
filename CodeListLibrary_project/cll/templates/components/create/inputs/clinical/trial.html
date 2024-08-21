@@ -1,0 +1,43 @@
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Clinical Trials {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+  {% if not component.hide_input_details %}
+    <p class="detailed-input-group__description">Add a clinical trial by providing registration ID, link and name.</p>
+  {% endif %}
+
+  <div class="publication-list-group">
+    {% if component.value %}
+      {% to_json_script component.value desc-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
+
+    <div class="publication-list-group__interface" data-class="clinical-trial" data-field="{{ component.field_name }}">
+      <p>Add Clinical Trials</p>
+      <div class="publication-list-group__interface-children">
+        <input class="text-input" aria-label="Registration ID" type="text" placeholder="Registration ID" id="id-input-box">
+        <input class="text-input" aria-label="Registration Link" type="text" placeholder="Registration Link" id="link-input-box">
+        <input class="text-input" aria-label="Trial Name" type="text" placeholder="Trial Name" id="name-input-box">
+        <div class="checkbox-item-container min-size">
+              <input id="primary-trial-checkbox" aria-label="Primary Trial" type="checkbox" class="checkbox-item" data-value="1" data-name="Primary Trial">
+              <label for="primary-trial-checkbox">Primary Trial</label>
+        </div>
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Publication" id="add-input-btn">Add</button>
+    </div>
+  </div>
+
+    <section class="publication-list-group__none-available" id="no-available-trials">
+      <p class="publication-list-group__none-available-message">You haven't added any clinical trials yet.</p>
+    </section>
+
+    <section class="publication-list-group__list show" id="trial-group">
+      <div class="publication-list-group__list-header" id="trial-header">
+        <h3>Your clinical trials</h3>
+      </div>
+      <div class="publication-list-group__list-container slim-scrollbar" id="trial-list">
+        
+      </div>
+    </section>
+  </div>
+</div>
