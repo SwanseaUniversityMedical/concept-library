@@ -768,6 +768,10 @@ FIELD_TYPES = {
         'input_type': 'clinical/publication',
         'output_type': 'clinical/publication',
     },
+    'endorsements': {
+        'input_type': 'clinical/endorsement',
+        'output_type': 'clinical/endorsement',
+    },
     'trials': {
         'input_type': 'clinical/trial',
         'output_type': 'clinical/trial',

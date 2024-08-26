@@ -1,0 +1,22 @@
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <div class="publication-list-group">
+    <section class="publication-list-group__list mg-sm show" id="string_inputlist-group">
+      {% if component.value|length %}
+          {% for p in component.value %}
+                <div class="publication-list-group__list-item">
+                    <p>{{p.date}}</p> 
+                    <p>{{p.endorsement_organisation}}</p> 
+                  </div>
+          {% endfor %}
+      {% else %}
+        <span class="card-no-data">No endorsement</span>
+      {% endif %}
+      <!-- </div> -->
+    </section>
+  </div>
+</div>
