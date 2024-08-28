@@ -716,6 +716,7 @@ export const ENTITY_FIELD_COLLECTOR = {
       value: parsedValue?.value
     }
   },
+
   'clinical-endorsement': (field, packet) => {
     const handler = packet.handler;
     const endorsements = handler.getData();
@@ -744,9 +745,6 @@ export const ENTITY_FIELD_COLLECTOR = {
       value: parsedValue?.value
     }
   },
-
-
-
 
   // Retrieves and validates MDE components
   'md-editor': (field, packet) => {

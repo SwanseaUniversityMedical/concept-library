@@ -38,10 +38,18 @@ const TRIAL_OPTIONS = {
  * 
  */
 const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
-  <div class="publication-list-group__list-item-url"> \
-    <p>${id}${link}${name}</p> \
-    ${primary === 1 ? \'<p>Primary</p>\' : \'\'}\
+  <div class="publication-list-group__list-item-url" style="flex: 1;"> \
+    <p>${id}</p> \
   </div> \
+  <div class="publication-list-group__list-item-url" style="flex: 1;">\
+    <p style="margin: 0;">${link}</p> \
+  </div>\
+  <div class="publication-list-group__list-item-names" style="flex: 1;"> \
+    <p>${name}</p> \
+  </div> \
+  <div class="publication-list-group__list-item-names" style="flex: 1">\
+  \${primary === 1 ? \'<p>Primary</p>\' : \'\'}\
+  </div>\
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
     <span>Remove</span> \
@@ -54,7 +62,7 @@ const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-
  *       and its interpolable targets
  *
  */
-const TRIAL_LINK_ELEMENT = '<br/><br/><a href="${link}">${link}</a>';
+const TRIAL_LINK_ELEMENT = '<a href="${link}">${link}</a>';
 
 
 export default class TrialCreator {
@@ -194,7 +202,7 @@ export default class TrialCreator {
     const noneAvailable = this.element.parentNode.querySelector(this.options.availabilityId);
     const trialGroup = this.element.parentNode.querySelector(this.options.trialGroupId);
     const trialList = this.element.parentNode.querySelector(this.options.trialListId);
-    console.log(trialList)
+
     this.renderables = {
       none: noneAvailable,
       group: trialGroup,

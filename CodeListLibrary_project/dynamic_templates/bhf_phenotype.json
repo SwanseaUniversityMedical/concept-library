@@ -1,84 +1,43 @@
 {
     "fields": {
-      "primary_clinical_trial": {
-        "title": "Primarary Clinical Trial",
+      "corresp_author": {
+        "title": "Corresponding Author",
         "active": true,
-        "search": {
-          "api": true,
-          "filterable": true
-        },
-        "field_type": "enum_dropdown_badge",
-        "validation": {
-          "type": "enum",
-          "options": {
-            "1": "ISRCTN",
-            "2": "EuDRACT"
-          },
-          "mandatory": true
-        },
-        "description": "Primary clinical trials used in with clinical trial reference."
-      },
-      "endorsement_organisation": {
-        "title": "Endorsement Organisation",
-        "active": true,
-        "search": {
-          "api": true
-        },
-        "field_type": "endorsements",
-        "validation": {
-          "type": "string_array",
-          "mandatory": false
-        },
-        "description": "Name of endorsing organisation"
-      },
-      "regulatory_approval_study": {
-        "title": "Regulatory Approval Study",
-        "active": true,
-        "search": {
-          "api": true
-        },
         "field_type": "string_inputbox",
         "validation": {
           "type": "string",
-          "length": [
-            0,
-            250
-          ],
-          "unique": false,
           "mandatory": false
         },
-        "description": "Information on study approval was granted for"
+        "description": "The name of the corresponding author."
       },
-      "regulatory_approval_organisation": {
-        "title": "Regulatory Approval organisation",
+      "ontology": {
+      "title": "Ontology",
+      "description": "A set of taggable categories and concepts that describe this Phenotype.",
+      "field_type": "ontology",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "source": {
+          "trees": [ 0, 1, 2 ]
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      }
+    },
+      "corresp_email": {
+        "title": "Email Address",
         "active": true,
-        "search": {
-          "api": true
-        },
         "field_type": "string_inputbox",
         "validation": {
           "type": "string",
-          "length": [
-            0,
-            250
-          ],
-          "unique": false,
+          "regex": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
           "mandatory": false
         },
-        "description": "Regulatory approval organisation/body details"
+        "description": "The preferred email address."
       },
-      "regulatory_approval_date": {
-        "title": "Regulatory Approval Date",
-        "active": true,
-        "field_type": "date",
-        "validation": {
-          "type": "string",
-          "regex": "^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\\d{4}$",
-          "mandatory": false
-        },
-        "description": "Regulatory Approval Date"
-      },
-
       "phenotype_uuid": {
         "title": "Phenotype UUID",
         "active": true,
@@ -129,6 +88,16 @@
         "active": true,
         "validation": {
             "type": "endorsement",
+            "mandatory": false
+        }
+      },
+      "trials": {
+        "title": "Clinical Trials",
+        "description": "Clinical Trials associated with this phenotype.",
+        "field_type": "trials",
+        "active": true,
+        "validation": {
+            "type": "trial",
             "mandatory": false
         }
       },
@@ -276,7 +245,9 @@
         "title": "Name - Author",
         "fields": [
           "name",
-          "author"
+          "author",
+          "corresp_author",
+          "corresp_email"
         ],
         "description": "",
         "hide_on_detail": true
@@ -290,6 +261,7 @@
           "event_date_range",
           "coding_system",
           "data_sources",
+          "ontology",
           "collections",
           "tags"
         ],
@@ -298,12 +270,9 @@
       {
         "title": "Definition",
         "fields": [
-          "primary_clinical_trial",
-          "endorsement_date",
-          "regulatory_approval_study",
-          "regulatory_approval_organisation",
-          "regulatory_approval_date",
-           "definition"
+          "definition",
+          "trials",
+          "endorsements"
         ],
         "description": ""
       },
@@ -332,14 +301,6 @@
         ],
         "description": "Clinical codes used to define this phenotype."
       },
-      {
-        "title": "Endorsement Organisation",
-        "fields": [
-          "endorsements"
-        ],
-        "description": "Endorsements(s) where this phenotype is defined and/or used."
-      },
-      
       {
         "title": "Publication",
         "fields": [

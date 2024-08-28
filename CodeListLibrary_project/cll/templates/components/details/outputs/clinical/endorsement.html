@@ -5,14 +5,19 @@
 
 <div class="detailed-input-group fill">
   <div class="publication-list-group">
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+  </h3>
     <section class="publication-list-group__list mg-sm show" id="string_inputlist-group">
       {% if component.value|length %}
+          <ul>
           {% for p in component.value %}
-                <div class="publication-list-group__list-item">
-                    <p>{{p.date}}</p> 
-                    <p>{{p.endorsement_organisation}}</p> 
-                  </div>
+              <li>
+                  <b>Organisation</b>: {{p.endorsement_organisation}}
+                  <b>Date</b>: {{p.date}}
+              </li>
           {% endfor %}
+          </ul>
       {% else %}
         <span class="card-no-data">No endorsement</span>
       {% endif %}

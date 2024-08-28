@@ -43,10 +43,10 @@ import {
 const endorsement_ITEM_ELEMENT =
   '<div class="publication-list-group__list-item" data-target="${index}" style="display: flex; justify-content: space-between; align-items: center;"> \
   <div class="publication-list-group__list-item-url" style="flex: 1;">\
-    <p style="margin: 0;">${endorsement_organisation}</p> \
+    <p style="margin: 0;">${date}</p> \
   </div>\
   <div class="publication-list-group__list-item-date" style="flex: 1; text-align: center;">\
-    <p style="margin: 0;">${date}</p> \
+    <p style="margin: 0;">${endorsement_organisation}</p> \
   </div>\
   <button class="publication-list-group__list-item-btn" data-target="${index}" style="margin-left: 10px;"> \
     <span class="delete-icon"></span> \
