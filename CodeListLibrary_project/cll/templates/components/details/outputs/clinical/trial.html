@@ -15,9 +15,9 @@
           <ul>
               {% for p in component.value %}
                   <li>
-                      <b>ID</b>: {{ p.id }}
-                      <b>Link</b>: <a href="{{ p.link }}">{{ p.link }}</a>
-                      <b>Name</b>: {{ p.name }}
+                      <strong>ID</strong>: {{ p.id }}
+                      <strong>Link</strong>: <a href="{{ p.link }}">{{ p.link }}</a>
+                      <strong>Name</strong>: {{ p.name }}
                       {% if p.primary and p.primary == 1 %}
                         <span class="badge">
                             <strong>Primary</strong>

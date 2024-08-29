@@ -48,7 +48,7 @@ const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-
     <p>${name}</p> \
   </div> \
   <div class="publication-list-group__list-item-names" style="flex: 1">\
-  \${primary === 1 ? \'<p>Primary</p>\' : \'\'}\
+  \${primary === 1 ? \'<p><strong>Primary</strong></p>\' : \'\'}\
   </div>\
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
