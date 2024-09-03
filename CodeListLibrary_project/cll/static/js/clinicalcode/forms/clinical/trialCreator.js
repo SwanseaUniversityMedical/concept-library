@@ -1,11 +1,13 @@
+import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
+
 /**
- * PUBLICATION_OPTIONS
+ * TRIAL_OPTIONS
  * @desc describes the optional parameters for this class
  * 
  */
 const TRIAL_OPTIONS = {
   // The minimum message duration for toast notif popups
-  notificationDuration: 5000,
+  notificationDuration: PUBLICATION_MIN_MSG_DURATION,
 
   /* Attribute name(s) */
   //  - dataAttribute: defines the attribute that's used to retrieve contextual data
@@ -33,8 +35,8 @@ const TRIAL_OPTIONS = {
 
 
 /**
- * PUBLICATION_ITEM_ELEMENT
- * @desc describes the publication item element and its interpolable targets
+ * TRIAL_ITEM_ELEMENT
+ * @desc describes the trial item element and its interpolable targets
  * 
  */
 const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
@@ -57,13 +59,25 @@ const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-
 </div>';
 
 /**
- * PUBLICATION_DOI_ELEMENT
- * @desc describes the optional publication DOI element
+ * TRIAL_LINK_ELEMENT
+ * @desc describes the optional trial link element
  *       and its interpolable targets
  *
  */
 const TRIAL_LINK_ELEMENT = '<a href="${link}">${link}</a>';
 
+/**
+ * TRIAL_NOTIFICATIONS
+ * @desc notification text that is used to present information
+ *       to the client, _e.g._ to inform them of a validation
+ *       error, or to confirm them of a forced change _etc_
+ *
+ */
+const TRIAL_LINK_NOTIFICATIONS = {
+  // e.g. in the case of a user providing a DOI
+  //      that isn't matched by utils.js' `CLU_DOI_PATTERN` regex
+  InvalidLinkProvided: 'Invalid link. Please check if it starts with "http://" or "https://"—that might be the issue.',
+}
 
 export default class TrialCreator {
   constructor(element, data, options) {
@@ -89,7 +103,7 @@ export default class TrialCreator {
    *************************************/
   /**
    * getData
-   * @returns {object} the publication data
+   * @returns {object} the trial data
    */
   getData() {
     return this.data;
@@ -135,11 +149,11 @@ export default class TrialCreator {
    *************************************/
   /**
    * drawItem
-   * @param {int} index the index of the publication in our data
+   * @param {int} index the index of the trial in our data
    * @param id
-   * @param {string} link the publication name
-   * @param {string} name Primary Publication Flag
-   * @param {int} primary Primary Publication Flag
+   * @param {string} link the trial name
+   * @param {string} name Primary trial Flag
+   * @param {int} primary Primary trial Flag
    * @returns {string} html string representing the element
    */
   #drawItem(index, id, link, name, primary) {
@@ -162,8 +176,8 @@ export default class TrialCreator {
   }
 
   /**
-   * redrawPublications
-   * @desc redraws the entire publication list
+   * redrawTrials
+   * @desc redraws the entire trial list
    */
   #redrawTrials() {
     this.dataResult.innerText = JSON.stringify(this.data);
@@ -187,7 +201,7 @@ export default class TrialCreator {
 
   /**
    * setUp
-   * @desc initialises the publication component
+   * @desc initialises the trial component
    */
   #setUp() {
     this.regId = this.element.querySelector(this.options.idInputId);
@@ -220,7 +234,7 @@ export default class TrialCreator {
    *************************************/
   /**
    * handleInput
-   * @desc bindable event handler for key up events of the publication input box
+   * @desc bindable event handler for key up events of the trial input box
    * @param {event} e the event of the input 
    */
   #handleInput(e) {
@@ -232,6 +246,16 @@ export default class TrialCreator {
     const name = this.trialName.value;
     const primary= Number(this.primaryTrialCheckbox.checked ? this.primaryTrialCheckbox.dataset.value: '0');
 
+    const matches = parseString(link, CLU_TRIAL_LINK_PATTERN);
+    console.log(matches)
+    if (!matches?.[0]) {
+      window.ToastFactory.push(
+          {
+        type: 'danger',
+        message: TRIAL_LINK_NOTIFICATIONS.InvalidLinkProvided,
+        duration: this.options.notificationDuration,
+      });
+    }
 
     this.regId.value = '';
     this.regLink.value = '';
@@ -240,7 +264,7 @@ export default class TrialCreator {
     this.data.push(
         {
           id: id,
-          link: link,
+          link: matches?.[0],
           name: name,
           primary: primary
         }
@@ -252,7 +276,7 @@ export default class TrialCreator {
 
   /**
    * handleClick
-   * @desc bindable event handler for click events of the publication item's delete button
+   * @desc bindable event handler for click events of the trial item's delete button
    * @param {event} e the event of the input 
    */
   #handleClick(e) {
