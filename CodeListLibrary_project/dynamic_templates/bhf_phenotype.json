@@ -312,9 +312,9 @@
 
     ],
     "template_details": {
-      "name": "BHF Test",
+      "name": "BHF phenotype",
       "version": 1,
       "card_type": "clinical",
-      "description": "BHF test definitions that are based on lists of clinical codes, or algorithms using clinical codes."
+      "description": "BHF phenotype definitions that are based on lists of clinical codes, or algorithms using clinical codes."
     }
   }
