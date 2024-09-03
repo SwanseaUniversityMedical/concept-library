@@ -41,8 +41,10 @@ const PUBLICATION_OPTIONS = {
 const PUBLICATION_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
   <div class="publication-list-group__list-item-url"> \
     <p>${publication}${doiElement}</p> \
-    ${primary === 1 ? \'<p>Primary</p>\' : \'\'}\
   </div> \
+  <div class="publication-list-group__list-item-primary" style="flex: 1; text-align: center">\
+  \${primary === 1 ? \'<p><strong>Primary</strong></p>\' : \'\'}\
+  </div>\
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
     <span>Remove</span> \
@@ -265,7 +267,7 @@ export default class PublicationCreator {
       return;
     }
 
-    const matches = parseDOI(doi);
+    const matches = parseString(doi, CLU_DOI_PATTERN);
     if (!matches?.[0]) {
       window.ToastFactory.push({
         type: 'danger',
