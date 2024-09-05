@@ -169,7 +169,7 @@ class TestTemplateVersioning:
            None
        """
 
-        def get_published_entity_count(self, live_server):
+        def get_published_entity_count(live_server):
             self.driver.get(live_server.url)
             
             counter_xpath = "//p[text()='Phenotypes']/following-sibling::p[@id='entity-counter']"
