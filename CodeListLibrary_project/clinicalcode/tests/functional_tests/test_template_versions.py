@@ -195,8 +195,9 @@ class TestTemplateVersioning:
                                                   created_by_id=generic_entity_v2.created_by.id,
                                                   approval_status=APPROVAL_STATUS.APPROVED)
         published_entity.save()
+        time.sleep(100)
         self.driver.get(live_server + reverse("run_homepage_statistics"))
-        time.sleep(10)
+
 
         final_count = get_published_entity_count(live_server)
         logout(self.driver)
