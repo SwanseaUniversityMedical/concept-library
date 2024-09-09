@@ -4,7 +4,7 @@
  */
 const CSEL_VIEWS = {
     // The search view whereby users can select Concepts
-    SEARCH: 0,
+    ATTRIBUTE_TABLE: 0,
   
     // The current selection view, only accessible when allowMultiple flag is set to true
     SELECTION: 1,
@@ -111,7 +111,7 @@ const CSEL_VIEWS = {
     TAB_VIEW: ' \
     <div class="tab-view" id="tab-view"> \
       <div class="tab-view__tabs tab-view__tabs-z-buffer"> \
-        <button aria-label="tab" id="SEARCH" class="tab-view__tab active">Attributed Concepts</button> \
+        <button aria-label="tab" id="ATTRIBUTE_TABLE" class="tab-view__tab active">Attributed Concepts</button> \
         <button aria-label="tab" id="SELECTION" class="tab-view__tab">All attributes</button> \
       </div> \
       <div class="tab-view__content" id="tab-content"> \
@@ -298,7 +298,7 @@ const CSEL_VIEWS = {
      * @param {object|null} params query parameters to be provided to server to modify Concept results 
      * @returns {promise} a promise that resolves if the selection was confirmed, otherwise rejects
      */
-    show(view = CSEL_VIEWS.SEARCH, params) {
+    show(view = CSEL_VIEWS.ATTRIBUTE_TABLE, params) {
       params = params || { };
   
       // Reject immediately if we currently have a dialogue open
@@ -432,7 +432,7 @@ const CSEL_VIEWS = {
         // data
         data: this.options?.maintainSelection ? this.data : [],
         params: params,
-        view: CSEL_VIEWS.SEARCH,
+        view: CSEL_VIEWS.ATTRIBUTE_TABLE,
   
         // dialogue elements
         element: modal,
@@ -491,7 +491,7 @@ const CSEL_VIEWS = {
       }
       
       if (!this.options.allowMultiple && view == CSEL_VIEWS.SELECTION) {
-        view = CSEL_VIEWS.SEARCH;
+        view = CSEL_VIEWS.ATTRIBUTE_TABLE;
       }
       this.dialogue.view = view;
   
@@ -505,6 +505,10 @@ const CSEL_VIEWS = {
       }
   
       switch (view) {
+        case CSEL_VIEWS.ATTRIBUTE_TABLE: {
+          this.#createGridTable(this.options.concept_data)
+        } break;
+  
         case CSEL_VIEWS.SELECTION: {
           this.#renderSelectionView();
         } break;
@@ -528,6 +532,8 @@ const CSEL_VIEWS = {
       let doc = parseHTMLFromString(html);
       let page = this.dialogue.content.appendChild(doc.body.children[0]);
       this.dialogue.page = page;
+
+      this.#paintSelectionAttributes();
   
     }
   
@@ -629,6 +635,30 @@ const CSEL_VIEWS = {
       }
   
       this.#renderView(CSEL_VIEWS[desired]);
+    }
+
+    #paintSelectionAttributes() {
+      const page = this.dialogue.page;
+      const selectedData = this.dialogue?.data;
+      console.log(selectedData)
+      if (!this.dialogue?.view == CSEL_VIEWS.SELECTION || isNullOrUndefined(page)) {
+        return;
+      }
+  
+      const content = page.querySelector('#item-list');
+      const noneAvailable = page.querySelector('#no-items-selected');
+      if (isNullOrUndefined(content) || isNullOrUndefined(noneAvailable)) {
+        return;
+      }
+  
+      const hasSelectedItems = !isNullOrUndefined(selectedData) && selectedData.length > 0;
+  
+      // Display none available if no items selected
+      if (!hasSelectedItems) {
+        content.classList.add('hide');
+        noneAvailable.classList.add('show');
+        return;
+      }
     }
   
 
