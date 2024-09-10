@@ -1,11 +1,11 @@
 import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
 
 /**
- * PUBLICATION_OPTIONS
+ * TRIAL_OPTIONS
  * @desc describes the optional parameters for this class
  * 
  */
-const PUBLICATION_OPTIONS = {
+const TRIAL_OPTIONS = {
   // The minimum message duration for toast notif popups
   notificationDuration: PUBLICATION_MIN_MSG_DURATION,
 
@@ -16,33 +16,40 @@ const PUBLICATION_OPTIONS = {
   targetAttribute: 'data-target',
 
   /* Related element IDs */
-  //  - textInputId: describes the text input box for publication details
-  textInputId: '#publication-input-box',
+  //  - textInputId: describes the text input box for trial details
+  idInputId: '#id-input-box',
   //  - doiInputId: describes the DOI text input box
-  doiInputId: '#doi-input-box',
-  //  - primaryPubCheckboxId: describes the primary publication checkbox
-  primaryPubCheckboxId: '#primary-publication-checkbox',
-  //  - addButtonId: describes the 'Add' button used to add publications
+  linkInputId: '#link-input-box',
+  //  - primaryTrialCheckboxId: describes the primary trial checkbox
+  primaryTrialCheckboxId: '#primary-trial-checkbox',
+  nameInputId: '#name-input-box',
+  //  - addButtonId: describes the 'Add' button used to add trials
   addButtonId: '#add-input-btn',
-  //  - availabilityId: describes the 'No available publications' element
-  availabilityId: '#no-available-publications',
-  //  - publicationGroupId: describes the parent element of the publication list
-  publicationGroupId: '#publication-group',
-  //  - publicationListId: describes the publication list in which elements are held
-  publicationListId: '#publication-list',
+  //  - availabilityId: describes the 'No available trials' element
+  availabilityId: '#no-available-trials',
+  //  - trialGroupId: describes the parent element of the trial list
+  trialGroupId: '#trial-group',
+  //  - trialListId: describes the trial list in which elements are held
+  trialListId: '#trial-list',
 };
 
 
 /**
- * PUBLICATION_ITEM_ELEMENT
- * @desc describes the publication item element and its interpolable targets
+ * TRIAL_ITEM_ELEMENT
+ * @desc describes the trial item element and its interpolable targets
  * 
  */
-const PUBLICATION_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
-  <div class="publication-list-group__list-item-url"> \
-    <p>${publication}${doiElement}</p> \
+const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
+  <div class="publication-list-group__list-item-url" style="flex: 1;"> \
+    <p>${id}</p> \
   </div> \
-  <div class="publication-list-group__list-item-primary" style="flex: 1; text-align: center">\
+  <div class="publication-list-group__list-item-url" style="flex: 1;">\
+    <p style="margin: 0;">${link}</p> \
+  </div>\
+  <div class="publication-list-group__list-item-names" style="flex: 1;"> \
+    <p>${name}</p> \
+  </div> \
+  <div class="publication-list-group__list-item-primary" style="flex: 1">\
   \${primary === 1 ? \'<p><strong>Primary</strong></p>\' : \'\'}\
   </div>\
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
@@ -51,58 +58,28 @@ const PUBLICATION_ITEM_ELEMENT = '<div class="publication-list-group__list-item"
   </button> \
 </div>';
 
-
 /**
- * PUBLICATION_DOI_ELEMENT
- * @desc describes the optional publication DOI element
+ * TRIAL_LINK_ELEMENT
+ * @desc describes the optional trial link element
  *       and its interpolable targets
- * 
+ *
  */
-const PUBLICATION_DOI_ELEMENT = '<br/><br/><a href="https://doi.org/${doi}">${doi}</a>';
-
+const TRIAL_LINK_ELEMENT = '<a href="${link}">${link}</a>';
 
 /**
- * PUBLICATION_NOTIFICATIONS
+ * TRIAL_NOTIFICATIONS
  * @desc notification text that is used to present information
  *       to the client, _e.g._ to inform them of a validation
  *       error, or to confirm them of a forced change _etc_
- * 
+ *
  */
-const PUBLICATION_NOTIFICATIONS = {
+const TRIAL_LINK_NOTIFICATIONS = {
   // e.g. in the case of a user providing a DOI
   //      that isn't matched by utils.js' `CLU_DOI_PATTERN` regex
-  InvalidDOIProvided: 'We couldn\'t validate the DOI you provided. Are you sure it\'s correct?',
+  InvalidLinkProvided: 'Invalid link. Please check if it starts with "http://" or "https://"—that might be the issue.',
 }
 
-
-/**
- * @class PublicationCreator
- * @desc A class that can be used to control publication lists
- * 
- * e.g.
- * 
-  ```js
-    // initialise
-    const startValue = [
-      { details: 'some publication title', doi?: 'some optional DOI' },
-      { details: 'some other title', doi?: 'some other optional DOI' }
-    ];
-
-    const element = document.querySelector('#publication-component');
-    const creator = new PublicationCreator(element, startValue);
-
-    // ...when retrieving data
-    if (creator.isDirty()) {
-      const data = creator.getData();
-      
-      // TODO: some save method
-
-
-    }
-  ```
- * 
- */
-export default class PublicationCreator {
+export default class TrialCreator {
   constructor(element, data, options) {
     this.data = Array.isArray(data) ? data : [ ];
     this.dirty = false;
@@ -112,11 +89,11 @@ export default class PublicationCreator {
     if (!isObjectType(options)) {
       options = { };
     }
-    this.options = mergeObjects(options, PUBLICATION_OPTIONS);
+    this.options = mergeObjects(options, TRIAL_OPTIONS);
  
     // init
     this.#setUp();
-    this.#redrawPublications();
+    this.#redrawTrials();
   }
 
   /*************************************
@@ -126,7 +103,7 @@ export default class PublicationCreator {
    *************************************/
   /**
    * getData
-   * @returns {object} the publication data
+   * @returns {object} the trial data
    */
   getData() {
     return this.data;
@@ -172,34 +149,37 @@ export default class PublicationCreator {
    *************************************/
   /**
    * drawItem
-   * @param {int} index the index of the publication in our data
-   * @param doi
-   * @param {string} publication the publication name
-   * @param {int} primary Primary Publication Flag
+   * @param {int} index the index of the trial in our data
+   * @param id
+   * @param {string} link the trial name
+   * @param {string} name Primary trial Flag
+   * @param {int} primary Primary trial Flag
    * @returns {string} html string representing the element
    */
-  #drawItem(index, doi, publication, primary) {
-    let doiElement;
-    if (!isNullOrUndefined(doi) && !isStringEmpty(doi)) {
-      doiElement = interpolateString(PUBLICATION_DOI_ELEMENT, { doi: doi });
+  #drawItem(index, id, link, name, primary) {
+
+    let linkElement;
+    if (!isNullOrUndefined(link) && !isStringEmpty(link)) {
+      linkElement = interpolateString(TRIAL_LINK_ELEMENT, { link: link });
     } else {
-      doiElement = '';
+      linkElement = '';
     }
 
-    return interpolateString(PUBLICATION_ITEM_ELEMENT, {
+    return interpolateString(TRIAL_ITEM_ELEMENT, {
       index: index,
-      doiElement: doiElement,
-      publication: publication,
+      id: id,
+      link: linkElement,
+      name: name,
       primary: primary
 
     });
   }
 
   /**
-   * redrawPublications
-   * @desc redraws the entire publication list
+   * redrawTrials
+   * @desc redraws the entire trial list
    */
-  #redrawPublications() {
+  #redrawTrials() {
     this.dataResult.innerText = JSON.stringify(this.data);
     this.renderables.list.innerHTML = '';
     
@@ -208,7 +188,7 @@ export default class PublicationCreator {
       this.renderables.none.classList.remove('show');
 
       for (let i = 0; i < this.data.length; ++i) {
-        const node = this.#drawItem(i, this.data[i]?.doi, this.data[i]?.details,  this.data[i]?.primary);
+        const node = this.#drawItem(i, this.data[i]?.id, this.data[i]?.link,  this.data[i].name,  this.data[i]?.primary);
         this.renderables.list.insertAdjacentHTML('beforeend', node);
       }
 
@@ -221,24 +201,26 @@ export default class PublicationCreator {
 
   /**
    * setUp
-   * @desc initialises the publication component
+   * @desc initialises the trial component
    */
   #setUp() {
-    this.publicationInput = this.element.querySelector(this.options.textInputId);
-    this.doiInput = this.element.querySelector(this.options.doiInputId);
-    this.primaryPubCheckbox = this.element.querySelector(this.options.primaryPubCheckboxId);
+    this.regId = this.element.querySelector(this.options.idInputId);
+    this.regLink = this.element.querySelector(this.options.linkInputId);
+    this.trialName = this.element.querySelector(this.options.nameInputId);
+    this.primaryTrialCheckbox = this.element.querySelector(this.options.primaryTrialCheckboxId);
 
     this.addButton = this.element.querySelector(this.options.addButtonId);
     this.addButton.addEventListener('click', this.#handleInput.bind(this));
     window.addEventListener('click', this.#handleClick.bind(this));
 
     const noneAvailable = this.element.parentNode.querySelector(this.options.availabilityId);
-    const publicationGroup = this.element.parentNode.querySelector(this.options.publicationGroupId);
-    const publicationList = this.element.parentNode.querySelector(this.options.publicationListId);
+    const trialGroup = this.element.parentNode.querySelector(this.options.trialGroupId);
+    const trialList = this.element.parentNode.querySelector(this.options.trialListId);
+
     this.renderables = {
       none: noneAvailable,
-      group: publicationGroup,
-      list: publicationList,
+      group: trialGroup,
+      list: trialList,
     }
 
     const attr = this.element.getAttribute(this.options.dataAttribute);
@@ -252,48 +234,49 @@ export default class PublicationCreator {
    *************************************/
   /**
    * handleInput
-   * @desc bindable event handler for key up events of the publication input box
+   * @desc bindable event handler for key up events of the trial input box
    * @param {event} e the event of the input 
    */
   #handleInput(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    const publication = this.publicationInput.value;
-    const doi = this.doiInput.value;
-    const primary= Number(this.primaryPubCheckbox.checked ? this.primaryPubCheckbox.dataset.value: '0');
+    const id = this.regId.value;
+    const link = this.regLink.value;
+    const name = this.trialName.value;
+    const primary= Number(this.primaryTrialCheckbox.checked ? this.primaryTrialCheckbox.dataset.value: '0');
 
-    if (!this.publicationInput.checkValidity() || isNullOrUndefined(publication) || isStringEmpty(publication)) {
-      return;
-    }
-
-    const matches = parseString(doi, CLU_DOI_PATTERN);
+    const matches = parseString(link, CLU_TRIAL_LINK_PATTERN);
+    console.log(matches)
     if (!matches?.[0]) {
-      window.ToastFactory.push({
+      window.ToastFactory.push(
+          {
         type: 'danger',
-        message: PUBLICATION_NOTIFICATIONS.InvalidDOIProvided,
+        message: TRIAL_LINK_NOTIFICATIONS.InvalidLinkProvided,
         duration: this.options.notificationDuration,
       });
     }
 
-    this.doiInput.value = '';
-    this.publicationInput.value = '';
-    this.primaryPubCheckbox.checked = false;
+    this.regId.value = '';
+    this.regLink.value = '';
+    this.trialName.value = '';
+    this.primaryTrialCheckbox.checked = false;
     this.data.push(
         {
-          details: publication,
-          doi: matches?.[0],
+          id: id,
+          link: matches?.[0],
+          name: name,
           primary: primary
         }
         );
     this.makeDirty();
     
-    this.#redrawPublications();
+    this.#redrawTrials();
   }
 
   /**
    * handleClick
-   * @desc bindable event handler for click events of the publication item's delete button
+   * @desc bindable event handler for click events of the trial item's delete button
    * @param {event} e the event of the input 
    */
   #handleClick(e) {
@@ -302,7 +285,7 @@ export default class PublicationCreator {
       return;
     }
 
-    if (target.nodeName != 'BUTTON') {
+    if (target.nodeName !== 'BUTTON') {
       return;
     }
 
@@ -312,7 +295,7 @@ export default class PublicationCreator {
     }
 
     this.data.splice(parseInt(index), 1);
-    this.#redrawPublications();
+    this.#redrawTrials();
     this.makeDirty();
   }
 }

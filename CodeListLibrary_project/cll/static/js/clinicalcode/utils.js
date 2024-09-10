@@ -16,13 +16,21 @@ const
    * CLU_DOI_PATTERN
    * @desc Regex pattern to match DOI
    */
-  CLU_DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm,
+  CLU_DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?!["&'<>])\S)+)\b/gm,
   /**
    * CLU_OBJ_PATTERN
    * @desc Regex pattern to match `[object (.*)]` classname
    * 
    */
   CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/;
+
+  /**
+   * CLU_TRIAL_LINK_PATTERN
+   * @desc Regex pattern to match urls
+   *
+   */
+  CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm;
+
 
 
 /* METHODS */
@@ -503,7 +511,7 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
  * @desc Interpolate string template
  *       Ref @ https://stackoverflow.com/posts/41015840/revisions
  * 
- * @param  {str} str The string to interpolate
+ * @param  {string} str The string to interpolate
  * @param  {object} params The parameters
  * @return {str} The interpolated string
  * 
@@ -653,10 +661,11 @@ const hasDeltaDiff = (lhs, rhs) => {
  * parseDOI
  * @desc attempts to match a DOI in a string (.*\/gm)
  * @param {string} value the string to match
- * @returns {list} a list of matches
+ * @param {RegExp} pattern the pattern to be matched
+ * @returns {RegExpMatchArray} a list of matches
  */
-const parseDOI = (value) => {
-  return value.match(CLU_DOI_PATTERN);
+const parseString = (value, pattern) => {
+  return value.match(pattern);
 }
 
 /**

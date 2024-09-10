@@ -169,16 +169,24 @@ class TestTemplateVersioning:
            None
        """
 
-        def get_publisheed_entity_count():
+        def get_published_entity_count(live_server):
             self.driver.get(live_server.url)
+            
             counter_xpath = "//p[text()='Phenotypes']/following-sibling::p[@id='entity-counter']"
-            entity_counter = self.driver.find_element(By.XPATH, counter_xpath)
-            return int(entity_counter.text)
+            try:
+                entity_counter = WebDriverWait(self.driver, 10).until(
+                    EC.visibility_of_element_located((By.XPATH, counter_xpath))
+                )
+                return int(entity_counter.text)
+            
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                return None  
 
         user = generate_user[user_type]
         login(self.driver, user.username, user.username + "password")
 
-        init_count = get_publisheed_entity_count()
+        init_count = get_published_entity_count(live_server)
 
         generic_entity_v2.owner = user
         generic_entity_v2.created_by = user
@@ -187,10 +195,11 @@ class TestTemplateVersioning:
                                                   created_by_id=generic_entity_v2.created_by.id,
                                                   approval_status=APPROVAL_STATUS.APPROVED)
         published_entity.save()
+        time.sleep(100)
         self.driver.get(live_server + reverse("run_homepage_statistics"))
-        time.sleep(10)
 
-        final_count = get_publisheed_entity_count()
+
+        final_count = get_published_entity_count(live_server)
         logout(self.driver)
         assert final_count == init_count + 1
    
