@@ -121,15 +121,24 @@ const CSEL_VIEWS = {
     SELECTION_VIEW: ' \
     <div class="detailed-input-group fill no-margin"> \
       <div class="detailed-input-group__header"> \
+       <button class="secondary-btn text-accent-darkest bold icon secondary-accent" style="margin-bottom:0.5rem" id="add-attribute-btn">Add attribute +</button> \
       </div> \
       <section class="detailed-input-group__none-available" id="no-items-selected"> \
-        <div class="detailed-input-group> \
+        <div class="detailed-input-group"> \
         <p class="detailed-input-group__none-available-message">${noneSelectedMessage}</p> \
-         <button id="add-attribute-btn">Add attribute +</button> \
          </div> \
       </section> \
       <fieldset class="code-search-group indented scrollable slim-scrollbar" id="item-list"> \
       </fieldset> \
+    </div>',
+
+    ATTRIBUTE_ACCORDIAN: ' \
+    <div class="fill-accordian" id="children-accordian" style="margin-top: 0.5rem"> \
+      <label class="fill-accordian__label" role="button" tabindex="0"> \
+        <span>${title}</span> \
+      </label> \
+      <article class="fill-accordian__container" id="data" style="padding: 0.5rem;"> \
+      </article> \
     </div>',
 
 
@@ -147,18 +156,6 @@ const CSEL_VIEWS = {
     CHIP_TAGS: ' \
     <div class="meta-chip meta-chip-washed-accent"> \
       <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">${name}</span> \
-    </div>',
-  
-    // Card accordian for children data
-    CARD_ACCORDIAN: ' \
-    <div class="fill-accordian" id="children-accordian-${id}" style="margin-top: 0.5rem"> \
-      <input class="fill-accordian__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
-      <label class="fill-accordian__label" id="children-${id}" for="children-${id}" role="button" tabindex="0"> \
-        <span>${title}</span> \
-      </label> \
-      <article class="fill-accordian__container" id="data" style="padding: 0.5rem;"> \
-        ${content} \
-      </article> \
     </div>',
   
     // Child selector for cards
@@ -600,7 +597,15 @@ const CSEL_VIEWS = {
     }
 
     #handleAttributeCreateion(e) {
+      const page = this.dialogue.page;
       console.log('Add attribute button clicked');
+      const noneAvailable = page.querySelector('#no-items-selected');
+      let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
+        title: `Workingset 1`,
+      });
+      let doc = parseHTMLFromString(attributerow);
+      noneAvailable.classList.remove('show');
+      page.appendChild(doc.body.children[0]);
     }
   
     /**
