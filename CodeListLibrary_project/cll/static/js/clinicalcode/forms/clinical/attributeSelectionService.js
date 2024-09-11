@@ -123,11 +123,15 @@ const CSEL_VIEWS = {
       <div class="detailed-input-group__header"> \
       </div> \
       <section class="detailed-input-group__none-available" id="no-items-selected"> \
+        <div class="detailed-input-group> \
         <p class="detailed-input-group__none-available-message">${noneSelectedMessage}</p> \
+         <button id="add-attribute-btn">Add attribute +</button> \
+         </div> \
       </section> \
       <fieldset class="code-search-group indented scrollable slim-scrollbar" id="item-list"> \
       </fieldset> \
     </div>',
+
 
   
   
@@ -594,6 +598,10 @@ const CSEL_VIEWS = {
       );
       this.dialogue?.element.dispatchEvent(event);
     }
+
+    #handleAttributeCreateion(e) {
+      console.log('Add attribute button clicked');
+    }
   
     /**
      * handleConfirm
@@ -644,7 +652,8 @@ const CSEL_VIEWS = {
       if (!this.dialogue?.view == CSEL_VIEWS.SELECTION || isNullOrUndefined(page)) {
         return;
       }
-  
+
+     
       const content = page.querySelector('#item-list');
       const noneAvailable = page.querySelector('#no-items-selected');
       if (isNullOrUndefined(content) || isNullOrUndefined(noneAvailable)) {
@@ -657,6 +666,14 @@ const CSEL_VIEWS = {
       if (!hasSelectedItems) {
         content.classList.add('hide');
         noneAvailable.classList.add('show');
+        let addAttributeButton = page.querySelector('#add-attribute-btn');
+        
+        if (addAttributeButton) {
+          addAttributeButton.addEventListener('click', () => {
+            this.#handleAttributeCreateion(this);
+          });
+        }
+    
         return;
       }
     }
