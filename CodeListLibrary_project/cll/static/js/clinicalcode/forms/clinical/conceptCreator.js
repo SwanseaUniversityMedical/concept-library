@@ -537,6 +537,7 @@ export default class ConceptCreator {
   tryCallAttributeSettings() {
     const prompt = new AttributeSelectionService({
       promptTitle: 'Attribute settings',
+      attribute_component: this.templates['attribute-component'],
       template: this.template?.id,
       entity_id: this.entity?.id,
       entity_history_id: this.entity?.history_id,
