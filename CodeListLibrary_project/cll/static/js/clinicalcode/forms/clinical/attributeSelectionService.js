@@ -134,38 +134,18 @@ const CSEL_VIEWS = {
 
     ATTRIBUTE_ACCORDIAN: ' \
     <div class="fill-accordian" id="children-accordian" style="margin-top: 0.5rem"> \
-      <label class="fill-accordian__label" role="button" tabindex="0"> \
-        <span>${title}</span> \
-      </label> \
-      <article class="fill-accordian__container" id="data" style="padding: 0.5rem;"> \
-      </article> \
-    </div>',
+    <input class="fill-accordian__input" id="children-" name="children-" type="checkbox" /> \
+    <label class="fill-accordian__label" id="children-" for="children-" role="button" tabindex="0"> \
+      <span>${title}</span> \
+    </label> \
+    <article class="fill-accordian__container" id="data" style="padding: 0.5rem;"> \
+      ${content} \
+    </article> \
+  </div>',
 
 
   
   
-    // Card chip tags group
-    CHIP_GROUP: ' \
-    <div class="entity-card__snippet-tags"> \
-      <div class="entity-card__snippet-tags-group" id="chip-tags"> \
-        ${tags} \
-      </div> \
-    </div>',
-  
-    // Card chip for result card
-    CHIP_TAGS: ' \
-    <div class="meta-chip meta-chip-washed-accent"> \
-      <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">${name}</span> \
-    </div>',
-  
-    // Child selector for cards
-    CHILD_SELECTOR: ' \
-    <div class="checkbox-item-container ${!isSelector? "ignore-overflow" : ""}" id="${isSelector ? "child-selector" : "selected-item" }"> \
-      <input id="${field}-${id}" aria-label="${title}" type="checkbox" ${checked ? "checked" : ""} data-index="${index}" \
-        class="checkbox-item" data-id="${id}" data-history="${history_id}" \
-        data-name="${title}" data-field="${field}" data-prefix="${prefix}" data-coding="${coding_system}"/> \
-      <label for="${field}-${id}" class="constrained-filter-item">${title} [${coding_system}]</label> \
-    </div>',
   };
   
   
@@ -188,6 +168,7 @@ const CSEL_VIEWS = {
     constructor(options, data) {
       this.id = generateUUID();
       this.options = mergeObjects(options || { }, CSEL_OPTIONS);
+      this.attribute_component = options.attribute_component;
       this.query = { }
   
       if (this.options.allowMultiple) {
@@ -600,12 +581,42 @@ const CSEL_VIEWS = {
       const page = this.dialogue.page;
       console.log('Add attribute button clicked');
       const noneAvailable = page.querySelector('#no-items-selected');
+
+      const attribute_progress = parseHTMLFromString(this.attribute_component);
+      
+
+     
       let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
-        title: `Workingset 1`,
+      title: `Workingset 1`,
+      content: attribute_progress.body.children[0].outerHTML
       });
       let doc = parseHTMLFromString(attributerow);
+
       noneAvailable.classList.remove('show');
       page.appendChild(doc.body.children[0]);
+
+    }
+
+    #handleAttributeDataCreation(e){
+      const attribute_component = this.attribute_component;
+  
+        window.ModalFactory.create({
+          title: 'Add attribute',
+          content: attribute_component,
+          beforeAccept: (modal) =>{
+            const attribute_name = modal.querySelector('#attribute-name-input').value;
+            const attribute_value = modal.querySelector('#attribute-value-input').value;
+            const attribute_type = modal.querySelector('#attribute-type').value;
+            const attribute = {
+              name: attribute_name,
+              type: attribute_type,
+              value: attribute_value
+            }
+            return attribute
+          }
+      }).then((result) => {
+        console.log(result)
+      })
     }
   
     /**
