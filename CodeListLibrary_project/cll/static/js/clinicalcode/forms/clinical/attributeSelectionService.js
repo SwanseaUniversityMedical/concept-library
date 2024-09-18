@@ -595,6 +595,16 @@ const CSEL_VIEWS = {
       noneAvailable.classList.remove('show');
       page.appendChild(doc.body.children[0]);
 
+      const attribute_name = page.querySelector('#attribute-name-input').value;
+      const attribute_value = page.querySelector('#attribute-value-input').value;
+      const attribute_type = page.querySelector('#attribute-type').value;
+      const attribute = {
+        name: attribute_name,
+        type: attribute_type,
+        value: attribute_value
+      }
+      console.log(attribute)
+
     }
 
     #handleAttributeDataCreation(e){
