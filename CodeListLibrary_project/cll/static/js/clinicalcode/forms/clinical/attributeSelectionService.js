@@ -134,7 +134,6 @@ const CSEL_VIEWS = {
 
     ATTRIBUTE_ACCORDIAN: ' \
     <div class="fill-accordian" id="children-accordian" style="margin-top: 0.5rem"> \
-    <input class="fill-accordian__input" id="children-" name="children-" type="checkbox" /> \
     <label class="fill-accordian__label" id="children-" for="children-" role="button" tabindex="0"> \
       <span>${title}</span> \
     </label> \
@@ -577,7 +576,7 @@ const CSEL_VIEWS = {
       this.dialogue?.element.dispatchEvent(event);
     }
 
-    #handleAttributeCreateion(e) {
+    #handleAttributeCreation(e) {
       const page = this.dialogue.page;
       console.log('Add attribute button clicked');
       const noneAvailable = page.querySelector('#no-items-selected');
@@ -587,7 +586,7 @@ const CSEL_VIEWS = {
 
      
       let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
-      title: `Workingset 1`,
+      title: `New attribute value`,
       content: attribute_progress.body.children[0].outerHTML
       });
       let doc = parseHTMLFromString(attributerow);
@@ -595,39 +594,70 @@ const CSEL_VIEWS = {
       noneAvailable.classList.remove('show');
       page.appendChild(doc.body.children[0]);
 
-      const attribute_name = page.querySelector('#attribute-name-input').value;
-      const attribute_value = page.querySelector('#attribute-value-input').value;
-      const attribute_type = page.querySelector('#attribute-type').value;
+
       const attribute = {
-        name: attribute_name,
-        type: attribute_type,
-        value: attribute_value
-      }
-      console.log(attribute)
+        name: '',
+        type: '-1',
+        value: ''
+        }; 
 
-    }
+      const attribute_name_input = page.querySelector('#attribute-name-input');
+      const attribute_value_input = page.querySelector('#attribute-value-input');
+      const attribute_type = page.querySelector('#attribute-type');
 
-    #handleAttributeDataCreation(e){
-      const attribute_component = this.attribute_component;
+      attribute_name_input.addEventListener('input', () => {
+
+        attribute.name = attribute_name_input.value;
+      });
+
+      attribute_value_input.addEventListener('input', () => {
+        attribute.value = attribute_value_input.value;
+      });
+
+      attribute_type.addEventListener('change', () => {
+        attribute.type = attribute_type.value;
+        });
   
-        window.ModalFactory.create({
-          title: 'Add attribute',
-          content: attribute_component,
-          beforeAccept: (modal) =>{
-            const attribute_name = modal.querySelector('#attribute-name-input').value;
-            const attribute_value = modal.querySelector('#attribute-value-input').value;
-            const attribute_type = modal.querySelector('#attribute-type').value;
-            const attribute = {
-              name: attribute_name,
-              type: attribute_type,
-              value: attribute_value
-            }
-            return attribute
-          }
-      }).then((result) => {
-        console.log(result)
-      })
+      const confirmChanges = page.querySelector('#confirm-changes');
+      confirmChanges.addEventListener('click', () => this.#handleConfirmEditor(attribute));
     }
+
+
+    #pushToast({ type = 'information', message = null, duration = '5000' }) {
+      if (isNullOrUndefined(message)) {
+        return;
+      }
+  
+      window.ToastFactory.push({
+        type: type,
+        message: message,
+        duration: Math.max(duration, '444'),
+      });
+    }
+  
+    #handleConfirmEditor(attribute) {
+
+      // Validate the concept data
+      if (isNullOrUndefined(attribute.name) || isStringEmpty(attribute.value)) {
+        this.#pushToast({ type: 'danger', message: 'Cannot be empty' });
+        return;
+      }
+
+      if (!isNaN(attribute.value)) {
+        this.#pushToast({ type: 'danger', message: 'Value has to have the numeric value' });
+        return;
+      }
+  
+      if (attribute.type ==='-1') {
+        this.#pushToast({ type: 'danger', message: 'Please select a type' });
+        return;
+      }
+      this.data.push(attribute);
+    }
+  
+  
+
+
   
     /**
      * handleConfirm
@@ -696,7 +726,7 @@ const CSEL_VIEWS = {
         
         if (addAttributeButton) {
           addAttributeButton.addEventListener('click', () => {
-            this.#handleAttributeCreateion(this);
+            this.#handleAttributeCreation(this);
           });
         }
     
