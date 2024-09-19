@@ -413,28 +413,37 @@ const CSEL_VIEWS = {
     }
 
     #createGridTable(concept_data) {
-      const transformedData = concept_data.map(concept =>{
-        return [
-            `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`
-        ];
-    });
+      document.getElementById('tab-content').innerHTML = '';
 
       const table = new gridjs.Grid({
-        columns: ['Concept', { 
-          name: 'Attribute',
-          attributes: (cell) => {
-            if (cell) { 
-              return {
-                'data-cell-content': cell,
-                'onclick': () => alert('loh'),
-                'style': 'cursor: pointer',
-              };
-            }
+        columns: ['Concept'],
+        data: concept_data.map(concept => [`${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`])
+      }).render(document.getElementById('tab-content'));
+     
+      if (!concept_data.every(concept => !concept.attributes)) {
+        const transformedData = concept_data.map(concept => {
+          const rowData = [`${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`];
+          if (concept.attributes) {
+            concept.attributes.forEach(attribute => {
+              rowData.push(attribute.value);
+            });
           }
-        },],
-        data: transformedData
-      });
-      table.render(document.getElementById('tab-content'));
+          return rowData;
+        });
+        const columns = ['Concept'];
+        if (concept_data[0].attributes) {
+          concept_data[0].attributes.forEach(attribute => {
+            columns.push(attribute.name);
+          });
+        }
+        console.log('columns', columns);
+        
+        table.updateConfig({
+          columns: columns,
+          data: transformedData
+        }).forceRender();
+       
+      }   
 
     }
   
@@ -619,6 +628,9 @@ const CSEL_VIEWS = {
   
       const confirmChanges = page.querySelector('#confirm-changes');
       confirmChanges.addEventListener('click', () => this.#handleConfirmEditor(attribute));
+
+      const cancelChanges = page.querySelector('#cancel-changes');
+      cancelChanges.addEventListener('click', () => this.#handleCancelEditor());
     }
 
 
@@ -651,17 +663,57 @@ const CSEL_VIEWS = {
         this.#pushToast({ type: 'danger', message: 'Please select a type' });
         return;
       }
+      // Check if the attribute already exists in attribute_data
+      const existingAttribute = this.attribute_data.find(attr => attr.name === attribute.name && attr.value === attribute.value && attr.type === attribute.type);
+      if (existingAttribute) {
+        this.#pushToast({ type: 'danger', message: 'Attribute already exists' });
+        return;
+      }
+
+      // Add the updated attribute to attribute_data
       this.attribute_data.push(attribute);
 
+      // Update the concept_data with the updated attribute
+      this.options.concept_data.forEach(concept => {
+        if (!concept.hasOwnProperty('attributes')) {
+          concept.attributes = [];
+        }
+        concept.attributes.push(attribute);
+      });
+
+      // Update the accordian label with the new attribute details
       const accordian = this.dialogue.page.querySelector('#attribute-accordian');
       const accordianLabel = accordian.querySelector('#children-label-0');
       accordianLabel.innerText = `${attribute.name} - ${attribute.value} - ${attribute.type}`;
 
-      this.#pushToast({ type: 'success', message: 'Attribute added successfully' }); //wil do the update later
+      this.#pushToast({ type: 'success', message: 'Attribute added successfully' });
 
       accordianLabel.click();
 
     }
+
+
+    #handleCancelEditor(e) {
+      const page = this.dialogue.page;
+      const attribute_name_input = page.querySelector('#attribute-name-input');
+      const attribute_value_input = page.querySelector('#attribute-value-input');
+      const attribute_type = page.querySelector('#attribute-type');
+      const accordian = this.dialogue.page.querySelector('#attribute-accordian');
+      const noneAvailable = page.querySelector('#no-items-selected');
+
+      if (this.attribute_data.length <= 0) {
+      attribute_name_input.value = null;
+      attribute_value_input.value = null;
+      attribute_type.value = null;
+      accordian.remove();
+      noneAvailable.classList.add('show');
+      }
+
+
+      
+  
+    }
+
   
   
 
