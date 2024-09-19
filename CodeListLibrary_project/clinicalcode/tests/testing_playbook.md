@@ -258,6 +258,33 @@ def setup_and_teardown_fixture():
     print("Teardown steps go here")
 ```
 For more advanced usage and additional options, refer to the [Pytest Fixture Documentation](https://docs.pytest.org/en/7.1.x/reference/fixtures.html#).
+### Handling Sequence Resets
+When using pytest for testing a Django application, you may encounter issues where database sequences 
+(such as those used for primary keys in PostgreSQL) do not reset between test runs. This can cause tests that rely on 
+specific sequence values to fail.
+
+To ensure that database sequences are reset between tests, you can use the @pytest.mark.django_db decorator with the 
+reset_sequences and transaction parameters. This forces pytest to reset sequences and use a transaction for each test, 
+ensuring a clean state.
+
+- reset_sequences=True: Resets database sequences between tests.
+- transaction=True: Wraps the test in a database transaction, which can be useful to ensure that the database state is 
+   rolled back completely after the test runs.
+
+```python
+import pytest
+from myapp.models import MyModel
+
+@pytest.mark.django_db(reset_sequences=True, transaction=True)
+class TestMyModel:
+    def test_instance_creation(self):
+        instance = MyModel.objects.create(name="Test")
+        assert instance.id == 1  # Assuming this test relies on the primary key starting from 1
+
+    def test_another_instance_creation(self):
+        instance = MyModel.objects.create(name="Another Test")
+        assert instance.id == 1  # Each test method will have sequences reset
+```
 
 ## 5. Running Tests
 

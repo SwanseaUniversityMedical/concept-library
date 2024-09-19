@@ -13,7 +13,7 @@ TEMPLATE_FIELDS = {"name": "Clinical-Coded Phenotype",
                                   "clinical codes, or algorithms using clinical codes.",
                    "template_version": 1}
 
-TEMPLATE_JSON_V1_PATH = "../../../dynamic_templates/clinical_coded_phenotype.json"
+TEMPLATE_JSON_V1_PATH = "dynamic_templates/clinical_coded_phenotype.json"
 
 
 TEMPLATE_DATA = {
@@ -32,6 +32,8 @@ TEMPLATE_JSON_V2_PATH = 'clinicalcode/tests/constants/test_template.json'
 API_LINK = "/api/v1/templates/1/detail/"
 CREATE_PHENOTYPE_TEMPLATE_PATH = "clinicalcode/tests/constants/create_phenotype_template.yaml"
 TEST_CREATE_PHENOTYPE_PATH = "clinicalcode/tests/constants/test_create_phenotype.yaml"
+TEST_CREATE_PHENOTYPE_NO_ACCESS_PATH = "clinicalcode/tests/constants/test_create_pheno_no_access.yaml"
+TEST_CREATE_PHENOTYPE_WITH_ACCESS_PATH = "clinicalcode/tests/constants/test_create_phenotype_w_access.yaml"
 PHENOTYPE_ATTR_KEYS = ("phenotype_version_id", "phenotype_id")
 NEW_FIELDS = ['Primary Clinical Trial', 'Endorsement Organisation', 'Endorsement Date', 'Regulatory Approval Study',
               'Regulatory Approval organisation', 'Regulatory Approval Date']

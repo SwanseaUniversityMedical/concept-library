@@ -8,5 +8,5 @@ sex: '1'
 type: '2'
 owner: superuser
 template:
-  id: 2
+  id: 1
   version_id: 1

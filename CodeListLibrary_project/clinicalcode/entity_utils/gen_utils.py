@@ -15,6 +15,7 @@ import urllib
 
 from . import constants
 
+
 def is_datetime(x):
     """
         Legacy method from ./utils.py
@@ -28,6 +29,7 @@ def is_datetime(x):
         return False
     else:
         return True
+
 
 def is_float(x):
     """
@@ -43,6 +45,7 @@ def is_float(x):
     else:
         return True
 
+
 def is_int(x):
     """
         Legacy method from ./utils.py
@@ -57,6 +60,7 @@ def is_int(x):
         return False
     else:
         return a == b
+
 
 def clean_str_as_db_col_name(txt):
     """
@@ -74,6 +78,7 @@ def clean_str_as_db_col_name(txt):
     s = re.sub('_+', '_', s)
     return re.sub('[^A-Za-z0-9_]+', '', s)
 
+
 def try_parse_form(request):
     """
         Attempts to parse multipart/form-data from the request body
@@ -86,6 +91,7 @@ def try_parse_form(request):
     else:
         return post, files
 
+
 def get_request_body(request):
     """
         Decodes the body of a request and attempts to load it as JSON
@@ -96,6 +102,7 @@ def get_request_body(request):
         return body
     except:
         return None
+
 
 def try_get_param(request, key, default=None, method='GET'):
     """
@@ -117,6 +124,7 @@ def try_get_param(request, key, default=None, method='GET'):
 
     return param
 
+
 def is_empty_string(value):
     """
         Checks whether a string is empty or contains only spaces
@@ -129,9 +137,10 @@ def is_empty_string(value):
     """
     if value is None:
         return True
-    
+
     value = str(value).strip()
     return len(value) < 1 or value.isspace()
+
 
 def is_fetch_request(request):
     """
@@ -146,6 +155,7 @@ def is_fetch_request(request):
     """
     return request.headers.get('X-Requested-With') == constants.FETCH_REQUEST_HEADER
 
+
 def handle_fetch_request(request, obj, *args, **kwargs):
     """
         @desc Parses the X-Target header to determine which GET method
@@ -154,13 +164,14 @@ def handle_fetch_request(request, obj, *args, **kwargs):
     target = request.headers.get('X-Target', None)
     if target is None or target not in obj.fetch_methods:
         raise BadRequest('No such target')
-    
+
     try:
         response = getattr(obj, target)
     except Exception as e:
         raise BadRequest('Invalid request')
     else:
-        return response 
+        return response
+
 
 def decode_uri_parameter(value, default=None):
     """
@@ -182,6 +193,7 @@ def decode_uri_parameter(value, default=None):
     else:
         return value
 
+
 def jsonify_response(**kwargs):
     """
         Creates a JSON response with the given status
@@ -198,9 +210,10 @@ def jsonify_response(**kwargs):
     status = kwargs.get('status', 'false')
     message = kwargs.get('message', '')
     return JsonResponse({
-        'status': status,
-        'message': message
+            'status': status,
+            'message': message
     }, status=code)
+
 
 def try_match_pattern(value, pattern):
     """
@@ -208,6 +221,7 @@ def try_match_pattern(value, pattern):
     """
     pattern = re.compile(pattern)
     return pattern.match(value)
+
 
 def is_valid_uuid(value):
     """
@@ -217,8 +231,9 @@ def is_valid_uuid(value):
         uuid = UUID(value)
     except ValueError:
         return False
-    
+
     return str(uuid) == value
+
 
 def parse_int(value, default=0):
     """
@@ -237,6 +252,7 @@ def parse_int(value, default=0):
     else:
         return value
 
+
 def get_start_and_end_dates(daterange):
     """
         Sorts a date range to [min, max] and sets their timepoints to the [start] and [end] of the day respectively
@@ -248,10 +264,11 @@ def get_start_and_end_dates(daterange):
             A sorted (list) of datetime objects, combined with their respective start and end times
     """
     dates = [dateparser.parse(x).date() for x in daterange]
-    
+
     max_date = datetime.datetime.combine(max(dates), datetime.time(23, 59, 59, 999))
     min_date = datetime.datetime.combine(min(dates), datetime.time(00, 00, 00, 000))
     return [min_date, max_date]
+
 
 def parse_date(value, default=0):
     """
@@ -264,12 +281,14 @@ def parse_date(value, default=0):
     else:
         return date.strftime('%Y-%m-%d %H:%M:%S')
 
+
 def parse_as_int_list(value):
     result = []
     for x in value.split(','):
         if parse_int(x, default=None) is not None:
             result.append(int(x))
     return result
+
 
 def try_value_as_type(field_value, field_type, validation=None, default=None):
     """
@@ -284,12 +303,12 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     elif field_type == 'int_array':
         if isinstance(field_value, int):
             return [field_value]
-        
+
         if not isinstance(field_value, list):
             return default
-        
+
         valid = True
-        cleaned = [ ]
+        cleaned = []
         for val in field_value:
             result = parse_int(val, None)
             if result is None:
@@ -337,12 +356,12 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     elif field_type == 'string_array':
         if isinstance(field_value, str):
             return [field_value]
-        
+
         if not isinstance(field_value, list):
             return default
-        
+
         valid = True
-        cleaned = [ ]
+        cleaned = []
         for val in field_value:
             try:
                 value = str(val)
@@ -357,7 +376,7 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
 
             if not valid:
                 break
-        
+
         return cleaned if valid else default
     elif field_type == 'concept':
         if not isinstance(field_value, list):
@@ -366,29 +385,36 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     elif field_type == 'publication':
         if not isinstance(field_value, list):
             return default
-        
+
         if len(field_value) < 0:
             return field_value
-        
+
         valid = True
         for val in field_value:
             if not isinstance(val, dict):
                 valid = False
                 break
-            
+
             details = val.get('details')
             if not details or not isinstance(details, str):
                 valid = False
                 break
-            
+
             doi = val.get('doi')
             if doi is not None and not isinstance(doi, str):
                 valid = False
                 break
-        
+
+            if 'primary' in val:
+                primary = val.get('primary')
+                if not isinstance(primary, int) and primary not in (0, 1):
+                    valid = False
+                    break
+
         return field_value if valid else default
-    
+
     return field_value
+
 
 def measure_perf(func):
     """
@@ -396,6 +422,7 @@ def measure_perf(func):
 
         Ref @ https://stackoverflow.com/posts/62522469/revisions
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if settings.DEBUG:
@@ -405,13 +432,16 @@ def measure_perf(func):
             print('view {} takes {:.2f} ms'.format(func.__name__, duration))
             return result
         return func(*args, **kwargs)
+
     return wrapper
+
 
 class ModelEncoder(JSONEncoder):
     """
         Encoder class to override behaviour of the JSON encoder to allow
         encoding of datetime objects - used to JSONify instances of a model
     """
+
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()
