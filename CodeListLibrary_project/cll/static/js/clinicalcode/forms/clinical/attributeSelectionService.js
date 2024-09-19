@@ -2,6 +2,8 @@
  * CSEL_VIEWS
  * @desc describes the view states of this component
  */
+
+
 const CSEL_VIEWS = {
     // The search view whereby users can select Concepts
     ATTRIBUTE_TABLE: 0,
@@ -32,9 +34,6 @@ const CSEL_VIEWS = {
     // Which template to query when retrieving accessible entities
     template: 1,
   
-    // Related entity ids to filter the entity from results
-    entity_id: null,
-    entity_history_id: null,
     concept_data: null,
   
     // Allow more than a single Concept to be selected
@@ -62,21 +61,6 @@ const CSEL_VIEWS = {
     // The message shown when no items are selected
     noneSelectedMessage: 'You haven\'t selected any attributes yet',
   
-    // Whether to maintain applied filters when user enters/exits the search dialogue
-    maintainFilters: true,
-  
-    // Filters to ignore (by field name)
-    ignoreFilters: [ ],
-  
-    // Force context of filters
-    forceFilters: { },
-  
-    // Which filters, if any, to apply to children
-    childFilters: ['coding_system'],
-  
-    // Whether to cache the resulting queries for quicker,
-    // albeit possibly out of date, Phenotypes and their assoc. Concepts
-    useCachedResults: false,
   };
   
   /**
@@ -133,8 +117,9 @@ const CSEL_VIEWS = {
     </div>',
 
     ATTRIBUTE_ACCORDIAN: ' \
-    <div class="fill-accordian" id="children-accordian" style="margin-top: 0.5rem"> \
-    <label class="fill-accordian__label" id="children-" for="children-" role="button" tabindex="0"> \
+    <div class="fill-accordian" id="attribute-accordian" style="margin-top: 0.5rem"> \
+    <input class="fill-accordian__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
+    <label class="fill-accordian__label" id="children-label-${id}" for="children-${id}" role="button" tabindex="0"> \
       <span>${title}</span> \
     </label> \
     <article class="fill-accordian__container" id="data" style="padding: 0.5rem;"> \
@@ -165,15 +150,13 @@ const CSEL_VIEWS = {
     
   
     constructor(options, data) {
-      this.id = generateUUID();
       this.options = mergeObjects(options || { }, CSEL_OPTIONS);
       this.attribute_component = options.attribute_component;
-      this.query = { }
   
       if (this.options.allowMultiple) {
-        this.data = data || [ ];
+        this.attribute_data = data || [ ];
       } else {
-        this.data = [ ];
+        this.attribute_data = [ ];
       }
     }
 
@@ -186,30 +169,13 @@ const CSEL_VIEWS = {
      *                                   *
      *************************************/
     /**
-     * getID
-     * @desc gets the ID associated with this instance
-     * @returns {string} the assoc. UUID
-     */
-    getID() {
-      return this.id;
-    }
-  
-    /**
-     * getQuery
-     * @desc gets the current search query params
-     * @returns {object} the current query
-     */
-    getQuery() {
-      return this.query;
-    }
-  
     /**
      * getSelection
      * @desc gets the currently selected concepts
      * @returns {array} the assoc. data
      */
     getSelection() {
-      return this.data;
+      return this.attribute_data;
     }
   
     /**
@@ -261,7 +227,7 @@ const CSEL_VIEWS = {
       data = data || [ ];
   
       if (this.options.allowMultiple) {
-        this.data = data;
+        this.attribute_data = data;
       }
       return this;
     }
@@ -301,7 +267,7 @@ const CSEL_VIEWS = {
             switch (eventType) {
               case CSEL_EVENTS.CONFIRMED: {
                 if (this.options.allowMultiple && this.options.maintainSelection) {
-                  this.data = data;
+                  this.attribute_data = data;
                 }
     
                 if (this.options.allowMultiple) {
@@ -411,7 +377,7 @@ const CSEL_VIEWS = {
       // build dialogue
       this.dialogue = {
         // data
-        data: this.options?.maintainSelection ? this.data : [],
+        data: this.options?.maintainSelection ? this.attribute_data : [],
         params: params,
         view: CSEL_VIEWS.ATTRIBUTE_TABLE,
   
@@ -454,7 +420,18 @@ const CSEL_VIEWS = {
     });
 
       const table = new gridjs.Grid({
-        columns: ['Concept', 'Attribute value'],
+        columns: ['Concept', { 
+          name: 'Attribute',
+          attributes: (cell) => {
+            if (cell) { 
+              return {
+                'data-cell-content': cell,
+                'onclick': () => alert('loh'),
+                'style': 'cursor: pointer',
+              };
+            }
+          }
+        },],
         data: transformedData
       });
       table.render(document.getElementById('tab-content'));
@@ -553,7 +530,29 @@ const CSEL_VIEWS = {
      *                                   *
      *************************************/
  
-  
+      /**
+     * handleConfirm
+     * @desc handles the confirmation btn
+     * @param {event} e the assoc. event
+     */
+      #handleConfirm(e) {
+        if (!this.isOpen()) {
+          return;
+        }
+    
+        const data = this.dialogue?.data;
+        const event = new CustomEvent(
+          'selectionUpdate',
+          {
+            detail: {
+              data: data,
+              type: CSEL_EVENTS.CONFIRMED,
+            }
+          }
+        );
+        this.dialogue?.element.dispatchEvent(event);
+      }
+    
   
     /**
      * handleCancel
@@ -584,8 +583,8 @@ const CSEL_VIEWS = {
       const attribute_progress = parseHTMLFromString(this.attribute_component);
       
 
-     
       let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
+      id:'0', // For now we will just use 0
       title: `New attribute value`,
       content: attribute_progress.body.children[0].outerHTML
       });
@@ -639,11 +638,11 @@ const CSEL_VIEWS = {
 
       // Validate the concept data
       if (isNullOrUndefined(attribute.name) || isStringEmpty(attribute.value)) {
-        this.#pushToast({ type: 'danger', message: 'Cannot be empty' });
+        this.#pushToast({ type: 'danger', message: 'Attribute value or name cannot be empty' });
         return;
       }
 
-      if (!isNaN(attribute.value)) {
+      if (!Number.isInteger(Number(attribute.value))) {
         this.#pushToast({ type: 'danger', message: 'Value has to have the numeric value' });
         return;
       }
@@ -652,36 +651,20 @@ const CSEL_VIEWS = {
         this.#pushToast({ type: 'danger', message: 'Please select a type' });
         return;
       }
-      this.data.push(attribute);
+      this.attribute_data.push(attribute);
+
+      const accordian = this.dialogue.page.querySelector('#attribute-accordian');
+      const accordianLabel = accordian.querySelector('#children-label-0');
+      accordianLabel.innerText = `${attribute.name} - ${attribute.value} - ${attribute.type}`;
+
+      this.#pushToast({ type: 'success', message: 'Attribute added successfully' }); //wil do the update later
+
+      accordianLabel.click();
+
     }
   
   
 
-
-  
-    /**
-     * handleConfirm
-     * @desc handles the confirmation btn
-     * @param {event} e the assoc. event
-     */
-    #handleConfirm(e) {
-      if (!this.isOpen()) {
-        return;
-      }
-  
-      const data = this.dialogue?.data;
-      const event = new CustomEvent(
-        'selectionUpdate',
-        {
-          detail: {
-            data: data,
-            type: CSEL_EVENTS.CONFIRMED,
-          }
-        }
-      );
-      this.dialogue?.element.dispatchEvent(event);
-    }
-  
     /**
      * changeTabView
      * @desc handles the tab buttons
