@@ -8,7 +8,7 @@
       The data type of the attribute
     </p>
     <div class="selection-group">
-      <select aria-label="Attribute type" class="selection-input" data-class="dropdown" data-field="type" id="attribute-type" name="attribute-type">
+      <select aria-label="Attribute type" class="selection-input" data-class="dropdown" data-field="type" id="attribute-type-${id}" name="attribute-type">
         <option disabled="" hidden="" selected="" value="-1">Attribute Type</option>
         <option value="1">INT</option>
         <option value="2">STRING</option>
@@ -24,7 +24,7 @@
     <p class="detailed-input-group__description">
       String formatted name of attribute
     </p>
-    <input aria-label="" class="text-input" data-class="inputbox" data-field="name" id="attribute-name-input">
+    <input aria-label="" class="text-input" data-class="inputbox" data-field="name" id="attribute-name-input-${id}">
   </div>
   <div class="detailed-input-group ">
     <h3 class="detailed-input-group__title">
@@ -34,10 +34,10 @@
     <p class="detailed-input-group__description">
       Attribute value depend on the type you have chosen eg INT -> 1
     </p>
-    <input  aria-label="" class="text-input" data-class="inputbox" data-field="name" id="attribute-value-input">
+    <input  aria-label="" class="text-input" data-class="inputbox" data-field="name" id="attribute-value-input-${id}">
   </div>
   <div class="concept-group-content__editor-buttons">
-    <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Cancel Changes" id="cancel-changes">Cancel</button>
-    <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Confirm Changes" id="confirm-changes">Confirm</button>
+    <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Cancel Changes" id="cancel-changes-${id}">Cancel</button>
+    <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Confirm Changes" id="confirm-changes-${id}">Confirm</button>
   </div>
 </div>
