@@ -782,12 +782,15 @@ export class AttributeSelectionService {
 
       for (let i = 0; i < this.attribute_data.length; ++i) {
         let attribute = this.attribute_data[i];
-        let attribute_progress = parseHTMLFromString(this.attribute_component);
-        attribute_progress.querySelector("#attribute-name-input-"+i).setAttribute("value", attribute.name);
+        let attribute_progress = interpolateString(this.attribute_component,{
+          id: i
+        });
+
+        attribute_progress = parseHTMLFromString(attribute_progress);
+
+        attribute_progress.querySelector('#attribute-name-input-'+i).setAttribute("value", attribute.name);
         attribute_progress.querySelector("#attribute-value-input-"+i).setAttribute("value", attribute.value);
         attribute_progress.querySelector("#attribute-type-"+i).querySelector(`option[value="${attribute.type}"]`).setAttribute("selected", true);
-
-        console.log( attribute_progress.querySelector("#attribute-type"+i))
 
 
         let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
