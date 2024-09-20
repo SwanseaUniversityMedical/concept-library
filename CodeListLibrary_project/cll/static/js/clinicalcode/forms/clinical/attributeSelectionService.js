@@ -445,10 +445,11 @@ export class AttributeSelectionService {
             attribute.attributes = (cell) => {
             if (cell) { 
             return {
+              'id':attribute.id,
               'data-cell-content': cell,
               'style': 'cursor: pointer',
               'contenteditable': true,
-              'oninput': () => console.log("cell ddd"),
+              'oninput': (e) => console.log(e.target),
             };
             
             } }
@@ -647,6 +648,7 @@ export class AttributeSelectionService {
   }
 
   #invokeAttributeButtons(attribute,page) {
+
     const confirmChanges = page.querySelector("#confirm-changes-" + attribute.id);
     confirmChanges.addEventListener("click", () =>
       this.#handleConfirmEditor(attribute)
@@ -658,7 +660,6 @@ export class AttributeSelectionService {
   }
 
   #invokeAttributeInputs(attribute,page) {
-
     const attribute_name_input = page.querySelector("#attribute-name-input-" + attribute.id);
     const attribute_value_input = page.querySelector("#attribute-value-input-" + attribute.id);
     const attribute_type = page.querySelector("#attribute-type-" + attribute.id);
