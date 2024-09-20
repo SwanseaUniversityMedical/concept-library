@@ -442,7 +442,17 @@ export class AttributeSelectionService {
       const columns = ["Concept"];
       if (concept_data[0].attributes) {
         concept_data[0].attributes.forEach((attribute) => {
-          columns.push(attribute.name);
+            attribute.attributes = (cell) => {
+            if (cell) { 
+            return {
+              'data-cell-content': cell,
+              'style': 'cursor: pointer',
+              'contenteditable': true,
+              'oninput': () => console.log("cell ddd"),
+            };
+            
+            } }
+          columns.push(attribute);
         });
       }
       console.log("columns", columns);
@@ -451,9 +461,14 @@ export class AttributeSelectionService {
         .updateConfig({
           columns: columns,
           data: transformedData,
+          
         })
         .forceRender();
     }
+  }
+
+  #cellEdit(cell) {
+
   }
 
   /**
