@@ -647,6 +647,92 @@ def admin_force_brand_links(request):
     )
 
 @login_required
+def admin_update_phenoflowids(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_update_phenoflowids'),
+                'action_title': 'Update phenoflow ids',
+                'hide_phenotype_options': False,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    try:
+        input_data = request.POST.get('input_data')
+        input_data = json.loads(input_data)
+    except:
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html',
+            {
+                'pk': -10,
+                'errorMsg': { 'message': 'Unable to read data provided' },
+                'action_title': 'Update phenoflow ids',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    with connection.cursor() as cursor:
+        sql = f'''
+        update public.clinicalcode_genericentity as trg
+           set template_data['phenoflowid'] = to_jsonb(src.phenoflowid)
+          from (
+            select *
+            from jsonb_to_recordset(
+                '{json.dumps(input_data)}'::jsonb
+            ) as x(id varchar, phenoflowid varchar)
+          ) as src
+         where trg.id = src.id
+           and trg.template_id = 1;
+        '''
+        cursor.execute(sql)
+        entity_updates = cursor.rowcount
+
+        sql = f'''
+        update public.clinicalcode_historicalgenericentity as trg
+           set template_data['phenoflowid'] = to_jsonb(src.phenoflowid)
+          from (
+            select *
+            from jsonb_to_recordset(
+                '{json.dumps(input_data)}'::jsonb
+            ) as x(id varchar, phenoflowid varchar)
+          ) as src
+         where trg.id = src.id
+           and trg.template_id = 1;
+        '''
+        cursor.execute(sql)
+        historical_updates = cursor.rowcount
+    
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { 
+                '1': f'entities: {entity_updates}, historical: {historical_updates}' 
+            },
+            'action_title': 'Update phenoflow ids',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_force_concept_linkage_dt(request):
     """
         Bulk updates unlinked Concepts such that they have a phenotype owner by creating

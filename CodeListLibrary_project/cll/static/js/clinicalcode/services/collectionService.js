@@ -93,7 +93,7 @@ const COLLECTION_MAP = {
       `${item.id} - ${item.name}`,
       item.id,
       item.history_id,
-      new Date(item.updated),
+      new Date(item.created),
       item.group_name || item.owner_name,
       status
     ];
@@ -102,20 +102,20 @@ const COLLECTION_MAP = {
 
 /**
  * getCollectionData
- * @desc Method that retrieves all relevant <data/> elements with
+ * @desc Method that retrieves all relevant <script type="application/json" /> elements with
  *       its data-owner attribute pointing to the entity creator.
  * 
  * @returns {object} An object describing the data, with each key representing 
- *                   the name of the <data/> element
+ *                   the name of the <script type="application/json" /> element
  */
 const getCollectionData = () => {
-  const values = document.querySelectorAll('data[data-owner="collection-service"]');
+  const values = document.querySelectorAll('script[type="application/json"][data-owner="collection-service"]');
 
   const result = { };
   for (let i = 0; i < values.length; i++) {
     const data = values[i];
     const name = data.getAttribute('name');
-    const type = data.getAttribute('type');
+    const type = data.getAttribute('desc-type');
     const pageType = data.getAttribute('page-type');
     
     let value = data.innerText.trim();
