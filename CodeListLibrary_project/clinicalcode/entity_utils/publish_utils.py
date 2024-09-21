@@ -75,7 +75,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
     # Fetch the required objects from the database only once
     generic_entity = GenericEntity.objects.get(id=pk)
     user_is_moderator = request.user.groups.filter(name="Moderators").exists()
-    user_is_owner = permission_utils.can_user_edit_entity(request, generic_entity.id) #generic_entity.owner == request.user
+    user_entity_access = permission_utils.can_user_edit_entity(request, generic_entity.id) #generic_entity.owner == request.user
 
     latest_pending_version_exists = PublishedGenericEntity.objects.filter(
         entity_id=pk, 
@@ -85,13 +85,13 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     # Determine the status of the entity
     entity_is_deleted = generic_entity.is_deleted
-    is_owner = not entity_is_deleted and user_is_owner
+    is_entity_user = not entity_is_deleted and user_entity_access
     is_publisher = not entity_is_deleted and generic_entity.owner == request.user and request.user.groups.filter(name="publishers").exists()
     is_moderator = not entity_is_deleted and user_is_moderator
     is_latest_pending_version = not entity_is_deleted and latest_pending_version_exists
 
     # Determine the final permission to publish
-    allow_to_publish = is_owner or is_moderator or is_publisher
+    allow_to_publish = is_entity_user or is_moderator or is_publisher
 
     generic_entity = GenericEntity.objects.get(pk=pk)
     published_entity_approved = PublishedGenericEntity.objects.filter(
@@ -137,7 +137,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'errors': errors or None,
         'allowed_to_publish': allow_to_publish,
         'entity_is_deleted': entity_is_deleted,
-        'is_owner': is_owner,
+        'is_entity_user': is_entity_user,
         'is_moderator': is_moderator,
         'is_publisher': is_publisher,
         'approval_status': approval_status,
@@ -282,6 +282,10 @@ def format_message_and_send_email(request, pk, data, entity, entity_history_id, 
     send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
     return data
 
+def get_emails_by_groupname(groupname):
+    user_list = User.objects.filter(groups__name=groupname)
+    return [i.email for i in user_list]
+
 def send_email_decision_entity(request, entity, entity_history_id, entity_type,data):
     """
     Call util function to send email decision
@@ -290,18 +294,18 @@ def send_email_decision_entity(request, entity, entity_history_id, entity_type,d
     """
     #print(entity_db_utils.send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
-    context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "owner_id": entity.owner_id,"url_redirect":url_redirect}
-
-    if data['approval_status'].value == 1:
+    context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user_id": entity.owner_id,"url_redirect":url_redirect}
+    if data['approval_status'].value == constants.APPROVAL_STATUS.PENDING:
         context["status"] = "Pending"
         context["message"] = "submitted and is under review"
+        context["staff_emails"] = get_emails_by_groupname("Moderators")
         send_review_email(request, context)
-    elif data['approval_status'].value == 2:
+    elif data['approval_status'].value == constants.APPROVAL_STATUS.APPROVED:
         # This line for the case when user want to get notification of same workingset id but different version
         context["status"] = "Published"
         context["message"] = "approved and successfully published"
         send_review_email(request, context)
-    elif data['approval_status'].value == 3:
+    elif data['approval_status'].value == constants.APPROVAL_STATUS.REJECTED:
         context["status"] = "Rejected"
         context["message"] = "rejected by the moderator"
         context["custom_message"] = "Please adjust changes and try again" #TODO add custom message logic

@@ -6,18 +6,18 @@
  *       The factory is accessible through the window object via window.TooltipFactory
  * 
  * e.g.
- * ```js
- *    window.TooltipFactory.addTooltip(
- *      // the element to observe
- *      document.querySelector('.some-element'),
- * 
- *      // the tooltip text
- *      'the tip for this element',
- * 
- *      // the direction of the tooltip
- *      'right'
- *    );
- * ```
+  ```js
+    window.TooltipFactory.addTooltip(
+      // the element to observe
+      document.querySelector('.some-element'),
+
+      // the tooltip text
+      'the tip for this element',
+
+      // the direction of the tooltip
+      'right'
+    );
+  ```
  */
 class TooltipFactory {
   #handlers = {};

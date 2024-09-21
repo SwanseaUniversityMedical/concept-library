@@ -232,11 +232,10 @@
       "field_type": "phenoflowid",
       "active": true,
       "validation": {
-        "type": "int",
-        "mandatory": false
-      },
-      "search": {
-        "api": true
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 250],
+        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
       },
       "hide_if_empty": true
     },

@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 @pytest.mark.usefixtures("setup_webdriver")
 class TestSearchFilters:
 
+    @pytest.mark.functional_test
     @pytest.mark.parametrize('user_type', ['super_user'])
     def test_tags_filter(self, login, logout, generate_user, user_type, live_server):
         user = generate_user[user_type]

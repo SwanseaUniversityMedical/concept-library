@@ -523,8 +523,8 @@ def get_entity_full_template_data(entity_record, template_id, return_queryset_as
         
         # phenoflowid/URL
         # make value include the URL
-        if field_definition['field_type'] == 'phenoflowid': 
-            fields_data[field_name]['value'] = get_phenoflow_url(entity_record['template_data'][field_name])
+        # if field_definition['field_type'] == 'phenoflowid': 
+        #     fields_data[field_name]['value'] = get_phenoflow_url(entity_record['template_data'][field_name])
 
 
     # update base fields for highlighting

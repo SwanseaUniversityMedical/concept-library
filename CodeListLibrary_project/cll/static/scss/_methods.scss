@@ -1,3 +1,14 @@
+/// Mehtod to safely unquote a variable
+///   @param {any} - the value to unquote
+///   @return {any} - if applicable: the unquoted value, otherwise itself
+@function safely-unquote($value) {
+  @if (type-of($value) == string) {
+    @return unquote($value);
+  }
+
+  @return $value;
+}
+
 /// Mixin to prefix a property
 ///   @param {String} $property - Property name
 ///   @param {*} $value - Property value
@@ -5,7 +16,7 @@
 ///   @return {List} - Standard + Prefixes printed
 @mixin prefix($property, $value, $prefixes: ()) {
   @each $prefix in $prefixes {
-    #{'-' + $prefix + '-' + $property}: unquote($value);
+    #{'-' + $prefix + '-' + $property}: safely-unquote($value);
   }
  
   #{$property}: $value;

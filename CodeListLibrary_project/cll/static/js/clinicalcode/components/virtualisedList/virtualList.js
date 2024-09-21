@@ -370,7 +370,7 @@ export default class VirtualisedList extends EventTarget {
    * 
    */
   #initialise(options) {
-    options = (typeof(options) === 'object' && !Array.isArray(options)) ? options : { };
+    options = (isObjectType(options)) ? options : { };
     options = mergeObjects(options, Constants.VL_DEFAULT_OPTS);
 
     this.count = options.count;

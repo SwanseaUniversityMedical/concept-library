@@ -14,6 +14,11 @@
                     {% if p.doi %}
                     (DOI:{{ p.doi }})
                     {% endif %}
+                    {% if p.primary and p.primary == 1 %}
+                    <span class="badge">
+                        <strong>Primary</strong>
+                    </span>
+                    {% endif %}
                   </li>
               {% endfor %}
           </ul>
