@@ -59,7 +59,6 @@ def compute_live_and_historical_ge_ontology_vecs(apps, schema_editor):
                     on tag.id = any(array(select json_array_elements_text(entity.template_data::json->'ontology'))::int[])
                  group by entity.id, entity.history_id
             )
-
         update public.clinicalcode_historicalgenericentity as trg
            set search_vector =
                 setweight(to_tsvector('pg_catalog.english', coalesce(src.id,'')), 'A') ||
@@ -87,12 +86,27 @@ def compute_live_and_historical_ge_ontology_vecs(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('clinicalcode', '0114_ontologytag_ontologytagedge_ontologytag_children_and_more'),
+        ('clinicalcode', '0114_ontologytag_ontologytagedge_and_more'),
     ]
 
     operations = [
         migrations.RunSQL(
             sql="""
+
+            -- create partial btree index on OntologyTag properties
+            create index if not exists ot_bt_code_idx
+                on public.clinicalcode_ontologytag
+             using btree ((properties->>'code'));
+
+            create index if not exists ot_bt_code_id_idx
+                on public.clinicalcode_ontologytag
+             using btree ((properties->>'code_id'));
+
+            create index if not exists ot_bt_code_system_idx
+                on public.clinicalcode_ontologytag
+             using btree ((properties->>'code'), (properties->>'coding_system_id'));
+
+
             -- create, update & manage OntologyTag trigger;
 
             create function ot_gin_tgram_trigger() returns trigger
