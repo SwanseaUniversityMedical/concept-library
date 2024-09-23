@@ -449,7 +449,7 @@ export class AttributeSelectionService {
               'data-cell-content': cell,
               'style': 'cursor: pointer',
               'contenteditable': true,
-              'oninput': (e) => console.log(e.target),
+              'oninput': (e) => this.#cellEdit(e.target),
             };
             
             } }
@@ -468,8 +468,8 @@ export class AttributeSelectionService {
     }
   }
 
-  #cellEdit(cell) {
-
+  #cellEdit(targetInput) {
+    console.log(targetInput);
   }
 
   /**
