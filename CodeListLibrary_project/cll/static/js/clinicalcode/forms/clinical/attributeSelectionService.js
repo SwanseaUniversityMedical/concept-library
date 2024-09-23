@@ -442,19 +442,20 @@ export class AttributeSelectionService {
       const columns = ["Concept"];
       if (concept_data[0].attributes) {
         concept_data[0].attributes.forEach((attribute) => {
-            attribute.attributes = (cell) => {
-            if (cell) { 
-            return {
-              'id':attribute.id,
-              'data-cell-content': cell,
-              'style': 'cursor: pointer',
-              'contenteditable': true,
-              'oninput': (e) => this.#cellEdit(e.target),
-            };
-            
-            } }
           columns.push(attribute);
+
+          attribute.attributes = (cell) => {
+            if (cell) {
+              return {
+                "data-cell-content": cell,
+                "style": "cursor: pointer",
+                "contenteditable": true,
+                oninput: (e) => attribute.value = e.target.innerText, //No validation for now 
+              };
+            }
+          };
         });
+
       }
       console.log("columns", columns);
 
@@ -462,7 +463,6 @@ export class AttributeSelectionService {
         .updateConfig({
           columns: columns,
           data: transformedData,
-          
         })
         .forceRender();
     }
@@ -598,6 +598,17 @@ export class AttributeSelectionService {
     this.dialogue?.element.dispatchEvent(event);
   }
 
+  #generateUUID() {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        var r = (Math.random() * 16) | 0,
+          v = c == "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
+  }
+
   #handleAttributeCreation(e) {
     const page = this.dialogue.page;
     console.log("Add attribute button clicked");
@@ -605,14 +616,14 @@ export class AttributeSelectionService {
     const noneAvailable = page.querySelector("#no-items-selected");
 
     let attribute_progress = parseHTMLFromString(this.attribute_component);
+    const uniqueId = this.#generateUUID();
     attribute_progress = interpolateString(this.attribute_component, {
-      id: this.attribute_data.length
+      id: uniqueId,
     });
-
 
     if (this.attribute_data.length <= 0) {
       let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
-        id: this.attribute_data.length,
+        id: uniqueId,
         title: `New attribute value`,
         content: attribute_progress,
       });
@@ -620,48 +631,46 @@ export class AttributeSelectionService {
       noneAvailable.classList.remove("show");
       page.appendChild(doc.body.children[0]);
     } else {
-      let attributerow = interpolateString(
-        CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN,
-        {
-          id: this.attribute_data.length,
-          title: 'New attribute value',
-          content: attribute_progress,
-        }
-      );
+      let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
+        id: uniqueId,
+        title: "New attribute value",
+        content: attribute_progress,
+      });
       let doc = parseHTMLFromString(attributerow);
       page.appendChild(doc.body.children[0]);
-  
     }
 
     let attribute = {
-      id: this.attribute_data.length,
+      id: uniqueId,
       name: "",
       type: "-1",
       value: " ",
     };
 
-    attribute = this.#invokeAttributeInputs(attribute,page);
+    attribute = this.#invokeAttributeInputs(attribute, page);
 
-    this.#invokeAttributeButtons(attribute,page);
-
-  
+    this.#invokeAttributeButtons(attribute, page);
   }
 
-  #invokeAttributeButtons(attribute,page) {
-
-    const confirmChanges = page.querySelector("#confirm-changes-" + attribute.id);
+  #invokeAttributeButtons(attribute, page) {
+    const confirmChanges = page.querySelector(
+      "#confirm-changes-" + attribute.id
+    );
     confirmChanges.addEventListener("click", () =>
       this.#handleConfirmEditor(attribute)
     );
 
     const cancelChanges = page.querySelector("#cancel-changes-" + attribute.id);
     cancelChanges.addEventListener("click", () => this.#handleCancelEditor());
-    
   }
 
-  #invokeAttributeInputs(attribute,page) {
-    const attribute_name_input = page.querySelector("#attribute-name-input-" + attribute.id);
-    const attribute_type = page.querySelector("#attribute-type-" + attribute.id);
+  #invokeAttributeInputs(attribute, page) {
+    const attribute_name_input = page.querySelector(
+      "#attribute-name-input-" + attribute.id
+    );
+    const attribute_type = page.querySelector(
+      "#attribute-type-" + attribute.id
+    );
 
     attribute_name_input.addEventListener("input", () => {
       attribute.name = attribute_name_input.value;
@@ -698,14 +707,15 @@ export class AttributeSelectionService {
 
     // Need to have an function to check with type
 
-
     if (attribute.type === "-1") {
       this.#pushToast({ type: "danger", message: "Please select a type" });
       return;
     }
 
     // Check if the attribute already exists in attribute_data
-    const existingAttributeIndex = this.attribute_data.findIndex(attr => attr.id === attribute.id);
+    const existingAttributeIndex = this.attribute_data.findIndex(
+      (attr) => attr.id === attribute.id
+    );
     if (existingAttributeIndex !== -1) {
       // Update the existing attribute with the new values
       this.attribute_data[existingAttributeIndex] = attribute;
@@ -717,21 +727,27 @@ export class AttributeSelectionService {
     // Update the concept_data with the updated attribute
     this.options.concept_data.forEach((concept) => {
       if (!concept.hasOwnProperty("attributes")) {
-      concept.attributes = [];
+        concept.attributes = [];
       }
-      const existingConceptAttributeIndex = concept.attributes.findIndex(attr => attr.id === attribute.id);
+      const existingConceptAttributeIndex = concept.attributes.findIndex(
+        (attr) => attr.id === attribute.id
+      );
       if (existingConceptAttributeIndex !== -1) {
-      // Update the existing attribute in concept.attributes
-      concept.attributes[existingConceptAttributeIndex] = attribute;
+        // Update the existing attribute in concept.attributes
+        concept.attributes[existingConceptAttributeIndex] = attribute;
       } else {
-      // Add the updated attribute to concept.attributes
-      concept.attributes.push(attribute);
+        // Add the updated attribute to concept.attributes
+        concept.attributes.push(attribute);
       }
     });
 
     // Update the accordian label with the new attribute details
-    const accordian = this.dialogue.page.querySelector("#attribute-accordian-"+attribute.id);
-    const accordianLabel = accordian.querySelector("#children-label-" + attribute.id);
+    const accordian = this.dialogue.page.querySelector(
+      "#attribute-accordian-" + attribute.id
+    );
+    const accordianLabel = accordian.querySelector(
+      "#children-label-" + attribute.id
+    );
     accordianLabel.innerText = `${attribute.name} - ${attribute.type}`;
 
     this.#pushToast({
@@ -740,8 +756,9 @@ export class AttributeSelectionService {
     });
 
     accordianLabel.click();
-    this.dialogue.page.querySelector("#add-attribute-btn").removeAttribute("disabled");
-    
+    this.dialogue.page
+      .querySelector("#add-attribute-btn")
+      .removeAttribute("disabled");
   }
 
   #handleCancelEditor(e) {
@@ -814,27 +831,34 @@ export class AttributeSelectionService {
 
       for (let i = 0; i < this.attribute_data.length; ++i) {
         let attribute = this.attribute_data[i];
-        let attribute_progress = interpolateString(this.attribute_component,{
-          id: i
+        let attribute_progress = interpolateString(this.attribute_component, {
+          id: attribute.id,
         });
 
         attribute_progress = parseHTMLFromString(attribute_progress);
 
-        attribute_progress.querySelector("#attribute-name-input-"+i).setAttribute("value", attribute.name);
-        attribute_progress.querySelector("#attribute-type-"+i).querySelector(`option[value="${attribute.type}"]`).setAttribute("selected", true);
+        attribute_progress
+          .querySelector("#attribute-name-input-" + attribute.id)
+          .setAttribute("value", attribute.name);
+        attribute_progress
+          .querySelector("#attribute-type-" + attribute.id)
+          .querySelector(`option[value="${attribute.type}"]`)
+          .setAttribute("selected", true);
 
-
-        let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
-          id: i,
-          title: `${attribute.name} - ${attribute.type}`,
-          content:  attribute_progress.body.outerHTML,
-        });
+        let attributerow = interpolateString(
+          CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN,
+          {
+            id: attribute.id,
+            title: `${attribute.name} - ${attribute.type}`,
+            content: attribute_progress.body.outerHTML,
+          }
+        );
 
         let doc = parseHTMLFromString(attributerow);
         page.appendChild(doc.body.children[0]);
-        
-        attribute = this.#invokeAttributeInputs(attribute,page);
-        this.#invokeAttributeButtons(attribute,page);
+
+        attribute = this.#invokeAttributeInputs(attribute, page);
+        this.#invokeAttributeButtons(attribute, page);
       }
       if (addAttributeButton) {
         addAttributeButton.addEventListener("click", () => {
