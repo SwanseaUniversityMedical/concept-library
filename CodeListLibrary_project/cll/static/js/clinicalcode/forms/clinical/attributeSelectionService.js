@@ -637,7 +637,7 @@ export class AttributeSelectionService {
       id: this.attribute_data.length,
       name: "",
       type: "-1",
-      value: "",
+      value: " ",
     };
 
     attribute = this.#invokeAttributeInputs(attribute,page);
@@ -661,15 +661,10 @@ export class AttributeSelectionService {
 
   #invokeAttributeInputs(attribute,page) {
     const attribute_name_input = page.querySelector("#attribute-name-input-" + attribute.id);
-    const attribute_value_input = page.querySelector("#attribute-value-input-" + attribute.id);
     const attribute_type = page.querySelector("#attribute-type-" + attribute.id);
 
     attribute_name_input.addEventListener("input", () => {
       attribute.name = attribute_name_input.value;
-    });
-
-    attribute_value_input.addEventListener("input", () => {
-      attribute.value = attribute_value_input.value;
     });
 
     attribute_type.addEventListener("change", () => {
@@ -693,21 +688,16 @@ export class AttributeSelectionService {
 
   #handleConfirmEditor(attribute) {
     // Validate the concept data
-    if (isNullOrUndefined(attribute.name) || isStringEmpty(attribute.value)) {
+    if (isNullOrUndefined(attribute.name)) {
       this.#pushToast({
         type: "danger",
-        message: "Attribute value or name cannot be empty",
+        message: "Attribute name cannot be empty",
       });
       return;
     }
 
-    if (!Number.isInteger(Number(attribute.value))) {
-      this.#pushToast({
-        type: "danger",
-        message: "Value has to have the numeric value",
-      });
-      return;
-    }
+    // Need to have an function to check with type
+
 
     if (attribute.type === "-1") {
       this.#pushToast({ type: "danger", message: "Please select a type" });
@@ -742,7 +732,7 @@ export class AttributeSelectionService {
     // Update the accordian label with the new attribute details
     const accordian = this.dialogue.page.querySelector("#attribute-accordian-"+attribute.id);
     const accordianLabel = accordian.querySelector("#children-label-" + attribute.id);
-    accordianLabel.innerText = `${attribute.name} - ${attribute.value} - ${attribute.type}`;
+    accordianLabel.innerText = `${attribute.name} - ${attribute.type}`;
 
     this.#pushToast({
       type: "success",
@@ -757,14 +747,12 @@ export class AttributeSelectionService {
   #handleCancelEditor(e) {
     const page = this.dialogue.page;
     const attribute_name_input = page.querySelector("#attribute-name-input");
-    const attribute_value_input = page.querySelector("#attribute-value-input");
     const attribute_type = page.querySelector("#attribute-type");
     const accordian = this.dialogue.page.querySelector("#attribute-accordian");
     const noneAvailable = page.querySelector("#no-items-selected");
 
     if (this.attribute_data.length <= 0) {
       attribute_name_input.value = null;
-      attribute_value_input.value = null;
       attribute_type.value = null;
       accordian.remove();
       noneAvailable.classList.add("show");
@@ -833,13 +821,12 @@ export class AttributeSelectionService {
         attribute_progress = parseHTMLFromString(attribute_progress);
 
         attribute_progress.querySelector("#attribute-name-input-"+i).setAttribute("value", attribute.name);
-        attribute_progress.querySelector("#attribute-value-input-"+i).setAttribute("value", attribute.value);
         attribute_progress.querySelector("#attribute-type-"+i).querySelector(`option[value="${attribute.type}"]`).setAttribute("selected", true);
 
 
         let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
           id: i,
-          title: `${attribute.name} - ${attribute.value} - ${attribute.type}`,
+          title: `${attribute.name} - ${attribute.type}`,
           content:  attribute_progress.body.outerHTML,
         });
 
