@@ -23,24 +23,13 @@ class OntologyTagEdge(edge_factory('OntologyTag', concrete=False)):
 
 	"""
 
+	# Hidden fields
+	# id = models.BigAutoField(primary_key=True)
+	# child_id = models.ForeignKey(OntologyTag, on_delete=models.CASCADE, null=False)
+	# parent_id = models.ForeignKey(OntologyTag, on_delete=models.CASCADE, null=False)
 
-	# Fields
-	name = models.CharField(max_length=2048, unique=False)
-
-
-	# Dunder methods
-	def __str__(self):
-		return self.name
-
-
-	# Public methods
-	def save(self, *args, **kwargs):
-		"""
-			Save override to appropriately style the instance's
-			name field
-		"""
-		self.name = f'{self.parent.name} {self.child.name}'
-		super().save(*args, **kwargs)
+	class Meta:
+		unique_together = ('child_id', 'parent_id',)
 
 
 
@@ -68,30 +57,31 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 	# Fields
 	## Hidden fields
-	# id = models.IntegerField(primary_key=True)
+	# id = models.BigAutoField(primary_key=True)
 
 	## Top-level fields
-	name = models.CharField(max_length=1024, unique=False)
+	name = models.CharField(max_length=256, unique=False)
 	type_id = models.IntegerField(choices=[(e.name, e.value) for e in constants.ONTOLOGY_TYPES])
 	properties = models.JSONField(blank=True, null=True)
-	search_vector = SearchVectorField(null=True)
 
 	## Reference to external data source(s)
 	reference_id = models.IntegerField(blank=True, null=True, unique=False)
 
+	## FTS
+	search_vector = SearchVectorField(null=True)
 
 	# Metadata
 	class Meta:
 		ordering = ('type_id', 'id', )
-
 		indexes = [
 			models.Index(fields=['id']),
 			models.Index(fields=['reference_id']),
 			models.Index(fields=['id', 'type_id']),
 			models.Index(fields=['id', 'reference_id']),
 			models.Index(fields=['id', 'type_id', 'reference_id']),
-			GinIndex(name='ot_name_gin_idx', fields=['name']),
+			GinIndex(name='ot_name_gin_idx', fields=['name'], opclasses=['gin_trgm_ops']),
 			GinIndex(fields=['search_vector']),
+			GinIndex(fields=['properties'])
 		]
 
 

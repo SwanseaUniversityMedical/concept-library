@@ -92,10 +92,10 @@ def get_ontology_nodes(request):
         Query Params:
             - `page` - the page number cursor (defaults to 1)
             - `page_size` - denotes page size enum, where `1` = 20 rows, `2` = 50 rows and `3` = 100 rows
-            - `codes` - one or more code(s) to filter on the related ontology code string
+            - `codes` - one or more SNOMED code(s) to filter on the related ontology code string (delimited by ',')
             - `search` - full-text search on ontology name(s)
-            - `type_ids` - one or more id(s) to filter on ontology type
-            - `reference_ids` - one or more id(s) to filter on atlas reference id
+            - `type_ids` - one or more id(s) to filter on ontology type (delimited by ',')
+            - `reference_ids` - one or more id(s) to filter on atlas reference id (delimited by ',')
 
     """
 

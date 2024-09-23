@@ -125,6 +125,18 @@ class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     CREATE = 1
     UPDATE = 2
 
+class CASE_SIGNIFICANCE(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Indicates whether the text can be modified by varying the case
+        of characters describing a SNOMED Concept
+
+        See: https://confluence.ihtsdotools.org/pages/viewpage.action?pageId=28739261
+
+    """
+    CL = 0 # First character can be varied; rest is cast sensitive
+    CI = 1 # All characters are case insensitive
+    CS = 2 # All characters are case sensitive
+
 class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     """
         Defines the ontology internal type id,
