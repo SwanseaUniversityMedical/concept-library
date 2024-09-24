@@ -428,36 +428,36 @@ export class AttributeSelectionService {
     }).render(document.getElementById("tab-content"));
 
     if (!concept_data.every((concept) => !concept.attributes)) {
-      const transformedData = concept_data.map((concept) => {
+      const transformedData = [];
+      for (let i = 0; i < concept_data.length; i++) {
+        const concept = concept_data[i];
         const rowData = [
           `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`,
         ];
         if (concept.attributes) {
-          concept.attributes.forEach((attribute) => {
-            rowData.push(attribute.value);
-          });
+          for (let j = 0; j < concept.attributes.length; j++) {
+            let attribute = concept.attributes[j];
+            attribute.attributes = (cell) => {
+              if (cell) {
+                return {
+                  style: "cursor: pointer",
+                  contenteditable: true,
+                };
+              }
+            };
+            rowData.push(concept.attributes[j].value);
+          }
         }
-        return rowData;
-      });
+        transformedData.push(rowData);
+      }
       const columns = ["Concept"];
       if (concept_data[0].attributes) {
         concept_data[0].attributes.forEach((attribute) => {
           columns.push(attribute);
-
-          attribute.attributes = (cell) => {
-            if (cell) {
-              return {
-                "data-cell-content": cell,
-                "style": "cursor: pointer",
-                "contenteditable": true,
-                oninput: (e) => attribute.value = e.target.innerText, //No validation for now 
-              };
-            }
-          };
         });
-
       }
-      console.log("columns", columns);
+
+      console.log(transformedData, columns);
 
       table
         .updateConfig({
@@ -468,8 +468,45 @@ export class AttributeSelectionService {
     }
   }
 
-  #cellEdit(targetInput) {
-    console.log(targetInput);
+  #addCellEditListeners(tableElement) {
+    const rows = tableElement.querySelector("tbody").childNodes;
+
+    const changedCell = [];
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      const row = rows[rowIndex];
+      const columns = row.querySelectorAll("td");
+
+      for (let columnIndex = 1; columnIndex < columns.length; columnIndex++) {
+        // Skip the first column (Concept)
+        const tempCol = columns[columnIndex];
+        if (tempCol.innerText !== "") {
+          changedCell.push({
+            row: rowIndex,
+            column: columnIndex,
+            value: tempCol.innerText,
+          });
+        }
+      }
+    }
+    for (let i = 0; i < changedCell.length; i++) {
+      const cell = changedCell[i];
+      const concept = this.options.concept_data[cell.row];
+      if (concept){
+        concept.attributes[cell.column - 1] = {id:concept.attributes[cell.column - 1].id, value: cell.value , name: concept.attributes[cell.column - 1].name, type: concept.attributes[cell.column - 1].type};
+      }
+
+    }
+  }
+
+  #cellValidation(targetInput, attribute) {
+    if (!isNaN(targetInput)) {
+      this.#pushToast({
+        type: "danger",
+        message: "Attribute is number",
+      });
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -500,6 +537,14 @@ export class AttributeSelectionService {
       case CSEL_VIEWS.ATTRIBUTE_TABLE:
         {
           this.#createGridTable(this.options.concept_data);
+          const tableElement = document.querySelector("#tab-content table");
+          if (tableElement) {
+            tableElement.addEventListener("input", (e) => {
+              this.#addCellEditListeners(
+                tableElement
+              );
+            });
+          }
         }
         break;
 
@@ -611,7 +656,6 @@ export class AttributeSelectionService {
 
   #handleAttributeCreation(e) {
     const page = this.dialogue.page;
-    console.log("Add attribute button clicked");
     page.querySelector("#add-attribute-btn").setAttribute("disabled", true);
     const noneAvailable = page.querySelector("#no-items-selected");
 
