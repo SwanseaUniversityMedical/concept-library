@@ -457,8 +457,6 @@ export class AttributeSelectionService {
         });
       }
 
-      console.log(transformedData, columns);
-
       table
         .updateConfig({
           columns: columns,
@@ -485,16 +483,24 @@ export class AttributeSelectionService {
             column: columnIndex,
             value: tempCol.innerText,
           });
+        } else {
+          changedCell.push({
+            row: rowIndex,
+            column: columnIndex,
+            value: " ",
+          });
         }
       }
     }
     for (let i = 0; i < changedCell.length; i++) {
       const cell = changedCell[i];
       const concept = this.options.concept_data[cell.row];
-      if (concept){
-        concept.attributes[cell.column - 1] = {id:concept.attributes[cell.column - 1].id, value: cell.value , name: concept.attributes[cell.column - 1].name, type: concept.attributes[cell.column - 1].type};
-      }
-
+      concept.attributes[cell.column - 1] = {
+        id: concept.attributes[cell.column - 1].id,
+        value: cell.value,
+        name: concept.attributes[cell.column - 1].name,
+        type: concept.attributes[cell.column - 1].type,
+      };
     }
   }
 
@@ -540,9 +546,7 @@ export class AttributeSelectionService {
           const tableElement = document.querySelector("#tab-content table");
           if (tableElement) {
             tableElement.addEventListener("input", (e) => {
-              this.#addCellEditListeners(
-                tableElement
-              );
+              this.#addCellEditListeners(tableElement);
             });
           }
         }
