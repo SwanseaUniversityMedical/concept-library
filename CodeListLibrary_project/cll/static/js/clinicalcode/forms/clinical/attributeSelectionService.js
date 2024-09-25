@@ -710,7 +710,9 @@ export class AttributeSelectionService {
     );
 
     const cancelChanges = page.querySelector("#cancel-changes-" + attribute.id);
-    cancelChanges.addEventListener("click", () => this.#handleCancelEditor());
+    cancelChanges.addEventListener("click", () =>
+      this.#handleCancelEditor(attribute)
+    );
   }
 
   #invokeAttributeInputs(attribute, page) {
@@ -743,7 +745,7 @@ export class AttributeSelectionService {
         return "FLOAT";
     }
   }
-  
+
   #pushToast({ type = "information", message = null, duration = "5000" }) {
     if (isNullOrUndefined(message)) {
       return;
@@ -809,7 +811,9 @@ export class AttributeSelectionService {
     const accordianLabel = accordian.querySelector(
       "#children-label-" + attribute.id
     );
-    accordianLabel.innerText = `${attribute.name} - ${this.#typeConversion(attribute.type)}`;
+    accordianLabel.innerText = `${attribute.name} - ${this.#typeConversion(
+      attribute.type
+    )}`;
 
     this.#pushToast({
       type: "success",
@@ -822,18 +826,27 @@ export class AttributeSelectionService {
       .removeAttribute("disabled");
   }
 
-  #handleCancelEditor(e) {
+  #handleCancelEditor(attribute) {
     const page = this.dialogue.page;
-    const attribute_name_input = page.querySelector("#attribute-name-input");
-    const attribute_type = page.querySelector("#attribute-type");
-    const accordian = this.dialogue.page.querySelector("#attribute-accordian");
+    const attribute_name_input = page.querySelector(
+      "#attribute-name-input-" + attribute.id
+    );
+    const attribute_type = page.querySelector(
+      "#attribute-type-" + attribute.id
+    );
+    const accordian = page.querySelector(
+      "#attribute-accordian-" + attribute.id
+    );
     const noneAvailable = page.querySelector("#no-items-selected");
 
     if (this.attribute_data.length <= 0) {
       attribute_name_input.value = null;
-      attribute_type.value = null;
+      attribute_type.value = -1;
       accordian.remove();
       noneAvailable.classList.add("show");
+      page.querySelector("#add-attribute-btn").removeAttribute("disabled");
+    } else {
+      accordian.querySelector("#children-label-" + attribute.id).click();
     }
   }
 
@@ -910,7 +923,9 @@ export class AttributeSelectionService {
           CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN,
           {
             id: attribute.id,
-            title: `${attribute.name} - ${this.#typeConversion(attribute.type)}`,
+            title: `${attribute.name} - ${this.#typeConversion(
+              attribute.type
+            )}`,
             content: attribute_progress.body.outerHTML,
           }
         );
