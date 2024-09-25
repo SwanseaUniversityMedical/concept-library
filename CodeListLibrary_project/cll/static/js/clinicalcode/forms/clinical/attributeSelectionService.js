@@ -463,6 +463,7 @@ export class AttributeSelectionService {
           data: transformedData,
         })
         .forceRender();
+      console.log(columns);
     }
   }
 
@@ -720,17 +721,29 @@ export class AttributeSelectionService {
       "#attribute-type-" + attribute.id
     );
 
-    attribute_name_input.addEventListener("input", () => {
-      attribute.name = attribute_name_input.value;
-    });
-
     attribute_type.addEventListener("change", () => {
       attribute.type = attribute_type.value;
+    });
+
+    attribute_name_input.addEventListener("input", () => {
+      attribute.name = `${attribute_name_input.value}`;
     });
 
     return attribute;
   }
 
+  #typeConversion(type) {
+    console.log(type);
+    switch (type) {
+      case "1":
+        return "INT";
+      case "2":
+        return "STRING";
+      case "3":
+        return "FLOAT";
+    }
+  }
+  
   #pushToast({ type = "information", message = null, duration = "5000" }) {
     if (isNullOrUndefined(message)) {
       return;
@@ -796,7 +809,7 @@ export class AttributeSelectionService {
     const accordianLabel = accordian.querySelector(
       "#children-label-" + attribute.id
     );
-    accordianLabel.innerText = `${attribute.name} - ${attribute.type}`;
+    accordianLabel.innerText = `${attribute.name} - ${this.#typeConversion(attribute.type)}`;
 
     this.#pushToast({
       type: "success",
@@ -897,7 +910,7 @@ export class AttributeSelectionService {
           CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN,
           {
             id: attribute.id,
-            title: `${attribute.name} - ${attribute.type}`,
+            title: `${attribute.name} - ${this.#typeConversion(attribute.type)}`,
             content: attribute_progress.body.outerHTML,
           }
         );
