@@ -779,28 +779,37 @@ export class AttributeSelectionService {
     const existingAttributeIndex = this.attribute_data.findIndex(
       (attr) => attr.id === attribute.id
     );
+
     if (existingAttributeIndex !== -1) {
-      // Update the existing attribute with the new values
-      this.attribute_data[existingAttributeIndex] = attribute;
+      // Update the existing attribute with the new name and type if they have changed
+      const existingAttribute = this.attribute_data[existingAttributeIndex];
+      if (existingAttribute.name !== attribute.name || existingAttribute.type !== attribute.type) {
+      existingAttribute.name = attribute.name;
+      existingAttribute.type = attribute.type;
+      }
     } else {
-      // Add the updated attribute to attribute_data if id attribute is not present
+      // Add the new attribute to attribute_data if it doesn't exist
       this.attribute_data.push(attribute);
     }
 
     // Update the concept_data with the updated attribute
     this.options.concept_data.forEach((concept) => {
       if (!concept.hasOwnProperty("attributes")) {
-        concept.attributes = [];
+      concept.attributes = [];
       }
       const existingConceptAttributeIndex = concept.attributes.findIndex(
-        (attr) => attr.id === attribute.id
+      (attr) => attr.id === attribute.id
       );
       if (existingConceptAttributeIndex !== -1) {
-        // Update the existing attribute in concept.attributes
-        concept.attributes[existingConceptAttributeIndex] = attribute;
+      // Update the existing attribute in concept.attributes with the new name and type if they have changed
+      const existingConceptAttribute = concept.attributes[existingConceptAttributeIndex];
+      if (existingConceptAttribute.name !== attribute.name || existingConceptAttribute.type !== attribute.type) {
+        existingConceptAttribute.name = attribute.name;
+        existingConceptAttribute.type = attribute.type;
+      }
       } else {
-        // Add the updated attribute to concept.attributes
-        concept.attributes.push(attribute);
+      // Add the new attribute to concept.attributes if it doesn't exist
+      concept.attributes.push(attribute);
       }
     });
 
