@@ -768,8 +768,6 @@ export class AttributeSelectionService {
       return;
     }
 
-    // Need to have an function to check with type
-
     if (attribute.type === "-1") {
       this.#pushToast({ type: "danger", message: "Please select a type" });
       return;
@@ -783,33 +781,44 @@ export class AttributeSelectionService {
     if (existingAttributeIndex !== -1) {
       // Update the existing attribute with the new name and type if they have changed
       const existingAttribute = this.attribute_data[existingAttributeIndex];
-      if (existingAttribute.name !== attribute.name || existingAttribute.type !== attribute.type) {
-      existingAttribute.name = attribute.name;
-      existingAttribute.type = attribute.type;
+      if (
+        existingAttribute.name !== attribute.name ||
+        existingAttribute.type !== attribute.type
+      ) {
+        existingAttribute.name = attribute.name;
+        existingAttribute.type = attribute.type;
       }
     } else {
       // Add the new attribute to attribute_data if it doesn't exist
       this.attribute_data.push(attribute);
+      this.#pushToast({
+        type: "success",
+        message: "Attribute added successfully",
+      });
     }
 
     // Update the concept_data with the updated attribute
     this.options.concept_data.forEach((concept) => {
       if (!concept.hasOwnProperty("attributes")) {
-      concept.attributes = [];
+        concept.attributes = [];
       }
       const existingConceptAttributeIndex = concept.attributes.findIndex(
-      (attr) => attr.id === attribute.id
+        (attr) => attr.id === attribute.id
       );
       if (existingConceptAttributeIndex !== -1) {
-      // Update the existing attribute in concept.attributes with the new name and type if they have changed
-      const existingConceptAttribute = concept.attributes[existingConceptAttributeIndex];
-      if (existingConceptAttribute.name !== attribute.name || existingConceptAttribute.type !== attribute.type) {
-        existingConceptAttribute.name = attribute.name;
-        existingConceptAttribute.type = attribute.type;
-      }
+        // Update the existing attribute in concept.attributes with the new name and type if they have changed
+        const existingConceptAttribute =
+          concept.attributes[existingConceptAttributeIndex];
+        if (
+          existingConceptAttribute.name !== attribute.name ||
+          existingConceptAttribute.type !== attribute.type
+        ) {
+          existingConceptAttribute.name = attribute.name;
+          existingConceptAttribute.type = attribute.type;
+        }
       } else {
-      // Add the new attribute to concept.attributes if it doesn't exist
-      concept.attributes.push(attribute);
+        // Add the new attribute to concept.attributes if it doesn't exist
+        concept.attributes.push(attribute);
       }
     });
 
@@ -824,11 +833,7 @@ export class AttributeSelectionService {
       attribute.type
     )}`;
 
-    this.#pushToast({
-      type: "success",
-      message: "Attribute added successfully",
-    });
-
+    // Close the accordian and re-enable the add attribute button
     accordianLabel.click();
     this.dialogue.page
       .querySelector("#add-attribute-btn")
