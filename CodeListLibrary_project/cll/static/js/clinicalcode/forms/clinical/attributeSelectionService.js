@@ -130,6 +130,19 @@ const CSEL_INTERFACE = {
       ${content} \
     </article> \
   </div>',
+
+  CONCEPT_ATTRIBUTE:
+  '<span class="concept-list__group-item" style="margin-top: 0.5rem" id="attribute-accordian-${id}" > \
+  <span aria-label="Expand Attribute" data-target="is-open" class="contextual-icon" id="children-${id}" name="children-${id}" role="button" tabindex="0">\
+  </span> \
+  <span aria-label="Expand Attribute" class="concept-name" role="button" tabindex="0"> ${title} </span> \
+  <span class="concept-buttons"> \
+   <span tooltip="Delete Attribute" direction="left"> <span aria-label="Delete Attribute" class="delete-icon" data-target="delete" role="button" tabindex="0"></span> \
+   </span> \
+   </span> \
+   </span>',
+
+
 };
 
 /**
@@ -145,15 +158,12 @@ const CSEL_INTERFACE = {
 export class AttributeSelectionService {
   static Views = CSEL_VIEWS;
 
-  constructor(options, data) {
+  constructor(options) {
     this.options = mergeObjects(options || {}, CSEL_OPTIONS);
     this.attribute_component = options.attribute_component;
 
-    if (this.options.allowMultiple) {
-      this.attribute_data = data || [];
-    } else {
-      this.attribute_data = [];
-    }
+    this.attribute_data = []; 
+    this.temporarly_concept_data = JSON.parse(JSON.stringify(options.concept_data)); 
   }
 
   /*************************************
@@ -247,7 +257,7 @@ export class AttributeSelectionService {
     return new Promise((resolve, reject) => {
       this.#buildDialogue(params);
       this.#renderView(view);
-      this.#createGridTable(this.options.concept_data);
+      this.#createGridTable(this.temporarly_concept_data);
 
       this.dialogue.element.addEventListener("selectionUpdate", (e) => {
         this.close();
@@ -495,7 +505,7 @@ export class AttributeSelectionService {
     }
     for (let i = 0; i < changedCell.length; i++) {
       const cell = changedCell[i];
-      const concept = this.options.concept_data[cell.row];
+      const concept = this.temporarly_concept_data[cell.row];
       concept.attributes[cell.column - 1] = {
         id: concept.attributes[cell.column - 1].id,
         value: cell.value,
@@ -543,7 +553,7 @@ export class AttributeSelectionService {
     switch (view) {
       case CSEL_VIEWS.ATTRIBUTE_TABLE:
         {
-          this.#createGridTable(this.options.concept_data);
+          this.#createGridTable(this.temporarly_concept_data);
           const tableElement = document.querySelector("#tab-content table");
           if (tableElement) {
             tableElement.addEventListener("input", (e) => {
@@ -620,7 +630,11 @@ export class AttributeSelectionService {
       return;
     }
 
-    const data = this.dialogue?.data;
+    const data = this.dialogue?.data.map((item) => ({
+      name: item.name,
+      type: item.type,
+      value: item.value,
+    }));
     const event = new CustomEvent("selectionUpdate", {
       detail: {
         data: data,
@@ -671,7 +685,7 @@ export class AttributeSelectionService {
     });
 
     if (this.attribute_data.length <= 0) {
-      let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
+      let attributerow = interpolateString(CSEL_INTERFACE.CONCEPT_ATTRIBUTE, {
         id: uniqueId,
         title: `New attribute value`,
         content: attribute_progress,
@@ -735,7 +749,6 @@ export class AttributeSelectionService {
   }
 
   #typeConversion(type) {
-    console.log(type);
     switch (type) {
       case "1":
         return "INT";
@@ -798,7 +811,7 @@ export class AttributeSelectionService {
     }
 
     // Update the concept_data with the updated attribute
-    this.options.concept_data.forEach((concept) => {
+    this.temporarly_concept_data.forEach((concept) => {
       if (!concept.hasOwnProperty("attributes")) {
         concept.attributes = [];
       }
