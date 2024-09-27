@@ -1,16 +1,31 @@
 import re
-import sqlalchemy as sa
-import pandas as pd
-from dash import Dash, html, dcc, Output, Input, callback
-import dash_bootstrap_components as dbc
-import plotly.express as px
-import plotly.graph_objects as go
 from datetime import datetime
+import os
+
+
+import dash_bootstrap_components as dbc
+import pandas as pd
+import plotly.express as px
+import sqlalchemy as sa
+from dash import Dash, html, dcc, Output, Input, callback
+
 from constants import BRAND_ENCODING, BRAND_LABELS, USER_TYPE_LABELS
+
+
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, 'assets/style.css'])
 
-conn_string = 'postgresql+psycopg2://clluser:password@localhost:5432/concept_library'
+if not os.getenv('REMOTE', 'false') != 'false':
+    from dotenv import load_dotenv
+    load_dotenv()
+
+
+POSTGRES_HOST = os.getenv('POSTGRES_HOST')
+POSTGRES_DB = os.getenv('POSTGRES_DB')
+POSTGRES_USER = os.getenv('POSTGRES_USER')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+POSTGRES_PORT = os.getenv('POSTGRES_PORT')
+conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
 
 # Reading dataframes
 conn = sa.create_engine(conn_string)
@@ -26,15 +41,11 @@ def read_request_df(conn):
 
     return request_df
 
-
 def read_phenotype_df(conn):
     phenotype_df = pd.read_sql_table('clinicalcode_historicalgenericentity', conn)
     phenotype_df['date'] = pd.to_datetime(phenotype_df['created']).dt.date
 
     return phenotype_df
-
-
-
 
 def render_filters():
     min_date = read_phenotype_df(conn)['date'].min()
@@ -100,6 +111,7 @@ def render_filters():
             ],
             className='filters-container'
     )
+
 
 
 app.layout = dbc.Container(
@@ -402,4 +414,4 @@ def render_time_series(start_date, end_date, brand, user_type):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=1234)
+    app.run_server(port=8050)

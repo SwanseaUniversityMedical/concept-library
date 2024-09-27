@@ -12,7 +12,7 @@ RUN apt-get update -y -q && \
     apt-get upgrade -y -q && \
     apt-get install dos2unix
 
-COPY ./requirements/engagelens.txt /engagelens/requirements
+COPY ./requirements /engagelens/requirements
 
 # Install requirements
 RUN pip --no-cache-dir install -r /engagelens/requirements/engagelens.txt

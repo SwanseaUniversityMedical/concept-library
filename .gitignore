@@ -25,3 +25,4 @@ docker/CodeListLibrary_project
 .idea
 
 CodeListLibrary_project/clinicalcode/tests/allure-results/
+/engagelens/.env

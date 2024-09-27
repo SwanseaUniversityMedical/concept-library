@@ -1,3 +1,60 @@
-version: '3.8'
-
 services:
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./development/postgres.Dockerfile
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./development/db/:/docker-entrypoint-initdb.d/db/
+    env_file:
+      - ./development/env/postgres.compose.env
+
+  app:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./development/app.Dockerfile
+    command: >
+      sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py makemigrations
+      && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py migrate
+      && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+    ports:
+      - 8000:8000
+    expose:
+      - 8000
+    links:
+      - postgres:postgres
+    tty: true
+    stdin_open: true
+    env_file:
+      - ./development/env/app.compose.env
+    depends_on:
+      - postgres
+
+  engagelens:
+    platform: linux/amd64
+    build:
+      context: .  # Path to your Dash app's Dockerfile
+      dockerfile: ./engagelens/app.Dockerfile  # Dockerfile for your Dash app
+    command: >
+      sh -c "/bin/wait-for-it.sh -t 0 app:8000 -- gunicorn -w 4 -b 0.0.0.0:8050 app:app"
+    volumes:
+      - ../EngageLens:/engagelens  # Adjust according to your Dash app's structure
+    ports:
+      - 8050:8050  # Assuming Dash app runs on port 8050
+    expose:
+      - 8050
+    depends_on:
+      - app
+    environment:
+      - ./engagelens/env/app.compose.env
+    tty: true
+    stdin_open: true
+
+
+
