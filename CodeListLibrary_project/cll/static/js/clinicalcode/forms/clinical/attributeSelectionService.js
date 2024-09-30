@@ -792,7 +792,7 @@ export class AttributeSelectionService {
       accordian.remove();
 
       // Show the "no items selected" message if there are no attributes left
-      if (this.attribute_data.length <= 0) {
+      if (this.attribute_data.length <= 0 && page.querySelectorAll(".fill-accordian").length <= 0) {
         noneAvailable.classList.add("show");
       }
     }
