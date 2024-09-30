@@ -74,8 +74,8 @@ const CSEL_BUTTONS = {
 
 const CSEL_UTILITY_BUTTONS = {
   DELETE_BUTTON:
-  '<button class="fill-accordian__label__delete-icon" id="children-button-${id}" type="button" aria-label="Delete"></button> '
-}
+    '<button class="fill-accordian__label__delete-icon" id="children-button-${id}" type="button" aria-label="Delete"></button> ',
+};
 
 /**
  * CSEL_INTERFACE
@@ -154,8 +154,10 @@ export class AttributeSelectionService {
     this.options = mergeObjects(options || {}, CSEL_OPTIONS);
     this.attribute_component = options.attribute_component;
 
-    this.attribute_data = []; 
-    this.temporarly_concept_data = JSON.parse(JSON.stringify(options.concept_data)); 
+    this.attribute_data = [];
+    this.temporarly_concept_data = JSON.parse(
+      JSON.stringify(options.concept_data)
+    );
   }
 
   /*************************************
@@ -693,8 +695,6 @@ export class AttributeSelectionService {
       });
       let doc = parseHTMLFromString(attributerow);
       page.appendChild(doc.body.children[0]);
-
-
     }
 
     let attribute = {
@@ -721,6 +721,15 @@ export class AttributeSelectionService {
     cancelChanges.addEventListener("click", () =>
       this.#handleCancelEditor(attribute)
     );
+
+    if (page.querySelector("#children-button-" + attribute.id)) {
+      const deleteAttributeButton = page.querySelector(
+        "#children-button-" + attribute.id
+      );
+      deleteAttributeButton.addEventListener("click", () =>
+        this.#deleteAttribute(attribute)
+      );
+    }
   }
 
   #invokeAttributeInputs(attribute, page) {
@@ -750,6 +759,42 @@ export class AttributeSelectionService {
         return "STRING";
       case "3":
         return "FLOAT";
+    }
+  }
+
+  #deleteAttribute(attribute) {
+    const page = this.dialogue.page;
+
+    const accordian = page.querySelector(
+      "#attribute-accordian-" + attribute.id
+    );
+
+    const noneAvailable = page.querySelector("#no-items-selected");
+
+    const indexToDelete = this.attribute_data.findIndex(
+      (attr) => attr.id === attribute.id
+    );
+
+    if (indexToDelete !== -1) {
+      // Remove the attribute from attribute_data
+      this.attribute_data.splice(indexToDelete, 1);
+
+      // Remove the related attributes from concept_data
+      this.temporarly_concept_data.forEach((concept) => {
+        if (concept.attributes) {
+          concept.attributes = concept.attributes.filter(
+            (attr) => attr.id !== attribute.id
+          );
+        }
+      });
+
+      // Remove the accordian element
+      accordian.remove();
+
+      // Show the "no items selected" message if there are no attributes left
+      if (this.attribute_data.length <= 0) {
+        noneAvailable.classList.add("show");
+      }
     }
   }
 
@@ -836,21 +881,33 @@ export class AttributeSelectionService {
     const accordianLabel = accordian.querySelector(
       "#children-label-" + attribute.id
     );
-    let accordianDeleteButton = interpolateString(CSEL_UTILITY_BUTTONS.DELETE_BUTTON, {
-      id: attribute.id
-    });
-    const deleteButtonElement = parseHTMLFromString(accordianDeleteButton).body.children[0];
-    accordianLabel.textContent = '';
+    let accordianDeleteButton = interpolateString(
+      CSEL_UTILITY_BUTTONS.DELETE_BUTTON,
+      {
+        id: attribute.id,
+      }
+    );
+    const deleteButtonElement = parseHTMLFromString(accordianDeleteButton).body
+      .children[0];
+    accordianLabel.textContent = "";
     accordianLabel.insertBefore(deleteButtonElement, accordianLabel.firstChild);
-    accordianLabel.appendChild(document.createTextNode(` ${attribute.name} - ${this.#typeConversion(attribute.type)}`));
-
-
+    accordianLabel.appendChild(
+      document.createTextNode(
+        ` ${attribute.name} - ${this.#typeConversion(attribute.type)}`
+      )
+    );
 
     // Close the accordian and re-enable the add attribute button
     accordianLabel.click();
     this.dialogue.page
       .querySelector("#add-attribute-btn")
       .removeAttribute("disabled");
+
+    this.dialogue.page
+      .querySelector("#children-button-" + attribute.id)
+      .addEventListener("click", () => {
+        this.#deleteAttribute(attribute);
+      });
   }
 
   #handleCancelEditor(attribute) {
@@ -873,7 +930,7 @@ export class AttributeSelectionService {
       noneAvailable.classList.add("show");
       page.querySelector("#add-attribute-btn").removeAttribute("disabled");
     } else {
-      if (attribute_name_input.value === '' || attribute_type.value === "-1") {
+      if (attribute_name_input.value === "" || attribute_type.value === "-1") {
         accordian.remove();
         page.querySelector("#add-attribute-btn").removeAttribute("disabled");
       }
@@ -962,17 +1019,28 @@ export class AttributeSelectionService {
         );
 
         let doc = parseHTMLFromString(attributerow);
-        
+
         const accordianLabel = doc.querySelector(
           "#children-label-" + attribute.id
         );
-        let accordianDeleteButton = interpolateString(CSEL_UTILITY_BUTTONS.DELETE_BUTTON, {
-          id: attribute.id
-        });
-        const deleteButtonElement = parseHTMLFromString(accordianDeleteButton).body.children[0];
-        accordianLabel.textContent = '';
-        accordianLabel.insertBefore(deleteButtonElement, accordianLabel.firstChild);
-        accordianLabel.appendChild(document.createTextNode(`${attribute.name} - ${this.#typeConversion(attribute.type)}`));
+        let accordianDeleteButton = interpolateString(
+          CSEL_UTILITY_BUTTONS.DELETE_BUTTON,
+          {
+            id: attribute.id,
+          }
+        );
+        const deleteButtonElement = parseHTMLFromString(accordianDeleteButton)
+          .body.children[0];
+        accordianLabel.textContent = "";
+        accordianLabel.insertBefore(
+          deleteButtonElement,
+          accordianLabel.firstChild
+        );
+        accordianLabel.appendChild(
+          document.createTextNode(
+            `${attribute.name} - ${this.#typeConversion(attribute.type)}`
+          )
+        );
 
         page.appendChild(doc.body.children[0]);
 
