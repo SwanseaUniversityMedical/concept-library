@@ -72,6 +72,11 @@ const CSEL_BUTTONS = {
     '<button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Cancel" id="reject-button"></button>',
 };
 
+const CSEL_UTILITY_BUTTONS = {
+  DELETE_BUTTON:
+  '<button class="fill-accordian__label__delete-icon" id="children-button-${id}" type="button" aria-label="Delete"></button> '
+}
+
 /**
  * CSEL_INTERFACE
  * @desc defines the HTML used to render the selection interface
@@ -130,19 +135,6 @@ const CSEL_INTERFACE = {
       ${content} \
     </article> \
   </div>',
-
-  CONCEPT_ATTRIBUTE:
-  '<span class="concept-list__group-item" style="margin-top: 0.5rem" id="attribute-accordian-${id}" > \
-  <span aria-label="Expand Attribute" data-target="is-open" class="contextual-icon" id="children-${id}" name="children-${id}" role="button" tabindex="0">\
-  </span> \
-  <span aria-label="Expand Attribute" class="concept-name" role="button" tabindex="0"> ${title} </span> \
-  <span class="concept-buttons"> \
-   <span tooltip="Delete Attribute" direction="left"> <span aria-label="Delete Attribute" class="delete-icon" data-target="delete" role="button" tabindex="0"></span> \
-   </span> \
-   </span> \
-   </span>',
-
-
 };
 
 /**
@@ -685,7 +677,7 @@ export class AttributeSelectionService {
     });
 
     if (this.attribute_data.length <= 0) {
-      let attributerow = interpolateString(CSEL_INTERFACE.CONCEPT_ATTRIBUTE, {
+      let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
         id: uniqueId,
         title: `New attribute value`,
         content: attribute_progress,
@@ -701,6 +693,8 @@ export class AttributeSelectionService {
       });
       let doc = parseHTMLFromString(attributerow);
       page.appendChild(doc.body.children[0]);
+
+
     }
 
     let attribute = {
@@ -873,6 +867,10 @@ export class AttributeSelectionService {
       noneAvailable.classList.add("show");
       page.querySelector("#add-attribute-btn").removeAttribute("disabled");
     } else {
+      if (attribute_name_input.value === '' || attribute_type.value === "-1") {
+        accordian.remove();
+        page.querySelector("#add-attribute-btn").removeAttribute("disabled");
+      }
       accordian.querySelector("#children-label-" + attribute.id).click();
     }
   }
