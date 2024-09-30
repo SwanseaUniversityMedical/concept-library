@@ -153,11 +153,34 @@ export class AttributeSelectionService {
   constructor(options) {
     this.options = mergeObjects(options || {}, CSEL_OPTIONS);
     this.attribute_component = options.attribute_component;
+    const attributeUUIDMap = new Map();
 
-    this.attribute_data = [];
     this.temporarly_concept_data = JSON.parse(
       JSON.stringify(options.concept_data)
     );
+
+    this.temporarly_concept_data.forEach((concept) => {
+      if (concept.attributes) {
+        concept.attributes.forEach((attribute) => {
+          const uuid = this.#generateUUID();
+          attribute.id = uuid;
+        });
+      }
+    });
+
+    if (!this.options.concept_data[0].attributes) {
+      this.attribute_data = [];
+    } else {
+      this.attribute_data = [];
+
+      this.temporarly_concept_data[0].attributes.forEach((attribute) => {
+        this.attribute_data.push({
+          id: attribute.id,
+          name: attribute.name,
+          type: attribute.type,
+        });
+      });
+    }
   }
 
   /*************************************
@@ -207,25 +230,6 @@ export class AttributeSelectionService {
     return !!this.dialogue.data.find((item) => {
       return item.id == childId && item.history_id == childVersion;
     });
-  }
-
-  /*************************************
-   *                                   *
-   *               Setter              *
-   *                                   *
-   *************************************/
-  /**
-   * setSelection
-   * @desc sets the currently selected concepts
-   * @param {array} data the desired selected objects
-   */
-  setSelection(data) {
-    data = data || [];
-
-    if (this.options.allowMultiple) {
-      this.attribute_data = data;
-    }
-    return this;
   }
 
   /*************************************
@@ -624,14 +628,24 @@ export class AttributeSelectionService {
       return;
     }
 
-    const data = this.dialogue?.data.map((item) => ({
-      name: item.name,
-      type: item.type,
-      value: item.value,
-    }));
+    // Clean up the attributes in concept_data
+    this.temporarly_concept_data.forEach((concept) => {
+      if (concept.attributes) {
+        concept.attributes = concept.attributes.map((attr) => ({
+          name: attr.name,
+          value: attr.value,
+          type: attr.type,
+        }));
+      }
+    });
+
+    this.options.concept_data = JSON.parse(
+      JSON.stringify(this.temporarly_concept_data)
+    );
+
     const event = new CustomEvent("selectionUpdate", {
       detail: {
-        data: data,
+        data: this.options.concept_data,
         type: CSEL_EVENTS.CONFIRMED,
       },
     });
@@ -792,7 +806,10 @@ export class AttributeSelectionService {
       accordian.remove();
 
       // Show the "no items selected" message if there are no attributes left
-      if (this.attribute_data.length <= 0 && page.querySelectorAll(".fill-accordian").length <= 0) {
+      if (
+        this.attribute_data.length <= 0 &&
+        page.querySelectorAll(".fill-accordian").length <= 0
+      ) {
         noneAvailable.classList.add("show");
       }
     }
@@ -958,6 +975,7 @@ export class AttributeSelectionService {
   }
 
   #paintSelectionAttributes() {
+    console.log(this.attribute_data);
     const page = this.dialogue.page;
     if (
       !this.dialogue?.view == CSEL_VIEWS.SELECTION ||
