@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 
 import pytest
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True,transaction=True)
 @pytest.mark.usefixtures('setup_webdriver')
 class TestDetailComponents:
 

@@ -1,0 +1,40 @@
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Endorsements {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+  {% if not component.hide_input_details %}
+    <p class="detailed-input-group__description">Add a endorsement by providing the reference details</p>
+  {% endif %}
+
+  <div class="publication-list-group">
+    {% if component.value %}
+      {% to_json_script component.value desc-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
+
+    <div class="publication-list-group__interface" data-class="clinical-endorsement" data-field="{{ component.field_name }}">
+      <div class="publication-list-group__interface-children">
+        <input class="text-input" aria-label="Endorsement details" type="text"
+          placeholder="Endorsement Organisation"
+          minlength="3" pattern="^[a-zA-Z]{1,}.*?"
+          id="endorsement-input-box"/>
+          <input type="text" class="date-range-picker" aria-label="{{ component.field_data.title }}" id="entity-{{ component.field_name }}-input" data-class="datepicker" data-range="false" data-field="{{ component.field_name }}" data-value="{{ component.value }}" />
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Endorsement" id="add-input-btn">Add</button>
+      </div>
+    </div>
+
+    <section class="publication-list-group__none-available" id="no-available-endorsements">
+      <p class="publication-list-group__none-available-message">You haven't added any endorsements yet.</p>
+    </section>
+
+    <section class="publication-list-group__list show" id="endorsement-group">
+      <div class="publication-list-group__list-header" id="pub-header">
+        <h3>Your endorsements</h3>
+      </div>
+      <div class="publication-list-group__list-container slim-scrollbar" id="endorsement-list">
+        
+      </div>
+    </section>
+  </div>
+</div>

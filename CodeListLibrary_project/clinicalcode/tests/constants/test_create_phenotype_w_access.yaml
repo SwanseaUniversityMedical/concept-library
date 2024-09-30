@@ -1,0 +1,12 @@
+phenotype_id: PH2
+phenotype_version_id: 2
+name: PH2 phenotype group/world access view
+author: test author
+group_access: 2
+world_access: 2
+sex: '1'
+type: '2'
+owner: superuser
+template:
+  id: 1
+  version_id: 1

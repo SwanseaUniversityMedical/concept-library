@@ -13,15 +13,15 @@
   {% endif %}
 
   {% if component.options %}
-  <data aria-hidden="true" data-type="options" for="{{ component.field_name }}">{{ component.options|jsonify|striptags }}</data>
+    {% to_json_script component.options data-type="options" for=component.field_name %}
   {% endif %}
 
   {% if component.properties %}
-  <data aria-hidden="true" data-type="properties" for="{{ component.field_name }}">{{ component.properties|jsonify|striptags }}</data>
+    {% to_json_script component.properties data-type="properties" for=component.field_name %}
   {% endif %}
 
   {% if component.value %}
-  <data aria-hidden="true" data-type="value" for="{{ component.field_name }}">{{ component.value|jsonify|striptags }}</data>
+    {% to_json_script component.value data-type="value" for=component.field_name %}
   {% endif %}
 
   <fieldset class="hstack-radio-group" id="entity-{{ component.field_name }}" data-class="groupedenum"

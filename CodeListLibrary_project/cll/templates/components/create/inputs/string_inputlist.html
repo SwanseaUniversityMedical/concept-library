@@ -6,11 +6,12 @@
   <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
   <div class="publication-list-group">
-    <data aria-hidden="true" type="value" for="{{ component.field_name }}">
-      {% if component.value %}
-        {{ component.value|jsonify|striptags }}
-      {% endif %}
-    </data>
+    {% if component.value %}
+      {% to_json_script component.value desc-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" desc-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
+
     <div class="publication-list-group__interface" data-class="string_inputlist" data-field="{{ component.field_name }}">
       <p>Add {{ component.field_data.title }}</p>
       <div class="publication-list-group__interface-children">

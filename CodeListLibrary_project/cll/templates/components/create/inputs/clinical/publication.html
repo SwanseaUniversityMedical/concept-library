@@ -3,14 +3,16 @@
 <div class="detailed-input-group fill">
   <h3 class="detailed-input-group__title">Publications {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
   {% if not component.hide_input_details %}
-  <p class="detailed-input-group__description">Add a publication by providing the reference details and its DOI.</p>
+    <p class="detailed-input-group__description">Add a publication by providing the reference details and its DOI.</p>
   {% endif %}
+
   <div class="publication-list-group">
-    <data aria-hidden="true" type="value" for="{{ component.field_name }}">
-      {% if component.value %}
-        {{ component.value|jsonify|striptags }}
-      {% endif %}
-    </data>
+    {% if component.value %}
+      {% to_json_script component.value desc-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
+
     <div class="publication-list-group__interface" data-class="clinical-publication" data-field="{{ component.field_name }}">
       <p>Add Publication</p>
       <div class="publication-list-group__interface-children">
@@ -18,10 +20,14 @@
           placeholder="e.g. Doe J. et al. Publication. Publisher"
           minlength="3" pattern="^[a-zA-Z]{1,}.*?"
           id="publication-input-box">
-        <input class="text-input" aria-label"Publication DOI" type="text" placeholder="e.g. DOI 10.111" id="doi-input-box">
+        <input class="text-input" aria-label="Publication DOI" type="text" placeholder="e.g. DOI 10.111" id="doi-input-box">
+        <div class="checkbox-item-container min-size">
+        <input id="primary-publication-checkbox" aria-label="Primary Publication" type="checkbox" class="checkbox-item" data-value="1" data-name="Primary Publication">
+        <label for="primary-publication-checkbox">Primary Publication</label>
+        </div>
         <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Publication" id="add-input-btn">Add</button>
-      </div>
     </div>
+  </div>
 
     <section class="publication-list-group__none-available" id="no-available-publications">
       <p class="publication-list-group__none-available-message">You haven't added any publications yet.</p>

@@ -4,11 +4,11 @@
  * 
  * e.g.
  * 
- * ```js
- *  const startValue = ['item 1', 'item 2'];
- *  const element = document.querySelector('#publication-component');
- *  const creator = new StringInputListCreator(element, startValue);
- * ```
+  ```js
+    const startValue = ['item 1', 'item 2'];
+    const element = document.querySelector('#publication-component');
+    const creator = new StringInputListCreator(element, startValue);
+  ```
  */
 export default class StringInputListCreator {
   constructor(element, data) {
