@@ -1,7 +1,7 @@
 import os
 import re
 from datetime import datetime
-
+from datetime import date
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
@@ -18,7 +18,7 @@ POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 
-conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
+conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{"localhost"}:{POSTGRES_PORT}/{POSTGRES_DB}'
 
 # Reading dataframes
 conn = sa.create_engine(conn_string)
@@ -42,7 +42,7 @@ def read_phenotype_df(conn):
 
 def render_filters():
     min_date = read_phenotype_df(conn)['date'].min()
-    max_date = read_request_df(conn)['date'].max()
+    max_date = date.today().isoformat()
     return dbc.Row(
             children=[
                     dbc.Col(
@@ -114,7 +114,8 @@ app.layout = dbc.Container(
                                 html.Img(src="static/images/concept_library_on_white.png", style={
                                         'height': '80%',
                                         'width': '10%',
-                                        'float': 'left'
+                                        'float': 'left',
+                                        'aspect-ratio': 'auto'
                                 }
                                          ),
                                 md=5
@@ -311,6 +312,8 @@ def render_tree_map(start_date, end_date, brand, user_type):
             return None
 
     request_df = read_request_df(conn)
+    if len(request_df) == 0:
+        return px.treemap(title="Search Terms: No data available to render Tree Map")
 
     start_date = datetime.fromisoformat(start_date).date()
     end_date = datetime.fromisoformat(end_date).date()
@@ -405,5 +408,9 @@ def render_time_series(start_date, end_date, brand, user_type):
 
     return fig
 
+# Expose the WSGI application object
+server = app.server
+
+# To run and test in local
 if __name__ == '__main__':
     app.run_server(port=8050, debug=True)

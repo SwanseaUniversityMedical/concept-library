@@ -27,8 +27,6 @@ services:
       - 8000:8000
     expose:
       - 8000
-    links:
-      - postgres:postgres
     tty: true
     stdin_open: true
     env_file:
@@ -42,7 +40,7 @@ services:
       context: .  # Path to your Dash app's Dockerfile
       dockerfile: ./engagelens/app.Dockerfile  # Dockerfile for your Dash app
     command: >
-      sh -c "/bin/wait-for-it.sh -t 0 app:8000 -- python app.py"
+      sh -c "/bin/wait-for-it.sh -t 0 app:8000 -- gunicorn -b 0.0.0.0:8050 app:server "
     volumes:
       - ../engagelens:/engagelens  # Adjust according to your Dash app's structure
     ports:
@@ -51,10 +49,9 @@ services:
       - 8050
     depends_on:
       - app
-    environment:
+    env_file:
       - ./engagelens/env/app.compose.env
-    tty: true
-    stdin_open: true
+
 
 
 

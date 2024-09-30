@@ -12,10 +12,10 @@ RUN apt-get update -y -q && \
     apt-get upgrade -y -q && \
     apt-get install dos2unix
 
-COPY ./requirements /engagelens/requirements
+COPY ./requirements/engagelens.txt .
 
 # Install requirements
-RUN pip --no-cache-dir install -r /engagelens/requirements/engagelens.txt
+RUN pip --no-cache-dir install -r engagelens.txt
 
 COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 # Make wait-for-it.sh executable
