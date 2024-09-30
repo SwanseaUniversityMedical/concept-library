@@ -129,7 +129,7 @@ const CSEL_INTERFACE = {
     <div class="fill-accordian" id="attribute-accordian-${id}" style="margin-top: 0.5rem"> \
     <input class="fill-accordian__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
     <label class="fill-accordian__label" id="children-label-${id}" for="children-${id}" role="button" tabindex="0"> \
-      <span>${title}</span> \
+      ${title} \
     </label> \
     <article class="fill-accordian__container" id="data" style="padding: 0.5rem;"> \
       ${content} \
@@ -836,9 +836,15 @@ export class AttributeSelectionService {
     const accordianLabel = accordian.querySelector(
       "#children-label-" + attribute.id
     );
-    accordianLabel.innerText = `${attribute.name} - ${this.#typeConversion(
-      attribute.type
-    )}`;
+    let accordianDeleteButton = interpolateString(CSEL_UTILITY_BUTTONS.DELETE_BUTTON, {
+      id: attribute.id
+    });
+    const deleteButtonElement = parseHTMLFromString(accordianDeleteButton).body.children[0];
+    accordianLabel.textContent = '';
+    accordianLabel.insertBefore(deleteButtonElement, accordianLabel.firstChild);
+    accordianLabel.appendChild(document.createTextNode(` ${attribute.name} - ${this.#typeConversion(attribute.type)}`));
+
+
 
     // Close the accordian and re-enable the add attribute button
     accordianLabel.click();
@@ -956,6 +962,18 @@ export class AttributeSelectionService {
         );
 
         let doc = parseHTMLFromString(attributerow);
+        
+        const accordianLabel = doc.querySelector(
+          "#children-label-" + attribute.id
+        );
+        let accordianDeleteButton = interpolateString(CSEL_UTILITY_BUTTONS.DELETE_BUTTON, {
+          id: attribute.id
+        });
+        const deleteButtonElement = parseHTMLFromString(accordianDeleteButton).body.children[0];
+        accordianLabel.textContent = '';
+        accordianLabel.insertBefore(deleteButtonElement, accordianLabel.firstChild);
+        accordianLabel.appendChild(document.createTextNode(`${attribute.name} - ${this.#typeConversion(attribute.type)}`));
+
         page.appendChild(doc.body.children[0]);
 
         attribute = this.#invokeAttributeInputs(attribute, page);
