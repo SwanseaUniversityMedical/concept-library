@@ -544,8 +544,10 @@ export default class ConceptCreator {
       concept_data: this.data,
     });
 
-    console.log(this.template)
     return prompt.show()
+    .then((data) => {
+      this.data = data;
+    });
   }
   /**
    * tryPromptConceptRuleImport
