@@ -1,7 +1,6 @@
+import os
 import re
 from datetime import datetime
-import os
-
 
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -11,20 +10,14 @@ from dash import Dash, html, dcc, Output, Input, callback
 
 from constants import BRAND_ENCODING, BRAND_LABELS, USER_TYPE_LABELS
 
-
-
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, 'assets/style.css'])
-
-if not os.getenv('REMOTE', 'false') != 'false':
-    from dotenv import load_dotenv
-    load_dotenv()
-
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, 'static/style.css'])
 
 POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 POSTGRES_DB = os.getenv('POSTGRES_DB')
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT')
+
 conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
 
 # Reading dataframes
@@ -118,7 +111,7 @@ app.layout = dbc.Container(
         [
                 dbc.Row(children=[
                         dbc.Col(
-                                html.Img(src="assets/images/concept_library_on_white.png", style={
+                                html.Img(src="static/images/concept_library_on_white.png", style={
                                         'height': '80%',
                                         'width': '10%',
                                         'float': 'left'
@@ -412,6 +405,5 @@ def render_time_series(start_date, end_date, brand, user_type):
 
     return fig
 
-
 if __name__ == '__main__':
-    app.run_server(port=8050)
+    app.run_server(port=8050, debug=True)

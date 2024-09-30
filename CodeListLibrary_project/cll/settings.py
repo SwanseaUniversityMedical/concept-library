@@ -294,7 +294,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
         # HTML Minifier
         'django_minify_html',
         # 'django_prometheus',
-        'easyaudit',
+        'easyaudit'
 ]
 
 # ==============================================================================#
