@@ -163,6 +163,7 @@ export class AttributeSelectionService {
         concept.attributes.forEach((attribute) => {
           const uuid = this.#generateUUID();
           attribute.id = uuid;
+          attribute.type = this.#typeDeconversion(attribute.type);
         });
       }
     });
@@ -775,6 +776,17 @@ export class AttributeSelectionService {
     }
   }
 
+  #typeDeconversion(type) {
+    switch (type) {
+      case "INT":
+        return "1";
+      case "STRING":
+        return "2";
+      case "FLOAT":
+        return "3";
+    }
+  }
+
   #deleteAttribute(attribute) {
     const page = this.dialogue.page;
 
@@ -833,7 +845,7 @@ export class AttributeSelectionService {
 
   #handleConfirmEditor(attribute) {
     // Validate the concept data
-    if (isNullOrUndefined(attribute.name)) {
+    if (!attribute || attribute.name === "") {
       this.#pushToast({
         type: "danger",
         message: "Attribute name cannot be empty",
