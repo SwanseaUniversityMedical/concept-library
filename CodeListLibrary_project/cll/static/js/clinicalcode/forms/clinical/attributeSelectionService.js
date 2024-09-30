@@ -153,7 +153,6 @@ export class AttributeSelectionService {
   constructor(options) {
     this.options = mergeObjects(options || {}, CSEL_OPTIONS);
     this.attribute_component = options.attribute_component;
-    const attributeUUIDMap = new Map();
 
     this.temporarly_concept_data = JSON.parse(
       JSON.stringify(options.concept_data)
@@ -634,7 +633,7 @@ export class AttributeSelectionService {
         concept.attributes = concept.attributes.map((attr) => ({
           name: attr.name,
           value: attr.value,
-          type: attr.type,
+          type: this.#typeConversion(attr.type),
         }));
       }
     });
@@ -812,6 +811,11 @@ export class AttributeSelectionService {
       ) {
         noneAvailable.classList.add("show");
       }
+
+      this.#pushToast({
+        type: "danger",
+        message: "Attribute has been deleted",
+      });
     }
   }
 
