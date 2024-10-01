@@ -37,14 +37,12 @@ services:
   engagelens:
     platform: linux/amd64
     build:
-      context: .  # Path to your Dash app's Dockerfile
-      dockerfile: ./engagelens/app.Dockerfile  # Dockerfile for your Dash app
+      context: .
+      dockerfile: ./engagelens/app.Dockerfile
     command: >
       sh -c "/bin/wait-for-it.sh -t 0 app:8000 -- gunicorn -b 0.0.0.0:8050 app:server "
     volumes:
-      - ../engagelens:/engagelens  # Adjust according to your Dash app's structure
-    ports:
-      - 8050:8050  # Assuming Dash app runs on port 8050
+      - ../engagelens:/engagelens
     expose:
       - 8050
     depends_on:
