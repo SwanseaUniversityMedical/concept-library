@@ -1,10 +1,12 @@
+import os
 from datetime import date
 
 import dash_bootstrap_components as dbc
 import pandas as pd
+import sqlalchemy as sa
 from dash import html, dcc
 
-from engagelens.constants import BRAND_ENCODING, BRAND_LABELS, USER_TYPE_LABELS
+from constants import BRAND_ENCODING, BRAND_LABELS, USER_TYPE_LABELS
 
 
 def read_request_df(conn):
@@ -155,3 +157,18 @@ def get_filtered_users_df(request_df, start_date, end_date, brand):
     tot_users_df = tot_users_df[(tot_users_df.brand == brand) & (tot_users_df.date >= start_date) &
                                 (tot_users_df.date <= end_date)]
     return tot_users_df
+
+
+def get_conn():
+    """
+    Function to get SQL connection from environment variables.
+    """
+    POSTGRES_HOST = os.getenv('POSTGRES_HOST')
+    POSTGRES_DB = os.getenv('POSTGRES_DB')
+    POSTGRES_USER = os.getenv('POSTGRES_USER')
+    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+    POSTGRES_PORT = os.getenv('POSTGRES_PORT')
+
+    conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
+    conn = sa.create_engine(conn_string)
+    return conn

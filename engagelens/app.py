@@ -1,27 +1,19 @@
-import os
 import re
 from datetime import datetime
+
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
-import sqlalchemy as sa
 from dash import Dash, html, dcc, Output, Input, callback
 
-from engagelens.utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
-    get_filtered_users_df
+from utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
+     get_filtered_users_df, get_conn
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, 'static/style.css'])
 
-POSTGRES_HOST = os.getenv('POSTGRES_HOST')
-POSTGRES_DB = os.getenv('POSTGRES_DB')
-POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-POSTGRES_PORT = os.getenv('POSTGRES_PORT')
+# PostgresSQL connection
+conn = get_conn()
 
-conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{"localhost"}:{POSTGRES_PORT}/{POSTGRES_DB}'
-
-# Reading dataframes
-conn = sa.create_engine(conn_string)
 
 app.layout = dbc.Container(
         [
