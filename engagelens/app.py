@@ -1,14 +1,14 @@
 import os
 import re
 from datetime import datetime
-from datetime import date
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
 import sqlalchemy as sa
 from dash import Dash, html, dcc, Output, Input, callback
 
-from constants import BRAND_ENCODING, BRAND_LABELS, USER_TYPE_LABELS
+from engagelens.utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
+    get_filtered_users_df
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, 'static/style.css'])
 
@@ -22,90 +22,6 @@ conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{"loca
 
 # Reading dataframes
 conn = sa.create_engine(conn_string)
-
-
-def read_request_df(conn):
-    request_df = pd.read_sql_table('easyaudit_requestevent', conn)
-    request_df['date'] = pd.to_datetime(request_df['datetime']).dt.date
-
-    request_df['brand'] = request_df['url'].apply(
-            lambda url: next((BRAND_ENCODING[key] for key in BRAND_ENCODING if key in url), 0)
-    )
-
-    return request_df
-
-def read_phenotype_df(conn):
-    phenotype_df = pd.read_sql_table('clinicalcode_historicalgenericentity', conn)
-    phenotype_df['date'] = pd.to_datetime(phenotype_df['created']).dt.date
-
-    return phenotype_df
-
-def render_filters():
-    min_date = read_phenotype_df(conn)['date'].min()
-    max_date = date.today().isoformat()
-    return dbc.Row(
-            children=[
-                    dbc.Col(
-                            [
-                                    html.Label('Start Date', className='filter-label'),
-                                    dcc.DatePickerSingle(
-                                            className='date-picker',
-                                            id='start-date-filter',
-                                            min_date_allowed=min_date,
-                                            max_date_allowed=max_date,
-                                            display_format='DD-MM-YYYY',
-                                            date=min_date
-                                    )
-                            ],
-                            md=3,
-                            className='filter'
-                    ),
-                    dbc.Col(
-                            [
-                                    html.Label('End Date', className='filter-label'),
-                                    dcc.DatePickerSingle(
-                                            className='date-picker',
-                                            id='end-date-filter',
-                                            min_date_allowed=min_date,
-                                            max_date_allowed=max_date,
-                                            display_format='DD-MM-YYYY',
-                                            date=max_date
-                                    )
-                            ],
-                            md=3,
-                            className='filter'
-                    ),
-                    dbc.Col(
-                            [
-                                    html.Label('Brand', className='filter-label'),
-                                    dcc.Dropdown(
-                                            className='drop-down',
-                                            options=BRAND_LABELS,
-                                            value=0,
-                                            id='brand-dropdown'
-                                    )
-                            ],
-                            md=3,
-                            className='filter'
-                    ),
-                    dbc.Col(
-                            [
-                                    html.Label('User Type', className='filter-label'),
-                                    dcc.Dropdown(
-                                            className='drop-down',
-                                            options=USER_TYPE_LABELS,
-                                            value=1,
-                                            id='usertype-dropdown'
-                                    )
-                            ],
-                            md=3,
-                            className='filter'
-                    )
-            ],
-            className='filters-container'
-    )
-
-
 
 app.layout = dbc.Container(
         [
@@ -135,7 +51,7 @@ app.layout = dbc.Container(
                 ],
                     className='logo-container'
                 ),
-                render_filters(),
+                render_filters(conn),
                 dbc.Row(
                         id="kpi-row",
                         children=[
@@ -223,30 +139,6 @@ app.layout = dbc.Container(
         style={'padding': '20px'}
 )
 
-
-def get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand):
-    new_phenotype_df = phenotype_df[phenotype_df['status'] == 2][['date', 'created_by_id', 'id', 'brands',
-                                                                  'publish_status', 'history_id']]
-
-    new_phenotype_df['min_version'] = new_phenotype_df.groupby('id')['history_id'].transform('min')
-    new_phenotype_df = new_phenotype_df[(new_phenotype_df.date >= start_date) &
-                                        (new_phenotype_df.date <= end_date)]
-    if brand > 0:
-        new_phenotype_df = new_phenotype_df[new_phenotype_df.brands.apply(lambda brand_list: brand in brand_list)]
-
-    edit_phenotypes_df = new_phenotype_df[new_phenotype_df.history_id != new_phenotype_df.min_version]
-    published_phenotypes_df = new_phenotype_df[new_phenotype_df.publish_status == 2]
-
-    return new_phenotype_df, edit_phenotypes_df, published_phenotypes_df
-
-
-def get_filtered_users_df(request_df, start_date, end_date, brand):
-    tot_users_df = request_df[['date', 'user_id', 'remote_ip', 'brand']]
-    tot_users_df = tot_users_df[(tot_users_df.brand == brand) & (tot_users_df.date >= start_date) &
-                                (tot_users_df.date <= end_date)]
-    return tot_users_df
-
-
 @callback(
         Output('total-users', 'children'),
         Input('start-date-filter', 'date'),
@@ -255,6 +147,19 @@ def get_filtered_users_df(request_df, start_date, end_date, brand):
         Input('usertype-dropdown', 'value')
 )
 def render_user_kpi(start_date, end_date, brand, user_type):
+    """Render the total user KPI.
+
+        Args:
+            start_date (str): The start date selected by the user.
+            end_date (str): The end date selected by the user.
+            brand (int): The brand selected by the user.
+            user_type (int): The user type selected by the user
+
+    .
+
+        Returns:
+            int: The total number of users.
+    """
     request_df = read_request_df(conn)
     start_date = datetime.fromisoformat(start_date).date()
     end_date = datetime.fromisoformat(end_date).date()
@@ -281,6 +186,17 @@ def render_user_kpi(start_date, end_date, brand, user_type):
         Input('usertype-dropdown', 'value')
 )
 def render_phenotype_kpis(start_date, end_date, brand, user_type):
+    """Render the phenotypes KPI.
+
+        Args:
+            start_date (str): The start date selected by the user.
+            end_date (str): The end date selected by the user.
+            brand (int): The brand selected by the user.
+            user_type (int): The user type selected by the user
+
+        Returns:
+            int: The total number of new phenotypes.
+    """
     phenotype_df = read_phenotype_df(conn)
     if not user_type:
         return ["N/A", "N/A", "N/A"]
@@ -305,6 +221,17 @@ def render_phenotype_kpis(start_date, end_date, brand, user_type):
         Input('usertype-dropdown', 'value')
 )
 def render_tree_map(start_date, end_date, brand, user_type):
+    """Render the tree map.
+
+        Args:
+            start_date (str): The start date selected by the user.
+            end_date (str): The end date selected by the user.
+            brand (int): The brand selected by the user.
+            user_type (int): The user type selected by the user
+
+        Returns:
+            Figure: A Plotly figure for the tree map.
+    """
     def extract_search_value(url):
         match = re.search(r'search=([\w+]+)', url)
         if match:
@@ -350,6 +277,17 @@ def render_tree_map(start_date, end_date, brand, user_type):
         Input('usertype-dropdown', 'value')
 )
 def render_time_series(start_date, end_date, brand, user_type):
+    """Render the time series graph.
+
+        Args:
+            start_date (str): The start date selected by the user.
+            end_date (str): The end date selected by the user.
+            brand (int): The brand selected by the user.
+            user_type (str): The user type selected by the user.
+
+        Returns:
+            Figure: A Plotly figure for the time series graph.
+    """
     phenotype_df = read_phenotype_df(conn)
     request_df = read_request_df(conn)
 
