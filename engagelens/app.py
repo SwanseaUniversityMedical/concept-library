@@ -132,7 +132,8 @@ app.layout = dbc.Container(
                                 ),
                                 md=7
                         )
-                ]
+                ],
+                    className='logo-container'
                 ),
                 render_filters(),
                 dbc.Row(
@@ -312,8 +313,6 @@ def render_tree_map(start_date, end_date, brand, user_type):
             return None
 
     request_df = read_request_df(conn)
-    if len(request_df) == 0:
-        return px.treemap(title="Search Terms: No data available to render Tree Map")
 
     start_date = datetime.fromisoformat(start_date).date()
     end_date = datetime.fromisoformat(end_date).date()
@@ -326,6 +325,9 @@ def render_tree_map(start_date, end_date, brand, user_type):
         search_term_df = search_term_df[~search_term_df.user_id.isna()]
     else:
         search_term_df = search_term_df[search_term_df.user_id.isna()]
+
+    if len(search_term_df) == 0:
+        return px.treemap(title="Search Terms: No data available to render Tree Map")
 
     tree_map_data = search_term_df.groupby('search_value').size().reset_index(name='count')
 
