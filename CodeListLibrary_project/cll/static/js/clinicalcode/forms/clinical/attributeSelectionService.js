@@ -471,7 +471,6 @@ export class AttributeSelectionService {
           data: transformedData,
         })
         .forceRender();
-      console.log(columns);
     }
   }
 
@@ -799,7 +798,6 @@ export class AttributeSelectionService {
     const indexToDelete = this.attribute_data.findIndex(
       (attr) => attr.id === attribute.id
     );
-
     if (indexToDelete !== -1) {
       // Remove the attribute from attribute_data
       this.attribute_data.splice(indexToDelete, 1);
@@ -808,7 +806,7 @@ export class AttributeSelectionService {
       this.temporarly_concept_data.forEach((concept) => {
         if (concept.attributes) {
           concept.attributes = concept.attributes.filter(
-            (attr) => attr.id !== attribute.id
+        (attr) => attr.name !== attribute.name
           );
         }
       });
@@ -991,7 +989,6 @@ export class AttributeSelectionService {
   }
 
   #paintSelectionAttributes() {
-    console.log(this.attribute_data);
     const page = this.dialogue.page;
     if (
       !this.dialogue?.view == CSEL_VIEWS.SELECTION ||
