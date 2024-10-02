@@ -447,9 +447,30 @@ export class AttributeSelectionService {
             let attribute = concept.attributes[j];
             attribute.attributes = (cell) => {
               if (cell) {
+                let styleText;
+                let innertText;
+                if (cell.trim() === "") {
+                  styleText = "color: grey;";
+                  innertText = "Enter value";
+                }
                 return {
-                  style: "cursor: pointer",
+                  style: "cursor: pointer;" + styleText,
                   contenteditable: true,
+                  innerText: innertText,
+                  onfocus: (e) => {
+                    if (e.target.innerText === "Enter value") {
+                      e.target.innerText = "";
+                      e.target.style.color = "black";
+                    }
+                  },
+                  onblur: (e) => {
+                    if (e.target.innerText.trim() === "") {
+                      e.target.innerText = "Enter value";
+                      e.target.style.color = "grey";
+                    } else {
+                      e.target.style.color = "black";
+                    }
+                  },
                 };
               }
             };
@@ -485,7 +506,7 @@ export class AttributeSelectionService {
       for (let columnIndex = 1; columnIndex < columns.length; columnIndex++) {
         // Skip the first column (Concept)
         const tempCol = columns[columnIndex];
-        if (tempCol.innerText !== "") {
+        if (tempCol.innerText !== "" && tempCol.innerText !== "Enter value") {
           changedCell.push({
             row: rowIndex,
             column: columnIndex,
@@ -553,6 +574,19 @@ export class AttributeSelectionService {
           this.#createGridTable(this.temporarly_concept_data);
           const tableElement = document.querySelector("#tab-content table");
           if (tableElement) {
+            tableElement.querySelectorAll("td").forEach((cell) => {
+              cell.addEventListener("focus", (e) => {
+                if (e.target.innerText === "Enter value") {
+                  e.target.innerText = "";
+                }
+              });
+
+              cell.addEventListener("blur", (e) => {
+                if (e.target.innerText.trim() === "") {
+                  e.target.innerText = "Enter value";
+                }
+              });
+            });
             tableElement.addEventListener("input", (e) => {
               this.#addCellEditListeners(tableElement);
             });
@@ -806,7 +840,7 @@ export class AttributeSelectionService {
       this.temporarly_concept_data.forEach((concept) => {
         if (concept.attributes) {
           concept.attributes = concept.attributes.filter(
-        (attr) => attr.name !== attribute.name
+            (attr) => attr.name !== attribute.name
           );
         }
       });
