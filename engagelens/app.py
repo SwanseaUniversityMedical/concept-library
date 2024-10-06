@@ -4,22 +4,31 @@ from datetime import datetime
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
-from dash import Dash, html, dcc, Output, Input, callback
+from dash import Dash, html, dcc, Output, Input, callback, get_asset_url
 
 from utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
      get_filtered_users_df, get_conn
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, 'static/style.css'])
+
+app = Dash(__name__, requests_pathname_prefix='/dash/', external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # PostgresSQL connection
 conn = get_conn()
+
+# @app.server.before_request
+# def dash_app():
+#     # Check if the session cookie exists
+#     if 'sessionid' not in request.cookies:  # 'sessionid' is Django's default session cookie
+#         print(request.cookies)
+#         return redirect('/account/login/login')  # Redirect to Django login page if not authenticated
+#     return app.index()
 
 
 app.layout = dbc.Container(
         [
                 dbc.Row(children=[
                         dbc.Col(
-                                html.Img(src="static/images/concept_library_on_white.png", style={
+                                html.Img(src=get_asset_url('/images/concept_library_on_white.png'), style={
                                         'height': '80%',
                                         'width': '10%',
                                         'float': 'left',
@@ -124,9 +133,10 @@ app.layout = dbc.Container(
                                         style={'padding': '0'}
                                 )
                         ],
-                        style={'margin-top': '20px'}
+                        className='plots-container',
                 )
         ],
+
         fluid=True,
         style={'padding': '20px'}
 )

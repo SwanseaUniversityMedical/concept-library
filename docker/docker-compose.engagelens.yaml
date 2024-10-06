@@ -50,6 +50,23 @@ services:
     env_file:
       - ./engagelens/env/app.compose.env
 
+#  apache:
+#    image: httpd:2.4
+#    container_name: apache
+#    ports:
+#        - 80:80
+
+  apache:
+    image: httpd:latest
+    container_name: apache
+    ports:
+      - "80:80"
+    volumes:
+      - ./engagelens/conf/apache.conf:/usr/local/apache2/conf/extra/analytics.conf
+    depends_on:
+      - app
+      - engagelens
+
 
 
 
