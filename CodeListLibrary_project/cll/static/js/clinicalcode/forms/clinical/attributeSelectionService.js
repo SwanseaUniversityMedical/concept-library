@@ -781,7 +781,6 @@ export class AttributeSelectionService {
         });
       });
       tableElement.addEventListener("input", (e) => {
-        console.log(e);
         this.#addCellEditListeners(tableElement);
       });
     }
@@ -939,10 +938,11 @@ export class AttributeSelectionService {
       const existingConceptAttributeIndex = concept.attributes.findIndex(
         (attr) => attr.name === attribute.name
       );
-      if (existingConceptAttributeIndex !== -1) {
+      console.log(existingConceptAttributeIndex);
+      if (existingAttributeIndex !== -1) {
         // Update the existing attribute in concept.attributes with the new name and type if they have changed
         const existingConceptAttribute =
-          concept.attributes[existingConceptAttributeIndex];
+          concept.attributes[existingAttributeIndex];
         if (
           existingConceptAttribute.name !== attribute.name ||
           existingConceptAttribute.type !== attribute.type
@@ -955,6 +955,7 @@ export class AttributeSelectionService {
         concept.attributes.push(attribute);
       }
     });
+    console.log(this.temporarly_concept_data);
 
     // Update the accordian label with the new attribute details
     const accordian = this.dialogue.page.querySelector(
