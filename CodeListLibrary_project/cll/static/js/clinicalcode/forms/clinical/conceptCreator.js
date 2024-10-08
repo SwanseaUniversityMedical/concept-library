@@ -863,9 +863,7 @@ export default class ConceptCreator {
     importBtn.addEventListener('click', this.#handleConceptImporting.bind(this));
 
     const addAttrBtn = this.element.querySelector('#add-concept-attribute-btn');
-    if (this.data.length <= 0) {
-      addAttrBtn.setAttribute('disabled', 'disabled');
-    }
+    this.#hideAttributeSettingsButton(this.data.length <= 0);
     addAttrBtn.addEventListener('click', this.#handleAttributeSettings.bind(this));
   }
 
@@ -1145,6 +1143,15 @@ export default class ConceptCreator {
     noConcepts.classList[hide ? 'remove' : 'add']('show');
   }
 
+  #hideAttributeSettingsButton(hide) {
+    const addAttrBtn = this.element.querySelector('#add-concept-attribute-btn');
+    if (hide) { 
+      addAttrBtn.setAttribute('disabled','disabled');
+    } else {
+      addAttrBtn.removeAttribute('disabled');
+    }
+  }
+
   /**
    * collapseConcepts
    * @desc method to collapse all concept accordians
@@ -1210,6 +1217,7 @@ export default class ConceptCreator {
     containerList.innerHTML = '';
     
     this.#toggleNoConceptBox(this.data.length > 0);
+    this.#hideAttributeSettingsButton(this.data.length <= 0);
 
     if (this.data.length > 0) {
       for (let i = 0; i < this.data.length; ++i) {
@@ -2330,6 +2338,7 @@ export default class ConceptCreator {
           this.#tryRenderConceptComponent(data);
         }
         this.#toggleNoConceptBox(this.data.length > 0);
+        this.#hideAttributeSettingsButton(this.data.length <= 0);
 
         if (failedImports.length > 0) {
           this.#pushToast({
@@ -2406,6 +2415,7 @@ export default class ConceptCreator {
         const conceptGroup = this.#tryRenderConceptComponent(concept);
         this.#tryRenderEditor(conceptGroup, concept);
         this.#toggleNoConceptBox(true);
+        this.#hideAttributeSettingsButton(true);
       })
       .catch(() => { /* User does not want to lose progress, sink edit request */ })
   }
