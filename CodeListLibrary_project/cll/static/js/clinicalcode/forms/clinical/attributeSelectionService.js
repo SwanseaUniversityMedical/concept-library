@@ -256,6 +256,8 @@ export class AttributeSelectionService {
       this.#buildDialogue(params);
       this.#renderView(view);
       this.#createGridTable(this.temporarly_concept_data);
+      const tableElement = document.querySelector("#tab-content table");
+      this.#invokeGridElements(tableElement)
 
       this.dialogue.element.addEventListener("selectionUpdate", (e) => {
         this.close();
@@ -573,24 +575,7 @@ export class AttributeSelectionService {
         {
           this.#createGridTable(this.temporarly_concept_data);
           const tableElement = document.querySelector("#tab-content table");
-          if (tableElement) {
-            tableElement.querySelectorAll("td").forEach((cell) => {
-              cell.addEventListener("focus", (e) => {
-                if (e.target.innerText === "Enter value") {
-                  e.target.innerText = "";
-                }
-              });
-
-              cell.addEventListener("blur", (e) => {
-                if (e.target.innerText.trim() === "") {
-                  e.target.innerText = "Enter value";
-                }
-              });
-            });
-            tableElement.addEventListener("input", (e) => {
-              this.#addCellEditListeners(tableElement);
-            });
-          }
+          this.#invokeGridElements(tableElement)
         }
         break;
 
@@ -676,6 +661,7 @@ export class AttributeSelectionService {
       JSON.stringify(this.temporarly_concept_data)
     );
 
+    console.log(this.options.concept_data);
     const event = new CustomEvent("selectionUpdate", {
       detail: {
         data: this.options.concept_data,
@@ -779,6 +765,27 @@ export class AttributeSelectionService {
     }
   }
 
+  #invokeGridElements(tableElement) {
+    if (tableElement) {
+      tableElement.querySelectorAll("td").forEach((cell) => {
+        cell.addEventListener("focus", (e) => {
+          if (e.target.innerText === "Enter value") {
+            e.target.innerText = "";
+          }
+        });
+
+        cell.addEventListener("blur", (e) => {
+          if (e.target.innerText.trim() === "") {
+            e.target.innerText = "Enter value";
+          }
+        });
+      });
+      tableElement.addEventListener("input", (e) => {
+        console.log(e);
+        this.#addCellEditListeners(tableElement);
+      });
+    }
+  }
   #invokeAttributeInputs(attribute, page) {
     const attribute_name_input = page.querySelector(
       "#attribute-name-input-" + attribute.id
