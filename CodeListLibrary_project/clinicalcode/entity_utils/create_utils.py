@@ -82,6 +82,7 @@ def get_template_creation_data(request, entity, layout, field, default=None):
             value = concept_utils.get_clinical_concept_data(
                 item['concept_id'],
                 item['concept_version_id'],
+                concept_attributes=item['attributes'],
                 aggregate_component_codes=False,
                 requested_entity_id=entity.id,
                 derive_access_from=request,
