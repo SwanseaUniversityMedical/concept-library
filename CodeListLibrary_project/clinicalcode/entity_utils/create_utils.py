@@ -1048,7 +1048,7 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
                 if override_dirty or concept.get('is_dirty'):
                     result = try_update_concept(request, item)
                     if result is not None:
-                        entities.append({'method': 'update', 'entity': result, 'historical': result.history.latest() })
+                        entities.append({'method': 'update', 'entity': result, 'historical': result.history.latest(), 'attributes': concept.get('attributes')})
                         continue
 
                 # If we're not dirty, append the current concept
@@ -1057,20 +1057,20 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
                     result = model_utils.try_get_instance(Concept, id=concept_id)
                     historical = model_utils.try_get_entity_history(result, history_id=concept_history_id)
                     if historical is not None:
-                        entities.append({ 'method': 'set', 'entity': result, 'historical': historical })
+                        entities.append({ 'method': 'set', 'entity': result, 'historical': historical, 'attributes': concept.get('attributes') })
                         continue
 
             # Create new concept & components
             result = try_create_concept(request, item, entity=entity)
             if result is None:
                 continue
-            entities.append({ 'method': 'create', 'entity': result, 'historical': result.history.latest() })
+            entities.append({ 'method': 'create', 'entity': result, 'historical': result.history.latest(), 'attributes': concept.get('attributes') })
 
         # Build concept list
         return True, [
             'phenotype_owner',
             [obj.get('entity') for obj in entities if obj.get('method') == 'create'],
-            [{ 'concept_id': obj.get('historical').id, 'concept_version_id': obj.get('historical').history_id } for obj in entities]
+            [{ 'concept_id': obj.get('historical').id, 'concept_version_id': obj.get('historical').history_id, 'attributes': obj.get('attributes')} for obj in entities]
         ]
 
     return False, None
