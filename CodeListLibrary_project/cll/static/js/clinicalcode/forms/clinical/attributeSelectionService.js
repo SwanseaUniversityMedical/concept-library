@@ -433,7 +433,8 @@ export class AttributeSelectionService {
     const table = new gridjs.Grid({
       columns: ["Concept"],
       data: concept_data.map((concept) => [
-        `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`,
+        concept.is_new ? `${concept.details.name}` :
+          `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`,
       ]),
     }).render(document.getElementById("tab-content"));
 
@@ -441,7 +442,7 @@ export class AttributeSelectionService {
       const transformedData = [];
       for (let i = 0; i < concept_data.length; i++) {
         const concept = concept_data[i];
-        const rowData = [
+        const rowData = [ concept.is_new ? `${concept.details.name}` :
           `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`,
         ];
         if (concept.attributes) {
