@@ -906,6 +906,16 @@ export class AttributeSelectionService {
         existingAttribute.type = attribute.type;
       }
     } else {
+      const existingAttributeIndex = this.attribute_data.findIndex(
+        (attr) => attr.name.trim() === attribute.name.trim()
+      );
+      if (existingAttributeIndex !== -1) {
+        this.#pushToast({
+          type: "danger",
+          message: "Attribute cannot have the same name as another attribute",
+        });
+        return;
+      }
       // Add the new attribute to attribute_data if it doesn't exist
       this.attribute_data.push(attribute);
       this.#pushToast({
@@ -920,7 +930,7 @@ export class AttributeSelectionService {
         concept.attributes = [];
       }
       const existingConceptAttributeIndex = concept.attributes.findIndex(
-        (attr) => attr.id === attribute.id
+        (attr) => attr.name === attribute.name
       );
       if (existingConceptAttributeIndex !== -1) {
         // Update the existing attribute in concept.attributes with the new name and type if they have changed
