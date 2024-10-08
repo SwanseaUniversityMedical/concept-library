@@ -366,7 +366,7 @@ def validate_concept_form(form, errors):
 
     # Validate concept attributes based on their type
     concept_attributes = []
-    if (form.get('attributes')):
+    if form.get('attributes'):
         for attribute in form.get('attributes'):
             if attribute['value']:
                 attribute_type = attribute.get('type')
@@ -388,7 +388,6 @@ def validate_concept_form(form, errors):
                     except ValueError:
                         errors.append(f'Attribute {attribute["name"]} must be a float.')
                         continue
-
                 concept_attributes.append(attribute)
 
     if not is_new_concept and concept_id is not None and concept_history_id is not None:
@@ -399,6 +398,7 @@ def validate_concept_form(form, errors):
             return None
         field_value['concept']['id'] = concept_id
         field_value['concept']['history_id'] = concept_history_id
+        field_value['concept']['attributes'] = concept_attributes
     else:
         is_new_concept = True
     
@@ -545,6 +545,7 @@ def validate_concept_form(form, errors):
     field_value['concept']['name'] = concept_name
     field_value['concept']['coding_system'] = concept_coding
     field_value['concept']['code_attribute_header'] = attribute_headers
+    field_value['concept']['attributes'] = concept_attributes
     field_value['components'] = components
 
     return field_value
