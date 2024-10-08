@@ -2415,7 +2415,7 @@ export default class ConceptCreator {
         const conceptGroup = this.#tryRenderConceptComponent(concept);
         this.#tryRenderEditor(conceptGroup, concept);
         this.#toggleNoConceptBox(true);
-        this.#hideAttributeSettingsButton(true);
+        this.#hideAttributeSettingsButton(this.data.length <= 0);
       })
       .catch(() => { /* User does not want to lose progress, sink edit request */ })
   }
