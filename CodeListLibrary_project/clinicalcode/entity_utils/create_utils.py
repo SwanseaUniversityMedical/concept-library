@@ -371,23 +371,23 @@ def validate_concept_form(form, errors):
             if attribute['value']:
                 attribute_type = attribute.get('type')
                 attribute_value = attribute.get('value')
-
-                if attribute_type == 'STRING':
-                    if not attribute_value.strip().isalpha():
-                        errors.append(f'Attribute {attribute["name"]} must be a string without special characters.')
-                        continue
-                elif attribute_type == 'INT':
-                    try:
-                        int(attribute_value)
-                    except ValueError:
-                        errors.append(f'Attribute {attribute["name"]} must be an integer.')
-                        continue
-                elif attribute_type == 'FLOAT':
-                    try:
-                        float(attribute_value)
-                    except ValueError:
-                        errors.append(f'Attribute {attribute["name"]} must be a float.')
-                        continue
+                if not gen_utils.is_empty_string(attribute_value):
+                    if attribute_type == 'STRING':
+                        if not attribute_value.strip().isalpha():
+                            errors.append(f'Attribute {attribute["name"]} must be a string without special characters.')
+                            continue
+                    elif attribute_type == 'INT':
+                        try:
+                            int(attribute_value)
+                        except ValueError:
+                            errors.append(f'Attribute {attribute["name"]} must be an integer.')
+                            continue
+                    elif attribute_type == 'FLOAT':
+                        try:
+                            float(attribute_value)
+                        except ValueError:
+                            errors.append(f'Attribute {attribute["name"]} must be a float.')
+                            continue
                 concept_attributes.append(attribute)
 
     if not is_new_concept and concept_id is not None and concept_history_id is not None:
