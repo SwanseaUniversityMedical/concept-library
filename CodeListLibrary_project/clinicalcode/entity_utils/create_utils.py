@@ -364,6 +364,33 @@ def validate_concept_form(form, errors):
         'components': [ ],
     }
 
+    # Validate concept attributes based on their type
+    concept_attributes = []
+    if (form.get('attributes')):
+        for attribute in form.get('attributes'):
+            if attribute['value']:
+                attribute_type = attribute.get('type')
+                attribute_value = attribute.get('value')
+
+                if attribute_type == 'STRING':
+                    if not attribute_value.strip().isalpha():
+                        errors.append(f'Attribute {attribute["name"]} must be a string without special characters.')
+                        continue
+                elif attribute_type == 'INT':
+                    try:
+                        int(attribute_value)
+                    except ValueError:
+                        errors.append(f'Attribute {attribute["name"]} must be an integer.')
+                        continue
+                elif attribute_type == 'FLOAT':
+                    try:
+                        float(attribute_value)
+                    except ValueError:
+                        errors.append(f'Attribute {attribute["name"]} must be a float.')
+                        continue
+
+                concept_attributes.append(attribute)
+
     if not is_new_concept and concept_id is not None and concept_history_id is not None:
         concept = model_utils.try_get_instance(Concept, id=concept_id)
         concept = model_utils.try_get_entity_history(concept, history_id=concept_history_id)
