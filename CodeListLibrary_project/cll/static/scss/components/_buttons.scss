@@ -1,7 +1,7 @@
-@import '../_methods';
-@import '../_variables';
-@import '../_media';
-@import '../_utils';
+@import "../_methods";
+@import "../_variables";
+@import "../_media";
+@import "../_utils";
 
 /// Quit icon button
 ///   @desc i.e. used for single tap action to exit a behaviour, action or event
@@ -12,7 +12,7 @@
   right: 1rem;
 
   &:after {
-    content: '\f057';
+    content: "\f057";
     cursor: pointer;
     position: absolute;
     pointer-events: auto;
@@ -23,7 +23,7 @@
     color: col(accent-dark);
     text-align: center;
     transition: all 250ms ease;
-  } 
+  }
 
   &:disabled {
     opacity: 0.5;
@@ -52,14 +52,14 @@
   border: none;
   background-color: col(accent-transparent);
   color: col(text-darkest);
-	border-radius: 0.25rem;
+  border-radius: 0.25rem;
   margin: 0;
   padding: 1rem 2rem;
 
-  @include media('<tablet', 'screen') {
+  @include media("<tablet", "screen") {
     padding: 0.5rem 1rem;
   }
-  
+
   &:not(:disabled):active {
     transition: all 250ms ease;
     transform: translateY(0.2rem);
@@ -74,10 +74,10 @@
     outline: 1px solid col(accent-dark);
     border-radius: 2pt;
   }
-  
+
   /* Icon style */
   &.save-icon:after {
-    content: '\f0c7';
+    content: "\f0c7";
     cursor: pointer;
     position: absolute;
     pointer-events: auto;
@@ -89,9 +89,9 @@
     font-size: var(--icons-size);
     text-align: center;
   }
-  
+
   &.create-icon:after {
-    content: '\f382';
+    content: "\f382";
     cursor: pointer;
     position: absolute;
     pointer-events: auto;
@@ -105,7 +105,7 @@
   }
 
   &.next-icon:after {
-    content: '\f35a';
+    content: "\f35a";
     cursor: pointer;
     position: absolute;
     pointer-events: auto;
@@ -117,9 +117,9 @@
     font-size: var(--icons-size);
     text-align: center;
   }
-  
+
   &.r-arrow-icon:after {
-    content: '\f061';
+    content: "\f061";
     cursor: pointer;
     pointer-events: auto;
     position: absolute;
@@ -185,20 +185,17 @@
     }
   }
 
-  &.text-danger{
+  &.text-danger {
     color: col(text-danger);
   }
 
-  &.text-success{
+  &.text-success {
     color: col(text-success);
   }
 
-  &.text-warning{
+  &.text-warning {
     color: col(text-warning);
   }
-
-
-
 
   /* Outline accents */
   &.outline {
@@ -222,7 +219,7 @@
       border-color: col(accent-bubble);
     }
   }
-  
+
   /* Fill accents */
   &.primary-accent {
     background-color: col(accent-primary);
@@ -251,16 +248,16 @@
   cursor: pointer;
   pointer-events: auto;
   position: relative;
-	white-space: nowrap;
-	overflow: hidden;
-	background-color: var(--accent-color);
-	color: col(text-darkest);
-	border-radius: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  background-color: var(--accent-color);
+  color: col(text-darkest);
+  border-radius: 0.25rem;
   text-align: center;
   border: none;
   padding: 1rem 2rem;
 
-  @include media('<tablet', 'screen') {
+  @include media("<tablet", "screen") {
     padding: 0.5rem 1rem;
   }
 
@@ -280,7 +277,22 @@
   }
 
   &.import-icon:after {
-    content: '\f381';
+    content: "\f381";
+    cursor: pointer;
+    pointer-events: auto;
+    position: absolute;
+    right: 0;
+    height: 100%;
+    top: 25%;
+    aspect-ratio: 1 / 1;
+    font-family: var(--icons-name);
+    font-style: var(--icons-style);
+    font-size: var(--icons-size);
+    text-align: center;
+  }
+
+  &.attribute-icon:after {
+    content: "\f0db";
     cursor: pointer;
     pointer-events: auto;
     position: absolute;
@@ -295,7 +307,7 @@
   }
 
   &.create-icon:after {
-    content: '\f0cb';
+    content: "\f0cb";
     cursor: pointer;
     pointer-events: auto;
     position: absolute;
@@ -310,7 +322,7 @@
   }
 
   &.ruleset-icon:after {
-    content: '\f542';
+    content: "\f542";
     cursor: pointer;
     pointer-events: auto;
     position: absolute;
@@ -325,7 +337,7 @@
   }
 
   &.file-icon:after {
-    content: '\f574';
+    content: "\f574";
     cursor: pointer;
     pointer-events: auto;
     position: absolute;
@@ -391,7 +403,7 @@
       border-color: col(accent-bubble);
     }
   }
-  
+
   /* Fill accents */
   &.primary-accent {
     --accent-color: var(--color-accent-primary);
@@ -437,20 +449,20 @@
   border: none;
   background-color: col(accent-transparent);
   color: col(text-darkest);
-	border-radius: 0.25rem;
+  border-radius: 0.25rem;
   padding: 0.5rem 1rem;
   text-align: center;
   margin: 0;
   padding: 1rem 2rem;
 
-  @include media('<tablet', 'screen') {
+  @include media("<tablet", "screen") {
     padding: 0.5rem 1rem;
   }
 
   &:disabled {
     opacity: 0.5;
   }
-  
+
   &:focus-visible {
     outline: 1px solid col(accent-dark);
     border-radius: 2pt;
@@ -463,7 +475,7 @@
   }
 
   &.import-icon:after {
-    content: '\f0c7';
+    content: "\f0c7";
     cursor: pointer;
     position: absolute;
     pointer-events: auto;
@@ -535,7 +547,7 @@
       border-color: col(accent-bubble);
     }
   }
-  
+
   /* Fill accents */
   &.primary-accent {
     background-color: col(accent-primary);

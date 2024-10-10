@@ -187,6 +187,17 @@
       }
     }
 
+    &__delete-icon {
+      background: transparent;
+      border: none;
+    
+    &:after {
+      @include fontawesome-icon();
+      content: '\f1f8';
+      color: col(accent-danger);
+    }
+  }
+
     &:after {
       @include prefix(transition, background-color 250ms ease-in-out, webkit moz o);
       content: '\f107';
