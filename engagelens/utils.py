@@ -51,6 +51,7 @@ def render_filters(conn):
     """
     min_date = read_phenotype_df(conn)['date'].min()
     max_date = date.today().isoformat()
+
     return dbc.Row(
             children=[
                     dbc.Col(

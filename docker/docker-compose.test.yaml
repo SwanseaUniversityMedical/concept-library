@@ -45,6 +45,22 @@ services:
       redis:
         condition: service_started
 
+  engagelens:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./engagelens/app.Dockerfile
+    command: >
+      sh -c "/bin/wait-for-it.sh -t 0 app:80 -- gunicorn -b 0.0.0.0:8050 app:server "
+    volumes:
+      - ../engagelens:/engagelens
+    expose:
+      - 8050
+    depends_on:
+      - app
+    env_file:
+      - ./engagelens/env/app.compose.env
+
   mailhog:
     image: mailhog/mailhog:v1.0.1
     restart: unless-stopped
