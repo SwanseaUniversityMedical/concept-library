@@ -1,51 +1,121 @@
+import base64
+import json
 import re
+import zlib
 from datetime import datetime
 
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
 from dash import Dash, html, dcc, Output, Input, callback, get_asset_url
+from flask import request, redirect
+from sqlalchemy import text
+from sqlalchemy.orm import sessionmaker
 
 from utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
-     get_filtered_users_df, get_conn
-
+    get_filtered_users_df, get_conn
 
 app = Dash(__name__, requests_pathname_prefix='/dash/', external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # PostgresSQL connection
 conn = get_conn()
 
-# @app.server.before_request
-# def dash_app():
-#     # Check if the session cookie exists
-#     if 'sessionid' not in request.cookies:  # 'sessionid' is Django's default session cookie
-#         print(request.cookies)
-#         return redirect('/account/login/login')  # Redirect to Django login page if not authenticated
-#     return app.index()
+# Create a session factory
+SessionLocal = sessionmaker(bind=conn)
 
+def validate_django_session():
+    """
+    Validates the Django session for a given user by checking the session ID stored in the cookies.
+
+    This function retrieves the session cookie (`sessionid`) from the request, checks if the session
+    exists and hasn't expired by querying the `django_session` table in the database, and verifies
+    if the session contains a valid user ID (`_auth_user_id`).
+
+    Returns:
+        bool: True if the session is valid and contains an authenticated user ID, otherwise False.
+    """
+    def decode_base64(data):
+        """
+        Decodes a base64-encoded string, adding padding if necessary.
+        The function ensures the base64-encoded data has the correct length by adding '=' padding
+        if the length of the input string is not a multiple of 4, which is required for base64 decoding.
+        Args:
+            data (str): The base64-encoded string to be decoded.
+
+        Returns:
+            bytes: The decoded data as a bytes object.
+
+        Raises:
+            binascii.Error: If the input data is incorrectly formatted for base64 decoding.
+        """
+        # Add padding if necessary (length should be a multiple of 4)
+        padding_needed = len(data) % 4
+        if padding_needed:
+            data += '=' * (4 - padding_needed)
+        # Decode the base64-encoded data
+        return base64.urlsafe_b64decode(data)
+
+    session_cookie = request.cookies.get('sessionid')
+    if session_cookie:
+        with SessionLocal() as db_session:
+            # Query to check if the session exists and has not expired
+            result = db_session.execute(
+                text("""
+                    SELECT session_data FROM django_session 
+                    WHERE session_key = :session_key AND expire_date > NOW()
+                """),
+                {'session_key': session_cookie}
+            ).fetchone()
+
+            if result:
+                session_data = result[0]
+                try:
+                    # Decode the base64-encoded session data
+                    decoded_data = decode_base64(session_data)  # Add padding if necessary
+                    # decompressing the data
+                    decompressed_data = zlib.decompress(decoded_data)
+                    # Deserialize the data (Django typically uses JSON)
+                    session_dict = json.loads(decompressed_data.decode('utf-8'))
+
+                    return '_auth_user_id' in session_dict
+
+                except Exception as e:
+                    return False
+
+    return False
+
+@app.server.before_request
+def restrict_access():
+    """
+    A before-request function that restricts access to the application by validating the user's session.
+
+    This function checks if the current request has a valid Django session. If the session is invalid
+    or the user is not authenticated, it redirects the user to the login page.
+
+    Redirects:
+        Flask redirect: Redirects the user to the login page if the session is invalid.
+    """
+    is_auth = validate_django_session()
+    if not is_auth:
+        return redirect(f'/account/login/?next=/{request.path}/')
 
 app.layout = dbc.Container(
         [
                 dbc.Row(children=[
                         dbc.Col(
-                                html.Img(src=get_asset_url('/images/concept_library_on_white.png'), style={
-                                        'height': '80%',
-                                        'width': '10%',
-                                        'float': 'left',
-                                        'aspect-ratio': 'auto'
-                                }
-                                         ),
-                                md=5
+                                html.A(
+                                    html.Img(id='header-logo' ,
+                                             src = get_asset_url('images/header_logo.png'),
+                                             ),
+                                    href='/',
+                                    target='_self'
+                                ),
+                                    md=5
 
                         ),
                         dbc.Col(
                                 html.Div(
-                                        children=html.H1('User Analytics Dashboard',
-                                                         style={
-                                                                 'text-align': 'left',
-                                                                 'margin-bottom': '20px'
-                                                         }
-                                                         )
+                                        children=html.H1('User Analytics Dashboard')
                                 ),
                                 md=7
                         )
@@ -111,8 +181,7 @@ app.layout = dbc.Container(
                                         ),
                                         md=3
                                 )
-                        ],
-                        style={'margin-top': '20px'}
+                        ]
                 ),
                 dbc.Row(
                         [

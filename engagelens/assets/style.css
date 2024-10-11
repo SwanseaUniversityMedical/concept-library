@@ -11,11 +11,14 @@ h1 {
     font-weight: 700;
     color: #004f7c; /* Darker blue to match SAIL colors */
     margin-bottom: 20px;
+    text-align: left;
 }
 
-.header-logo {
-    max-height: 60px;
-    margin: 10px 0;
+#header-logo {
+    height: 3rem;
+    float: left;
+    aspect-ratio: auto;
+    object-fit: contain
 }
 
 .logo-container {
@@ -98,6 +101,10 @@ h1 {
 
 
 /* KPI Cards */
+#kpi-row {
+    margin-top: 20px
+}
+
 .kpi-card {
     background-color: #ffffff;
     border: 1px solid #ddd;
