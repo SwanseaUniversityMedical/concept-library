@@ -34,7 +34,7 @@
             <li aria-label="Export code list as Json" role="button" tabindex="0">
               <a {% if user_can_export %}
                   href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=json"
-                  target=_blank {% endif %}
+                  target="_blank" {% endif %}
               >
                 JSON
               </a>
@@ -55,16 +55,27 @@
       <div class="fill-accordian" id="concept-accordian-{{ c.concept_id }}" data-id="{{ c.concept_id }}" data-history-id="{{ c.concept_version_id }}">
         <input class="fill-accordian__input" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
           name="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" type="checkbox" />
-        <label class="fill-accordian__label" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
-            for="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" role="button" tabindex="0">
-          <span>
+        <label class="fill-accordian__label"
+            id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
+            for="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
+            role="button"
+            tabindex="0"
+            aria-label="Toggle Accordion: {{ c.details.name }} ({{ c.coding_system.name }})"
+            title="{{ c.details.name }} ({{ c.coding_system.name }})">
+          <span aria-label="{{ c.details.name }} ({{ c.coding_system.name }})" class="fill-accordian__wrap-label">
             {% if c.details.phenotype_owner == c.details.requested_entity_id %}
               {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}
             {% else %}
               {% if c.details.phenotype_owner and c.details.phenotype_owner_history_id %}
-                <a href="{% url 'entity_history_detail' pk=c.details.phenotype_owner history_id=c.details.phenotype_owner_history_id %}">{{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}</a>
+                <a href="{% url 'entity_history_detail' pk=c.details.phenotype_owner history_id=c.details.phenotype_owner_history_id %}"
+                  title="Visit Linked Phenotype: {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}">
+                  {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}
+                </a>
               {% elif c.details.phenotype_owner %}
-                <a href="{% url 'entity_detail' pk=c.details.phenotype_owner %}">{{c.details.phenotype_owner}} / C{{ c.concept_id }}</a>
+                <a href="{% url 'entity_detail' pk=c.details.phenotype_owner %}"
+                  title="Visit Linked Phenotype: {{c.details.phenotype_owner}} / C{{ c.concept_id }}">
+                  {{c.details.phenotype_owner}} / C{{ c.concept_id }}
+                </a>
               {% else %}
                 C{{ c.concept_id }}
               {% endif %}
@@ -74,7 +85,8 @@
             &nbsp;|&nbsp;<em>{{ c.coding_system.name }}</em>
 
             <span id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
-                  class="hide">
+                  class="hide"
+                  aria-label="Legacy Concept Version">
               &nbsp;|&nbsp;
               <strong>LEGACY VERSION</strong>
             </span>
@@ -83,22 +95,24 @@
         <article class="fill-accordian__container codelist-extents">
           <section class="concept-group-content__container show" id="concept-information">
             <section class="concept-group-content__details">
-              <h4>
-                {% if c.details.is_published %}
+              {% if c.details.is_published %}
+                <h4 aria-label="Published with {{ c.codelist|length }} Codes">
                   PUBLISHED
-                {% else %}
+                </h4>
+              {% else %}
+                <h4 aria-label="Unpublished with {{ c.codelist|length }} Codes">
                   UNPUBLISHED
-                {% endif %}
-                &nbsp;-&nbsp; {{ c.codelist|length }} Codes
-              </h4>
+                  &nbsp;-&nbsp; {{ c.codelist|length }} Codes
+                </h4>
+              {% endif %}
               <ul class="chips-group" id="concept-chips">
                 <li class="chip bold warning-accent text-accent-darkest alert-icon icon-accent-danger hide"
                     id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
                     disabled>
-                  <a id="update-latest-version" class="chip-text">LEGACY VERSION</a>
+                  <a id="update-latest-version" class="chip-text" aria-label="Legacy version" target="_blank">LEGACY VERSION</a>
                 </li>
                 <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight" disabled>
-                  <a id="coding-system-info" class="chip-text">{{ c.coding_system.name }}</a>
+                  <a id="coding-system-info" class="chip-text" target="_blank">{{ c.coding_system.name }}</a>
                 </li>
               </ul>
             </section>
@@ -106,7 +120,7 @@
 
           <div class="detailed-input-group fill constrained" style="max-width: 100%">
             <div class="constrained-codelist-table" id="concept-codelist-{{ c.concept_id }}_{{ c.concept_version_id }}">
-            
+
             </div>
           </div>
         </article>

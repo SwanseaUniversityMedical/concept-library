@@ -25,6 +25,7 @@
   margin: 1rem 0 0.5rem 0;
   padding: 0.5rem 0.5rem 0rem 0rem;
   padding: 0;
+  max-width: 100%;
 
   a, a:visited {
     @include clear-anchor();
@@ -32,6 +33,9 @@
 
     color: var(--breadcrumb-color);
     transition: color 250ms ease-in-out, background 250ms ease-in-out;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 100%;
   }
 
   .breadcrumb-item {
@@ -39,8 +43,11 @@
     position: relative;
     flex: 0 auto;
     flex-shrink: 1000;
+    max-width: 100%;
     color: var(--breadcrumb-color);
     transition: transform 250ms ease-in-out, color 250ms ease;
+    white-space: normal;
+    word-wrap: break-word;
 
     .marker {
       padding-right: 1rem;

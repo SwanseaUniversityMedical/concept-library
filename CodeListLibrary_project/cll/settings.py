@@ -279,7 +279,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'rest_framework',
     # 'mod_wsgi.server',
     'django_extensions',
-    'markdownify',
+    'markdownify.apps.MarkdownifyConfig',
     'cookielaw',
     'django_celery_results',
     'django_celery_beat',
@@ -634,15 +634,36 @@ SWAGGER_TITLE = 'Concept Library API'
 MARKDOWNIFY = {
     'default': {
         'WHITELIST_TAGS': [
-            'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol',
-            'p', 'strong', 'ul', 'img',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7'
-            # , 'span', 'div',  'code'
+            # Text & Modifiers
+            'p', 'abbr', 'acronym', 'b', 'em', 'i', 'strong',
+
+            # Section headings
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+
+            # Lists
+            'ul', 'li', 'ol',
+
+            # Anchors
+            'a',
+
+            # Assets
+            'img',
+
+            # Blocks
+            'blockquote',
+
+            # Allow markdown tables
+            'table',
+            'thead',
+            'tbody',
+            'th',
+            'tr',
+            'td',
         ],
         'WHITELIST_ATTRS': [
             'href',
-            'src',
             'alt',
+            'src',
             'style',
             'class',
         ],
@@ -651,7 +672,6 @@ MARKDOWNIFY = {
             'font-weight',
             'background-color',
         ],
-
         'MARKDOWN_EXTENSIONS': [
             'markdown.extensions.fenced_code',
             'markdown.extensions.extra',

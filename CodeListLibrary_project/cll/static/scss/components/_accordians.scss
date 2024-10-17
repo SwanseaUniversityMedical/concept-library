@@ -123,6 +123,13 @@
     font-weight: bold;
   }
 
+  &__wrap-label {
+    white-space: normal !important;
+    text-overflow: initial;
+    word-break: break-word;
+    max-width: calc(100% - 2.5rem);
+  }
+
   &__name-input {
     @include remove-appearance();
     @include prefix(transition, 'background-color 250ms ease-in-out, border-color 250ms ease-in-out', webkit moz o);
@@ -178,7 +185,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
 
-      &:not(.fill-accordian__input-title) {
+      &:not(.fill-accordian__input-title):not(.fill-accordian__wrap-label) {
         width: 20ch;
 
         @include media(">desktop", "screen") {

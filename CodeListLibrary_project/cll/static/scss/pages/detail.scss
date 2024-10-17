@@ -537,6 +537,17 @@
   padding: 0 0.5rem 0 0 !important;
 }
 
+.shadow-frame {
+  max-width: 100%;
+  word-break: break-all;
+}
+
+.publication-list-group {
+  & p {
+    white-space: normal;
+    word-wrap: break-word;
+  }
+}
 
 
 /* Modifiers */
