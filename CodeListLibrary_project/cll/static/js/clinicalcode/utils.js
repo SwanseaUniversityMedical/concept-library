@@ -810,11 +810,6 @@ const startLoadingSpinner = (container) => {
 const convertMarkdownData = (parent) => {
   let content = '';
   for (const child of parent.childNodes) {
-    const tagName = child.tagName;
-    if (tagName == 'BR') {
-      content += '\n';
-    }
-
     if (child instanceof Text) {
       let textContent = child.textContent
       let isEmptyContent = isStringEmpty(textContent) || isStringWhitespace(textContent);

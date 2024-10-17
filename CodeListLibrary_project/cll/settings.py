@@ -272,13 +272,11 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mathfilters',
     'clinicalcode',
     'cll',
     'simple_history',
     'rest_framework',
     # 'mod_wsgi.server',
-    'django_extensions',
     'markdownify.apps.MarkdownifyConfig',
     'cookielaw',
     'django_celery_results',
@@ -286,7 +284,6 @@ INSTALLED_APPS = INSTALLED_APPS + [
     # 'rest_framework_swagger',
     'drf_yasg',
     'django.contrib.sitemaps',
-    'svg',
     # SCSS
     'sass_processor',
     # Compressor
@@ -408,6 +405,7 @@ TEMPLATES = [
                 'clinicalcode.context_processors.general.general_var',
             ],
             'libraries': {
+                'svg': 'clinicalcode.templatetags.svg',
                 'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
                 'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
                 'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
