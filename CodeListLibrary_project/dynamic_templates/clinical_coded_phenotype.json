@@ -16,7 +16,7 @@
     {
       "title": "Overview",
       "description": "An overview of the phenotype with basic metadata.",
-      "fields": ["type", "phenotype_uuid", "sex", "event_date_range", "coding_system", "data_sources", "collections", "tags"]
+      "fields": ["type", "phenotype_uuid", "sex", "event_date_range", "coding_system", "data_sources", "collections", "tags", "ontology"]
     },
     {
       "title": "Definition",
@@ -83,6 +83,52 @@
           "5": "Musculoskeletal",
           "6": "Surgical procedure",
           "7": "Other"
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      }
+    },
+    "ontology": {
+      "title": "Ontology",
+      "description": "A set of taggable categories and concepts that describe this Phenotype.",
+      "field_type": "ontology",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "source": {
+          "model": "OntologyTag",
+          "trees": [ 0, 1, 2 ],
+          "subquery": {
+            "id": {
+              "type": "int_array",
+              "field": "id",
+              "modifiers": [ "descendants" ]
+            },
+            "name": {
+              "type": "string_array",
+              "field": "name",
+              "modifiers": [ "descendants" ]
+            },
+            "type": {
+              "type": "int_array",
+              "field": "type_id"
+            },
+            "reference": {
+              "type": "int_array",
+              "field": "reference_id",
+              "modifiers": [ "descendants" ]
+            },
+            "code": {
+              "key": "code",
+              "type": "string_array",
+              "field": "properties",
+              "field_type": "jsonb",
+              "modifiers": [ "descendants" ]
+            }
+          }
         }
       },
       "search": {

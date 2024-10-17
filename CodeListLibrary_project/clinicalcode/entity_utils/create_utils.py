@@ -96,8 +96,14 @@ def get_template_creation_data(request, entity, layout, field, default=None):
     elif field_type == 'int_array':
         source_info = validation.get('source')
         tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
-        if isinstance(tree_models, list):
-            return OntologyTag.get_creation_data(node_ids=data, type_ids=tree_models, default=default)
+        model_source = source_info.get('model') if isinstance(source_info, dict) else None
+        if isinstance(tree_models, list) and isinstance(model_source, str) and len(model_source) > 0:
+            try:
+                model = apps.get_model(app_label='clinicalcode', model_name=model_source)
+                return model.get_creation_data(node_ids=data, type_ids=tree_models, default=default)
+            except Exception as e:
+                # Logging
+                return default
 
     if template_utils.is_metadata(entity, field):
         return template_utils.get_metadata_value_from_source(entity, field, default=default)
@@ -143,10 +149,11 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
             source_info = validation.get('source') or { }
             model_name = source_info.get('table')
             tree_models = source_info.get('trees')
+            model_source = source_info.get('model')
 
-            if isinstance(tree_models, list):
+            if isinstance(tree_models, list) and isinstance(model_source, str):
                 try:
-                    model = apps.get_model(app_label='clinicalcode', model_name='OntologyTag')
+                    model = apps.get_model(app_label='clinicalcode', model_name=model_source)
                     queryset = model.objects.filter(pk__in=data, type_id__in=tree_models)
                     queryset = list(queryset.values_list('id', flat=True))
 

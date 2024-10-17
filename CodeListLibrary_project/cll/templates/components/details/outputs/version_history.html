@@ -19,8 +19,8 @@
 				<div class="col-sm-11" id="help-entity-history-container"></div>
 				<div class="col-sm-1 text-right">
 					<a href="#" role="button" class="popovers" id="help-entity-history"
-														data-container="#help-entity-history-container" data-toggle="popover" data-trigger="hover"
-														title="" data-original-title="version history" data-placement="left">
+								data-container="#help-entity-history-container" data-toggle="popover" data-trigger="hover"
+								title="" data-original-title="version history" data-placement="left">
 						<i class="fa fa-question-circle" aria-hidden="true"></i>
 					</a>
 				</div>
@@ -29,42 +29,52 @@
 	{% endif %}
 	<div class="constrained-version-history__scrollable slim-scrollbar">
 		<!-- table start -->
-		<div class="h-scrollable-table slim-scrollbar">
-			<div class="h-scrollable-table__wrapper">
-				<table class000="h-scrollable-table" id="history-table" >
+		<div class="h-scrollable-table">
+			<div class="h-scrollable-table__wrapper slim-scrollbar">
+				<table class="h-scrollable-table" id="history-table" >
 					<thead class="tertairy-accent">
 						<tr>
-							<th >Version ID</th>
-							<th >Name</th>
+							<th>Version ID</th>
+							<th>Name</th>
 							{% if user.is_authenticated %}
 								<th>Date</th>
-								<!-- <th>Change reason</th> -->
 								<th>User</th>
-								<th>Is Published?</th>
+								<th>Published Status</th>
 								<th>Publish date</th>
 							{% else %}
 								<th>Owner</th>
 								<th>Publish date</th>
 							{% endif %}
-							<th></th>
 						</tr>
 					</thead>
 					<tbody>	 
 					{% for h in history %}
-						<tr>
-							<td>{{ h.history_id }}</td>
+						<tr {% if current_phenotype_history_id == h.history_id %}class="highlight-children"{% endif %}>
+							{% if current_phenotype_history_id == h.history_id %}
+								<td aria-label="Version {{ h.history_id}} (Currently shown)">
+									<strong aria-hidden="true">
+										{{ h.history_id }}
+										<span class="text-right help-block-no-break" style="font-size: 10px;" aria-hidden="true">
+											(Currently shown)
+										</span>
+									</strong>
+								</td>
+							{% else %}
+								<td aria-label="Version {{ h.history_id}}">
+									{{ h.history_id }}
+								</td>
+							{% endif %}
 							<td>
-								<a class="" href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}">	
-								{% if h.name_highlighted|length %}
-									{{ h.name_highlighted|striptags }}
-								{% else %}
-									{{ h.name }}
-								{% endif %}
+								<a href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}" title="Visit Phenotype: {{ h.name }}">
+									{% if h.name_highlighted|length %}
+										{{ h.name_highlighted|striptags }}
+									{% else %}
+										{{ h.name }}
+									{% endif %}
 								</a>
 							</td>
 							{% if user.is_authenticated %}
 								<td>{{ h.history_date}}</td>
-								<!-- <td>{{ h.history_change_reason }}</td> -->
 								<td>
 									{% if h.updated_by is not None %}
 										{{ h.updated_by }}
@@ -72,27 +82,30 @@
 										{{ h.created_by }}
 									{% endif %}
 								</td>
-								<td classXX="text-center">
-									{% if h.history_id in published_historical_ids%}
-										<span>&#10004;</span>
-									{% else %}
+								<td aria-label="{% if h.history_id in published_historical_ids %}Published{% else %}Not Published{% endif %}">
+									{% if h.history_id in published_historical_ids %}
+										<span aria-hidden="true" title="Published">&#10004;</span>
+									{% elif h.approval_status_label and h.approval_status_label|length %}
 										{{ h.approval_status_label }}
+									{% else %}
+										<span aria-hidden="true" title="Not Published">&#10006;</span>
 									{% endif %}
 								</td>
-								<td>{{ h.publish_date|date:"Y-m-d H:i" }}</td>
+								<td>
+									{% if h.publish_date %}
+										{{ h.publish_date|date:"Y-m-d H:i" }}
+									{% else %}
+										<span title="Not Published" aria-label="Not Published">&#8722;</span>
+									{% endif %}
+								</td>
 							{% else %}
 								<td>{{ h.owner }}</td>
 								<td>{{ h.publish_date|date:"Y-m-d" }}</td>
-							{% endif %}			
-							<td class="text-right">
-								{% if current_phenotype_history_id == h.history_id %}
-									<span class="help-block-no-break" style="font-size: 10px;">currently shown</span>
-								{% endif %}
-							</td>
+							{% endif %}
 						</tr>
 					{% empty %}
 						<tr>
-							<td colspan="7" class="text-center bg-warning">
+							<td colspan="{% if user.is_authenticated %}6{% else %}4{% endif %}" class="text-center bg-warning">
 								No history
 							</td>
 						</tr>

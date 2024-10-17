@@ -3,6 +3,7 @@ from django.db import models, transaction, connection
 from django.db.models import F, Count, Max, Case, When, Exists, OuterRef
 from django.db.models.query import QuerySet
 from django.db.models.functions import JSONObject
+from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django_postgresql_dag.models import node_factory, edge_factory
@@ -22,21 +23,15 @@ class OntologyTagEdge(edge_factory('OntologyTag', concrete=False)):
 
 	"""
 
-	# Fields
-	name = models.CharField(max_length=2048, unique=False)
+	# Hidden fields
+	# id = models.BigAutoField(primary_key=True)
+	# child_id = models.ForeignKey(OntologyTag, on_delete=models.CASCADE, null=False)
+	# parent_id = models.ForeignKey(OntologyTag, on_delete=models.CASCADE, null=False)
 
-	# Dunder methods
-	def __str__(self):
-		return self.name
+	class Meta:
+		unique_together = ('child_id', 'parent_id',)
 
-	# Public methods
-	def save(self, *args, **kwargs):
-		"""
-			Save override to appropriately style the instance's
-			name field
-		"""
-		self.name = f'{self.parent.name} {self.child.name}'
-		super().save(*args, **kwargs)
+
 
 class OntologyTag(node_factory(OntologyTagEdge)):
 	"""
@@ -59,27 +54,41 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 	"""
 
+
 	# Fields
-	name = models.CharField(max_length=1024, unique=False)
+	## Hidden fields
+	# id = models.BigAutoField(primary_key=True)
+
+	## Top-level fields
+	name = models.CharField(max_length=256, unique=False)
 	type_id = models.IntegerField(choices=[(e.name, e.value) for e in constants.ONTOLOGY_TYPES])
-	atlas_id = models.IntegerField(blank=True, null=True, unique=False)
 	properties = models.JSONField(blank=True, null=True)
+
+	## Reference to external data source(s)
+	reference_id = models.IntegerField(blank=True, null=True, unique=False)
+
+	## FTS
+	search_vector = SearchVectorField(null=True)
 
 	# Metadata
 	class Meta:
 		ordering = ('type_id', 'id', )
-
 		indexes = [
+			models.Index(fields=['id']),
+			models.Index(fields=['reference_id']),
 			models.Index(fields=['id', 'type_id']),
-			GinIndex(
-				name='ot_name_gin_idx',
-				fields=['name']
-			),
+			models.Index(fields=['id', 'reference_id']),
+			models.Index(fields=['id', 'type_id', 'reference_id']),
+			GinIndex(name='ot_name_gin_idx', fields=['name'], opclasses=['gin_trgm_ops']),
+			GinIndex(fields=['search_vector']),
+			GinIndex(fields=['properties'])
 		]
+
 
 	# Dunder methods
 	def __str__(self):
 		return self.name
+
 
 	# Private methods
 	def __validate_disease_code_id(self, properties, default=None):
@@ -139,7 +148,64 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 				return default
 			return code.first().pk
 
-	# Public methods
+
+	# Instance methods
+	def get_term(self):
+		"""
+			Derives the label to be presented to user(s) dependent
+			on the instance type and its content _e.g._
+
+				1. `CLINICAL_DISEASE` -> `format('%s (%s)', inst.name, inst.code)` (defaults to `name` if not present)
+				2. `CLINICAL_DOMAIN` / `CLINICAL_FUNCTIONAL_ANATOMY` -> `name`
+
+		"""
+		name = self.name
+		internal_type = self.type_id
+		if internal_type == constants.ONTOLOGY_TYPES.CLINICAL_DISEASE:
+			properties = self.properties
+			reference = self.properties.get('code') if isinstance(properties, dict) else None
+			if reference is not None:
+				return '%(name)s (%(code)s)' % { 'name': name, 'code': reference }
+
+		return name
+
+
+	def get_reference(self):
+		"""
+			Derives the reference associated with this
+			instance type _e.g._
+
+				1. `CLINICAL_DISEASE` -> `code` (defaults to `reference_id` if not present)
+				2. `CLINICAL_DOMAIN` / `CLINICAL_FUNCTIONAL_ANATOMY` -> `reference_id`
+
+		"""
+		internal_type = self.type_id
+		if internal_type == constants.ONTOLOGY_TYPES.CLINICAL_DISEASE:
+			properties = self.properties
+			reference = self.properties.get('code') if isinstance(properties, dict) else None
+			if reference is not None:
+				return reference
+
+		return self.reference_id
+
+
+	@transaction.atomic
+	def save(self, *args, **kwargs):
+		"""
+			Save override to apply validation or
+			modification methods dependent on the
+			associated `type_id`
+		"""
+		internal_type = self.type_id
+		if internal_type == constants.ONTOLOGY_TYPES.CLINICAL_DISEASE:
+			code_id = self.__validate_disease_code_id(self.properties)
+			if isinstance(code_id, int):
+				self.properties.update({ 'code_id': code_id })
+
+		super().save(*args, **kwargs)
+
+
+	# Class methods
 	@classmethod
 	def get_groups(cls, ontology_ids=None, default=None):
 		"""
@@ -187,6 +253,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 		return output
 
+
 	@classmethod
 	def get_group_data(cls, model_source, model_label=None, default=None):
 		"""
@@ -233,7 +300,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 							default=False
 						),
 						type_id=F('type_id'),
-						atlas_id=F('atlas_id'),
+						reference_id=F('reference_id'),
 						child_count=F('child_count')
 					)
 				) \
@@ -248,6 +315,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			}
 
 		return default
+
 
 	@classmethod
 	def get_node_data(cls, node_id, ontology_id=None, model_label=None, default=None):
@@ -304,7 +372,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 							),
 							isLeaf=False,
 							type_id=F('type_id'),
-							atlas_id=F('atlas_id'),
+							reference_id=F('reference_id'),
 							child_count=Count(F('children')),
 							parents=ArrayAgg('parents', distinct=True)
 						)
@@ -330,7 +398,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 								default=False
 							),
 							type_id=F('type_id'),
-							atlas_id=F('atlas_id'),
+							reference_id=F('reference_id'),
 							child_count=F('child_count'),
 							parents=ArrayAgg('parents', distinct=True)
 						)
@@ -352,7 +420,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 				'isRoot': is_root,
 				'isLeaf': is_leaf,
 				'type_id': node.type_id,
-				'atlas_id': node.atlas_id,
+				'reference_id': node.reference_id,
 				'child_count': len(children),
 				'parents': list(parents) if not isinstance(parents, list) else parents,
 				'children': list(children) if not isinstance(children, list) else children,
@@ -367,6 +435,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			pass
 
 		return default
+
 
 	@classmethod
 	def build_tree(cls, descendant_ids, default=None):
@@ -437,7 +506,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 									'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
 									'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
 									'type_id', nodes.type_id,
-									'atlas_id', nodes.atlas_id,
+									'reference_id', nodes.reference_id,
 									'child_count', count(edges1.child_id)
 							   ) as tree
 						  from (
@@ -457,8 +526,8 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					)
 
 				select ancestor.child_id,
-					   ancestor.path,
-					   json_agg(obj.tree) as dataset
+					     ancestor.path,
+					     json_agg(obj.tree) as dataset
 				  from ancestors as ancestor
 				  join objects as obj
 					on obj.child_id = ancestor.child_id
@@ -476,6 +545,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			pass
 
 		return ancestry
+
 
 	@classmethod
 	def get_full_names(cls, node, default=None):
@@ -499,6 +569,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			return roots
 
 		return default
+
 
 	@classmethod
 	def get_detail_data(cls, node_ids, default=None):
@@ -556,6 +627,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 	
 		return nodes
 
+
 	@classmethod
 	def get_creation_data(cls, node_ids, type_ids, default=None):
 		"""
@@ -602,6 +674,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			'value': [OntologyTag.get_node_data(node_id) for node_id in node_ids],
 		}
 
+
 	@classmethod
 	def get_detailed_source_value(cls, node_ids, type_ids, default=None):
 		"""
@@ -634,18 +707,3 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			return default
 
 		return list(nodes.annotate(value=F('id')).values('name', 'value'))
-
-	@transaction.atomic
-	def save(self, *args, **kwargs):
-		"""
-			Save override to apply validation or
-			modification methods dependent on the
-			associated `type_id`
-		"""
-		internal_type = self.type_id
-		if internal_type == constants.ONTOLOGY_TYPES.CLINICAL_DISEASE:
-			code_id = self.__validate_disease_code_id(self.properties)
-			if isinstance(code_id, int):
-				self.properties.update({ 'code_id': code_id })
-
-		super().save(*args, **kwargs)

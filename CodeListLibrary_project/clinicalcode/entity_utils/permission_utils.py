@@ -903,7 +903,7 @@ def user_has_concept_ownership(user, concept):
     if concept.owner == user:
         return True
 
-    return has_member_access(user, concept, [GROUP_PERMISSIONS.EDIT])
+    return user.is_superuser or has_member_access(user, concept, [GROUP_PERMISSIONS.EDIT])
 
 def validate_access_to_view(request, entity_id, entity_history_id=None):
     """

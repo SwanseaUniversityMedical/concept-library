@@ -1,7 +1,13 @@
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
-  <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
-  <p class="detailed-input-group__description">{{ component.description }}</p>
+    <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+    <p class="detailed-input-group__description">{{ component.description }}</p>
   {% endif %}
-  <textarea class="text-area-input" aria-label="{{ component.field_data.title }}" id="entity-{{ component.field_name }}" rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft" pattern="w{1,}.*?" data-class="textarea" data-field="{{ component.field_name }}">{{ component.value }}</textarea>
+  <textarea
+    class="text-area-input" aria-label="{{ component.field_data.title }}" id="entity-{{ component.field_name }}"
+    rows="4" autocorrect="on" autocomplete="off" minlength="5" spellcheck="default" wrap="soft"
+    pattern="w{1,}.*?" data-class="textarea" data-field="{{ component.field_name }}"
+  >
+    {{ component.value|escape }}
+  </textarea>
 </div>

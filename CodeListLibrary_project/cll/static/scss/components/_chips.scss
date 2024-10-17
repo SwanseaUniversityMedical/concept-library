@@ -116,7 +116,7 @@
     padding: 0.25rem 0.5rem;
     width: auto;
     height: auto;
-    max-width: 100%;
+    max-width: calc(50% - 0.5rem);
     background-color: hsla(var(--hue), 60%, 85%, 0.75);
     border-radius: 0.5rem;
     color: var(--text-color);

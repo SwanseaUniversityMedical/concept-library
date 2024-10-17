@@ -1,73 +1,103 @@
-<!--   PERMISSIONS   -->
-        
+<!-- PERMISSIONS -->
+
 {% if user.is_authenticated %}
-    <div class="col-sm-12 shadow-frame">
-        <span>
-            <p></p>
-      {% comment %} <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;">
-      	<span id="permissions_sec"></span><strong>Permissions</strong>
-      </h3> {% endcomment %}
+  <div class="col-sm-12 shadow-frame">
+    <span>
+      <br />
 
-      <div class="box-container"><div class="row">
-          <div  class="col-sm-2">Owner</div>
-          <div class="col-sm-4">
-              <span>{{ entity.owner.username }}</span>
+      {% comment %}
+        <h3 class="paneltitle" style="margin-top:20px; margin-bottom:20px;" aria-label="Permissions">
+          <span id="permissions_sec"></span>
+          <strong>Permissions</strong>
+        </h3>
+      {% endcomment %}
+
+      <div class="box-container">
+        <div class="row">
+          <div class="col-sm-2" aria-label="Owner">Owner</div>
+          <div class="col-sm-4" aria-label="{{ entity.owner.username }}">
+            <span>{{ entity.owner.username }}</span>
           </div>
-          <div  class="col-sm-2">Owner access</div>
-          
-          <div class="col-sm-4">
-              {% if entity.owner_access == 1 %}	
-                  <span class="card-noweight">None</span>
-              {% elif entity.owner_access == 2 %}
-                  <span class="card-noweight">View only</span>
-              {% elif entity.owner_access == 3 %}
-                  <span class="card-noweight">View and edit</span>
-              {% else %}
-                  <span class="card-noweight">Unknown</span>
-              {% endif %}
-          </div>
-      </div></div>
-      <hr class="small-divider"/>
-      <div class="box-container"><div class="row">
-          <div  class="col-sm-2">Group</div>
-          <div class="col-sm-4">
-              {% if entity.group %}
+
+          <div class="col-sm-2" aria-label="Owner access">Owner access</div>
+          {% if entity.owner_access == 1 %}
+            <div class="col-sm-4" aria-label="None">
+              <span class="card-noweight">None</span>
+            </div>
+          {% elif entity.owner_access == 2 %}
+            <div class="col-sm-4" aria-label="View only">
+              <span class="card-noweight">View only</span>
+            </div>
+          {% elif entity.owner_access == 3 %}
+            <div class="col-sm-4" aria-label="View and edit">
+              <span class="card-noweight">View and edit</span>
+            </div>
+          {% else %}
+            <div class="col-sm-4" aria-label="Unknown">
+              <span class="card-noweight">Unknown</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <hr class="small-divider" />
+
+      <div class="box-container">
+        <div class="row">
+          <div class="col-sm-2" aria-label="Group">Group</div>
+          {% if entity.group %}
+            <div class="col-sm-4" aria-label="{{ entity.group }}">
               <span>{{ entity.group }}</span>
-              {% else %}
+            </div>
+          {% else %}
+            <div class="col-sm-4" aria-label="No associated group">
               <span class="card-no-data">No associated group</span>
-              {% endif %}
-          </div>
-          <div class="col-sm-2">Group access</div>
-          <div class="col-sm-4">
-              {% if entity.group_access == 1 %}	
-                  <span class="card-noweight text-right">No Access</span>
-              {% elif entity.group_access == 2 %}
-                  <span class="card-noweight text-right">View only</span>
-              {% elif entity.group_access == 3 %}
-                  <span class="card-noweight text-right">View and edit</span>
-              {% else %}
-                  <span class="card-noweight text-right">Unknown</span>
-              {% endif %}
-          </div>
-      </div></div>
-      <hr class="small-divider"/>
-      <div class="box-container"><div  class="row">
-          <div class="col-sm-2">All other users</div>
-          <div class="col-sm-10">
-              {% if entity.world_access == 1 %}	
-                  <span>No access</span>
-              {% elif entity.world_access == 2 %}
-                  <span>View only</span>
-              {% elif entity.world_access == 3 %}
-                  <span>View and edit</span>
-              {% else %}
-                  
-              {% endif %}
-          </div>
-      </div></div>
-        
-      </span
-    </div>
+            </div>
+          {% endif %}
+
+          <div class="col-sm-2" aria-label="Group access">Group access</div>
+          {% if entity.group_access == 1 %}
+            <div class="col-sm-4" aria-label="No Access">
+              <span class="card-noweight text-right">No Access</span>
+            </div>
+          {% elif entity.group_access == 2 %}
+            <div class="col-sm-4" aria-label="View only">
+              <span class="card-noweight text-right">View only</span>
+            </div>
+          {% elif entity.group_access == 3 %}
+            <div class="col-sm-4" aria-label="View and edit">
+              <span class="card-noweight text-right">View and edit</span>
+            </div>
+          {% else %}
+            <div class="col-sm-4" aria-label="Unknown">
+              <span class="card-noweight text-right">Unknown</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <hr class="small-divider" />
+
+      <div class="box-container">
+        <div class="row">
+          <div class="col-sm-2" aria-label="All other users">All other users</div>
+          {% if entity.world_access == 1 %}
+            <div class="col-sm-10" aria-label="No access">
+              <span>No access</span>
+            </div>
+          {% elif entity.world_access == 2 %}
+            <div class="col-sm-10" aria-label="View only">
+              <span>View only</span>
+            </div>
+          {% elif entity.world_access == 3 %}
+            <div class="col-sm-10" aria-label="View and edit">
+              <span>View and edit</span>
+            </div>
+          {% else %}
+            <div class="col-sm-10" aria-hidden="true"></div>
+          {% endif %}
+        </div>
+      </div>
+    </span>
+  </div>
 {% endif %}
-
-
