@@ -193,12 +193,12 @@ class PublishModal {
 }
 
 domReady.finally(() => {
-  const url_publish = document.querySelector('data[id="publish-url"]');
-  const url_decline = document.querySelector('data[id="decline-url"]');
-  const redirect_url = document.querySelector('data[id="redirect-url"]');
+  const url_publish = document.querySelector('script[id="publish-url"]');
+  const url_decline = document.querySelector('script[id="decline-url"]');
+  const redirect_url = document.querySelector('script[id="redirect-url"]');
   window.entityForm = new PublishModal(
-    url_publish.innerHTML,
-    url_decline.innerHTML,
-    redirect_url.innerHTML
+    url_publish.innerText.trim(),
+    url_decline.innerText.trim(),
+    redirect_url.innerText.trim()
   );
 });

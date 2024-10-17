@@ -425,15 +425,24 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     width: calc(100% - var(--navigation-gutter) - var(--navigation-gutter));
   }
 
+  &__logo-anchor {
+    max-width: calc(100% - 4rem);
+  }
+
   &__logo {
+    @include prefix(background-size, contain, webkit moz o);
+    width: 100%;
     height: var(--navigation-height);
-    aspect-ratio: 8 / 1;
+    aspect-ratio: 6 / 1;
     background-color: col(clear);
     background-image: var(--logo-url);
     background-repeat: no-repeat;
     background-size: contain;
+    background-position-y: 50%;
 
-    @include prefix(background-size, contain, webkit moz o);
+    @include media(">=tablet", "screen") {
+      aspect-ratio: 8 / 1;
+    }
   }
 
   @include media("<desktop", "screen") {

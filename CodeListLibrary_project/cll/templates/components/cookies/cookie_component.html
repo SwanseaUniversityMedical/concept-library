@@ -1,39 +1,38 @@
 {% load static %}
 {% load i18n %}
 {% load svg %}
-{% load mathfilters %}
 {% load cl_extras %}
 
 {% block content %}
 <div class="cookiealert" role="alert">
-    <div class="cookiealert__title">
-        {% svg "cookies_icon" %}
-        <h2>Cookie consent</h2>
-    </div>
-    
-    <div class="cookiealert__data">
-        <p>
-          This website use cookies to help you have a superior and more relevant browsing experience on the website.
-          <a id="link_privacy"
-             href="{% url 'privacy_and_cookie_policy' %}"
-             target="_blank">
-             Learn more
-          </a>
-        </p>
-    </div>
-    <div class="cookiealert__cookie_buttons">
-        <button type="button" id="cookie_preference" class="secondary-btn  outline preferencecookies">
-            Customise settings
-        </button>
+  <div class="cookiealert__title">
+    {% svg "cookies_icon" %}
+    <h2>Cookie consent</h2>
+  </div>
+  
+  <div class="cookiealert__data">
+    <p>
+      This website use cookies to help you have a superior and more relevant browsing experience on the website.
+      <a id="link_privacy"
+          href="{% url 'privacy_and_cookie_policy' %}"
+          target="_blank">
+        Learn more
+      </a>
+    </p>
+  </div>
+  <div class="cookiealert__cookie_buttons">
+    <button type="button" id="cookie_preference" class="secondary-btn  outline preferencecookies">
+      <span>Customise settings</span>
+    </button>
 
-        <button type="button" id="reject_button" class="secondary-btn outline rejectcookies">
-            Disable analytics
-        </button>
-    
-        <button type="button" id="accept_button" class="primary-btn  acceptcookies">
-            Accept all
-        </button>
-    </div>
+    <button type="button" id="reject_button" class="secondary-btn outline rejectcookies">
+      <span>Disable analytics</span>
+    </button>
+
+    <button type="button" id="accept_button" class="primary-btn  acceptcookies">
+      <span>Accept all</span>
+    </button>
+  </div>
 </div>
 
 {% if not IS_DEMO %}

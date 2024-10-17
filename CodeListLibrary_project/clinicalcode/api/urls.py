@@ -25,7 +25,6 @@ router = routers.DefaultRouter()
 #router.register('public/coding-systems', View.CodingSystemViewSet)
 
 """ Swagger """
-
 class SchemaGenerator(OpenAPISchemaGenerator):
     """
     

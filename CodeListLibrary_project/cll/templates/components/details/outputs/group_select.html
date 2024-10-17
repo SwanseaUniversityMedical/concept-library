@@ -6,7 +6,7 @@
   <select class="selection-input" aria-label="Select Entity Group" name="entity-group" id="entity-{{ component.field_name }}" data-class="group-select" data-field="{{ component.field_name }}">
     <option disabled value="-1" {% if component.value %} selected {% endif %} hidden>Select Organisation</option>
     {% for option in component.options %}
-    <option value="{{ option.id }}" {% if component.value and component.value.name == option.name %} selected{% endif %}>{{ option.name }}</option>
+      <option value="{{ option.id }}" {% if component.value and component.value.name == option.name %} selected{% endif %}>{{ option.name }}</option>
     {% endfor %}
   </select>
 </div>

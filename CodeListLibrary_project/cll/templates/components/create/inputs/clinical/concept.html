@@ -33,7 +33,7 @@
 
   <template id="concept-item">
     <section class="concept-list__group" data-concept-id="${concept_id}" data-concept-history-id="${concept_version_id}">
-      <span class="concept-list__group-item" id="concept-accordian-header">
+      <span class="concept-list__group-item" id="concept-accordion-header">
         <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
         <span class="concept-name"  tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">
           ${is_imported_item
@@ -183,13 +183,13 @@
   </template>
 
   <template id="search-rule">
-    <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
-      <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
-      <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span class="fill-accordian__input-title">Name:</span>
-        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
+    <div class="fill-accordion" id="rule-item-${id}" data-index="${index}">
+      <input class="fill-accordion__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
+      <label class="fill-accordion__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
+        <span class="fill-accordion__input-title">Name:</span>
+        <input class="fill-accordion__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
-      <article class="fill-accordian__container">
+      <article class="fill-accordion__container">
         <div class="detailed-input-group fill">
           <div class="detailed-input-group__header detailed-input-group__header--nowrap">
             <div class="detailed-input-group__header-item">
@@ -250,13 +250,13 @@
   </template>
 
   <template id="file-rule">
-    <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
-      <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
-      <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span class="fill-accordian__input-title">Name:</span>
-        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
+    <div class="fill-accordion" id="rule-item-${id}" data-index="${index}">
+      <input class="fill-accordion__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
+      <label class="fill-accordion__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
+        <span class="fill-accordion__input-title">Name:</span>
+        <input class="fill-accordion__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
-      <article class="fill-accordian__container">
+      <article class="fill-accordion__container">
         <div class="detailed-input-group fill">
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
@@ -280,13 +280,13 @@
   </template>
 
   <template id="concept-rule">
-    <div class="fill-accordian" id="rule-item-${id}" data-index="${index}">
-      <input class="fill-accordian__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
-      <label class="fill-accordian__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
-        <span class="fill-accordian__input-title">Name:</span>
-        <input class="fill-accordian__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
+    <div class="fill-accordion" id="rule-item-${id}" data-index="${index}">
+      <input class="fill-accordion__input" id="rule-${id}" name="rule-${id}" type="checkbox" />
+      <label class="fill-accordion__label" id="rule-${id}" for="rule-${id}" role="button" tabindex="0">
+        <span class="fill-accordion__input-title">Name:</span>
+        <input class="fill-accordion__name-input" aria-label="Rule Name" type="text" id="rule-name" name="rule-name" placeholder="" minlength="3" maxlength="20" pattern="^(.*[a-zA-Z]){3}(.*){1,}" value="${name}">
       </label>
-      <article class="fill-accordian__container">
+      <article class="fill-accordion__container">
         <div class="detailed-input-group fill">
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
