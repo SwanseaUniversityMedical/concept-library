@@ -52,17 +52,17 @@
 <div class="detailed-input-group fill constrained" id="accordion">
   {% if component.value|length %}
     {% for c in component.value %}
-      <div class="fill-accordian" id="concept-accordian-{{ c.concept_id }}" data-id="{{ c.concept_id }}" data-history-id="{{ c.concept_version_id }}">
-        <input class="fill-accordian__input" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
+      <div class="fill-accordion" id="concept-accordion-{{ c.concept_id }}" data-id="{{ c.concept_id }}" data-history-id="{{ c.concept_version_id }}">
+        <input class="fill-accordion__input" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
           name="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" type="checkbox" />
-        <label class="fill-accordian__label"
+        <label class="fill-accordion__label"
             id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
             for="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
             role="button"
             tabindex="0"
             aria-label="Toggle Accordion: {{ c.details.name }} ({{ c.coding_system.name }})"
             title="{{ c.details.name }} ({{ c.coding_system.name }})">
-          <span aria-label="{{ c.details.name }} ({{ c.coding_system.name }})" class="fill-accordian__wrap-label">
+          <span aria-label="{{ c.details.name }} ({{ c.coding_system.name }})" class="fill-accordion__wrap-label">
             {% if c.details.phenotype_owner == c.details.requested_entity_id %}
               {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}
             {% else %}
@@ -92,7 +92,7 @@
             </span>
           </span>
         </label>
-        <article class="fill-accordian__container codelist-extents">
+        <article class="fill-accordion__container codelist-extents">
           <section class="concept-group-content__container show" id="concept-information">
             <section class="concept-group-content__details">
               {% if c.details.is_published %}
