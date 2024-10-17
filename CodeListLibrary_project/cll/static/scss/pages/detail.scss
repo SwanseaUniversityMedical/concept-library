@@ -3,6 +3,23 @@
 @import '../_media';
 @import '../_utils';
 
+// Detail header buttons
+//  @desc defines button layout for detail page header actions, e.g. export/edit/publish
+.detail-actions {
+  display: flex;
+  flex-flow: row wrap;
+  width: 100%;
+  box-sizing: border-box;
+  gap: 0.25rem;
+  justify-content: flex-end;
+
+  & > button,
+  & > label {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 // Detail version history
 //  @desc used to constrain the version history table
 .constrained-version-history {
