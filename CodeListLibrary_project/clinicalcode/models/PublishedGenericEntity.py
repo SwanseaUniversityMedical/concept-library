@@ -34,21 +34,28 @@ class PublishedGenericEntity(models.Model):
             with connection.cursor() as cursor:
                 sql_publish_status = """
                                         UPDATE public.clinicalcode_historicalgenericentity 
-                                        SET publish_status = """ + str(self.approval_status) + """
-                                        WHERE id = '""" + str(self.entity.id) + """'and history_id = """ + str(self.entity_history_id) + """ ;
+                                        SET publish_status = %(approval)s
+                                        WHERE id = %(entityid)s and history_id = %(entityhxid)s) ;
                                     """
                 
-                cursor.execute(sql_publish_status)
+                cursor.execute(sql_publish_status, params={
+                    'approval': self.approval_status,
+                    'entityid': str(self.entity.id),
+                    'entityhxid': self.entity_history_id,
+                })
                 
             ''' if latest version, then update live record '''
             if self.entity_history_id == self.entity.history.latest().history_id:
                 with connection.cursor() as cursor:
                     sql_publish_status_2 = """
                                         UPDATE public.clinicalcode_genericentity 
-                                        SET publish_status = """ + str(self.approval_status) + """
-                                        WHERE id = '"""+ str(self.entity.id)+"""' ;
+                                        SET publish_status = %(approval)s
+                                        WHERE id = %(entityid)s;
                                     """
-                    cursor.execute(sql_publish_status_2)                    
+                    cursor.execute(sql_publish_status_2, params={
+                        'approval': self.approval_status,
+                        'entityid': str(self.entity.id),
+                    })
 
         super(PublishedGenericEntity, self).save(*args, **kwargs)
         
