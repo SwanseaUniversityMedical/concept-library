@@ -13,7 +13,7 @@ import json
 import datetime
 import urllib
 
-from . import constants
+from . import constants, sanitise_utils
 
 
 def is_datetime(x):
@@ -325,7 +325,10 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         try:
             value = str(field_value) if field_value is not None else ''
             if validation is not None:
-                value = value.encode('ascii', 'ignore').decode('unicode')
+                empty = is_empty_string(value)
+                value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                if value is None or (is_empty_string(value) and not empty):
+                    return default
 
                 pattern = validation.get('regex')
                 mandatory = validation.get('mandatory')
@@ -342,6 +345,13 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         try:
             value = str(field_value) if field_value is not None else ''
             if validation is not None:
+                sanitiser = validation.get('sanitise')
+                if sanitiser is not None:
+                    empty = is_empty_string(value)
+                    value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                    if value is None or (is_empty_string(value) and not empty):
+                        return default
+
                 pattern = validation.get('regex')
                 mandatory = validation.get('mandatory')
                 if pattern is not None and not try_match_pattern(value, pattern):
@@ -349,7 +359,8 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                         return default
                     else:
                         return value if is_empty_string(value) else default
-        except:
+        except Exception as e:
+            print(e)
             return default
         else:
             return value
@@ -366,9 +377,17 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
             try:
                 value = str(val)
                 if validation is not None:
-                    pattern = validation.get('regex')
-                    if pattern is not None and not try_match_pattern(value, pattern):
-                        valid = False
+                    sanitiser = validation.get('sanitise')
+                    if sanitiser is not None:
+                        empty = is_empty_string(value)
+                        value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                        if value is None or (is_empty_string(value) and not empty):
+                            valid = False
+
+                    if valid:
+                        pattern = validation.get('regex')
+                        if pattern is not None and not try_match_pattern(value, pattern):
+                            valid = False
             except:
                 valid = False
             else:
@@ -396,11 +415,14 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                 break
 
             details = val.get('details')
-            if not details or not isinstance(details, str):
+            empty = is_empty_string(details)
+
+            details = sanitise_utils.sanitise_value(details, method='strict', default=None)
+            if not details or not isinstance(details, str) or (is_empty_string(details) and empty):
                 valid = False
                 break
 
-            doi = val.get('doi')
+            doi = sanitise_utils.sanitise_value(val.get('doi'), method='strict', default=None)
             if doi is not None and not isinstance(doi, str):
                 valid = False
                 break

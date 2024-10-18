@@ -29,3 +29,4 @@ swagger-spec-validator==3.0.4
 python-crontab==3.2.0
 python-dateutil==2.9.0
 python-decouple==3.8
+pyhtml2md==1.6.0

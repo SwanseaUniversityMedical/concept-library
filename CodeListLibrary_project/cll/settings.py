@@ -653,12 +653,11 @@ MARKDOWNIFY = {
             'blockquote',
 
             # Allow markdown tables
-            'table',
-            'thead',
-            'tbody',
-            'th',
-            'tr',
-            'td',
+            'table', 'thead', 'tbody', 'th', 'tr', 'td',
+        ],
+        'WHITELIST_PROTOCOLS': [
+            'http', 'https',
+            'mailto'
         ],
         'WHITELIST_ATTRS': [
             'href',
