@@ -59,7 +59,8 @@
         "type": "string",
         "mandatory": false,
         "unique": true,
-        "length": [0, 250]
+        "length": [0, 250],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -258,7 +259,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 250]
+        "length": [0, 250],
+        "sanitise": "strict"
       },
       "hide_on_create": true,
       "hide_if_empty": true

@@ -1927,7 +1927,7 @@ export default class ConceptCreator {
       e.preventDefault();
       e.stopPropagation();
 
-      const value = input.value;
+      const value = strictSanitiseString(input.value);
       if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
         input.classList.add('fill-accordion__name-input--invalid');
         return;
@@ -1994,7 +1994,7 @@ export default class ConceptCreator {
           const component = this.state.data.components[index];
           const prevCodeLength = component?.codes?.length;
           component.codes = codes.length > 0 ? codes : [ ];
-          component.source = codes.length > 0 ? value : null;
+          component.source = codes.length > 0 ? strictSanitiseString(value) : null;
           component.code_count = codes.length;
           component.used_description = useDesc;
           component.used_wildcard = useWildcard;
@@ -2029,7 +2029,7 @@ export default class ConceptCreator {
                 message: interpolateString(
                   CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_EXCHANGE,
                   {
-                    value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+                    value: strictSanitiseString(value).substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
                     code_len: prevCodeLength,
                   }
                 )
@@ -2043,7 +2043,7 @@ export default class ConceptCreator {
               message: interpolateString(
                 CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_MATCH,
                 {
-                  value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
+                  value: strictSanitiseString(value).substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
                 }
               )
             });
@@ -2060,7 +2060,7 @@ export default class ConceptCreator {
                 {
                   prev_code_len: prevCodeLength,
                   new_code_len: codes.length.toLocaleString(),
-                  value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+                  value: strictSanitiseString(value).substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
                 }
               )
             });
@@ -2075,7 +2075,7 @@ export default class ConceptCreator {
               CONCEPT_CREATOR_TEXT.ADDED_SEARCH_CODES,
               {
                 code_len: codes.length.toLocaleString(),
-                value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+                value: strictSanitiseString(value).substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
               }
             )
           });
@@ -2209,7 +2209,7 @@ export default class ConceptCreator {
    */
   #handleConceptNameChange(e) {
     const input = e.target;
-    const value = input.value;
+    const value = strictSanitiseString(input.value);
     if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
       return;
     }

@@ -1629,7 +1629,7 @@ export class ConceptSelectionService {
 
     const target = e.target;
     const field = target.getAttribute('data-field');
-    const value = target.value;
+    const value = strictSanitiseString(target.value);
     if (isNullOrUndefined(field) || isNullOrUndefined(value)) {
       return;
     }

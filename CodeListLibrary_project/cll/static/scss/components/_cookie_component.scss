@@ -6,6 +6,7 @@
 // Cookiealert
 //  @desc defines the cookie alert banner present on the bottom-left of the page
 .cookiealert {
+  display: none;
   position: sticky;
   position: -webkit-sticky;
   bottom: 2rem;
@@ -26,10 +27,13 @@
   -webkit-box-shadow: var(--dropdown-shadow);
 
   &.show {
+    display: block;
     opacity: 1;
     visibility: visible;
     transform: translateY(0%);
-    transition: all 300ms ease-out;
+    transition-property: opacity, transform;
+    transition-duration: 300ms;
+    transition-timing-function: ease-out;
     z-index: 200;
   }
 
@@ -97,7 +101,8 @@
 }
 
 .cookie_card {
-  position: fixed;
+  position: sticky;
+  position: -webkit-sticky;
   bottom: 2rem;
   left: 1rem;
   background: var(--color-accent-bright);

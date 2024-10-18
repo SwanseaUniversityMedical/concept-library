@@ -6,7 +6,8 @@
         "field_type": "string_inputbox",
         "validation": {
           "type": "string",
-          "mandatory": false
+          "mandatory": false,
+          "sanitise": "strict"
         },
         "description": "The name of the corresponding author."
       },
@@ -51,6 +52,7 @@
             0,
             250
           ],
+          "sanitise": "strict",
           "unique": true,
           "mandatory": false
         },
@@ -132,7 +134,8 @@
         "validation": {
           "type": "string",
           "regex": "(?:\\d+/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+/|\\d+)+",
-          "mandatory": false
+          "mandatory": false,
+          "sanitise": "strict"
         },
         "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional)."
       },
@@ -233,7 +236,8 @@
             0,
             250
           ],
-          "mandatory": false
+          "mandatory": false,
+          "sanitise": "strict"
         },
         "description": "If this phenotype is derived from a third-party source, define that here. Deprecated.",
         "hide_if_empty": true,

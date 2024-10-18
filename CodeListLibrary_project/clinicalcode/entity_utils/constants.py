@@ -458,7 +458,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": True
+            "mandatory": True,
+            "sanitise": "strict",
         },
         'is_base_field': True
     },
@@ -469,7 +470,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -480,7 +482,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -502,7 +505,8 @@ metadata = {
         'active': True,
         'validation': {
             'type': 'string',
-            'mandatory': False
+            'mandatory': False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -513,7 +517,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -539,7 +544,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": True
+            "mandatory": True,
+            "sanitise": "strict",
         },
         'is_base_field': True
     },

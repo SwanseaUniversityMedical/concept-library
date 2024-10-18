@@ -492,7 +492,7 @@ If you decide to continue, please note that we would not be able to offer advice
 
 ## 3.1. Prerequisites
 Please ensure that you have the following installed:
-1. [Python 3.9](https://www.python.org/downloads/release/python-390/)
+1. [Python 3.10](https://www.python.org/downloads/release/python-3100/)
 2. [Pip](https://pip.pypa.io/en/stable/cli/pip_install/) 
 3. [MSVC C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 4. [PostgreSQL 14.4](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
@@ -543,7 +543,7 @@ To retrieve a database backup, follow some of the steps in [2.2.2. Restore from 
 
 For Windows machines:
 - You will need to install the Microsoft Visual C++ Compiler for Python. This can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=44266)
-- Download the `python_ldap` wheel, located [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap)
+- Download the `python_ldap` wheel, located [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-ldap) or [here](https://github.com/cgohlke/python-ldap-build/releases)
 - Once downloaded, activate your virtualenv and run the following `pip install path/to/the/file/python_ldap.whl`
 - Once installed, you can run the `pip install django-auth-ldap` command. See LDAP installation reference [here](https://django-auth-ldap.readthedocs.io/en/1.2.x/install.html)
 - If you intend to use LDAP over SSL, please take a look at the troubleshooting guide found [here](https://support.microsoft.com/en-us/help/938703/how-to-troubleshoot-ldap-over-ssl-connection-problems)

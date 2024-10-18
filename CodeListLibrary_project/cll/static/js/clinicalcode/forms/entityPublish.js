@@ -27,7 +27,6 @@ class PublishModal {
       });
       const data = await response.json();
       spinner.remove();
-      console.log(data);
 
       const publishButton = [
         {
@@ -77,10 +76,10 @@ class PublishModal {
           const name = result.name;
           if (name == "Decline") {
             await this.postData(data, this.decline_url);
-            window.location.href = this.redirect_url+'?eraseCache=true';
+            window.location.href = strictSanitiseString(this.redirect_url+'?eraseCache=true');
           } else {
             await this.postData(data, this.publish_url);
-            window.location.href = this.redirect_url+'?eraseCache=true';
+            window.location.href = strictSanitiseString(this.redirect_url+'?eraseCache=true');
           }
         })
         .catch((result) => {
@@ -119,7 +118,7 @@ class PublishModal {
 
     } catch (error) {
       spinner.remove();
-      console.log(error);
+      console.error(error);
     }
   }
 
@@ -197,8 +196,8 @@ domReady.finally(() => {
   const url_decline = document.querySelector('script[id="decline-url"]');
   const redirect_url = document.querySelector('script[id="redirect-url"]');
   window.entityForm = new PublishModal(
-    url_publish.innerText.trim(),
-    url_decline.innerText.trim(),
-    redirect_url.innerText.trim()
+    strictSanitiseString(url_publish.innerText.trim()),
+    strictSanitiseString(url_decline.innerText.trim()),
+    strictSanitiseString(redirect_url.innerText.trim())
   );
 });

@@ -8,8 +8,6 @@ from re import IGNORECASE, compile, escape as rescape
 
 import os
 import re
-import bleach
-import markdown
 
 from ..entity_utils.constants import TypeStatus
 

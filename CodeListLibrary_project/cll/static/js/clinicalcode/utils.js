@@ -459,7 +459,7 @@ const redirectToTarget = (elem) => {
     return;
   }
   
-  window.location.href = target;
+  window.location.href = strictSanitiseString(target);
 }
 
 /**
@@ -507,6 +507,20 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
 }
 
 /**
+ * strictSanitiseString
+ * @desc strictly sanitise the given string (remove html, svg, mathML)
+ * 
+ * @param {string} str
+ * @return {str} The sanitised string 
+ */
+const strictSanitiseString = (dirty) => {
+  dirty = dirty.toString();
+  return DOMPurify.sanitize(dirty, {
+    USE_PROFILES: { html: false, mathMl: false, svg: false, svgFilters: false }
+  });
+}
+
+/**
  * interpolateString
  * @desc Interpolate string template
  *       Ref @ https://stackoverflow.com/posts/41015840/revisions
@@ -516,9 +530,14 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
  * @return {str} The interpolated string
  * 
  */
-const interpolateString = (str, params) => {
-  let names = Object.keys(params);
-  let values = Object.values(params);
+const interpolateString = (str, params, noSanitise) => {
+  let names = Object.keys(params)
+  let values = Object.values(params).map(x => DOMPurify.sanitize(x));
+  if (!noSanitise) {
+    names = names.map(x => DOMPurify.sanitize(x));
+    values = values.map(x => DOMPurify.sanitize(x));
+  }
+
   return new Function(...names, `return \`${str}\`;`)(...values);
 }
 
@@ -530,7 +549,8 @@ const interpolateString = (str, params) => {
  */
 const parseHTMLFromString = (str) => {
   const parser = new DOMParser();
-  return parser.parseFromString(str, 'text/html');
+  const clean = DOMPurify.sanitize(str);
+  return parser.parseFromString(clean, 'text/html');
 }
 
 /**
