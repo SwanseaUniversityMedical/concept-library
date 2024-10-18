@@ -29,3 +29,62 @@
   border-top-left-radius: 0.25rem;
   border-top-right-radius: 0.25rem;
 }
+
+/// Markdown render container & associated style(s)
+///   @desc Used to contain `django-markdownify` results, e.g. in the case of the detail page
+.markdown-render-container {
+  @include flex-col();
+
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: fit-content;
+  max-width: calc(100% - 1rem);
+  overflow: auto;
+
+  img {
+    max-width: 100%;
+  }
+
+  table {
+    display: table;
+    min-width: min-content;
+    width: 100%;
+    height: fit-content;
+    padding: 0.5rem;
+    max-width: calc(100% - 1rem);
+    border-collapse: collapse;
+    border-spacing: 0px;
+    box-sizing: border-box;
+    border: 1px solid col(accent-washed);
+    background-color: transparent;
+  }
+
+  th,
+  td {
+    border: 1px solid col(accent-washed);
+    padding: 0.5rem 0.5rem;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: max-content;
+
+    @include media("<desktop", "screen") {
+      white-space: pre-wrap;
+    }
+  }
+
+  td,
+  tbody,
+  tfoot {
+    background: col(bg);
+  }
+
+  thead {
+    background: col(accent-bubble);
+  }
+
+  th {
+    background-color: inherit;
+  }
+}

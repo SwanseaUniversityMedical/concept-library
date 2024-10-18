@@ -18,7 +18,7 @@ path_prj = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if path_prj not in sys.path:
     sys.path.append(path_prj)
 
-ver_env = "/var/www/concept_lib_sites/v1/CodeListLibrary_project/env/lib/python3.9/site-packages"
+ver_env = "/var/www/concept_lib_sites/v1/CodeListLibrary_project/env/lib/python3.10/site-packages"
 if ver_env not in sys.path:
     sys.path.append(ver_env)
 

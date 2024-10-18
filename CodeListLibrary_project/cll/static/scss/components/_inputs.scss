@@ -17,6 +17,11 @@
   width: 100%;
   max-width: 100%;
 
+  &__badge-annotation {
+    float: right;
+    margin-left: 1rem;
+  }
+
   &__interface {
     display: flex;
     flex-flow: column nowrap;
@@ -42,25 +47,26 @@
         margin-bottom: 0.25rem;
       }
     }
+
     &__trial {
-    &-children {
-      display: flex;
-      flex-flow: row wrap;
-      align-items: center;
+      &-children {
+        display: flex;
+        flex-flow: row wrap;
+        align-items: center;
 
-      input {
-        flex: 1;
-        margin-right: 0.25rem;
-      }
+        input {
+          flex: 1;
+          margin-right: 0.25rem;
+        }
 
-      button {
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-        font-weight: normal;
-        margin-bottom: 0.25rem;
+        button {
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+          font-weight: normal;
+          margin-bottom: 0.25rem;
+        }
       }
     }
-  }
   }
 
   &__none-available {

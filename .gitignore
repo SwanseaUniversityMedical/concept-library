@@ -8,6 +8,7 @@ CodeListLibrary_project/.settings/org.eclipse.core.resources.prefs
 requirements/base - Django2.txt
 docs/~$plication Guide.docx
 **/docker/**/backup
+**/docker/development/db/*.sql
 *.backup
 git.token
 CodeListLibrary_project/debug.log

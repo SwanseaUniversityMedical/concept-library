@@ -115,4 +115,12 @@
     top: 0;
     z-index: 3;
   }
+
+  tr.highlight-children {
+    background-color: col(accent-washed);
+
+    & > * {
+      background-color: transparent;
+    }
+  }
 }

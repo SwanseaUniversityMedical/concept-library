@@ -19,7 +19,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with: 
-              python-version: 3.9.0
+              python-version: 3.10.0
 
       - name: Install dependencies
         run: |
@@ -29,7 +29,7 @@ jobs:
               python -m pip install mock
               pip install sphinxjp.themes.basicstrap
               cd requirements
-              pip install python_ldap-3.3.1-cp39-cp39-win_amd64.whl
+              pip install python_ldap-3.4.4-cp310-cp310-win_amd64.whl
               pip install sphinxjp
               pip install -r base.txt
 

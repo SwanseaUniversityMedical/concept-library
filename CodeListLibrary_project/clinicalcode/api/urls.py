@@ -25,7 +25,6 @@ router = routers.DefaultRouter()
 #router.register('public/coding-systems', View.CodingSystemViewSet)
 
 """ Swagger """
-
 class SchemaGenerator(OpenAPISchemaGenerator):
     """
     
@@ -160,6 +159,9 @@ urlpatterns += [
     url(r'^ontology/type/(?P<ontology_id>\d+)/$',
         Ontology.get_ontology_detail,
         name='ontology_list_by_type'),
+    url(r'^ontology/node/$',
+        Ontology.get_ontology_nodes,
+        name='ontology_nodes'),
     url(r'^ontology/node/(?P<node_id>\d+)/$',
         Ontology.get_ontology_node,
         name='ontology_node_by_id'),

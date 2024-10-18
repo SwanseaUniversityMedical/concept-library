@@ -79,6 +79,10 @@
       }
     }
 
+    &.warning-accent {
+      background-color: col(accent-warning);
+    }
+
     &__highlighted {
       background-color: col(accent-washed);
     }
