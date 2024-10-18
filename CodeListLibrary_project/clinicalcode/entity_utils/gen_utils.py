@@ -359,7 +359,7 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                         return default
                     else:
                         return value if is_empty_string(value) else default
-        except Exception as e:
+        except:
             return default
         else:
             return value

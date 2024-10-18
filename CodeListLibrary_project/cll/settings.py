@@ -679,7 +679,6 @@ MARKDOWNIFY = {
             'http',
             'https',
         ],
-        
         'LINKIFY_TEXT': {
             'PARSE_URLS': True,
             'PARSE_EMAIL': False,
