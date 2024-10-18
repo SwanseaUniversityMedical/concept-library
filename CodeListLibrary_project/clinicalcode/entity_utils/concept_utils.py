@@ -8,7 +8,7 @@ from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
 
-from . import model_utils, permission_utils
+from . import gen_utils, model_utils, permission_utils
 from .constants import (
     USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
     CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE, APPROVAL_STATUS
@@ -31,6 +31,11 @@ def is_concept_published(concept_id, version_id):
         bool: Reflects published status
 
     """
+    concept_id = gen_utils.parse_int(concept_id, None)
+    version_id = gen_utils.parse_int(version_id, None)
+    if concept_id is None or version_id is None:
+        return False
+
     historical_concept = Concept.history.filter(id=concept_id, history_id=version_id)
     if not historical_concept.exists():
         return False
@@ -62,9 +67,12 @@ def is_concept_published(concept_id, version_id):
                    json_array_elements(entity.template_data::json->'concept_information') as concepts
              where entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
           ) results
-         where cast(concepts->>'concept_id' as integer) = {concept_id} and cast(concepts->>'concept_version_id' as integer) = {version_id};
+         where cast(concepts->>'concept_id' as integer) = %(concept_id)s and cast(concepts->>'concept_version_id' as integer) = %(version_id)s;
         '''
-        cursor.execute(sql)
+        cursor.execute(sql, params={
+            'concept_id': concept_id,
+            'version_id': version_id,
+        })
 
         row = cursor.fetchone()
         if row is not None:
@@ -89,6 +97,10 @@ def was_concept_ever_published(concept_id, version_id=None):
         bool: Reflects all-time published status
 
     """
+    concept_id = gen_utils.parse_int(concept_id, None)
+    if concept_id is None:
+        return False
+
     concept = Concept.objects.filter(id=concept_id)
     if not concept.exists():
         return False
@@ -116,9 +128,11 @@ def was_concept_ever_published(concept_id, version_id=None):
                    json_array_elements(entity.template_data::json->'concept_information') as concepts
              where entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
           ) results
-         where cast(concepts->>'concept_id' as integer) = {concept_id};
+         where cast(concepts->>'concept_id' as integer) = %(concept_id)s;
         '''
-        cursor.execute(sql)
+        cursor.execute(sql, params={
+            'concept_id': concept_id,
+        })
 
         row = cursor.fetchone()
         if row is not None:

@@ -58,7 +58,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -73,7 +74,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -88,7 +90,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -102,7 +105,8 @@
       "active": true,
       "validation": {
         "type": "string",
-        "mandatory": false
+        "mandatory": false,
+        "sanitise": "markdown"
       },
       "hide_if_empty": true
     },
@@ -113,7 +117,8 @@
       "active": true,
       "validation": {
         "type": "string_array",
-        "mandatory": false
+        "mandatory": false,
+        "sanitise": "strict"
       },
       "hide_if_empty": true
     },
@@ -124,7 +129,8 @@
       "active": true,
       "validation": {
         "type": "string_array",
-        "mandatory": false
+        "mandatory": false,
+        "sanitise": "strict"
       },
       "hide_if_empty": true
     },
@@ -179,7 +185,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "hide_if_empty": true
     }

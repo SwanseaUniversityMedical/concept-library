@@ -191,7 +191,6 @@ export default class PublicationCreator {
       doiElement: doiElement,
       publication: publication,
       primary: primary
-
     });
   }
 
@@ -259,8 +258,8 @@ export default class PublicationCreator {
     e.preventDefault();
     e.stopPropagation();
 
-    const publication = this.publicationInput.value;
-    const doi = this.doiInput.value;
+    const publication = strictSanitiseString(this.publicationInput.value);
+    const doi = strictSanitiseString(this.doiInput.value);
     const primary= Number(this.primaryPubCheckbox.checked ? this.primaryPubCheckbox.dataset.value: '0');
 
     if (!this.publicationInput.checkValidity() || isNullOrUndefined(publication) || isStringEmpty(publication)) {
@@ -279,13 +278,11 @@ export default class PublicationCreator {
     this.doiInput.value = '';
     this.publicationInput.value = '';
     this.primaryPubCheckbox.checked = false;
-    this.data.push(
-        {
-          details: publication,
-          doi: matches?.[0],
-          primary: primary
-        }
-        );
+    this.data.push({
+      details: publication,
+      doi: matches?.[0],
+      primary: primary
+    });
     this.makeDirty();
     
     this.#redrawPublications();

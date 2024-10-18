@@ -19,6 +19,8 @@ import sys
 import ldap
 import numbers
 
+from clinicalcode.entity_utils import sanitise_utils
+
 ''' Utilities '''
 class Symbol:
     """
@@ -651,12 +653,11 @@ MARKDOWNIFY = {
             'blockquote',
 
             # Allow markdown tables
-            'table',
-            'thead',
-            'tbody',
-            'th',
-            'tr',
-            'td',
+            'table', 'thead', 'tbody', 'th', 'tr', 'td',
+        ],
+        'WHITELIST_PROTOCOLS': [
+            'http', 'https',
+            'mailto'
         ],
         'WHITELIST_ATTRS': [
             'href',
@@ -677,7 +678,12 @@ MARKDOWNIFY = {
         'WHITELIST_PROTOCOLS': [
             'http',
             'https',
-        ]
+        ],
+        'LINKIFY_TEXT': {
+            'PARSE_URLS': True,
+            'PARSE_EMAIL': False,
+            'CALLBACKS': [sanitise_utils.apply_anchor_rel_attr,],
+        },
     }
 }
 

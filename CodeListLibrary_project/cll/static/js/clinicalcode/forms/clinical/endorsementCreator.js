@@ -244,10 +244,8 @@ export default class endorsementCreator {
     e.preventDefault();
     e.stopPropagation();
 
-    const endorsement = this.endorsementInput.value;
+    const endorsement = strictSanitiseString(this.endorsementInput.value);
     const date = this.element.querySelector(this.options.endorsementDatepickerId);
-
-    
     if (!this.endorsementInput.checkValidity() || isNullOrUndefined(endorsement) || isStringEmpty(endorsement)) {
       window.ToastFactory.push({
         type: 'danger',
