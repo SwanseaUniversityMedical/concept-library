@@ -266,6 +266,27 @@ if SHOWADMIN:
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
+
+
+    'wagtail.contrib.forms',
+    'wagtail.contrib.redirects',
+    'wagtail.embeds',
+    'wagtail.sites',
+    'wagtail.users',
+    'wagtail.snippets',
+    'wagtail.documents',
+    'wagtail.images',
+    'wagtail.search',
+    'wagtail.admin',
+    'wagtail',
+    'modelcluster',
+    'taggit',
+
+    'images',
+
+    # 'home',  # Your custom home app for the Wagtail homepage
+    'blog',  # Your custom blog app
+
     'django.contrib.postgres',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -295,12 +316,20 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django_minify_html',
 ]
 
+WAGTAIL_SITE_NAME = 'My Example Site'
+WAGTAILADMIN_BASE_URL = 'http://example.com'
+WAGTAIL_ALLOW_UNPUBLISHED_PAGES = True
+WAGTAILIMAGES_IMAGE_MODEL = 'images.CustomImage'
+
+
 # ==============================================================================#
 
 
 ''' Middleware '''
 
 MIDDLEWARE = [
+
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # GZip
     'django.middleware.gzip.GZipMiddleware',
@@ -388,6 +417,7 @@ if not BROWSABLEAPI:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
         'clinicalcode.entity_utils.api_utils.PrettyJsonRenderer',
     )
+
 
 # ==============================================================================#
 
