@@ -20,6 +20,7 @@ CodeListLibrary_project/staticroot/*
 CodeListLibrary_project/media/*
 docker/development/db/postgresql.conf
 docker/CodeListLibrary_project
+docker/cl_log
 
 # macOS system files
 .DS_Stores

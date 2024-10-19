@@ -1,13 +1,8 @@
 from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
-from django.utils.safestring import mark_safe
-from django.conf.urls.static import static
-from functools import partial
-from re import IGNORECASE, compile, escape as rescape
 
 import os
-import re
 
 from ..entity_utils.constants import TypeStatus
 
@@ -110,51 +105,10 @@ def getBrandLogo(value):
     return f'/static/img/brands/{value}/apple-touch-icon.png'
 
 @register.filter   
-def highlight(text, q):
-    q = q.lower()
-    q = q.replace('"', '').replace(' -', ' ').replace(' - ', ' ')
-    q = q.replace(' or ', ' ')
-
-    q = re.sub(' +', ' ', q.strip())
-    return_text = text
-    for w in q.split(' '):
-        if w.strip() == '':
-            continue
-        
-        rw = r'\b{}\b'.format(rescape(w)) 
-        rgx = compile(rw, IGNORECASE)
-        
-        #rgx = compile(rescape(w), IGNORECASE)
-        return_text = rgx.sub(
-                            lambda m: "<b stylexyz001>{}</b>".format(m.group()),
-                            return_text
-                        )
-
-    return mark_safe(return_text.replace("stylexyz001", " class='hightlight-txt' "))
-  
-def highlight_all_search_text(text, q):
-    # highlight all phrase as a unit
-    q = q.strip()
-    if q == '':
-        return text
-    
-    rw = r'\b{}\b'.format(rescape(q)) 
-    rgx = compile(rw, IGNORECASE)
-        
-    #rgx = compile(rescape(q), IGNORECASE)
-    return mark_safe(
-        rgx.sub(
-            lambda m: '<b class="hightlight-txt">{}</b>'.format(m.group()),
-            text
-        )
-    )  
-
-@register.filter   
 def get_ws_type_name(type_int):
     '''
         get working set type name
     '''
-    
     return str([t[1] for t in TypeStatus.Type_status if t[0]==type_int][0])
     
 @register.filter   
@@ -166,7 +120,6 @@ def get_title(txt, makeCapital=''):
     txt = txt.title()
     if makeCapital.strip() != '':
         txt = txt.replace(makeCapital.title(), makeCapital.upper())
-    
     return txt
     
 @register.filter   
@@ -174,32 +127,28 @@ def is_in_list(txt, list_values):
     '''
         check is value is in list
     '''
-    return(txt in [i.strip() for i in list_values.split(',')])
+    return (txt in [i.strip() for i in list_values.split(',')])
 
 @register.filter   
-def concat_str(txt, txt2):
+def concat_str(txt0, txt1):
     '''
-        concat 2 strings
+        Safely concatenate the given string(s)
     '''
-    ret_str = ''
-    if txt:
-        ret_str = txt
-        
-    if txt2:
-        ret_str += ' ' + txt2
-        
-    return ret_str
+    if txt0 is not None and txt1 is not None:
+        return '%s %s' % (str(txt0), str(txt1),) 
+    elif txt0 is not None:
+        return str(txt0)
+    elif txt1 is not None:
+        return str(txt1)
+    return ''
 
 @register.filter   
 def concat_doi(details, doi):
     '''
         concat publications details + doi
     '''
-    ret_str = ''
-    if details:
-        ret_str = details
-        
-    if doi:
-        ret_str += ' (DOI:' + doi + ')'
-        
-    return ret_str
+    details = str(details)
+    if doi is None or (isinstance(doi, str) and (len(doi.strip()) < 1 or doi.isspace())):
+        return details
+
+    return '%s (DOI: %s)' % (details, str(doi))

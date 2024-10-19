@@ -146,8 +146,10 @@ CLINICALCODE_SESSION_ID = 'concept'
 CLL_READ_ONLY = get_env_value('CLL_READ_ONLY', cast='bool')
 
 IS_INSIDE_GATEWAY = get_env_value('IS_INSIDE_GATEWAY', cast='bool')
-IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool')
+IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool', default=False)
+HAS_MAILHOG_SERVICE = False
 if IS_DEVELOPMENT_PC:
+    HAS_MAILHOG_SERVICE = get_env_value('HAS_MAILHOG_SERVICE', cast='bool', default=False)
     print('SRV_IP=' + SRV_IP)
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -470,7 +472,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
 
 WSGI_APPLICATION = 'cll.wsgi.application'
 
-STATICFILES_STORAGE = 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage' # 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -607,7 +609,7 @@ except:
 ## Email settings
 ###     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = get_env_value('DEFAULT_FROM_EMAIL')
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = get_env_value('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_USE_TLS = get_env_value('EMAIL_USE_TLS', cast='bool')
 EMAIL_HOST = get_env_value('EMAIL_HOST')
 EMAIL_PORT = get_env_value('EMAIL_PORT')

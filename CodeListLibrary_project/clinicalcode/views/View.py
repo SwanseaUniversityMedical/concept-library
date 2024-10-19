@@ -3,16 +3,16 @@
     COMMON VIEW CODE
     ---------------------------------------------------------------------------
 """
-import logging
-import sys
-
-import requests
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.http import HttpResponse
 from django.http.response import Http404
 from django.shortcuts import render
+
+import logging
+import sys
+import requests
 
 from ..forms.ContactUsForm import ContactForm
 
@@ -25,7 +25,6 @@ from ..models.OntologyTag import OntologyTag
 
 from ..entity_utils.constants import ONTOLOGY_TYPES
 from ..entity_utils.permission_utils import should_render_template, redirect_readonly
-
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +60,7 @@ def index(request):
         if not brand.exists():
             return index_home(request, index_path)
         brand = brand.first()
-        return getattr(sys.modules[__name__], "index_%s" % brand)(request, brand.index_path)
+        return getattr(sys.modules[__name__], 'index_%s' % brand)(request, brand.index_path)
     except:
         return index_home(request, index_path)
 
@@ -212,22 +211,22 @@ def contact_us(request):
 
             try:
                 html_content = \
-                    "<strong>New Message from Concept Library Website</strong><br><br>" \
-                    "<strong>Name:</strong><br>" \
-                    "{name}" \
-                    "<br><br>" \
-                    "<strong>Email:</strong><br>" \
-                    "{from_email}" \
-                    "<br><br>" \
-                    "<strong>Issue Type:</strong><br>" \
-                    "{category}" \
-                    "<br><br>" \
-                    "<strong> Tell us about your Enquiry: </strong><br>" \
-                    "{message}".format(
+                    '<strong>New Message from Concept Library Website</strong><br><br>' \
+                    '<strong>Name:</strong><br>' \
+                    '{name}' \
+                    '<br><br>' \
+                    '<strong>Email:</strong><br>' \
+                    '{from_email}' \
+                    '<br><br>' \
+                    '<strong>Issue Type:</strong><br>' \
+                    '{category}' \
+                    '<br><br>' \
+                    '<strong> Tell us about your Enquiry: </strong><br>' \
+                    '{message}'.format(
                         name=name, from_email=from_email, category=category, message=message
                     )
 
-                if not settings.IS_DEVELOPMENT_PC:
+                if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE:
                     message = EmailMultiAlternatives(
                         email_subject,
                         html_content,
@@ -235,13 +234,15 @@ def contact_us(request):
                         to=[settings.HELPDESK_EMAIL],
                         cc=[from_email]
                     )
-                    message.content_subtype = "html"
+                    message.content_subtype = 'html'
                     message.send()
 
                 form = ContactForm()
                 sent_status = True
             except BadHeaderError:
                 return HttpResponse('Invalid header found')
+            except Exception as e:
+                logger.error('Failed to process ContactUsForm<src: %s> with error: %s' % (str(from_email), str(e), ))
 
     sent_status = captcha
 

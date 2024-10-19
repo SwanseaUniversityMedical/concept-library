@@ -1,6 +1,14 @@
 /* CONSTANTS */
 const
   /**
+   * CLU_DOMAINS
+   * @desc Domain host targets
+   */
+  CLU_DOMAINS = {
+    ROOT: 'https://conceptlibrary.saildatabank.com',
+    HDRUK: 'https://phenotypes.healthdatagateway.org',
+  }
+  /**
    * CLU_TRANSITION_METHODS
    * @desc defines the transition methods associated
    *       with the animation of an element
@@ -373,11 +381,55 @@ const getBrandedHost = () => {
   const host = getCurrentHost();
   const brand = document.documentElement.getAttribute('data-brand');
   const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
-  if (host === 'https://phenotypes.healthdatagateway.org' || isUnbranded) {
+  if ((host === CLU_DOMAINS.HDRUK) || isUnbranded) {
     return host;
   }
 
   return `${host}/${brand}`;
+}
+
+/**
+ * getBrandUrlTarget
+ * @desc Returns the brand URL target for management redirect buttons (used in navigation menu)
+ * @param {string[]} brandTargets an array of strings containing the brand target names
+ * @param {boolean} productionTarget a boolean flag specifying whether this is a production target
+ * @param {Node} element the html event node
+ * @param {string} oldRoot the path root (excluding brand context)
+ * @param {string} path the window's location href
+ * @returns {string} the target URL
+ */
+const getBrandUrlTarget = (brandTargets, productionTarget, element, oldRoot, path) =>{
+  const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
+  const pathTarget = path.split('/').slice(pathIndex).join('/');
+
+  let elementTarget = element.getAttribute('value');
+  if (!isStringEmpty(elementTarget)) {
+    elementTarget = `${elementTarget}/${pathTarget}`;
+  } else {
+    elementTarget = pathTarget;
+  }
+
+  let targetLocation;
+  if (!productionTarget) {
+    targetLocation = `${document.location.origin}/${elementTarget}`;
+  } else {
+    switch (elementTarget) {
+      case '/HDRUK': {
+        targetLocation = `${CLU_DOMAINS.HDRUK}/${pathTarget}`;
+      } break;
+
+      default: {
+        const isHDRUKSubdomain = window.location.href
+          .toLowerCase()
+          .includes('phenotypes.healthdatagateway');
+
+        targetLocation = isHDRUKSubdomain ? CLU_DOMAINS.ROOT : document.location.origin;
+        targetLocation = `${targetLocation}/${elementTarget}`;
+      } break;
+    }
+  }
+
+  window.location.href = strictSanitiseString(targetLocation);
 }
 
 /**
@@ -504,53 +556,6 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
   });
 
   input.click();
-}
-
-/**
- * strictSanitiseString
- * @desc strictly sanitise the given string (remove html, svg, mathML)
- * 
- * @param {string} str
- * @return {str} The sanitised string 
- */
-const strictSanitiseString = (dirty) => {
-  dirty = dirty.toString();
-  return DOMPurify.sanitize(dirty, {
-    USE_PROFILES: { html: false, mathMl: false, svg: false, svgFilters: false }
-  });
-}
-
-/**
- * interpolateString
- * @desc Interpolate string template
- *       Ref @ https://stackoverflow.com/posts/41015840/revisions
- * 
- * @param  {string} str The string to interpolate
- * @param  {object} params The parameters
- * @return {str} The interpolated string
- * 
- */
-const interpolateString = (str, params, noSanitise) => {
-  let names = Object.keys(params)
-  let values = Object.values(params).map(x => DOMPurify.sanitize(x));
-  if (!noSanitise) {
-    names = names.map(x => DOMPurify.sanitize(x));
-    values = values.map(x => DOMPurify.sanitize(x));
-  }
-
-  return new Function(...names, `return \`${str}\`;`)(...values);
-}
-
-/**
- * parseHTMLFromString
- * @desc given a string of HTML, will return a parsed DOM
- * @param {str} str The string to parse as DOM elem
- * @returns {DOM} the parsed html
- */
-const parseHTMLFromString = (str) => {
-  const parser = new DOMParser();
-  const clean = DOMPurify.sanitize(str);
-  return parser.parseFromString(clean, 'text/html');
 }
 
 /**

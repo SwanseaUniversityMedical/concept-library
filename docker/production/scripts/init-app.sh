@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Workdir
 cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
+# Initialise app
 if [ ! -z $AWAIT_POSTGRES ] && [ $AWAIT_POSTGRES = "True" ]; then
   echo "==========================================="
   echo "========== Waiting for Postgres ==========="

@@ -46,7 +46,7 @@
   {% endcompress %}
 
   {% compress css %}
-    <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/create.scss' %}" type="text/css" />
   {% endcompress %}
 
   <header class="main-header">
@@ -110,7 +110,6 @@
       </article>
     </div>
   </main>
-
 
   {% url 'search_phenotypes' as referral_url %}
   {% to_json_script None data-owner="entity-creator" id="referral-links" name="links" desc-type="text/json" referral-url=referral_url %}

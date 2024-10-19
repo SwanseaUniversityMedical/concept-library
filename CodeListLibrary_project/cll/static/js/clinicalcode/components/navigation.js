@@ -201,6 +201,31 @@ const setNavigation = (navbar) => {
   }
 }
 
+const manageBrandTargets = () => {
+  const elements = document.querySelectorAll('.userBrand');
+  const brandSource = document.querySelector('script[type="application/json"][name="brand-targets"]');
+  if (elements.length < 1 || isNullOrUndefined(brandSource)) {
+    return;
+  }
+
+  const path = window.location.pathname.slice(1);
+  const oldRoot = path.split('/')[0];
+  const brandTargets = JSON.parse(brandSource.innerText.trim());
+
+  let isProductionRoot = brandSource.getAttribute('host-target');
+  console.log(isProductionRoot, '?');
+  if (isNullOrUndefined(isProductionRoot)) {
+    isProductionRoot = false;
+  } else if (typeof isProductionRoot === 'string') {
+    isProductionRoot = ['true', '1'].indexOf(isProductionRoot.toLowerCase()) >= 0;
+  }
+  console.log(isProductionRoot);
+
+  const handleBrandTarget = (e) => getBrandUrlTarget(brandTargets, isProductionRoot, e.target, oldRoot, path);
+  for (const element of elements) {
+    element.addEventListener('click', handleBrandTarget);
+  }
+}
 
 /**
  * Main thread
@@ -220,4 +245,6 @@ domReady.finally(() => {
 
   initHamburgerMenu();
   setNavigation(navbar);
+
+  manageBrandTargets();
 });

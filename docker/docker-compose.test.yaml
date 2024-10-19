@@ -37,6 +37,8 @@ services:
       - 8005:80
     expose:
       - 80
+    volumes:
+      - ./cl_log/:/home/config_cll/cll_srvr_logs/
     env_file:
       - ./test/env/app.compose.env
     depends_on:
@@ -52,6 +54,7 @@ services:
       - live
       - email
     ports:
+      - 1025:1025
       - 8025:8025
     networks:
       default:

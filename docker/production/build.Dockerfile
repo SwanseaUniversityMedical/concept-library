@@ -44,12 +44,9 @@ RUN ["chmod", "750", "/home/config_cll/cll_srvr_logs"]
 # Set main workdir
 WORKDIR /var/www
 
-# Install & upgrade pip
+# Install pip
 RUN \
   apt-get install -y -q python3-pip
-
-RUN \
-  pip install --upgrade pip
 
 # Copy project
 RUN mkdir -p /var/www/concept_lib_sites/v1
@@ -57,10 +54,15 @@ COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
-# Install requirements
-RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
+# Create venv, upgrade pip & install deps
+WORKDIR /var/www/concept_lib_sites/v1/CodeListLibrary_project
+
+RUN python -m venv env \
+  && env/bin/pip install --upgrade pip \
+  && env/bin/pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
 # Utility scripts
+WORKDIR /var/www
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 
 COPY ./docker/development/scripts/wait-for-it.sh /bin/wait-for-it.sh

@@ -1,1 +1,2 @@
 -r base.txt # includes the base.txt requirements file
+mod-wsgi==5.0.1

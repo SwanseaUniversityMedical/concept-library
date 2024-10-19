@@ -1,11 +1,12 @@
 {% load static %}
 {% load i18n %}
-{% load cl_extras %}
 {% load svg %}
+{% load cl_extras %}
+{% load compress %}
+{% load entity_renderer %}
 
 {% block content %}
   <!-- about tab -->
-  <script type="text/javascript" src="{% static "js/clinicalcode/components/brandurls.js" %}"></script>
   <div class="nav-dropdown">
     {% include "components/navigation/avatar_component.html"  %}
     
@@ -53,14 +54,6 @@
       </ul>
     </div>
   </div>
- 
-  <script type="text/javascript">
-    const elements = document.querySelectorAll(".userBrand");
-    elements.forEach(function(element) {
-      element.addEventListener("click", function() {
-        const [path,old_root] = generateOldPathRoot();
-        brandUrlsgen("{{request.session.all_brands}}","{{IS_PRODUCTION_SERVER}}",element,old_root,path);  
-      });
-    });
-  </script>
+
+  {% to_json_script request.session.all_brands id="brand-target-source" name="brand-targets" desc-type="text/json" host-target=IS_PRODUCTION_SERVER %}
 {% endblock content %}

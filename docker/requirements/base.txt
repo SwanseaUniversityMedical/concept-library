@@ -1,6 +1,5 @@
 bleach==6.1.0
 requests==2.32.0
-typing==3.7.4.3
 tzdata==2024.2
 urllib3==2.2.3
 libsass==0.23.0
