@@ -50,7 +50,6 @@ RUN apt-get install -y -q python3-pip \
 RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
 # Utility scripts
-WORKDIR /var/www
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 
 COPY ./docker/development/scripts/wait-for-it.sh /bin/wait-for-it.sh
