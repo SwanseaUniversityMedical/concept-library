@@ -9,14 +9,24 @@ from ...models import *
 from ...entity_utils import api_utils
 from ...entity_utils import permission_utils
 from ...entity_utils import concept_utils
+from ...entity_utils import search_utils
 from ...entity_utils import gen_utils
+from ...entity_utils import constants
 from ...entity_utils.constants import CLINICAL_RULE_TYPE
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_concepts(request):
+def get_concepts(request, should_paginate=True):
     """
-        Get all concepts accessible to the user, optionally, provide parameters to filter by
+        Get all concepts accessible to the user, optionally, provide parameters to filter the resultset.
+
+        Available API parameters can be derived from the [Reference Data](/reference-data/) page.
+
+        Other available parameters:
+        - `page` (`int`) - the page cursor
+        - `page_size` (`int`) - the desired page size from one of: `20`, `50`, `100`
+        - `should_paginate` (`bool`) - optionally turn off pagination; defaults to `True`
+
     """
     # Get all concepts accesible to the user
     concepts = permission_utils.get_accessible_concepts(
@@ -50,6 +60,23 @@ def get_concepts(request):
         phenotype_id = phenotype_id.split(',')
         concepts = concepts.filter(Q(phenotype_owner__id__in=phenotype_id))
     
+    page = request.query_params.get('page', 1 if should_paginate else None)
+    page = gen_utils.try_value_as_type(page, 'int')
+    page = max(page, 1) if isinstance(page, int) else None
+
+    page_size = None
+    if page:
+        page_size = request.query_params.get('page_size', None)
+        page_size = gen_utils.try_value_as_type(page_size, 'int')
+        page_size = str(page_size) if isinstance(page_size, int) else '2'
+
+        if page_size is None or page_size not in constants.PAGE_RESULTS_SIZE:
+            page_size = constants.PAGE_RESULTS_SIZE.get('2')
+        else:
+            page_size = constants.PAGE_RESULTS_SIZE.get(str(page_size))
+
+        should_paginate = True
+
     # Handle searching
     search = request.query_params.get('search')
     if search is not None:
@@ -78,7 +105,13 @@ def get_concepts(request):
     # Exit early if queries do not match
     if not concepts.exists():
         return Response([], status=status.HTTP_200_OK)
-    
+
+    # Paginate results
+    if should_paginate:
+        concepts = search_utils.try_get_paginated_results(
+            request, concepts, page, page_size=page_size
+        )
+
     # Format concepts
     result = []
     for concept in concepts:
@@ -90,7 +123,13 @@ def get_concepts(request):
         )
 
         result.append(concept_data)
-    
+
+    result = result if not should_paginate else {
+        'page': page,
+        'num_pages': concepts.paginator.num_pages,
+        'data': result
+    }
+
     return Response(
         data=result,
         status=status.HTTP_200_OK

@@ -44,8 +44,8 @@ const tryCleanCodingItem = (val, row, col) => {
   if (col > 2) {
     return;
   }
-  
-  return val.replace(/^\s+|\s+$/gm, '');
+
+  return strictSanitiseString(val.replace(/^\s+|\s+$/gm, ''));
 }
 
 /**

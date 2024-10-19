@@ -325,10 +325,12 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         try:
             value = str(field_value) if field_value is not None else ''
             if validation is not None:
-                empty = is_empty_string(value)
-                value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
-                if value is None or (is_empty_string(value) and not empty):
-                    return default
+                sanitiser = validation.get('sanitise')
+                if sanitiser is not None:
+                    empty = is_empty_string(value)
+                    value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                    if value is None or (is_empty_string(value) and not empty):
+                        return default
 
                 pattern = validation.get('regex')
                 mandatory = validation.get('mandatory')

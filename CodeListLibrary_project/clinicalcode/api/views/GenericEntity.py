@@ -141,9 +141,15 @@ def get_generic_entity_version_history(request, phenotype_id=None):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 @gen_utils.measure_perf
-def get_generic_entities(request, should_paginate=False):
+def get_generic_entities(request, should_paginate=True):
     """
-        Get all generic entities accessible to the user, optionally paginate result set
+        Get all generic entities accessible to the API user; see [Reference Data](/reference-data/) page
+        for available API parameters for individual templates.
+
+        Other available parameters:
+        - `page` (`int`) - the page cursor
+        - `page_size` (`int`) - the desired page size from one of: `20`, `50`, `100`
+        - `should_paginate` (`bool`) - optionally turn off pagination; defaults to `True`
 
     """
 
@@ -153,7 +159,7 @@ def get_generic_entities(request, should_paginate=False):
 
     search = params.pop('search', None)
 
-    page = params.pop('page', None)
+    page = params.pop('page', 1 if should_paginate else None)
     page = gen_utils.try_value_as_type(page, 'int')
     page = max(page, 1) if isinstance(page, int) else None
 
