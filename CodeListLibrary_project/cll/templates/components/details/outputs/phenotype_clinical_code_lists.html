@@ -131,22 +131,32 @@
   {% endif %}
 </div>
 
-<script type="text/javascript">
-  let conceptData = '{{ component.value|jsonify|escapejs }}';
-  conceptData = JSON.parse(conceptData);
+{% if component.value %}
+  {% to_json_script component.value id="codelist-data" name="codelist" desc-type="text/json" %}
+{% endif %}
 
+{% compress js inline %}
+<script type="text/javascript">
   domReady.finally(() => {
-    if (isNullOrUndefined(conceptData)) {
+    const codelist = document.querySelector('script[type="application/json"][name="codelist"]');
+    if (isNullOrUndefined(codelist)) {
       return;
     }
 
-    applyCodelistsFromConcepts(
-      conceptData,
-      {
-        codelistContainerId: '#concept-codelist-${concept_id}_${concept_version_id}',
-        showAttributes: true,
-        perPageSelect: [ 10, 50, 100, [ 'All', -1 ] ],
-      }
-    );
+    try {
+      const conceptData = JSON.parse(codelist.innerText.trim());
+      applyCodelistsFromConcepts(
+        conceptData,
+        {
+          codelistContainerId: '#concept-codelist-${concept_id}_${concept_version_id}',
+          showAttributes: true,
+          perPageSelect: [ 10, 50, 100, [ 'All', -1 ] ],
+        }
+      );
+    }
+    catch (e) {
+      console.error(`Failed to parse concept codelist with err: ${e}`);
+    }
   });
 </script>
+{% endcompress %}

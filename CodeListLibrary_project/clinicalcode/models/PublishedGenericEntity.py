@@ -35,7 +35,7 @@ class PublishedGenericEntity(models.Model):
                 sql_publish_status = """
                                         UPDATE public.clinicalcode_historicalgenericentity 
                                         SET publish_status = %(approval)s
-                                        WHERE id = %(entityid)s and history_id = %(entityhxid)s) ;
+                                        WHERE id = %(entityid)s and history_id = %(entityhxid)s;
                                     """
                 
                 cursor.execute(sql_publish_status, params={

@@ -67,14 +67,17 @@
 				margin-top: 1rem;
 			}
 
-			.mail-footer__icons img {
+			.mail-footer__image {
+				height: 100%;
 				max-width: 100%;
+				max-height: 70px;
+				aspect-ratio: 6 / 1;
 			}
 
 			.status-card {
-				display:block;
-				margin:1.25em 0;
-				padding:1.25em;
+				display: block;
+				margin: 1.25em 0;
+				padding: 1.25em;
 				border: 0.0625rem solid #ddd;
 				border-radius: 0.625rem;
 				box-shadow: 0 0.1875rem 1.25rem rgba(0, 0, 0, 0.15);
@@ -86,6 +89,16 @@
 				color: #8c8c8c;
 				line-height: 1.70em;
 				margin-bottom: 1.56em;
+			}
+
+			.status-report strong {
+				color: #363636;
+			}
+
+			.status-report--status {
+				display: flex;
+				flex-flow: row wrap;
+				align-items: center;
 			}
 
 			.status-title {
@@ -118,7 +131,7 @@
 	<body>
 		<div class="mail-content">
 			<h2 class="mail-title">
-				<img class="mail-title__icon" src="cid:mainlogo" alt="Title Icon" height="60" valign="middle" />
+				<img class="mail-title__icon" src="cid:mainlogo" alt="Concept Library" height="60" valign="middle" />
 				Notification from Concept Library
 			</h2>
 
@@ -126,12 +139,11 @@
 
 			<div class="mail-footer">
 				<div class="mail-footer__icons">
-					<img src="cid:combined" alt="Icon 1" height="70" />
+					<img class="mail-footer__image" src="cid:sponsors" alt="Sponsors" />
 				</div>
 				<p>
-					<a href="{{ request.scheme }}://{{ request.get_host }}/contact-us">
-							Contact Us
-					</a> - Copyright © 2023 - SAIL Databank - Swansea University. All rights reserved.
+					<a href="{{ request.scheme }}://{{ request.get_host }}/contact-us">Contact Us</a>
+					 - Copyright © 2023 - SAIL Databank - Swansea University. All rights reserved.
 				</p>
 			</div>
 		</div>

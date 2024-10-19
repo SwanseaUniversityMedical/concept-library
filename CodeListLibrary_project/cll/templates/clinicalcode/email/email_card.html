@@ -5,36 +5,36 @@
 	</h2>
 
 	{% if status == "Published" %}
-		<p class="status-report-item">
+		<div class="status-report status-report--status">
 			<strong>Status:</strong>
 			<span class="status-button status-button--published">
 				Published
 			</span>
-		</p>
+		</div>
 	{% elif status == "Pending" %}
-		<p class="status-report-item">
+		<div class="status-report status-report--status">
 			<strong>Status:</strong>
 			<span class="status-button status-button--pending">
 				Pending
 			</span>
-		</p>
+		</div>
 	{% elif status == "Rejected" %}
-		<p class="status-report-item">
+		<div class="status-report status-report--status">
 			<strong>Status:</strong>
 			<span class="status-button status-button--rejected">
 				Rejected
 			</span>
-		</p>
+		</div>
 	{% endif %}
 	{% if custom_message %}
-		<p class="status-report-item">
+		<p class="status-report">
 			<strong>Description:</strong> {{message}}
 		</p>
-		<p class="status-report-item">
+		<p class="status-report">
 			<strong>Message from reviewer:</strong> {{custom_message}}
 		</p>
 	{% else %}
-		<p class="status-report-item">
+		<p class="status-report">
 			<strong>Description:</strong>  {{message}}
 		</p>
 	{% endif %}

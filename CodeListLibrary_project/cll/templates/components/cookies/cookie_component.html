@@ -1,6 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% load svg %}
+{% load compress %}
 {% load cl_extras %}
 
 {% block content %}
@@ -35,12 +36,13 @@
   </div>
 </div>
 
-{% if not IS_DEMO %}
+{% if not IS_DEMO and not IS_DEVELOPMENT_PC %}
   {% if request.CURRENT_BRAND == 'HDRUK' %}
     <!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QE37B9J5WK"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"></script>
+    {% compress js inline %}
     <script type="text/javascript">
       domReady.finally(() => {
         // Attach click event handler to #cookie_preference element
@@ -74,10 +76,12 @@
         });
       });
     </script>
+    {% endcompress %}
   {% else %}
     <!-- for the default/other brands -->
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KLBS2646W1"></script>
+    {% compress js inline %}
     <script type="text/javascript">
       domReady.finally(() => {
         // Attach click event handler to #cookie_preference element
@@ -105,6 +109,7 @@
         });
       });
     </script>
+    {% endcompress %}
   {% endif %}
 {% endif %}
 {% endblock content %}

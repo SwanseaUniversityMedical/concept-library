@@ -51,6 +51,7 @@
       flex-direction: row;
 
       &__icon {
+        pointer-events: none;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -66,12 +67,14 @@
           width: 70%;
           object-position: center;
           border-radius: 50%;
+          pointer-events: none;
         }
       }
 
       &__text {
         @include prefix(transition, all 250ms ease-in, webkit moz o);
         flex-grow: 1;
+      pointer-events: none;
       }
 
       &__title {
@@ -80,6 +83,7 @@
         font-size: 14px;
         line-height: 14px;
         font-weight: 500;
+        pointer-events: none;
       }
 
       &__description {
