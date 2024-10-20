@@ -1,3 +1,5 @@
+name: cll
+
 services:
   app:
     platform: linux/amd64

@@ -41,7 +41,7 @@ Often the definitions that are created are of interest to researchers for many s
     2.3.1. [Docker Compose Files](#231-Docker-Compose-Files)  
     2.3.2. [Initial Build](#232-Initial-Build)  
     2.3.3. [Stopping and Starting the Containers](#233-Stopping-and-Starting-the-Containers)  
-    2.3.4. [Live Working](#234-Live-Working)  
+    2.3.4. [Live Development](#234-Live-Development)  
     2.3.5. [Removing the Containers](#235-Removing-the-Containers)  
     2.3.6. [Local Pre-production Builds](#236-Local-Pre-production-Builds)  
     2.3.7. [Impact of Environment Variables](#237-Impact-of-Environment-Variables)  
@@ -92,9 +92,9 @@ To download this repository:
 ## 2.1. Prerequisites
 
 ### 2.1.1. Docker
-Please ensure that you have installed [Docker Desktop v4.10.1](https://docs.docker.com/desktop/release-notes/) or [Docker Engine v20.10.17](https://docs.docker.com/engine/release-notes/).
+Please ensure that you have installed [Docker Desktop v4.34.3](https://docs.docker.com/desktop/release-notes/) or [Docker Engine v27.2.0](https://docs.docker.com/engine/release-notes/).
 
-If you encounter any issues, please see Docker's documentation (https://docs.docker.com/).
+If you encounter any issues, please see Docker's documentation [here](https://docs.docker.com/).
 
 ### 2.1.2. Running on Apple
 
@@ -105,7 +105,8 @@ The app container requires emulation for ARM CPUs, please install Rosetta 2:
 ## 2.2. Database setup
 
 ### 2.2.1. Restore from Local Backup
->***[!] Note:** Do not share the backup files with anyone*
+> [!CAUTION]  
+> Do **NOT** share these files with anyone  
 
 To restore from a local backup:
 1. Navigate to the `concept-library/docker/development` folder
@@ -113,10 +114,11 @@ To restore from a local backup:
 3. Skip to [2.3. Development](#23-Development)  
 
 ### 2.2.2. Restore from Git Repository
->***[!] Note:** Do not share these files with anyone*
+> [!CAUTION]  
+> Do **NOT** share these files with anyone  
 
->***[!] Note:** 
-The initial run of the application may take a while if you are using this method, however, subsequent builds will be faster as the backup is saved locally in the `concept-library/docker/development/db/` folder*
+> [!TIP]  
+> The initial run of the application may take a while if you are using this method, however, subsequent builds will be faster as the backup is saved locally in the `concept-library/docker/development/db/` folder  
 
 To restore from a Git repository:
 1. Create a personal access token on GitHub (https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token), ensure it grants access to private repositories
@@ -133,7 +135,7 @@ If you do not have a backup available the application will still run successfull
 
 With an empty database, you will need to run statistics manually for the application to work correctly:
   1. After following the steps to start the application in [2.3. Development](#23-Development)
-  2. Navigate to 127.0.0.1/admin/run-stats
+  2. Navigate to http://127.0.0.1/admin/run-stats
 
 ## 2.3. Development
 ### 2.3.1. Docker Compose Files
@@ -141,44 +143,56 @@ Within the `concept-library/docker/` directory you will find the following docke
 
 1. `docker-compose.dev.yaml`
     - This is the development docker container used to iterate on the Concept Library.
-    - After building, the application can be located at http://127.0.0.1:8000
-2. `docker-compose.test.yaml`
-    - This compose file builds an environment that better reflects the production environment, serving the application via Apache, and includes adjunct services like Redis, Celery and Mailhog.
-    - It is recommended for use when developing the Docker images, or as a pre-production test when modifying build behaviour such as offline compression.
-    - After building, the application can be located at http://localhost:8005
-3. `docker-compose.prod.yaml`
+    - You are required to provide a `--profile {name}` parameter when starting these containers; you can do this by running the following command:
+        ```sh
+        docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build
+        ```
+    - The following profiles are available:
+        | Profile name | Summary                                  | Accessible at...                        |
+        |--------------|------------------------------------------|-----------------------------------------|
+        | `dev`        | Base development env                     | [127.0.0.1:8000](http://127.0.0.1:8000) |
+        | `live`       | Includes apache, mail, compression _etc_ | [localhost:8005](http://localhost:8005) |
+        | `test`       | Testing development env                  | [127.0.0.1:8000](http://127.0.0.1:8000) |
+
+2. `docker-compose.prod.yaml`
     - This compose file builds the production container.
     - It is used for both manual and automated deployment via CI/CD workflows
-    - After building, the application can be located at https://conceptlibrary.some-demo-app.saildatabank.com where `some-demo-app` describes the development sub-domain
+    - After building, the application can be located at https://conceptlibrary.some-demo-app.saildatabank.com where `some-demo-app` describes the development sub-domain (if any)
 
 ### 2.3.2. Initial Build
+> [!TIP]  
+> You can supply a different profile by changing the `--profile dev` parameter; and you can append the `-d` flag to run the application in the background  
+
 To perform the initial build and run of the application:
 1. Open a terminal
 2. Navgiate to the `concept-library/docker/` folder
-3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml up --build` (append `-d` as an argument to run in background)
+3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build`
 
 The application and database will be available at:
  - Application: `127.0.0.1:8000`
  - Database: `127.0.0.1:5432`
 
 ### 2.3.3. Stopping and Starting the Containers
+> [!IMPORTANT]  
+> You _must_ supply the same `--profile` parameter you used to start the container if you wish to correctly stop all related containers!  
+
 To stop the docker container:
 1. If you have a terminal open which is running the docker containers, press `CTRL + C` or `CTRL + Z` to stop the containers
 2. If you do not have a terminal open which is running the containers:  
 a. Open a terminal  
 b. Navigate to the `concept-library/docker/` folder  
-c. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml down`  
+c. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml --profile dev down`  
 
 To start the docker container (if it has already been built and has stopped for any reason):
 1. Open a terminal
 2. Navigate to the `concept-library/docker/` folder
-3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml start`
+3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml --profile dev start`
 
-### 2.3.4. Live Working
+### 2.3.4. Live Development
 Whilst working on the codebase, any changes should be automatically applied to the codebase stored in the app container after saving the file. 
 
 If you make any changes to the models you will need to:  
-1. Stop and start the containers again with `docker-compose -p cll -f docker-compose.dev.yaml up --build`, the migrations will be automatically applied
+1. Stop and start the containers again with `docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build`, the migrations will be automatically applied
 2. *OR*; execute the migration code from within the app container (see: https://docs.docker.com/engine/reference/commandline/exec/)
 
 ### 2.3.5. Removing the Containers
@@ -187,37 +201,43 @@ To remove the containers:
 2. Navigate to the `concept-library/docker/` folder
 3. In the terminal, run:  
 a. `docker compose down`: removes networks and containers.  
-b. *OR;* `docker-compose -p cll -f docker-compose.dev.yaml down --rmi all -v`: removes networks, containers, images and volumes.  
+b. *OR;* `docker-compose -p cll -f docker-compose.dev.yaml --profile dev down --rmi all -v`: removes networks, containers, images and volumes.  
 c. *OR;* to prune your docker, enter `docker system prune -a`  
 
 ### 2.3.6. Local Pre-production Builds
->***[!] Note:**   
-To test the transpiling, minification or compression steps, OR; if you have made changes to the Docker container or its images it is recommended that you run a local, pre-production build*
+> [!NOTE]  
+> To test the transpiling, minification or compression steps, OR; if you have made changes to the Docker container or its images it is recommended that you run a local, pre-production build  
 
 #### Profiles
-The test docker compose has several profiles that can be used to set up your environment:
-1. `live` - this starts both the celery and mailhog services
-2. `email` - this starts the mailhog service only
+> [!TIP]  
+> See documentation for profiles [here](https://docs.docker.com/compose/how-tos/profiles/)  
 
+| Profile name | Summary                                  |
+|--------------|------------------------------------------|
+| `dev`        | Base development env                     |
+| `live`       | Includes apache, mail, compression _etc_ |
+| `test`       | Testing development env                  |
 
-#### Running the Container
->***[!] Note:**
-If you do not want to start the celery services you can remove the "--profile live" argument*  
+#### Running the Container using `docker-compose`
+To build a local, pre-production build:
+1. Open a terminal
+2. Navigate to the `concept-library/docker/` folder
+3. Set up the environment variables within `./development/env/web/live.compose.env`
+4. Finally, run `docker-compose -p cll -f docker-compose.dev.yaml --profile live up --build` (append `-d` as an argument to run in background)
+5. Open a browser and navigate to `localhost:8005` to access the application
 
+#### Running the Container using `docker build`
 To build a local, pre-production build:
 1. Open a terminal
 2. Follow the steps above if you have not already built the images
 3. Navigate to the `concept-library/docker/` folder
-4. Set up the environment variables within `./test/app.compose.env`
-5. In the terminal, run `docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..`
+4. Set up the environment variables within `./development/env/web/live.compose.env`
+5. In the terminal, run `docker build -f ./development/dockerfiles/web/live.Dockerfile -t cll/app --build-arg server_name=localhost ..`
 6. Once the image is built, run `docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker`
-7. Finally, run `docker-compose -p cll -f docker-compose.test.yaml --profile live up` (append `-d` as an argument to run in background)
+7. Finally, run `docker-compose -p cll -f docker-compose.dev.yaml --profile live up` (append `-d` as an argument to run in background)
 8. Open a browser and navigate to `localhost:8005` to access the application
 
 #### Using Mailhog
->***[!] Note:**
-To use the mailhog service, you will have to run --profile live or --profile email*  
-
 If you would like to learn more about Mailhog, please visit this [site](https://github.com/mailhog/MailHog). Otherwise, to start Mailhog:
 1. Start the container as described above
 2. Head to [http://localhost:8025](http://localhost:8025)
@@ -225,14 +245,13 @@ If you would like to learn more about Mailhog, please visit this [site](https://
 
 ### 2.3.7. Impact of Environment Variables
 
->***[!] Note:**   
-To modify the environment variables, please navigate to `./docker/test/app.compose.env` (or the appropriate folder for the container you are building)*
-
+> [!TIP]  
+> To modify the environment variables, please navigate to `./docker/development/env/web/{profile}.compose.env` (or the appropriate name for the profile you are building)  
 
 #### Impact on Application Behaviour
 Some environment variables modify the behaviour of the application.
 
-The following are important to consider when modifying `app.compose.env`:
+The following are important to consider when modifying `{profile}.compose.env`:
 - `DEBUG` → When this flag is set to `True`:
     - The application will expect a Redis service to be running for use as the cache backend, otherwise it will use a DummyCache
     - The application will enable the compressor and precompilers, otherwise this will not take place (aside from HTML Minification)
@@ -241,9 +260,9 @@ The following are important to consider when modifying `app.compose.env`:
     - The application will use a different logging backend - please see `settings.py` for more information
 
 #### Impact on Building
-Some environment variables modify the behaviour of the container when building, you should be aware of this behaviour when building `docker-compose.prod.yaml` and `docker-compose.test.yaml` - this behaviour is mostly defined within `init-app.sh`. 
+Some environment variables modify the behaviour of the container when building, you should be aware of this behaviour when building `docker-compose.prod.yaml` and `docker-compose.dev.yaml --profile live` - this behaviour is mostly defined within `init-app.sh`. 
 
-The following are important to consider when modifying `app.compose.env`:
+The following are important to consider when modifying `{profile}.compose.env`:
 - `IS_DEVELOPMENT_PC` → When this flag is set to `True`:
     - The application and celery services will await the postgres service to initialise before continuing
 - `CLL_READ_ONLY` → When this flag is set to `False`:
@@ -256,8 +275,8 @@ The following are important to consider when modifying `app.compose.env`:
 To learn about the impact of the other environment variables, please open and examine `./cll/settings.py`. 
 
 ## 2.4. Accessing and Exporting the Database
->***[!] Note:**   
-If you have made changes to the environment variables in the docker-compose.dev.yaml file you will need to match those changes when connecting through the CLI or PGAdmin4*
+> [!IMPORTANT]  
+> If you have made changes to the environment variables in the `docker-compose.dev.yaml` file you will need to match those changes when connecting through the CLI or PGAdmin4  
 
 ### 2.4.1. Access/Export with PGAdmin4
 #### To access the database
@@ -282,7 +301,8 @@ Please ensure you have installed [PGAdmin4](https://www.pgadmin.org/download/pga
 
 ### 2.4.2. Access/Export with CLI
 #### To access the database
-> ***[!] Note:** The query will fail to retrieve results if you forget the semicolon, `;`, at the end of the query*
+> [!TIP]  
+> The query will fail to retrieve results if you forget the semicolon, `;`, at the end of the query  
 
 1. Open a terminal
 2. In the terminal, run: `docker exec -it cll-postgres-1 /bin/bash`
@@ -334,7 +354,7 @@ Create a run configuration for the project:
 ```
 
 Now you're ready to start debugging:
-1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml up --build` and ensure it is running
+1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build` and ensure it is running
 2. Add a breakpoint to the file that you are debugging
 3. In Visual Studio Code, open the `Run and Debug Menu` by clicking the icon on the left-hand side of the screen or using the hotkey `CTRL + SHIFT + D`
 4. At the top of the debug menu, select the `Debug Application` option
@@ -343,7 +363,8 @@ Now you're ready to start debugging:
 Variables, Watch and Callstack can all be viewed in the `Run and Debug` menu panel and the console can be viewed in the `Debug Console` (hotkey: `CTRL + SHIFT + Y`) window.
 
 ### 2.5.3. Running Tests
-> **[!] Todo:** Needs documentation once we implement & finalise new test suite
+> [!NOTE]  
+> **TODO:** Needs documentation once we implement & finalise new test suite  
 
 [Details]
 
@@ -351,7 +372,8 @@ Variables, Watch and Callstack can all be viewed in the `Run and Debug` menu pan
 ## 2.6. Setting up VSCode Tasks
 
 ### 2.6.1. Basics
-> ***[!] Note:** You can learn more about using external tools and VSCode's Tasks system [here](https://code.visualstudio.com/docs/editor/tasks)*
+> [!TIP]  
+> You can learn more about using external tools and VSCode's Tasks system [here](https://code.visualstudio.com/docs/editor/tasks)  
 
 #### Set up
 To start using tasks:
@@ -371,7 +393,8 @@ After opening the `tasks.json` file, you should configure the contents so it loo
 ```
 
 ### 2.6.2. Debug Build Tasks
-> ***[!] Note:** You can learn about the available options for tasks [here](https://code.visualstudio.com/docs/editor/tasks-appendix)*
+> [!TIP]  
+> You can learn about the available options for tasks [here](https://code.visualstudio.com/docs/editor/tasks-appendix)  
 
 To set up your first debug task, configure your `tasks.json` file such that:
 ```json
@@ -382,7 +405,7 @@ To set up your first debug task, configure your `tasks.json` file such that:
       "label": "Build Debug",
       "detail": "Builds the development container",
       "type": "shell",
-      "command": "docker-compose -p cll -f docker-compose.dev.yaml up --build",
+      "command": "docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build",
       "options": {
         "cwd": "${workspaceFolder}/docker/"
       },
@@ -401,13 +424,13 @@ To set up your first debug task, configure your `tasks.json` file such that:
 ```
 
 ### 2.6.3. Test Build Tasks
-To set up a task for the `docker-compose.test.yaml` container, you append the following to the `"tasks": []` property:
+To set up a task for the `docker-compose.dev.yaml --profile live` container, you append the following to the `"tasks": []` property:
 ```json
 {
   "label": "Build Test",
   "detail": "Builds the test container",
   "type": "shell",
-  "command": "docker build -f test/app.Dockerfile -t cll/app --build-arg server_name=localhost ..; docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker; docker-compose -p cll -f docker-compose.test.yaml up",
+  "command": "docker-compose -p cll -f docker-compose.dev.yaml --profile up --build",
   "options": {
     "cwd": "${workspaceFolder}/docker/"
   },
@@ -423,7 +446,8 @@ To set up a task for the `docker-compose.test.yaml` container, you append the fo
 ```
 
 ### 2.6.4. How to Handle Cleaning
-> ***[!] Note:** There will be some differences between Windows and other operating systems. The example below is set up to use PowerShell logical operators. On a Linux-based OS, you would need to use the '&&' and '||' operators instead of '-and' and '-or'*
+> [!WARNING]  
+> There will be some differences between Windows and other operating systems. The example below is set up to use PowerShell logical operators. On a Linux-based OS, you would need to use the `&&` and `||` operators instead of `-and` and `-or`  
 
 If you set up both the debug and test builds you will note that the docker container isn't cleaned between different tasks. It is possible to set up your tasks such that the containers will be cleaned.
 
@@ -454,7 +478,7 @@ Using [Compound Tasks](https://code.visualstudio.com/docs/editor/tasks#_compound
   "label": "Build Debug",
   "detail": "Builds the development container",
   "type": "shell",
-  "command": "docker-compose -p cll -f docker-compose.dev.yaml up --build",
+  "command": "docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build",
   "options": {
     "cwd": "${workspaceFolder}/docker/"
   },
@@ -487,7 +511,9 @@ If you you are unable to `exec` into `cll-app-1`:
 4. Continue with Step (3) above
 
 # 3. Setup without Docker
->***[!] Note:** Unlike [2. Setup with Docker](#2-Setup-with-Docker), this method of setting up and using the Concept Library is not recommended. Containerisation is a much more suitable method if you intend to develop or host the Concept Library application.  
+> [!WARNING]  
+> Unlike [2. Setup with Docker](#2-Setup-with-Docker), this method of setting up and using the Concept Library is not recommended. Containerisation is a much more suitable method if you intend to develop or host the Concept Library application.  
+
 If you decide to continue, please note that we would not be able to offer advice outside of what is detailed below - please take this into consideration when deciding which method you would like to use.*
 
 ## 3.1. Prerequisites
@@ -521,8 +547,9 @@ This will provide a dedicated environment for each project you create. It is con
 7. To stop working on this environment, run: `deactivate cclproject`
 
 ### 3.2.3 Database set up
->***[!] Note:** Please note the following if you are a Concept Library Developer:  
-To retrieve a database backup, follow some of the steps in [2.2.2. Restore from Git Repository](#222-Restore-from-Git-Repository) and download the `db.backup` file - this can be used to restore the Postgres db during the following steps.*
+> [!IMPORTANT]  
+> Please note the following if you are a Concept Library Developer:  
+> - To retrieve a database backup, follow some of the steps in [2.2.2. Restore from Git Repository](#222-Restore-from-Git-Repository) and download the `db.backup` file - this can be used to restore the Postgres db during the following steps.  
 
 1. Install [Postgres](https://www.postgresql.org/download/) and [PGAdmin](https://www.pgadmin.org/) on your device.
 2. Within PGAdmin3, do the following:
@@ -570,7 +597,8 @@ When you first start the application there will be no users within your database
 4. You should now see that the server is live at http://127.0.0.1:8000/admin/
 
 ## 3.4. Running Tests
-> **[!] Todo:** Needs documentation once we implement & finalise new test suite
+> [!NOTE]  
+> **TODO:** Needs documentation once we implement & finalise new test suite  
 
 [Details]
 
@@ -579,7 +607,8 @@ When you first start the application there will be no users within your database
 ## 4.1. Deploy Scripts
 
 ### 4.1.1. Manual Deployment
-> **[!] Note:** These instructions only pertain to feature branches which are not covered by the CI/CD workflow
+> [!NOTE]  
+> These instructions only pertain to feature branches which are not covered by the CI/CD workflow  
 
 #### Feature branch deployment with deploy-feature.sh
 This script can be used to manually deploy feature branches on the server. Please note that you will have to either (a) modify the script to use the appropriate directories and settings, or (b) pass arguments to the script to ensure it runs correctly.
@@ -600,7 +629,8 @@ Optional arguments for this script include:
 | `--profile`    | `-p`      | `live`                                                                  | Name of the docker profile to execute                                          |
 
 #### Setting up your environment variables
-> **[!] Note:** This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)
+> [!NOTE]  
+> This file should be present within the `$RootPath` as described above (modified by passing `-fp [path]` to the deployment script)  
 
 This process should be automatic assuming you have ensured that you have an `env-vars.txt` file in your server's directory. The name of this file usually includes a suffix to describe the server's status, e.g. `-FA` for full-access servers or `-RO` for read-only servers.
 
@@ -618,16 +648,17 @@ During manual deployment, the file will be copied and renamed to `env_vars.txt` 
 6. You should now be able to visit the site on the appropriate domain
 
 ### 4.1.2. Automated Deployment
-> **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor
+> [!NOTE]  
+> **TODO:** Needs documentation once we move from Gitlab CI/CD -> Harbor
 
 #### Pipeline information
 
 [Details]
 
 #### Related files
-> ***[!] Note:** The env_file has to (1) be in the same directory as the compose file and (2) be set within the docker-compose.prod.yaml file*
-
-> ***[!] Note:** `/root/` in this case describes the the directory of your choosing* 
+> [!NOTE]  
+> - The `env_file` has to (1) be in the same directory as the compose file and (2) be set within the `docker-compose.prod.yaml` file  
+> - `/root/` in this case describes the the directory of your choosing  
 
 If not already present on the machine, please ensure that the following files are within the root directory:
 1. Copy `./docker/production/scripts/deploy-site.sh` to `/root/`
@@ -651,7 +682,8 @@ Optional parameters for the `deploy-site.sh` script include:
 | `--profile`    | `-p`      | `live`                     | Name of the docker profile to execute                                          |
 
 #### What to do when automated deployment is disabled
-> **[!] Todo:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline
+> [!NOTE]  
+> **TODO:** Needs updating after moving to automated, Harbor-driven CI/CD pipeline  
 
 Images will be automatically built via Gitlab CI/CD from the `master` branch when a merge is committed. These images can be pulled using the `deploy-site.sh` script as described in [4.1.2. Automated Deployment](#412-Automated-Deployment).
 
@@ -667,7 +699,8 @@ To do so manually, please do the following:
 6. Run the following command `./root/{directory}/deploy-site.sh --address {registry_address}` where the `{registry_address}` describes the address where the Gitlab images are uploaded (check out `.gitlab-ci.yml` for more information)
 
 ## 4.2. Harbor-driven CI/CD Pipeline
-> **[!] Todo:** Needs documentation once we move from Gitlab CI/CD -> Harbor and have set up automated deployment
+> [!NOTE]  
+> **TODO:** Needs documentation once we move from Gitlab CI/CD -> Harbor and have set up automated deployment  
 
 [Details]
 
