@@ -213,13 +213,11 @@ const manageBrandTargets = () => {
   const brandTargets = JSON.parse(brandSource.innerText.trim());
 
   let isProductionRoot = brandSource.getAttribute('host-target');
-  console.log(isProductionRoot, '?');
   if (isNullOrUndefined(isProductionRoot)) {
     isProductionRoot = false;
   } else if (typeof isProductionRoot === 'string') {
     isProductionRoot = ['true', '1'].indexOf(isProductionRoot.toLowerCase()) >= 0;
   }
-  console.log(isProductionRoot);
 
   const handleBrandTarget = (e) => getBrandUrlTarget(brandTargets, isProductionRoot, e.target, oldRoot, path);
   for (const element of elements) {

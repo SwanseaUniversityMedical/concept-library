@@ -137,7 +137,7 @@ def get_concepts(request, should_paginate=True):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_concept_detail(request, concept_id, version_id=None, export_codes=False):
+def get_concept_detail(request, concept_id, version_id=None, export_codes=False, export_component=False):
     """
         Get the detail of specified concept by concept_id, optionally target a specific
             version using version_id and/or export the concept codelist
@@ -183,6 +183,27 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
         
         return Response(
             data=concept_codes,
+            status=status.HTTP_200_OK
+        )
+    elif export_component:
+        # Build component data
+        entity_id = request.query_params.get('requested_entity', None)
+        entity_id = gen_utils.try_value_as_type(entity_id, 'string', default=None)
+
+        concept_data = concept_utils.get_clinical_concept_data(
+            historical_concept.id,
+            historical_concept.history_id,
+            remove_userdata=True,
+            hide_user_details=True,
+            include_component_codes=False,
+            include_attributes=True,
+            requested_entity_id=entity_id,
+            include_reviewed_codes=True,
+            derive_access_from=request
+        )
+
+        return Response(
+            data=concept_data,
             status=status.HTTP_200_OK
         )
     
