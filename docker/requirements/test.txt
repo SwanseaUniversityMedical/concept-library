@@ -1,4 +1,7 @@
+# Include the base.txt requirements file
 -r base.txt
+
+# Test requirements
 selenium==4.15.0
 pytest-django==4.9.0
 pytest-html==4.1.1

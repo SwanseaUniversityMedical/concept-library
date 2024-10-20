@@ -1,10 +1,13 @@
 FROM python:3.10-slim-bullseye
 
 ARG server_name
+ARG dependency_target
 
-ENV SERVER_NAME $server_name
-ENV PYTHONUNBUFFERED 1
+ENV SERVER_NAME=$server_name
+ENV DEPENDENCY_TARGET=$dependency_target
+
 ENV LC_ALL=C.UTF-8
+ENV PYTHONUNBUFFERED=1
 
 # Update package tool
 RUN apt-get update -y -q \
@@ -37,29 +40,28 @@ RUN ["chmod", "750", "/home/config_cll/cll_srvr_logs"]
 # Set main workdir
 WORKDIR /var/www
 
-# Copy project
+# Copy & Install requirements
 RUN mkdir -p /var/www/concept_lib_sites/v1
-COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
-COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
+COPY ./requirements /var/www/concept_lib_sites/v1/requirements
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
 # Install pip, create venv & upgrade pip then install deps
 RUN apt-get install -y -q python3-pip \
   && pip install --upgrade pip
 
-RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
+RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/$DEPENDENCY_TARGET
 
 # Utility scripts
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 
-COPY ./docker/development/scripts/wait-for-it.sh /bin/wait-for-it.sh
+COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
 
 # Deploy scripts
-COPY ./docker/production/scripts/init-app.sh /home/config_cll/init-app.sh
-COPY ./docker/production/scripts/worker-start.sh /home/config_cll/worker-start.sh
-COPY ./docker/production/scripts/beat-start.sh /home/config_cll/beat-start.sh
+COPY ./production/scripts/init-app.sh /home/config_cll/init-app.sh
+COPY ./production/scripts/worker-start.sh /home/config_cll/worker-start.sh
+COPY ./production/scripts/beat-start.sh /home/config_cll/beat-start.sh
 
 RUN ["chmod" , "+x" , "/home/config_cll/worker-start.sh"]
 RUN ["dos2unix", "/home/config_cll/worker-start.sh"]
@@ -78,7 +80,7 @@ RUN echo $(printf 'ServerName %s' "$SERVER_NAME") >> /etc/apache2/apache2.conf
 RUN mod_wsgi-express module-config >> /etc/apache2/apache2.conf
 
 # Enable site
-ADD ./docker/production/cll.conf /etc/apache2/sites-available/cll.conf
+ADD ./production/apache/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN \
   a2dissite \

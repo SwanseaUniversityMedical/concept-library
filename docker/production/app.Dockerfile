@@ -4,12 +4,12 @@ ARG http_proxy
 ARG https_proxy
 ARG server_name
 
-ENV HTTP_PROXY $http_proxy
-ENV HTTPS_PROXY $https_proxy
-ENV SERVER_NAME $server_name
+ENV HTTP_PROXY=$http_proxy
+ENV HTTPS_PROXY=$https_proxy
+ENV SERVER_NAME=$server_name
 
-ENV PYTHONUNBUFFERED 1
 ENV LC_ALL=C.UTF-8
+ENV PYTHONUNBUFFERED=1
 
 # Update package tool
 RUN apt-get update -y -q \
@@ -87,7 +87,7 @@ RUN ["dos2unix", "/home/config_cll/init-app.sh"]
 RUN mod_wsgi-express module-config >> /etc/apache2/apache2.conf
 
 # Enable site
-ADD ./docker/production/cll.conf /etc/apache2/sites-available/cll.conf
+ADD ./docker/production/apache/cll.conf /etc/apache2/sites-available/cll.conf
 
 RUN \
   a2dissite \

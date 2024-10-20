@@ -1,10 +1,9 @@
-version: '3'
-
 services:
   app:
     platform: linux/amd64
     image: cll/app
-    restart: on-failure
+    restart: unless-stopped
+    env_file: ./env_vars.txt
     command: >
       sh -c "/home/config_cll/init-app.sh"
     ports:
@@ -12,49 +11,73 @@ services:
     expose:
       - 80
       - 443
-    env_file:
-      - ./env_vars.txt
+    networks:
+      - backend
     volumes:
-      - ./cl_log/:/home/config_cll/cll_srvr_logs/
+      - type: volume
+        source: app-logs
+        target: /home/config_cll/cll_srvr_logs
     depends_on:
-      - redis
+      redis:
+        condition: service_started
 
   redis:
     image: redis:7.0-bullseye
     container_name: redis
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - 6379:6379
     expose:
       - 6379
     networks:
-      default:
-        aliases:
-          - redis
+      - backend
 
-  celery_worker:
+  celery-worker:
     image: cll/celery_worker
-    restart: on-failure
+    restart: unless-stopped
+    env_file: ./env_vars.txt
     command: >
       sh -c "/home/config_cll/worker-start.sh"
-    env_file:
-      - ./env_vars.txt
+    networks:
+      - backend
     profiles:
       - live
     depends_on:
-      - app
-      - redis
+      app:
+        condition: service_started
+      redis:
+        condition: service_started
 
-  celery_beat:
+  celery-beat:
     image: cll/celery_beat
-    restart: on-failure
+    restart: unless-stopped
+    env_file: ./env_vars.txt
     command: >
       sh -c "/home/config_cll/beat-start.sh"
-    env_file:
-      - ./env_vars.txt
+    networks:
+      - backend
     profiles:
       - live
     depends_on:
-      - app
-      - redis
-      - celery_worker
+      app:
+        condition: service_started
+      redis:
+        condition: service_started
+      celery-worker:
+        condition: service_started
+
+networks:
+  backend:
+    name: cllnet
+    driver: bridge
+    attachable: true
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
+
+volumes:
+  app-logs:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./cl_log
+      o: bind

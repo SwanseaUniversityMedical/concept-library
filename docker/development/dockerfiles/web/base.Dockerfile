@@ -1,7 +1,11 @@
 FROM python:3.10-slim-bullseye
 
-ENV PYTHONUNBUFFERED 1
+ARG dependency_target
+
+ENV DEPENDENCY_TARGET=$dependency_target
+
 ENV LC_ALL=C.UTF-8
+ENV PYTHONUNBUFFERED=1
 
 # Install and update packages
 RUN apt-get update -y -q && \
@@ -35,8 +39,7 @@ COPY ./requirements /var/www/concept_lib_sites/v1/requirements
 RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
 
 # Install requirements
-RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/local.txt
-
+RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/$DEPENDENCY_TARGET
 
 # Deploy scripts
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
