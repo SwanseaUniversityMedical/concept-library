@@ -2,7 +2,7 @@ services:
   app:
     platform: linux/amd64
     image: cll/app
-    restart: unless-stopped
+    restart: always
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     env_file: ./env_vars.txt
     command: >
@@ -31,7 +31,7 @@ services:
   redis:
     image: redis:7.0-bullseye
     container_name: redis
-    restart: unless-stopped
+    restart: always
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     ports:
       - 6379:6379
@@ -50,7 +50,7 @@ services:
 
   celery-worker:
     image: cll/celery_worker
-    restart: unless-stopped
+    restart: always
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     env_file: ./env_vars.txt
     command: >
@@ -67,7 +67,7 @@ services:
 
   celery-beat:
     image: cll/celery_beat
-    restart: unless-stopped
+    restart: always
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     env_file: ./env_vars.txt
     command: >
