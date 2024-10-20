@@ -3,15 +3,23 @@
 @import '../_media';
 @import '../_utils';
 
+// cookie-container
+//  @desc clip cookie container within page bounds
+.cookie-container {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 // Cookiealert
 //  @desc defines the cookie alert banner present on the bottom-left of the page
 .cookiealert {
   display: none;
-  position: sticky;
-  position: -webkit-sticky;
+  position: fixed;
   bottom: 2rem;
   left: 1rem;
-  width: 100%;
+  width: calc(100% - 22px);
   max-width: 530px;
   height: fit-content;
   box-sizing: border-box;
@@ -29,6 +37,7 @@
   &.show {
     display: block;
     opacity: 1;
+    bottom: 2rem;
     visibility: visible;
     transform: translateY(0%);
     transition-property: opacity, transform;
@@ -101,10 +110,10 @@
 }
 
 .cookie_card {
-  position: sticky;
-  position: -webkit-sticky;
+  position: fixed;
   bottom: 2rem;
   left: 1rem;
+  width: fit-content;
   background: var(--color-accent-bright);
   border-radius: 1em;
   box-sizing: border-box;
@@ -117,6 +126,7 @@
 
   &.show {
     opacity: 0.5;
+    bottom: 2rem;
     visibility: visible;
     transform: translateY(0%);
     transition: all 300ms ease-out;

@@ -246,24 +246,7 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
         return default
 
     if field_type == 'concept':
-        values = []
-        for item in data:
-            value = concept_utils.get_clinical_concept_data(
-                    item['concept_id'],
-                    item['concept_version_id'],
-                    remove_userdata=True,
-                    hide_user_details=True,
-                    include_component_codes=False,
-                    include_attributes=True,
-                    requested_entity_id=entity.id,
-                    include_reviewed_codes=True,
-                    derive_access_from=request
-            )
-
-            if value:
-                values.append(value)
-
-        return values
+        return concept_utils.get_concept_headers(data)
     elif field_type == 'int_array':
         source_info = validation.get('source')
         tree_models = source_info.get('trees') if isinstance(source_info, dict) else None

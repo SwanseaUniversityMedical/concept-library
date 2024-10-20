@@ -52,7 +52,12 @@
 <div class="detailed-input-group fill constrained" id="accordion">
   {% if component.value|length %}
     {% for c in component.value %}
-      <div class="fill-accordion" id="concept-accordion-{{ c.concept_id }}" data-id="{{ c.concept_id }}" data-history-id="{{ c.concept_version_id }}">
+      <div id="concept-accordion-{{ c.concept_id }}"
+           class="fill-accordion"
+           data-class="codelist-accordion"
+           data-id="{{ c.concept_id }}"
+           data-history-id="{{ c.concept_version_id }}"
+           data-entity-id="{{ entity.id }}">
         <input class="fill-accordion__input" id="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
           name="concept-{{ c.concept_id }}-{{ c.concept_version_id }}" type="checkbox" />
         <label class="fill-accordion__label"
@@ -60,29 +65,16 @@
             for="concept-{{ c.concept_id }}-{{ c.concept_version_id }}"
             role="button"
             tabindex="0"
-            aria-label="Toggle Accordion: {{ c.details.name }} ({{ c.coding_system.name }})"
-            title="{{ c.details.name }} ({{ c.coding_system.name }})">
-          <span aria-label="{{ c.details.name }} ({{ c.coding_system.name }})" class="fill-accordion__wrap-label">
-            {% if c.details.phenotype_owner == c.details.requested_entity_id %}
-              {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}
-            {% else %}
-              {% if c.details.phenotype_owner and c.details.phenotype_owner_history_id %}
-                <a href="{% url 'entity_history_detail' pk=c.details.phenotype_owner history_id=c.details.phenotype_owner_history_id %}"
-                  title="Visit Linked Phenotype: {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}">
-                  {{c.details.phenotype_owner}} / {{c.details.phenotype_owner_history_id}} / C{{ c.concept_id }}
-                </a>
-              {% elif c.details.phenotype_owner %}
-                <a href="{% url 'entity_detail' pk=c.details.phenotype_owner %}"
-                  title="Visit Linked Phenotype: {{c.details.phenotype_owner}} / C{{ c.concept_id }}">
-                  {{c.details.phenotype_owner}} / C{{ c.concept_id }}
-                </a>
-              {% else %}
-                C{{ c.concept_id }}
-              {% endif %}
-            {% endif %}
+            aria-label="Toggle Accordion: {{ c.name }} ({{ c.coding_system_name }})"
+            title="{{ c.name }} ({{ c.coding_system_name }})">
+          <span aria-label="{{ c.name }} ({{ c.coding_system_name }})" class="fill-accordion__wrap-label">
+            <a href="{% url 'entity_detail' pk=c.phenotype_owner_id %}"
+                  title="Visit Linked Phenotype: {{c.phenotype_owner_id}} / C{{ c.concept_id }}">
+              {{c.phenotype_owner_id}} / C{{ c.concept_id }}
+            </a>
 
-            &nbsp;-&nbsp;{{ c.details.name }}
-            &nbsp;|&nbsp;<em>{{ c.coding_system.name }}</em>
+            &nbsp;-&nbsp;{{ c.name }}
+            &nbsp;|&nbsp;<em>{{ c.coding_system_name }}</em>
 
             <span id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
                   class="hide"
@@ -95,14 +87,13 @@
         <article class="fill-accordion__container codelist-extents">
           <section class="concept-group-content__container show" id="concept-information">
             <section class="concept-group-content__details">
-              {% if c.details.is_published %}
-                <h4 aria-label="Published with {{ c.codelist|length }} Codes">
+              {% if c.is_published %}
+                <h4 aria-label="Published">
                   PUBLISHED
                 </h4>
               {% else %}
-                <h4 aria-label="Unpublished with {{ c.codelist|length }} Codes">
+                <h4 aria-label="Unpublished">
                   UNPUBLISHED
-                  &nbsp;-&nbsp; {{ c.codelist|length }} Codes
                 </h4>
               {% endif %}
               <ul class="chips-group" id="concept-chips">
@@ -112,7 +103,7 @@
                   <a id="update-latest-version" class="chip-text" aria-label="Legacy version" target="_blank">LEGACY VERSION</a>
                 </li>
                 <li class="chip bold washed-accent text-accent-darkest codelist-icon icon-accent-highlight" disabled>
-                  <a id="coding-system-info" class="chip-text" target="_blank">{{ c.coding_system.name }}</a>
+                  <a id="coding-system-info" class="chip-text" target="_blank">{{ c.coding_system_name }}</a>
                 </li>
               </ul>
             </section>
@@ -131,31 +122,66 @@
   {% endif %}
 </div>
 
-{% if component.value %}
-  {% to_json_script component.value id="codelist-data" name="codelist" desc-type="text/json" %}
-{% endif %}
-
 {% compress js inline %}
 <script type="text/javascript">
-  domReady.finally(() => {
-    const codelist = document.querySelector('script[type="application/json"][name="codelist"]');
-    if (isNullOrUndefined(codelist)) {
-      return;
-    }
+  const queue = { };
 
-    try {
-      const conceptData = JSON.parse(codelist.innerText.trim());
-      applyCodelistsFromConcepts(
-        conceptData,
-        {
-          codelistContainerId: '#concept-codelist-${concept_id}_${concept_version_id}',
-          showAttributes: true,
-          perPageSelect: [ 10, 50, 100, [ 'All', -1 ] ],
-        }
-      );
+  const hydrateConceptCodelist = (entityId, conceptId, conceptVersionId) => {
+    const target = `${conceptId}/${conceptVersionId}`;
+    const queued = queue?.[target] || -1;
+
+    switch (queued) {
+      case 1:
+      case 2:
+        return;
+
+      default:
+        queue[target] = 1;
+
+        fetch(
+          `/api/v1/concepts/C${conceptId}/version/${conceptVersionId}/export/component-data?requested_entity=${entityId}`,
+          { method: 'GET' }
+        )
+          .then(response => response.json())
+          .then(conceptData => {
+            applyCodelistsFromConcepts(
+              conceptData,
+              {
+                codelistContainerId: '#concept-codelist-${concept_id}_${concept_version_id}',
+                showAttributes: true,
+                perPageSelect: [ 10, 50, 100, [ 'All', -1 ] ],
+              }
+            );
+          })
+          .then(() => {
+            queue[target] = 2;
+          })
+          .catch(() => {
+            queue[target] = 0;
+          });
+        break;
     }
-    catch (e) {
-      console.error(`Failed to parse concept codelist with err: ${e}`);
+  }
+
+  domReady.finally(() => {
+    const codelistAccordions = document.querySelectorAll('div[data-class="codelist-accordion"]');
+    for (let i = 0; i < codelistAccordions.length; ++i) {
+      const codelistAccordion = codelistAccordions[i];
+      const codelistInput = codelistAccordion.querySelector('input.fill-accordion__input');
+
+      const entityId = codelistAccordion.getAttribute('data-entity-id'),
+            conceptId = parseInt(codelistAccordion.getAttribute('data-id')),
+            conceptVersionId = parseInt(codelistAccordion.getAttribute('data-history-id'));
+
+      if (codelistInput.checked) {
+        hydrateConceptCodelist(entityId, conceptId, conceptVersionId);
+      }
+
+      codelistInput.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          hydrateConceptCodelist(entityId, conceptId, conceptVersionId);
+        }
+      });
     }
   });
 </script>
