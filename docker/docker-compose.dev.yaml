@@ -7,6 +7,8 @@ x-app: &app-base
   build: &app-build
     context: .
     dockerfile: ./development/dockerfiles/web/base.Dockerfile
+  restart: unless-stopped
+  stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
   tty: true
   stdin_open: true
   ports:
@@ -15,11 +17,19 @@ x-app: &app-base
     - 8000
   networks:
     - backend
+  extra_hosts:
+    - host.docker.internal:host-gateway
   volumes:
     - &app-data-volume
       type: volume
       source: app-data
       target: /var/www/concept_lib_sites/v1/CodeListLibrary_project
+  healthcheck: &app-healtcheck
+    test: ${CLL_WEB_DEV_HEALTHCHECK:-curl -f host.docker.internal:8000/api/v1/health}
+    interval: 60s
+    timeout: 5s
+    start_period: 5s
+    retries: 3
   depends_on: &app-dependencies
     postgres:
       condition: service_healthy
@@ -81,10 +91,13 @@ services:
       - type: volume
         source: app-logs
         target: /home/config_cll/cll_srvr_logs
+    healthcheck:
+      <<: *app-healtcheck
+      test: ${CLL_WEB_LIVE_HEALTHCHECK:-curl -f host.docker.internal:8005/api/v1/health}
     depends_on:
       <<: *app-dependencies
       redis:
-        condition: service_started
+        condition: service_healthy
       mailhog:
         condition: service_started
 
@@ -94,6 +107,7 @@ services:
       context: .
       dockerfile: ./development/dockerfiles/postgres.Dockerfile
     restart: unless-stopped
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     env_file: ./development/env/postgres.compose.env
     ports:
       - 5432:5432
@@ -120,7 +134,6 @@ services:
   # Profile<`live`> dependencies
   mailhog:
     image: mailhog/mailhog:v1.0.1
-    restart: unless-stopped
     ports:
       - 1025:1025
       - 8025:8025
@@ -136,14 +149,21 @@ services:
     image: redis:7.0-bullseye
     container_name: redis
     restart: unless-stopped
-    ports:
-      - 6379:6379
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     expose:
       - 6379
     networks:
       - backend
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     profiles:
       - live
+    healthcheck:
+      test: redis-cli ping | grep PONG
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   celery-worker:
     extends:
@@ -154,9 +174,10 @@ services:
     expose: !reset []
     profiles: !override
       - 'live'
+    healthcheck: !reset {}
     depends_on: !override
       web-live:
-        condition: service_started
+        condition: service_healthy
 
   celery-beat:
     extends:
@@ -167,16 +188,16 @@ services:
     expose: !reset []
     profiles: !override
       - 'live'
+    healthcheck: !reset {}
     depends_on: !override
       web-live:
-        condition: service_started
+        condition: service_healthy
       celery-worker:
         condition: service_started
 
   # Profile<`test`> dependencies
   selenium-hub:
     image: selenium/hub:latest
-    restart: unless-stopped
     ports:
       - 4442:4442
       - 4443:4443
@@ -187,7 +208,7 @@ services:
       - backend
     profiles:
       - test
-  
+
   selenium-chrome:
     image: selenium/node-chrome:latest
     environment:
@@ -205,7 +226,7 @@ services:
     depends_on:
       selenium-hub:
         condition: service_started
-  
+
   selenium-edge:
     image: selenium/node-edge
     environment:

@@ -8,9 +8,8 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from .views import (
-  Concept, GenericEntity,
-  Template, DataSource,
-  Tag, Collection, Ontology
+  Concept, GenericEntity, Template, DataSource,
+  Tag, Collection, Ontology, Healthcheck
 )
 
 """ Router
@@ -173,6 +172,13 @@ urlpatterns += [
     url(r'^ontology/node/(?P<node_id>\d+)/$',
         Ontology.get_ontology_node,
         name='ontology_node_by_id'),
+]
+
+""" Healthcheck urls """
+urlpatterns += [
+    url(r'^health/$',
+        Healthcheck.HealthcheckReport.as_view(),
+        name='app_health'),
 ]
 
 """ Create/Update urls """

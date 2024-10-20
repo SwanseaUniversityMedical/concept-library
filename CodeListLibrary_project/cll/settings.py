@@ -588,7 +588,7 @@ COMPRESS_URL = STATIC_URL
 COMPRESS_ROOT = STATIC_ROOT
 
 if not DEBUG:
-    # COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
+    COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
     COMPRESS_PRECOMPILERS = (
         ('module', 'esbuild {infile} --bundle --outfile={outfile}'),
     )
@@ -617,6 +617,9 @@ GOOGLE_RECAPTCHA_SECRET_KEY = get_env_value('GOOGLE_RECAPTCHA_SECRET_KEY')
 EMAIL_HOST_PASSWORD = get_env_value('EMAIL_HOST_PASSWORD')
 EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
 HELPDESK_EMAIL = get_env_value('HELPDESK_EMAIL')
+
+## Redis settings
+REDIS_BROKER_URL = 'redis://redis:6379/0'
 
 ## Celery settings
 CELERY_BROKER_URL = 'redis://redis:6379/0'
