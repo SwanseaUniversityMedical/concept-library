@@ -1,60 +1,65 @@
-version: '3'
-
 services:
   app:
     platform: linux/amd64
     image: cll/app
-    restart: on-failure
+    restart: always
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    env_file: ./env_vars.txt
     command: >
-      sh -c "/home/config_cll/init-app.sh"
+      sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
     ports:
-      - ${app_port}:80
+      - ${app_port:-8080}:80
     expose:
       - 80
       - 443
-    env_file:
-      - ./env_vars.txt
+    networks:
+      - backend
     volumes:
-      - ./cl_log/:/home/config_cll/cll_srvr_logs/
+      - type: volume
+        source: app-logs
+        target: /home/config_cll/cll_srvr_logs
+    healthcheck: &app-healthcheck
+      test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
+      interval: 60s
+      timeout: 5s
+      start_period: 5s
+      retries: 5
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
 
   redis:
     image: redis:7.0-bullseye
     container_name: redis
-    restart: on-failure
+    restart: always
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     ports:
       - 6379:6379
     expose:
       - 6379
     networks:
-      default:
-        aliases:
-          - redis
+      - backend
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+    healthcheck:
+      test: redis-cli ping | grep PONG
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  celery_worker:
-    image: cll/celery_worker
-    restart: on-failure
-    command: >
-      sh -c "/home/config_cll/worker-start.sh"
-    env_file:
-      - ./env_vars.txt
-    profiles:
-      - live
-    depends_on:
-      - app
-      - redis
+networks:
+  backend:
+    name: dev-cllnet
+    driver: bridge
+    attachable: true
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
 
-  celery_beat:
-    image: cll/celery_beat
-    restart: on-failure
-    command: >
-      sh -c "/home/config_cll/beat-start.sh"
-    env_file:
-      - ./env_vars.txt
-    profiles:
-      - live
-    depends_on:
-      - app
-      - redis
-      - celery_worker
+volumes:
+  app-logs:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./cl_log
+      o: bind

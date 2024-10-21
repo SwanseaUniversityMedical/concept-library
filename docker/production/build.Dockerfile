@@ -4,20 +4,23 @@ ARG http_proxy
 ARG https_proxy
 ARG server_name
 
-ENV HTTP_PROXY $http_proxy
-ENV HTTPS_PROXY $https_proxy
-ENV SERVER_NAME $server_name
+ENV HTTP_PROXY=$http_proxy
+ENV HTTPS_PROXY=$https_proxy
+ENV SERVER_NAME=$server_name
 
-ENV PYTHONUNBUFFERED 1
 ENV LC_ALL=C.UTF-8
+ENV PYTHONUNBUFFERED=1
 
 # Update package tool
 RUN apt-get update -y -q \
   && apt-get upgrade -y -q \
   && apt-get install -y -q --no-install-recommends apt-utils
 
-# Install apache
+# Install apache & deps
 RUN apt-get install -y -q ssh apache2 apache2-dev
+
+# Install supervisor
+RUN apt-get install -y -q supervisor
 
 # Install misc deps
 RUN apt-get install -y -q wget sudo nano dos2unix curl ca-certificates
@@ -42,11 +45,11 @@ RUN ["chmod", "750", "/home/config_cll/cll_srvr_logs"]
 # Set main workdir
 WORKDIR /var/www
 
-# Copy project
+# Copy & install requirements
 RUN mkdir -p /var/www/concept_lib_sites/v1
 COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
-RUN ["chown", "-R" , "www-data:www-data", "/var/www/concept_lib_sites/"]
+RUN ["chown" , "-R" , "www-data:www-data",  "/var/www/concept_lib_sites/"]
 
 # Install pip, create venv & upgrade pip then install deps
 RUN apt-get install -y -q python3-pip \
@@ -54,26 +57,36 @@ RUN apt-get install -y -q python3-pip \
 
 RUN pip --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
-# Utility scripts
+# User perms
+RUN ["chown" , "-R" , "www-data:www-data" , "/bin/"]
 RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
+RUN ["chown" , "-R" , "www-data:www-data" , "/home/config_cll/"]
+RUN ["chown" , "-R" , "www-data:www-data" , "/home/config_cll/cll_srvr_logs"]
 
+# Utility scripts
 COPY ./docker/development/scripts/wait-for-it.sh /bin/wait-for-it.sh
-RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]
+RUN ["chmod", "a+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
+
+COPY ./docker/production/scripts/healthcheck.sh /bin/healthcheck.sh
+RUN ["chmod", "a+x", "/bin/healthcheck.sh"]
+RUN ["dos2unix", "/bin/healthcheck.sh"]
 
 # Deploy scripts
 COPY ./docker/production/scripts/init-app.sh /home/config_cll/init-app.sh
 COPY ./docker/production/scripts/worker-start.sh /home/config_cll/worker-start.sh
 COPY ./docker/production/scripts/beat-start.sh /home/config_cll/beat-start.sh
 
-RUN ["chmod" , "+x" , "/home/config_cll/worker-start.sh"]
+RUN ["chmod" , "a+x" , "/home/config_cll/worker-start.sh"]
 RUN ["dos2unix", "/home/config_cll/worker-start.sh"]
 
-RUN ["chmod" , "+x" , "/home/config_cll/beat-start.sh"]
+RUN ["chmod" , "a+x" , "/home/config_cll/beat-start.sh"]
 RUN ["dos2unix", "/home/config_cll/beat-start.sh"]
 
-RUN ["chmod", "a+x", "/home/config_cll/init-app.sh"]
+RUN ["chmod", "+x", "/home/config_cll/init-app.sh"]
 RUN ["dos2unix", "/home/config_cll/init-app.sh"]
+
+RUN ["chmod", "750", "/home/config_cll"]
 
 # Config apache
 RUN echo $(printf 'export SERVER_NAME=%s' "$SERVER_NAME") >> /etc/apache2/envvars
@@ -83,7 +96,7 @@ RUN echo $(printf 'ServerName %s' "$SERVER_NAME") >> /etc/apache2/apache2.conf
 RUN mod_wsgi-express module-config >> /etc/apache2/apache2.conf
 
 # Enable site
-ADD ./docker/production/cll.conf /etc/apache2/sites-available/cll.conf
+ADD ./docker/production/config/cll.apache.conf /etc/apache2/sites-available/cll.conf
 
 RUN \
   a2dissite \
@@ -95,3 +108,9 @@ RUN \
     expires && \
   a2ensite \
     cll.conf
+
+# Set up supervisord
+ADD ./docker/production/config/cll.supervisord.conf /etc/supervisord.conf
+
+# Set workdir to app
+WORKDIR /var/www/concept_lib_sites/v1/CodeListLibrary_project

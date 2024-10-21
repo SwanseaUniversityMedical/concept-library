@@ -41,7 +41,7 @@
           </button>
         </form>
       </div>
-      <img class="homepage-hero__image" draggable="false" />
+      <img loading="lazy" class="homepage-hero__image" draggable="false" />
     </section>
   </div>
 </header>
@@ -147,7 +147,7 @@
           <div class="homepage-about__brand">
             <div class="homepage-about__brand-item">
               <div class="homepage-about__brand-icon">
-                <img src="{% static 'img/brands/'|add:obj.name|add:'/apple-touch-icon.png' %}" />
+                <img loading="lazy" src="{% static 'img/brands/'|add:obj.name|add:'/apple-touch-icon.png' %}" />
               </div>
               <div class="homepage-about__brand-details">
                 <h4>
@@ -209,7 +209,7 @@
       </header>
       <div class="homepage-features__container">
         <div class="homepage-features__image show" id="fade-item">
-          <img draggable="false"/>
+          <img loading="lazy" draggable="false"/>
         </div>
         
         <div class="homepage-features__list">

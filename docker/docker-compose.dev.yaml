@@ -1,38 +1,312 @@
-version: '3'
+name: cll
 
+# Anchors
+x-app: &app-base
+  platform: linux/amd64
+  image: cll/app
+  build: &app-build
+    context: .
+    dockerfile: ./development/dockerfiles/web/base.Dockerfile
+  restart: unless-stopped
+  stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+  tty: true
+  stdin_open: true
+  ports:
+    - 8000:8000
+  expose:
+    - 8000
+  networks:
+    - backend
+  extra_hosts:
+    - host.docker.internal:host-gateway
+  volumes:
+    - &app-data-volume
+      type: volume
+      source: app-data
+      target: /var/www/concept_lib_sites/v1/CodeListLibrary_project
+  healthcheck: &app-healthcheck
+    test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
+    interval: 60s
+    timeout: 5s
+    start_period: 5s
+    retries: 3
+  depends_on: &app-dependencies
+    postgres:
+      condition: service_healthy
+
+x-args:
+  dev-args: &app-dev-args
+    dependency_target: dev.txt
+  test-args: &app-test-args
+    dependency_target: test.txt
+  live-args: &app-live-args
+    server_name: localhost
+    dependency_target: production.txt
+
+x-commands:
+  app-py-start: &app-py-cmd >
+    sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py makemigrations
+    && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py migrate
+    && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
+  app-daemon-start: &app-supervisord-cmd >
+    sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
+
+
+# Containers
 services:
+  # Web application service profiles
+  web-dev:
+    <<: *app-base
+    profiles: ['dev']
+    build:
+      <<: *app-build
+      args: *app-dev-args
+    command: *app-py-cmd
+    env_file: ./development/env/web/dev.compose.env
+
+  web-test:
+    <<: *app-base
+    profiles: ['test']
+    build:
+      <<: *app-build
+      args: *app-test-args
+    command: *app-py-cmd
+    env_file: ./development/env/web/test.compose.env
+
+  web-live:
+    <<: *app-base
+    profiles: ['live']
+    build:
+      <<: *app-build
+      dockerfile: ./development/dockerfiles/web/live.Dockerfile
+      args: *app-live-args
+    command: *app-supervisord-cmd
+    env_file: ./development/env/web/live.compose.env
+    ports:
+      - 8005:80
+    expose:
+      - 80
+    volumes:
+      - *app-data-volume
+      - type: volume
+        source: app-logs
+        target: /home/config_cll/cll_srvr_logs
+    depends_on:
+      <<: *app-dependencies
+      redis:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+  # Postgres service
   postgres:
     build:
       context: .
-      dockerfile: ./development/postgres.Dockerfile
-    restart: always
+      dockerfile: ./development/dockerfiles/postgres.Dockerfile
+    restart: unless-stopped
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    env_file: ./development/env/postgres.compose.env
     ports:
       - 5432:5432
+    networks:
+      - backend
     volumes:
-      - ./development/db/:/docker-entrypoint-initdb.d/db/
-    env_file:
-      - ./development/env/postgres.compose.env
+      - type: volume
+        source: db-data
+        target: /docker-entrypoint-initdb.d/db
+    profiles:
+      - dev
+      - live
+      - test
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
+        "&& /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep .",
+      ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  app:
-    platform: linux/amd64
-    build:
-      context: .
-      dockerfile: ./development/app.Dockerfile
-    command: >
-      sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py makemigrations
-      && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py migrate
-      && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - ../CodeListLibrary_project:/var/www/concept_lib_sites/v1/CodeListLibrary_project/
+  # Profile<`live`> dependencies
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
     ports:
-      - 8000:8000
+      - 1025:1025
+      - 8025:8025
     expose:
-      - 8000
-    links:
-      - postgres:postgres
-    tty: true
-    stdin_open: true
-    env_file:
-      - ./development/env/app.compose.env
+      - 1025
+      - 8025
+    networks:
+      - backend
+    profiles:
+      - live
+
+  redis:
+    image: redis:7.0-bullseye
+    container_name: redis
+    restart: unless-stopped
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    expose:
+      - 6379
+    networks:
+      - backend
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    profiles:
+      - live
+    healthcheck:
+      test: redis-cli ping | grep PONG
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # celery-worker:
+  #   extends:
+  #     service: web-live
+  #   command: >
+  #     sh -c "/home/config_cll/worker-start.sh"
+  #   ports: !reset []
+  #   expose: !reset []
+  #   profiles: !override
+  #     - 'live'
+  #   healthcheck: !reset {}
+  #   depends_on: !override
+  #     web-live:
+  #       condition: service_healthy
+
+  # celery-beat:
+  #   extends:
+  #     service: web-live
+  #   command: >
+  #     sh -c "/home/config_cll/beat-start.sh"
+  #   ports: !reset []
+  #   expose: !reset []
+  #   profiles: !override
+  #     - 'live'
+  #   healthcheck: !reset {}
+  #   depends_on: !override
+  #     web-live:
+  #       condition: service_healthy
+  #     celery-worker:
+  #       condition: service_started
+
+  # Profile<`test`> dependencies
+  selenium-hub:
+    image: selenium/hub:latest
+    ports:
+      - 4442:4442
+      - 4443:4443
+      - 4444:4444
+    expose:
+      - 4444
+    networks:
+      - backend
+    profiles:
+      - test
+
+  selenium-chrome:
+    image: selenium/node-chrome:latest
+    environment:
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_NODE_OVERRIDE_MAX_SESSIONS: true
+      SE_NODE_MAX_SESSIONS: 6
+    ports:
+      - 5900:5900
+    networks:
+      - backend
+    profiles:
+      - test
     depends_on:
-      - postgres
+      selenium-hub:
+        condition: service_started
+
+  selenium-edge:
+    image: selenium/node-edge
+    environment:
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_NODE_OVERRIDE_MAX_SESSIONS: true
+      SE_NODE_MAX_SESSIONS: 6
+    ports:
+      - 5901:5901
+    networks:
+      - backend
+    profiles:
+      - test
+    depends_on:
+      selenium-hub:
+        condition: service_started
+
+  allure:
+    image: frankescobar/allure-docker-service
+    environment:
+      KEEP_HISTORY: 1
+      CHECK_RESULTS_EVERY_SECONDS: 1
+    ports:
+      - 5050:5050
+    expose:
+      - 5050
+    networks:
+      - backend
+    volumes:
+      - type: volume
+        source: allure-results
+        target: /app/allure-results
+      - type: volume
+        source: allure-reports
+        target: /app/allure-reports
+    profiles:
+      - test
+
+
+# Networking
+networks:
+  backend:
+    name: dev-cllnet
+    driver: bridge
+    attachable: true
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
+
+
+# Mounted volumes
+volumes:
+  app-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ../CodeListLibrary_project
+      o: bind
+
+  db-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./development/db
+      o: bind
+
+  app-logs:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./cl_log
+      o: bind
+
+  allure-results:
+    driver: local
+    driver_opts:
+      type: none
+      device: ../CodeListLibrary_project/clinicalcode/tests/allure-results
+      o: bind
+
+  allure-reports:
+    driver: local
+    driver_opts:
+      type: none
+      device: ../CodeListLibrary_project/clinicalcode/tests/allure-reports
+      o: bind

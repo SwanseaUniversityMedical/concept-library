@@ -1,4 +1,7 @@
+# Data generator output
 ./output
+
+# Data input
 *.txt
 *.json
 *.csv
