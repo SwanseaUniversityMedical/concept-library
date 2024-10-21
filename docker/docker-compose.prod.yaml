@@ -50,7 +50,7 @@ services:
 
 networks:
   backend:
-    name: dev-cllnet
+    name: cllnet
     driver: bridge
     attachable: true
     driver_opts:
