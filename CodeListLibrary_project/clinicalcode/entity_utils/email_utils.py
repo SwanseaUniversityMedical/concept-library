@@ -6,9 +6,12 @@ from django.contrib.staticfiles import finders
 from email.mime.image import MIMEImage
 
 import datetime
+import logging
 
 from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
+
+logger = logging.getLogger(__name__)
 
 def send_review_email_generic(request,data,message_from_reviewer=None):
     owner_email = User.objects.filter(id=data.get('entity_user_id','')) 
@@ -19,13 +22,13 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
     if len(owner_email.strip()) > 1:
         all_emails.append(owner_email)
 
-    email_subject = 'Concept Library - Phenotype %s has been %s' % (data['id'], data['message'])
+    email_subject = 'Concept Library - Phenotype %s: %s' % (data['id'], data['message'])
     email_content = render_to_string(
         'clinicalcode/email/email_content.html',
         data,
         request=request
     )
-    if not settings.IS_DEVELOPMENT_PC: 
+    if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE: 
         try:
             msg = EmailMultiAlternatives(email_subject,
                                         email_content,
@@ -36,16 +39,15 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
             msg.attach_alternative(email_content, "text/html")
             
             msg.attach(attach_image_to_email('img/email_images/apple-touch-icon.jpg','mainlogo'))
-            msg.attach(attach_image_to_email('img/email_images/combine.jpg','combined'))
+            msg.attach(attach_image_to_email('img/email_images/combine.jpg','sponsors'))
 
             msg.send()
             return True
         except BadHeaderError as error:
-            print(error)
+            logging.error(f'Failed to send emails to:\n- Targets: {all_emails}\n-Error: {str(error)}')
             return False
     else:
-        print(all_emails)
-        print(email_content) 
+        logging.info(f'Scheduled emails sent:\n- Targets: {all_emails}')
         return True
     
 def attach_image_to_email(image,cid):

@@ -246,30 +246,20 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
         return default
 
     if field_type == 'concept':
-        values = []
-        for item in data:
-            value = concept_utils.get_clinical_concept_data(
-                    item['concept_id'],
-                    item['concept_version_id'],
-                    remove_userdata=True,
-                    hide_user_details=True,
-                    include_component_codes=False,
-                    include_attributes=True,
-                    requested_entity_id=entity.id,
-                    include_reviewed_codes=True,
-                    derive_access_from=request
-            )
-
-            if value:
-                values.append(value)
-
-        return values
+        return concept_utils.get_concept_headers(data)
     elif field_type == 'int_array':
         source_info = validation.get('source')
         tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
-        if isinstance(tree_models, list):
-            return OntologyTag.get_detail_data(node_ids=data, default=default)
-
+        model_source = source_info.get('model')
+        if isinstance(tree_models, list) and isinstance(model_source, str):
+            try:
+                model = apps.get_model(app_label='clinicalcode', model_name=model_source)
+                output = model.get_detail_data(node_ids=data, default=default)
+                if isinstance(output, list):
+                    return output
+            except Exception as e:
+                # Logging
+                return default
     if info.get('field_type') == 'data_sources':
         return get_data_sources(data, info, default=default)
 

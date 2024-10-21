@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: dessant/issue-states@v2
         with:
-            github-token: ${{ github.token }}
-            open-issue-columns: ''
-            closed-issue-columns: 'Done / Deployed'
-            log-output: false
+          github-token: ${{ github.token }}
+          open-issue-columns: ''
+          closed-issue-columns: 'Done / Deployed'
+          log-output: false

@@ -380,8 +380,8 @@ class CreateEntityView(TemplateView):
         if concept_ids is None or concept_version_ids is None:
             raise BadRequest('Parameters are missing')
         
-        concept_ids = [gen_utils.parse_int(x) for x in concept_ids.split(',') if gen_utils.parse_int(x)]
-        concept_version_ids = [gen_utils.parse_int(x) for x in concept_version_ids.split(',') if gen_utils.parse_int(x)]
+        concept_ids = [gen_utils.parse_int(x) for x in concept_ids.split(',') if gen_utils.parse_int(x) is not None]
+        concept_version_ids = [gen_utils.parse_int(x) for x in concept_version_ids.split(',') if gen_utils.parse_int(x) is not None]
         if len(concept_ids) != len(concept_version_ids):
             raise BadRequest('Parameter mismatch')
         

@@ -51,6 +51,7 @@
       flex-direction: row;
 
       &__icon {
+        pointer-events: none;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -66,12 +67,14 @@
           width: 70%;
           object-position: center;
           border-radius: 50%;
+          pointer-events: none;
         }
       }
 
       &__text {
         @include prefix(transition, all 250ms ease-in, webkit moz o);
         flex-grow: 1;
+      pointer-events: none;
       }
 
       &__title {
@@ -80,6 +83,7 @@
         font-size: 14px;
         line-height: 14px;
         font-weight: 500;
+        pointer-events: none;
       }
 
       &__description {
@@ -425,15 +429,24 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     width: calc(100% - var(--navigation-gutter) - var(--navigation-gutter));
   }
 
+  &__logo-anchor {
+    max-width: calc(100% - 4rem);
+  }
+
   &__logo {
+    @include prefix(background-size, contain, webkit moz o);
+    width: 100%;
     height: var(--navigation-height);
-    aspect-ratio: 8 / 1;
+    aspect-ratio: 6 / 1;
     background-color: col(clear);
     background-image: var(--logo-url);
     background-repeat: no-repeat;
     background-size: contain;
+    background-position-y: 50%;
 
-    @include prefix(background-size, contain, webkit moz o);
+    @include media(">=tablet", "screen") {
+      aspect-ratio: 8 / 1;
+    }
   }
 
   @include media("<desktop", "screen") {

@@ -1,1 +1,4 @@
--r base.txt # includes the base.txt requirements file
+# Include the base.txt requirements file
+-r base.txt
+
+# Staging requirements

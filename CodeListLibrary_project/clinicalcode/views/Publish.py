@@ -9,10 +9,13 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timezone import make_aware
 from datetime import datetime
 
+import logging
 
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 from ..entity_utils import publish_utils, permission_utils, constants
+
+logger = logging.getLogger(__name__)
 
 class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityCheckMixin, TemplateResponseMixin, View):
     model = GenericEntity
@@ -108,7 +111,8 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                     self.moderator_publish(self.request,history_id,pk,checks,data)
 
         except Exception as e:
-            print(e)
+            logger.warning('Failed <Publish> POST request with error: %s' % (str(e),))
+
             data['form_is_valid'] = False
             data['message'] = render_to_string('clinicalcode/error.html',
                                                {},
@@ -236,21 +240,20 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         try:
             # (allowed to permit) AND (ws not published) AND (approval_status not in database) AND (user not moderator)
             if checks['allowed_to_publish'] and not is_published and checks['approval_status'] is None and not checks['is_moderator']:
-                    # start a transaction
-                    with transaction.atomic():
-                        entity = GenericEntity.objects.get(pk=pk)
-                        published_entity = PublishedGenericEntity(entity=entity, entity_history_id=history_id,
-                                                                    modified = make_aware(datetime.now()),
-                                                                    created_by_id=self.request.user.id,approval_status=constants.APPROVAL_STATUS.PENDING)
-                        published_entity.save()
-                        data['form_is_valid'] = True
-                        data['approval_status'] = constants.APPROVAL_STATUS.PENDING
-                        data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
-                        data = publish_utils.form_validation(self.request, data, history_id, pk, entity, checks)
-
-
+                # start a transaction
+                with transaction.atomic():
+                    entity = GenericEntity.objects.get(pk=pk)
+                    published_entity = PublishedGenericEntity(entity=entity, entity_history_id=history_id,
+                                                                modified = make_aware(datetime.now()),
+                                                                created_by_id=self.request.user.id,approval_status=constants.APPROVAL_STATUS.PENDING)
+                    published_entity.save()
+                    data['form_is_valid'] = True
+                    data['approval_status'] = constants.APPROVAL_STATUS.PENDING
+                    data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
+                    data = publish_utils.form_validation(self.request, data, history_id, pk, entity, checks)
         except Exception as e:
-            print(e)
+            logger.warning('Failed <PublishRequest> POST with error: %s' % (str(e),))
+
             data['form_is_valid'] = False
             data['message'] = render_to_string('clinicalcode/error.html',
                                                {},

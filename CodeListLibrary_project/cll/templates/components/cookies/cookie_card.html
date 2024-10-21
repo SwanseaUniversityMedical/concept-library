@@ -1,8 +1,8 @@
-{% load static %} 
-{% load i18n %} 
-{% load svg %} 
-{% load mathfilters %} 
-{% load cl_extras %} 
+{% load static %}
+{% load i18n %}
+{% load svg %}
+{% load compress %}
+{% load cl_extras %}
 
 {% block content %}
 <div class="cookie_card" title="Cookies Settings" role="alert">
@@ -16,7 +16,7 @@
   </div>
 </div>
 
-{% if not IS_DEMO %} 
+{% if not IS_DEMO and not IS_DEVELOPMENT_PC %} 
   {% if request.CURRENT_BRAND == 'HDRUK' %}
     <!-- for sub-directory = https://conceptlibrary.saildatabank.com/HDRUK/ -->
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -29,6 +29,7 @@
       src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"
     ></script>
 
+    {% compress js inline %}
     <script type="text/javascript">
       domReady.finally(() => {
         // Attach click event handler to #cookie_preference element
@@ -63,7 +64,9 @@
         });
       });
     </script>
+    {% endcompress %}
   {% else %}
+    {% compress js inline %}
     <script type="text/javascript">
       domReady.finally(() => {
         // Attach click event handler to #cookie_preference element
@@ -93,6 +96,7 @@
         });
       });
     </script>
+    {% endcompress %}
   {% endif %}
 {% endif %}
 {% endblock content %}

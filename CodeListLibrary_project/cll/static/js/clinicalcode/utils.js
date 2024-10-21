@@ -1,6 +1,14 @@
 /* CONSTANTS */
 const
   /**
+   * CLU_DOMAINS
+   * @desc Domain host targets
+   */
+  CLU_DOMAINS = {
+    ROOT: 'https://conceptlibrary.saildatabank.com',
+    HDRUK: 'https://phenotypes.healthdatagateway.org',
+  }
+  /**
    * CLU_TRANSITION_METHODS
    * @desc defines the transition methods associated
    *       with the animation of an element
@@ -373,11 +381,55 @@ const getBrandedHost = () => {
   const host = getCurrentHost();
   const brand = document.documentElement.getAttribute('data-brand');
   const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
-  if (host === 'https://phenotypes.healthdatagateway.org' || isUnbranded) {
+  if ((host === CLU_DOMAINS.HDRUK) || isUnbranded) {
     return host;
   }
 
   return `${host}/${brand}`;
+}
+
+/**
+ * getBrandUrlTarget
+ * @desc Returns the brand URL target for management redirect buttons (used in navigation menu)
+ * @param {string[]} brandTargets an array of strings containing the brand target names
+ * @param {boolean} productionTarget a boolean flag specifying whether this is a production target
+ * @param {Node} element the html event node
+ * @param {string} oldRoot the path root (excluding brand context)
+ * @param {string} path the window's location href
+ * @returns {string} the target URL
+ */
+const getBrandUrlTarget = (brandTargets, productionTarget, element, oldRoot, path) =>{
+  const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
+  const pathTarget = path.split('/').slice(pathIndex).join('/');
+
+  let elementTarget = element.getAttribute('value');
+  if (!isStringEmpty(elementTarget)) {
+    elementTarget = `${elementTarget}/${pathTarget}`;
+  } else {
+    elementTarget = pathTarget;
+  }
+
+  let targetLocation;
+  if (!productionTarget) {
+    targetLocation = `${document.location.origin}/${elementTarget}`;
+  } else {
+    switch (elementTarget) {
+      case '/HDRUK': {
+        targetLocation = `${CLU_DOMAINS.HDRUK}/${pathTarget}`;
+      } break;
+
+      default: {
+        const isHDRUKSubdomain = window.location.href
+          .toLowerCase()
+          .includes('phenotypes.healthdatagateway');
+
+        targetLocation = isHDRUKSubdomain ? CLU_DOMAINS.ROOT : document.location.origin;
+        targetLocation = `${targetLocation}/${elementTarget}`;
+      } break;
+    }
+  }
+
+  window.location.href = strictSanitiseString(targetLocation);
 }
 
 /**
@@ -459,7 +511,7 @@ const redirectToTarget = (elem) => {
     return;
   }
   
-  window.location.href = target;
+  window.location.href = strictSanitiseString(target);
 }
 
 /**
@@ -504,33 +556,6 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
   });
 
   input.click();
-}
-
-/**
- * interpolateString
- * @desc Interpolate string template
- *       Ref @ https://stackoverflow.com/posts/41015840/revisions
- * 
- * @param  {string} str The string to interpolate
- * @param  {object} params The parameters
- * @return {str} The interpolated string
- * 
- */
-const interpolateString = (str, params) => {
-  let names = Object.keys(params);
-  let values = Object.values(params);
-  return new Function(...names, `return \`${str}\`;`)(...values);
-}
-
-/**
- * parseHTMLFromString
- * @desc given a string of HTML, will return a parsed DOM
- * @param {str} str The string to parse as DOM elem
- * @returns {DOM} the parsed html
- */
-const parseHTMLFromString = (str) => {
-  const parser = new DOMParser();
-  return parser.parseFromString(str, 'text/html');
 }
 
 /**
@@ -810,17 +835,10 @@ const startLoadingSpinner = (container) => {
 const convertMarkdownData = (parent) => {
   let content = '';
   for (const child of parent.childNodes) {
-    const tagName = child.tagName;
-    if (tagName == 'BR' || (tagName == 'DIV' && !child.querySelector('br'))) {
-      content += '\n';
-    }
-
     if (child instanceof Text) {
       let textContent = child.textContent
       let isEmptyContent = isStringEmpty(textContent) || isStringWhitespace(textContent);
-      if (child.previousSibling && !isEmptyContent) {
-        textContent = '\n' + textContent;
-      } else if (isEmptyContent) {
+      if (isEmptyContent) {
         textContent = '\n';
       }
 

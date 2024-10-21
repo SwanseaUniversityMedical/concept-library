@@ -96,8 +96,14 @@ def get_template_creation_data(request, entity, layout, field, default=None):
     elif field_type == 'int_array':
         source_info = validation.get('source')
         tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
-        if isinstance(tree_models, list):
-            return OntologyTag.get_creation_data(node_ids=data, type_ids=tree_models, default=default)
+        model_source = source_info.get('model') if isinstance(source_info, dict) else None
+        if isinstance(tree_models, list) and isinstance(model_source, str) and len(model_source) > 0:
+            try:
+                model = apps.get_model(app_label='clinicalcode', model_name=model_source)
+                return model.get_creation_data(node_ids=data, type_ids=tree_models, default=default)
+            except Exception as e:
+                # Logging
+                return default
 
     if template_utils.is_metadata(entity, field):
         return template_utils.get_metadata_value_from_source(entity, field, default=default)
@@ -143,10 +149,11 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
             source_info = validation.get('source') or { }
             model_name = source_info.get('table')
             tree_models = source_info.get('trees')
+            model_source = source_info.get('model')
 
-            if isinstance(tree_models, list):
+            if isinstance(tree_models, list) and isinstance(model_source, str):
                 try:
-                    model = apps.get_model(app_label='clinicalcode', model_name='OntologyTag')
+                    model = apps.get_model(app_label='clinicalcode', model_name=model_source)
                     queryset = model.objects.filter(pk__in=data, type_id__in=tree_models)
                     queryset = list(queryset.values_list('id', flat=True))
 
@@ -384,11 +391,11 @@ def validate_concept_form(form, errors):
         return None
 
     if isinstance(concept_details, dict):
-        concept_name = gen_utils.try_value_as_type(concept_details.get('name'), 'string')
+        concept_name = gen_utils.try_value_as_type(concept_details.get('name'), 'string', { 'sanitise': 'strict' })
         if is_new_concept and concept_name is None:
             errors.append(f'Invalid concept with ID {concept_id} - name is non-nullable, string field.')
             return None
-        
+
         concept_coding = gen_utils.parse_int(concept_details.get('coding_system'), None)
         concept_coding = model_utils.try_get_instance(CodingSystem, pk=concept_coding)
         if is_new_concept and concept_coding is None:
@@ -397,7 +404,8 @@ def validate_concept_form(form, errors):
 
         attribute_headers = gen_utils.try_value_as_type(
             concept_details.get('code_attribute_header'),
-            'string_array'
+            'string_array',
+            { 'sanitise': 'strict' }
         )
 
     concept_components = form.get('components')
@@ -421,8 +429,8 @@ def validate_concept_form(form, errors):
         else:
             is_new_component = True
         
-        component_name = gen_utils.try_value_as_type(concept_component.get('name'), 'string')
-        if component_name is None:
+        component_name = gen_utils.try_value_as_type(concept_component.get('name'), 'string', { 'sanitise': 'strict' })
+        if component_name is None or gen_utils.is_empty_string(component_name):
             errors.append(f'Invalid concept with ID {concept_id} - Component names are non-nullable, string fields.')
             return None
         
@@ -455,7 +463,7 @@ def validate_concept_form(form, errors):
             if not isinstance(component_code, dict):
                 errors.append(f'Invalid concept with ID {concept_id} - Component code items are non-nullable, dict field')
                 return None
-            
+
             is_new_code = is_new_component or component_code.get('is_new')
             code_id = gen_utils.parse_int(component_code.get('id'), None)
             if not is_new_code and code_id is not None:
@@ -466,26 +474,26 @@ def validate_concept_form(form, errors):
                 code['id'] = code_id
             else:
                 is_new_code = True
-            
-            code_name = gen_utils.try_value_as_type(component_code.get('code'), 'code')
+
+            code_name = gen_utils.try_value_as_type(component_code.get('code'), 'code', { 'sanitise': 'strict' })
             if gen_utils.is_empty_string(code_name):
                 errors.append(f'Invalid concept with ID {concept_id} - A code\'s code is a non-nullable, string field')
                 return None
 
-            code_desc = gen_utils.try_value_as_type(component_code.get('description'), 'string')
-            # if gen_utils.is_empty_string(code_desc):
-            #     errors.append(f'Invalid concept with ID {concept_id} - A code\'s description is a non-nullable, string field')
-            #     return None
+            code_desc = gen_utils.try_value_as_type(component_code.get('description'), 'string', { 'sanitise': 'strict' })
 
             if isinstance(attribute_headers, list):
                 code_attributes = gen_utils.try_value_as_type(
-                    component_code.get('attributes'), 'string_array'
+                    component_code.get('attributes'),
+                    'string_array',
+                    { 'sanitise': 'strict' }
                 )
+
                 if isinstance(code_attributes, list):
                     if len(set(code_attributes)) != len(code_attributes):
                         errors.append(f'Invalid concept with ID {concept_id} - attribute headers must be unique.')
                         return None
-                    
+
                     code_attributes = code_attributes[:len(attribute_headers)]
                 code['attributes'] = code_attributes
 
@@ -525,7 +533,7 @@ def validate_concept_form(form, errors):
 def validate_related_entities(field, field_data, value, errors):
     """
         Validates related entities, e.g. Concepts
-    """    
+    """
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
         # Exit without error since we haven't included any validation
