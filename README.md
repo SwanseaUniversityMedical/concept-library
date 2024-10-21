@@ -233,9 +233,8 @@ To build a local, pre-production build:
 3. Navigate to the `concept-library/docker/` folder
 4. Set up the environment variables within `./development/env/web/live.compose.env`
 5. In the terminal, run `docker build -f ./development/dockerfiles/web/live.Dockerfile -t cll/app --build-arg server_name=localhost ..`
-6. Once the image is built, run `docker tag cll/app cll/celery_beat; docker tag cll/app cll/celery_worker`
-7. Finally, run `docker-compose -p cll -f docker-compose.dev.yaml --profile live up` (append `-d` as an argument to run in background)
-8. Open a browser and navigate to `localhost:8005` to access the application
+6. Finally, run `docker-compose -p cll -f docker-compose.dev.yaml --profile live up` (append `-d` as an argument to run in background)
+7. Open a browser and navigate to `localhost:8005` to access the application
 
 #### Using Mailhog
 If you would like to learn more about Mailhog, please visit this [site](https://github.com/mailhog/MailHog). Otherwise, to start Mailhog:
@@ -626,7 +625,6 @@ Optional arguments for this script include:
 | `--name`       | `-n`      | `cllro_dev`                                                             | Name of the docker container                                                   |
 | `--repo`       | `-r`      | [Repo](https://github.com/SwanseaUniversityMedical/concept-library.git) | Github repository you would like to pull from                                  |
 | `--branch`     | `-b`      | `DFTM`                                                                  | Repo's branch you would like to pull from                                      |
-| `--profile`    | `-p`      | `live`                                                                  | Name of the docker profile to execute                                          |
 
 #### Setting up your environment variables
 > [!NOTE]  
@@ -679,7 +677,6 @@ Optional parameters for the `deploy-site.sh` script include:
 | `--no-clean`   | `-nc`     | `true`                     | Whether to clean unused docker containers/images/networks/volumes/build caches |
 | `--address`    | `-a`      | _Harbor registry URL_      | Determines the registry we will try to pull the images from                    |
 | `--file`       | `-f`      | `docker-compose.prod.yaml` | Name of the docker-compose file you would like to deploy                       |
-| `--profile`    | `-p`      | `live`                     | Name of the docker profile to execute                                          |
 
 #### What to do when automated deployment is disabled
 > [!NOTE]  
