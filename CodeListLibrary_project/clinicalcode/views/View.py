@@ -190,7 +190,7 @@ def contact_us(request):
         Generation of Contact us page/form and email send functionality.
     """
 
-    if settings.CLL_READ_ONLY:
+    if settings.CLL_READ_ONLY or settings.IS_GATEWAY_PC:
         raise PermissionDenied
 
     captcha = True

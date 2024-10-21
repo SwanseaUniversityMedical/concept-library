@@ -48,4 +48,5 @@ COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
 
-WORKDIR /var/www/concept_lib_sites/v1/CodeListLibrary_project/
+# Set workdir to app
+WORKDIR /var/www/concept_lib_sites/v1/CodeListLibrary_project

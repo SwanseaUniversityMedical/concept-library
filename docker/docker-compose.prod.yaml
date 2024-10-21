@@ -6,7 +6,7 @@ services:
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
     env_file: ./env_vars.txt
     command: >
-      sh -c "/home/config_cll/init-app.sh"
+      sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
     ports:
       - ${app_port:-8080}:80
     expose:
@@ -18,8 +18,8 @@ services:
       - type: volume
         source: app-logs
         target: /home/config_cll/cll_srvr_logs
-    healthcheck: &app-healtcheck
-      test: ${CLL_WEB_PROD_HEALTHCHECK:-curl -f http://app:80/api/v1/health}
+    healthcheck: &app-healthcheck
+      test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
       interval: 60s
       timeout: 5s
       start_period: 5s
@@ -40,53 +40,17 @@ services:
     networks:
       - backend
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT:-6379}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
     healthcheck:
       test: redis-cli ping | grep PONG
       interval: 10s
       timeout: 5s
-      retries: 3
-
-  celery-worker:
-    image: cll/celery_worker
-    restart: always
-    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
-    env_file: ./env_vars.txt
-    command: >
-      sh -c "/home/config_cll/worker-start.sh"
-    networks:
-      - backend
-    profiles:
-      - live
-    depends_on:
-      app:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  celery-beat:
-    image: cll/celery_beat
-    restart: always
-    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
-    env_file: ./env_vars.txt
-    command: >
-      sh -c "/home/config_cll/beat-start.sh"
-    networks:
-      - backend
-    profiles:
-      - live
-    depends_on:
-      app:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      celery-worker:
-        condition: service_started
+      retries: 5
 
 networks:
   backend:
-    name: cllnet
+    name: dev-cllnet
     driver: bridge
     attachable: true
     driver_opts:

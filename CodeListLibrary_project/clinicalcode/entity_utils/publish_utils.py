@@ -308,5 +308,5 @@ def send_email_decision_entity(request, entity, entity_history_id, entity_type,d
     elif data['approval_status'].value == constants.APPROVAL_STATUS.REJECTED:
         context["status"] = "Rejected"
         context["message"] = "Your Phenotype submission has been rejected by the moderator"
-        context["custom_message"] = "Please adjust changes and try again" #TODO add custom message logic
+        context["custom_message"] = "We welcome you to try again but please address these concerns with your Phenotype first" #TODO add custom message logic
         send_review_email(request, context)

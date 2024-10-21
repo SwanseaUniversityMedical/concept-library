@@ -38,10 +38,12 @@ class HealthcheckReport(APIView):
 				describing the health status of the application
 		"""
 		pg_connected = self.__ping_db()
-		if settings.DEBUG:
+
+		is_readonly = not settings.IS_DEVELOPMENT_PC and (settings.IS_DEMO or settings.CLL_READ_ONLY or settings.IS_INSIDE_GATEWAY)
+		if settings.DEBUG or (not settings.DEBUG and is_readonly):
 			return Response(
 				data={
-					'healtcheck_mode': HealthcheckMode.DEBUG.value,
+					'healthcheck_mode': HealthcheckMode.DEBUG.value,
 					'postgres_healthy': pg_connected
 				},
 				content_type='application/json',
@@ -52,7 +54,7 @@ class HealthcheckReport(APIView):
 		response_status = status.HTTP_200_OK if redis_connected and pg_connected else status.HTTP_503_SERVICE_UNAVAILABLE
 		return Response(
 			data={
-				'healtcheck_mode': HealthcheckMode.PROD.value,
+				'healthcheck_mode': HealthcheckMode.PROD.value,
 				'redis_healthy': redis_connected,
 				'postgres_healthy': pg_connected,
 			},

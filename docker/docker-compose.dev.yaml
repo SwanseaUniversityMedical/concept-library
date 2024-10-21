@@ -24,8 +24,8 @@ x-app: &app-base
       type: volume
       source: app-data
       target: /var/www/concept_lib_sites/v1/CodeListLibrary_project
-  healthcheck: &app-healtcheck
-    test: ${CLL_WEB_DEV_HEALTHCHECK:-curl -f host.docker.internal:8000/api/v1/health}
+  healthcheck: &app-healthcheck
+    test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
     interval: 60s
     timeout: 5s
     start_period: 5s
@@ -48,8 +48,8 @@ x-commands:
     sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py makemigrations
     && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py migrate
     && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
-  app-apache-start: &app-apache-cmd >
-    sh -c "/home/config_cll/init-app.sh"
+  app-daemon-start: &app-supervisord-cmd >
+    sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
 
 
 # Containers
@@ -80,7 +80,7 @@ services:
       <<: *app-build
       dockerfile: ./development/dockerfiles/web/live.Dockerfile
       args: *app-live-args
-    command: *app-apache-cmd
+    command: *app-supervisord-cmd
     env_file: ./development/env/web/live.compose.env
     ports:
       - 8005:80
@@ -91,9 +91,6 @@ services:
       - type: volume
         source: app-logs
         target: /home/config_cll/cll_srvr_logs
-    healthcheck:
-      <<: *app-healtcheck
-      test: ${CLL_WEB_LIVE_HEALTHCHECK:-curl -f host.docker.internal:8005/api/v1/health}
     depends_on:
       <<: *app-dependencies
       redis:
@@ -155,8 +152,8 @@ services:
     networks:
       - backend
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     profiles:
       - live
     healthcheck:
@@ -165,35 +162,35 @@ services:
       timeout: 5s
       retries: 3
 
-  celery-worker:
-    extends:
-      service: web-live
-    command: >
-      sh -c "/home/config_cll/worker-start.sh"
-    ports: !reset []
-    expose: !reset []
-    profiles: !override
-      - 'live'
-    healthcheck: !reset {}
-    depends_on: !override
-      web-live:
-        condition: service_healthy
+  # celery-worker:
+  #   extends:
+  #     service: web-live
+  #   command: >
+  #     sh -c "/home/config_cll/worker-start.sh"
+  #   ports: !reset []
+  #   expose: !reset []
+  #   profiles: !override
+  #     - 'live'
+  #   healthcheck: !reset {}
+  #   depends_on: !override
+  #     web-live:
+  #       condition: service_healthy
 
-  celery-beat:
-    extends:
-      service: web-live
-    command: >
-      sh -c "/home/config_cll/beat-start.sh"
-    ports: !reset []
-    expose: !reset []
-    profiles: !override
-      - 'live'
-    healthcheck: !reset {}
-    depends_on: !override
-      web-live:
-        condition: service_healthy
-      celery-worker:
-        condition: service_started
+  # celery-beat:
+  #   extends:
+  #     service: web-live
+  #   command: >
+  #     sh -c "/home/config_cll/beat-start.sh"
+  #   ports: !reset []
+  #   expose: !reset []
+  #   profiles: !override
+  #     - 'live'
+  #   healthcheck: !reset {}
+  #   depends_on: !override
+  #     web-live:
+  #       condition: service_healthy
+  #     celery-worker:
+  #       condition: service_started
 
   # Profile<`test`> dependencies
   selenium-hub:
@@ -212,11 +209,11 @@ services:
   selenium-chrome:
     image: selenium/node-chrome:latest
     environment:
-      - SE_EVENT_BUS_HOST=selenium-hub
-      - SE_EVENT_BUS_PUBLISH_PORT=4442
-      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
-      - SE_NODE_MAX_SESSIONS=6
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_NODE_OVERRIDE_MAX_SESSIONS: true
+      SE_NODE_MAX_SESSIONS: 6
     ports:
       - 5900:5900
     networks:
@@ -230,11 +227,11 @@ services:
   selenium-edge:
     image: selenium/node-edge
     environment:
-      - SE_EVENT_BUS_HOST=selenium-hub
-      - SE_EVENT_BUS_PUBLISH_PORT=4442
-      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
-      - SE_NODE_MAX_SESSIONS=6
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_NODE_OVERRIDE_MAX_SESSIONS: true
+      SE_NODE_MAX_SESSIONS: 6
     ports:
       - 5901:5901
     networks:

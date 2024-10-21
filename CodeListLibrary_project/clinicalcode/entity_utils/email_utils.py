@@ -22,7 +22,7 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
     if len(owner_email.strip()) > 1:
         all_emails.append(owner_email)
 
-    email_subject = 'Concept Library - Phenotype %s has been %s' % (data['id'], data['message'])
+    email_subject = 'Concept Library - Phenotype %s: %s' % (data['id'], data['message'])
     email_content = render_to_string(
         'clinicalcode/email/email_content.html',
         data,
