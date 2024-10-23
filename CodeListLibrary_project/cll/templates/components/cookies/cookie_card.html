@@ -98,5 +98,21 @@
     </script>
     {% endcompress %}
   {% endif %}
+{% else %}
+  {% compress js inline %}
+  <script type="text/javascript">
+    domReady.finally(() => {
+      document.getElementById("button_cookie").addEventListener("click", function (e) {
+        e.preventDefault();
+        cookieSettings("{% url 'privacy_and_cookie_policy' %}");
+
+        const checkbox = document.getElementById("stats-check");
+        getCookie("acceptCookies")
+          ? (checkbox.checked = true)
+          : (checkbox.checked = false);
+      });
+    });
+  </script>
+  {% endcompress %}
 {% endif %}
 {% endblock content %}

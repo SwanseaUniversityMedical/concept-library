@@ -20,24 +20,30 @@ class SNOMED_CODES(models.Model):
     effective_time = models.DateField(null=False, default=datetime.date.today)
 
     # Mapping
+    mesh_codes = ArrayField(models.TextField(), blank=True, null=True)
     opcs4_codes = ArrayField(models.TextField(), blank=True, null=True)
+    icd9_codes = ArrayField(models.TextField(), blank=True, null=True)
     icd10_codes = ArrayField(models.TextField(), blank=True, null=True)
     readcv2_codes = ArrayField(models.TextField(), blank=True, null=True)
     readcv3_codes = ArrayField(models.TextField(), blank=True, null=True)
 
     # FTS
-    search_vector = SearchVectorField(null=True)
-    synonyms = SearchVectorField(null=True)
+    search_vector = SearchVectorField(null=True)   # Weighted name / description / synonyms / relations
+    synonyms_vector = SearchVectorField(null=True) # Related descriptor terms, e.g. snomed synonyms
+    relation_vector = SearchVectorField(null=True) # Related object descriptors, e.g. mapped codes
 
     class Meta:
         # Index reference
         indexes = [
             GinIndex(name='sct_cd_trgm_idx', fields=['code'], opclasses=['gin_trgm_ops']),
             GinIndex(name='sct_desc_trgm_idx', fields=['description'], opclasses=['gin_trgm_ops']),
-            GinIndex(name='sct_icd_txt_idx', fields=['icd10_codes'], opclasses=['array_ops']),
+            GinIndex(name='sct_mesh_txt_idx', fields=['mesh_codes'], opclasses=['array_ops']),
             GinIndex(name='sct_opcs_txt_idx', fields=['opcs4_codes'], opclasses=['array_ops']),
+            GinIndex(name='sct_icd9_txt_idx', fields=['icd9_codes'], opclasses=['array_ops']),
+            GinIndex(name='sct_icd10_txt_idx', fields=['icd10_codes'], opclasses=['array_ops']),
             GinIndex(name='sct_cv2_txt_idx', fields=['readcv2_codes'], opclasses=['array_ops']),
             GinIndex(name='sct_cv3_txt_idx', fields=['readcv3_codes'], opclasses=['array_ops']),
             GinIndex(name='sct_sv_gin_idx', fields=['search_vector']),
-            GinIndex(name='sct_syn_gin_idx', fields=['synonyms']),
+            GinIndex(name='sct_syn_gin_idx', fields=['synonyms_vector']),
+            GinIndex(name='sct_rel_gin_idx', fields=['relation_vector']),
         ]

@@ -19,7 +19,7 @@
   position: fixed;
   bottom: 2rem;
   left: 1rem;
-  width: calc(100% - 22px);
+  width: calc(100% - 2rem);
   max-width: 530px;
   height: fit-content;
   box-sizing: border-box;
@@ -31,8 +31,8 @@
   transform: translateY(100%);
   transition: all 300ms ease-in;
   outline: 1px solid col(accent-washed);
-  box-shadow: var(--dropdown-shadow);
-  -webkit-box-shadow: var(--dropdown-shadow);
+  box-shadow: var(--floating-shadow);
+  -webkit-box-shadow: var(--floating-shadow);
 
   &.show {
     display: block;
@@ -117,8 +117,8 @@
   background: var(--color-accent-bright);
   border-radius: 1em;
   box-sizing: border-box;
-  box-shadow: var(--dropdown-shadow);
-  -webkit-box-shadow: var(--dropdown-shadow);
+  box-shadow: var(--floating-shadow);
+  -webkit-box-shadow: var(--floating-shadow);
   opacity: 0;
   visibility: hidden;
   transform: translateY(100%);

@@ -23,7 +23,6 @@ class Migration(migrations.Migration):
 			declare
 				is_descendant boolean;
             begin
-
                 with recursive traversal(child_id, parent_id, depth, path) as (
                     select
                             first.child_id,
@@ -45,8 +44,7 @@ class Migration(migrations.Migration):
                        and first.child_id <> ALL(second.path)
                        and first.parent_id = any(parents)
                 )
-				
-				
+
 				select exists(
 					select 1
 					  from traversal t0

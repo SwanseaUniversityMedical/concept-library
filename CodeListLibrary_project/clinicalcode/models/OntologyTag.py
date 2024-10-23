@@ -54,7 +54,6 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 	"""
 
-
 	# Fields
 	## Hidden fields
 	# id = models.BigAutoField(primary_key=True)
@@ -68,7 +67,10 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 	reference_id = models.IntegerField(blank=True, null=True, unique=False)
 
 	## FTS
-	search_vector = SearchVectorField(null=True)
+	search_vector = SearchVectorField(null=True)   # Weighted name / description / synonyms / relations
+	synonyms_vector = SearchVectorField(null=True) # Related descriptor terms, e.g. snomed synonyms
+	relation_vector = SearchVectorField(null=True) # Related object descriptors, e.g. mapped codes
+
 
 	# Metadata
 	class Meta:
@@ -81,6 +83,8 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			models.Index(fields=['id', 'type_id', 'reference_id']),
 			GinIndex(name='ot_name_gin_idx', fields=['name'], opclasses=['gin_trgm_ops']),
 			GinIndex(fields=['search_vector']),
+			GinIndex(fields=['synonyms_vector']),
+			GinIndex(fields=['relation_vector']),
 			GinIndex(fields=['properties'])
 		]
 
@@ -97,6 +101,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			be called for ontology instances that have a type_id
 			which associates an instance with a specific code,
 			e.g. ICD-10 category codes
+
+			IMPORTANT:
+			  - This interpolates values without considering sanitsation;
+				  as such, this method should not be used for unsanitised
+					client input
 
 			Args:
 				self (<OntologyTag<models.Model>>): this instance
@@ -136,8 +145,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 				select *
 				  from public.%(table_name)s
 				 where lower(%(column_name)s);
-
-				""" % { 'table_name': table_name, 'column_name': codes_name }
+			""" % { 'table_name': table_name, 'column_name': codes_name }
 
 			codes = apps.get_model(app_label='clinicalcode', model_name=model_name)
 			code = codes.objects.raw(query + ' = ANY(%(values)s::text[])', { 'values': comparators })

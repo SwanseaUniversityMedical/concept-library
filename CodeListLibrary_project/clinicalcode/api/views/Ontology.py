@@ -140,14 +140,24 @@ def get_ontology_nodes(request):
 
         codes = [ code.lower() for code in codes ]
         alt_codes = [ alt_cleaner.sub('', code) for code in codes ]
+
+        # Direct search for snomed?
         clauses.append('''node.properties::json->>'code' is not null and (
             lower(node.properties::json->>'code'::text) = any(%(codes)s)
             or regexp_replace(lower(node.properties::json->>'code'::text), '[^aA-zZ0-9\-]', '', 'g') = any(%(alt_codes)s)
         )''')
 
+        # Opt?
+        #  -> Direct search for other coding systems?
+
+        # Opt?
+        #  -> Fuzzy code search option?
+
+
     search = params.pop('search', None)
     search_rank = ''
     if isinstance(search, str):
+        # Fuzzy across code / desc / synonyms / relation
         clauses.append('''(
             node.search_vector
             @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(search)s)::text || ':*', '<->', '|'))
@@ -158,6 +168,9 @@ def get_ontology_nodes(request):
 
         search_rank = search_rank + ' as score,'
         order_clause = '''order by t.score desc'''
+
+        # Opt?
+        #  -> Could impl. selection of syn/rel/vec
 
     if len(clauses) > 0:
         clauses = 'where %s' % (' and '.join(clauses), )

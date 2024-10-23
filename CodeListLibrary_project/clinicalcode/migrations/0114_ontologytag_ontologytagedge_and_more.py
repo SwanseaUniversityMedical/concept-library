@@ -24,6 +24,8 @@ class Migration(migrations.Migration):
                 ('properties', models.JSONField(blank=True, null=True)),
                 ('reference_id', models.IntegerField(blank=True, null=True)),
                 ('search_vector', django.contrib.postgres.search.SearchVectorField(null=True)),
+                ('synonyms_vector', django.contrib.postgres.search.SearchVectorField(null=True)),
+                ('relation_vector', django.contrib.postgres.search.SearchVectorField(null=True)),
             ],
             options={
                 'ordering': ('type_id', 'id'),
@@ -76,12 +78,22 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='snomed_codes',
-            name='icd10_codes',
+            name='mesh_codes',
             field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(), blank=True, null=True, size=None),
         ),
         migrations.AddField(
             model_name='snomed_codes',
             name='opcs4_codes',
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(), blank=True, null=True, size=None),
+        ),
+        migrations.AddField(
+            model_name='snomed_codes',
+            name='icd9_codes',
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(), blank=True, null=True, size=None),
+        ),
+        migrations.AddField(
+            model_name='snomed_codes',
+            name='icd10_codes',
             field=django.contrib.postgres.fields.ArrayField(base_field=models.TextField(), blank=True, null=True, size=None),
         ),
         migrations.AddField(
@@ -101,7 +113,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='snomed_codes',
-            name='synonyms',
+            name='synonyms_vector',
+            field=django.contrib.postgres.search.SearchVectorField(null=True),
+        ),
+        migrations.AddField(
+            model_name='snomed_codes',
+            name='relation_vector',
             field=django.contrib.postgres.search.SearchVectorField(null=True),
         ),
         migrations.AlterField(
@@ -129,11 +146,19 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='snomed_codes',
-            index=django.contrib.postgres.indexes.GinIndex(fields=['icd10_codes'], name='sct_icd_txt_idx', opclasses=['array_ops']),
+            index=django.contrib.postgres.indexes.GinIndex(fields=['mesh_codes'], name='sct_mesh_txt_idx', opclasses=['array_ops']),
         ),
         migrations.AddIndex(
             model_name='snomed_codes',
             index=django.contrib.postgres.indexes.GinIndex(fields=['opcs4_codes'], name='sct_opcs_txt_idx', opclasses=['array_ops']),
+        ),
+        migrations.AddIndex(
+            model_name='snomed_codes',
+            index=django.contrib.postgres.indexes.GinIndex(fields=['icd9_codes'], name='sct_icd9_txt_idx', opclasses=['array_ops']),
+        ),
+        migrations.AddIndex(
+            model_name='snomed_codes',
+            index=django.contrib.postgres.indexes.GinIndex(fields=['icd10_codes'], name='sct_icd10_txt_idx', opclasses=['array_ops']),
         ),
         migrations.AddIndex(
             model_name='snomed_codes',
@@ -149,7 +174,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='snomed_codes',
-            index=django.contrib.postgres.indexes.GinIndex(fields=['synonyms'], name='sct_syn_gin_idx'),
+            index=django.contrib.postgres.indexes.GinIndex(fields=['synonyms_vector'], name='sct_syn_gin_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='snomed_codes',
+            index=django.contrib.postgres.indexes.GinIndex(fields=['relation_vector'], name='sct_rel_gin_idx'),
         ),
         migrations.AddField(
             model_name='ontologytagedge',
@@ -197,6 +226,14 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='ontologytag',
             index=django.contrib.postgres.indexes.GinIndex(fields=['search_vector'], name='clinicalcod_search__2a66db_gin'),
+        ),
+        migrations.AddIndex(
+            model_name='ontologytag',
+            index=django.contrib.postgres.indexes.GinIndex(fields=['synonyms_vector'], name='clinicalcod_synonym_0251f3_gin'),
+        ),
+        migrations.AddIndex(
+            model_name='ontologytag',
+            index=django.contrib.postgres.indexes.GinIndex(fields=['relation_vector'], name='clinicalcod_relatio_da4939_gin'),
         ),
         migrations.AddIndex(
             model_name='ontologytag',

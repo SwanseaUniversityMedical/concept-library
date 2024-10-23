@@ -144,6 +144,7 @@ IS_DEMO = get_env_value('IS_DEMO', cast='bool')
 CLINICALCODE_SESSION_ID = 'concept'
 
 CLL_READ_ONLY = get_env_value('CLL_READ_ONLY', cast='bool')
+IS_GATEWAY_PC = get_env_value('IS_GATEWAY_PC', cast='bool', default=False)
 
 IS_INSIDE_GATEWAY = get_env_value('IS_INSIDE_GATEWAY', cast='bool')
 IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool', default=False)
