@@ -88,19 +88,21 @@ export default class FuzzyQuery {
    * @return {number} the distance between the strings
    */
   static Distance(haystack, needle) {
-    const hlen = haystack.length;
-    const nlen = needle.length;
+    let nlen = needle.length;
+    let hlen = haystack.length;
     if (haystack === needle) {
       return 0;
     } else if (!(haystack && needle))  {
       return (haystack || needle).length;
     }
 
-    let i, j;
-    let matrix = [];
-    for (i = 0; i <= nlen; matrix[i] = [i++]);
-    for (j = 0; j <= hlen; matrix[0][j] = j++);
+    if (nlen > hlen) {
+      nlen, hlen = hlen, nlen;
+      needle, haystack = haystack, needle;
+    }
 
+    let i, j;
+    let matrix = Array.from({ length: nlen + 1 }, (_, x) => Array.from({ length: hlen + 1 }, (_, y) => y));
     for (i = 1; i <= nlen; i++) {
       let c = needle.charCodeAt(i - 1);
       for (j = 1; j <= hlen; j++) {

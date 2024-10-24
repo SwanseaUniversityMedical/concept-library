@@ -3,6 +3,41 @@
 @import '../_media';
 @import '../_utils';
 
+/// Scrollbar base for datatables
+///   @desc i.e. slim scrollbar
+.overflow-table-constraint {
+  & > .datatable-container {
+    /* Webkit */
+    &::-webkit-scrollbar {
+      width: var(--slim-scrollbar-width);
+      height: var(--slim-scrollbar-width);
+    }
+
+    &::-webkit-scrollbar-track {
+      border-radius: var(--slim-scrollbar-radius);
+      -webkit-border-radius: var(--slim-scrollbar-radius);
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: var(--slim-scrollbar-inactive-color);
+      border-radius: var(--slim-scrollbar-radius);
+      -webkit-border-radius: var(--slim-scrollbar-radius);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--slim-scrollbar-active-color);
+    }
+    
+    &::-webkit-scrollbar-thumb:window-inactive {
+      background: col(clear);
+    }
+
+    /* Firefox */
+    scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
+    scrollbar-width: thin !important;
+  }
+}
+
 /// Contrained codelist table
 ///   @desc Used to constrain codelist tables in phenotype creation
 .constrained-codelist-table {

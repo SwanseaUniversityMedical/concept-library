@@ -96,6 +96,14 @@
       margin-top: 0rem;
     }
 
+    &-detail-title {
+      color: col(text-darkest);
+      border-bottom: 0;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1;
+    }
+
     &-header {
       width: 100%;
       border-bottom: 1px solid col(accent-dark);
@@ -637,12 +645,12 @@
   }
 
   &.fill {
-    width: calc(100% - 1rem);
-    max-width: calc(100% - 1rem);
+    width: 100%;
+    max-width: 100%;
   }
 
   &.constrained {
-    max-width: calc(100% - 1rem);
+    max-width: 100%;
   }
 
   &__mandatory {

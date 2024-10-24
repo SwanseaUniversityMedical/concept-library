@@ -207,7 +207,53 @@ $modifiers: (
     values: (
       sm: 0.2rem,
       md: 0.5rem,
-      lg: 1.0rem
+      lg: 1.0rem,
+      xl: 2.0rem
+    )
+  ),
+  'margin': (
+    property: margin,
+    values: (
+      sm: 0.2rem,
+      md: 0.5rem,
+      lg: 1.0rem,
+      xl: 2.0rem
+    )
+  ),
+  'margin-top': (
+    property: margin-top,
+    values: (
+      sm: 0.2rem,
+      md: 0.5rem,
+      lg: 1.0rem,
+      xl: 2.0rem
+    )
+  ),
+  'margin-right': (
+    property: margin-right,
+    values: (
+      sm: 0.2rem,
+      md: 0.5rem,
+      lg: 1.0rem,
+      xl: 2.0rem
+    )
+  ),
+  'margin-bottom': (
+    property: margin-left,
+    values: (
+      sm: 0.2rem,
+      md: 0.5rem,
+      lg: 1.0rem,
+      xl: 2.0rem
+    )
+  ),
+  'margin-left': (
+    property: margin-bottom,
+    values: (
+      sm: 0.2rem,
+      md: 0.5rem,
+      lg: 1.0rem,
+      xl: 2.0rem
     )
   )
 );

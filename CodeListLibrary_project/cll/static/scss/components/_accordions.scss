@@ -80,12 +80,17 @@
   width: 100%;
   max-width: 100%;
 
+  &:has(.fill-accordion__input:checked) {
+    outline: 1px solid col(accent-washed);
+  }
+
   &__input {
     display: none;
   }
 
   &__input:checked + &__label {
     background-color: col(accent-darkish);
+    outline: 0;
 
     .fill-accordion__name-input {
       --bg-color: var(--color-accent-darkish);
@@ -177,7 +182,8 @@
     position: relative;
     padding: 0.5rem 1rem;
     background-color: col(accent-lightest);
-    max-width: calc(100% - 2em);
+    max-width: 100%;
+    outline: 1px solid col(accent-washed);
 
     span {
       position: relative;
@@ -212,7 +218,6 @@
     }
   }
 
-
   &__container {
     @include prefix(transition, opacity 250ms ease-in-out, webkit moz o);
     @include flex-col();
@@ -222,5 +227,6 @@
     height: 0;
     max-width: 100%;
     overflow: hidden;
+    padding: 0rem 0.5rem;
   }
 }

@@ -131,7 +131,9 @@
       max-width: 400px;
       max-height: 50px;
       overflow: hidden;
+      line-clamp: 2;
       -webkit-line-clamp: 2;
+      -moz-box-orient: vertical;
       -webkit-box-orient: vertical;
       word-wrap:break-word;
       text-overflow: ellipsis;
@@ -169,6 +171,7 @@
   margin: 0.25rem 0;
   transition: background-color 250ms ease, box-shadow 250ms ease;
 	box-shadow: 0 0 0 2px var(--accent-color);
+  width: fit-content;
 
   &.bold {
     &>.chip-text {
@@ -183,7 +186,7 @@
     position: relative;
     color: var(--text-color);
     padding: 0.25rem 1rem 0.25rem 2rem;
-    
+
     &[href="#"] {
       cursor: inherit;
       pointer-events: none;
@@ -206,6 +209,14 @@
       border-radius: 100%;
       background-color: var(--icon-color);
       transform: translateY(-50%);
+    }
+
+    &.no-icon {
+      padding: 0.25rem 0.5rem !important;
+
+      &:before {
+        display: none !important;
+      }
     }
   }
 

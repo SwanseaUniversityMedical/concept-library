@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 
 import os
 
+from ..entity_utils import gen_utils
 from ..entity_utils.constants import TypeStatus
 
 register = template.Library()
@@ -57,6 +58,14 @@ def from_phenotype(value, index, default=''):
     if index in value:
         return value[index]['concepts']
     return default
+
+@register.filter(name='is_empty_value')
+def is_empty_value(value):
+    if value is None:
+        return True
+    elif isinstance(value, str):
+        return gen_utils.is_empty_string(value)
+    return False
 
 @register.filter(name='size')
 def size(value):

@@ -591,7 +591,7 @@ COMPRESS_ROOT = STATIC_ROOT
 if not DEBUG:
     COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
     COMPRESS_PRECOMPILERS = (
-        ('module', 'esbuild {infile} --bundle --outfile={outfile}'),
+        ('module', 'esbuild {infile} --target=es2020 --sourcemap=inline --bundle --outfile={outfile}'),
     )
 
 ## SASS options

@@ -3,12 +3,11 @@
 {% load cl_extras %}
 {% load entity_renderer %}
 
-<div class="detailed-input-group fill">
+<div class="detailed-input-group fill gap-xl">
   <div class="col-sm-12 shadow-frame">
-    <h3 class="paneltitle">
-      <span id="entity-{{ component.field_name }}"></span>
-
-      {% if component.value|length %}
+    {% if not component.value|is_empty_value %}
+      <h3 class="paneltitle">
+        <span id="entity-{{ component.field_name }}"></span>
         {% if not component.hide_input_title %}
           <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
         {% endif %}
@@ -18,11 +17,11 @@
         {% endif %}
 
         {{ component.value|markdownify }}
-      {%endif %}
-    </h3>
-
-    <h3 class="detailed-input-group__title">Citation Example</h3>
-    {% render_citation_block entity request as citation %}
-    {{ citation|markdownify }}
+      </h3>
+    {% else %}
+      <h3 class="detailed-input-group__title">Citation Example</h3>
+      {% render_citation_block entity request as citation %}
+      {{ citation|markdownify }}
+    {% endif %}
   </div>
 </div>

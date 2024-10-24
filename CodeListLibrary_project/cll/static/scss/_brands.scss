@@ -147,7 +147,7 @@ $brand-map-none: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 90%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -312,7 +312,7 @@ $brand-map-ADP: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 90%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
   'phenotype-article-header-border': $light_grayish_blue,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -484,7 +484,7 @@ $brand-map-HDRUK: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 90%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -649,7 +649,7 @@ $brand-map-SAIL: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 90%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,

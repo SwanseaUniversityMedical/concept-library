@@ -6,6 +6,9 @@
 <div class="detailed-input-group fill">
   <div class="publication-list-group">
     <section class="publication-list-group__list show" id="publication-group">
+      <h3 class="publication-list-group__list-detail-title" id="pub-header">
+        Related publications
+      </h3>
       {% if component.value|length %}
         <ul>
           {% for p in component.value %}
@@ -25,7 +28,7 @@
           {% endfor %}
         </ul>
       {% else %}
-        <span class="card-no-data">No publications</span>
+        <span class="card-no-data">No known publications</span>
       {% endif %}
     </section>
   </div>
