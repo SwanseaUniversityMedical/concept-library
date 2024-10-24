@@ -97,8 +97,13 @@ export default class FuzzyQuery {
     }
 
     if (nlen > hlen) {
-      nlen, hlen = hlen, nlen;
-      needle, haystack = haystack, needle;
+      let tmp = hlen;
+      hlen = nlen;
+      nlen = tmp;
+
+      tmp = haystack;
+      haystack = needle;
+      needle = tmp;
     }
 
     let i, j;
@@ -148,10 +153,9 @@ export default class FuzzyQuery {
       
       if (FuzzyQuery.Match(item, query)) {
         if (sort) {
-          var score = FuzzyQuery.Distance(item, query);
-          results.push({item: item, score: score});
+          results.push({ item: item, score: FuzzyQuery.Distance(item, query) });
         } else {
-          results.push({item: item});
+          results.push({ item: item });
         }
       }
     }
