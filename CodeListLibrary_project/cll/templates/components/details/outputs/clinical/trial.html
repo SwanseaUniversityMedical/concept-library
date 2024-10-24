@@ -5,31 +5,28 @@
 
 <div class="detailed-input-group fill">
   <div class="publication-list-group">
-  <h3 class="detailed-input-group__title">
-    {{ component.field_data.title }}
-  </h3>
+    <h3 class="detailed-input-group__title">
+      {{ component.field_data.title }}
+    </h3>
     <section class="publication-list-group__list show" id="trial-group">
-
-      <!-- <div class="publication-list-group__list-container " id="trial-list"> -->
-        {% if component.value|length %}
-          <ul>
-              {% for p in component.value %}
-                  <li>
-                      <strong>ID</strong>: {{ p.id }}
-                      <strong>Link</strong>: <a href="{{ p.link }}">{{ p.link }}</a>
-                      <strong>Name</strong>: {{ p.name }}
-                      {% if p.primary and p.primary == 1 %}
-                        <span class="badge">
-                            <strong>Primary</strong>
-                        </span>
-                      {% endif %}
-                  </li>
-              {% endfor %}
-          </ul>
-        {% else %}
+      {% if component.value|length %}
+        <ul>
+          {% for p in component.value %}
+            <li>
+              <strong>ID</strong>: {{ p.id }}
+              <strong>Link</strong>: <a href="{{ p.link }}">{{ p.link }}</a>
+              <strong>Name</strong>: {{ p.name }}
+              {% if p.primary and p.primary == 1 %}
+                <span class="badge">
+                  <strong>Primary</strong>
+                </span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
         <span class="card-no-data">No Trials</span>
-        {% endif %}
-      <!-- </div> -->
+      {% endif %}
     </section>
   </div>
 </div>

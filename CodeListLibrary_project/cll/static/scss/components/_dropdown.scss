@@ -150,8 +150,8 @@
   display: none;
   list-style: none;
   background: #fff;
-  -webkit-box-shadow: var(--dropdown-shadow);
-  box-shadow: var(--dropdown-shadow);
+  -webkit-box-shadow: var(--panel-shadow);
+  box-shadow: var(--panel-shadow);
   z-index: 999;
   position: absolute;
   width: 100%;
@@ -426,7 +426,6 @@
     padding: 0.5rem 2rem 0.5rem 1rem;
     background-color: col(bg);
     white-space: nowrap;
-    margin: 0 0.5rem 0 0 ;
 
     &:hover {
       background-color: col(accent-washed);

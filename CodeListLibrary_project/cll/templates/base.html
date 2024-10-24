@@ -1,7 +1,6 @@
 {% load static %}
 {% load compress %}
 {% load sass_tags %}
-{% load mathfilters %}
 {% load entity_renderer %}
 {% load i18n %}
 {% load cl_extras %}
@@ -70,11 +69,12 @@
 
     <!-- Stylesheets -->
     {% compress css %}
-      <link href="{% sass_src 'scss/main.scss' %}" rel="stylesheet" type="text/css" />
+      <link rel="stylesheet" href="{% sass_src 'scss/main.scss' %}" type="text/css" />
     {% endcompress %}
 
     <!-- Scripts -->
     {% compress js %}
+      <script type="module" src="{% static "js/clinicalcode/strings.js" %}"></script>
       <script type="text/javascript" src="{% static "js/clinicalcode/utils.js" %}"></script>
       <script type="text/javascript" src="{% static "js/clinicalcode/accessibility.js" %}"></script>
       <script type="module" src="{% static "js/clinicalcode/components/modal.js" %}"></script>
@@ -110,6 +110,6 @@
 
     {% if SHOW_COOKIE_ALERT %}
       {% include "components/cookies/banner.html" %}
-    {% endif %}		
+    {% endif %}
   </body>
 </html>

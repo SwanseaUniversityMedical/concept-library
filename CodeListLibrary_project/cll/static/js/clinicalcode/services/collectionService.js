@@ -70,7 +70,7 @@ const COLLECTION_MAP = {
 
     return [
       index,
-      `${item.id} - ${item.name}`,
+      `${item.id} - ${strictSanitiseString(item.name)}`,
       item.id,
       item.history_id,
       new Date(item.updated), 
@@ -90,7 +90,7 @@ const COLLECTION_MAP = {
 
     return [
       index,
-      `${item.id} - ${item.name}`,
+      `${item.id} - ${strictSanitiseString(item.name)}`,
       item.id,
       item.history_id,
       new Date(item.created),
@@ -147,7 +147,7 @@ const getCollectionData = () => {
 const renderNameAnchor = (pageType, key, entity) => {
   const { id, history_id, name, publish_status } = entity;
 
-  let text = `${id} - ${name}`;
+  let text = `${id} - ${strictSanitiseString(name)}`;
   text = text.length > MAX_NAME_LENGTH 
     ? `${text.substring(0, MAX_NAME_LENGTH).trim()}...` 
     : text;
@@ -525,7 +525,7 @@ domReady.finally(() => {
         } break;
         
         case 'edit': {
-          window.location.href = target.getAttribute('data-href');
+          window.location.href = strictSanitiseString(target.getAttribute('data-href'));
         } break;
 
         case 'restore': {

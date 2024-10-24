@@ -40,7 +40,7 @@ const createGroup = (container, template, id, title, description) => {
     'title': title.toLocaleUpperCase(),
     'description': description,
   });
-  
+
   const doc = parseHTMLFromString(html);
   return container.appendChild(doc.body.children[0]);
 }
@@ -153,7 +153,7 @@ const initialiseSelector = (formData) => {
     
         let btn = card.querySelector('#select-btn');
         btn.addEventListener('click', (e) => {
-          window.location.href = `${getCurrentURL()}${item.id}`;
+          window.location.href = strictSanitiseString(`${getCurrentURL()}${item.id}`);
         });
       }
     }

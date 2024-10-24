@@ -13,8 +13,8 @@ import json
 import warnings
 
 from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants
-from ..models.GenericEntity import GenericEntity
 from ..models.Brand import Brand
+from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
 

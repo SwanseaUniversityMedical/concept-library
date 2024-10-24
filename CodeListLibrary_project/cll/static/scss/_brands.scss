@@ -1,7 +1,7 @@
 @import '_methods';
 @import '_variables';
 
-/// Per brand variables describing theme of components
+// / Per brand variables describing theme of components
 $brand-map-none: (
   // Brand logo
   'logo-url': url('/static/img/header_logo.png'),
@@ -59,14 +59,16 @@ $brand-map-none: (
   'navigation-scroll-shadow': 'inset 0px -1px 0px #f3f3f4',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
-  //About_dropdown
-  'dropdown-shadow':0px 10px 70px rgba(0, 0, 0, 0.15),
+  // About_dropdown
+  'panel-shadow': 0px 2px 50px 7px rgba(0, 0, 0, 0.25),
+  'floating-shadow': 0px 10px 30px 3px rgba(0, 0, 0, 0.35),
+  'dropdown-shadow': 0px 10px 70px rgba(0, 0, 0, 0.15),
   'item-icon-color': $soft_cyan,
-  'icon-width':40px,
-  'icon-height':40px,
-  'icon-background-color':$light_red,
-  'stroke-icon':$blackish-grey,
-  'description-text-color':$lightblack-grey,
+  'icon-width': 40px,
+  'icon-height': 40px,
+  'icon-background-color': $light_red,
+  'stroke-icon': $blackish-grey,
+  'description-text-color': $lightblack-grey,
 
   // Loading spinner color
   'loading-spinner-color': $solitude,
@@ -145,7 +147,7 @@ $brand-map-none: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 90%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -237,11 +239,13 @@ $brand-map-ADP: (
   'navigation-scroll-shadow': 'inset 0px -1px 0px #f3f3f4',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
-  //About_dropdown
-  'dropdown-shadow':0px 10px 70px rgba(0, 0, 0, 0.15),
+  // About_dropdown
+  'panel-shadow': 0px 2px 50px 7px rgba(0, 0, 0, 0.25),
+  'floating-shadow': 0px 10px 30px 3px rgba(0, 0, 0, 0.35),
+  'dropdown-shadow': 0px 10px 70px rgba(0, 0, 0, 0.15),
   'item-icon-color': $brighter_ghost_white,
-  'icon-width':40px,
-  'icon-height':40px,
+  'icon-width': 40px,
+  'icon-height': 40px,
   'icon-background-color': $brighter_ghost_white,
   'stroke-icon': $blackish-grey,
   'description-text-color': $lightblack-grey,
@@ -308,7 +312,7 @@ $brand-map-ADP: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 90%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
   'phenotype-article-header-border': $light_grayish_blue,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -407,14 +411,16 @@ $brand-map-HDRUK: (
   'navigation-scroll-shadow': 'inset 0px -1px 0px #f3f3f4',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
-  //About_dropdown and Admin_dropdown
-  'dropdown-shadow':0px 10px 70px rgba(0, 0, 0, 0.15),
+  // About_dropdown and Admin_dropdown
+  'panel-shadow': 0px 2px 50px 7px rgba(0, 0, 0, 0.25),
+  'floating-shadow': 0px 10px 30px 3px rgba(0, 0, 0, 0.35),
+  'dropdown-shadow': 0px 10px 70px rgba(0, 0, 0, 0.15),
   'item-icon-color': $soft_cyan,
-  'icon-width':40px,
-  'icon-height':40px,
-  'icon-background-color':$light_red,
-  'stroke-icon':$blackish-grey,
-  'description-text-color':$lightblack-grey,
+  'icon-width': 40px,
+  'icon-height': 40px,
+  'icon-background-color': $light_red,
+  'stroke-icon': $blackish-grey,
+  'description-text-color': $lightblack-grey,
 
   // Loading spinner color
   'loading-spinner-color': $solitude,
@@ -478,7 +484,7 @@ $brand-map-HDRUK: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 90%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,
@@ -570,14 +576,16 @@ $brand-map-SAIL: (
   'navigation-scroll-shadow': 'inset 0px -1px 0px #f3f3f4',
   'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
 
-  //About_dropdown
-  'dropdown-shadow':0px 10px 70px rgba(0, 0, 0, 0.15),
+  // About_dropdown
+  'panel-shadow': 0px 2px 50px 7px rgba(0, 0, 0, 0.25),
+  'floating-shadow': 0px 10px 30px 3px rgba(0, 0, 0, 0.35),
+  'dropdown-shadow': 0px 10px 70px rgba(0, 0, 0, 0.15),
   'item-icon-color': $soft_cyan,
-  'icon-width':40px,
-  'icon-height':40px,
-  'icon-background-color':$light_red,
-  'stroke-icon':$blackish-grey,
-  'description-text-color':$lightblack-grey,
+  'icon-width': 40px,
+  'icon-height': 40px,
+  'icon-background-color': $light_red,
+  'stroke-icon': $blackish-grey,
+  'description-text-color': $lightblack-grey,
   
   // Loading spinner color
   'loading-spinner-color': $solitude,
@@ -641,7 +649,7 @@ $brand-map-SAIL: (
 
   // Phenotype creation
   'phenotype-article-sm-size': 55%,
-  'phenotype-article-lg-size': 90%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
   'phenotype-article-header-border': $light_grey,
   'phenotype-article-h1-size': 2em,
   'phenotype-article-h1-weight': bold,

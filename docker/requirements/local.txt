@@ -1,3 +1,0 @@
--r base.txt # includes the base.txt requirements file
-debugpy==1.6.2
-faker==22.0.0

@@ -22,7 +22,6 @@
     -fp | --file-path  - [Defaults to $PWD]  - determines the /root/ file path (otherwise uses CWD)
      -a | --address    - [Defaults to None]  - the registry address we pull from
      -f | --file       - [Defaults to prod]  - the docker-compose file we use
-     -p | --profile    - [Defaults to live]  - which docker profile to use
 '
 
 # Prepare env
@@ -39,7 +38,6 @@ ContainerName='cll';
 DeployInForeground=false;
 ShouldClean=true;
 
-Profile='live';
 LibraryAddress='';
 
 RootPath='/root/';
@@ -55,7 +53,6 @@ while [[ "$#" -gt 0 ]]
       -fp|--file-path) RootPath="$2"; shift;;
       -a|--address) LibraryAddress="$2"; shift;;
       -f|--file) ComposeFile="$2"; shift;;
-      -p|--profile) Profile="$2"; shift;;
     esac
     shift
 done
@@ -72,8 +69,6 @@ echo "==========================================="
 
 docker pull "$LibraryAddress"
 docker tag "$LibraryAddress" $(printf '%s/app' "$ContainerName")
-docker tag "$LibraryAddress" $(printf '%s/celery_worker' "$ContainerName")
-docker tag "$LibraryAddress" $(printf '%s/celery_beat' "$ContainerName")
 
 # Kill current app and prune if required
 echo "==========================================="
@@ -90,17 +85,9 @@ echo "========== Deploying application =========="
 echo "==========================================="
 
 if [ "$DeployInForeground" = 'true' ]; then
-  if [ ! -z "$Profile" ]; then
-    docker-compose -p "$ContainerName" -f "$ComposeFile" --profile "$Profile" up
-  else
-    docker-compose -p "$ContainerName" -f "$ComposeFile" up
-  fi
+  docker-compose -p "$ContainerName" -f "$ComposeFile" up
 else
-  if [ ! -z "$Profile" ]; then
-    docker-compose -p "$ContainerName" -f "$ComposeFile" --profile "$Profile" up -d
-  else
-    docker-compose -p "$ContainerName" -f "$ComposeFile" up -d
-  fi
+  docker-compose -p "$ContainerName" -f "$ComposeFile" up -d
 fi
 
 # Prune unused containers/images/volumes if we (1) want to cleanup and (2) haven't already done so

@@ -3,7 +3,7 @@
   <div class="box-container">
     <div class="row">
       <span id="entity-{{ component.field_name }}"></span>
-      <div class="col-sm-2 row-padding">{{ component.field_data.title }}</div>
+      <div class="col-sm-2 row-padding detail-field-title">{{ component.field_data.title }}</div>
       <div class="col-sm-10 display-flex flex-direction-row flex-wrap-wrap gap-sm">
         {% if component.value|length %}
           {% for c in component.value %}

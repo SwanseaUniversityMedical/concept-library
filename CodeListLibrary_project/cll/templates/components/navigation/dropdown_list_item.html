@@ -13,7 +13,9 @@
 
       <div class="item-dropdown__text">
         <div class="item-dropdown__title">{{ title }}</div>
-        <p class="item-dropdown__description">{{ description }}</p>
+        {% if description|length %}
+          <p class="item-dropdown__description">{{ description }}</p>
+        {% endif %}
       </div>
     </a>
 

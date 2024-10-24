@@ -27,7 +27,6 @@
      -n | --name       - [Defaults to '.._dev'] - the name of the container
      -r | --repo       - [Defaults to cl.git]   - the repository URL
      -b | --branch     - [Defaults to '']       - the repository branch (uses master if null)
-     -p | --profile    - [Defaults to live]     - which docker profile to use
 '
 
 # Prepare env
@@ -45,7 +44,6 @@ ShouldClean=true;
 RootPath='/root/deploy_DEV_DEMO_DT/';
 EnvFileName='env_vars-RO.txt';
 
-Profile='live';
 ComposeFile='docker-compose.prod.yaml';
 ContainerName='cl_dev';
 
@@ -66,7 +64,6 @@ while [[ "$#" -gt 0 ]]
       -n|--name) ContainerName="$2"; shift;;
       -r|--repo) RepoBase="$2"; shift;;
       -b|--branch) RepoBranch="$2"; shift;;
-      -p|--profile) Profile="$2"; shift;;
     esac
     shift
 done
@@ -108,10 +105,6 @@ docker build -f production/app.Dockerfile -t cll/app \
   --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" --build-arg server_name="$SERVER_NAME" \
   ..
 
-## Tag our image for other services
-docker tag cll/app cll/celery_worker
-docker tag cll/app cll/celery_beat
-
 # Kill current app 
 echo "==========================================="
 echo "=========== Cleaning workspace ============"
@@ -127,17 +120,9 @@ echo "==========================================="
 echo $(printf '\nDeploying %s from %s | In foreground: %s' "$ContainerName" "$ComposeFile" "$DeployInForeground")
 
 if [ "$DeployInForeground" = 'true' ]; then
-  if [ ! -z "$Profile" ]; then
-    docker-compose -p "$ContainerName" -f "$ComposeFile" --profile "$Profile" up
-  else
-    docker-compose -p "$ContainerName" -f "$ComposeFile" up
-  fi
+  docker-compose -p "$ContainerName" -f "$ComposeFile" up
 else
-  if [ ! -z "$Profile" ]; then
-    docker-compose -p "$ContainerName" -f "$ComposeFile" --profile "$Profile" up -d
-  else
-    docker-compose -p "$ContainerName" -f "$ComposeFile" up -d
-  fi
+  docker-compose -p "$ContainerName" -f "$ComposeFile" up -d
 fi
 
 # Prune unused containers/images/volumes if we (1) want to cleanup and (2) haven't already done so
