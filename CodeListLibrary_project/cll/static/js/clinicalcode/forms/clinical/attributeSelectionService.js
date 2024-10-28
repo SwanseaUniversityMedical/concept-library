@@ -147,6 +147,15 @@ const CSEL_INTERFACE = {
  *          2. The requesting user has access to the child concepts via permissions
  *
  */
+/**
+ * AttributeSelectionService class provides methods to manage and manipulate attribute data for clinical concepts.
+ * It allows for the creation, validation, and rendering of attribute data within a dialogue interface.
+ *
+ * @class
+ * @example
+ * const service = new AttributeSelectionService(options);
+ * service.show();
+ */
 export class AttributeSelectionService {
   static Views = CSEL_VIEWS;
 
@@ -427,6 +436,24 @@ export class AttributeSelectionService {
     return this.dialogue;
   }
 
+  /**
+   * Creates and renders a grid table with the provided concept data.
+   *
+   * This method initializes a grid table using the Grid.js library and populates it with the given concept data.
+   * If the concept data contains attributes, it transforms the data to include these attributes and updates the grid table configuration.
+   *
+   * @param {Array} concept_data - An array of concept objects. Each concept object should have the following structure:
+   *   {
+   *     is_new: {boolean}, // Indicates if the concept is new
+   *     details: {
+   *       name: {string}, // The name of the concept
+   *       phenotype_owner: {string}, // The owner of the phenotype
+   *       phenotype_owner_history_id: {number}, // The history ID of the phenotype owner
+   *     },
+   *     concept_id: {number}, // The ID of the concept
+   *     attributes: {Array} // An array of attribute objects, each with a 'value' property
+   *   }
+   */
   #createGridTable(concept_data) {
     document.getElementById("tab-content").innerHTML = "";
 
@@ -501,6 +528,11 @@ export class AttributeSelectionService {
     }
   }
 
+  /**
+   * Adds event listeners to table cells for editing and updates the concept data accordingly.
+   *
+   * @param {HTMLElement} tableElement - The table element containing the rows and cells to be edited.
+   */
   #addCellEditListeners(tableElement) {
     const rows = tableElement.querySelector("tbody").childNodes;
 
@@ -539,6 +571,15 @@ export class AttributeSelectionService {
     }
   }
 
+  /**
+   * Validates the input value based on the specified type and attribute name.
+   *
+   * @param {string} targetInput - The input value to be validated.
+   * @param {string} type - The type of the attribute (e.g., "1" for integer, "2" for string, "3" for float).
+   * @param {string} attributeName - The name of the attribute being validated.
+   * @param {number} rIndex - The row index of the attribute in the table.
+   * @returns {boolean} - Returns true if the input is valid, otherwise false.
+   */
   #cellValidation(targetInput, type, attributeName, rIndex) {
     if (targetInput.trim() === "") {
       return true;
@@ -735,6 +776,12 @@ export class AttributeSelectionService {
     this.dialogue?.element.dispatchEvent(event);
   }
 
+  /**
+   * Generates a UUID (Universally Unique Identifier).
+   * The UUID is in the format of "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".
+   *
+   * @returns {string} A randomly generated UUID.
+   */
   #generateUUID() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
       /[xy]/g,
@@ -746,6 +793,21 @@ export class AttributeSelectionService {
     );
   }
 
+  /**
+   * Handles the creation of a new attribute.
+   *
+   * This method is triggered by an event and performs the following steps:
+   * 1. Disables the "add attribute" button.
+   * 2. Parses the attribute component and generates a unique ID for the new attribute.
+   * 3. Interpolates the attribute component with the unique ID.
+   * 4. If there are no existing attributes, it creates a new attribute row and appends it to the page.
+   * 5. If there are existing attributes, it creates a new attribute row and appends it to the page.
+   * 6. Initializes a new attribute object with default values.
+   * 7. Invokes methods to handle attribute inputs and buttons.
+   *
+   * @param {Event} e - The event object that triggered the attribute creation.
+   * @private
+   */
   #handleAttributeCreation(e) {
     const page = this.dialogue.page;
     page.querySelector("#add-attribute-btn").setAttribute("disabled", true);
@@ -788,6 +850,13 @@ export class AttributeSelectionService {
     this.#invokeAttributeButtons(attribute, page);
   }
 
+  /**
+   * Invokes event listeners for attribute buttons on the given page.
+   *
+   * @param {Object} attribute - The attribute object containing the id.
+   * @param {HTMLElement} page - The page element where the buttons are located.
+   * @private
+   */
   #invokeAttributeButtons(attribute, page) {
     const confirmChanges = page.querySelector(
       "#confirm-changes-" + attribute.id
@@ -811,6 +880,18 @@ export class AttributeSelectionService {
     }
   }
 
+  /**
+   * Invokes grid elements within the specified table element.
+   *
+   * This method adds event listeners to each cell in the table to handle focus and blur events.
+   * When a cell gains focus and contains the text "Enter value", the text is cleared.
+   * When a cell loses focus and is empty, the text "Enter value" is set.
+   * Additionally, an input event listener is added to the table element to call the
+   * `#addCellEditListeners` method.
+   *
+   * @param {HTMLElement} tableElement - The table element containing the grid cells.
+   * @private
+   */
   #invokeGridElements(tableElement) {
     if (tableElement) {
       tableElement.querySelectorAll("td").forEach((cell) => {
@@ -831,6 +912,14 @@ export class AttributeSelectionService {
       });
     }
   }
+
+  /**
+   * Invokes attribute inputs and sets up event listeners for attribute name and type changes.
+   *
+   * @param {Object} attribute - The attribute object to be updated.
+   * @param {HTMLElement} page - The page element containing the input fields.
+   * @returns {Object} The updated attribute object.
+   */
   #invokeAttributeInputs(attribute, page) {
     const attribute_name_input = page.querySelector(
       "#attribute-name-input-" + attribute.id
@@ -850,6 +939,15 @@ export class AttributeSelectionService {
     return attribute;
   }
 
+  /**
+   * Converts a given type identifier to its corresponding type string.
+   *
+   * @param {string} type - The type identifier to be converted. Expected values are:
+   *                        "1" for integer (INT),
+   *                        "2" for string (STRING),
+   *                        "3" for float (FLOAT).
+   * @returns {string} The corresponding type string ("INT", "STRING", "FLOAT").
+   */
   #typeConversion(type) {
     switch (type) {
       case "1":
@@ -861,6 +959,12 @@ export class AttributeSelectionService {
     }
   }
 
+  /**
+   * Converts a given type to its corresponding string representation.
+   *
+   * @param {string} type - The type to be converted. Possible values are "INT", "STRING", and "FLOAT".
+   * @returns {string} - The string representation of the type. "1" for "INT", "2" for "STRING", and "3" for "FLOAT".
+   */
   #typeDeconversion(type) {
     switch (type) {
       case "INT":
@@ -872,6 +976,15 @@ export class AttributeSelectionService {
     }
   }
 
+  /**
+   * Deletes the specified attribute from the attribute data and updates the UI accordingly.
+   *
+   * @param {Object} attribute - The attribute object to be deleted.
+   * @param {number} attribute.id - The unique identifier of the attribute.
+   * @param {string} attribute.name - The name of the attribute.
+   *
+   * @private
+   */
   #deleteAttribute(attribute) {
     const page = this.dialogue.page;
 
@@ -915,6 +1028,14 @@ export class AttributeSelectionService {
     }
   }
 
+  /**
+   * Displays a toast notification with the specified type, message, and duration.
+   *
+   * @param {Object} options - The options for the toast notification.
+   * @param {string} [options.type="information"] - The type of the toast notification (e.g., "information", "error").
+   * @param {string|null} [options.message=null] - The message to display in the toast notification.
+   * @param {string|number} [options.duration="5000"] - The duration for which the toast notification should be displayed (in milliseconds).
+   */
   #pushToast({ type = "information", message = null, duration = "5000" }) {
     if (isNullOrUndefined(message)) {
       return;
@@ -927,6 +1048,17 @@ export class AttributeSelectionService {
     });
   }
 
+  /**
+   * Handles the confirmation of the attribute editor.
+   * Validates the attribute data, updates or adds the attribute to the attribute_data,
+   * updates the concept_data with the updated attribute, and updates the UI accordingly.
+   *
+   * @param {Object} attribute - The attribute object to be confirmed.
+   * @param {string} attribute.id - The unique identifier of the attribute.
+   * @param {string} attribute.name - The name of the attribute.
+   * @param {string} attribute.type - The type of the attribute.
+   * @private
+   */
   #handleConfirmEditor(attribute) {
     // Validate the concept data
     if (!attribute || attribute.name === "") {
@@ -1039,6 +1171,19 @@ export class AttributeSelectionService {
       });
   }
 
+  /**
+   * Handles the cancellation of the attribute editor.
+   * 
+   * This method performs the following actions:
+   * - Retrieves various elements related to the attribute from the page.
+   * - If there are no attributes in `this.attribute_data`, it resets the input fields, removes the accordion, 
+   *   shows a "none available" message, and enables the "add attribute" button.
+   * - If there are attributes but the input fields are empty or invalid, it removes the accordion and enables 
+   *   the "add attribute" button.
+   * - If the input fields are valid, it simulates a click on the accordion's children label.
+   * 
+   * @param {Object} attribute - The attribute object containing the attribute's id.
+   */
   #handleCancelEditor(attribute) {
     const page = this.dialogue.page;
     const attribute_name_input = page.querySelector(
@@ -1086,6 +1231,19 @@ export class AttributeSelectionService {
     this.#renderView(CSEL_VIEWS[desired]);
   }
 
+  /**
+   * Paints the selection attributes on the page.
+   * 
+   * This method updates the UI to reflect the current state of attribute selection.
+   * It hides or shows elements based on whether attributes are selected and sets up
+   * event listeners for attribute creation and deletion.
+   * 
+   * @private
+   * @method #paintSelectionAttributes
+   * @memberof AttributeSelectionService
+   * 
+   * @returns {void}
+   */
   #paintSelectionAttributes() {
     const page = this.dialogue.page;
     if (
