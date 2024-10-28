@@ -540,21 +540,24 @@ export class AttributeSelectionService {
   }
 
   #cellValidation(targetInput, type, attributeName, rIndex) {
+    if (targetInput.trim() === "") {
+      return true;
+    }
     if (!/^[a-zA-Z]+$/.test(targetInput) && type === "2") {
       this.#pushToast({
         type: "danger",
-        message: `Attribute ${attributeName} with row index ${rIndex} is integer`,
+        message: `Attribute ${attributeName} with row index ${rIndex} is not a string`,
       });
       return false;
     }
     if (isNaN(targetInput) && type === "1") {
       this.#pushToast({
         type: "danger",
-        message:`Attribute ${attributeName} with row index ${rIndex} is string`,
+        message: `Attribute ${attributeName} with row index ${rIndex} is not an integer`,
       });
       return false;
     }
-    if (!parseFloat(targetInput) && type === "3") {
+    if (!/^[-+]?[0-9]*(\.[0-9]+)$/.test(targetInput) && type === "3") {
       this.#pushToast({
         type: "danger",
         message: `Attribute ${attributeName} with row index ${rIndex} is not a float`,
@@ -677,7 +680,7 @@ export class AttributeSelectionService {
               attribute.value,
               attribute.type,
               attribute.name,
-              i+1
+              i + 1
             )
           ) {
             validated = false;
