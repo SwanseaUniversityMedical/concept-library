@@ -729,7 +729,6 @@ export class AttributeSelectionService {
         }
       }
     }
-    console.log(validated);
 
     if (validated) {
       this.temporarly_concept_data.forEach((concept) => {
@@ -1116,7 +1115,6 @@ export class AttributeSelectionService {
       const existingConceptAttributeIndex = concept.attributes.findIndex(
         (attr) => attr.name === attribute.name
       );
-      console.log(existingConceptAttributeIndex);
       if (existingAttributeIndex !== -1) {
         // Update the existing attribute in concept.attributes with the new name and type if they have changed
         const existingConceptAttribute =
@@ -1133,7 +1131,6 @@ export class AttributeSelectionService {
         concept.attributes.push(attribute);
       }
     });
-    console.log(this.temporarly_concept_data);
 
     // Update the accordian label with the new attribute details
     const accordian = this.dialogue.page.querySelector(
