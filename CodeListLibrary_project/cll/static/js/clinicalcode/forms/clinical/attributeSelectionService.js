@@ -257,7 +257,7 @@ export class AttributeSelectionService {
       this.#renderView(view);
       this.#createGridTable(this.temporarly_concept_data);
       const tableElement = document.querySelector("#tab-content table");
-      this.#invokeGridElements(tableElement)
+      this.#invokeGridElements(tableElement);
 
       this.dialogue.element.addEventListener("selectionUpdate", (e) => {
         this.close();
@@ -433,8 +433,9 @@ export class AttributeSelectionService {
     const table = new gridjs.Grid({
       columns: ["Concept"],
       data: concept_data.map((concept) => [
-        concept.is_new ? `${concept.details.name}` :
-          `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`,
+        concept.is_new
+          ? `${concept.details.name}`
+          : `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`,
       ]),
     }).render(document.getElementById("tab-content"));
 
@@ -442,8 +443,10 @@ export class AttributeSelectionService {
       const transformedData = [];
       for (let i = 0; i < concept_data.length; i++) {
         const concept = concept_data[i];
-        const rowData = [ concept.is_new ? `${concept.details.name}` :
-          `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`,
+        const rowData = [
+          concept.is_new
+            ? `${concept.details.name}`
+            : `${concept.details.phenotype_owner}/${concept.details.phenotype_owner_history_id}/${concept.concept_id} - ${concept.details.name}`,
         ];
         if (concept.attributes) {
           for (let j = 0; j < concept.attributes.length; j++) {
@@ -536,11 +539,25 @@ export class AttributeSelectionService {
     }
   }
 
-  #cellValidation(targetInput, attribute) {
-    if (!isNaN(targetInput)) {
+  #cellValidation(targetInput, type, attributeName, rIndex) {
+    if (!/^[a-zA-Z]+$/.test(targetInput) && type === "2") {
       this.#pushToast({
         type: "danger",
-        message: "Attribute is number",
+        message: `Attribute ${attributeName} with row index ${rIndex} is integer`,
+      });
+      return false;
+    }
+    if (isNaN(targetInput) && type === "1") {
+      this.#pushToast({
+        type: "danger",
+        message:`Attribute ${attributeName} with row index ${rIndex} is string`,
+      });
+      return false;
+    }
+    if (!parseFloat(targetInput) && type === "3") {
+      this.#pushToast({
+        type: "danger",
+        message: `Attribute ${attributeName} with row index ${rIndex} is not a float`,
       });
       return false;
     }
@@ -576,7 +593,7 @@ export class AttributeSelectionService {
         {
           this.#createGridTable(this.temporarly_concept_data);
           const tableElement = document.querySelector("#tab-content table");
-          this.#invokeGridElements(tableElement)
+          this.#invokeGridElements(tableElement);
         }
         break;
 
@@ -647,29 +664,54 @@ export class AttributeSelectionService {
       return;
     }
 
-    // Clean up the attributes in concept_data
-    this.temporarly_concept_data.forEach((concept) => {
+    // Clean up the attributes in concept_data and validate
+    let validated = true;
+
+    for (let i = 0; i < this.temporarly_concept_data.length; i++) {
+      const concept = this.temporarly_concept_data[i];
       if (concept.attributes) {
-        concept.attributes = concept.attributes.map((attr) => ({
-          name: attr.name,
-          value: attr.value,
-          type: this.#typeConversion(attr.type),
-        }));
+        for (let j = 0; j < concept.attributes.length; j++) {
+          const attribute = concept.attributes[j];
+          if (
+            !this.#cellValidation(
+              attribute.value,
+              attribute.type,
+              attribute.name,
+              i+1
+            )
+          ) {
+            validated = false;
+          }
+        }
       }
-    });
+    }
+    console.log(validated);
 
-    this.options.concept_data = JSON.parse(
-      JSON.stringify(this.temporarly_concept_data)
-    );
+    if (validated) {
+      this.temporarly_concept_data.forEach((concept) => {
+        if (concept.attributes) {
+          concept.attributes = concept.attributes.map((attr) => ({
+            name: attr.name,
+            value: attr.value,
+            type: this.#typeConversion(attr.type),
+          }));
+        }
+      });
 
-    console.log(this.options.concept_data);
-    const event = new CustomEvent("selectionUpdate", {
-      detail: {
-        data: this.options.concept_data,
-        type: CSEL_EVENTS.CONFIRMED,
-      },
-    });
-    this.dialogue?.element.dispatchEvent(event);
+      this.options.concept_data = JSON.parse(
+        JSON.stringify(this.temporarly_concept_data)
+      );
+
+      const event = new CustomEvent("selectionUpdate", {
+        detail: {
+          data: this.options.concept_data,
+          type: CSEL_EVENTS.CONFIRMED,
+        },
+      });
+      this.dialogue?.element.dispatchEvent(event);
+    } else {
+      return;
+    }
   }
 
   /**
