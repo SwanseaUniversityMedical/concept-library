@@ -1188,6 +1188,52 @@ def admin_mig_phenotypes_dt(request):
                     'action_title': 'Migrate Phenotypes'
                 }
             )
+@login_required
+def admin_add_attribute_ws(request):
+
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    if request.method == 'GET':
+        return render(request, 'clinicalcode/adminTemp/admin_temp_tool.html', 
+                      {'url': reverse('admin_add_attribute_ws'),
+                       'action_title': 'Add Attributes to the legacy concepts'
+                    })
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+    
+    db_versions = ['public.clinicalcode_genericentity', 'public.clinicalcode_historicalgenericentity']
+    for i in range(len(db_versions)):
+        with connection.cursor() as cursor:
+            sql = """
+            UPDATE """ + db_versions[i]  + """ 
+            SET template_data = jsonb_set(
+                template_data,
+                '{concept_information}',
+                (SELECT jsonb_agg(
+                            CASE 
+                                WHEN info ? 'attributes' THEN info 
+                                ELSE jsonb_set(info, '{attributes}', '[]'::jsonb) 
+                            END
+                        )
+                FROM jsonb_array_elements(template_data->'concept_information') AS info))
+            """
+            cursor.execute(sql)
+            print(cursor.rowcount, "record(s) affected")
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {   'pk': -10,
+            'action_title': 'Fix attbibutes for legacy concepts',
+        }
+    )
 
 @login_required
 def admin_fix_breathe_dt(request):
@@ -1215,6 +1261,7 @@ def admin_fix_breathe_dt(request):
     # post
     if request.method != 'POST':
         raise BadRequest('Invalid')
+        
 
     with connection.cursor() as cursor:
         sql = """
