@@ -38,6 +38,7 @@ from .OXMIS_CODES import OXMIS_CODES
 from .GPRD_PRODUCT_CODES import GPRD_PRODUCT_CODES
 from .EMIS_CODES import EMIS_CODES
 from .VISION_CODES import VISION_CODES
+from .MESH_CODES import MESH_CODES
 
 from .Template import Template
 from .GenericEntity import GenericEntity
