@@ -12,19 +12,26 @@
       <script type="application/json" desc-type="value" for="{{ component.field_name }}"></script>
     {% endif %}
 
-    <div class="publication-list-group__interface" data-class="string_inputlist" data-field="{{ component.field_name }}">
-      <p>Add {{ component.field_data.title }}</p>
-      <div class="publication-list-group__interface-children">
-        <input class="text-input" aria-label="{{ component.field_data.title }} details" type="text"
-          placeholder=""
-          minlength="3" pattern="^[a-zA-Z]{1,}.*?"
-          id="{{ component.field_data.title }}-input-box">
+    <div class="publication-list-group__interface" data-class="url_list" data-field="{{ component.field_name }}">
+      <div class="publication-list-group__interface-children publication-list-group__interface-children--references">
+        <div class="publication-list-group__interface-group">
+          <p>Enter Title</p>
+          <input class="text-input" aria-label="{{ component.field_data.title }} details" type="text" x-content="title"
+            placeholder="The Title of the reference"
+            minlength="3" pattern="^[a-zA-Z]{1,}.*?"
+            id="{{ component.field_data.title }}-input-box">
+          <p>Enter URL</p>
+          <input class="text-input" aria-label="{{ component.field_data.title }} details" type="text" x-content="url"
+            placeholder="Some URL to the reference e.g. http://website.com"
+            minlength="3" pattern="[Hh][Tt][Tt][Pp][Ss]?:\/\/(?:(?:[a-zA-Z\u00a1-\uffff0-9]+-?)*[a-zA-Z\u00a1-\uffff0-9]+)(?:\.(?:[a-zA-Z\u00a1-\uffff0-9]+-?)*[a-zA-Z\u00a1-\uffff0-9]+)*(?:\.(?:[a-zA-Z\u00a1-\uffff]{2,}))(?::\d{2,5})?(?:\/[^\s]*)?"
+            id="{{ component.field_data.title }}-input-box">
+        </div>
         <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add {{ component.field_data.title }}" id="add-input-btn">Add</button>
       </div>
     </div>
   
     <section class="publication-list-group__none-available " id="no-available-publications">
-      <p class="publication-list-group__none-available-message">You haven't added any yet.</p>
+      <p class="publication-list-group__none-available-message">You haven't added any {{ component.field_data.title }} yet.</p>
     </section>
 
     <section class="publication-list-group__list show" id="publication-group">

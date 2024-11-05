@@ -12,15 +12,19 @@
       {% if component.value|length %}
         <ul>
           {% for p in component.value %}
+            {% if p.title and p.title|length %}
             <li>
-              <a href="{{ p }}">{{ p }}</a>
+              <a href="{% if p.url and p.url|length %}{{ p.url }}{% endif %}"
+                 aria-label="Visit Reference: {{ p.title }}">
+                {{ p.title }}
+              </a>
             </li>
+            {% endif %}
           {% endfor %}
         </ul>
       {% else %}
-        <span class="card-no-data">No known items</span>
+        <span class="card-no-data">None available</span>
       {% endif %}
-      <!-- </div> -->
     </section>
   </div>
 </div>
