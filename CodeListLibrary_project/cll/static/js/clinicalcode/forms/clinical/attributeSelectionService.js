@@ -166,7 +166,6 @@ export class AttributeSelectionService {
     this.temporarly_concept_data = JSON.parse(
       JSON.stringify(options.concept_data)
     );
-    console.log(this.temporarly_concept_data);
 
     for (let j = 0; j < this.temporarly_concept_data.length; j++) {
       if (this.temporarly_concept_data[j].attributes) {
@@ -192,9 +191,6 @@ export class AttributeSelectionService {
         }
       }
     }
-    console.log(this.temporarly_concept_data);
-
-    console.log(this.temporarly_concept_data);
     this.attribute_data = [];
     this.temporarly_concept_data[0].attributes.forEach((attribute) => {
       this.attribute_data.push({
