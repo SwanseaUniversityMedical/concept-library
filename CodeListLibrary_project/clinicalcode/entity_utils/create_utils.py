@@ -79,10 +79,13 @@ def get_template_creation_data(request, entity, layout, field, default=None):
     if field_type == 'concept':
         values = []
         for item in data:
+            workingset_concept_attributes = None
+            if 'attributes' in item:
+                workingset_concept_attributes = item['attributes']
             value = concept_utils.get_clinical_concept_data(
                 item['concept_id'],
                 item['concept_version_id'],
-                concept_attributes=item['attributes'],
+                concept_attributes=workingset_concept_attributes,
                 aggregate_component_codes=False,
                 requested_entity_id=entity.id,
                 derive_access_from=request,
