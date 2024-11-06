@@ -38,7 +38,10 @@
         {% include "components/base/about_menu.html" %}
       {% endblock about_wrapper %}
 
-        
+      <!-- Add Blog link here -->
+      {% url 'blog_index_page' as blog_index_url %}
+      <a href="{{ blog_index_url }}" id="Blog">Blog</a>
+    
       {% url 'login' as login_url %}
       {% if not user.is_authenticated %}
         <!-- Need to change to profile later -->

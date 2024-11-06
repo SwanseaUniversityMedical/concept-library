@@ -20,22 +20,22 @@
 """
 
 from django.conf import settings
-from django.urls import re_path as url
+from django.urls import re_path as url, path
 from django.urls import include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.views import serve
 from django.db import connection
 from django.views.decorators.cache import cache_control
-
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail import urls as wagtail_urls
+from wagtail.documents import urls as wagtaildocs_urls
 from clinicalcode.views import View
 
-#--------------------------------------------------------------------
 # Utils
 def db_table_exists(table_name):
     return table_name.lower() in [x.lower() for x in connection.introspection.table_names()]
 
-#--------------------------------------------------------------------
 # Brands
 current_brand = ""
 current_brand = settings.CURRENT_BRAND
@@ -49,7 +49,6 @@ if db_table_exists("clinicalcode_brand"):
     brands = Brand.objects.values_list('name', flat=True)
     brands = [x.upper() for x in brands]
 
-#--------------------------------------------------------------------
 # URLs
 urlpatterns = []
 
@@ -72,7 +71,7 @@ for brand in brands:
     ]
 
 # Application URLs
-urlpatterns = [
+urlpatterns += [
     # api
     url(r'^api/v1/', include(('clinicalcode.api.urls', 'cll'), namespace='api')),
 
@@ -81,11 +80,17 @@ urlpatterns = [
 
     # app urls
     url(r'^', include('clinicalcode.urls')),
+
+    path('cms/', include(wagtailadmin_urls)),
+    path('documents/', include(wagtaildocs_urls)),
+    path('pages/', include(wagtail_urls)),
+    path('blog/', include('blog.urls')),
 ]
 
-#--------------------------------------------------------------------
 # Admin
 if not settings.CLL_READ_ONLY:
     urlpatterns += [
         url(r'^admin/', admin.site.urls),
     ]
+
+

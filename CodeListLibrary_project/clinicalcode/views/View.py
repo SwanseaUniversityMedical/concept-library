@@ -22,6 +22,9 @@ from ..models.CodingSystem import CodingSystem
 from ..models.DataSource import DataSource
 from ..models.Statistics import Statistics
 from ..models.OntologyTag import OntologyTag
+from blog.models import BlogPage
+from django.shortcuts import render, get_object_or_404
+from wagtail.models import Page
 
 from ..entity_utils.constants import ONTOLOGY_TYPES
 from ..entity_utils.permission_utils import should_render_template, redirect_readonly
@@ -34,10 +37,8 @@ logger = logging.getLogger(__name__)
 # Brand / Homepages incl. about
 # --------------------------------------------------------------------------
 def get_brand_index_stats(request, brand):
-    if Statistics.objects.all().filter(org__iexact=brand, type__iexact='landing-page').exists():
-        stat = Statistics.objects.filter(org__iexact=brand, type__iexact='landing-page')
-        if stat.exists():
-            stat = stat.order_by('-modified').first()
+    if Statistics.objects.filter(org__iexact=brand, type__iexact='landing-page').exists():
+        stat = Statistics.objects.filter(org__iexact=brand, type__iexact='landing-page').order_by('-modified').first()
         stats = stat.stat if stat else None
     else:
         from ..entity_utils.stats_utils import save_homepage_stats
@@ -49,20 +50,21 @@ def get_brand_index_stats(request, brand):
 
 def index(request):
     """
-        Displays the index homepage.
-        Assigns brand defined in the Django Admin Portal under "index_path".
-        If brand is not available it will rely on the default index path.
+    Displays the index homepage.
+    Assigns brand defined in the Django Admin Portal under "index_path".
+    If brand is not available it will rely on the default index path.
     """
     index_path = settings.INDEX_PATH
     brand = Brand.objects.filter(name__iexact=settings.CURRENT_BRAND)
 
-    # if the index_ function doesn't exist for the current brand force render of the default index_path
+    # if the index_ function doesn't exist for the current brand, force render of the default index_path
     try:
         if not brand.exists():
             return index_home(request, index_path)
         brand = brand.first()
         return getattr(sys.modules[__name__], "index_%s" % brand)(request, brand.index_path)
-    except:
+    except Exception as e:
+        logger.error(f"Error loading brand-specific index: {e}")
         return index_home(request, index_path)
 
 
@@ -70,15 +72,28 @@ def index_home(request, index_path):
     stats = get_brand_index_stats(request, 'ALL')
     brands = Brand.objects.all().values('name', 'description')
 
+    # Fetch all draft blog posts, without limiting to just 2
+    latest_blog_posts = BlogPage.objects.filter(live=False).order_by('-latest_revision_created_at')
+    blog_posts_with_urls = [
+        {'post': post, 'url': f"/pages/{post.id}/"}
+        for post in latest_blog_posts
+    ]
+
     return render(request, index_path, {
         'known_brands': brands,
         'published_concept_count': stats.get('published_concept_count'),
         'published_phenotype_count': stats.get('published_phenotype_count'),
         'published_clinical_codes': stats.get('published_clinical_codes'),
         'datasources_component_count': stats.get('datasources_component_count'),
-        'clinical_terminologies': stats.get('clinical_terminologies')
+        'clinical_terminologies': stats.get('clinical_terminologies'),
+        'blog_posts_with_urls': blog_posts_with_urls,
     })
 
+
+
+def preview_blog_post(request, post_id):
+    blog_post = get_object_or_404(Page, id=post_id).specific
+    return render(request, 'blog/blog_page.html', {'page': blog_post})
 
 def index_ADP(request, index_path):
     """

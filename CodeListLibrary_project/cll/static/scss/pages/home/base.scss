@@ -875,3 +875,203 @@
     }
   }
 }
+
+/* Latest Library News Section Styling */
+.latest-news-section {
+    position: absolute;
+    top: 80px;
+    right: 40px;
+    width: 800px;
+    height: auto;
+    padding: 0;
+    z-index: 2;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+/* Title for Latest Library News */
+.latest-news-section h2 {
+    text-align: center;
+    font-size: 2em;
+    font-weight: 300;
+    color: #333;
+    margin-bottom: 15px;
+    width: 100%;
+    position: relative;
+    z-index: 5;
+}
+
+.latest-news-section h2::after {
+    content: "";
+    display: block;
+    margin: 0 auto;
+    width: 60px;
+    height: 0.5px;
+    background-color: #333;
+    margin-top: 5px;
+}
+
+/* Carousel Container */
+.carousel-container {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Container for News Items */
+.news-container {
+    display: flex;
+    transition: transform 0.5s ease;
+    will-change: transform;
+}
+
+/* Individual News Item Styling */
+.news-item {
+    flex: 0 0 calc(50% - 15px);
+    margin-right: 30px;
+    background-color: #F9F9F9;
+    border: 0.2px solid rgba(104, 104, 104, 0.5);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 450px;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Remove right margin from the last item in each row */
+.news-item:nth-child(2n) {
+    margin-right: 0;
+}
+
+/* Image Styling */
+.news-image {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    background-color: white;
+    border-bottom: 0.2px solid rgba(104, 104, 104, 0.5);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+/* Text Section Styling */
+.news-text {
+    padding: 15px;
+    background-color: #F9F9F9;
+    border-top: none;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Content Title, Intro, and Meta Styling */
+.news-title, .news-intro {
+    margin-bottom: 10px;
+    color: #666;
+}
+
+/* Meta information and button container */
+.news-meta-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 20px; /* Added space at the top to move the block down */
+}
+
+.news-meta {
+    color: #666;
+    text-align: left;
+}
+
+/* Read More Button Styling */
+.news-read-more {
+    background-color: #000;
+    border-color: #000;
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1.2em;
+    align-self: flex-end;
+    margin-bottom: 20px; /* Added space at the bottom to push it further down */
+}
+
+/* Carousel Control Buttons */
+.carousel-control {
+    position: absolute;
+    top: -45px;
+    right: 10px;
+    background-color: white;
+    color: black;
+    border: 1px solid #ddd;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.carousel-control.prev {
+    right: 55px;
+}
+
+.carousel-control.next {
+    right: 10px;
+}
+
+/* Dot Indicators */
+.carousel-dots {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.carousel-dots .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 0 5px;
+    background-color: #bbb;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.carousel-dots .dot.active {
+    background-color: #333;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

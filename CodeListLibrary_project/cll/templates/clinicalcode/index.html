@@ -3,6 +3,8 @@
 {% load compress %}
 {% load sass_tags %}
 {% load entity_renderer %}
+{% load wagtailcore_tags %}
+{% load wagtailimages_tags %}
 
 {% block title %}| Home{% endblock title %}
 
@@ -17,8 +19,7 @@
 {% endcompress %}
 
 <header class="main-header main-header--collapse homepage-hero-banner">
-  <div
-    class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+  <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
     <section class="homepage-hero">
       <div class="homepage-hero__container">
         <div class="homepage-hero__details">
@@ -36,7 +37,7 @@
         <form class="homepage-hero__search" action="{% url 'search_phenotypes' %}" method="GET">
           <input class="homepage-hero__search-input" aria-label="Search Phenotypes" type="text"
             id="data-search" name="search" placeholder="Search..." minlength="3">
-          <button class="homepage-hero__search-icon" tabindex="0" 
+          <button class="homepage-hero__search-icon" tabindex="0"
             name="page" value="1" aria-label="Go to Phenotype Search">
           </button>
         </form>
@@ -45,6 +46,62 @@
     </section>
   </div>
 </header>
+
+<!-- Latest Library News Section -->
+<div class="latest-news-section">
+    <h2>Latest Library News</h2>
+    <div class="carousel-wrapper">
+        <!-- Add the navigation buttons for the carousel -->
+        <button class="carousel-control prev">❮</button>
+        <div class="carousel-container">
+            <div class="news-container">
+                {% if blog_posts_with_urls|length > 0 %}
+                {% for item in blog_posts_with_urls %}
+                <div class="news-item">
+                    <div class="news-content">
+                        <!-- Image linked to the blog post -->
+                        {% if item.post.main_image %}
+                        <a href="{% url 'blog_detail_page' slug=item.post.slug %}">
+                            <picture>
+                                {% image item.post.main_image width-500 format-webp as image_webp %}
+                                <source srcset="{{ image_webp.url }}" type="image/webp">
+
+                                {% image item.post.main_image width-500 format-png as image_png %}
+                                <source srcset="{{ image_png.url }}" type="image/png">
+
+                                <img src="{{ image_png.url }}" alt="{{ item.post.title }}" class="news-image">
+                            </picture>
+                        </a>
+                        {% endif %}
+
+                        <!-- Text content linked to the blog post -->
+                        <div class="news-text">
+                            <h5 class="news-title"><a href="{% url 'blog_detail_page' slug=item.post.slug %}">{{ item.post.title }}</a></h5>
+                            <p class="news-intro">{{ item.post.intro }}</p>
+                            <div class="news-meta-container">
+                                <div>
+                                    <p class="news-meta">Author: {{ item.post.owner.get_full_name }}</p>
+                                    <p class="news-meta">Date: {{ item.post.date }}</p>
+                                </div>
+                                <a href="{% url 'blog_detail_page' slug=item.post.slug %}" class="news-read-more">Read More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p>No recent posts available.</p>
+                {% endif %}
+            </div>
+        </div>
+        <button class="carousel-control next">❯</button>
+    </div>
+    <!-- Dot indicators -->
+    <div class="carousel-dots"></div>
+</div>
+
+<!-- Link the JavaScript file at the bottom of the body -->
+<script src="{% static 'js/blog/carousel.js' %}" defer></script>
 
 <main class="main-content">
   <div
