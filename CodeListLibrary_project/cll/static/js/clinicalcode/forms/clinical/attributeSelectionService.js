@@ -166,30 +166,43 @@ export class AttributeSelectionService {
     this.temporarly_concept_data = JSON.parse(
       JSON.stringify(options.concept_data)
     );
+    console.log(this.temporarly_concept_data);
 
-    this.temporarly_concept_data.forEach((concept) => {
-      if (concept.attributes) {
-        concept.attributes.forEach((attribute) => {
-          const uuid = this.#generateUUID();
-          attribute.id = uuid;
+    for (let j = 0; j < this.temporarly_concept_data.length; j++) {
+      if (this.temporarly_concept_data[j].attributes) {
+        this.temporarly_concept_data[j].attributes.forEach((attribute) => {
+          attribute.id = this.#generateUUID();
           attribute.type = this.#typeDeconversion(attribute.type);
         });
+      } else {
+        if (this.temporarly_concept_data[0].attributes) {
+          this.temporarly_concept_data[j].attributes =
+            this.temporarly_concept_data[0].attributes.map((attribute) => ({
+              ...attribute,
+              value: " ",
+            }));
+        } else {
+          this.temporarly_concept_data[j].attributes = [];
+          this.temporarly_concept_data[j].attributes.push({
+            id: this.#generateUUID(),
+            name: "Attribute test name",
+            type: "1",
+            value: " ",
+          });
+        }
       }
-    });
-
-    if (!this.options.concept_data[0].attributes) {
-      this.attribute_data = [];
-    } else {
-      this.attribute_data = [];
-
-      this.temporarly_concept_data[0].attributes.forEach((attribute) => {
-        this.attribute_data.push({
-          id: attribute.id,
-          name: attribute.name,
-          type: attribute.type,
-        });
-      });
     }
+    console.log(this.temporarly_concept_data);
+
+    console.log(this.temporarly_concept_data);
+    this.attribute_data = [];
+    this.temporarly_concept_data[0].attributes.forEach((attribute) => {
+      this.attribute_data.push({
+        id: attribute.id,
+        name: attribute.name,
+        type: attribute.type,
+      });
+    });
   }
 
   /*************************************
@@ -1170,15 +1183,15 @@ export class AttributeSelectionService {
 
   /**
    * Handles the cancellation of the attribute editor.
-   * 
+   *
    * This method performs the following actions:
    * - Retrieves various elements related to the attribute from the page.
-   * - If there are no attributes in `this.attribute_data`, it resets the input fields, removes the accordion, 
+   * - If there are no attributes in `this.attribute_data`, it resets the input fields, removes the accordion,
    *   shows a "none available" message, and enables the "add attribute" button.
-   * - If there are attributes but the input fields are empty or invalid, it removes the accordion and enables 
+   * - If there are attributes but the input fields are empty or invalid, it removes the accordion and enables
    *   the "add attribute" button.
    * - If the input fields are valid, it simulates a click on the accordion's children label.
-   * 
+   *
    * @param {Object} attribute - The attribute object containing the attribute's id.
    */
   #handleCancelEditor(attribute) {
@@ -1230,15 +1243,15 @@ export class AttributeSelectionService {
 
   /**
    * Paints the selection attributes on the page.
-   * 
+   *
    * This method updates the UI to reflect the current state of attribute selection.
    * It hides or shows elements based on whether attributes are selected and sets up
    * event listeners for attribute creation and deletion.
-   * 
+   *
    * @private
    * @method #paintSelectionAttributes
    * @memberof AttributeSelectionService
-   * 
+   *
    * @returns {void}
    */
   #paintSelectionAttributes() {
