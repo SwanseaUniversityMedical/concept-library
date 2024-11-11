@@ -102,6 +102,17 @@
                 </li>
               </ul>
             </section>
+            {% if c.attributes %}
+            <section class="concept-group-content__details">
+              <h4>
+                {% if not c.attributes.0.value.strip %}
+                  CONCEPT ATTRIBUTE - {{ c.attributes.0.name }} - {{ c.attributes.0.type}}
+                  {% else %}
+                  CONCEPT ATTRIBUTE - {{ c.attributes.0.name }} - {{ c.attributes.0.type}} - {{ c.attributes.0.value}} 
+                {% endif %}
+              </h4>
+            </section>
+            {% endif %}
           </section>
 
           <div class="detailed-input-group fill constrained" style="max-width: 100%">

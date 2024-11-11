@@ -1,0 +1,172 @@
+<div class="tab-view" id="tab-view">
+  <div class="tab-view__tabs tab-view__tabs-z-buffer">
+    <button aria-label="tab" id="SEARCH" class="tab-view__tab active">
+      All concepts
+    </button>
+    <button aria-label="tab" id="SELECTION" class="tab-view__tab">
+      All Attributes
+    </button>
+  </div>
+  <div class="tab-view__content" id="tab-content">
+    <div class="search-page as-selection" id="selection-search">
+      <section class="entity-search-results entity-search-results--constrained">
+        <div class="entity-search-results__header">
+          <div
+            class="entity-search-results__header-results"
+            id="search-response-header"
+          ></div>
+          <div class="entity-search-results__header-modifiers">
+            <div class="selection-group">
+              <p class="selection-group__title">Order By:</p>
+              <div class="dropdown-selection">
+                <select
+                  id="order-by-filter"
+                  placeholder-text="By Relevance"
+                  data-element="dropdown"
+                  data-field="order_by"
+                  data-class="option"
+                  class="hide"
+                >
+                  <option
+                    value="1"
+                    class="dropdown-selection__list-item"
+                    selected=""
+                  >
+                    Relevance
+                  </option>
+                  <option value="2" class="dropdown-selection__list-item">
+                    Created (Asc)
+                  </option>
+                  <option value="3" class="dropdown-selection__list-item">
+                    Created (Desc)
+                  </option>
+                  <option value="4" class="dropdown-selection__list-item">
+                    Updated (Asc)
+                  </option>
+                  <option value="5" class="dropdown-selection__list-item">
+                    Updated (Desc)
+                  </option></select
+                ><button
+                  class="dropdown-selection__button"
+                  data-value="null"
+                  type="button"
+                >
+                  <span>Relevance</span
+                  ><span class="dropdown-selection__button-icon"></span>
+                </button>
+                <ul class="dropdown-selection__list">
+                  <li
+                    class="dropdown-selection__list-item"
+                    data-value="1"
+                    aria-label="Relevance"
+                    tabindex="0"
+                    role="button"
+                  >
+                    Relevance
+                  </li>
+                  <li
+                    class="dropdown-selection__list-item"
+                    data-value="2"
+                    aria-label="Created (Asc)"
+                    tabindex="0"
+                    role="button"
+                  >
+                    Created (Asc)
+                  </li>
+                  <li
+                    class="dropdown-selection__list-item"
+                    data-value="3"
+                    aria-label="Created (Desc)"
+                    tabindex="0"
+                    role="button"
+                  >
+                    Created (Desc)
+                  </li>
+                  <li
+                    class="dropdown-selection__list-item"
+                    data-value="4"
+                    aria-label="Updated (Asc)"
+                    tabindex="0"
+                    role="button"
+                  >
+                    Updated (Asc)
+                  </li>
+                  <li
+                    class="dropdown-selection__list-item"
+                    data-value="5"
+                    aria-label="Updated (Desc)"
+                    tabindex="0"
+                    role="button"
+                  >
+                    Updated (Desc)
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="entity-search-results__container scrollable slim-scrollbar"
+          id="search-response-content"
+        >
+          <article
+            class="entity-card inactive"
+            data-entity-id="PH1"
+            data-entity-version-id="2901"
+            style="padding: 0"
+          >
+            <div class="entity-card__header">
+              <div class="entity-card__header-item">
+                <h3 class="entity-card__title">
+                  PH7 / 2897 / C722 - Psoriasis - Primary Care | Read codes v2
+                </h3>
+              </div>
+            </div>
+            <div class="entity-card__snippet">
+              <div class="entity-card__snippet-datagroup" id="datagroup">
+                <div
+                  style="margin-top: 0.5rem"
+                  class="fill-accordian"
+                  id="children-accordian-PH1"
+                >
+                  <input
+                    class="fill-accordian__input"
+                    id="children-PH1"
+                    name="children-PH1"
+                    type="checkbox"
+                  /><label
+                    class="fill-accordian__label"
+                    for="children-PH1"
+                    id="children-PH1"
+                    role="button"
+                    tabindex="0"
+                    ><span>Added attributes</span></label
+                  >
+                  <article
+                    style="padding: 0.5rem"
+                    class="fill-accordian__container"
+                    id="data"
+                  >
+                    <div class="checkbox-item-container" id="child-selector">
+                      <label class="constrained-filter-item" for="concept-715"
+                        >INT - Attribute name - Attribute value</label
+                      >
+                    </div>
+                    <div class="checkbox-item-container" id="child-selector">
+                      <label class="constrained-filter-item" for="concept-714"
+                        >INT - Attribute name - Attribute value</label
+                      >
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </div>
+            <div class="entity-card__snippet" style="padding: 0.5rem"></div>
+          </article>
+
+          
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
