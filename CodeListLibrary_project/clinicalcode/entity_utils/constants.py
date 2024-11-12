@@ -154,7 +154,7 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
 """
 ONTOLOGY_LABELS = {
     ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
-    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (ICD-10)',
+    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (SNOMED)',
     ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
 }
 

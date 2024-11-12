@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
 
 
             --[!] create, update & manage OntologyTag trigger;
-            create function ot_gin_tgram_trigger() returns trigger
+            create or replace function ot_gin_tgram_trigger() returns trigger
             language plpgsql AS $bd$
             begin
                 new.search_vector := 

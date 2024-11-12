@@ -93,6 +93,7 @@ def get_ontology_nodes(request):
             - `page` - the page number cursor (defaults to 1)
             - `page_size` - denotes page size enum, where `1` = 20 rows, `2` = 50 rows and `3` = 100 rows
             - `codes` - one or more SNOMED code(s) to filter on the related ontology code string (delimited by ',')
+            - `fuzzy_codes` - apply this parameter if you would like to fuzzy match the given `codes` across all related mappings (ICD-9/10, MeSH, OPSC4, ReadCodes etc)
             - `search` - full-text search on ontology name(s)
             - `type_ids` - one or more id(s) to filter on ontology type (delimited by ',')
             - `reference_ids` - one or more id(s) to filter on atlas reference id (delimited by ',')
@@ -134,6 +135,7 @@ def get_ontology_nodes(request):
     codes = params.pop('codes', None)
     codes = codes.split(',') if codes is not None else None
     codes = gen_utils.try_value_as_type(codes, 'string_array')
+
     alt_codes = None
     if isinstance(codes, list):
         alt_cleaner = re.compile('[^0-9a-zA-Z]')
@@ -141,22 +143,28 @@ def get_ontology_nodes(request):
         codes = [ code.lower() for code in codes ]
         alt_codes = [ alt_cleaner.sub('', code) for code in codes ]
 
-        # Direct search for snomed?
-        clauses.append('''node.properties::json->>'code' is not null and (
-            lower(node.properties::json->>'code'::text) = any(%(codes)s)
-            or regexp_replace(lower(node.properties::json->>'code'::text), '[^aA-zZ0-9\-]', '', 'g') = any(%(alt_codes)s)
-        )''')
-
-        # Opt?
+        # Future Opt?
         #  -> Direct search for other coding systems?
 
-        # Opt?
-        #  -> Fuzzy code search option?
-
+        if request.GET.get('fuzzy_codes'):
+            # Fuzzy across every code mapping
+            clauses.append('''(
+                (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', array_to_string(%(codes)s, '|'))::text || ':*', '<->', '|')))
+                or (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', array_to_string(%(alt_codes)s, '|'))::text || ':*', '<->', '|')))
+            )''')
+        else:
+            # Direct search for snomed
+            clauses.append('''node.properties::json->>'code' is not null and (
+                lower(node.properties::json->>'code'::text) = any(%(codes)s)
+                or regexp_replace(lower(node.properties::json->>'code'::text), '[^aA-zZ0-9\-]', '', 'g') = any(%(alt_codes)s)
+            )''')
 
     search = params.pop('search', None)
     search_rank = ''
     if isinstance(search, str):
+        # Future Opt?
+        #  -> Change search params, i.e. across syn, rel or desc?
+
         # Fuzzy across code / desc / synonyms / relation
         clauses.append('''(
             node.search_vector
@@ -168,9 +176,6 @@ def get_ontology_nodes(request):
 
         search_rank = search_rank + ' as score,'
         order_clause = '''order by t.score desc'''
-
-        # Opt?
-        #  -> Could impl. selection of syn/rel/vec
 
     if len(clauses) > 0:
         clauses = 'where %s' % (' and '.join(clauses), )

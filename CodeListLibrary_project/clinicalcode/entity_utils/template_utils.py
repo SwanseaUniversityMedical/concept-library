@@ -1,12 +1,9 @@
 from django.apps import apps
 from django.db.models import Q, ForeignKey
-from django.db.models.query import QuerySet
 
 from . import concept_utils
 from . import filter_utils
 from . import constants
-
-from ..models.OntologyTag import OntologyTag
 
 
 def try_get_content(body, key, default=None):
