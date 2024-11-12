@@ -128,9 +128,8 @@
       "field_type": "url_list",
       "active": true,
       "validation": {
-        "type": "string_array",
-        "mandatory": false,
-        "sanitise": "strict"
+        "type": "url_list",
+        "mandatory": false
       },
       "hide_if_empty": true
     },
@@ -143,7 +142,8 @@
         "type": "string",
         "mandatory": false,
         "length": [0, 250]
-      }
+      },
+      "hide_if_empty": true
     },
     "coding_system": {
       "title": "Coding System",

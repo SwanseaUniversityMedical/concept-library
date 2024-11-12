@@ -490,7 +490,7 @@ def validate_concept_form(form, errors):
                 )
 
                 if isinstance(code_attributes, list):
-                    if len(set(code_attributes)) != len(code_attributes):
+                    if len(set(attribute_headers)) != len(code_attributes):
                         errors.append(f'Invalid concept with ID {concept_id} - attribute headers must be unique.')
                         return None
 

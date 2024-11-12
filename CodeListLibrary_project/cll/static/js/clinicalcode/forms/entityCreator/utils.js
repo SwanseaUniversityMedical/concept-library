@@ -5,6 +5,7 @@ import PublicationCreator from '../clinical/publicationCreator.js';
 import TrialCreator from '../clinical/trialCreator.js';
 import EndorsementCreator from '../clinical/endorsementCreator.js';
 import StringInputListCreator from '../stringInputListCreator.js';
+import UrlReferenceListCreator from '../generic/urlReferenceListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
 
 import {
@@ -222,6 +223,21 @@ export const ENTITY_HANDLERS = {
     }
 
     return new StringInputListCreator(element, parsed)
+  },
+
+  // Generates a list component for an element
+  'url_list': (element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new UrlReferenceListCreator(element, parsed)
   },
 
   // Generates a clinical publication list component for an element
@@ -631,6 +647,36 @@ export const ENTITY_FIELD_COLLECTOR = {
 
   // Retrieves and validates list components
   'string_inputlist': (field, packet) => {
+    const handler = packet.handler;
+    const listItems = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(listItems) || listItems.length < 1) {
+        return {
+          valid: false,
+          value: listItems,
+          message: (isNullOrUndefined(listItems) || listItems.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, listItems);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: listItems,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates list components
+  'url_list': (field, packet) => {
     const handler = packet.handler;
     const listItems = handler.getData();
 
