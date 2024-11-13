@@ -1,3 +1,4 @@
+
 import time
 from django.urls import reverse
 from selenium.common.exceptions import NoSuchElementException
@@ -32,3 +33,37 @@ class TestWorkingsetComponents:
         attribute_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "add-concept-attribute-btn")))
         assert attribute_button
         logout(self.driver)
+    
+    @pytest.mark.functional_test
+    @pytest.mark.parametrize('user_type,entity_status',[
+          ('owner_user', 'ANY'),('owner_user', 'APPROVED'),('owner_user', 'REQUESTED'),
+    ])
+    def test_ws_button_no_concepts(self, live_server, generate_entity_session, user_type, generate_user, login, entity_status, logout):
+        user = generate_user[user_type]
+        login(self.driver, user.username, user.username + "password")
+
+        entities = generate_entity_session['entities']
+        record = entities.get(entity_status)
+        entity = record.get('entity')
+
+        
+        self.driver.get(live_server + reverse('entity_detail_shortcut', kwargs={ 'pk' : entity.id }))
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//*[@id='topButtons']/div/div/button[1]")))
+        edit_button = self.driver.find_element(By.XPATH, "//*[@id='topButtons']/div/div/button[1]")
+        edit_button.click()
+
+        delete_icon = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "delete-icon")))
+        delete_icon.click()
+
+        confirm_button_modal = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "confirm-button")))
+        confirm_button_modal.click()
+
+
+        attribute_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "add-concept-attribute-btn")))
+
+        assert attribute_button.is_enabled() == False
+        logout(self.driver)
+        alert = WebDriverWait(self.driver, 10).until(lambda d : d.switch_to.alert)
+        alert.accept()
+ 
+
