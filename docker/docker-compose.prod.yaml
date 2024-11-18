@@ -20,14 +20,9 @@ services:
       - redis
 
   engagelens:
-    platform: linux/amd64
-    build:
-      context: .
-      dockerfile: ./engagelens/app.Dockerfile
+    image: cll/engagelens
     command: >
       sh -c "/bin/wait-for-it.sh -t 0 app:80 -- gunicorn -b 0.0.0.0:8050 app:server"
-    volumes:
-      - ../engagelens:/engagelens
     expose:
       - 8050
     depends_on:
