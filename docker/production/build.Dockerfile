@@ -93,5 +93,7 @@ RUN a2ensite \
     env \
     rewrite \
     headers \
+    proxy  \
+    proxy_http \
     expires && \
   a2dissite 000-default
