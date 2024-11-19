@@ -593,7 +593,7 @@ export class AttributeSelectionService {
     if (targetInput.trim() === "") {
       return true;
     }
-    if (!/^[a-zA-Z]+$/.test(targetInput) && type === "2") {
+    if (!/^[a-zA-Z0-9]+$/.test(targetInput) && type === "2") {
       this.#pushToast({
         type: "danger",
         message: `Attribute ${attributeName} with row index ${rIndex} is not a string`,
