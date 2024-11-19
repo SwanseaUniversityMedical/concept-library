@@ -376,11 +376,7 @@ def validate_concept_form(form, errors):
                 attribute_type = attribute.get('type')
                 attribute_value = attribute.get('value')
                 if not gen_utils.is_empty_string(attribute_value):
-                    if attribute_type == 'STRING':
-                        if not attribute_value.strip().isalpha():
-                            errors.append(f'Attribute {attribute["name"]} must be a string without special characters.')
-                            continue
-                    elif attribute_type == 'INT':
+                    if attribute_type == 'INT':
                         try:
                             int(attribute_value)
                         except ValueError:
