@@ -64,6 +64,8 @@ class TestWorkingsetComponents:
         assert attribute_button.is_enabled() == False
         logout(self.driver)
 
+        alert = WebDriverWait(self.driver, 10).until(lambda d : d.switch_to.alert)
+        alert.accept()
 
     @pytest.mark.functional_test
     @pytest.mark.parametrize('user_type,entity_status',users_params)
@@ -102,7 +104,8 @@ class TestWorkingsetComponents:
         assert attribute_button.is_enabled() == True
 
         logout(self.driver)
-
+        alert = WebDriverWait(self.driver, 10).until(lambda d : d.switch_to.alert)
+        alert.accept()
  
     @pytest.mark.functional_test
     @pytest.mark.parametrize('user_type,entity_status',users_params)
@@ -264,14 +267,12 @@ class TestWorkingsetComponents:
         )
         row_element.clear()
         if (attribute_type == "STRING"):
-            row_element.send_keys('1')
+            row_element.send_keys('%3')
             
             confirm_button_modal = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "confirm-button")))
             confirm_button_modal.click()
 
-            toast_message = WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "toast__message")))
-            
-            assert toast_message.is_displayed()
+            assert "Attribute Selenium test with row index 1 is not a string" in self.driver.page_source
 
         elif (attribute_type == "INT"):
             row_element.send_keys("test")
@@ -281,9 +282,7 @@ class TestWorkingsetComponents:
             
             time.sleep(3)
             
-            toast_message = WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "toast__message")))
-            
-            assert toast_message.is_displayed()
+            assert "Attribute Selenium test with row index 1 is not an integer" in self.driver.page_source
         elif (attribute_type == "FLOAT"):
             row_element.send_keys("test")
               
@@ -292,9 +291,8 @@ class TestWorkingsetComponents:
             
             time.sleep(3)
             
-            toast_message = WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "toast__message")))
             
-            assert toast_message.is_displayed()
+            assert "Attribute Selenium test with row index 1 is not a float" in self.driver.page_source
     
         logout(self.driver)
 
