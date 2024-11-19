@@ -94,6 +94,7 @@ class TestWorkingsetComponents:
         assert attribute_button.is_enabled() == False
 
         create_concept_button = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "create-concept-btn")))
+        self.driver.execute_script("return arguments[0].scrollIntoView(true);", create_concept_button)
         create_concept_button.click()
 
      
