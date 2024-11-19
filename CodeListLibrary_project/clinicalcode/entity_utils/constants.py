@@ -840,8 +840,8 @@ FIELD_TYPES = {
         'output_type': 'string_inputlist',
     },
     'url_list': {
-        'input_type': 'string_inputlist',
-        'output_type': 'url_list',
+        'input_type': 'generic/url_list',
+        'output_type': 'generic/url_list',
     },
     'source_reference': {
         'data_type': 'string',

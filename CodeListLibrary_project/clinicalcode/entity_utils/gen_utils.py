@@ -382,6 +382,30 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         if not isinstance(field_value, list):
             return default
         return field_value
+    elif field_type == 'url_list':
+        if not isinstance(field_value, list):
+            return default
+
+        if len(field_value) < 0:
+            return field_value
+
+        valid = True
+        for val in field_value:
+            if not isinstance(val, dict):
+                valid = False
+                break
+
+            title = val.get('title')
+            if not title or not isinstance(title, str) or is_empty_string(title):
+                valid = False
+                break
+
+            url = val.get('url')
+            if url is not None and not isinstance(url, str):
+                valid = False
+                break
+
+        return field_value if valid else default
     elif field_type == 'publication':
         if not isinstance(field_value, list):
             return default

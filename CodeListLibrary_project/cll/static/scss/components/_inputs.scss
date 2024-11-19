@@ -19,6 +19,7 @@
 
   &__interface {
     display: flex;
+    max-width: 100%;
     flex-flow: column nowrap;
     height: min-content;
 
@@ -41,7 +42,31 @@
         font-weight: normal;
         margin-bottom: 0.25rem;
       }
+    
+      &--references {
+        & > button {
+          margin-top: 2rem;
+
+          @include media('<tablet', 'screen') {
+            margin-top: 1rem;
+          }
+        }
+      }
     }
+
+    &-group {
+      display: flex;
+      flex-grow: 1;
+      flex-flow: column nowrap;
+      height: min-content;
+      max-width: 100%;
+
+      input,
+      input:first-child {
+        margin-right: 2rem;
+      }
+    }
+
     &__trial {
     &-children {
       display: flex;
