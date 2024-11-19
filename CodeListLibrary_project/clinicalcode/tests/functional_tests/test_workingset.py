@@ -63,8 +63,7 @@ class TestWorkingsetComponents:
 
         assert attribute_button.is_enabled() == False
         logout(self.driver)
-        alert = WebDriverWait(self.driver, 10).until(lambda d : d.switch_to.alert)
-        alert.accept()
+
 
     @pytest.mark.functional_test
     @pytest.mark.parametrize('user_type,entity_status',users_params)
@@ -103,8 +102,7 @@ class TestWorkingsetComponents:
         assert attribute_button.is_enabled() == True
 
         logout(self.driver)
-        alert = WebDriverWait(self.driver, 10).until(lambda d : d.switch_to.alert)
-        alert.accept()
+
  
     @pytest.mark.functional_test
     @pytest.mark.parametrize('user_type,entity_status',users_params)
