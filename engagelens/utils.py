@@ -1,6 +1,6 @@
 import os
 from datetime import date
-
+from urllib.parse import quote
 import dash_bootstrap_components as dbc
 import pandas as pd
 import sqlalchemy as sa
@@ -167,7 +167,7 @@ def get_conn():
     POSTGRES_HOST = os.getenv('POSTGRES_HOST')
     POSTGRES_DB = os.getenv('POSTGRES_DB')
     POSTGRES_USER = os.getenv('POSTGRES_USER')
-    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+    POSTGRES_PASSWORD = quote(os.getenv('POSTGRES_PASSWORD'))
     POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 
     conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
