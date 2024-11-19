@@ -98,10 +98,20 @@ def generate_entity_session(template, generate_user, brands=None):
     system = CodingSystem.objects.create(
             name='Some system',
             link='',
-            database_connection_name='',
-            table_name='',
-            code_column_name='',
-            desc_column_name='',
+            database_connection_name='default',
+            table_name='clinicalcode_VISION_CODES',
+            code_column_name='CODE',
+            desc_column_name='DESCRIPTION',
+            codingsystem_id=0
+    )
+    CodingSystem.objects.create(
+            name='Some system2',
+            link='',
+            database_connection_name='default',
+            table_name='clinicalcode_VISION_CODES',
+            code_column_name='CODE',
+            desc_column_name='DESCRIPTION',
+            codingsystem_id=1
     )
 
     concept = Concept.objects.create(
@@ -115,6 +125,8 @@ def generate_entity_session(template, generate_user, brands=None):
     cc_cleanup.append(concept.id)
 
     template_data = {
+        'sex':'3',
+        'type':'2',
             'concept_information': [
                     {'concept_id': concept.id, 'concept_version_id': concept.history.first().history_id}
             ]
