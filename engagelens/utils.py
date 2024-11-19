@@ -168,7 +168,7 @@ def get_conn():
     POSTGRES_DB = os.getenv('DB_NAME')
     POSTGRES_USER = os.getenv('DB_USER')
     POSTGRES_PASSWORD = quote(os.getenv('DB_PASSWORD'))
-    POSTGRES_PORT = ''
+    POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 
     conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
     conn = sa.create_engine(conn_string)
