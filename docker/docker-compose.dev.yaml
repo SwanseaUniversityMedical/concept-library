@@ -36,3 +36,22 @@ services:
       - ./development/env/app.compose.env
     depends_on:
       - postgres
+
+  engagelens:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./engagelens/app.Dockerfile
+    command: >
+      sh -c "/bin/wait-for-it.sh -t 0 app:8000 -- gunicorn -b 0.0.0.0:8050 app:server "
+    volumes:
+      - ../engagelens:/engagelens
+    ports:
+      - 8050:8050
+    expose:
+      - 8050
+    depends_on:
+      - app
+    env_file:
+      - ./engagelens/env/app.compose.env
+
