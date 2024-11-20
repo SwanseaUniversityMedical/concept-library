@@ -50,7 +50,7 @@ def render_filters(conn):
             Row: A Dash Row component containing filter components.
     """
     min_date = read_phenotype_df(conn)['date'].min()
-    max_date = date.today().isoformat()
+    max_date = read_request_df(conn)['date'].max()
 
     return dbc.Row(
             children=[
