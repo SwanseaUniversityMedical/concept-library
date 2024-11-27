@@ -10,6 +10,7 @@ ENV SERVER_NAME=$server_name
 
 ENV LC_ALL=C.UTF-8
 ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Update package tool
 RUN apt-get update -y -q \
@@ -29,7 +30,7 @@ RUN apt-get install -y -q wget sudo nano dos2unix curl ca-certificates
 RUN apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev
 
 # Install npm
-RUN apt-get update && apt-get install -y \
+RUN apt-get update -y -q && apt-get install -y -q \
     software-properties-common \
     npm
 
