@@ -28,6 +28,9 @@ class Brand(TimeStampedModel):
 
     history = HistoricalRecords()
 
+    # Organisation controls
+    org_user_managed = models.BooleanField(default=False)
+
     class Meta:
         ordering = ('name', )
 

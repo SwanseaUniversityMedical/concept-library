@@ -42,6 +42,12 @@ from .VISION_CODES import VISION_CODES
 from .Template import Template
 from .GenericEntity import GenericEntity
 from .PublishedGenericEntity import PublishedGenericEntity
+from .Organisation import (
+  Organisation, 
+  OrganisationMembership, 
+  OrganisationAuthority, 
+  OrganisationInvite
+)
 
 # need to restore EMIS/Vision when deploy. to prod.
 #from .EMIS_CODES import EMIS_CODES

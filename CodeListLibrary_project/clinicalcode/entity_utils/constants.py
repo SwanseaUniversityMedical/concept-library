@@ -34,6 +34,27 @@ class IterableMeta(enum.EnumMeta):
             return True
 
 
+class ORGANISATION_ROLES(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Defines organisation roles
+    """
+    MEMBER = 0
+    EDITOR = 1
+    MODERATOR = 2
+    ADMIN = 3
+
+
+class ORGANISATION_INVITE_STATUS(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Defines organisation invite status
+    """
+    EXPIRED = 0
+    ACTIVE = 1
+    SEEN = 2
+    ACCEPTED = 3
+    REJECTED = 4
+
+
 class TAG_TYPE(int, enum.Enum):
     """
         Tag types used for differentiate Collections & Tags
@@ -146,6 +167,11 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     CLINICAL_DISEASE = 0
     CLINICAL_DOMAIN = 1
     CLINICAL_FUNCTIONAL_ANATOMY = 2
+
+"""
+    Number of days before organisation invite expires
+"""
+INVITE_TIMEOUT = 30
 
 """
     Used to define the labels for each

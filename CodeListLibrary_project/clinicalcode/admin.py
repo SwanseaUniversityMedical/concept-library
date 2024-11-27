@@ -8,9 +8,12 @@ from .models.EntityClass import EntityClass
 from .models.GenericEntity import GenericEntity
 from .models.Template import Template
 from .models.OntologyTag import OntologyTag
+from .models.Organisation import Organisation
 from .models.DMD_CODES import DMD_CODES
+
 from .forms.TemplateForm import TemplateAdminForm
 from .forms.EntityClassForm import EntityAdminForm
+from .forms.OrganisationForms import OrganisationAdminForm, OrganisationMembershipInline, OrganisationAuthorityInline
 
 @admin.register(OntologyTag)
 class OntologyTag(admin.ModelAdmin):
@@ -72,6 +75,47 @@ class CodingSystemAdmin(admin.ModelAdmin):
     search_fields = ['name', 'codingsystem_id', 'description']
     exclude = []
 
+@admin.register(Organisation)
+class OrganisationAdmin(admin.ModelAdmin):
+  """
+    Organisation admin representation
+  """
+  form = OrganisationAdminForm
+  inlines = [OrganisationMembershipInline, OrganisationAuthorityInline]
+  #exclude = ['created', 'owner', 'members', 'brands']
+
+  list_filter = ['id', 'name']
+  search_fields = ['id', 'name']
+  list_display = ['id', 'name', 'slug']
+  prepopulated_fields = {'slug': ['name']}
+
+  def get_form(self, request, obj=None, **kwargs):
+    """
+      Responsible for pre-populating form data & resolving the associated model form
+
+      Args:
+        request (RequestContext): the request context of the form
+        obj (dict|None): an Organisation model instance (optional; defaults to `None`)
+        **kwargs (**kwargs): arbitrary form key-value pair data
+      
+      Returns:
+        (OrganisationModelForm) - the prepared ModelForm instance
+    """
+    form = super(OrganisationAdmin, self).get_form(request, obj, **kwargs)
+    
+    if obj is None:
+      form.base_fields['slug'].initial = ''
+      form.base_fields['created'].initial = timezone.now()
+    else:
+      form.base_fields['slug'].initial = obj.slug
+      form.base_fields['created'].initial = obj.created
+
+    form.base_fields['slug'].disabled = True
+    form.base_fields['slug'].help_text = 'This field is not editable'
+    form.base_fields['created'].disabled = True
+    form.base_fields['created'].help_text = 'This field is not editable'
+
+    return form
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):

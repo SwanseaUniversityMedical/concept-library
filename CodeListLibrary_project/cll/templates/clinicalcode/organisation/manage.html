@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Manage Organisation {% endblock title %}
+
+{% block container %}
+  <!-- Dependencies -->
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/organisations.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">
+          Manage {{ instance.name }}
+        </h2>
+        <p class="banner__description">
+          Customise your organisation's profile and its members.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="organisation-page">
+        <form method="post" id="archive-form-area" class="base-form">
+          {% csrf_token %}
+
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              Name
+              <span class="detailed-input-group__mandatory">*</span>
+            </h3>
+            <p class="detailed-input-group__description">Your organisation's name</p>
+            {{ form.name }}
+          </div>
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              Description
+            </h3>
+            <p class="detailed-input-group__description">Describe your organisation</p>
+            {{ form.description }}
+          </div>
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              Email
+            </h3>
+            <p class="detailed-input-group__description">Your organisation's contact email</p>
+            {{ form.email }}
+          </div>
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              Website
+            </h3>
+            <p class="detailed-input-group__description">Your organisation's website</p>
+            {{ form.website }}
+          </div>
+          
+
+          <footer class="organisation-page__submit">
+            <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Save form" id="submit-btn">
+              Save
+            </button>
+          </footer>
+        </form>
+
+        <div class="member-management">
+          <header class="member-management__header">
+            <h3>
+              Manage Access
+            </h3>
+            <div class="member-management__header-actions">
+              <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Invite member" id="add-input-btn">
+                Add people
+              </button>
+            </div>
+          </header>
+          <section class="member-management__container">
+            <p class="detailed-input-group__description">
+              Manage your organisation members
+            </p>
+            <div class="tab-group">
+              <input type="radio" id="tab1" name="tabGroup1" class="tab" checked>
+              <label for="tab1"><strong>Members</strong></label>
+
+              <input type="radio" id="tab2" name="tabGroup1" class="tab">
+              <label for="tab2"><strong>Invites</strong></label>
+
+              <article class="tab__content">
+                <section class="member-management__none-available show">
+                  <p class="member-management__none-available-message">
+                    Your organisation has no members yet
+                  </p>
+                </section>
+
+                <section class="member-management__list slim-scrollbar" id="member-list">
+                  <!-- TODO -->
+                </section>
+              </article>
+          
+              <article class="tab__content">
+                <p>TODO</p>
+              </article>
+            </div>
+          </section>
+
+          <template id="member-item">
+            <span class="member-management__list-item" data-target="${userid}">
+              <span class="member-name">
+                ${name}
+              </span>
+              <span class="action-buttons">
+                <span tooltip="Edit Role" direction="left">
+                  <span class="edit-icon" tabindex="0" aria-label="Edit Role" role="button" data-target="edit">
+                    <span class="action-buttons__text">
+                      ${role}
+                    </span>
+                  </span>
+                </span>
+                <span tooltip="Delete Member" direction="left">
+                  <span class="delete-icon" tabindex="0" aria-label="Delete Member" role="button" data-target="delete"></span>
+                </span>
+              </span>
+            </span>
+          </template>
+        </div>  
+      </article>
+    </div>
+  </main>
+
+{% endblock container %}
