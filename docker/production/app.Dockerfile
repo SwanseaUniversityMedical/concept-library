@@ -61,7 +61,7 @@ RUN ["chown" , "-R" , "www-data:www-data",  "/var/www/concept_lib_sites/"]
 
 # Install pip, create venv & upgrade pip then install deps
 RUN python -m venv env \
-  && env/bin/pip --proxy http://192.168.10.15:8080 install --upgrade pip \
+  && env/bin/pip --proxy http://192.168.10.15:8080 install --upgrade pip
 
 RUN env/bin/pip --proxy http://192.168.10.15:8080 --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
