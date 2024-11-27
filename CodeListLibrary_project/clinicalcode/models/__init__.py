@@ -44,6 +44,10 @@ from .Template import Template
 from .GenericEntity import GenericEntity
 from .PublishedGenericEntity import PublishedGenericEntity
 
+from .ATCDDD_CODES import ATCDDD_CODES
+from .ICD10CA_CODES import ICD10CA_CODES
+from .ICD10CM_CODES import ICD10CM_CODES
+
 # need to restore EMIS/Vision when deploy. to prod.
 #from .EMIS_CODES import EMIS_CODES
 #from .VISION_CODES import VISION_CODES

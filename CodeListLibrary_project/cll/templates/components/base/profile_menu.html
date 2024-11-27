@@ -34,22 +34,23 @@
         <!-- Brands -->
         {% if request.user.is_superuser  and request.session.all_brands %}
           {% include "components/navigation/dropdown_profile_item.html" with  currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title="Concept Library" %}
-          
+
           {% for brand in request.session.all_brands %}
             {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo  title=brand|upper %}
           {% endfor %}
-          
+
           <hr/>
         {% endif %}
 
         <!-- Logout -->
         <li class="content-container">
-          <a href="{% url 'logout' %}?next={% url 'search_phenotypes' %}" class="item-dropdown">
+          <form method="post" action="{% url 'logout' %}?next={% url 'search_phenotypes' %}" class="item-dropdown">
+            {% csrf_token %}
             <div class="item-dropdown__icon" id="logout-icon">
               {% svg "exit_icon" %}
             </div>
-            <div class="item-dropdown__title">Log out</div>
-          </a>
+            <button class="item-dropdown__submit" type="submit">Log out</button>
+          </form>
         </li>
       </ul>
     </div>

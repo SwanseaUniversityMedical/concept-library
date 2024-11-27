@@ -34,21 +34,18 @@
                 onClick="window.location.href='{{ update_entity_url }}';">
           &nbsp;Edit&nbsp;
         </button>
-      {% endif %}
 
-      {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
-        {% if user_can_edit %}
-          <button 
-                  id="publication-information"
+        {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
+          <button id="publication-information"
                   class="primary-btn bold dropdown-btn__label text-success"
                   title="This version is already published"
                   aria-disabled="true"
                   disabled>
             &nbsp;Published&nbsp;
           </button>
+        {% else %}
+          {% render_publish_button %} 
         {% endif %}
-      {% else %}
-        {% render_publish_button %} 
       {% endif %}
     {% endif %}
   </div>

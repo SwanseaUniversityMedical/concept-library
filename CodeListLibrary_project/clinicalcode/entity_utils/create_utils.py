@@ -1,8 +1,11 @@
-from django.db import transaction, IntegrityError
+from django.db import transaction, IntegrityError, connection
 from django.apps import apps
 from django.db.models import Q
 from django.utils.timezone import make_aware
 from datetime import datetime
+
+import logging
+import psycopg2
 
 from ..models.EntityClass import EntityClass
 from ..models.Template import Template
@@ -12,7 +15,6 @@ from ..models.Concept import Concept
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 from ..models.Component import Component
 from ..models.CodeList import CodeList
-from ..models.OntologyTag import OntologyTag
 from ..models.Code import Code
 from ..models.Tag import Tag
 
@@ -22,6 +24,8 @@ from . import permission_utils
 from . import template_utils
 from . import concept_utils
 from . import constants
+
+logger = logging.getLogger(__name__)
 
 def try_validate_entity(request, entity_id, entity_history_id):
     """
@@ -102,7 +106,7 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 model = apps.get_model(app_label='clinicalcode', model_name=model_source)
                 return model.get_creation_data(node_ids=data, type_ids=tree_models, default=default)
             except Exception as e:
-                # Logging
+                logger.warning(f'Failed to retrieve template "{field}" property from Entity<{entity}> with err: {e}')
                 return default
 
     if template_utils.is_metadata(entity, field):
@@ -138,6 +142,99 @@ def try_add_computed_fields(field, form_data, form_template, data):
             output.add(coding_system)
         data['coding_system'] = list(output)
 
+def get_mapped_query(data, mapping, model_source, default=None):
+    if not isinstance(data, dict) or not isinstance(mapping, dict) or gen_utils.is_empty_string(model_source):
+        return default
+
+    query = ''
+    inputs = {}
+
+    try:
+        cursor = connection.cursor().cursor
+        model_target = psycopg2.sql.Identifier(model_source)
+        for prefix, targets in data.items():
+            if not isinstance(targets, list) or len(targets) < 1:
+                continue
+
+            map_target = mapping.get(prefix, None)
+            if not isinstance(map_target, dict):
+                sql = '''
+                select node.id
+                  from public.{model_source} as node
+                 where node.id = %s
+                ''' % (f'any(%({prefix}_value)s)')
+
+                sql = psycopg2.sql.SQL(sql) \
+                    .format(model_source=model_target) \
+                    .as_string(cursor)
+            else:
+                match_in = map_target.get('match_in')
+                match_out = map_target.get('match_out')
+                match_src = map_target.get('match_src')
+                match_type = map_target.get('match_type').lower()
+
+                match match_type:
+                    case 'in':
+                        match_op = psycopg2.sql.SQL('item.{}').format(psycopg2.sql.Identifier(match_in)).as_string(cursor)
+                        match_op += f' = any(%({prefix}_value)s)'
+                    case 'overlap':
+                        match_op = psycopg2.sql.SQL('item.{}').format(psycopg2.sql.Identifier(match_in)).as_string(cursor)
+                        match_op += f' && %({prefix}_value)s'
+                    case _:
+                        match_op = None
+
+                if not match_op:
+                    continue
+
+                link_target = map_target.get('link_target').split('__')
+                link_length = len(link_target)
+                if link_length > 1:
+                    link_op = ''
+                    for i, v in enumerate(link_target):
+                        if i == 0:
+                            link_op += psycopg2.sql.Identifier(v).as_string(cursor)
+                        elif i != link_length - 1:
+                            link_op += '->\'%s\'' % (v)
+                        else:
+                            link_op += '->>\'%s\'' % (v)
+
+                    link_op = 'node.%s = link.link_target' % (link_op)
+                else:
+                    link_op = psycopg2.sql.SQL('node.{link} = link.link_target') \
+                                        .format(psycopg2.sql.Identifier(link_target[0])) \
+                                        .as_string(cursor)
+
+                sql = '''
+                select node.id
+                  from public.{model_source} as node
+                  join (
+                    select item.{match_out} as link_target
+                      from public.{match_src} as item
+                     where %(match_op)s
+                  ) as link
+                    on %(link_op)s
+                ''' % { 'link_op': link_op, 'match_op': match_op }
+
+                sql = psycopg2.sql.SQL(sql) \
+                    .format(
+                        match_out=psycopg2.sql.Identifier(match_out),
+                        match_src=psycopg2.sql.Identifier(match_src.lower()),
+                        model_source=model_target
+                    ) \
+                    .as_string(cursor)
+
+            if len(inputs) < 1:
+                query = sql
+            else:
+                query += 'union' + sql
+
+            inputs.update({ f'{prefix}_value': targets })
+    except Exception as e:
+        logger.warning(f'Failed to map query of Model<{model_source}> with err: {e}')
+        return default
+    else:
+        return { 'query': query, 'inputs': inputs }
+
 def try_validate_sourced_value(field, template, data, default=None, request=None):
     """
         Validates the query param based on its field type as defined by the template or metadata
@@ -154,12 +251,27 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
             if isinstance(tree_models, list) and isinstance(model_source, str):
                 try:
                     model = apps.get_model(app_label='clinicalcode', model_name=model_source)
-                    queryset = model.objects.filter(pk__in=data, type_id__in=tree_models)
-                    queryset = list(queryset.values_list('id', flat=True))
+                    references = source_info.get('references', None)
+                    mapping = references.get('mapping', None) if isinstance(references, dict) else None
+                    if mapping is None and isinstance(data, dict):
+                        data = mapping.get('__root__', []).copy()
 
-                    if isinstance(data, list):
+                    if isinstance(data, dict):
+                        model_source = str(model.objects.model._meta.db_table)
+                        print(model_source, 'vs', f'clinicalcode_{model_source}')
+                        mapped_query = get_mapped_query(data, mapping, model_source, default=None)
+                        if mapped_query is not None:
+                            with connection.cursor() as cursor:
+                                cursor.execute(mapped_query.get('query'), params=mapped_query.get('inputs'))
+                                queryset = [ row[0] for row in cursor.fetchall() ]
+                    else:
+                        queryset = model.objects.filter(pk__in=data, type_id__in=tree_models)
+                        queryset = list(queryset.values_list('id', flat=True))
+
+                    if isinstance(queryset, list):
                         return queryset if len(queryset) > 0 else default
-                except:
+                except Exception as e:
+                    logger.warning(f'Failed to validate template "{field}" property Input<{data}> with err: {e}')
                     return default
                 else:
                     return default
@@ -188,7 +300,8 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
                         return queryset if len(queryset) > 0 else default
                     else:
                         return queryset[0] if len(queryset) > 0 else default
-                except:
+                except Exception as e:
+                    logger.warning(f'Failed to validate template "{field}" property Input<{data}> with err: {e}')
                     return default
             return default
         elif 'options' in validation:
@@ -1214,8 +1327,10 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 for instance in instances:
                     setattr(instance, field, entity)
                     instance.save_without_historical_record()
-    except IntegrityError:
-        errors.append('Data integrity error when submitting form')
+    except IntegrityError as e:
+        msg = 'Data integrity error when submitting form'
+        errors.append(msg)
+        logger.warning(f'Integrity error when attempting to submit GenericEntity<method: {form_method}> with err: {e}')
         return
     else:
         return entity.history.latest()

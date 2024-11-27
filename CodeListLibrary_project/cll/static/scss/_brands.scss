@@ -131,7 +131,7 @@ $brand-map-none: (
   /* Homepage */
 
   // Hero
-  'hero-area-bg-color': $ghost_white,
+  'hero-area-bg-color': $mystic_blue,
   'hero-gutter': 0px,
   'hero-mobile-gutter': 0px,
   'hero-drop-shadow': 0 3rem 0.05rem $periwinkle,
@@ -177,7 +177,7 @@ $brand-map-none: (
   'ruleset-exclude-icon-checked-color': $pastel_red,
 
   // Phenotype search
-  'phenotype-banner-bg-color': $ghost_white,
+  'phenotype-banner-bg-color': $mystic_blue,
   'phenotype-banner-title-size': 30px,
   'phenotype-banner-title-color': $black,
 );
@@ -198,8 +198,8 @@ $brand-map-ADP: (
   'color-accent-lightest': $light_grayish_blue,
   'color-accent-darkish': $light_grey,
   'color-accent-dark': $very_dark_blue,
-  'color-accent-washed': $very_light_gray,
-  'color-accent-primary': $pale_blue,
+  'color-accent-washed': $lightest_grey,
+  'color-accent-primary': $malibu_blue,
   'color-accent-secondary': $brighter_ghost_white,
   'color-accent-tertiary': $bright_cyan,
   'color-accent-highlight': $bright_blue,
@@ -212,7 +212,7 @@ $brand-map-ADP: (
   'color-accent-semi-transparent': rgba($black, 0.05),
 
   // Text accents
-  'color-text-darkest': $dark_blue,
+  'color-text-darkest': $san_juan_blue,
   'color-text-darker': $near-black,
   'color-text-dark': $blackish-grey,
   'color-text-washed': $dark_grey,
@@ -342,7 +342,7 @@ $brand-map-ADP: (
   'ruleset-exclude-icon-checked-color': $pale_red,
 
   // Phenotype search
-  'phenotype-banner-bg-color': $lighter_ghost_white,
+  'phenotype-banner-bg-color': $mercury,
   'phenotype-banner-title-size': 30px,
   'phenotype-banner-title-color': $dark_blue,
 );
@@ -351,6 +351,8 @@ $brand-map-HDRUK: (
 
   // Brand banner
   'banner-url': url('/static/img/brands/HDRUK/banner_design.jpg'),
+  'banner-bg-color': $black,
+
   // Headline pic
   'headline-url': url('/static/img/brands/HDRUK/HDRUK_phenotyping_algorithm_web.jpg'),
 
@@ -514,7 +516,7 @@ $brand-map-HDRUK: (
   'ruleset-exclude-icon-checked-color': $pastel_red,
 
   // Phenotype search
-  'phenotype-banner-bg-color': $ghost_white,
+  'phenotype-banner-bg-color': rgba($viridian_green, 0.24),
   'phenotype-banner-title-size': 30px,
   'phenotype-banner-title-color': $black,
 );
@@ -645,6 +647,21 @@ $brand-map-SAIL: (
   'pagination-active-color': $platinum,
   'pagination-disabled-color': $boulder,
 
+  /* Homepage */
+
+  // Hero
+  'hero-area-bg-color': $mystic_blue,
+  'hero-gutter': 0px,
+  'hero-mobile-gutter': 0px,
+  'hero-drop-shadow': 0 3rem 0.05rem $periwinkle,
+
+  // Feature
+  'feature-highlight-color': $indigo,
+  'feature-icon-color': $cornflower_blue,
+
+  // Brand cards
+  'brand-card-bg-color': $soft_blue20,
+
   /* Articles */
 
   // Phenotype creation
@@ -679,7 +696,7 @@ $brand-map-SAIL: (
   'ruleset-exclude-icon-checked-color': $pastel_red,
 
   // Phenotype search
-  'phenotype-banner-bg-color': $ghost_white,
+  'phenotype-banner-bg-color': $mystic_blue,
   'phenotype-banner-title-size': 30px,
   'phenotype-banner-title-color': $black,
 );

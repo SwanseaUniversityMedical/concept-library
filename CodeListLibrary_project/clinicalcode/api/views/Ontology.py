@@ -138,15 +138,13 @@ def get_ontology_nodes(request):
 
     alt_codes = None
     if isinstance(codes, list):
-        alt_cleaner = re.compile('[^0-9a-zA-Z]')
-
         codes = [ code.lower() for code in codes ]
-        alt_codes = [ alt_cleaner.sub('', code) for code in codes ]
+        alt_codes = [ re.sub('[^0-9a-zA-Z]', '', code) for code in codes ]
 
         # Future Opt?
         #  -> Direct search for other coding systems?
 
-        if request.GET.get('fuzzy_codes'):
+        if 'fuzzy_codes' in request.query_params.keys():
             # Fuzzy across every code mapping
             clauses.append('''(
                 (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', array_to_string(%(codes)s, '|'))::text || ':*', '<->', '|')))
@@ -185,65 +183,49 @@ def get_ontology_nodes(request):
     with connection.cursor() as cursor:
         sql = '''
         with
-            recursive ancestry(parent_id, child_id, depth, path) as (
-                select
-                        n0.parent_id,
-                        n0.child_id,
-                        1 as depth,
-                        array[n0.parent_id, n0.child_id] as path
-                  from public.clinicalcode_ontologytagedge as n0
-                  left outer join public.clinicalcode_ontologytagedge as n1
-                    on n0.parent_id = n1.child_id
-                union
-                select
-                        n2.parent_id,
-                        ancestry.child_id,
-                        ancestry.depth + 1 as depth,
-                        n2.parent_id || ancestry.path
-                  from ancestry
-                  join public.clinicalcode_ontologytagedge as n2
-                    on n2.child_id = ancestry.parent_id
+            matches as (
+                select %(search_rank)s
+                       %(row_clause)s
+                       node.id as match_id
+                  from public.clinicalcode_ontologytag as node
+                 %(where)s
+                 group by match_id
             ),
-            ancestors as (
-                select
-                        p0.child_id,
-                        p0.path
-                  from ancestry as p0
-                  join (
-                    select
-                            child_id,
-                            max(depth) as max_depth
-                      from ancestry
-                     group by child_id
-                  ) as lim
-                    on lim.child_id = p0.child_id
-                   and lim.max_depth = p0.depth
+            records as (
+                select t0.*, t1.*
+                  from matches as t0
+                  join public.clinicalcode_ontologytag as t1
+                    on t0.match_id = t1.id
             ),
             results as (
                 select
-                        %(search_rank)s
-                        %(row_clause)s
-                        jsonb_build_object(
-                            'id', node.id,
-                            'label', node.name,
-                            'properties', node.properties,
-                            'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
-                            'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
-                            'type_id', node.type_id,
-                            'reference_id', node.reference_id,
-                            'child_count', count(edges1.child_id)
-                        ) as res
-                  from public.clinicalcode_ontologytag as node
-                  left outer join public.clinicalcode_ontologytagedge as edges0
-                    on node.id = edges0.child_id
-                  left outer join public.clinicalcode_ontologytagedge as edges1
-                    on node.id = edges1.parent_id
-                 %(where)s
-                 group by node.id
+                    %(score_field)s
+                    node.rn,
+                    jsonb_build_object(
+                        'id', node.id,
+                        'label', node.name,
+                        'properties', node.properties,
+                        'isLeaf', case when tree.child_count < 1 then True else False end,
+                        'isRoot', case when tree.max_parents is NULL then True else False end,
+                        'type_id', node.type_id,
+                        'reference_id', node.reference_id,
+                        'child_count', tree.child_count
+                    ) as res
+                from records as node
+                join (
+                    select rec.id, count(edges1.child_id) as child_count, max(edges0.parent_id) as max_parents
+                      from records as rec
+                      left outer join public.clinicalcode_ontologytagedge as edges0
+                        on rec.id = edges0.child_id
+                      left outer join public.clinicalcode_ontologytagedge as edges1
+                        on rec.id = edges1.parent_id
+                     group by rec.id
+                ) as tree
+                  on node.id = tree.id
+               where node.rn >= %(offset_start)s and node.rn < %(offset_end)s
             )
-
         select
-            json_agg(t.res %(order)s) filter (where t.rn > %(offset_start)s and t.rn <= %(offset_end)s) items,
+            json_agg(t.res %(order)s) as items,
             count(*) as total_rows
           from results as t
          limit %(page_size)s;
@@ -255,7 +237,8 @@ def get_ontology_nodes(request):
             'search_rank': search_rank,
             'row_clause': row_clause,
             'where': clauses,
-            'order': order_clause
+            'order': order_clause,
+            'score_field': 'node.score,' if len(search_rank) > 0 else '',
         }
         
         cursor.execute(sql, params={

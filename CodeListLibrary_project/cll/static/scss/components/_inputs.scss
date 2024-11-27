@@ -1613,9 +1613,7 @@
 ///   @desc Ontology selector and its eletree style(s)
 [class^="eletree_icon-"],
 [class*=" eletree_icon-"] {
-  font-family: var(--icons-name);
-  font-style: var(--icons-style);
-  font-size: var(--icons-size);
+  @include fontawesome-icon();
   font-weight: normal;
   font-variant: normal;
   text-transform: none;

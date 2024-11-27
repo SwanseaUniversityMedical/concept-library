@@ -18,21 +18,22 @@
       width: 0;
       padding: 0 2rem 0 0.5rem;
       color: col(text-darkest);
-      background-color: col(accent-bright);
+      background-color: transparent;
       outline: none;
       border: none;
 
       &:focus {
         @include box-shadow(0px, 5px, 10px, var(--search-shadow-active-color));
+        right: 0;
+        width: calc(100%);
+        height: 2.5rem;
+        padding: 0 2rem 0 1rem;
         outline: none;
         border-radius: 0.5rem;
         border-width: 1px;
         border-style: solid;
         border-color: col(accent-washed);
-        padding: 0 2rem 0 1rem;
-        width: calc(100%);
-        height: 2.5rem;
-        right: 0;
+        background-color: col(accent-bright);
       }
 
       &:disabled {
@@ -60,6 +61,7 @@
         @include fontawesome-icon();
         content: "\f002";
         position: absolute;
+        background-color: transparent;
         right: 0;
         top: 25%;
         color: col(accent-primary);

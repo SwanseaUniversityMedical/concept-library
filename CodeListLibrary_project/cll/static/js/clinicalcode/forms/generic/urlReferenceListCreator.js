@@ -160,7 +160,7 @@ export default class UrlReferenceListCreator {
     e.preventDefault();
     e.stopPropagation();
 
-    const textItem = this.textInput.value;
+    const textItem = strictSanitiseString(this.textInput.value);
     if (!this.textInput.checkValidity() || isNullOrUndefined(textItem) || isStringEmpty(textItem)) {
       window.ToastFactory.push({
         type: 'danger',
@@ -170,7 +170,7 @@ export default class UrlReferenceListCreator {
       return;
     }
 
-    const linkItem = this.linkInput.value;
+    const linkItem = strictSanitiseString(this.linkInput.value);
     if (!this.linkInput.checkValidity() || isNullOrUndefined(linkItem) || isStringEmpty(linkItem)) {
       window.ToastFactory.push({
         type: 'danger',

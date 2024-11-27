@@ -125,16 +125,11 @@ def render_publish_button(context, *args, **kwargs):
             elif context["approval_status"] == constants.APPROVAL_STATUS.PENDING and user_entity_access:
                 button_context.update({'class_modal':"primary-btn bold text-warning dropdown-btn__label",
                                 'disabled': 'true',
-                                'Button_type': constants.APPROVAL_STATUS.PENDING.name.capitalize(),
+                                'Button_type': 'Pending Approval',
                                 'title': "This version is pending approval.",
                                 'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                 })
             else:
                 button_context.update({ 'pub_btn_hidden': True })
-                #  button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
-                #                         'Button_type': "Not permitted",
-                #                         'disabled': 'true',
-                #                         'title': "Unavailable to publish"
-                #                         })
 
         return button_context
