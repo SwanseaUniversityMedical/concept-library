@@ -25,7 +25,7 @@ class TestDetailComponents:
 
     @pytest.mark.functional_test
     @pytest.mark.parametrize('user_type,entity_status', [
-        ('moderator_user', 'REQUESTED'),
+        ('moderator_user', 'PENDING'),
         ('owner_user', 'ANY')
     ])
     def test_publish_btn_presence(self, login, logout, generate_entity_session, user_type, entity_status, live_server):
