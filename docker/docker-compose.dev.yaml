@@ -164,36 +164,6 @@ services:
       timeout: 5s
       retries: 3
 
-  # celery-worker:
-  #   extends:
-  #     service: web-live
-  #   command: >
-  #     sh -c "/home/config_cll/worker-start.sh"
-  #   ports: !reset []
-  #   expose: !reset []
-  #   profiles: !override
-  #     - 'live'
-  #   healthcheck: !reset {}
-  #   depends_on: !override
-  #     web-live:
-  #       condition: service_healthy
-
-  # celery-beat:
-  #   extends:
-  #     service: web-live
-  #   command: >
-  #     sh -c "/home/config_cll/beat-start.sh"
-  #   ports: !reset []
-  #   expose: !reset []
-  #   profiles: !override
-  #     - 'live'
-  #   healthcheck: !reset {}
-  #   depends_on: !override
-  #     web-live:
-  #       condition: service_healthy
-  #     celery-worker:
-  #       condition: service_started
-
   # Profile<`test`> dependencies
   selenium-hub:
     image: selenium/hub:latest
@@ -265,6 +235,40 @@ services:
     profiles:
       - test
 
+  ###############################
+  ##                           ##
+  ##    If needed in future    ##
+  ##                           ##
+  ###############################
+  # celery-worker:
+  #   extends:
+  #     service: web-live
+  #   command: >
+  #     sh -c "/home/config_cll/worker-start.sh"
+  #   ports: !reset []
+  #   expose: !reset []
+  #   profiles: !override
+  #     - 'live'
+  #   healthcheck: !reset {}
+  #   depends_on: !override
+  #     web-live:
+  #       condition: service_healthy
+
+  # celery-beat:
+  #   extends:
+  #     service: web-live
+  #   command: >
+  #     sh -c "/home/config_cll/beat-start.sh"
+  #   ports: !reset []
+  #   expose: !reset []
+  #   profiles: !override
+  #     - 'live'
+  #   healthcheck: !reset {}
+  #   depends_on: !override
+  #     web-live:
+  #       condition: service_healthy
+  #     celery-worker:
+  #       condition: service_started
 
 # Networking
 networks:

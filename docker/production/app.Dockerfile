@@ -35,8 +35,8 @@ RUN apt-get update -y -q && apt-get install -y -q \
     npm
 
 # Install esbuild
-RUN npm config set proxy http://192.168.10.15:8080 && \
-    npm config set https-proxy http://192.168.10.15:8080 && \
+RUN npm config set proxy $HTTP_PROXY && \
+    npm config set https-proxy $HTTPS_PROXY && \
     npm config set registry http://registry.npmjs.org/
 
 RUN npm install -g config set user root
@@ -61,9 +61,9 @@ COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_pro
 RUN ["chown" , "-R" , "www-data:www-data",  "/var/www/concept_lib_sites/"]
 
 # Install pip & upgrade pip then install deps
-RUN pip --proxy http://192.168.10.15:8080 install --upgrade pip
+RUN pip --proxy $HTTP_PROXY install --upgrade pip
 
-RUN pip --proxy http://192.168.10.15:8080 --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
+RUN pip --proxy $HTTP_PROXY --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
 # User perms
 RUN ["chown" , "-R" , "www-data:www-data" , "/bin/"]
@@ -76,9 +76,9 @@ COPY ./docker/development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "a+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
 
-COPY ./docker/production/scripts/healthcheck.sh /bin/healthcheck.sh
-RUN ["chmod", "a+x", "/bin/healthcheck.sh"]
-RUN ["dos2unix", "/bin/healthcheck.sh"]
+COPY ./docker/production/scripts/healthcheck.sh /bin/web-healthcheck.sh
+RUN ["chmod", "a+x", "/bin/web-healthcheck.sh"]
+RUN ["dos2unix", "/bin/web-healthcheck.sh"]
 
 # Deploy scripts
 COPY ./docker/production/scripts/init-app.sh /home/config_cll/init-app.sh

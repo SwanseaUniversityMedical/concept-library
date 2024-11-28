@@ -297,10 +297,12 @@ def parse_prefixed_references(values, acceptable=None, pattern=None, transform=N
         as an integer-like value.
 
         Args:
-            values (list): the request context of the form
-            pattern (string|None): a regex pattern to separate individual values into [prefix, value] pairs (optional)
-            acceptable (dict|None): a dict in which each key describes a prefix and its corresponding value specifies how to parse said prefix
-            default (*): the default value to return if this method fails
+            values           (list): the request context of the form
+            acceptable  (dict|None): a dict in which each key describes a prefix and its corresponding value specifies how to parse said prefix
+            pattern   (string|None): a regex pattern to separate individual values into [prefix, value] pairs (optional)
+            transform (string|None): a regex pattern to manipulate results (e.g. creating `alt_codes` with no dot formatting) (optional)
+            should_trim   (boolean): specifies whether the input value should be trimmed
+            default             (*): the default value to return if this method fails
 
         Returns:
             Either...

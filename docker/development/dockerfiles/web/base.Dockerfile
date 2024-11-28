@@ -10,7 +10,7 @@ ENV PYTHONUNBUFFERED=1
 # Install and update packages
 RUN apt-get update -y -q && \
     apt-get upgrade -y -q && \
-    apt-get install dos2unix
+    apt-get install -y -q curl ca-certificates dos2unix
 
 # Install LDAP header files
 RUN apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev
@@ -47,6 +47,10 @@ RUN ["chown" , "-R" , "www-data:www-data" , "/var/www/"]
 COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "u+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
+
+COPY ./development/scripts/healthcheck.sh /bin/web-healthcheck.sh
+RUN ["chmod", "a+x", "/bin/web-healthcheck.sh"]
+RUN ["dos2unix", "/bin/web-healthcheck.sh"]
 
 # Set workdir to app
 WORKDIR /var/www/concept_lib_sites/v1/CodeListLibrary_project

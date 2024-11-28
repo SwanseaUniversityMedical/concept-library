@@ -143,6 +143,23 @@ def try_add_computed_fields(field, form_data, form_template, data):
         data['coding_system'] = list(output)
 
 def get_mapped_query(data, mapping, model_source, default=None):
+    """
+        Generates a single query to validate mapped reference data, e.g. ontological terms, such that:
+            1. Raw pk queries assigned to `__root__` are validated using the `id` field (see `parse_prefixed_references` in gen_utils.py)
+            2. Mapped queries, e.g. those that are referenced in the field's mapping template, are matched to the corresponding fields
+               in the assoc. reference table
+
+        Args:
+            data           (dict): a dict containing the parsed query data
+            mapping        (dict): a dict describing the mappings as defined by the field's template data
+            model_source (string): the name of the table within the DB
+            default           (*): the default value to return if this method fails
+
+        Returns:
+            Either...
+                a) If successful: a list containing the PK values of the validated item(s)
+                b) On failure: the specified default value
+    """
     if not isinstance(data, dict) or not isinstance(mapping, dict) or gen_utils.is_empty_string(model_source):
         return default
 
@@ -258,7 +275,6 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
 
                     if isinstance(data, dict):
                         model_source = str(model.objects.model._meta.db_table)
-                        print(model_source, 'vs', f'clinicalcode_{model_source}')
                         mapped_query = get_mapped_query(data, mapping, model_source, default=None)
                         if mapped_query is not None:
                             with connection.cursor() as cursor:

@@ -65,9 +65,9 @@ COPY ./development/scripts/wait-for-it.sh /bin/wait-for-it.sh
 RUN ["chmod", "a+x", "/bin/wait-for-it.sh"]
 RUN ["dos2unix", "/bin/wait-for-it.sh"]
 
-COPY ./development/scripts/healthcheck.sh /bin/healthcheck.sh
-RUN ["chmod", "a+x", "/bin/healthcheck.sh"]
-RUN ["dos2unix", "/bin/healthcheck.sh"]
+COPY ./development/scripts/healthcheck.sh /bin/web-healthcheck.sh
+RUN ["chmod", "a+x", "/bin/web-healthcheck.sh"]
+RUN ["dos2unix", "/bin/web-healthcheck.sh"]
 
 # Deploy scripts
 COPY ./production/scripts/init-app.sh /home/config_cll/init-app.sh

@@ -36,7 +36,7 @@ CodeListLibrary_project/staticroot/*
 **/tests/**/allure*/
 
 # Docker
-**/docker/**/cl_log/
+**/cl_log/
 **/docker/**/backup/
 **/docker/development/db/*.sql
 **/docker/development/db/postgresql.conf
