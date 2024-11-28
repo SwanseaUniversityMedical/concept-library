@@ -60,11 +60,10 @@ COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 RUN ["chown" , "-R" , "www-data:www-data",  "/var/www/concept_lib_sites/"]
 
-# Install pip, create venv & upgrade pip then install deps
-RUN python -m venv env \
-  && env/bin/pip --proxy http://192.168.10.15:8080 install --upgrade pip
+# Install pip & upgrade pip then install deps
+RUN pip --proxy http://192.168.10.15:8080 install --upgrade pip
 
-RUN env/bin/pip --proxy http://192.168.10.15:8080 --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
+RUN pip --proxy http://192.168.10.15:8080 --no-cache-dir install -r /var/www/concept_lib_sites/v1/requirements/production.txt
 
 # User perms
 RUN ["chown" , "-R" , "www-data:www-data" , "/bin/"]

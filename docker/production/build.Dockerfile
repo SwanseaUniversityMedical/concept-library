@@ -52,7 +52,7 @@ COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 RUN ["chown" , "-R" , "www-data:www-data",  "/var/www/concept_lib_sites/"]
 
-# Install pip, create venv & upgrade pip then install deps
+# Install pip & upgrade pip then install deps
 RUN apt-get install -y -q python3-pip \
   && pip install --upgrade pip
 
