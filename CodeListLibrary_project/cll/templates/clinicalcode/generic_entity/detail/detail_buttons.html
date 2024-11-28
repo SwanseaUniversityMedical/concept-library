@@ -1,5 +1,6 @@
 {% load static %}
 {% load cl_extras %}
+{% load entity_renderer %}
 {% load entity_publish_renderer %}
 
 <div id="topButtons" class="box-container action-buttons-container">
@@ -34,7 +35,9 @@
                 onClick="window.location.href='{{ update_entity_url }}';">
           &nbsp;Edit&nbsp;
         </button>
+      {% endif %}
 
+      {% if user_can_edit or user|is_member:"Moderators" or user.is_superuser%}
         {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
           <button id="publication-information"
                   class="primary-btn bold dropdown-btn__label text-success"
