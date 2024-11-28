@@ -1,29 +1,39 @@
+x-app: &app-base
+  platform: linux/amd64
+  image: ${cll_app_image:-cll/app:latest}
+  restart: always
+  stop_grace_period: ${cll_grace_period:-3s}
+  env_file: ./env_vars.txt
+  command: >
+    sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
+  ports:
+    - ${app_port:-80}:80
+  expose:
+    - 80
+    - 443
+  networks:
+    - backend
+  volumes:
+    - type: volume
+      source: app-logs
+      target: /home/config_cll/cll_srvr_logs
+  healthcheck:
+    test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
+    interval: 60s
+    timeout: 5s
+    start_period: 5s
+    retries: 5
+
 services:
-  app:
-    platform: linux/amd64
-    image: ${cll_app_image:-cll/app:latest}
-    restart: always
-    stop_grace_period: ${cll_grace_period:-3s}
-    env_file: ./env_vars.txt
-    command: >
-      sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
-    ports:
-      - ${app_port:-80}:80
-    expose:
-      - 80
-      - 443
-    networks:
-      - backend
-    volumes:
-      - type: volume
-        source: app-logs
-        target: /home/config_cll/cll_srvr_logs
-    healthcheck:
-      test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
-      interval: 60s
-      timeout: 5s
-      start_period: 5s
-      retries: 5
+  app-demo:
+    container_name: app
+    <<: *app-base
+    profiles: ['demo']
+
+  app-live:
+    <<: *app-base
+    container_name: app
+    profiles: ['live']
     depends_on:
       redis:
         condition: service_healthy

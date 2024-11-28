@@ -24,7 +24,7 @@ cll_log_path='/cl_log';
 export cll_log_path;
 
 ## 3. Redis-related
-redis_port=
+redis_port=6379
 export redis_image;
 redis_image='redis:7.0-bullseye';
 export redis_image;
