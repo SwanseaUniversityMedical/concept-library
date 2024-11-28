@@ -60,7 +60,7 @@ RepoBranch='Development';
 
 ## 3. Docker preferences
 ###  - Specifies the Docker profile to use (if any)
-Profile='';
+Profile='demo';
 ###  - Specifies the Docker project name to use
 ProjectName='main_demo';
 ###  - Specifies the image name
@@ -75,39 +75,6 @@ ComposeFile='docker-compose.prod.yaml';
 
 
 # Utils
-is_out_of_date() {(
-  local v0='';
-  local v1='';
-  if [ $# -eq 0 ]; then
-    v0="$( git rev-parse HEAD 1> echo $? 2> /dev/null | echo '-1' )";
-    v1="$( git rev-parse '@{u}' 1> echo $? 2> /dev/null | echo '-1' )";
-    if [ "$v0" = "$v1" ]; then
-      return 0;
-    fi
-
-    return 1;
-  fi
-
-  local trg="$1";
-  trg=$(realpath -s "$trg")
-
-  if [ ! -d "$trg" ]; then
-    return 1;
-  fi
-
-  cd $trg;
-
-  v0="$( git rev-parse HEAD 1> echo $? 2> /dev/null | echo '-1' )";
-  v1="$( git rev-parse '@{u}' 1> echo $? 2> /dev/null | echo '-1' )";
-  if [ "$v0" = "-1" ] || [ "$v1" = "-1" ]; then
-    return 1;
-  elif [ "$v0" = "$v1" ]; then
-    return 0;
-  fi
-
-  return 1;
-)}
-
 rm_dangling() {
   for trg in "$@"
   do
@@ -177,15 +144,23 @@ elif [ "$ShouldPull" = true ]; then
   (
     cd $repo_fpath;
 
-    git fetch;
+    if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      git fetch;
 
-    outofdate=$( is_out_of_date "$repo_fpath" && echo true || echo false );
-    if [ "$outofdate" = true ]; then
-        if [ ! -z "$RepoBranch" ]; then
+      currentbranch=$(git symbolic-ref --short -q HEAD)
+      if [ "$currentbranch" != "$RepoBranch" ] || [ $(git rev-list --count $RepoBranch..origin/$RepoBranch) != "0" ]; then
           git checkout "$RepoBranch";
-        fi
+          git pull;
+      fi
+    else
+      cd $repo_dir;
+      rm -rf "$repo_fpath";
 
-        git pull;
+      if [ ! -z "$RepoBranch" ]; then
+        git clone -b "$RepoBranch" "$RepoBase";
+      else
+        git clone "$RepoBase";
+      fi
     fi
   )
 fi
