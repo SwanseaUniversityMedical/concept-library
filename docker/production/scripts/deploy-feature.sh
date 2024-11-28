@@ -14,6 +14,9 @@ export https_proxy;
 app_port='80';
 export app_port;
 
+cll_backend_name='cllnet';
+export cll_backend_name;
+
 cll_host_binding='0.0.0.0';
 export cll_host_binding;
 

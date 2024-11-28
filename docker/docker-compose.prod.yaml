@@ -62,7 +62,7 @@ services:
 
 networks:
   backend:
-    name: cllnet
+    name: ${cll_backend_name:-cllnet}
     driver: bridge
     attachable: true
     driver_opts:
