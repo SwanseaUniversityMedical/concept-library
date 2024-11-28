@@ -167,6 +167,8 @@ services:
   # Profile<`test`> dependencies
   selenium-hub:
     image: selenium/hub:latest
+    environment:
+      SE_ENABLE_TRACING: false
     ports:
       - 4442:4442
       - 4443:4443
@@ -181,6 +183,7 @@ services:
   selenium-chrome:
     image: selenium/node-chrome:latest
     environment:
+      SE_ENABLE_TRACING: false
       SE_EVENT_BUS_HOST: selenium-hub
       SE_EVENT_BUS_PUBLISH_PORT: 4442
       SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
@@ -199,6 +202,7 @@ services:
   selenium-edge:
     image: selenium/node-edge
     environment:
+      SE_ENABLE_TRACING: false
       SE_EVENT_BUS_HOST: selenium-hub
       SE_EVENT_BUS_PUBLISH_PORT: 4442
       SE_EVENT_BUS_SUBSCRIBE_PORT: 4443

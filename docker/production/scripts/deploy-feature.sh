@@ -14,6 +14,9 @@ export https_proxy;
 app_port='80';
 export app_port;
 
+cll_healthcheck_addr='demo-app';
+export cll_healthcheck_addr;
+
 cll_backend_name='cllnet';
 export cll_backend_name;
 

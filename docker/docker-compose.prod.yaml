@@ -26,13 +26,13 @@ x-app: &app-base
 
 services:
   app-demo:
-    container_name: app
+    container_name: demo-app
     <<: *app-base
     profiles: ['demo']
 
   app-live:
     <<: *app-base
-    container_name: app
+    container_name: live-app
     profiles: ['live']
     depends_on:
       redis:
