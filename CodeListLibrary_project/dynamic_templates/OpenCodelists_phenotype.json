@@ -2,7 +2,7 @@
   "template_details": {
     "version": 1,
     "name": "OpenCodelists Phenotype",
-    "description": "",
+    "description": "OpenSafely's OpenCodelist Phenotypes, visit https://www.opencodelists.org/ to learn more",
     "card_type": "generic"
   },
 
