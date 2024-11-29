@@ -1,75 +1,76 @@
-x-app: &app-base
-  platform: linux/amd64
-  image: ${cll_app_image:-cll/app:latest}
-  restart: always
-  stop_grace_period: ${cll_grace_period:-3s}
-  env_file: ./env_vars.txt
-  command: >
-    sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
-  ports:
-    - ${app_port:-80}:80
-  expose:
-    - 80
-    - 443
-  networks:
-    - backend
-  volumes:
-    - type: volume
-      source: app-logs
-      target: /home/config_cll/cll_srvr_logs
-  healthcheck:
-    test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
-    interval: 60s
-    timeout: 5s
-    start_period: 5s
-    retries: 5
-
 services:
-  app-demo:
-    container_name: demo-app
-    <<: *app-base
-    profiles: ['demo']
-
-  app-live:
-    <<: *app-base
-    container_name: live-app
-    profiles: ['live']
+  app:
+    platform: linux/amd64
+    image: ${cll_app_image:-cll/app:latest}
+    restart: always
+    stop_grace_period: ${cll_grace_period:-3s}
+    env_file: ./env_vars.txt
+    command: >
+      sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
+    ports:
+      - ${app_port:-80}:80
+    expose:
+      - 80
+      - 443
+    networks:
+      - backend
+    volumes:
+      - type: volume
+        source: app-logs
+        target: /home/config_cll/cll_srvr_logs
+    healthcheck:
+      test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
+      retries: 5
+      timeout: 10s
+      interval: 5m
+      start_period: 120s
+      start_interval: 10s
     depends_on:
       redis:
         condition: service_healthy
+        required: false
 
   engagelens:
     image: cll/engagelens
     command: >
-      sh -c "/bin/wait-for-it.sh -t 0 app:80 -- gunicorn -b 0.0.0.0:8050 app:server"
-    expose:
-      - 8050
-    depends_on:
-      - app
+      sh -c "/bin/wait-for-it.sh -t 0 ${WEB_HEALTHCHECK_ADDR:-app}:${WEB_HEALTHCHECK_PORT:-80} -- gunicorn -b 0.0.0.0:8050 app:server"
     env_file:
       - ./env_vars.txt
+    ports:
+      - 8050:8050
+    expose:
+      - 8050
+    networks:
+      - backend
+    profiles:
+      - live
+    depends_on:
+      app:
+        condition: service_healthy
 
   redis:
     image: ${redis_image:-redis:7.0-bullseye}
     container_name: redis
     restart: always
     stop_grace_period: ${cll_grace_period:-3s}
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: ${redis_port:-6379}
     ports:
       - ${redis_port:-6379}:${redis_port:-6379}
     expose:
       - ${redis_port:-6379}
-    profiles:
-      - live
     networks:
       - backend
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: ${redis_port:-6379}
+    profiles:
+      - live
     healthcheck:
       test: redis-cli ping | grep PONG
-      interval: 10s
-      timeout: 5s
       retries: 5
+      timeout: 10s
+      interval: 5m
+      start_period: 120s
+      start_interval: 10s
 
 networks:
   backend:

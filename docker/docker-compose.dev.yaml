@@ -26,10 +26,11 @@ x-app: &app-base
       target: /var/www/concept_lib_sites/v1/CodeListLibrary_project
   healthcheck: &app-healthcheck
     test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
-    interval: 60s
+    retries: 5
     timeout: 5s
-    start_period: 5s
-    retries: 3
+    interval: 1m
+    start_period: 120s
+    start_interval: 10s
   depends_on: &app-dependencies
     postgres:
       condition: service_healthy
@@ -103,9 +104,10 @@ services:
     build:
       context: .
       dockerfile: ./development/dockerfiles/postgres.Dockerfile
+    container_name: postgres
+    env_file: ./development/env/postgres.compose.env
     restart: unless-stopped
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
-    env_file: ./development/env/postgres.compose.env
     ports:
       - 5432:5432
     expose:
@@ -116,19 +118,17 @@ services:
       - type: volume
         source: db-data
         target: /docker-entrypoint-initdb.d/db
-    profiles:
-      - dev
-      - live
-      - test
     healthcheck:
       test: [
         "CMD-SHELL",
         "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
         "&& /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep .",
       ]
-      interval: 10s
-      timeout: 5s
       retries: 5
+      timeout: 5s
+      interval: 1m
+      start_period: 120s
+      start_interval: 10s
 
   # Profile<`live`> dependencies
   mailhog:
@@ -160,29 +160,52 @@ services:
       - live
     healthcheck:
       test: redis-cli ping | grep PONG
-      interval: 10s
+      retries: 5
       timeout: 5s
-      retries: 3
+      interval: 1m
+      start_period: 120s
+      start_interval: 10s
 
   engagelens:
     platform: linux/amd64
+    image: cll/engagelens
     build:
-      context: .
-      dockerfile: ./engagelens/app.Dockerfile
-    profiles:
-      - live
+      context: ..
+      dockerfile: ./docker/engagelens/app.Dockerfile
+    container_name: engagelens
+    restart: unless-stopped
+    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    tty: true
+    stdin_open: true
+    env_file:
+      - ./engagelens/env/app.compose.env
     command: >
-      sh -c "/bin/wait-for-it.sh -t 0 app:8000 -- gunicorn -b 0.0.0.0:8050 app:server "
-    volumes:
-      - ../engagelens:/engagelens
+      sh -c "/bin/wait-for-it.sh -t 0 host.docker.internal:8005 -- gunicorn -b 0.0.0.0:8050 app:server"
     ports:
       - 8050:8050
     expose:
       - 8050
+    networks:
+      - backend
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - type: volume
+        source: engagelens-data
+        target: /engagelens
+    profiles:
+      - live
+      - test
     depends_on:
-      - web-live
-    env_file:
-      - ./engagelens/env/app.compose.env
+      postgres:
+        condition: service_healthy
+        required: true
+      web-live:
+        condition: service_healthy
+        required: false
+      web-test:
+        condition: service_healthy
+        required: false
 
   # Profile<`test`> dependencies
   selenium-hub:
@@ -294,6 +317,7 @@ services:
   #     celery-worker:
   #       condition: service_started
 
+
 # Networking
 networks:
   backend:
@@ -311,6 +335,13 @@ volumes:
     driver_opts:
       type: none
       device: ../CodeListLibrary_project
+      o: bind
+
+  engagelens-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ../engagelens
       o: bind
 
   db-data:
@@ -340,4 +371,3 @@ volumes:
       type: none
       device: ../CodeListLibrary_project/clinicalcode/tests/allure-reports
       o: bind
-      - postgres

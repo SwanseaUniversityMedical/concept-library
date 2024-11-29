@@ -81,8 +81,6 @@ urlpatterns = [
 
     # app urls
     url(r'^', include('clinicalcode.urls')),
-    # url('', include('django_prometheus.urls')),
-
 ]
 
 #--------------------------------------------------------------------
