@@ -38,6 +38,17 @@ services:
       redis:
         condition: service_healthy
 
+  engagelens:
+    image: cll/engagelens
+    command: >
+      sh -c "/bin/wait-for-it.sh -t 0 app:80 -- gunicorn -b 0.0.0.0:8050 app:server"
+    expose:
+      - 8050
+    depends_on:
+      - app
+    env_file:
+      - ./env_vars.txt
+
   redis:
     image: ${redis_image:-redis:7.0-bullseye}
     container_name: redis

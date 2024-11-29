@@ -106,6 +106,7 @@ RUN \
     env \
     rewrite \
     headers \
+    proxy_http \
     expires && \
   a2ensite \
     cll.conf

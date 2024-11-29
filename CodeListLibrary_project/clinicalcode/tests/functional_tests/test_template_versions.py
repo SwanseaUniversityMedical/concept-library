@@ -49,7 +49,7 @@ class TestTemplateVersioning:
         assert template_v2.template_version == api_data["version_id"]
 
     @pytest.mark.parametrize('user_type', ['super_user'])
-    def test_template_api(self, generate_user, user_type, live_server, template_v2, login):
+    def test_template_api(self, generate_user, user_type, live_server, template_v2):
         """
         Test the API endpoint related to template version.
 
@@ -58,7 +58,7 @@ class TestTemplateVersioning:
             user_type (str): Type of user for the test.
             live_server: Pytest fixture providing the live server URL.
             template_v2 (Template): An instance of the Template model with version 2.
-            login: Pytest fixture providing a login function.
+
 
         Returns:
             None

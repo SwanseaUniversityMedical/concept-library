@@ -42,6 +42,9 @@ CodeListLibrary_project/staticroot/*
 **/docker/development/db/postgresql.conf
 **/docker/CodeListLibrary_project
 
+# Engagelens
+**/engagelens/.env
+
 # Allow docker env directory
 !**/docker/.env/
 !**/docker/**/env/
@@ -53,3 +56,4 @@ CodeListLibrary_project/staticroot/*
 # Misc. files
 docs/~$plication Guide.docx
 CodeListLibrary_project/debug.log
+
