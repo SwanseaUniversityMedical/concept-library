@@ -17,19 +17,19 @@ fi
 
 if [ $start_worker -eq 1 ]; then
   # Await web app healthy
-  printf '\n[CeleryWorker] Awaiting App healthy state .'
-  until /bin/healthcheck.sh; do
+  printf '\n[CeleryBeat] Awaiting App healthy state .'
+  until /home/config_cll/health/web-healthcheck.sh; do
     printf ' .'
     sleep 5
   done
 
-  printf '\n[CeleryWorker] Completed!\n' + '\n[CeleryWorker] Application healthy, starting celery-worker...\n\n'
+  printf '\n[CeleryBeat] Application healthy, starting celery-beat...\n\n'
 
   # Workdir
   cd /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
   # Run worker
-  python -m celery -A cll worker -l INFO --purge
+  python -m celery -A cll beat -l INFO --max-interval 300
 else
   exit 0
 fi

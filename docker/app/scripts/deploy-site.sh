@@ -29,6 +29,7 @@ export cll_log_path;
 ## 3. Redis-related
 redis_port=6379
 export redis_image;
+
 redis_image='redis:7.0-bullseye';
 export redis_image;
 
@@ -44,16 +45,16 @@ ShouldClean=true;
 DetachedMode=true;
 
 ## 2. Image registry target(s)
-###  - Image registry URL
-LibraryAddress='';
+###  - cll/app image registry URL + target, e.g. site:port/target/target:version
+LibraryRegistry='';
 
 ## 3. Docker preferences
 ###  - Specifies the Docker profile to use (if any)
 Profile='';
 ###  - Specifies the Docker project name to use
 ProjectName='main_demo';
-###  - Specifies the image name
-ImageName='cll/app:latest';
+###  - Specifies the cll/app image name
+LibraryImageName='cll/app:latest';
 
 ## 3. Docker target(s)
 ###  - Specifies the environment file to use; can either be an
@@ -128,13 +129,13 @@ fi
 SERVER_NAME=$(grep SERVER_NAME "$EnvFile" | cut -d'=' -f 2-);
 export SERVER_NAME;
 
-cll_app_image=$ImageName;
+cll_app_image=$LibraryImageName;
 export cll_app_image;
 
 
 # Pull the cll/app image
-docker pull $LibraryAddress;
-docker tag $LibraryAddress $(printf '%s' "$ImageName")
+docker pull $LibraryRegistry;
+docker tag $LibraryRegistry $(printf '%s' "$LibraryImageName")
 
 
 # Kill current app
@@ -154,7 +155,7 @@ if [ "$DetachedMode" = true ]; then
   args+=("-d");
 fi
 
-docker-compose ${args[@]};
+docker compose ${args[@]};
 
 
 # Prune unused containers/images/volumes if we want to cleanup

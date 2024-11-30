@@ -21,7 +21,7 @@ from .settings import *
 WEBAPP_HOST = ''
 
 # remote test features
-REMOTE_TEST = False  #True
+REMOTE_TEST = False  # True
 REMOTE_TEST_HOST = 'http://selenium-hub:4444/wd/hub'
 IMPLICTLY_WAIT = 10
 TEST_SLEEP_TIME = 5
@@ -66,8 +66,8 @@ DATABASES = {
         'PORT': '',
         'TEST': {
             'NAME':
-            get_env_value('UNIT_TEST_DB_NAME'
-                          )  # TODO: check this was cl_testdatabase before!
+                get_env_value('UNIT_TEST_DB_NAME'
+                              )  # TODO: check this was cl_testdatabase before!
         },
     }
 }

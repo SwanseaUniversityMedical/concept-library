@@ -34,12 +34,12 @@ if [ ! -z $AWAIT_POSTGRES ] && [ $AWAIT_POSTGRES = "True" ]; then
   /bin/wait-for-it.sh -t 0 $DB_HOST:5432 -- echo "Postgres is live"
 fi
 
-echo "==========================================="
-echo "=========== Clear static files ============"
-echo "==========================================="
+if [ -d "./staticroot" ]; then
+  echo "==========================================="
+  echo "=========== Clear static files ============"
+  echo "==========================================="
 
-if [ ! -d "staticroot" ]; then
-  rm -rf staticroot
+  rm -rf ./staticroot
 fi
 
 if [ ! -z $CLL_READ_ONLY ] && [ $CLL_READ_ONLY = "False" ]; then
@@ -63,11 +63,6 @@ if [ ! -z $DEBUG ] && [ $DEBUG = "False" ]; then
   wrap_cmd "1" "$max_stage" "Compiling SCSS"         "python manage.py compilescss --verbosity=0"
   wrap_cmd "2" "$max_stage" "Compressing assets"     "python manage.py compress --force --verbosity=0"
   wrap_cmd "3" "$max_stage" "Collecting staticfiles" "python manage.py collectstatic --noinput --no-post-process -v 0"
-
-  # python manage.py compilescss
-  # python manage.py collectstatic --noinput --clear -v 0
-  # python manage.py compress
-  # python manage.py collectstatic --noinput -v 0
 else
   python manage.py compilescss --delete-files
   python manage.py collectstatic --clear --noinput -v 0

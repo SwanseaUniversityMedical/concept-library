@@ -1,12 +1,32 @@
 name: cll
 
-# Anchors
+# Opt anchors
+x-args:
+  dev-args: &app-dev-args
+    dependency_target: dev.txt
+  test-args: &app-test-args
+    server_name: localhost
+    dependency_target: test.txt
+  live-args: &app-live-args
+    server_name: localhost
+    dependency_target: production.txt
+
+x-commands:
+  app-py-start: &app-py-cmd >
+    sh -c '/bin/scripts/wait-for-it.sh -t 0 ${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432} -- python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py makemigrations
+    && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py migrate
+    && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000'
+  app-daemon-start: &app-supervisord-cmd >
+    sh -c '/bin/scripts/wait-for-it.sh -t 0 ${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432} -- /usr/bin/supervisord -c /etc/supervisord.conf'
+
+
+# Service anchors
 x-app: &app-base
   platform: linux/amd64
   image: cll/app
   build: &app-build
-    context: .
-    dockerfile: ./development/dockerfiles/web/base.Dockerfile
+    context: ..
+    dockerfile: ./docker/app/app.Dockerfile
   restart: unless-stopped
   stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
   tty: true
@@ -25,44 +45,58 @@ x-app: &app-base
       source: app-data
       target: /var/www/concept_lib_sites/v1/CodeListLibrary_project
   healthcheck: &app-healthcheck
-    test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
-    interval: 60s
+    test: ["CMD-SHELL", "/home/config_cll/health/web-healthcheck.sh"]
+    retries: 5
     timeout: 5s
-    start_period: 5s
-    retries: 3
+    interval: 1m
+    start_period: 120s
+    start_interval: 10s
   depends_on: &app-dependencies
     postgres:
       condition: service_healthy
 
-x-args:
-  dev-args: &app-dev-args
-    dependency_target: dev.txt
-  test-args: &app-test-args
-    dependency_target: test.txt
-  live-args: &app-live-args
-    server_name: localhost
-    dependency_target: production.txt
+x-database: &app-database
+  build:
+    context: ..
+    dockerfile: ./docker/development/dockerfiles/postgres.Dockerfile
+  container_name: postgres
+  restart: unless-stopped
+  stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+  ports:
+    - 5432:5432
+  expose:
+    - 5432
+  networks:
+    - backend
+  volumes:
+    - type: volume
+      source: db-data
+      target: /docker-entrypoint-initdb.d/db
+  healthcheck:
+    test: [
+      "CMD-SHELL",
+      "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
+      "&& /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep .",
+    ]
+    retries: 5
+    timeout: 5s
+    interval: 1m
+    start_period: 120s
+    start_interval: 10s
 
-x-commands:
-  app-py-start: &app-py-cmd >
-    sh -c "/bin/wait-for-it.sh -t 0 postgres:5432 -- python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py makemigrations
-    && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py migrate
-    && python /var/www/concept_lib_sites/v1/CodeListLibrary_project/manage.py runserver 0.0.0.0:8000"
-  app-daemon-start: &app-supervisord-cmd >
-    sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
 
-
-# Containers
+# Services
 services:
-  # Web application service profiles
+  # Web app profiles
   web-dev:
     <<: *app-base
     profiles: ['dev']
     build:
       <<: *app-build
       args: *app-dev-args
+      target: dev
     command: *app-py-cmd
-    env_file: ./development/env/web/dev.compose.env
+    env_file: ./.env/web/dev.compose.env
 
   web-test:
     <<: *app-base
@@ -70,18 +104,22 @@ services:
     build:
       <<: *app-build
       args: *app-test-args
+      target: dev
     command: *app-py-cmd
-    env_file: ./development/env/web/test.compose.env
+    env_file: ./.env/web/test.compose.env
+    depends_on:
+      postgres-test:
+        condition: service_healthy
 
   web-live:
     <<: *app-base
     profiles: ['live']
     build:
       <<: *app-build
-      dockerfile: ./development/dockerfiles/web/live.Dockerfile
       args: *app-live-args
+      target: prod
     command: *app-supervisord-cmd
-    env_file: ./development/env/web/live.compose.env
+    env_file: ./.env/web/live.compose.env
     ports:
       - 8005:80
     expose:
@@ -98,39 +136,17 @@ services:
       mailhog:
         condition: service_started
 
-  # Postgres service
   postgres:
-    build:
-      context: .
-      dockerfile: ./development/dockerfiles/postgres.Dockerfile
-    restart: unless-stopped
-    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    <<: *app-database
+    profiles: ['dev', 'live']
     env_file: ./development/env/postgres.compose.env
-    ports:
-      - 5432:5432
-    expose:
-      - 5432
-    networks:
-      - backend
-    volumes:
-      - type: volume
-        source: db-data
-        target: /docker-entrypoint-initdb.d/db
-    profiles:
-      - dev
-      - live
-      - test
-    healthcheck:
-      test: [
-        "CMD-SHELL",
-        "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB",
-        "&& /usr/bin/psql -d $$POSTGRES_DB -U $$POSTGRES_USER -t -c \"select count(datid) from pg_stat_activity where state is not null and wait_event = 'WalWriterMain';\" | egrep .",
-      ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # Profile<`live`> dependencies
+  postgres-test:
+    <<: *app-database
+    profiles: ['test']
+    env_file: ./.env/web/test.compose.env
+
+  # Profile<`live` | `test`> dependencies
   mailhog:
     image: mailhog/mailhog:v1.0.1
     ports:
@@ -160,9 +176,11 @@ services:
       - live
     healthcheck:
       test: redis-cli ping | grep PONG
-      interval: 10s
+      retries: 5
       timeout: 5s
-      retries: 3
+      interval: 1m
+      start_period: 120s
+      start_interval: 10s
 
   # Profile<`test`> dependencies
   selenium-hub:
@@ -220,6 +238,7 @@ services:
 
   allure:
     image: frankescobar/allure-docker-service
+    user: www-data:www-data
     environment:
       KEEP_HISTORY: 1
       CHECK_RESULTS_EVERY_SECONDS: 1
@@ -274,6 +293,7 @@ services:
   #     celery-worker:
   #       condition: service_started
 
+
 # Networking
 networks:
   backend:
@@ -291,6 +311,13 @@ volumes:
     driver_opts:
       type: none
       device: ../CodeListLibrary_project
+      o: bind
+
+  engagelens-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ../engagelens
       o: bind
 
   db-data:

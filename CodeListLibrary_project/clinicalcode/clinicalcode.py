@@ -1,7 +1,7 @@
 from django.conf import settings
 
 class ClinicalCode(object):
-    ''' class to store clinical code session information '''
+    """ class to store clinical code session information """
 
     def __init__(self, request):
         self.session = request.session

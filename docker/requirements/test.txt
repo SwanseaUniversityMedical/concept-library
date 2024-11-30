@@ -1,4 +1,4 @@
-# Include the base.txt requirements file
+# Include the production deps
 -r base.txt
 
 # Test requirements
