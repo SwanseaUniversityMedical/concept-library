@@ -59,7 +59,7 @@ RepoTarget='./concept-library';
 ###  - Specifies the repository remote target
 RepoBase='https://github.com/SwanseaUniversityMedical/concept-library.git';
 ###  - Specifies the repository branch target
-RepoBranch='JS/merge-RT-analytics';
+RepoBranch='Development';
 
 ## 3. Docker preferences
 ###  - Specifies the Docker profile to use (if any)
