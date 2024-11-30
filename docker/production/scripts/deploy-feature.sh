@@ -14,7 +14,7 @@ export https_proxy;
 app_port='80';
 export app_port;
 
-cll_healthcheck_addr='demo-app';
+cll_healthcheck_addr='live-app';
 export cll_healthcheck_addr;
 
 cll_backend_name='cllnet';
@@ -30,7 +30,7 @@ cll_log_path='/cl_log';
 export cll_log_path;
 
 ## 3. Redis-related
-redis_port=6379;
+redis_port=6379
 export redis_image;
 redis_image='redis:7.0-bullseye';
 export redis_image;
@@ -63,7 +63,7 @@ RepoBranch='Development';
 
 ## 3. Docker preferences
 ###  - Specifies the Docker profile to use (if any)
-Profile='demo';
+Profile='live';
 ###  - Specifies the Docker project name to use
 ProjectName='main_demo';
 ###  - Specifies the image name
@@ -72,9 +72,10 @@ ImageName='cll/app:latest';
 ## 3. Docker target(s)
 ###  - Specifies the environment file to use; can either be an
 ###    absolute path or a path relative to the `RootPath`
-EnvFile='env_vars-FA.txt';
+EnvFile='env_vars.txt';
 ###  - Specifies the docker-compose file target (within `$RepoTarget/docker`)
 ComposeFile='docker-compose.prod.yaml';
+
 
 
 # Utils
@@ -186,22 +187,27 @@ cll_app_image=$ImageName;
 export cll_app_image;
 
 
-# Build the cll/app image
+# Build image(s)
 (
   cd "$repo_fpath";
 
+  # Build cll/app
   docker build -f "docker/production/app.Dockerfile" -t "$ImageName" \
     --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" \
     --build-arg server_name="$SERVER_NAME" \
     '.';
 
+  # Build engagelens
+  docker build -f "docker/production/app.Dockerfile" -t engagelens \
+    --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" \
+    '.';
 )
 
 # Kill current app
 (
   cd "$repo_fpath";
 
-  docker-compose -p "$ProjectName" -f "docker/$ComposeFile" --profile "*" down --volumes;
+  docker compose -p "$ProjectName" -f "docker/$ComposeFile" --profile "*" down --volumes;
 )
 
 
