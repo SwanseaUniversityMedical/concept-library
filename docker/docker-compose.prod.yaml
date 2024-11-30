@@ -1,7 +1,7 @@
 services:
   app:
     platform: linux/amd64
-    container-name: ${cll_healthcheck_addr:-app}
+    container_name: ${cll_healthcheck_addr:-app}
     image: ${cll_app_image:-cll/app:latest}
     restart: always
     stop_grace_period: ${cll_grace_period:-3s}
@@ -36,7 +36,7 @@ services:
 
   engagelens:
     image: ${cll_engage_image:-cll/engagelens:latest}
-    container-name: engagelens
+    container_name: engagelens
     command: >
       sh -c "/bin/wait-for-it.sh -t 0 ${cll_healthcheck_addr:-app}:${cll_healthcheck_port:-80} -- gunicorn -b 0.0.0.0:8050 app:server"
     env_file:
