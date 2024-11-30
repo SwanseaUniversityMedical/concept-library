@@ -33,6 +33,7 @@ CodeListLibrary_project/media/*
 CodeListLibrary_project/staticroot/*
 
 # Testing artefacts
+**/.pytest_cache/
 **/tests/**/allure*/
 
 # Docker

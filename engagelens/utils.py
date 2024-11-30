@@ -164,11 +164,11 @@ def get_conn():
     """
     Function to get SQL connection from environment variables.
     """
-    POSTGRES_HOST = os.getenv('DB_HOST')
-    POSTGRES_DB = os.getenv('DB_NAME')
-    POSTGRES_USER = os.getenv('DB_USER')
-    POSTGRES_PASSWORD = quote(os.getenv('DB_PASSWORD'))
-    POSTGRES_PORT = os.getenv('DB_PORT')
+    POSTGRES_HOST = os.getenv('POSTGRES_HOST')
+    POSTGRES_DB = os.getenv('POSTGRES_DB')
+    POSTGRES_USER = os.getenv('POSTGRES_USER')
+    POSTGRES_PASSWORD = quote(os.getenv('POSTGRES_PASSWORD'))
+    POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 
     conn_string = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
     conn = sa.create_engine(conn_string)

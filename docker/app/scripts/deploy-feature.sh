@@ -32,6 +32,7 @@ export cll_log_path;
 ## 3. Redis-related
 redis_port=6379
 export redis_image;
+
 redis_image='redis:7.0-bullseye';
 export redis_image;
 
@@ -192,14 +193,9 @@ export cll_app_image;
   cd "$repo_fpath";
 
   # Build cll/app
-  docker build -f "docker/production/app.Dockerfile" -t "$ImageName" \
+  docker build -f "docker/app/app.Dockerfile" -t "$ImageName" \
     --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" \
     --build-arg server_name="$SERVER_NAME" \
-    '.';
-
-  # Build engagelens
-  docker build -f "docker/engagelens/app.Dockerfile" -t "cll/engagelens:latest" \
-    --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" \
     '.';
 )
 

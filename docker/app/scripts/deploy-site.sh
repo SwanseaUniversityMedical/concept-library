@@ -27,8 +27,9 @@ cll_log_path='/cl_log';
 export cll_log_path;
 
 ## 3. Redis-related
-redis_port=6379;
+redis_port=6379
 export redis_image;
+
 redis_image='redis:7.0-bullseye';
 export redis_image;
 
@@ -46,8 +47,6 @@ DetachedMode=true;
 ## 2. Image registry target(s)
 ###  - cll/app image registry URL + target, e.g. site:port/target/target:version
 LibraryRegistry='';
-###  - cll/engagelens image registry URL + target, e.g. site:port/target/target:version
-EngageRegistry='';
 
 ## 3. Docker preferences
 ###  - Specifies the Docker profile to use (if any)
@@ -56,8 +55,6 @@ Profile='';
 ProjectName='main_demo';
 ###  - Specifies the cll/app image name
 LibraryImageName='cll/app:latest';
-###  - Specifies the cll/engagelens image name
-EngageImageName='cll/engagelens:latest';
 
 ## 3. Docker target(s)
 ###  - Specifies the environment file to use; can either be an
@@ -135,16 +132,10 @@ export SERVER_NAME;
 cll_app_image=$LibraryImageName;
 export cll_app_image;
 
-cll_engage_image=$EngageImageName;
-export cll_engage_image;
-
 
 # Pull the cll/app image
 docker pull $LibraryRegistry;
 docker tag $LibraryRegistry $(printf '%s' "$LibraryImageName")
-
-docker pull $EngageRegistry;
-docker tag $EngageRegistry $(printf '%s' "$EngageImageName")
 
 
 # Kill current app
@@ -164,7 +155,7 @@ if [ "$DetachedMode" = true ]; then
   args+=("-d");
 fi
 
-docker-compose ${args[@]};
+docker compose ${args[@]};
 
 
 # Prune unused containers/images/volumes if we want to cleanup

@@ -20,7 +20,7 @@ services:
         source: app-logs
         target: /home/config_cll/cll_srvr_logs
     healthcheck:
-      test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
+      test: ["CMD-SHELL", "/home/config_cll/health/web-healthcheck.sh"]
       retries: 5
       timeout: 10s
       interval: 30s
@@ -33,22 +33,6 @@ services:
       redis:
         condition: service_healthy
         required: false
-
-  engagelens:
-    image: ${cll_engage_image:-cll/engagelens:latest}
-    container_name: engagelens
-    command: >
-      sh -c "/bin/wait-for-it.sh -t 0 ${cll_healthcheck_addr:-app}:${cll_healthcheck_port:-80} -- gunicorn -b 0.0.0.0:8050 app:server"
-    env_file:
-      - ./env_vars.txt
-    ports:
-      - 8050:8050
-    expose:
-      - 8050
-    networks:
-      - backend
-    profiles:
-      - live
 
   redis:
     image: ${redis_image:-redis:7.0-bullseye}
