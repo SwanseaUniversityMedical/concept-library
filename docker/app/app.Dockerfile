@@ -23,7 +23,7 @@ RUN apt-get update -y -q && \
     apt-get upgrade -y -q && \
     apt-get install -y -q --no-install-recommends \
       wget curl ca-certificates apt-utils  `# Base deps`           \
-      cmake build-essential python3-pip git                        \
+      cmake build-essential python3-pip git dos2unix               \
       ssh apache2 apache2-dev supervisor   `# Apache & Supervisor` \
       libsasl2-dev libldap2-dev libssl-dev `# LDAP deps`           \
       software-properties-common npm       `# Npm deps`
@@ -45,7 +45,7 @@ COPY ./engagelens /var/www/concept_lib_sites/v1/engagelens
 COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
 # Set perms
-RUN chown -R www-data:www-data /var/www/ /home/config_cll && \
+RUN chown -R www-data:www-data /var/www /home/config_cll && \
     chmod -R 750 /home/config_cll
 
 RUN find /bin/scripts -type f -iname "*.sh" -exec chmod a+x {} \; -exec dos2unix {} \; && \
