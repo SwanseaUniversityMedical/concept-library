@@ -198,7 +198,7 @@ export cll_app_image;
     '.';
 
   # Build engagelens
-  docker build -f "docker/production/app.Dockerfile" -t engagelens \
+  docker build -f "docker/engagelens/app.Dockerfile" -t "cll/engagelens:latest" \
     --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" \
     '.';
 )
@@ -227,7 +227,7 @@ export cll_app_image;
     args+=("-d");
   fi
 
-  docker-compose ${args[@]};
+  docker compose ${args[@]};
 )
 
 

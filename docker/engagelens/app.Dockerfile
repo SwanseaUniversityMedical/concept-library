@@ -8,6 +8,7 @@ ENV HTTPS_PROXY $https_proxy
 
 ENV PYTHONUNBUFFERED 1
 ENV LC_ALL=C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Set the working directory
 WORKDIR /engagelens
@@ -15,7 +16,7 @@ WORKDIR /engagelens
 # Install and update packages
 RUN apt-get update -y -q && \
     apt-get upgrade -y -q && \
-    apt-get install dos2unix
+    apt-get install -y -q --no-install-recommends apt-utils dos2unix
 
 # Copy env
 COPY ./docker/requirements/engagelens.txt .
