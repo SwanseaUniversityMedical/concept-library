@@ -240,7 +240,7 @@ def get_accessible_entities(
     if consider_brand:
         brand = model_utils.try_get_brand(request)
         if brand is not None:
-            brand_clause = 'and hist_entity.brands = any(%(brand_ids)s)'
+            brand_clause = 'and hist_entity.brands && %(brand_ids)s'
             query_params.update({ 'brand_ids': [brand.id] })
 
     # Anon user query
