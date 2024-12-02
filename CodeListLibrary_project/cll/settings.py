@@ -19,6 +19,8 @@ import sys
 import ldap
 import numbers
 
+from clinicalcode.entity_utils import sanitise_utils
+
 ''' Utilities '''
 class Symbol:
     """
@@ -142,10 +144,13 @@ IS_DEMO = get_env_value('IS_DEMO', cast='bool')
 CLINICALCODE_SESSION_ID = 'concept'
 
 CLL_READ_ONLY = get_env_value('CLL_READ_ONLY', cast='bool')
+IS_GATEWAY_PC = get_env_value('IS_GATEWAY_PC', cast='bool', default=False)
 
 IS_INSIDE_GATEWAY = get_env_value('IS_INSIDE_GATEWAY', cast='bool')
-IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool')
+IS_DEVELOPMENT_PC = get_env_value('IS_DEVELOPMENT_PC', cast='bool', default=False)
+HAS_MAILHOG_SERVICE = False
 if IS_DEVELOPMENT_PC:
+    HAS_MAILHOG_SERVICE = get_env_value('HAS_MAILHOG_SERVICE', cast='bool', default=False)
     print('SRV_IP=' + SRV_IP)
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -272,27 +277,26 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mathfilters',
     'clinicalcode',
     'cll',
     'simple_history',
     'rest_framework',
     # 'mod_wsgi.server',
-    'django_extensions',
-    'markdownify',
+    'markdownify.apps.MarkdownifyConfig',
     'cookielaw',
     'django_celery_results',
     'django_celery_beat',
     # 'rest_framework_swagger',
     'drf_yasg',
     'django.contrib.sitemaps',
-    'svg',
     # SCSS
     'sass_processor',
     # Compressor
     'compressor',
     # HTML Minifier
     'django_minify_html',
+    # Engagelens-related
+    'easyaudit'
 ]
 
 # ==============================================================================#
@@ -319,6 +323,8 @@ MIDDLEWARE = [
     'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
     'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
+    # Engagelens-related
+    'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
 ]
 
 # ==============================================================================#
@@ -408,6 +414,7 @@ TEMPLATES = [
                 'clinicalcode.context_processors.general.general_var',
             ],
             'libraries': {
+                'svg': 'clinicalcode.templatetags.svg',
                 'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
                 'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
                 'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
@@ -424,11 +431,11 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': get_env_value('DB_NAME'),
-        'USER': get_env_value('DB_USER'),
-        'PASSWORD': get_env_value('DB_PASSWORD'),
-        'HOST': get_env_value('DB_HOST'),
-        'PORT': '',
+        'NAME': get_env_value('POSTGRES_DB'),
+        'USER': get_env_value('POSTGRES_USER'),
+        'PASSWORD': get_env_value('POSTGRES_PASSWORD'),
+        'HOST': get_env_value('POSTGRES_HOST'),
+        'PORT': get_env_value('POSTGRES_PORT'),
     }
 }
 
@@ -470,7 +477,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticroot')
 
 WSGI_APPLICATION = 'cll.wsgi.application'
 
-STATICFILES_STORAGE = 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage' # 'clinicalcode.storage.files_manifest.NoSourceMappedManifestStaticFilesStorage'
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -586,9 +593,9 @@ COMPRESS_URL = STATIC_URL
 COMPRESS_ROOT = STATIC_ROOT
 
 if not DEBUG:
-    # COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
+    COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
     COMPRESS_PRECOMPILERS = (
-        ('module', 'esbuild {infile} --bundle --outfile={outfile}'),
+        ('module', 'esbuild {infile} --target=es2020 --sourcemap=inline --bundle --outfile={outfile}'),
     )
 
 ## SASS options
@@ -607,7 +614,7 @@ except:
 ## Email settings
 ###     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = get_env_value('DEFAULT_FROM_EMAIL')
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = get_env_value('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_USE_TLS = get_env_value('EMAIL_USE_TLS', cast='bool')
 EMAIL_HOST = get_env_value('EMAIL_HOST')
 EMAIL_PORT = get_env_value('EMAIL_PORT')
@@ -615,6 +622,9 @@ GOOGLE_RECAPTCHA_SECRET_KEY = get_env_value('GOOGLE_RECAPTCHA_SECRET_KEY')
 EMAIL_HOST_PASSWORD = get_env_value('EMAIL_HOST_PASSWORD')
 EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
 HELPDESK_EMAIL = get_env_value('HELPDESK_EMAIL')
+
+## Redis settings
+REDIS_BROKER_URL = 'redis://redis:6379/0'
 
 ## Celery settings
 CELERY_BROKER_URL = 'redis://redis:6379/0'
@@ -634,15 +644,35 @@ SWAGGER_TITLE = 'Concept Library API'
 MARKDOWNIFY = {
     'default': {
         'WHITELIST_TAGS': [
-            'a', 'abbr', 'acronym', 'b', 'blockquote', 'em', 'i', 'li', 'ol',
-            'p', 'strong', 'ul', 'img',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7'
-            # , 'span', 'div',  'code'
+            # Text & Modifiers
+            'p', 'abbr', 'acronym', 'b', 'em', 'i', 'strong',
+
+            # Section headings
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+
+            # Lists
+            'ul', 'li', 'ol',
+
+            # Anchors
+            'a',
+
+            # Assets
+            'img',
+
+            # Blocks
+            'blockquote',
+
+            # Allow markdown tables
+            'table', 'thead', 'tbody', 'th', 'tr', 'td',
+        ],
+        'WHITELIST_PROTOCOLS': [
+            'http', 'https',
+            'mailto'
         ],
         'WHITELIST_ATTRS': [
             'href',
-            'src',
             'alt',
+            'src',
             'style',
             'class',
         ],
@@ -651,7 +681,6 @@ MARKDOWNIFY = {
             'font-weight',
             'background-color',
         ],
-
         'MARKDOWN_EXTENSIONS': [
             'markdown.extensions.fenced_code',
             'markdown.extensions.extra',
@@ -659,7 +688,12 @@ MARKDOWNIFY = {
         'WHITELIST_PROTOCOLS': [
             'http',
             'https',
-        ]
+        ],
+        'LINKIFY_TEXT': {
+            'PARSE_URLS': True,
+            'PARSE_EMAIL': False,
+            'CALLBACKS': [sanitise_utils.apply_anchor_rel_attr,],
+        },
     }
 }
 

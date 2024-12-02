@@ -35,7 +35,7 @@ def send_scheduled_email(self):
                               })
 
     for j in range(len(overal_result)):
-        if not settings.IS_DEVELOPMENT_PC:
+        if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE:
             try:
                 time.sleep(7)
                 msg = EmailMultiAlternatives(email_subject,

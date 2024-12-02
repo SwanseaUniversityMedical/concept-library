@@ -88,19 +88,26 @@ export default class FuzzyQuery {
    * @return {number} the distance between the strings
    */
   static Distance(haystack, needle) {
-    const hlen = haystack.length;
-    const nlen = needle.length;
+    let nlen = needle.length;
+    let hlen = haystack.length;
     if (haystack === needle) {
       return 0;
     } else if (!(haystack && needle))  {
       return (haystack || needle).length;
     }
 
-    let i, j;
-    let matrix = [];
-    for (i = 0; i <= nlen; matrix[i] = [i++]);
-    for (j = 0; j <= hlen; matrix[0][j] = j++);
+    if (nlen > hlen) {
+      let tmp = hlen;
+      hlen = nlen;
+      nlen = tmp;
 
+      tmp = haystack;
+      haystack = needle;
+      needle = tmp;
+    }
+
+    let i, j;
+    let matrix = Array.from({ length: nlen + 1 }, (_, x) => Array.from({ length: hlen + 1 }, (_, y) => y));
     for (i = 1; i <= nlen; i++) {
       let c = needle.charCodeAt(i - 1);
       for (j = 1; j <= hlen; j++) {
@@ -146,10 +153,9 @@ export default class FuzzyQuery {
       
       if (FuzzyQuery.Match(item, query)) {
         if (sort) {
-          var score = FuzzyQuery.Distance(item, query);
-          results.push({item: item, score: score});
+          results.push({ item: item, score: FuzzyQuery.Distance(item, query) });
         } else {
-          results.push({item: item});
+          results.push({ item: item });
         }
       }
     }

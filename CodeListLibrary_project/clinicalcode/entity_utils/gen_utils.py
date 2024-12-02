@@ -13,7 +13,7 @@ import json
 import datetime
 import urllib
 
-from . import constants
+from . import constants, sanitise_utils
 
 
 def is_datetime(x):
@@ -219,8 +219,7 @@ def try_match_pattern(value, pattern):
     """
         Tries to match a string by a pattern
     """
-    pattern = re.compile(pattern)
-    return pattern.match(value)
+    return re.match(pattern, value)
 
 
 def is_valid_uuid(value):
@@ -289,6 +288,97 @@ def parse_as_int_list(value):
             result.append(int(x))
     return result
 
+def parse_prefixed_references(values, acceptable=None, pattern=None, transform=None, should_trim=False, default=None):
+    """
+        Attempts to parse prefixed references from a list object. Note that this
+        is primarily used for Ontology-like source mapping(s).
+        
+        Non-prefixed and/or unmapped items will fallback to parsing each element
+        as an integer-like value.
+
+        Args:
+            values           (list): the request context of the form
+            acceptable  (dict|None): a dict in which each key describes a prefix and its corresponding value specifies how to parse said prefix
+            pattern   (string|None): a regex pattern to separate individual values into [prefix, value] pairs (optional)
+            transform (string|None): a regex pattern to manipulate results (e.g. creating `alt_codes` with no dot formatting) (optional)
+            should_trim   (boolean): specifies whether the input value should be trimmed
+            default             (*): the default value to return if this method fails
+
+        Returns:
+            Either...
+                a) If successful: a dict specifying each of the matched values for the mapping(s) and a `__root__` key describing the parsed integer values (if any)
+                b) On failure: the specified default value
+    """
+    if not isinstance(values, list):
+        return None
+
+    if not isinstance(acceptable, dict):
+        acceptable = None
+
+    if not is_empty_string(pattern):
+        try:
+            pattern = re.compile(pattern)
+        except:
+            return default
+    else:
+        pattern = None
+
+    should_trim = not not should_trim
+    if not is_empty_string(transform):
+        try:
+            transform = re.compile(transform)
+        except:
+            transform = None
+    else:
+        transform = None
+
+    root = []
+    prefixed = {}
+    for value in values:
+        if isinstance(value, (int, float, complex)) and not isinstance(value, bool):
+            root.append(value)
+            continue
+        elif is_empty_string(value):
+            continue
+
+        if should_trim:
+            value = value.strip()
+
+        matched = pattern.findall(value) if pattern is not None else None
+        if matched is not None and len(matched) > 0:
+            matched = matched.pop(0)
+
+            prefix = matched[0].lower()
+            target = matched[1]
+            if acceptable is not None:
+                if not prefix in acceptable:
+                    target = None
+                else:
+                    expected = acceptable.get(prefix).get('type')
+                    if not is_empty_string(expected):
+                        target = try_value_as_type(target, expected, default=None)
+
+            if target is not None:
+                if not prefix in prefixed:
+                    prefixed.update({ prefix: [] })
+                prefixed.get(prefix).append(target)
+
+                if isinstance(target, str) and transform:
+                    alt_target = transform.sub('', target)
+                    if not is_empty_string(alt_target) and target != alt_target:
+                        prefixed.get(prefix).append(alt_target)
+                continue
+
+        value = parse_int(value, default=None)
+        if value is not None:
+            root.append(value)
+
+    result = { '__root__': root }
+    if len(prefixed) > 0:
+        result |= prefixed
+
+    return result
+
 
 def try_value_as_type(field_value, field_type, validation=None, default=None):
     """
@@ -306,6 +396,16 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
 
         if not isinstance(field_value, list):
             return default
+
+        if validation is not None:
+            source = validation.get('source', None)
+            references = source.get('references', False) if isinstance(source, dict) else None
+            if references:
+                mapping = references.get('mapping', None)
+                pattern = references.get('pattern', None)
+                transform = references.get('transform', None)
+                should_trim = references.get('trim', False)
+                return parse_prefixed_references(field_value, mapping, pattern, transform, should_trim, default)
 
         valid = True
         cleaned = []
@@ -325,7 +425,12 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         try:
             value = str(field_value) if field_value is not None else ''
             if validation is not None:
-                value = value.encode('ascii', 'ignore').decode('unicode')
+                sanitiser = validation.get('sanitise')
+                if sanitiser is not None:
+                    empty = is_empty_string(value)
+                    value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                    if value is None or (is_empty_string(value) and not empty):
+                        return default
 
                 pattern = validation.get('regex')
                 mandatory = validation.get('mandatory')
@@ -342,6 +447,13 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         try:
             value = str(field_value) if field_value is not None else ''
             if validation is not None:
+                sanitiser = validation.get('sanitise')
+                if sanitiser is not None:
+                    empty = is_empty_string(value)
+                    value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                    if value is None or (is_empty_string(value) and not empty):
+                        return default
+
                 pattern = validation.get('regex')
                 mandatory = validation.get('mandatory')
                 if pattern is not None and not try_match_pattern(value, pattern):
@@ -366,9 +478,17 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
             try:
                 value = str(val)
                 if validation is not None:
-                    pattern = validation.get('regex')
-                    if pattern is not None and not try_match_pattern(value, pattern):
-                        valid = False
+                    sanitiser = validation.get('sanitise')
+                    if sanitiser is not None:
+                        empty = is_empty_string(value)
+                        value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                        if value is None or (is_empty_string(value) and not empty):
+                            valid = False
+
+                    if valid:
+                        pattern = validation.get('regex')
+                        if pattern is not None and not try_match_pattern(value, pattern):
+                            valid = False
             except:
                 valid = False
             else:
@@ -420,11 +540,14 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                 break
 
             details = val.get('details')
-            if not details or not isinstance(details, str):
+            empty = is_empty_string(details)
+
+            details = sanitise_utils.sanitise_value(details, method='strict', default=None)
+            if not details or not isinstance(details, str) or (is_empty_string(details) and empty):
                 valid = False
                 break
 
-            doi = val.get('doi')
+            doi = sanitise_utils.sanitise_value(val.get('doi'), method='strict', default=None)
             if doi is not None and not isinstance(doi, str):
                 valid = False
                 break

@@ -17,6 +17,11 @@
   width: 100%;
   max-width: 100%;
 
+  &__badge-annotation {
+    float: right;
+    margin-left: 1rem;
+  }
+
   &__interface {
     display: flex;
     max-width: 100%;
@@ -68,24 +73,24 @@
     }
 
     &__trial {
-    &-children {
-      display: flex;
-      flex-flow: row wrap;
-      align-items: center;
+      &-children {
+        display: flex;
+        flex-flow: row wrap;
+        align-items: center;
 
-      input {
-        flex: 1;
-        margin-right: 0.25rem;
-      }
+        input {
+          flex: 1;
+          margin-right: 0.25rem;
+        }
 
-      button {
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-        font-weight: normal;
-        margin-bottom: 0.25rem;
+        button {
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+          font-weight: normal;
+          margin-bottom: 0.25rem;
+        }
       }
     }
-  }
   }
 
   &__none-available {
@@ -113,6 +118,14 @@
 
     &.mg-sm {
       margin-top: 0rem;
+    }
+
+    &-detail-title {
+      color: col(text-darkest);
+      border-bottom: 0;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1;
     }
 
     &-header {
@@ -656,12 +669,12 @@
   }
 
   &.fill {
-    width: calc(100% - 1rem);
-    max-width: calc(100% - 1rem);
+    width: 100%;
+    max-width: 100%;
   }
 
   &.constrained {
-    max-width: calc(100% - 1rem);
+    max-width: 100%;
   }
 
   &__mandatory {
@@ -1600,9 +1613,7 @@
 ///   @desc Ontology selector and its eletree style(s)
 [class^="eletree_icon-"],
 [class*=" eletree_icon-"] {
-  font-family: var(--icons-name);
-  font-style: var(--icons-style);
-  font-size: var(--icons-size);
+  @include fontawesome-icon();
   font-weight: normal;
   font-variant: normal;
   text-transform: none;

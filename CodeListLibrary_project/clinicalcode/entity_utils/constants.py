@@ -125,6 +125,18 @@ class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     CREATE = 1
     UPDATE = 2
 
+class CASE_SIGNIFICANCE(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Indicates whether the text can be modified by varying the case
+        of characters describing a SNOMED Concept
+
+        See: https://confluence.ihtsdotools.org/pages/viewpage.action?pageId=28739261
+
+    """
+    CL = 0 # First character can be varied; rest is cast sensitive
+    CI = 1 # All characters are case insensitive
+    CS = 2 # All characters are case sensitive
+
 class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     """
         Defines the ontology internal type id,
@@ -142,7 +154,7 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
 """
 ONTOLOGY_LABELS = {
     ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
-    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (ICD-10)',
+    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (SNOMED)',
     ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
 }
 
@@ -446,7 +458,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": True
+            "mandatory": True,
+            "sanitise": "strict",
         },
         'is_base_field': True
     },
@@ -457,7 +470,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -468,7 +482,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -490,7 +505,8 @@ metadata = {
         'active': True,
         'validation': {
             'type': 'string',
-            'mandatory': False
+            'mandatory': False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -501,7 +517,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -527,7 +544,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": True
+            "mandatory": True,
+            "sanitise": "strict",
         },
         'is_base_field': True
     },

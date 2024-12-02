@@ -9,12 +9,6 @@
 
 {% block title %}| {% if form_method.value == 1 %} Create your Phenotype {% else %} Update your Phenotype{% endif %}{% endblock title %}
 
-{% block cache_tags %}
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-{% endblock cache_tags %}
-
 {% block embedding_wrapper %}
   {% if form_method.value == 1 %}
     {% render_og_tags header='Create Phenotype' %}
@@ -46,7 +40,7 @@
   {% endcompress %}
 
   {% compress css %}
-    <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/create.scss' %}" type="text/css" />
   {% endcompress %}
 
   <header class="main-header">
@@ -110,7 +104,6 @@
       </article>
     </div>
   </main>
-
 
   {% url 'search_phenotypes' as referral_url %}
   {% to_json_script None data-owner="entity-creator" id="referral-links" name="links" desc-type="text/json" referral-url=referral_url %}

@@ -107,10 +107,10 @@ class ToastNotificationFactory {
       'aria-hidden': false,
       'aria-live': true,
     });
-    
+
     const element = createElement('div', {
       'className': 'toast__message',
-      'innerHTML': content
+      'innerText': content
     });
     toast.appendChild(element);
 

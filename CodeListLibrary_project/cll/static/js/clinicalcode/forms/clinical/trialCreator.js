@@ -241,13 +241,12 @@ export default class TrialCreator {
     e.preventDefault();
     e.stopPropagation();
 
-    const id = this.regId.value;
-    const link = this.regLink.value;
-    const name = this.trialName.value;
+    const id = strictSanitiseString(this.regId.value);
+    const link = strictSanitiseString(this.regLink.value);
+    const name = strictSanitiseString(this.trialName.value);
     const primary= Number(this.primaryTrialCheckbox.checked ? this.primaryTrialCheckbox.dataset.value: '0');
 
     const matches = parseString(link, CLU_TRIAL_LINK_PATTERN);
-    console.log(matches)
     if (!matches?.[0]) {
       window.ToastFactory.push(
           {

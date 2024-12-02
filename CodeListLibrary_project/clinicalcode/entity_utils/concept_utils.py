@@ -1,14 +1,16 @@
-
 from django.db import connection
 from django.db.models import ForeignKey
 from django.http.request import HttpRequest
+from rest_framework.request import Request as RESTRequest
+
+import json
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus
 
-from . import model_utils, permission_utils
+from . import gen_utils, model_utils, permission_utils
 from .constants import (
     USERDATA_MODELS, TAG_TYPE, HISTORICAL_HIDDEN_FIELDS,
     CLINICAL_RULE_TYPE, CLINICAL_CODE_SOURCE, APPROVAL_STATUS
@@ -31,6 +33,11 @@ def is_concept_published(concept_id, version_id):
         bool: Reflects published status
 
     """
+    concept_id = gen_utils.parse_int(concept_id, None)
+    version_id = gen_utils.parse_int(version_id, None)
+    if concept_id is None or version_id is None:
+        return False
+
     historical_concept = Concept.history.filter(id=concept_id, history_id=version_id)
     if not historical_concept.exists():
         return False
@@ -62,9 +69,12 @@ def is_concept_published(concept_id, version_id):
                    json_array_elements(entity.template_data::json->'concept_information') as concepts
              where entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
           ) results
-         where cast(concepts->>'concept_id' as integer) = {concept_id} and cast(concepts->>'concept_version_id' as integer) = {version_id};
+         where cast(concepts->>'concept_id' as integer) = %(concept_id)s and cast(concepts->>'concept_version_id' as integer) = %(version_id)s;
         '''
-        cursor.execute(sql)
+        cursor.execute(sql, params={
+            'concept_id': concept_id,
+            'version_id': version_id,
+        })
 
         row = cursor.fetchone()
         if row is not None:
@@ -89,6 +99,10 @@ def was_concept_ever_published(concept_id, version_id=None):
         bool: Reflects all-time published status
 
     """
+    concept_id = gen_utils.parse_int(concept_id, None)
+    if concept_id is None:
+        return False
+
     concept = Concept.objects.filter(id=concept_id)
     if not concept.exists():
         return False
@@ -116,9 +130,11 @@ def was_concept_ever_published(concept_id, version_id=None):
                    json_array_elements(entity.template_data::json->'concept_information') as concepts
              where entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
           ) results
-         where cast(concepts->>'concept_id' as integer) = {concept_id};
+         where cast(concepts->>'concept_id' as integer) = %(concept_id)s;
         '''
-        cursor.execute(sql)
+        cursor.execute(sql, params={
+            'concept_id': concept_id,
+        })
 
         row = cursor.fetchone()
         if row is not None:
@@ -214,6 +230,79 @@ def get_latest_accessible_concept(request, concept_id, default=None):
             return version
     
     return default
+
+def get_concept_headers(concept_information, default=None):
+    """
+    Attempts to compute a JSON struct detailing the minimum amount of data
+    required to describe a Phenotype's child concepts defined by its
+    `concept_information` field
+
+    [!] Note: This method ignores permissions - it should only be called from a
+    a method that has previously considered accessibility
+
+    Args:
+        concept_information (list[object]): 
+
+    Returns:
+        list[object] detailing the header for each child
+
+    """
+    if not isinstance(concept_information, list):
+        return default
+
+    results = []
+    with connection.cursor() as cursor:
+        sql = '''
+        with
+            concept_information (doc) as (
+                values 
+                (%(concept_information)s::json)
+            )
+        select
+            concept.name,
+            cast(obj->>'concept_id' as integer) as concept_id,
+            cast(obj->>'concept_version_id' as integer) as concept_version_id,
+            case
+                when exists(
+                    select 1
+                      from (
+                        select
+                              id,
+                              cdata
+                          from public.clinicalcode_historicalgenericentity as entity,
+                             json_array_elements(entity.template_data::json->'concept_information') as cdata
+                         where entity.publish_status = 2
+                      ) results
+                     where cast(cdata->>'concept_id' as integer) = cast(obj->>'concept_id' as integer) and cast(cdata->>'concept_version_id' as integer) = cast(obj->>'concept_version_id' as integer)
+                     limit 1
+                ) then true
+                else false
+            end as is_published,
+            concept.phenotype_owner_id,
+            codingsystem.id as coding_system_id,
+            codingsystem.name as coding_system_name
+        from concept_information as info,
+             json_array_elements(info.doc) as obj
+        join public.clinicalcode_concept as concept
+          on cast(obj->>'concept_id' as integer) = concept.id
+        join public.clinicalcode_codingsystem as codingsystem
+          on concept.coding_system_id = codingsystem.id;
+        '''
+
+        cursor.execute(
+            sql,
+            params={
+                'concept_information': json.dumps(concept_information)
+            }
+        )
+
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    if len(results) < 0:
+        return default
+
+    return results
 
 def get_concept_dataset(packet, field_name='concept_information', default=None):
     """
@@ -801,7 +890,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
     )
 
     # Determine whether the concept is OOD
-    if isinstance(derive_access_from, HttpRequest):
+    if isinstance(derive_access_from, HttpRequest) or isinstance(derive_access_from, RESTRequest):
         latest_version = get_latest_accessible_concept(derive_access_from, concept_id)
         
         if not latest_version:

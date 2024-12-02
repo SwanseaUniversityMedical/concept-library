@@ -8,9 +8,8 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from .views import (
-  Concept, GenericEntity,
-  Template, DataSource,
-  Tag, Collection, Ontology
+  Concept, GenericEntity, Template, DataSource,
+  Tag, Collection, Ontology, Healthcheck
 )
 
 """ Router
@@ -25,7 +24,6 @@ router = routers.DefaultRouter()
 #router.register('public/coding-systems', View.CodingSystemViewSet)
 
 """ Swagger """
-
 class SchemaGenerator(OpenAPISchemaGenerator):
     """
     
@@ -125,6 +123,14 @@ urlpatterns += [
         Concept.get_concept_detail,
         { 'export_codes': True },
         name='api_export_concept_codes_byVersionID'),
+    url(r'^concepts/C(?P<concept_id>\d+)/export/component-data/$',
+        Concept.get_concept_detail,
+        { 'export_component': True },
+        name='api_export_concept_component_data'),
+    url(r'^concepts/C(?P<concept_id>\d+)/version/(?P<version_id>\d+)/export/component-data/$',
+        Concept.get_concept_detail,
+        { 'export_component': True },
+        name='api_export_concept_component_data_byVersionID'),
     url(r'^concepts/C(?P<concept_id>\d+)/get-versions/$',
         Concept.get_concept_version_history,
         name='get_concept_versions'),
@@ -160,9 +166,19 @@ urlpatterns += [
     url(r'^ontology/type/(?P<ontology_id>\d+)/$',
         Ontology.get_ontology_detail,
         name='ontology_list_by_type'),
+    url(r'^ontology/node/$',
+        Ontology.get_ontology_nodes,
+        name='ontology_nodes'),
     url(r'^ontology/node/(?P<node_id>\d+)/$',
         Ontology.get_ontology_node,
         name='ontology_node_by_id'),
+]
+
+""" Healthcheck urls """
+urlpatterns += [
+    url(r'^health/$',
+        Healthcheck.HealthcheckReport.as_view(),
+        name='app_health'),
 ]
 
 """ Create/Update urls """

@@ -20,9 +20,9 @@ class TestSearchFilters:
 
         print(f"Current username:{self.driver.find_element(By.CLASS_NAME, 'text-username').text}") 
 
-        accordian = self.driver.find_element(By.XPATH, "/html/body/main/div/div/aside/div[2]/div[4]")
+        accordion = self.driver.find_element(By.XPATH, "/html/body/main/div/div/aside/div[2]/div[4]")
         time.sleep(5)
-        accordian.click()
+        accordion.click()
         checkboxes = self.driver.find_elements(By.XPATH, "//input[(@class='checkbox-item') and (@aria-label = 'Tags')]")
 
         for checkbox in checkboxes:

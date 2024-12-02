@@ -340,7 +340,7 @@ export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates text inputbox components
   'inputbox': (field, packet) => {
     const element = packet.element;
-    const value = element.value;
+    const value = strictSanitiseString(element.value);
     if (isMandatoryField(packet)) {
       if (!element.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
         return {
@@ -734,6 +734,7 @@ export const ENTITY_FIELD_COLLECTOR = {
       value: parsedValue?.value
     }
   },
+
   'clinical-trial': (field, packet) => {
     const handler = packet.handler;
     const trials = handler.getData();

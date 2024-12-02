@@ -1,0 +1,11 @@
+# Include the production deps
+-r base.txt
+
+# Test requirements
+selenium==4.15.0
+pytest-django==4.9.0
+pytest-html==4.1.1
+pytest-cov==4.1.0
+pytest-random-order==1.1.1
+allure-pytest==2.13.3
+git+https://github.com/SwanseaUniversityMedical/pyconceptlibraryclient.git@v1.0.1

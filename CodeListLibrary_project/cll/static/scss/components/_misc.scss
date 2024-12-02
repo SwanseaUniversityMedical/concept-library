@@ -64,7 +64,11 @@
   flex-flow: row nowrap;
   justify-content: space-between;
   align-items: flex-start;
-  width: calc(100% - 1rem);
+  width: calc(100% - 2rem);
+
+  & span:not([class]) {
+    @include wrap-words();
+  }
 
   &__source {
     display: inline-grid;

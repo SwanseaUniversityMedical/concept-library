@@ -37,8 +37,8 @@
   position: absolute;
   top: 0;
   box-sizing: border-box;
-  -webkit-box-shadow: var(--dropdown-shadow);
-  box-shadow: var(--dropdown-shadow);
+  -webkit-box-shadow: var(--panel-shadow);
+  box-shadow: var(--panel-shadow);
 
   .content-container {
     list-style: none;
@@ -51,6 +51,7 @@
       flex-direction: row;
 
       &__icon {
+        pointer-events: none;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -58,20 +59,37 @@
         height: 40px;
         margin-right: 16px;
         border-radius: 6px;
-        background: var(--phenotype-banner-bg-color);
+        background-color: var(--phenotype-banner-bg-color);
         @include prefix(transition, all 250ms ease-in, webkit moz o);
 
         img {
           object-fit: contain;
-          width: 70%;
+          height: 75%;
           object-position: center;
           border-radius: 50%;
+          pointer-events: none;
+        }
+
+        &#logout-icon {
+          margin-left: 8px;
+
+          & > svg {
+            object-fit: contain;
+            height: 75%;
+            object-position: center;
+            border-radius: 50%;
+            pointer-events: none;
+            margin-left: 4px;
+          }
         }
       }
 
       &__text {
         @include prefix(transition, all 250ms ease-in, webkit moz o);
+        display: flex;
+        flex-flow: column nowrap;
         flex-grow: 1;
+        pointer-events: none;
       }
 
       &__title {
@@ -80,6 +98,26 @@
         font-size: 14px;
         line-height: 14px;
         font-weight: 500;
+        pointer-events: none;
+      }
+
+      &__submit {
+        @include app-font-style(14px);
+        display: flex;
+        cursor: pointer;
+        pointer-events: all;
+        align-items: center;
+        margin: 0 0 0 10px;
+        padding: 0;
+        font-weight: 500;
+        border: 0;
+        outline: 0;
+        background-color: transparent;
+
+        &:hover {
+          outline: unset;
+          background-color: transparent;
+        }
       }
 
       &__description {
@@ -122,8 +160,8 @@
   position: absolute;
   top: 0;
   box-sizing: border-box;
-  -webkit-box-shadow: var(--dropdown-shadow);
-  box-shadow: var(--dropdown-shadow);
+  -webkit-box-shadow: var(--panel-shadow);
+  box-shadow: var(--panel-shadow);
 
   .content-container {
     list-style: none;
@@ -158,7 +196,7 @@
       height: var(--icon-height);
       margin-right: 16px;
       border-radius: 6px;
-      background: var(--icon-background-color);
+      background: var(--phenotype-banner-bg-color);
 
       svg {
         path {
@@ -169,8 +207,11 @@
     }
 
     &__text {
-      @include prefix(transition, all 250ms ease-in, webkit moz o);
+      @include prefix(transition, transform 250ms ease-in-out, webkit moz o);
+      display: flex;
+      flex-flow: column nowrap;
       flex-grow: 1;
+      justify-content: center;
     }
 
     &__title {
@@ -297,15 +338,15 @@
       align-items: center;
 
       .item-dropdown {
-        #logout-icon {
-          display: flex;
-          width: 20px;
-          height: 20px;
-          margin-right: 10px;
-        }
-
         &__icon {
           display: none;
+
+          &#logout-icon > svg {
+            display: flex;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+          }
         }
 
         &__description {
@@ -414,6 +455,10 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     background-color: col(bg);
   }
 
+  &.transparent .search-navigation__search-input {
+    background-color: transparent !important;
+  }
+
   &__container {
     @include flex-row();
 
@@ -425,15 +470,24 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     width: calc(100% - var(--navigation-gutter) - var(--navigation-gutter));
   }
 
+  &__logo-anchor {
+    max-width: calc(100% - 4rem);
+  }
+
   &__logo {
+    @include prefix(background-size, contain, webkit moz o);
+    width: 100%;
     height: var(--navigation-height);
-    aspect-ratio: 8 / 1;
+    aspect-ratio: 6 / 1;
     background-color: col(clear);
     background-image: var(--logo-url);
     background-repeat: no-repeat;
     background-size: contain;
+    background-position-y: 50%;
 
-    @include prefix(background-size, contain, webkit moz o);
+    @include media(">=tablet", "screen") {
+      aspect-ratio: 8 / 1;
+    }
   }
 
   @include media("<desktop", "screen") {
@@ -525,7 +579,12 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         flex-grow: 0;
         opacity: 1;
         right: 1rem;
+        top: -2rem;
         visibility: visible;
+
+        .search-navigation__search {
+          max-width: calc(100% - 80px);
+        }
       }
     }
 

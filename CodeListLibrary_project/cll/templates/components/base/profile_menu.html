@@ -1,12 +1,12 @@
 {% load static %}
 {% load i18n %}
-{% load mathfilters %}
-{% load cl_extras %}
 {% load svg %}
+{% load cl_extras %}
+{% load compress %}
+{% load entity_renderer %}
 
 {% block content %}
   <!-- about tab -->
-  <script type="text/javascript" src="{% static "js/clinicalcode/components/brandurls.js" %}"></script>
   <div class="nav-dropdown">
     {% include "components/navigation/avatar_component.html"  %}
     
@@ -34,34 +34,27 @@
         <!-- Brands -->
         {% if request.user.is_superuser  and request.session.all_brands %}
           {% include "components/navigation/dropdown_profile_item.html" with  currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title="Concept Library" %}
-          
+
           {% for brand in request.session.all_brands %}
             {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo  title=brand|upper %}
           {% endfor %}
-          
+
           <hr/>
         {% endif %}
 
         <!-- Logout -->
         <li class="content-container">
-          <a href="{% url 'logout' %}?next={% url 'search_phenotypes' %}" class="item-dropdown">
+          <form method="post" action="{% url 'logout' %}?next={% url 'search_phenotypes' %}" class="item-dropdown">
+            {% csrf_token %}
             <div class="item-dropdown__icon" id="logout-icon">
               {% svg "exit_icon" %}
             </div>
-            <div class="item-dropdown__title">Log out</div>
-          </a>
+            <button class="item-dropdown__submit" type="submit">Log out</button>
+          </form>
         </li>
       </ul>
     </div>
   </div>
- 
-  <script type="text/javascript">
-    const elements = document.querySelectorAll(".userBrand");
-    elements.forEach(function(element) {
-      element.addEventListener("click", function() {
-        const [path,old_root] = generateOldPathRoot();
-        brandUrlsgen("{{request.session.all_brands}}","{{IS_PRODUCTION_SERVER}}",element,old_root,path);  
-      });
-    });
-  </script>
+
+  {% to_json_script request.session.all_brands id="brand-target-source" name="brand-targets" desc-type="text/json" host-target=IS_PRODUCTION_SERVER %}
 {% endblock content %}

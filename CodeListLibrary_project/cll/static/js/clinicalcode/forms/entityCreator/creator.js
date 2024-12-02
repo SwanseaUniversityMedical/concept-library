@@ -420,12 +420,12 @@ export default class EntityCreator {
     // Redirect to previous entity if available
     const object = this.data?.object;
     if (object?.referralURL) {
-      window.location.href = object.referralURL;
+      window.location.href = strictSanitiseString(object.referralURL);
       return;
     }
 
     // Redirect to search page
-    window.location.href = this.data.links.referralURL;
+    window.location.href = strictSanitiseString(this.data.links.referralURL);
   }
 
   /**

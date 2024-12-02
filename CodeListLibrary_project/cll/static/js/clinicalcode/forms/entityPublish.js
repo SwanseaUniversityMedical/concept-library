@@ -27,7 +27,6 @@ class PublishModal {
       });
       const data = await response.json();
       spinner.remove();
-      console.log(data);
 
       const publishButton = [
         {
@@ -77,10 +76,10 @@ class PublishModal {
           const name = result.name;
           if (name == "Decline") {
             await this.postData(data, this.decline_url);
-            window.location.href = this.redirect_url+'?eraseCache=true';
+            window.location.href = strictSanitiseString(this.redirect_url+'?eraseCache=true');
           } else {
             await this.postData(data, this.publish_url);
-            window.location.href = this.redirect_url+'?eraseCache=true';
+            window.location.href = strictSanitiseString(this.redirect_url+'?eraseCache=true');
           }
         })
         .catch((result) => {
@@ -119,7 +118,7 @@ class PublishModal {
 
     } catch (error) {
       spinner.remove();
-      console.log(error);
+      console.error(error);
     }
   }
 
@@ -193,12 +192,12 @@ class PublishModal {
 }
 
 domReady.finally(() => {
-  const url_publish = document.querySelector('data[id="publish-url"]');
-  const url_decline = document.querySelector('data[id="decline-url"]');
-  const redirect_url = document.querySelector('data[id="redirect-url"]');
+  const url_publish = document.querySelector('script[id="publish-url"]');
+  const url_decline = document.querySelector('script[id="decline-url"]');
+  const redirect_url = document.querySelector('script[id="redirect-url"]');
   window.entityForm = new PublishModal(
-    url_publish.innerHTML,
-    url_decline.innerHTML,
-    redirect_url.innerHTML
+    strictSanitiseString(url_publish.innerText.trim()),
+    strictSanitiseString(url_decline.innerText.trim()),
+    strictSanitiseString(redirect_url.innerText.trim())
   );
 });

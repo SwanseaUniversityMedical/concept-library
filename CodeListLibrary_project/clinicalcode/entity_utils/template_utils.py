@@ -1,12 +1,9 @@
 from django.apps import apps
 from django.db.models import Q, ForeignKey
-from django.db.models.query import QuerySet
 
 from . import concept_utils
 from . import filter_utils
 from . import constants
-
-from ..models.OntologyTag import OntologyTag
 
 
 def try_get_content(body, key, default=None):
@@ -508,9 +505,16 @@ def get_template_sourced_values(template, field, default=None, request=None):
         tree_models = source_info.get('trees')
 
         if isinstance(tree_models, list):
-            output = OntologyTag.get_groups(tree_models, default=default)
-            if isinstance(output, list):
-                return output
+            model_source = source_info.get('model')
+            if isinstance(model_source, str):
+                try:
+                    model = apps.get_model(app_label='clinicalcode', model_name=model_source)
+                    output = model.get_groups(tree_models, default=default)
+                    if isinstance(output, list):
+                        return output
+                except Exception as e:
+                    # Logging
+                    pass
         elif isinstance(model_name, str):
             try:
                 model = apps.get_model(app_label='clinicalcode', model_name=model_name)
@@ -689,7 +693,16 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
         tree_models = source_info.get('trees')
 
         if isinstance(tree_models, list):
-            return OntologyTag.get_detailed_source_value(data, tree_models, default=default)
+            model_source = source_info.get('model')
+            if isinstance(model_source, str):
+                try:
+                    model = apps.get_model(app_label='clinicalcode', model_name=model_source)
+                    output = model.get_detailed_source_value(data, tree_models, default=default)
+                    if isinstance(output, list):
+                        return output
+                except Exception as e:
+                    # Logging
+                    pass
         elif isinstance(model_name, str):
             values = []
             for item in data:
