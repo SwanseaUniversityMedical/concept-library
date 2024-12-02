@@ -1974,8 +1974,8 @@ export default class ConceptCreator {
       let caseSensitive = input.parentNode.parentNode.querySelector('input[name="search-sensitive"]:checked');
       caseSensitive = !isNullOrUndefined(caseSensitive);
 
-      let useDesc = input.parentNode.parentNode.querySelector('input[x-item="search-by"]:checked');
-      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('x-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
+      let useDesc = input.parentNode.parentNode.querySelector('input[data-ctrl="search-by"]:checked');
+      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('data-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
       useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES;
 
       const spinner = startLoadingSpinner();

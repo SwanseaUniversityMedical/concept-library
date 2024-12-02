@@ -147,14 +147,15 @@ def get_generic_entities(request, should_paginate=True):
         for available API parameters for individual templates.
 
         Other available parameters:
-        - `page` (`int`) - the page cursor
-        - `page_size` (`int`) - the desired page size from one of: `20`, `50`, `100`
-        - `should_paginate` (`bool`) - optionally turn off pagination; defaults to `True`
+          - `page` (`int`) - the page cursor
+          - `page_size` (`int`) - the desired page size from one of: `20`, `50`, `100`
+          - `should_paginate` (`bool`) - optionally turn off pagination; defaults to `True`
 
     """
 
     # Base params
     params = { key: value for key, value in request.query_params.items() }
+    tmpl_clauses = []
     accessible_clauses = []
 
     search = params.pop('search', None)
@@ -167,10 +168,13 @@ def get_generic_entities(request, should_paginate=True):
     if page:
         page_size = params.pop('page_size', None)
         page_size = gen_utils.try_value_as_type(page_size, 'int')
-        page_size = str(page_size) if isinstance(page_size, int) else '2'
+        page_size = str(page_size) if isinstance(page_size, int) else '1'
 
-        if page_size is None or page_size not in constants.PAGE_RESULTS_SIZE:
-            page_size = constants.PAGE_RESULTS_SIZE.get('2')
+        if page_size is not None:
+            if page_size in constants.PAGE_RESULTS_SIZE:
+                page_size = constants.PAGE_RESULTS_SIZE.get(str(page_size))
+            elif int(page_size) in constants.PAGE_RESULTS_SIZE.values():
+                page_size = int(page_size)
         else:
             page_size = constants.PAGE_RESULTS_SIZE.get(str(page_size))
 
@@ -180,8 +184,8 @@ def get_generic_entities(request, should_paginate=True):
     template_id = params.pop('template_id', None)
     template_id = gen_utils.try_value_as_type(template_id, 'int')
 
-    template_version_id = params.pop('template_id', None)
-    template_version_id = gen_utils.try_value_as_type(template_id, 'int')
+    template_version_id = params.pop('template_version_id', None)
+    template_version_id = gen_utils.try_value_as_type(template_version_id, 'int')
 
     if isinstance(template_id, int):
         template = Template.objects.filter(id=template_id)
@@ -206,9 +210,9 @@ def get_generic_entities(request, should_paginate=True):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            accessible_clauses.append('''(template.id = %(template_id)s and template.template_version = %(template_version_id)s)''')
+            tmpl_clauses.append('''(template.id = %(template_id)s and template.template_version = %(template_version_id)s)''')
         else:
-            accessible_clauses.append('''template.id = %(template_id)s''')
+            tmpl_clauses.append('''template.id = %(template_id)s''')
 
     # Finalise accessibility clause(s)
     user_id = None
@@ -233,60 +237,47 @@ def get_generic_entities(request, should_paginate=True):
 
     accessible_clauses.append(f'({user_clause})')
 
-    # Prepare accessible entity query str
-    accessible = '''
-        latest_templates as (
-            select t0.*
-              from public.clinicalcode_historicaltemplate t0
-             inner join (
-                select
-                        id,
-                        template_version, 
-                        max(history_date) as history_date
-                  from public.clinicalcode_historicaltemplate
-                 group by 1, 2
-            ) t1
-                on (t0.id = t1.id and t0.template_version = t1.template_version and t0.history_date = t1.history_date)
-        ),
-        accessible as (
-            select
-                    entity.*,
-                    (select max(hge.history_id) from public.clinicalcode_historicalgenericentity as hge where hge.id = entity.id) as history_id
-              from public.clinicalcode_genericentity as entity
-              join latest_templates as template
-            on (template.id = entity.template_id and template.template_version = entity.template_version)
-             where (entity.is_deleted is null or entity.is_deleted = false)
-               and (template.hide_on_create = false or template.hide_on_create is null)
-               and %s
-        )''' % (
-            ' and '.join(accessible_clauses),
-        )
-
     # Cache base params
     base_params = {
         'user_id': user_id,
         'brand_id': brand_id,
         'group_ids': group_ids,
-        'template_id': template_version_id,
+        'template_id': template_id,
         'template_version_id': template_version_id,
     }
 
     # Query associated template(s)
+    if len(tmpl_clauses) > 0:
+        tmpl_clauses = 'and ' + ' and '.join(tmpl_clauses)
+    else:
+        tmpl_clauses = ''
+
+    if len(accessible_clauses) > 0:
+        accessible_clauses = 'and ' + ' and '.join(accessible_clauses)
+    else:
+        accessible_clauses = ''
+
     templates = Template.objects.raw(
         raw_query='''
-            with
-                %(accessible)s
-
-            select
-                    distinct on (template.id, template.template_version)
-                    template.*
-              from accessible as entity
-              join latest_templates as template
-                on (
-                    template.id = entity.template_id
-                    and template.template_version = entity.template_version
-                );
-        ''' % { 'accessible': accessible },
+            select t0.id, t0.template_version, t0.history_id
+              from (
+                select
+                    template.id,
+                    template.template_version,
+                    template.history_id,
+                    row_number() over (
+                      partition by template.id, template.template_version
+                      order by template.history_id desc
+                    ) as rn_ref_n
+                  from public.clinicalcode_historicaltemplate as template
+                  join public.clinicalcode_historicalgenericentity as entity
+                    on entity.template_id = template.id and entity.template_version = template.template_version
+                 where (entity.is_deleted is null or entity.is_deleted = false)
+                   %s
+                   %s
+              ) as t0
+             where t0.rn_ref_n = 1
+        ''' % (tmpl_clauses, accessible_clauses,),
         params=base_params
     )
 
@@ -454,10 +445,69 @@ def get_generic_entities(request, should_paginate=True):
         query_params.update({ 'search': search })
 
     try:
+        if not user:
+            accessible = f'''
+            select t1.*
+              from (
+                select
+                      entity.id,
+                      entity.history_id,
+                      row_number() over (
+                      partition by entity.id
+                        order by entity.history_id desc
+                      ) as rn_ref_n
+                  from public.clinicalcode_historicalgenericentity as entity
+                  join public.clinicalcode_genericentity as live_entity
+                    on entity.id = live_entity.id
+                  join public.clinicalcode_historicaltemplate as template
+                    on entity.template_id = template.id and entity.template_version = template.template_version
+                  join public.clinicalcode_template as live_tmpl
+                    on template.id = live_tmpl.id
+                 where (live_entity.is_deleted is null or live_entity.is_deleted = false)
+                   and (entity.is_deleted is null or entity.is_deleted = false)
+                   and entity.publish_status = 2
+                   {tmpl_clauses}
+              ) as t0
+              join public.clinicalcode_historicalgenericentity as t1
+                on t0.id = t1.id
+               and t0.history_id = t1.history_id
+             where t0.rn_ref_n = 1
+            '''
+        else:
+            accessible = f'''
+            select t1.*
+            from (
+                select
+                    entity.id,
+                    entity.history_id,
+                    row_number() over (
+                        partition by entity.id
+                        order by entity.history_id desc
+                    ) as rn_ref_n
+                 from public.clinicalcode_historicalgenericentity as entity
+                 left join public.clinicalcode_genericentity as live_entity
+                   on entity.id = live_entity.id
+                 join public.clinicalcode_historicaltemplate as template
+                   on entity.template_id = template.id and entity.template_version = template.template_version
+                 join public.clinicalcode_template as live_tmpl
+                   on template.id = live_tmpl.id
+                where (live_entity.id is not null and (live_entity.is_deleted is null or live_entity.is_deleted = false))
+                  and (entity.is_deleted is null or entity.is_deleted = false)
+                    {accessible_clauses}
+                    {tmpl_clauses}
+             ) as t0
+             join public.clinicalcode_historicalgenericentity as t1
+               on t0.id = t1.id
+              and t0.history_id = t1.history_id
+            where t0.rn_ref_n = 1
+            '''
+
         entities = GenericEntity.history.raw(
             raw_query='''
             with
-                %(accessible)s,
+                accessible as (
+                    %(accessible)s
+                ),
                 entities as (
                     select *
                     from accessible as entity
@@ -497,15 +547,13 @@ def get_generic_entities(request, should_paginate=True):
                 formatted_entities.append(entity_detail)
 
         result = formatted_entities if not should_paginate else {
-            'page': page,
+            'page': min(entities.paginator.num_pages, page),
             'num_pages': entities.paginator.num_pages,
             'data': formatted_entities
         }
 
     except Exception as e:
         # log exception?
-        # print(e)
-
         raise BadRequest('Invalid request, failed to perform query')
     else:
         return Response(

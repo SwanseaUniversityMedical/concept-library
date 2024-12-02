@@ -794,13 +794,11 @@ def reorder_search_results(search_results, order=None, searchterm=''):
 
     if order != constants.ORDER_BY['1']:
         return GenericEntity.history.filter(
-            pk__in=Subquery(search_results.values('pk')),
             history_id__in=Subquery(search_results.values('history_id'))
         ) \
         .order_by(order.get('clause'))
     
     return GenericEntity.history.filter(
-            pk__in=Subquery(search_results.values('pk')),
             history_id__in=Subquery(search_results.values('history_id'))
         ) \
         .extra(select={'true_id': """cast(regexp_replace(id, '[a-zA-Z]+', '') as integer)"""}, order_by=['true_id']) \
