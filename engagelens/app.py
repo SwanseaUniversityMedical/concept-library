@@ -101,7 +101,7 @@ def restrict_access():
     """
     is_auth = validate_django_session()
     if not is_auth:
-        return redirect(f'/account/login/?next=/{request.path}/')
+        return redirect(f'/account/login/?next=/dash/')
 
 app.layout = dbc.Container(
         [

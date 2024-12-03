@@ -12,18 +12,25 @@
     
     <div class="nav-dropdown__content" id="dropdown-account">
       <ul class="profile-row">
-        <li class="content-container">
+        <li class="content-container content-container--wrap-row">
           {% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
-            <!--admin-->
+            <!--Admin panel-->
             <a href="{% url 'admin:index' %}" target=_blank class="item-dropdown">
-              <div class="item-dropdown__icon" id="admin_icon">
+              <div class="item-dropdown__icon profile-row--stylised-icon" id="admin_icon">
                 {% svg "person_icon" %}
               </div>
               <div class="item-dropdown__title">Admin</div> 
             </a>
+            <!--Dash-->
+            <a href="/dash" target=_blank class="item-dropdown">
+              <div class="item-dropdown__icon profile-row--stylised-icon" id="admin_icon">
+                {% svg "bar_chart_icon" %}
+              </div>
+              <div class="item-dropdown__title">Dashboard</div> 
+            </a>
           {% endif %}
           <a href="{% url 'my_collection' %}" class="item-dropdown">
-            <div class="item-dropdown__icon" id="collection_icon">
+            <div class="item-dropdown__icon profile-row--stylised-icon" id="collection_icon">
               {% svg "collection_icon" %}
             </div>
             <div class="item-dropdown__title">My collection</div> 
@@ -46,10 +53,12 @@
         <li class="content-container">
           <form method="post" action="{% url 'logout' %}?next={% url 'search_phenotypes' %}" class="item-dropdown">
             {% csrf_token %}
-            <div class="item-dropdown__icon" id="logout-icon">
-              {% svg "exit_icon" %}
-            </div>
-            <button class="item-dropdown__submit" type="submit">Log out</button>
+            <button class="item-dropdown__submit" type="submit">
+              <div class="item-dropdown__icon" id="logout-icon">
+                {% svg "exit_icon" %}
+              </div>
+              Log out
+            </button>
           </form>
         </li>
       </ul>
