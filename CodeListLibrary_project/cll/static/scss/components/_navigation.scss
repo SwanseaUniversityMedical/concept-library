@@ -272,7 +272,7 @@
       font-weight: 400;
     }
 
-    @include media("<desktop", "screen") {
+    @include media("<1250px", "screen") {
       &__icon {
         display: none;
       }
@@ -293,7 +293,7 @@
   }
 }
 
-@include media("<desktop", "screen") {
+@include media("<1250px", "screen") {
   .about-row {
     display: block;
     background-color:var(--phenotype-banner-bg-color);
@@ -352,7 +352,7 @@
   }
 }
 
-@include media("<desktop", "screen") {
+@include media("<1250px", "screen") {
   .avatar-content {
     display: inline-flex;
     align-items: center;
@@ -602,7 +602,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media("<desktop", "screen") {
+  @include media("<1250px", "screen") {
     &__container {
       margin: var(--navigation-mobile-offset) var(--navigation-mobile-gutter);
       width: calc(
@@ -623,7 +623,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     width: auto;
     z-index: 1;
 
-    @include media("<desktop", "screen") {
+    @include media("<1250px", "screen") {
       &:not(.open):after {
         --as-burger: "true";
 
@@ -645,7 +645,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media(">=desktop", "screen") {
+  @include media(">=1250px", "screen") {
     &__items {
       @include flex-row($gap: 1rem);
       height: var(--navigation-height);
@@ -665,7 +665,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media("<desktop", "screen") {
+  @include media("<1250px", "screen") {
     &__items {
       @include flex-col();
 
@@ -693,12 +693,21 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
       &.open {
         flex-grow: 0;
         opacity: 1;
+        top: 0rem;
         right: 1rem;
-        top: -2rem;
         visibility: visible;
+
+        @include media("<=1023px", "screen") {
+          top: -2rem;
+          max-width: 100%;
+        }
 
         .search-navigation__search {
           max-width: calc(100% - 80px);
+
+          & > input {
+            width: 100%;
+          }
         }
       }
     }
