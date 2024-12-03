@@ -151,6 +151,12 @@ def check_entity_to_publish(request, pk, entity_history_id):
     }
     return checks
 
+def check_organisation_authorities(request,entity,entity_class):
+    organisation_checks = {}
+
+    return organisation_checks
+
+
 def check_child_validity(request, entity, entity_class, check_publication_validity=False):
     """
     Wrapper for 'check_children' method authored by @zinnurov
