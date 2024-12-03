@@ -41,21 +41,39 @@
         opacity: 1;
       }
     }
+
+    .nav-dropdown__content--target {
+      &::after {
+        opacity: 1;
+      }
+    }
   }
 
   @include media(">=desktop", "screen") {
-  &__text::after {
-    content: "";
-    left: calc(50% - 10px);
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #ffffff;
-    border-left: 10px solid transparent;
-    opacity: 0;
-    z-index: 999;
-    bottom: 0;
-    position: absolute;
+    &__content--target::after {
+      content: "";
+      top: -10px;
+      left: calc(100% - 5px);
+      border-right: 10px solid transparent;
+      border-bottom: 10px solid col(bg);
+      border-left: 10px solid transparent;
+      opacity: 0;
+      z-index: 999;
+      position: absolute;
+    }
+
+    &__text::after {
+      content: "";
+      left: calc(50% - 10px);
+      border-right: 10px solid transparent;
+      border-bottom: 10px solid col(bg);
+      border-left: 10px solid transparent;
+      opacity: 0;
+      z-index: 999;
+      bottom: 0;
+      position: absolute;
+    }
   }
-}
 
   &__support-field {
     z-index: 999;
@@ -245,7 +263,7 @@
     padding: 0;
     margin: 2px 0 0 0;
     box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
-    background-color: #ffffff;
+    background-color: col(bg);
     list-style-type: none;
     z-index: 2000;
 

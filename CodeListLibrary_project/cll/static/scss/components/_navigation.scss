@@ -18,11 +18,8 @@
     border-radius: 6px;
     background: var(--navigation-item-selector);
 
-    path:has([fill^="#"]) {
+    path {
       fill: var(--item-icon-color);
-    }
-
-    path:has([stroke^="#"]) {
       stroke: var(--stroke-icon);
     }
   }
@@ -45,6 +42,9 @@
   box-shadow: var(--panel-shadow);
   word-break: break-all;
   word-wrap: break-word;
+  max-height: 75vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   .content-container {
     .item-dropdown {
@@ -158,11 +158,8 @@
 
   &--stylised-icon {
     svg {
-      path:has([fill^="#"]) {
+      path {
         fill: var(--item-icon-color);
-      }
-  
-      path:has([stroke^="#"]) {
         stroke: var(--stroke-icon);
       }
     }
@@ -184,6 +181,9 @@
   box-shadow: var(--panel-shadow);
   word-break: break-all;
   word-wrap: break-word;
+  max-height: 75vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   .content-container {
     list-style: none;

@@ -10,8 +10,8 @@
   <div class="nav-dropdown">
     {% include "components/navigation/avatar_component.html"  %}
     
-    <div class="nav-dropdown__content" id="dropdown-account">
-      <ul class="profile-row">
+    <div class="nav-dropdown__content nav-dropdown__content--target" id="dropdown-account">
+      <ul class="profile-row slim-scrollbar">
         <li class="content-container content-container--wrap-row">
           {% if request.user.is_superuser and SHOWADMIN and not CLL_READ_ONLY %}
             <!--Admin panel-->
