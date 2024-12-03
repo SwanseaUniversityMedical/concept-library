@@ -86,6 +86,7 @@ def render_citation_block(entity, request):
     ))
 
     brand = request.BRAND_OBJECT
+    brand = None if not isinstance(brand, Brand) else brand
     site_name = settings.APP_TITLE if not brand or not getattr(brand, 'site_title') else brand.site_title
 
     return f'{author}. *{phenotype_id} - {name}*. {site_name} [Online]. {updated}. Available from: [{url}]({url}). [Accessed {date}]'

@@ -137,7 +137,7 @@ class MyCollection(TemplateView):
     if not form.is_valid():
       return JsonResponse({
         'success': False,
-        'message': ''.join([f'{k}: {v}' for k, v in form.errors.items() if k != '__all__']),
+        'message': '\n'.join([f'{k}: {", ".join([str(x) for x in v])}' for k, v in form.errors.as_data().items() if k != '__all__']),
       })
     
     try:

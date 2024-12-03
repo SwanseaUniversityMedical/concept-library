@@ -563,7 +563,7 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     return field_value
 
 
-def measure_perf(func):
+def measure_perf(func, show_args=False):
     """
         Helper function to estimate view execution time
 
@@ -576,7 +576,10 @@ def measure_perf(func):
             start = time.time()
             result = func(*args, **kwargs)
             duration = (time.time() - start) * 1000
-            print('view {} takes {:.2f} ms'.format(func.__name__, duration))
+            if show_args:
+                print('view {} takes {:.2f} ms... \n  1. args: {}\n  2.kwargs:{}'.format(func.__name__, duration, args, kwargs))
+            else:
+                print('view {} takes {:.2f} ms'.format(func.__name__, duration))
             return result
         return func(*args, **kwargs)
 

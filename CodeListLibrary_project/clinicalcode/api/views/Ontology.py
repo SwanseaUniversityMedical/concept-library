@@ -82,7 +82,6 @@ def get_ontology_node(request, node_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-@gen_utils.measure_perf
 def get_ontology_nodes(request):
     """
         Queries Ontology nodes by the given request

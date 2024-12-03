@@ -653,7 +653,6 @@ def try_search_template_descendants(entities, field_type, search=None, order_cla
 
     return results
 
-@gen_utils.measure_perf
 def get_template_entities(request, template_id, method='GET', force_term=True, field_type='concept'):
     """
         Method to get a Template's entities that:

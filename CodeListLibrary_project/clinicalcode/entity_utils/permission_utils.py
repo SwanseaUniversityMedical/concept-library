@@ -1,8 +1,6 @@
 from django.db import connection
 from django.conf import settings
-from django.db.models import Q, F, Subquery, OuterRef, Value, TextField
-from django.db.models.expressions import Func
-from django.db.models.functions import Concat, Cast
+from django.db.models import Q, Subquery, OuterRef
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import Group
 
@@ -205,6 +203,221 @@ def get_editable_entities(
 
     return None
 
+def get_accessible_entity_history(
+    request,
+    entity_id,
+    entity_history_id,
+):
+    """
+      Attempts to get the accessible history of an entity
+
+      Args:
+        request (RequestContext): the HTTPRequest
+        entity_id (string): some entity to resolve
+        entity_history_id (integer): the entity's history id
+
+      Returns:
+        A dict containing historical entity data
+    """
+    if not isinstance(entity_id, str) or not isinstance(entity_history_id, int) or isinstance(model_utils.get_entity_id(entity_id), bool):
+        return None
+    
+    user = request.user
+    is_superuser = user.is_superuser if user is not None else False
+    query_params = { 'pk': entity_id, 'hid': entity_history_id }
+
+    brand_clause = ''
+    brand = model_utils.try_get_brand(request)
+    if brand is not None:
+        brand_clause = 'and t0.brands && %(brand_ids)s'
+        query_params.update({ 'brand_ids': [brand.id] })
+
+    data = f'''
+        with
+          pub_data as (
+        	select
+        	    case
+        	      when t0.is_last_approved = 1 then true
+        	      else false
+        	    end as is_last_approved,
+        	    case
+        	      when t0.is_latest_pending_version = 1 then true
+        	      else false
+        	    end as is_latest_pending_version,
+				t0.published_ids,
+        	    t0.objects
+			  from (
+            	select
+                    t0.entity_id,
+                    max(
+                      case
+                        when t0.approval_status = {APPROVAL_STATUS.APPROVED.value} then 1
+                        else 0
+                      end
+                    ) as is_last_approved,
+                    max(
+                      case
+                        when t0.entity_history_id = %(hid)s and t0.approval_status = {APPROVAL_STATUS.PENDING.value} then 1
+                        else 0
+                      end
+                    ) as is_latest_pending_version,
+                    array_agg(case when t0.approval_status = {APPROVAL_STATUS.APPROVED.value} then t0.entity_history_id end) as published_ids,
+					json_agg(
+					  json_build_object(
+                        'status', t0.approval_status,
+                        'entity_history_id', t0.entity_history_id,
+                        'publish_date', t0.modified,
+                        'approval_status_label', (
+                          case
+                            when t0.approval_status = {APPROVAL_STATUS.REQUESTED.value} then 'REQUESTED'
+                            when t0.approval_status = {APPROVAL_STATUS.PENDING.value} then 'PENDING'
+                            when t0.approval_status = {APPROVAL_STATUS.APPROVED.value} then 'APPROVED'
+                            when t0.approval_status = {APPROVAL_STATUS.REJECTED.value} then 'REJECTED'
+                            else ''
+                          end
+						)
+					  )
+					) as objects
+                  from public.clinicalcode_publishedgenericentity as t0
+                 where t0.entity_id = %(pk)s
+                 group by t0.entity_id
+			  ) as t0
+          ),
+          ent_data as (
+            select *
+              from (
+                select t.id, max(t.history_id) as history_id
+                  from public.clinicalcode_historicalgenericentity as t
+                 group by t.id
+              ) as t0
+             where t0.id = %(pk)s
+          )'''
+
+    # Anon user query
+    #   i.e. only published phenotypes
+    if not user or user.is_anonymous:
+        sql = f'''
+          {data},
+          historical_entities as (
+            select
+		        pd.obj->>'approval_status_label'::text as approval_status_label,
+			    to_char(cast(pd.obj->>'publish_date' as timestamptz), 'YYYY-MM-DD HH24:MI') as publish_date,
+			    t0.id,
+                to_char(t0.history_date, 'YYYY-MM-DD HH24:MI') as history_date,
+				t0.history_id,
+				t0.name,
+				uau.username as updated_by,
+				cau.username as created_by,
+				oau.username as owner
+              from public.clinicalcode_historicalgenericentity as t0
+			  join pub_data as pub
+				on t0.history_id = any(pub.published_ids)
+			  left join public.auth_user as uau
+			    on t0.updated_by_id = uau.id
+			  left join public.auth_user as cau
+			    on t0.created_by_id = cau.id
+			  left join public.auth_user as oau
+			    on t0.owner_id = oau.id
+		      left join (select json_array_elements(objects::json) as obj from pub_data pd) as pd
+			    on t0.history_id = (pd.obj->>'entity_history_id')::int
+			 where t0.id = %(pk)s
+               {brand_clause}
+          )
+          select (select history_id from ent_data) as latest_history_id, *
+		    from pub_data as t0
+			join (
+				select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
+				  from historical_entities as t
+			) as t1
+			  on true
+        '''
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql, query_params)
+            columns = [col[0] for col in cursor.description]
+            results = cursor.fetchone()
+            return dict(zip(columns, results)) if results else None
+
+    # Non-anon user
+    #   i.e. dependent on user role
+    clauses = 'true'
+    if not is_superuser:
+        clauses = '''t0.world_access = %(world_access)s or t0.owner_id = %(user_id)s'''
+        query_params.update({
+            'user_id': user.id,
+            'world_access': WORLD_ACCESS_PERMISSIONS.VIEW.value,
+        })
+
+        pub_status = [APPROVAL_STATUS.APPROVED.value]
+        if is_member(user, 'Moderators'):
+            pub_status += [
+                APPROVAL_STATUS.REQUESTED.value,
+                APPROVAL_STATUS.PENDING.value,
+                APPROVAL_STATUS.REJECTED.value
+            ]
+
+        if len(pub_status) > 1:
+            clauses += f'''
+            or t0.publish_status = any(%(pub_status)s)
+            '''
+            query_params.update({ 'pub_status': pub_status })
+        else:
+            clauses += f'''
+            or t0.publish_status = {APPROVAL_STATUS.APPROVED.value}
+            '''
+
+        group_ids = [x for x in list(user.groups.all().values_list('id', flat=True))]
+
+        if len(group_ids):
+            clauses += '''
+                or (t0.group_id = any(%(group_ids)s) and t0.group_access = any(%(group_perms)s))
+            '''
+            query_params.update({
+                'group_ids': group_ids,
+                'group_perms': [GROUP_PERMISSIONS.VIEW.value, GROUP_PERMISSIONS.EDIT.value],
+            })
+
+    sql = f'''
+      {data},
+      historical_entities as (
+        select
+		    coalesce(pd.obj->>'approval_status_label'::text, '') as approval_status_label,
+            to_char(cast(pd.obj->>'publish_date' as timestamptz), 'YYYY-MM-DD HH24:MI') as publish_date,
+		    t0.id,
+            to_char(t0.history_date, 'YYYY-MM-DD HH24:MI') as history_date,
+			t0.history_id,
+			t0.name,
+			uau.username as updated_by,
+			cau.username as created_by,
+			oau.username as owner
+          from public.clinicalcode_historicalgenericentity as t0
+		  left join public.auth_user as uau
+			on t0.updated_by_id = uau.id
+		  left join public.auth_user as cau
+			on t0.created_by_id = cau.id
+		  left join public.auth_user as oau
+		    on t0.owner_id = oau.id
+		  left join (select json_array_elements(objects::json) as obj from pub_data pd) as pd
+		    on t0.history_id = (pd.obj->>'entity_history_id')::int
+		 where t0.id = %(pk)s
+           and ({clauses})
+           {brand_clause}
+      )
+      select (select history_id from ent_data) as latest_history_id, *
+        from pub_data as t0
+        join (
+          select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
+            from historical_entities as t
+        ) as t1
+          on true
+    '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, query_params)
+        columns = [col[0] for col in cursor.description]
+        results = cursor.fetchone()
+        return dict(zip(columns, results)) if results else None
+
 def get_accessible_entities(
     request,
     consider_user_perms=True,
@@ -212,27 +425,27 @@ def get_accessible_entities(
     status=[APPROVAL_STATUS.APPROVED],
     group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT],
     consider_brand=True,
-    raw_query=False
+    raw_query=False,
+    pk=None
 ):
     """
       Tries to get all the entities that are accessible to a specific user
 
       Args:
+        request (RequestContext): the HTTPRequest
         consider_user_perms (boolean): Whether to consider user perms i.e. superuser, moderation status etc
         only_deleted (boolean): Whether to incl/excl deleted entities
         status (list): A list of publication statuses to consider
         group_permissions (list): A list of which group permissions to consider
         consider_brand (boolean): Whether to consider the request Brand (only applies to Moderators, Non-Auth'd and Auth'd accounts)
         raw_query (boolean): Specifies whether this func should return a RawQuerySet (defaults to `False`)
+        pk (string): optionally specify some pk to filter
 
       Returns:
         (Raw)QuerySet of accessible entities
     """
     user = request.user
 
-    # Early exit if we're a superuser and want to consider privileges
-    # if consider_user_perms and user and user.is_superuser:
-    #     return GenericEntity.history.all().latest_of_each()
 
     # Build brand query
     brand_clause = ''
@@ -242,6 +455,15 @@ def get_accessible_entities(
         if brand is not None:
             brand_clause = 'and hist_entity.brands && %(brand_ids)s'
             query_params.update({ 'brand_ids': [brand.id] })
+
+    pk_clause = ''
+    if isinstance(pk, str) and not isinstance(model_utils.get_entity_id(pk), bool):
+        pk_clause = 'and hist_entity.id = %(pk)s'
+        query_params.update({ 'pk': pk })
+
+    # Early exit if we're a superuser and want to consider privileges
+    if len(pk_clause) < 1 and consider_user_perms and user and user.is_superuser:
+        return GenericEntity.history.all().latest_of_each()
 
     # Anon user query
     #   i.e. only published phenotypes
@@ -269,6 +491,7 @@ def get_accessible_entities(
                and (hist_entity.is_deleted is null or hist_entity.is_deleted = false)
                and hist_entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
                {brand_clause}
+               {pk_clause}
           ) as t0
           join public.clinicalcode_historicalgenericentity as t1
             on t0.id = t1.id
@@ -370,6 +593,8 @@ def get_accessible_entities(
                {clauses}
            )
              {conditional}
+             {pk_clause}
+             {brand_clause}
       ) as t0
       join public.clinicalcode_historicalgenericentity as t1
         on t0.id = t1.id
@@ -664,6 +889,85 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
             return check_brand_access(request, is_published, entity_id, entity_history_id)
 
     return False
+
+def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
+    """
+      Gets the parent entity from a given `id`, returning both (a) the entity
+      and (b) the edit/view access perms
+
+      Args:
+        request (RequestContext): the HTTPRequest
+        entity_id (number): The entity ID of interest
+
+      Returns:
+        Either (a) a dict containing the entity and the user's edit/view access
+           or; (b) a boolean value reflecting the failed state of this func
+    """
+    live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
+    if live_entity is None:
+        return False
+
+    if entity_history_id is not None:
+        historical_entity = model_utils.try_get_entity_history(live_entity, entity_history_id)
+        if historical_entity is None:
+            return False
+    else:
+        historical_entity = live_entity.history.latest()
+        entity_history_id = historical_entity.history_id
+
+    brand = getattr(request, 'BRAND_OBJECT', None)
+    if brand is None or (isinstance(brand, dict) and not brand.get('id')):
+        brand_accessible = True
+    else:
+        related_brands = live_entity.brands
+        if not related_brands or len(related_brands) < 1:
+            brand_accessible = True
+        elif isinstance(related_brands, list):
+            brand_accessible = (brand.get('id') if isinstance(brand, dict) else brand.id) in related_brands
+
+    user = request.user if request.user and not request.user.is_anonymous else None
+    is_allowed_to_edit = False
+    if user is not None:
+        if user.is_superuser:
+            is_allowed_to_edit = True
+
+        if live_entity.owner == user or live_entity.created_by == user:
+            is_allowed_to_edit = True
+
+        if has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
+            is_allowed_to_edit = True
+
+        if is_allowed_to_edit and not brand_accessible:
+            is_allowed_to_edit = False
+
+    is_published = historical_entity.status == APPROVAL_STATUS.APPROVED.value
+    if user:
+        if is_member(user, 'Moderators'):
+            moderation_required = is_publish_status(
+                historical_entity,
+                [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
+            )
+        else:
+            moderation_required = None
+
+        is_owner = live_entity.owner == user
+        has_group_access = has_member_access(user, live_entity, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT])
+        world_accessible = live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW
+
+        can_view = brand_accessible and (moderation_required or world_accessible or (is_owner or has_group_access or world_accessible))
+    else:
+        can_view = brand_accessible and is_published
+        is_owner = False
+        world_accessible = False
+        has_group_access = False
+        moderation_required = None
+
+    return {
+        'entity': live_entity,
+        'historical_entity': historical_entity,
+        'edit_access': is_allowed_to_edit,
+        'view_access': can_view,
+    }
 
 def can_user_view_concept(request,
                           historical_concept,

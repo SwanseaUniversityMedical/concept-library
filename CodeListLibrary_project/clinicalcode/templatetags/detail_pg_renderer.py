@@ -11,7 +11,6 @@ import json
 
 from ..entity_utils import permission_utils, template_utils, model_utils, gen_utils, constants, concept_utils
 from ..models.GenericEntity import GenericEntity
-from ..models.OntologyTag import OntologyTag
 
 register = template.Library()
 
@@ -305,7 +304,7 @@ class EntityWizardSections(template.Node):
             return
 
         if field == 'group':
-            return permission_utils.get_user_groups(request)
+            return self.user_groups
 
     def __append_section(self, output, section_content):
         if gen_utils.is_empty_string(section_content):
@@ -319,6 +318,10 @@ class EntityWizardSections(template.Node):
         if template is None:
             return output
 
+        flat_ctx = context.flatten()
+        is_prod_env = not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC
+        is_unauthenticated = not request.user or not request.user.is_authenticated
+
         merged_definition = template_utils.get_merged_definition(template, default={})
         template_fields = template_utils.try_get_content(merged_definition, 'fields')
         template_fields.update(constants.DETAIL_PAGE_APPENDED_FIELDS)
@@ -329,25 +332,19 @@ class EntityWizardSections(template.Node):
         template_sections = template.definition.get('sections')
         #template_sections.extend(constants.DETAIL_PAGE_APPENDED_SECTIONS)
         for section in template_sections:
-            if section.get('hide_on_detail', False):
+            is_hidden = (
+                section.get('hide_on_detail', False)
+                or section.get('hide_on_detail', False)
+                or (section.get('requires_auth', False) and is_unauthenticated)
+                or (section.get('do_not_show_in_production', False) and is_prod_env)
+            )
+            if is_hidden:
                 continue
 
-            if section.get('requires_auth', False):
-                if not context.get('user').is_authenticated:
-                    continue
-
-            if section.get('do_not_show_in_production', False):
-                if (not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC):
-                    continue
-
-                    # still need to handle: section 'hide_if_empty' ???
-
-            # don't show section description in detail page
             section['hide_description'] = True
-
             section_content = self.__try_render_item(template_name=constants.DETAIL_WIZARD_SECTION_START
                                                      , request=request
-                                                     , context=context.flatten() | {'section': section})
+                                                     , context=flat_ctx | {'section': section})
 
             field_count = 0
             for field in section.get('fields'):
@@ -355,42 +352,30 @@ class EntityWizardSections(template.Node):
                 if not template_field:
                     template_field = template_utils.try_get_content(constants.metadata, field)
 
-                if not template_field:
+                component = template_utils.try_get_content(field_types, template_field.get('field_type')) if template_field else None
+                if component is None:
                     continue
 
                 active = template_field.get('active', False)
-                if isinstance(active, bool) and not active:
-                    continue
-
-                if template_field.get('hide_on_detail'):
+                is_hidden = (
+                    (isinstance(active, bool) and not active)
+                    or template_field.get('hide_on_detail')
+                    or (template_field.get('requires_auth', False) and is_unauthenticated)
+                    or (template_field.get('do_not_show_in_production', False) and is_prod_env)
+                )
+                if is_hidden:
                     continue
 
                 if template_field.get('is_base_field', False):
                     template_field = constants.metadata.get(field) | template_field
-
-                component = template_utils.try_get_content(field_types, template_field.get('field_type'))
-                if component is None:
-                    continue
 
                 if template_utils.is_metadata(GenericEntity, field):
                     field_data = template_utils.try_get_content(constants.metadata, field)
                 else:
                     field_data = template_utils.get_layout_field(template, field)
 
-                if template_field.get('requires_auth', False):
-                    if not request.user.is_authenticated:
-                        continue
-
-                if template_field.get('do_not_show_in_production', False):
-                    if not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC:
-                        continue
-
-                if field_data is None:
-                    field_data = ''
-                    #continue
-
                 component['field_name'] = field
-                component['field_data'] = field_data
+                component['field_data'] = '' if field_data is None else field_data
 
                 desc = template_utils.try_get_content(template_field, 'description')
                 if desc is not None:
@@ -406,17 +391,6 @@ class EntityWizardSections(template.Node):
                 if len(section.get('fields')) <= 1:
                     # don't show field title if it is the only field in the section
                     component['hide_input_title'] = True
-
-                if template_utils.is_metadata(GenericEntity, field):
-                    options = template_utils.get_template_sourced_values(constants.metadata, field)
-
-                    if options is None:
-                        options = self.__try_get_computed(request, field)
-                else:
-                    options = template_utils.get_template_sourced_values(template, field)
-
-                if options is not None:
-                    component['options'] = options
 
                 if entity:
                     component['value'] = self.__try_get_entity_value(template, entity, field)
@@ -435,7 +409,7 @@ class EntityWizardSections(template.Node):
                 uri = f'{constants.DETAIL_WIZARD_OUTPUT_DIR}/{output_type}.html'
                 field_count += 1
                 section_content += self.__try_render_item(template_name=uri, request=request,
-                                                          context=context.flatten() | {'component': component})
+                                                          context=flat_ctx | {'component': component})
 
             if field_count > 0:
                 output = self.__append_section(output, section_content)
@@ -445,4 +419,10 @@ class EntityWizardSections(template.Node):
     def render(self, context):
         if not isinstance(self.request, HttpRequest):
             self.request = self.request.resolve(context)
+        
+        if self.request and self.request.user is not None and not self.request.user.is_anonymous:
+            self.user_groups = permission_utils.get_user_groups(self.request)
+        else:
+            self.user_groups = []
+
         return self.__generate_wizard(self.request, context)
