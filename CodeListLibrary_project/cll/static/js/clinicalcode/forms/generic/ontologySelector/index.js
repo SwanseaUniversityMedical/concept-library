@@ -243,13 +243,13 @@ export default class OntologySelectionService {
    */
   #initialiseTree() {
     const dataset = this.dataset
-    if (!isNullOrUndefined(dataset)) {
+    if (isNullOrUndefined(dataset)) {
       return;
     }
 
     for (let i = 0; i < dataset.length; ++i) {
       OntologySelectionService.applyToTree(dataset[i].nodes, elem => {
-        if (typeof(elem?.label) === 'string' && !elem?.processed) {
+        if ((isNullOrUndefined(elem.label) || typeof elem.label === 'string') && !elem.processed) {
           elem.label = OntologySelectionService.getLabel(elem);
           elem.processed = true;
         }

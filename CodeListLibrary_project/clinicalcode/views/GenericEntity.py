@@ -27,6 +27,7 @@ from ..entity_utils import (concept_utils, entity_db_utils, permission_utils,
                             template_utils, gen_utils, model_utils, 
                             create_utils, search_utils, constants)
 
+from clinicalcode.views import View
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
 from clinicalcode.models.CodingSystem import CodingSystem
@@ -513,53 +514,54 @@ def generic_entity_detail(request, pk, history_id=None):
     ''' 
         Display the detail of a generic entity at a point in time.
     '''
-    # validate access for login and public site
+    # validate pk param
     if not model_utils.get_entity_id(pk):
-        raise Http404
+        return View.notify_err(
+            request,
+            title='Bad request',
+            status_code=400,
+            details=['Invalid Phenotype ID']
+        )
 
+    # find latest accessible entity for given pk if historical id not specified
     history_id = gen_utils.parse_int(history_id, default=None)
-    if isinstance(history_id, int):
-        # get entity
-        accessibility = permission_utils.get_accessible_detail_entity(request, pk, history_id)
-        if not accessibility or not accessibility.get('view_access'):
-            raise PermissionDenied
-    else:
-        # otherwise get latest accessible entity
+    if not isinstance(history_id, int):
         entities = permission_utils.get_accessible_entities(request, pk=pk)
 
         if not entities.exists():
             raise Http404
+        else:
+            history_id = entities.first().history_id
 
-        history_id = entities.first().history_id
-        accessibility = permission_utils.get_accessible_detail_entity(request, pk, history_id)
-        if not accessibility or not accessibility.get('view_access'):
-            raise PermissionDenied
+    accessibility = permission_utils.get_accessible_detail_entity(request, pk, history_id)
+    if not accessibility or not accessibility.get('view_access'):
+        raise PermissionDenied
 
     entity = accessibility.get('historical_entity')
     live_entity = accessibility.get('entity')
 
     is_deleted = not not live_entity.is_deleted
-    is_published = entity.status == constants.APPROVAL_STATUS.APPROVED.value
-    approval_status = entity.status
+    is_published = accessibility.get('is_published', False)
+    approval_status = entity.publish_status
+    user_can_export = request.user is not None and request.user.is_authenticated
 
     entity_dataset = permission_utils.get_accessible_entity_history(request, pk, history_id)
     entity_dataset = entity_dataset if isinstance(entity_dataset, dict) else { }
 
     is_lastapproved = entity_dataset.get('is_last_approved', False)
     is_latest_pending_version = entity_dataset.get('is_latest_pending_version', False)
-    published_historical_ids = entity_dataset.get('published_ids', [])
+
     history = entity_dataset.get('entities', [])
+    published_historical_ids = entity_dataset.get('published_ids', [])
 
     template = entity.template.history.filter(template_version=entity.template_version).latest()
     entity_class = template.entity_class.name
 
     if request.user.is_authenticated:
         can_edit = accessibility.get('edit_access', False)
-        user_can_export = True 
         user_allowed_to_create = permission_utils.allowed_to_create()
     else:
         can_edit = False
-        user_can_export = is_published
         user_allowed_to_create = False
 
     is_latest_version = history_id == entity_dataset.get('latest_history_id', -1)
@@ -582,9 +584,7 @@ def generic_entity_detail(request, pk, history_id=None):
         'is_latest_pending_version':is_latest_pending_version,
         'is_lastapproved': is_lastapproved,
         'is_published': is_published,
-        'current_phenotype_history_id': int(history_id),
-        'q': entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', '')),
-        'force_highlight_result':  ['0', '1'][entity_db_utils.is_referred_from_search_page(request)]                              
+        'current_phenotype_history_id': int(history_id),                           
     }
 
     return render(request, 

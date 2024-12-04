@@ -300,7 +300,6 @@ export default class Tagify {
           } break;
   
           case TAGIFY__KEYCODES.BACK: {
-
             if (name === '') {
               this.#clearAutocomplete(true);
   

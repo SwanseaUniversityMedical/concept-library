@@ -7,6 +7,7 @@ from django.contrib.auth.models import Group
 from functools import wraps
 
 from . import model_utils, gen_utils
+from ..models.Brand import Brand
 from ..models.Concept import Concept
 from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
@@ -449,17 +450,16 @@ def get_accessible_entities(
         (Raw)QuerySet of accessible entities
     """
     user = request.user
-
+    query_params = { }
 
     # Build brand query
+    brand = model_utils.try_get_brand(request) if consider_brand else None
     brand_clause = ''
-    query_params = { }
-    if consider_brand:
-        brand = model_utils.try_get_brand(request)
-        if brand is not None:
-            brand_clause = 'and hist_entity.brands && %(brand_ids)s'
-            query_params.update({ 'brand_ids': [brand.id] })
+    if consider_brand and brand is not None:
+        brand_clause = 'and hist_entity.brands && %(brand_ids)s'
+        query_params.update({ 'brand_ids': [brand.id] })
 
+    # Append pk clause if entity_id is valid
     pk_clause = ''
     if isinstance(pk, str) and not isinstance(model_utils.get_entity_id(pk), bool):
         pk_clause = 'and hist_entity.id = %(pk)s'
@@ -467,7 +467,11 @@ def get_accessible_entities(
 
     # Early exit if we're a superuser and want to consider privileges
     if len(pk_clause) < 1 and consider_user_perms and user and user.is_superuser:
-        return GenericEntity.history.all().latest_of_each()
+        if brand is not None:
+            results = GenericEntity.history.filter(brands__overlap=[brand.id]).latest_of_each()
+        else:
+            results = GenericEntity.history.all()
+        return results.latest_of_each()
 
     # Anon user query
     #   i.e. only published phenotypes
@@ -920,57 +924,72 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
         entity_history_id = historical_entity.history_id
 
     brand = getattr(request, 'BRAND_OBJECT', None)
-    if brand is None or (isinstance(brand, dict) and not brand.get('id')):
-        brand_accessible = True
-    else:
+    if isinstance(brand, (Brand, dict,)):
+        brand_id = brand.get('id') if isinstance(brand, dict) else getattr(brand, 'id')
+        brand_id = gen_utils.parse_int(brand_id, default=None)
+
+    if brand_id is not None:
         related_brands = live_entity.brands
-        if not related_brands or len(related_brands) < 1:
+        if not isinstance(related_brands, list) or len(related_brands) < 1:
             brand_accessible = True
         elif isinstance(related_brands, list):
-            brand_accessible = (brand.get('id') if isinstance(brand, dict) else brand.id) in related_brands
+            brand_accessible = brand_id in related_brands
+    else:
+        brand_accessible = True
 
     user = request.user if request.user and not request.user.is_anonymous else None
-    is_allowed_to_edit = False
+    user_groups = user.groups.all() if user is not None else None
+    user_has_groups = user_groups.exists() if user_groups is not None else None
+    user_group_ids = list(user_groups.values_list('id', flat=True)) if user_has_groups else []
+
+    user_is_admin = user.is_superuser if user else False
+    user_is_moderator = ('Moderators' in list(user_groups.values_list('name', flat=True))) if user_has_groups else False
+
+    is_viewable = False
+    is_editable = False
+    is_published = historical_entity.publish_status == APPROVAL_STATUS.APPROVED.value
+
     if user is not None:
-        if user.is_superuser:
-            is_allowed_to_edit = True
-
-        if live_entity.owner == user or live_entity.created_by == user:
-            is_allowed_to_edit = True
-
-        if has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
-            is_allowed_to_edit = True
-
-        if is_allowed_to_edit and not brand_accessible:
-            is_allowed_to_edit = False
-
-    is_published = historical_entity.status == APPROVAL_STATUS.APPROVED.value
-    if user:
-        if is_member(user, 'Moderators'):
-            moderation_required = is_publish_status(
-                historical_entity,
-                [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
-            )
-        else:
-            moderation_required = None
-
         is_owner = live_entity.owner == user
-        has_group_access = has_member_access(user, live_entity, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT])
-        world_accessible = live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW
+        is_moderatable = False
+        is_group_member = False
+        is_world_accessible = False
 
-        can_view = brand_accessible and (is_published or moderation_required or world_accessible or (is_owner or has_group_access or world_accessible))
+        if user_is_admin:
+            is_editable = True
+        elif brand_accessible:
+            entity_group_id = live_entity.group_id if isinstance(live_entity.group_id, int) else None
+            if live_entity.owner == user or live_entity.created_by == user:
+                is_editable = True
+
+            if entity_group_id is not None:
+                is_editable = live_entity.group_access == GROUP_PERMISSIONS.EDIT and entity_group_id in user_group_ids
+                is_group_member = (
+                    live_entity.group_access in [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+                    and entity_group_id in user_group_ids
+                )
+
+            if user_is_moderator and historical_entity.publish_status is not None:
+                is_moderatable = historical_entity.publish_status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
+
+            is_world_accessible = live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW
+
+        is_viewable = brand_accessible and (
+            user_is_admin
+            or is_published
+            or is_moderatable
+            or is_world_accessible
+            or (is_owner or is_group_member or is_world_accessible)
+        )
     else:
-        can_view = brand_accessible and is_published
-        is_owner = False
-        world_accessible = False
-        has_group_access = False
-        moderation_required = None
+        is_viewable = brand_accessible and is_published
 
     return {
         'entity': live_entity,
         'historical_entity': historical_entity,
-        'edit_access': is_allowed_to_edit,
-        'view_access': can_view,
+        'edit_access': is_editable,
+        'view_access': is_viewable,
+        'is_published': is_published,
     }
 
 def can_user_view_concept(request,
