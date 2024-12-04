@@ -148,7 +148,7 @@ def get_generic_entities(request, should_paginate=True):
 
         Other available parameters:
           - `page` (`int`) - the page cursor
-          - `page_size` (`int`) - the desired page size from one of: `20`, `50`, `100`
+          - `page_size` (`int`) - the desired page size from one `20`, `50`, `100` (or the enum value of `1`, `2`, `3`)
           - `should_paginate` (`bool`) - optionally turn off pagination; defaults to `True`
 
     """
@@ -160,23 +160,24 @@ def get_generic_entities(request, should_paginate=True):
 
     search = params.pop('search', None)
 
-    page = params.pop('page', 1 if should_paginate else None)
+    page = params.pop('page', None)
     page = gen_utils.try_value_as_type(page, 'int')
-    page = max(page, 1) if isinstance(page, int) else None
+    page = max(page, 1) if isinstance(page, int) else 1
 
     page_size = None
     if page:
         page_size = params.pop('page_size', None)
-        page_size = gen_utils.try_value_as_type(page_size, 'int')
-        page_size = str(page_size) if isinstance(page_size, int) else '1'
+        page_size = gen_utils.try_value_as_type(page_size, 'int', default=None)
 
-        if page_size is not None:
-            if page_size in constants.PAGE_RESULTS_SIZE:
-                page_size = constants.PAGE_RESULTS_SIZE.get(str(page_size))
-            elif int(page_size) in constants.PAGE_RESULTS_SIZE.values():
-                page_size = int(page_size)
-        else:
-            page_size = constants.PAGE_RESULTS_SIZE.get(str(page_size))
+        if isinstance(page_size, int):
+            tmp = constants.PAGE_RESULTS_SIZE.get(str(page_size), None)
+            if isinstance(tmp, int):
+                page_size = tmp
+            elif page_size not in list(constants.PAGE_RESULTS_SIZE.values()):
+                page_size = None
+
+        if not isinstance(page_size, int):
+            page_size = constants.PAGE_RESULTS_SIZE.get('1')
 
         should_paginate = True
 
@@ -548,7 +549,8 @@ def get_generic_entities(request, should_paginate=True):
 
         result = formatted_entities if not should_paginate else {
             'page': min(entities.paginator.num_pages, page),
-            'num_pages': entities.paginator.num_pages,
+            'total_pages': entities.paginator.num_pages,
+            'page_size': page_size,
             'data': formatted_entities
         }
 
