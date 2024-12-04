@@ -79,16 +79,17 @@ export const ENTITY_HANDLERS = {
       'allowDuplicates': false,
       'restricted': true,
       'items': options,
-    }, dataset);
+      'onLoad': (box) => {
+        for (let i = 0; i < value.length; ++i) {
+          const item = value[i];
+          if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
+            continue;
+          }
 
-    for (let i = 0; i < value.length; ++i) {
-      const item = value[i];
-      if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
-        continue;
+          box.addTag(item.name, item.value);
+        }
       }
-
-      tagbox.addTag(item.name, item.value);
-    }
+    }, dataset);
 
     return tagbox;
   },

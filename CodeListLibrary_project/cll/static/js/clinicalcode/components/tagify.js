@@ -359,34 +359,38 @@ export default class Tagify {
    * @param {dict|*} phenotype optional initialisation template
    */
   async #initialise(options, phenotype) {
+    this.container = createElement('div', {
+      'className': 'tags-root-container',
+    });
+
+    this.tagbox = createElement('div', {
+      'className': 'tags-container',
+    });
+
+    this.autocomplete = createElement('div', {
+      'className': 'tags-autocomplete-container filter-scrollbar',
+    });
+
+    this.field = createElement('input', {
+      'type': 'text',
+      'className': 'tags-input-field',
+      'id': this.uuid,
+      'placeholder': this.element.placeholder || '',
+    });
+
+    this.tagbox.appendChild(this.field);
+    this.container.appendChild(this.tagbox);
+    this.container.appendChild(this.autocomplete);
+    this.element.type = 'hidden';
+    this.element.parentNode.insertBefore(this.container, this.element.nextSibling);
+
     this.#buildOptions(options || { }, phenotype)
       .catch(e => console.error(e))
       .finally(() => {
-        this.container = createElement('div', {
-          'className': 'tags-root-container',
-        });
+        if (this.options?.onLoad && this.options.onLoad instanceof Function) {
+          this.options.onLoad(this);
+        }
 
-        this.tagbox = createElement('div', {
-          'className': 'tags-container',
-        });
-
-        this.autocomplete = createElement('div', {
-          'className': 'tags-autocomplete-container filter-scrollbar',
-        });
-    
-        this.field = createElement('input', {
-          'type': 'text',
-          'className': 'tags-input-field',
-          'id': this.uuid,
-          'placeholder': this.element.placeholder || '',
-        });
-    
-        this.tagbox.appendChild(this.field);
-        this.container.appendChild(this.tagbox);
-        this.container.appendChild(this.autocomplete);
-        this.element.type = 'hidden';
-        this.element.parentNode.insertBefore(this.container, this.element.nextSibling);
-    
         this.#bindEvents();
       });
   }
