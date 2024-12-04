@@ -254,10 +254,11 @@ def get_ontology_nodes(request):
 
         rows = results.get('items', None) or list()
         total_rows = results.get('total_rows', 0)
+        total_pages = math.ceil(total_rows / page_size)
 
         response = {
-            'page': page,
-            'total_pages': math.ceil(total_rows / page_size),
+            'page': min(page, total_pages),
+            'total_pages': total_pages,
             'page_size': page_size,
             'results': rows
         }
