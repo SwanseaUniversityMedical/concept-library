@@ -88,15 +88,15 @@ def get_ontology_nodes(request):
         parameters, returning a `QuerySet` of all
         matched node(s)
 
-        Query Params:
-            - `page` - the page number cursor (defaults to 1)
-            - `page_size` - denotes page size enum, where `1` = 20 rows, `2` = 50 rows and `3` = 100 rows
-            - `codes` - one or more SNOMED code(s) to filter on the related ontology code string (delimited by ',')
-            - `exact_codes` - apply this parameter if you would like to search for exact codes instead of fuzzy matching the given `codes` across all related mappings (ICD-9/10, MeSH, OPSC4, ReadCodes etc)
-            - `search` - full-text search on ontology name(s)
-            - `type_ids` - one or more id(s) to filter on ontology type (delimited by ',')
-            - `reference_ids` - one or more id(s) to filter on atlas reference id (delimited by ',')
-
+        | Param         | Type     | Default            | Desc                                                       |
+        |---------------|----------|--------------------|------------------------------------------------------------|
+        | search        | `string` | `NULL`             | Full-text search                                           |
+        | codes         | `list`   | `NULL`             | Either (a) ICD-10 code; or (b) Code ID                     |
+        | exact_codes   | `empty`  | `NULL`             | apply this parameter if you would like to search for exact codes instead of fuzzy matching the given `codes` across all related mappings (ICD-9/10, MeSH, OPSC4, ReadCodes etc) |
+        | type_ids      | `list`   | `NULL`             | Filter ontology type by ID                                 |
+        | reference_ids | `list`   | `NULL`             | Filter ontology by Atlas reference                         |
+        | page          | `number` | `1`                | Page cursor                                                |
+        | page_size     | `enum`   | `1` (_20_ results) | Page size enum, where: `1` = 20, `2` = 50 & `3` = 100 rows |
     """
 
     response = { }

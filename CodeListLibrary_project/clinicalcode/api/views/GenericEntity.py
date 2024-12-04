@@ -141,15 +141,52 @@ def get_generic_entity_version_history(request, phenotype_id=None):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 @gen_utils.measure_perf
-def get_generic_entities(request, should_paginate=True):
+def get_generic_entities(request):
     """
         Get all generic entities accessible to the API user; see [Reference Data](/reference-data/) page
         for available API parameters for individual templates.
 
-        Other available parameters:
-          - `page` (`int`) - the page cursor
-          - `page_size` (`int`) - the desired page size from one `20`, `50`, `100` (or the enum value of `1`, `2`, `3`)
-          - `should_paginate` (`bool`) - optionally turn off pagination; defaults to `True`
+        - **Base Parameters** → _i.e._ Base search-related parameters
+
+            | Param               | Type           | Default            | Desc                                                                   |
+            |---------------------|----------------|--------------------|------------------------------------------------------------------------|
+            | search              | `string`       | `NULL`             | Full-text search                                                       |
+            | template_id         | `number`       | `NULL`             | Filter results by Template ID                                          |
+            | template_version_id | `number`       | `NULL`             | Filter results by Template Version (if `ID` applied)                   |
+            | page                | `number`       | `1`                | Page cursor                                                            |
+            | page_size           | `enum/number`  | `1` (_20_ results) | Page size enum, where `1` = 20, `2` = 50 & `3` = 100 rows              |
+            | no_pagination       | `empty`        | `NULL`             | you can append this parameter to your query to disable pagination      |
+
+        - **Metadata Parameters** → _i.e._ Top-level fields associated with all `Phenotypes`
+
+            | Param       | Type           | Default | Desc                                         |
+            |-------------|----------------|---------|----------------------------------------------|
+            | tags        | `list<number>` | `NULL`  | Filter results by one or more tag IDs        |
+            | collections | `list<number>` | `NULL`  | Filter results by one or more collection IDs |
+            | created     | `list<date>`   | `NULL`  | Date range filter on `created` field         |
+
+        - **Template Parameters** → _i.e._ Fields relating to a specific `Template`
+
+            - Parameters are variadic due to the nature of templates - please see the reference data and the associated Phenotype template documentation for querying field(s) relating to a specific template
+            - See reference data & associated parameters on the [Reference Data](/reference-data/) page
+
+        - **Subquery parameters**
+            - Hierarchical fields, such as the `OntologyTag` field, now include modifiers - these can be applied by appending them to the subquery parameter
+            - Available modifiers for 'ontology' related parameter(s) include:
+
+                > **NOTE:**  
+                > You can append the `_descendants` parameter to any of the following subquery params to select across that particular
+                > node and its descendants, _e.g._ `/api/v1/phenotypes/ontology_code_descendants=48176007`
+                >  
+
+                | Details                         | Parameter                     | Values                                                             |
+                |---------------------------------|-------------------------------|--------------------------------------------------------------------|
+                | Search across ID, Name and Code | `?ontology=([^&]+)`           | Search string or List of deliminated strings                       |
+                | Search across ID                | `?ontology_id=([^&]+)`        | Single `ID` (`int`) or List of deliminated `ID`s                   |
+                | Search across Code              | `?ontology_code=([^&]+)`      | Single `Code` string (ICD-10) or List of deliminated `Codes`s      |
+                | Search acrross Name             | `?ontology_name=([^&]+)`      | Single `Name` string or List of deliminated `Name`s                |
+                | Search across Type              | `?ontology_type=([^&]+)`      | Single `Type` (`int`) or List of deliminated `Type`s               |
+                | Search across Reference         | `?ontology_reference=([^&]+)` | Single `ReferenceID` (`int`) or List of deliminated `ReferenceID`s |
 
     """
 
@@ -164,8 +201,10 @@ def get_generic_entities(request, should_paginate=True):
     page = gen_utils.try_value_as_type(page, 'int')
     page = max(page, 1) if isinstance(page, int) else 1
 
+    should_paginate = 'no_pagination' not in request.query_params.keys()
+
     page_size = None
-    if page:
+    if should_paginate:
         page_size = params.pop('page_size', None)
         page_size = gen_utils.try_value_as_type(page_size, 'int', default=None)
 
@@ -361,7 +400,7 @@ def get_generic_entities(request, should_paginate=True):
                     clauses.append(query)
             else:
                 query_opts = key.split('_')
-                if query_opts[0] == field_data and len(query_opts) > 1:
+                if len(query_opts) < 2:
                     continue
 
                 field_ref = query_opts[0]

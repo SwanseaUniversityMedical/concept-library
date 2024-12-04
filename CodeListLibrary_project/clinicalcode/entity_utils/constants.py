@@ -449,7 +449,10 @@ metadata = {
                 'query': 'id',
                 'relative': 'name',
             }
-        }
+        },
+        "search": {
+            "api": True
+        },
     },
     "name": {
         "title": "Name",
