@@ -78,6 +78,7 @@
       "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.",
       "field_type": "data_sources",
       "active": true,
+      "hydrated": true,
       "validation": {
         "type": "int_array",
         "mandatory": false,
@@ -98,6 +99,7 @@
       "description": "A set of taggable categories and concepts that describe this Phenotype.",
       "field_type": "ontology",
       "active": true,
+      "hydrated": true,
       "validation": {
         "type": "int_array",
         "mandatory": false,

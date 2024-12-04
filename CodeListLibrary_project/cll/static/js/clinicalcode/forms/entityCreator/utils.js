@@ -45,7 +45,7 @@ export const ENTITY_HANDLERS = {
   },
 
   // Generates a tagify component for an element
-  'tagify': (element) => {
+  'tagify': (element, dataset) => {
     const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let value = [];
@@ -79,7 +79,7 @@ export const ENTITY_HANDLERS = {
       'allowDuplicates': false,
       'restricted': true,
       'items': options,
-    });
+    }, dataset);
 
     for (let i = 0; i < value.length; ++i) {
       const item = value[i];

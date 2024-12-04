@@ -554,6 +554,7 @@ metadata = {
         "description": "List of content collections this phenotype belongs to.",
         "field_type": "collections",
         "active": True,
+        "hydrated": True,
         "compute_statistics": True,
         "validation": {
             "type": "int_array",
@@ -581,6 +582,7 @@ metadata = {
         "description": "Optional keywords helping to categorize this content.",
         "field_type": "tags",
         "active": True,
+        "hydrated": True,
         "compute_statistics": True,
         "validation": {
             "type": "int_array",

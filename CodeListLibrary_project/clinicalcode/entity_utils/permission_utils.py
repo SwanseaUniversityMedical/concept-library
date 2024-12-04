@@ -323,12 +323,14 @@ def get_accessible_entity_history(
 			 where t0.id = %(pk)s
                {brand_clause}
           )
-          select (select history_id from ent_data) as latest_history_id, *
-		    from pub_data as t0
-			join (
-				select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
-				  from historical_entities as t
-			) as t1
+          select t0.history_id as latest_history_id, t1.*, t2.*
+            from ent_data as t0
+		    left join pub_data as t1
+              on true
+			left join (
+			  select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
+			    from historical_entities as t
+			) as t2
 			  on true
         '''
 
@@ -403,13 +405,15 @@ def get_accessible_entity_history(
            and ({clauses})
            {brand_clause}
       )
-      select (select history_id from ent_data) as latest_history_id, *
-        from pub_data as t0
-        join (
-          select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
-            from historical_entities as t
-        ) as t1
+      select t0.history_id as latest_history_id, t1.*, t2.*
+        from ent_data as t0
+	    left join pub_data as t1
           on true
+		left join (
+		  select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
+		    from historical_entities as t
+		) as t2
+		  on true
     '''
 
     with connection.cursor() as cursor:
@@ -954,7 +958,7 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
         has_group_access = has_member_access(user, live_entity, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT])
         world_accessible = live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW
 
-        can_view = brand_accessible and (moderation_required or world_accessible or (is_owner or has_group_access or world_accessible))
+        can_view = brand_accessible and (is_published or moderation_required or world_accessible or (is_owner or has_group_access or world_accessible))
     else:
         can_view = brand_accessible and is_published
         is_owner = False

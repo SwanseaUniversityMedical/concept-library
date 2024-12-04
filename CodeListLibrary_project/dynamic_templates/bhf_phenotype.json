@@ -16,6 +16,7 @@
       "description": "A set of taggable categories and concepts that describe this Phenotype.",
       "field_type": "ontology",
       "active": true,
+      "hydrated": true,
       "validation": {
         "type": "int_array",
         "mandatory": false,
@@ -199,6 +200,7 @@
     "data_sources": {
       "title": "Data Sources",
       "active": true,
+      "hydrated": true,
       "search": {
         "api": true,
         "filterable": true

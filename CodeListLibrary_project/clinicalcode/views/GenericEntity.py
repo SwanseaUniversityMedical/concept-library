@@ -529,7 +529,7 @@ def generic_entity_detail(request, pk, history_id=None):
 
         if not entities.exists():
             raise Http404
-        
+
         history_id = entities.first().history_id
         accessibility = permission_utils.get_accessible_detail_entity(request, pk, history_id)
         if not accessibility or not accessibility.get('view_access'):
