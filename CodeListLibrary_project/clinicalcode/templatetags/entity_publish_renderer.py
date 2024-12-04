@@ -83,7 +83,7 @@ def render_publish_button(context, *args, **kwargs):
                                })
         return button_context
     elif user_entity_access:
-        if not context["is_lastapproved"] and context["approval_status"] is None and user_entity_access and not context["live_ver_is_deleted"]:
+        if not context["is_lastapproved"] and (context["approval_status"] is None or context["approval_status"] == constants.APPROVAL_STATUS.ANY) and user_entity_access and not context["live_ver_is_deleted"]:
             if user_is_publisher:
                 button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
                             'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
