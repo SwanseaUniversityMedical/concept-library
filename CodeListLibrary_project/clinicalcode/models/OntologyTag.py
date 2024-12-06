@@ -34,6 +34,11 @@ class OntologyTagEdge(edge_factory('OntologyTag', concrete=False)):
 
 	class Meta:
 		unique_together = ('child_id', 'parent_id',)
+		indexes = [
+			models.Index(fields=['child_id']),
+			models.Index(fields=['parent_id']),
+			models.Index(fields=['child_id', 'parent_id']),
+		]
 
 
 
@@ -81,6 +86,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 		ordering = ('type_id', 'id', )
 		indexes = [
 			models.Index(fields=['id']),
+			models.Index(fields=['type_id']),
 			models.Index(fields=['reference_id']),
 			models.Index(fields=['id', 'type_id']),
 			models.Index(fields=['id', 'reference_id']),

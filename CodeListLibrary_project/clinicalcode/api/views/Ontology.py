@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import connection
+from django.views.decorators.cache import cache_page
 
 import re
 import math
@@ -13,6 +14,7 @@ from ...models.OntologyTag import OntologyTag
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
+@cache_page(60 * 60 * 2)
 def get_ontologies(request):
     """
         Get all ontology groups and their root
@@ -27,6 +29,7 @@ def get_ontologies(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
+@cache_page(60 * 60 * 2)
 def get_ontology_detail(request, ontology_id):
     """
         Get specified ontology group type detail by the given `ontology_id`
@@ -58,6 +61,7 @@ def get_ontology_detail(request, ontology_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
+@cache_page(60 * 60 * 2)
 def get_ontology_node(request, node_id):
     """
         Gets an Ontology node by the given request
@@ -82,6 +86,7 @@ def get_ontology_node(request, node_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
+@cache_page(60 * 60 * 2)
 def get_ontology_nodes(request):
     """
         Queries Ontology nodes by the given request
