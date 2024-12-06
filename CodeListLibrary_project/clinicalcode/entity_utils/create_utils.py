@@ -378,13 +378,13 @@ def validate_concept_form(form, errors):
                 if not gen_utils.is_empty_string(attribute_value):
                     if attribute_type == 'INT':
                         try:
-                            int(attribute_value)
+                            attribute_value = str(int(attribute_value))
                         except ValueError:
                             errors.append(f'Attribute {attribute["name"]} must be an integer.')
                             continue
                     elif attribute_type == 'FLOAT':
                         try:
-                            float(attribute_value)
+                            attribute['value'] = str(float(attribute_value))
                         except ValueError:
                             errors.append(f'Attribute {attribute["name"]} must be a float.')
                             continue

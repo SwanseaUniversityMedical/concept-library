@@ -607,7 +607,7 @@ export class AttributeSelectionService {
       });
       return false;
     }
-    if (!/^[-+]?[0-9]*(\.[0-9]+)$/.test(targetInput) && type === "3") {
+    if (!/^[-+]?[0-9]*\.?[0-9]+$/.test(targetInput) && type === "3") {
       this.#pushToast({
         type: "danger",
         message: `Attribute ${attributeName} with row index ${rIndex} is not a float`,
