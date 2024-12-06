@@ -105,11 +105,17 @@
             {% if c.attributes %}
             <section class="concept-group-content__details">
               <h4>
-                {% if not c.attributes.0.value.strip %}
-                  CONCEPT ATTRIBUTE - {{ c.attributes.0.name }} - {{ c.attributes.0.type}}
+                CONCEPT ATTRIBUTE:
+                <br>
+                {% for attribute in c.attributes %}
+                <br>
+                  {% if not attribute.value.strip %}
+                    <li> TYPE: {{ attribute.type}} - NAME: {{ attribute.name }} </li>
                   {% else %}
-                  CONCEPT ATTRIBUTE - {{ c.attributes.0.name }} - {{ c.attributes.0.type}} - {{ c.attributes.0.value}} 
+                  <li> TYPE: {{ attribute.type}}  - NAME: {{ attribute.name }} -  VALUE: {{ attribute.value}} </li>
                 {% endif %}
+                {% endfor %}
+
               </h4>
             </section>
             {% endif %}
