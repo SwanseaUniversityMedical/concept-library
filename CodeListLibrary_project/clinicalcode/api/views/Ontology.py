@@ -88,15 +88,15 @@ def get_ontology_nodes(request):
         parameters, returning a `QuerySet` of all
         matched node(s)
 
-        | Param         | Type     | Default            | Desc                                                       |
-        |---------------|----------|--------------------|------------------------------------------------------------|
-        | search        | `string` | `NULL`             | Full-text search                                           |
-        | codes         | `list`   | `NULL`             | Either (a) ICD-10 code; or (b) Code ID                     |
+        | Param         | Type     | Default            | Desc                                                                    |
+        |---------------|----------|--------------------|-------------------------------------------------------------------------|
+        | search        | `string` | `NULL`             | Full-text search                                                        |
+        | codes         | `list`   | `NULL`             | Either (a) SNOMED code (see below); or (b) Code ID                      |
         | exact_codes   | `empty`  | `NULL`             | apply this parameter if you would like to search for exact codes instead of fuzzy matching the given `codes` across all related mappings (ICD-9/10, MeSH, OPSC4, ReadCodes etc) |
-        | type_ids      | `list`   | `NULL`             | Filter ontology type by ID                                 |
-        | reference_ids | `list`   | `NULL`             | Filter ontology by Atlas reference                         |
-        | page          | `number` | `1`                | Page cursor                                                |
-        | page_size     | `enum`   | `1` (_20_ results) | Page size enum, where: `1` = 20, `2` = 50 & `3` = 100 rows |
+        | type_ids      | `list`   | `NULL`             | Filter ontology type by ID                                              |
+        | reference_ids | `list`   | `NULL`             | Filter ontology by Atlas reference                                      |
+        | page          | `number` | `1`                | Page cursor                                                             |
+        | page_size     | `enum`   | `1` (_20_ results) | Page size enum, where: `1` = 20, `2` = 50 & `3` = 100 rows              |
     """
 
     response = { }
