@@ -277,12 +277,18 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
                         model_source = str(model.objects.model._meta.db_table)
                         mapped_query = get_mapped_query(data, mapping, model_source, default=None)
                         if mapped_query is not None:
-                            with connection.cursor() as cursor:
-                                cursor.execute(mapped_query.get('query'), params=mapped_query.get('inputs'))
-                                queryset = [ row[0] for row in cursor.fetchall() ]
-                    else:
+                            query = mapped_query.get('query')
+                            if isinstance(query, str) and len(query) > 0:
+                                with connection.cursor() as cursor:
+                                    cursor.execute(mapped_query.get('query'), params=mapped_query.get('inputs'))
+                                    queryset = [ row[0] for row in cursor.fetchall() ]
+                            else:
+                                queryset = []
+                    elif isinstance(data, list) and len(data) > 0:
                         queryset = model.objects.filter(pk__in=data, type_id__in=tree_models)
                         queryset = list(queryset.values_list('id', flat=True))
+                    else:
+                        queryset = []
 
                     if isinstance(queryset, list):
                         return queryset if len(queryset) > 0 else default

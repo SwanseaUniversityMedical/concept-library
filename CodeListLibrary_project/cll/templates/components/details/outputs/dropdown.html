@@ -3,17 +3,13 @@
     <div class="row">
       <div class="col-sm-2 row-padding detail-field-title">{{ component.field_data.title }}</div>
       <div class="col-sm-10">
-        <em>
-          <b>
-            <span id="entity-{{ component.field_name }}" class="badge">
-              {% if component.value|length > 0 %}
-                {% for val in component.value %}
-                  {{ val.name }}
-                {% endfor %}
-              {% endif %}
+        {% if component.value|length > 0 %}
+          {% for val in component.value %}
+            <span id="entity-{{ component.field_name }}" class="badge wrapped-tspan">
+              <strong><em>{{ val.name }}</em></strong>
             </span>
-          </b>
-        </em>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
   </div>

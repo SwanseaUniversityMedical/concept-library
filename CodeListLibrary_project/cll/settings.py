@@ -643,9 +643,32 @@ SWAGGER_TITLE = 'Concept Library API'
 ## Markdownify settings
 MARKDOWNIFY = {
     'default': {
+        # Sanitisation & strip/escape behaviour
+        #   - See ref @ https://django-markdownify.readthedocs.io/en/latest/settings.html#strip-markup
+        'STRIP': True,
+        'BLEACH': True,
+        # Extension(s)
+        #   - See ref @ https://django-markdownify.readthedocs.io/en/latest/settings.html#enable-markdown-extensions
+        'MARKDOWN_EXTENSIONS': [
+            'markdown.extensions.extra',
+            'clinicalcode.entity_utils.markdown.strikethrough',
+        ],
+        # Hyperlink behaviour
+        #   - See ref @ https://django-markdownify.readthedocs.io/en/latest/settings.html#linkify-text
+        'LINKIFY_TEXT': {
+            # Convert valid URL(s) and e-mails to `<a href="mailto:email@email.com | http(s)://some.url.com" />`
+            'PARSE_URLS': True,
+            'PARSE_EMAIL': True,
+            # Apply codeblock
+            'CALLBACKS': [sanitise_utils.apply_anchor_props,],
+            # Ignore links & e-mail references within code blocks
+            'SKIP_TAGS': ['pre', 'code'],
+        },
+        # Whitelist(s)
+        #   - See ref @ https://django-markdownify.readthedocs.io/en/latest/settings.html#whitelist-tags
         'WHITELIST_TAGS': [
             # Text & Modifiers
-            'p', 'abbr', 'acronym', 'b', 'em', 'i', 'strong',
+            'p', 'abbr', 'acronym', 'b', 'em', 'i', 'strong', 's', 'del',
 
             # Section headings
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -659,14 +682,18 @@ MARKDOWNIFY = {
             # Assets
             'img',
 
-            # Blocks
+            # Quotes
             'blockquote',
+
+            # Inline code & code blocks
+            'pre', 'code',
 
             # Allow markdown tables
             'table', 'thead', 'tbody', 'th', 'tr', 'td',
         ],
         'WHITELIST_PROTOCOLS': [
-            'http', 'https',
+            'http',
+            'https',
             'mailto'
         ],
         'WHITELIST_ATTRS': [
@@ -681,19 +708,6 @@ MARKDOWNIFY = {
             'font-weight',
             'background-color',
         ],
-        'MARKDOWN_EXTENSIONS': [
-            'markdown.extensions.fenced_code',
-            'markdown.extensions.extra',
-        ],
-        'WHITELIST_PROTOCOLS': [
-            'http',
-            'https',
-        ],
-        'LINKIFY_TEXT': {
-            'PARSE_URLS': True,
-            'PARSE_EMAIL': False,
-            'CALLBACKS': [sanitise_utils.apply_anchor_rel_attr,],
-        },
     }
 }
 

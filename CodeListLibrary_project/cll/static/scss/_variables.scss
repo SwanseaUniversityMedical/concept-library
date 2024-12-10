@@ -189,6 +189,16 @@ $modifiers: (
     property: vertical-align,
     values: baseline top middle bottom text-bottom text-top,
   ),
+  'max-width': (
+    property: max-width,
+    values: (
+      25: 25%,
+      50: 50%,
+      75: 75%,
+      100: 100%,
+      auto: auto
+    )
+  ),
   'width': (
     property: width,
     values: (

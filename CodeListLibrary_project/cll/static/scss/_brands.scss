@@ -101,6 +101,10 @@ $brand-map-none: (
   'footer-text-size': 12px,
   'footer-row-gap': 4rem,
 
+  // Markdown
+  'blockquote-bg-color': $lightest_grey,
+  'blockquote-edge-color': $light_grey,
+
   // Item lists
   'item-list-odd-bg-color': $off_white02,
   'item-list-even-bg-color': $white,
@@ -170,7 +174,7 @@ $brand-map-none: (
   'progress-tracker-header-weight': bold,
   'progress-tracker-header-color': black,
   'progress-tracker-description-size': 16px,
-  
+
   'ruleset-bg-color': $lightest_grey,
   'ruleset-icon-normal-color': $dark_grey,
   'ruleset-include-icon-checked-color': $lime_green,
@@ -280,6 +284,10 @@ $brand-map-ADP: (
   'footer-copyright-size': 12px,
   'footer-text-size': 12px,
   'footer-row-gap': 4rem,
+
+  // Markdown
+  'blockquote-bg-color': $lightest_grey,
+  'blockquote-edge-color': $light_grey,
 
   // Item lists
   'item-list-odd-bg-color': $off_white02,
@@ -455,6 +463,10 @@ $brand-map-HDRUK: (
   'footer-text-size': 12px,
   'footer-row-gap': 4rem,
 
+  // Markdown
+  'blockquote-bg-color': $lightest_grey,
+  'blockquote-edge-color': $light_grey,
+
   // Item lists
   'item-list-odd-bg-color': $off_white02,
   'item-list-even-bg-color': $white,
@@ -619,6 +631,10 @@ $brand-map-SAIL: (
   'footer-copyright-size': 12px,
   'footer-text-size': 12px,
   'footer-row-gap': 4rem,
+
+  // Markdown
+  'blockquote-bg-color': $lightest_grey,
+  'blockquote-edge-color': $light_grey,
 
   // Item lists
   'item-list-odd-bg-color': $off_white02,

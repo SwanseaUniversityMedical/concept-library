@@ -177,37 +177,49 @@ export const ENTITY_HANDLERS = {
 
   // Generates a markdown editor component for an element
   'md-editor': (element) => {
-    const toolbar = element.parentNode.querySelector(`div[for="${element.getAttribute('data-field')}"]`);
-    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelector(`script[for="${element.getAttribute('data-field')}"]`);
+    const value = data?.innerText;
 
-    let value = data?.innerHTML;
-    if (!isStringEmpty(value) && !isStringWhitespace(value)) {
-      value = convertMarkdownData(data)
-    } else {
-      value = '';
-    }
-
-    if (isStringEmpty(value) || isStringWhitespace(value)) {
-      value = ' ';
-    }
-
-    const mde = new TinyMDE.Editor({
+    const mde = new EasyMDE({
+      // Elem
       element: element,
-      content: value
+      maxHeight: '500px',
+      minHeight: '300px',
+
+      // Behaviour
+      autofocus: false,
+      forceSync: false,
+      autosave: { enabled: false },
+      placeholder: 'Enter content here...',
+      promptURLs: false,
+      spellChecker: false,
+      lineWrapping: true,
+      unorderedListStyle: '-',
+      renderingConfig: {
+        singleLineBreaks: false,
+        codeSyntaxHighlighting: false,
+        sanitizerFunction: (renderedHTML) => strictSanitiseString(renderedHTML, { html: true }),
+      },
+
+      // Controls
+      status: ['lines', 'words', 'cursor'],
+      tabSize: 2,
+      toolbar: [
+        'heading', 'bold', 'italic', 'strikethrough', '|',
+        'unordered-list', 'ordered-list', 'code', 'quote', '|',
+        'link', 'image', 'table', '|',
+        'preview', 'guide',
+      ],
+      toolbarTips: true,
+      toolbarButtonClassPrefix: 'mde',
     });
 
-    const bar = new TinyMDE.CommandBar({
-      element: toolbar,
-      editor: mde
-    });
-
-    element.addEventListener('click', () => {
-      mde.e.focus();
-    });
+    if (!isStringEmpty(value) && !isStringWhitespace(value)) {
+      mde.value(value);
+    }
 
     return {
       editor: mde,
-      toolbar: bar,
     };
   },
 
@@ -797,7 +809,7 @@ export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates MDE components
   'md-editor': (field, packet) => {
     const handler = packet.handler;
-    const value = handler.editor.getContent();
+    const value = handler.editor.value();
     
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(value) || isStringEmpty(value)) {

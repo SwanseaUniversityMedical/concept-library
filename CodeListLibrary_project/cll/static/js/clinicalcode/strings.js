@@ -7,11 +7,19 @@ import DOMPurify from '../lib/purify.min.js';
  * @param {string} str
  * @return {str} The sanitised string 
  */
-window.strictSanitiseString = (dirty) => {
+window.strictSanitiseString = (dirty, opts) => {
+  if (isNullOrUndefined(opts)) {
+    opts = { html: false, mathMl: false, svg: false, svgFilters: false };
+  } else {
+    opts = mergeObjects(
+      opts,
+      { html: false, mathMl: false, svg: false, svgFilters: false },
+      true
+    );
+  }
+
   dirty = dirty.toString();
-  return DOMPurify.sanitize(dirty, {
-    USE_PROFILES: { html: false, mathMl: false, svg: false, svgFilters: false }
-  });
+  return DOMPurify.sanitize(dirty, { USE_PROFILES: opts });
 }
 
 /**
