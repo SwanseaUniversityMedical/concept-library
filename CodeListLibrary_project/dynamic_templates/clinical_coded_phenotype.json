@@ -294,7 +294,7 @@
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
-      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
+      "description": "URL of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
       "field_type": "phenoflowid",
       "active": true,
       "validation": {

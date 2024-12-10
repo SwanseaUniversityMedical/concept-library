@@ -16,6 +16,8 @@ from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.decorators import schema
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
+from django.views.decorators.cache import cache_page
 from collections import OrderedDict
 
 import csv
@@ -401,6 +403,8 @@ class CreateEntityView(TemplateView):
             'concepts': concepts
         })
     
+    @method_decorator(cache_page(60 * 60 * 2), name='dispatch')
+    @method_decorator(vary_on_headers('Authorization', 'Cookie'))
     def get_options(self, request, *args, **kwargs):
         """
             @desc GET request made by client to retrieve all available

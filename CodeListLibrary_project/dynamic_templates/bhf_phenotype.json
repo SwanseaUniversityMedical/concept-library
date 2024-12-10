@@ -297,16 +297,15 @@
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
-      "active": true,
-      "search": {
-        "api": true
-      },
+      "description": "URL of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
       "field_type": "phenoflowid",
+      "active": true,
       "validation": {
-        "type": "int",
-        "mandatory": false
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 250],
+        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
       },
-      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
       "hide_if_empty": true
     },
     "concept_information": {
