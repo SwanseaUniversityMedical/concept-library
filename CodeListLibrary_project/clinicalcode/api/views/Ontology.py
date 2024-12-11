@@ -290,7 +290,7 @@ def get_ontology_nodes(request):
             'page': min(page, total_pages),
             'total_pages': total_pages,
             'page_size': page_size,
-            'results': rows
+            'data': rows
         }
 
     return Response(

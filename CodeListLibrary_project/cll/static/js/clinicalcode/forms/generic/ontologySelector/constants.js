@@ -2,7 +2,7 @@ export const
   // Describes endpoints used to resolve data
   ENDPOINTS = {
     FETCH_NODE: '${host}/api/v1/ontology/node/${id}',
-    FETCH_DATA: '${host}/api/v1/ontology/detail/${source}',
+    FETCH_DATA: '${host}/api/v1/ontology/type/${source}',
   },
   // Optional arguments to modify ontology service behaviour
   OPTIONS = {
