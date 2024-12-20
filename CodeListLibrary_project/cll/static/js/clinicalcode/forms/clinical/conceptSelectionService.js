@@ -682,6 +682,8 @@ export class ConceptSelectionService {
         headers: {
           'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.SPECIFICATION,
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     );
@@ -727,6 +729,8 @@ export class ConceptSelectionService {
       headers: {
         'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.RESULTS,
         'X-Requested-With': 'XMLHttpRequest',
+        'Cache-Control': 'max-age=3600',
+        'Pragma': 'max-age=3600',
       }
     };
 

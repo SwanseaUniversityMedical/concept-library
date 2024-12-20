@@ -263,13 +263,8 @@ export default class OntologySelectionService {
    * @returns Promise<Array> the component's initialisation data
    */
   async #fetchComponentData() {
-    const parameters = new URLSearchParams({
-      parameter: 'ontology',
-      template: this.phenotype.template.id,
-    });
-
     return fetch(
-      `${getCurrentURL()}?` + parameters,
+      `${getBrandedHost()}/api/v1/ontology/`,
       {
         method: 'GET',
         headers: {
@@ -286,11 +281,11 @@ export default class OntologySelectionService {
         return response.json();
       })
       .then(dataset => {
-        if (!(dataset instanceof Object) || Array.isArray(dataset) || !Array.isArray(dataset?.result)) {
+        if (!(dataset instanceof Object) || !Array.isArray(dataset)) {
           throw new Error(`Expected ontology init data to be an object with a result array, got ${dataset}`);
         }
 
-        return dataset.result;
+        return dataset;
       });
   }
 
