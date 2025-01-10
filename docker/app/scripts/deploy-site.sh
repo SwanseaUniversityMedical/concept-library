@@ -14,6 +14,12 @@ export https_proxy;
 app_port='80';
 export app_port;
 
+start_engagelens='True';
+export start_engagelens;
+
+cll_healthcheck_addr='fullaccess-app';
+export cll_healthcheck_addr;
+
 cll_backend_name='cllnet';
 export cll_backend_name;
 
@@ -23,7 +29,7 @@ export cll_host_binding;
 cll_grace_period='3s';
 export cll_grace_period;
 
-cll_log_path='/cl_log';
+cll_log_path='/root/cl_log';
 export cll_log_path;
 
 ## 3. Redis-related
@@ -46,13 +52,13 @@ DetachedMode=true;
 
 ## 2. Image registry target(s)
 ###  - cll/app image registry URL + target, e.g. site:port/target/target:version
-LibraryRegistry='';
+LibraryRegistry='<url>:<version>';
 
 ## 3. Docker preferences
 ###  - Specifies the Docker profile to use (if any)
-Profile='';
+Profile='live';
 ###  - Specifies the Docker project name to use
-ProjectName='main_demo';
+ProjectName='cll';
 ###  - Specifies the cll/app image name
 LibraryImageName='cll/app:latest';
 
@@ -139,7 +145,7 @@ docker tag $LibraryRegistry $(printf '%s' "$LibraryImageName")
 
 
 # Kill current app
-docker-compose -p "$ProjectName" -f "$ComposeFile" --profile "*" down --volumes;
+docker compose -p "$ProjectName" -f "$ComposeFile" --profile "*" down --volumes;
 
 
 # Start the containers
