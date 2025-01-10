@@ -18,7 +18,18 @@ export default class OntologySelectionService {
     this.element = element;
     this.phenotype = phenotype;
 
+    const hasInitData = !isNullOrUndefined(componentData?.dataset);
+    this.dataset = hasInitData ? componentData?.dataset : [];
     this.#initialise(componentData, options);
+
+    if (!hasInitData) {
+      this.#fetchComponentData()
+        .then(dataset => {
+          this.dataset.splice(this.dataset.length, 0, ...dataset);
+          this.#initialiseTree();
+        })
+        .catch(console.error);
+    }
   }
 
   /**
@@ -194,20 +205,7 @@ export default class OntologySelectionService {
   #initialise(componentData, options) {
     this.options = mergeObjects(options || { }, Constants.OPTIONS);
 
-    // Initialise component data
-    const dataset = componentData?.dataset;
-    if (!isNullOrUndefined(dataset)) {
-      for (let i = 0; i < dataset.length; ++i) {
-        OntologySelectionService.applyToTree(dataset[i].nodes, elem => {
-          if (typeof(elem?.label) === 'string' && !elem?.processed) {
-            elem.label = OntologySelectionService.getLabel(elem);
-            elem.processed = true;
-          }
-        });
-      }
-    }
-
-    this.dataset = dataset || [];
+    this.#initialiseTree();
     this.#computeComponentValue(componentData?.value);
 
     // Initialise element & child template(s)
@@ -236,6 +234,59 @@ export default class OntologySelectionService {
     }
     this.templates = templates;
     this.#renderCreateComponent();
+  }
+
+  /**
+   * initialiseTree
+   * @desc initialises the tree view
+   * 
+   */
+  #initialiseTree() {
+    const dataset = this.dataset
+    if (isNullOrUndefined(dataset)) {
+      return;
+    }
+
+    for (let i = 0; i < dataset.length; ++i) {
+      OntologySelectionService.applyToTree(dataset[i].nodes, elem => {
+        if ((isNullOrUndefined(elem.label) || typeof elem.label === 'string') && !elem.processed) {
+          elem.label = OntologySelectionService.getLabel(elem);
+          elem.processed = true;
+        }
+      });
+    }
+  }
+
+  /**
+   * fetchComponentData
+   * @desc fetches initialisation data
+   * @returns Promise<Array> the component's initialisation data
+   */
+  async #fetchComponentData() {
+    return fetch(
+      `${getBrandedHost()}/api/v1/ontology/`,
+      {
+        method: 'GET',
+        headers: {
+          'X-Target': 'get_options',
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      }
+    )
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to GET ontology options with Err<code: ${response.status}> and response:\n${response}`);
+        }
+
+        return response.json();
+      })
+      .then(dataset => {
+        if (!(dataset instanceof Object) || !Array.isArray(dataset)) {
+          throw new Error(`Expected ontology init data to be an object with a result array, got ${dataset}`);
+        }
+
+        return dataset;
+      });
   }
 
   /**
@@ -597,7 +648,7 @@ export default class OntologySelectionService {
     for (let i = 0; i < this.dataset.length; ++i) {
       let dataset = this.dataset[i];
       let html = interpolateString(this.templates.source, {
-        source: dataset.model.source,
+        source: dataset.model.source.toFixed(0),
         label: dataset.model.label,
       });
 

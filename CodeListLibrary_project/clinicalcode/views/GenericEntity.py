@@ -27,6 +27,7 @@ from ..entity_utils import (concept_utils, entity_db_utils, permission_utils,
                             template_utils, gen_utils, model_utils, 
                             create_utils, search_utils, constants)
 
+from clinicalcode.views import View
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
 from clinicalcode.models.CodingSystem import CodingSystem
@@ -380,8 +381,8 @@ class CreateEntityView(TemplateView):
         if concept_ids is None or concept_version_ids is None:
             raise BadRequest('Parameters are missing')
         
-        concept_ids = [gen_utils.parse_int(x) for x in concept_ids.split(',') if gen_utils.parse_int(x)]
-        concept_version_ids = [gen_utils.parse_int(x) for x in concept_version_ids.split(',') if gen_utils.parse_int(x)]
+        concept_ids = [gen_utils.parse_int(x) for x in concept_ids.split(',') if gen_utils.parse_int(x) is not None]
+        concept_version_ids = [gen_utils.parse_int(x) for x in concept_version_ids.split(',') if gen_utils.parse_int(x) is not None]
         if len(concept_ids) != len(concept_version_ids):
             raise BadRequest('Parameter mismatch')
         
@@ -399,7 +400,7 @@ class CreateEntityView(TemplateView):
         return JsonResponse({
             'concepts': concepts
         })
-    
+
     def get_options(self, request, *args, **kwargs):
         """
             @desc GET request made by client to retrieve all available
@@ -513,100 +514,83 @@ def generic_entity_detail(request, pk, history_id=None):
     ''' 
         Display the detail of a generic entity at a point in time.
     '''
-    # validate access for login and public site
-    permission_utils.validate_access_to_view(request, pk, history_id)
-        
-    if history_id is None:
-        # get the latest version/ or latest published version
-        history_id = permission_utils.try_get_valid_history_id(request, GenericEntity, pk)
+    # validate pk param
+    if not model_utils.get_entity_id(pk):
+        return View.notify_err(
+            request,
+            title='Bad request',
+            status_code=400,
+            details=['Invalid Phenotype ID']
+        )
 
-    is_published = permission_utils.check_if_published(GenericEntity, pk, history_id)
-    approval_status = permission_utils.get_publish_approval_status(GenericEntity, pk, history_id)
-    is_lastapproved = len(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0
+    # find latest accessible entity for given pk if historical id not specified
+    history_id = gen_utils.parse_int(history_id, default=None)
+    if not isinstance(history_id, int):
+        entities = permission_utils.get_accessible_entities(request, pk=pk)
 
+        if not entities.exists():
+            raise Http404
+        else:
+            history_id = entities.first().history_id
 
-    generic_entity = entity_db_utils.get_historical_entity(pk, history_id
-                                            , highlight_result = [False, True][entity_db_utils.is_referred_from_search_page(request)]
-                                            , q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))  
-                                            )
+    accessibility = permission_utils.get_accessible_detail_entity(request, pk, history_id)
+    if not accessibility or not accessibility.get('view_access'):
+        raise PermissionDenied
 
-    template_obj = Template.objects.get(pk=generic_entity.template.id)
-    template = template_obj.history.filter(template_version=generic_entity.template_version).latest()
-    template_definition = template.definition
+    entity = accessibility.get('historical_entity')
+    live_entity = accessibility.get('entity')
+
+    is_deleted = not not live_entity.is_deleted
+    is_published = accessibility.get('is_published', False)
+    approval_status = entity.publish_status
+    user_can_export = request.user is not None and request.user.is_authenticated
+
+    entity_dataset = permission_utils.get_accessible_entity_history(request, pk, history_id)
+    entity_dataset = entity_dataset if isinstance(entity_dataset, dict) else { }
+
+    is_lastapproved = entity_dataset.get('is_last_approved', False)
+    is_latest_pending_version = entity_dataset.get('is_latest_pending_version', False)
+
+    history = entity_dataset.get('entities', [])
+    published_historical_ids = entity_dataset.get('published_ids', [])
+
+    template = entity.template.history.filter(template_version=entity.template_version).latest()
     entity_class = template.entity_class.name
 
-    is_latest_version = (int(history_id) == GenericEntity.objects.get(pk=pk).history.latest().history_id)
-    is_latest_pending_version = False
-
-    if len(PublishedGenericEntity.objects.filter(entity_id=pk, entity_history_id=history_id, approval_status=1)) > 0:
-        is_latest_pending_version = True
-
-
-    children_permitted_and_not_deleted = True
-    error_dict = {}
-    version_alerts = {}
-
     if request.user.is_authenticated:
-        can_edit = (not GenericEntity.objects.get(pk=pk).is_deleted) and permission_utils.can_user_edit_entity(request, pk)
-
-        user_can_export = True 
-         # (allowed_to_view_children(request, GenericEntity, pk, set_history_id=history_id)
-         #                   and entity_db_utils.chk_deleted_children(request,
-         #                                                   GenericEntity,
-         #                                                   pk,
-         #                                                   returnErrors=False,
-         #                                                   set_history_id=history_id)
-         #                   and not GenericEntity.objects.get(pk=pk).is_deleted)
+        can_edit = accessibility.get('edit_access', False)
         user_allowed_to_create = permission_utils.allowed_to_create()
-
-        #children_permitted_and_not_deleted, error_dict = entity_db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk)
-
-
     else:
         can_edit = False
-        user_can_export = is_published
         user_allowed_to_create = False
 
-    publish_date = None
-    if is_published:
-        publish_date = PublishedGenericEntity.objects.get(entity_id=pk, entity_history_id=history_id).modified
-
-    if GenericEntity.objects.get(pk=pk).is_deleted == True:
+    is_latest_version = history_id == entity_dataset.get('latest_history_id', -1)
+    if is_deleted:
         messages.info(request, "This entity has been deleted.")
-
-    # published versions
-    published_historical_ids = list(PublishedGenericEntity.objects.filter(entity_id=pk, approval_status=2).values_list('entity_history_id', flat=True))
-
-    # history
-    history = get_history_table_data(request, pk)
 
     context = {
         'entity_class': entity_class,
-        'entity': generic_entity,
+        'entity': entity,
         'history': history,
         'template': template,
         'page_canonical_path': get_canonical_path_by_brand(request, GenericEntity, pk, history_id),        
-        'user_can_edit': can_edit,  
+        'user_can_edit': not not can_edit,  
         'allowed_to_create': user_allowed_to_create,
         'user_can_export': user_can_export,
-        'live_ver_is_deleted': GenericEntity.objects.get(pk=pk).is_deleted,
+        'live_ver_is_deleted': is_deleted,
         'published_historical_ids': published_historical_ids,
         'approval_status': approval_status,
-        'publish_date': publish_date,
         'is_latest_version': is_latest_version,
         'is_latest_pending_version':is_latest_pending_version,
         'is_lastapproved': is_lastapproved,
         'is_published': is_published,
-        'current_phenotype_history_id': int(history_id),
-
-        'q': entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', '')),
-        'force_highlight_result':  ['0', '1'][entity_db_utils.is_referred_from_search_page(request)]                              
+        'current_phenotype_history_id': int(history_id),                           
     }
 
     return render(request, 
-                  'clinicalcode/generic_entity/detail/detail.html',
-                  context 
-                )
+        'clinicalcode/generic_entity/detail/detail.html',
+        context 
+    )
 
 
 def get_history_table_data(request, pk):

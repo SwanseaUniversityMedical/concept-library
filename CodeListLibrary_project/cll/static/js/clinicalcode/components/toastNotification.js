@@ -8,13 +8,13 @@ import TouchHandler from './touchHandler.js';
  *       The factory is accessible through the window object via window.ToastFactory
  * 
  * e.g.
- * ```js
- *    window.ToastFactory.push({
- *      type: 'warning',
- *      message: 'Some warning message',
- *      duration: 2000, // 2s
- *    });
- * ```
+  ```js
+    window.ToastFactory.push({
+      type: 'warning',
+      message: 'Some warning message',
+      duration: 2000, // 2s
+    });
+  ```
  */
 class ToastNotificationFactory {
   constructor() {
@@ -107,10 +107,10 @@ class ToastNotificationFactory {
       'aria-hidden': false,
       'aria-live': true,
     });
-    
+
     const element = createElement('div', {
       'className': 'toast__message',
-      'innerHTML': content
+      'innerText': content
     });
     toast.appendChild(element);
 

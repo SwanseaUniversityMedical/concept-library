@@ -17,16 +17,16 @@
   {% endif %}
 
   <div class="ontology-group-creator" data-class="ontology" data-field="{{ component.field_name }}">
+
     {% if component.options %}
-      <data aria-hidden="true" data-type="dataset" for="{{ component.field_name }}">
-        {{ component.options|jsonify|striptags }}
-      </data>
+      {% to_json_script component.options data-type="dataset" for=component.field_name %}
     {% endif %}
-    <data aria-hidden="true" data-type="value" for="{{ component.field_name }}">
-      {% if component.value %}
-        {{ component.value|jsonify|striptags }}
-      {% endif %}
-    </data>
+  
+    {% if component.value %}
+      {% to_json_script component.value data-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
 
     <div class="ontology-group-creator__header">
       <p>
@@ -52,7 +52,7 @@
 
     <template aria-hidden="true" data-target="ontology-service" data-name="source">
       <div class="ontology-modal-body__selector" data-source="${source}">
-        <a class="ontology-modal-body__selector__name" target="__blank" href="#" aria-label="${label}">
+        <a class="ontology-modal-body__selector__name" target="_blank" href="#" aria-label="${label}">
           ${label}
         </a>
       </div>

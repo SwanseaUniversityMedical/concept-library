@@ -125,6 +125,18 @@ class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     CREATE = 1
     UPDATE = 2
 
+class CASE_SIGNIFICANCE(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Indicates whether the text can be modified by varying the case
+        of characters describing a SNOMED Concept
+
+        See: https://confluence.ihtsdotools.org/pages/viewpage.action?pageId=28739261
+
+    """
+    CL = 0 # First character can be varied; rest is cast sensitive
+    CI = 1 # All characters are case insensitive
+    CS = 2 # All characters are case sensitive
+
 class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     """
         Defines the ontology internal type id,
@@ -142,7 +154,7 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
 """
 ONTOLOGY_LABELS = {
     ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
-    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (ICD-10)',
+    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (SNOMED)',
     ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
 }
 
@@ -437,7 +449,10 @@ metadata = {
                 'query': 'id',
                 'relative': 'name',
             }
-        }
+        },
+        "search": {
+            "api": True
+        },
     },
     "name": {
         "title": "Name",
@@ -446,7 +461,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": True
+            "mandatory": True,
+            "sanitise": "strict",
         },
         'is_base_field': True
     },
@@ -457,7 +473,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -468,7 +485,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -476,6 +494,7 @@ metadata = {
         "title": "Publications",
         "description": "Publication(s) where the phenotype was defined or has been used.",
         "field_type": "publications",
+        "sort": {"key": lambda pub: 0 if pub.get('primary') == 1 else 1},
         "active": True,
         "validation": {
             "type": "publication",
@@ -489,7 +508,8 @@ metadata = {
         'active': True,
         'validation': {
             'type': 'string',
-            'mandatory': False
+            'mandatory': False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -500,7 +520,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": False
+            "mandatory": False,
+            "sanitise": "markdown",
         },
         'is_base_field': True
     },
@@ -526,7 +547,8 @@ metadata = {
         "active": True,
         "validation": {
             "type": "string",
-            "mandatory": True
+            "mandatory": True,
+            "sanitise": "strict",
         },
         'is_base_field': True
     },
@@ -535,6 +557,7 @@ metadata = {
         "description": "List of content collections this phenotype belongs to.",
         "field_type": "collections",
         "active": True,
+        "hydrated": True,
         "compute_statistics": True,
         "validation": {
             "type": "int_array",
@@ -562,6 +585,7 @@ metadata = {
         "description": "Optional keywords helping to categorize this content.",
         "field_type": "tags",
         "active": True,
+        "hydrated": True,
         "compute_statistics": True,
         "validation": {
             "type": "int_array",
@@ -767,6 +791,14 @@ FIELD_TYPES = {
         'input_type': 'clinical/publication',
         'output_type': 'clinical/publication',
     },
+    'endorsements': {
+        'input_type': 'clinical/endorsement',
+        'output_type': 'clinical/endorsement',
+    },
+    'trials': {
+        'input_type': 'clinical/trial',
+        'output_type': 'clinical/trial',
+    },
     'coding_system': {
         'system_defined': True,
         'description': 'list of coding system ids (calculated from phenotype concepts) (managed by code snippet)',
@@ -831,8 +863,8 @@ FIELD_TYPES = {
         'output_type': 'string_inputlist',
     },
     'url_list': {
-        'input_type': 'string_inputlist',
-        'output_type': 'url_list',
+        'input_type': 'generic/url_list',
+        'output_type': 'generic/url_list',
     },
     'source_reference': {
         'data_type': 'string',

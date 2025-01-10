@@ -1,18 +1,18 @@
 <div class="detailed-input-group fill-width">
   <div class="box-container">
     <div class="row" >
-      <div class="col-sm-2 row-padding">{{ component.field_data.title }}</div>
+      <div class="col-sm-2 row-padding" aria-label="{{ component.field_data.title }}">{{ component.field_data.title }}</div>
       <div class="col-sm-10">
-        <span id="entity-{{ component.field_name }}">
-          {{ component.value }}			
+        <span id="entity-{{ component.field_name }}" aria-label="{{ component.value }}">
+          {{ component.value }}
           {% if user.is_authenticated %}
-              &nbsp;&nbsp;
-              &nbsp;&nbsp;
-              {% if is_latest_version %}
-                  <span class="tag label" style='background-color:#F98E2B;'>LATEST VERSION</span>
-              {% else %}
-                  <span class="tag label label-default">LEGACY VERSION</span>
-              {% endif %}
+            &nbsp;&nbsp;
+            &nbsp;&nbsp;
+            {% if is_latest_version %}
+              <span class="tag label warning-accent" aria-label="LATEST VERSION">LATEST VERSION</span>
+            {% else %}
+              <span class="tag label label-default" aria-label="LEGACY VERSION">LEGACY VERSION</span>
+            {% endif %}
           {% endif %}
         </span>
       </div>

@@ -1,2 +1,2 @@
-*.css
-**/.css
+# Transpilation output from SCSS -> CSS
+**/*.css

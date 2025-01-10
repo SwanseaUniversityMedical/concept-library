@@ -3,19 +3,25 @@
   * @desc A static class that uses Levenshtein distance to search a haystack.
   * 
   * e.g.
-  * ```js
-  *   import FuzzyQuery from '../components/fuzzyQuery.js'
-  *   const haystack = [
-  *     'some_item1',
-  *     'some_item2',
-  *     'another_thing',
-  *     'another_thing_1',
-  *   ];
-  * 
-  *   const query = 'some_item';
-  *   const results = FuzzyQuery.Search(haystack, query, FuzzyQuery.Results.Sort, FuzzyQuery.Transformers.IgnoreCase);
-  *   console.log(results); // Will return ['some_item1', 'some_item2']
-  * ```
+  ```js
+    import FuzzyQuery from '../components/fuzzyQuery.js';
+
+    // i.e. some haystack of item(s)
+    const haystack = [
+      'some_item1',
+      'some_item2',
+      'another_thing',
+      'another_thing_1',
+    ];
+
+    // e.g. some search string
+    const query = 'some_item';
+
+    // ...attempt to search haystack
+    const results = FuzzyQuery.Search(haystack, query, FuzzyQuery.Results.Sort, FuzzyQuery.Transformers.IgnoreCase);
+    console.log(results); // --> Of result: ['some_item1', 'some_item2']
+
+  ```
   * 
   */
 export default class FuzzyQuery {
@@ -82,19 +88,26 @@ export default class FuzzyQuery {
    * @return {number} the distance between the strings
    */
   static Distance(haystack, needle) {
-    const hlen = haystack.length;
-    const nlen = needle.length;
+    let nlen = needle.length;
+    let hlen = haystack.length;
     if (haystack === needle) {
       return 0;
     } else if (!(haystack && needle))  {
       return (haystack || needle).length;
     }
 
-    let i, j;
-    let matrix = [];
-    for (i = 0; i <= nlen; matrix[i] = [i++]);
-    for (j = 0; j <= hlen; matrix[0][j] = j++);
+    if (nlen > hlen) {
+      let tmp = hlen;
+      hlen = nlen;
+      nlen = tmp;
 
+      tmp = haystack;
+      haystack = needle;
+      needle = tmp;
+    }
+
+    let i, j;
+    let matrix = Array.from({ length: nlen + 1 }, (_, x) => Array.from({ length: hlen + 1 }, (_, y) => y));
     for (i = 1; i <= nlen; i++) {
       let c = needle.charCodeAt(i - 1);
       for (j = 1; j <= hlen; j++) {
@@ -140,10 +153,9 @@ export default class FuzzyQuery {
       
       if (FuzzyQuery.Match(item, query)) {
         if (sort) {
-          var score = FuzzyQuery.Distance(item, query);
-          results.push({item: item, score: score});
+          results.push({ item: item, score: FuzzyQuery.Distance(item, query) });
         } else {
-          results.push({item: item});
+          results.push({ item: item });
         }
       }
     }

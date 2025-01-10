@@ -6,21 +6,30 @@
 <div class="detailed-input-group fill">
   <div class="publication-list-group">
     <section class="publication-list-group__list show" id="publication-group">
-      <!-- <div class="publication-list-group__list-container " id="publication-list"> -->
-        {% if component.value|length %}
-          <ul>
-              {% for p in component.value %}
-                  <li>{{ p.details|markdownify }}
-                    {% if p.doi %}
-                    (DOI:{{ p.doi }})
-                    {% endif %}
-                  </li>
-              {% endfor %}
-          </ul>
-        {% else %}
-        <span class="card-no-data">No publications</span>
-        {% endif %}
-      <!-- </div> -->
+      <h3 class="publication-list-group__list-detail-title" id="pub-header">
+        Related publications
+      </h3>
+      {% if component.value|length %}
+        <ul>
+          {% for p in component.value %}
+            <li
+              aria-label="{% if p.primary and p.primary == 1 %}Primary Publication: {% endif %}{{ p.details|striptags|escape }}{% if p.doi %} (DOI:{{ p.doi|striptags|escape }}){% endif %}"
+            >
+              {% if p.primary and p.primary == 1 %}
+                <span class="badge publication-list-group__badge-annotation" aria-hidden="true">
+                  <strong>Primary</strong>
+                </span>
+              {% endif %}
+              {{ p.details|markdownify }}
+              {% if p.doi %}
+                (DOI: <a href="https://doi.org/{{ p.doi }}" aria-label="Visit Publication DOI page">{{ p.doi|striptags|escape }}</a>)
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <span class="card-no-data">No known publications</span>
+      {% endif %}
     </section>
   </div>
 </div>

@@ -225,7 +225,7 @@ with
               'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
               'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
               'type_id', nodes.type_id,
-              'atlas_id', nodes.atlas_id,
+              'reference_id', nodes.reference_id,
               'child_count', count(edges1.child_id)
            ) as tree
         from (

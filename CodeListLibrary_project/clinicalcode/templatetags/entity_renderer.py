@@ -1,9 +1,11 @@
 from django import template
 from django.conf import settings
-from jinja2.exceptions import TemplateSyntaxError
+from django.urls import reverse
+from django.utils.html import _json_script_escapes as json_script_escapes
+from jinja2.exceptions import TemplateSyntaxError, FilterArgumentError
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from django.urls import reverse
+from django.utils.safestring import mark_safe
 from datetime import datetime
 
 import re
@@ -11,8 +13,8 @@ import json
 import warnings
 
 from ..entity_utils import permission_utils, template_utils, search_utils, model_utils, create_utils, gen_utils, constants
-from ..models.GenericEntity import GenericEntity
 from ..models.Brand import Brand
+from ..models.GenericEntity import GenericEntity
 
 register = template.Library()
 
@@ -84,6 +86,7 @@ def render_citation_block(entity, request):
     ))
 
     brand = request.BRAND_OBJECT
+    brand = None if not isinstance(brand, Brand) else brand
     site_name = settings.APP_TITLE if not brand or not getattr(brand, 'site_title') else brand.site_title
 
     return f'{author}. *{phenotype_id} - {name}*. {site_name} [Online]. {updated}. Available from: [{url}]({url}). [Accessed {date}]'
@@ -277,6 +280,97 @@ def renderable_field_values(entity, layout, field):
         return template_utils.get_metadata_value_from_source(entity, field, default=[])
     
     return template_utils.get_template_data_values(entity, layout, field, default=[])
+
+@register.tag(name="to_json_script")
+def render_jsonified_object(parser, token):
+    """
+        Attempts to dump a value to JSON
+        and render it as a HTML element in
+        the form of:
+
+        ```html
+        <script type="application/json" other-attributes="some-value">
+            ...
+        </script>
+        ```
+
+        Example usage:
+        
+        ```html
+        {% url 'some_url_var' as some_variable %}
+        {% test_jsonify some_jsonifiable_content some-attribute="some_value" other-attribute=some_variable %}
+        ```
+    """
+    kwargs = {
+        'should_print': False,
+        'remove_userdata': False,
+    }
+
+    content = None
+    attributes = {}
+    try:
+        parsed = token.split_contents()[1:]
+        if len(parsed) > 0 and parsed[0] == 'with':
+            parsed = parsed[1:]
+
+        for param in parsed:
+            ctx = param.split('=')
+            if len(ctx) > 1:
+                if ctx[0] in kwargs:
+                    value = eval(ctx[1])
+                    if type(value) is not type(kwargs[ctx[0]]):
+                        raise FilterArgumentError('[to_json_script] Expected %s as %s but got %s' % (ctx[0], type(kwargs[ctx[0]]), type(value),))
+                    kwargs[ctx[0]] = value
+                else:
+                    attributes[ctx[0]] = parser.compile_filter(ctx[1])
+            else:
+                content = parser.compile_filter(ctx[0])
+    except FilterArgumentError as e:
+        raise e
+    except Exception as e:
+        raise TemplateSyntaxError('[to_json_script] Failed to parse tokens: %s' % (str(e),))
+
+    return JsonifiedNode(content, attributes, **kwargs)
+
+class JsonifiedNode(template.Node):
+    """
+        Renders the JSON node given the parameters
+        called from `render_jsonified_object`
+    """
+    def __init__(self, content, attributes, **kwargs):
+        # opts
+        self.should_print = kwargs.pop('should_print', False)
+        self.remove_userdata = kwargs.pop('remove_userdata', False)
+
+        # props
+        self.content = content
+        self.attributes = attributes
+
+    def render(self, context):
+        content = self.content.resolve(context)
+
+        if self.should_print:
+            print('[to_json_script] %s -> %s' % (type(content), repr(content),))
+
+        if content is None:
+            content = { }
+
+        attributes = [ f'{key}={value.resolve(context)}' for key, value in self.attributes.items() ]
+
+        attribute_string = ''
+        if isinstance(attributes, list) and len(attributes) > 0:
+            attribute_string = ' %s' % (' '.join(attributes),)
+
+        content_string = None
+        if isinstance(content, str):
+            content_string = content
+        elif isinstance(content, (dict, list)):
+            content_string = json.dumps(content, cls=gen_utils.ModelEncoder)
+        else:
+            content_string = model_utils.jsonify_object(content, remove_userdata=self.remove_userdata)
+
+        content_string = mark_safe(content_string.translate(json_script_escapes))
+        return mark_safe(f'<script type="application/json"{attribute_string}>{content_string}</script>')
 
 @register.tag(name='render_entity_cards')
 def render_entities(parser, token):
@@ -723,18 +817,24 @@ class EntityWizardSections(template.Node):
                     component['hide_input_details'] = False
                 else:
                     component['hide_input_details'] = True
-                
-                if template_utils.is_metadata(GenericEntity, field):
-                    options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
 
-                    if options is None:
-                        options = self.__try_get_computed(request, field)
-                else:
-                    options = template_utils.get_template_sourced_values(template, field, request=request)
-                
+                is_metadata = template_utils.is_metadata(GenericEntity, field)
+                field_struct = template_utils.get_layout_field(constants.metadata if is_metadata else template, field)
+                will_hydrate = field_struct is not None and field_struct.get('hydrated', False)
+
+                options = None
+                if not will_hydrate:
+                    if is_metadata:
+                        options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
+
+                        if options is None:
+                            options = self.__try_get_computed(request, field)
+                    else:
+                        options = template_utils.get_template_sourced_values(template, field, request=request)
+
                 if options is not None:
                     component['options'] = options
-                
+
                 field_properties = self.__try_get_props(template, field)
                 if field_properties is not None:
                     component['properties'] = field_properties

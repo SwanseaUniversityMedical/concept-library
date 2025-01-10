@@ -1,3 +1,4 @@
+{% load entity_renderer %}
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
   <h3 class="detailed-input-group__title">
@@ -11,11 +12,9 @@
   </p>
   {% endif %}
 
-  <div id="entity-{{ component.field_name }}-command-bar" for="{{ component.field_name }}" class="markdown-command-bar" data-class="md-command-bar">
-
-  </div>
-  <div id="entity-{{ component.field_name }}" class="filter-scrollbar markdown-editor" data-class="md-editor" data-field="{{ component.field_name }}">
-    
-  </div>
-  <data aria-hidden="true" for="{{ component.field_name }}">{{ component.value|linebreaks }}</data>
+  <textarea
+      id="entity-{{ component.field_name }}" class="filter-scrollbar"
+      data-class="md-editor" data-field="{{ component.field_name }}"
+  ></textarea>
+  <script type="text/html" aria-hidden="true" for="{{ component.field_name }}">{% if component.value %}{{ component.value|safe }}{% endif %}</script>
 </div>

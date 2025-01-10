@@ -40,7 +40,7 @@ const createGroup = (container, template, id, title, description) => {
     'title': title.toLocaleUpperCase(),
     'description': description,
   });
-  
+
   const doc = parseHTMLFromString(html);
   return container.appendChild(doc.body.children[0]);
 }
@@ -73,7 +73,7 @@ const createCard = (container, template, id, type, hint, title, description) => 
 
 /**
  * collectEntityData
- * @desc Method that retrieves all relevant <data/> and <template/> elements with
+ * @desc Method that retrieves all relevant <script type="application/json" /> and <template/> elements with
  *       its data-owner attribute pointing to the entity selector
  * @return {object} An object describing the data collected
  * 
@@ -94,7 +94,7 @@ const collectEntityData = () => {
     );
   }
 
-  const datasets = document.querySelectorAll('data[data-owner="entity-selector"]');
+  const datasets = document.querySelectorAll('script[type="application/json"][data-owner="entity-selector"]');
   for (let i = 0; i < datasets.length; ++i) {
     let datapoint = datasets[i];
     let parsed;
@@ -153,7 +153,7 @@ const initialiseSelector = (formData) => {
     
         let btn = card.querySelector('#select-btn');
         btn.addEventListener('click', (e) => {
-          window.location.href = `${getCurrentURL()}${item.id}`;
+          window.location.href = strictSanitiseString(`${getCurrentURL()}${item.id}`);
         });
       }
     }

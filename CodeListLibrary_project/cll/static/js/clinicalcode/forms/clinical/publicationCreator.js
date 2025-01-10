@@ -1,24 +1,120 @@
 import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
 
 /**
+ * PUBLICATION_OPTIONS
+ * @desc describes the optional parameters for this class
+ * 
+ */
+const PUBLICATION_OPTIONS = {
+  // The minimum message duration for toast notif popups
+  notificationDuration: PUBLICATION_MIN_MSG_DURATION,
+
+  /* Attribute name(s) */
+  //  - dataAttribute: defines the attribute that's used to retrieve contextual data
+  dataAttribute: 'data-field',
+  //  - targetAttribute: defines the data target for individual elements which defines their index
+  targetAttribute: 'data-target',
+
+  /* Related element IDs */
+  //  - textInputId: describes the text input box for publication details
+  textInputId: '#publication-input-box',
+  //  - doiInputId: describes the DOI text input box
+  doiInputId: '#doi-input-box',
+  //  - primaryPubCheckboxId: describes the primary publication checkbox
+  primaryPubCheckboxId: '#primary-publication-checkbox',
+  //  - addButtonId: describes the 'Add' button used to add publications
+  addButtonId: '#add-input-btn',
+  //  - availabilityId: describes the 'No available publications' element
+  availabilityId: '#no-available-publications',
+  //  - publicationGroupId: describes the parent element of the publication list
+  publicationGroupId: '#publication-group',
+  //  - publicationListId: describes the publication list in which elements are held
+  publicationListId: '#publication-list',
+};
+
+
+/**
+ * PUBLICATION_ITEM_ELEMENT
+ * @desc describes the publication item element and its interpolable targets
+ * 
+ */
+const PUBLICATION_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
+  <div class="publication-list-group__list-item-url"> \
+    <p>${publication}${doiElement}</p> \
+  </div> \
+  <div class="publication-list-group__list-item-primary" style="flex: 1; text-align: center">\
+  \${primary === 1 ? \'<p><strong>Primary</strong></p>\' : \'\'}\
+  </div>\
+  <button class="publication-list-group__list-item-btn" data-target="${index}"> \
+    <span class="delete-icon"></span> \
+    <span>Remove</span> \
+  </button> \
+</div>';
+
+
+/**
+ * PUBLICATION_DOI_ELEMENT
+ * @desc describes the optional publication DOI element
+ *       and its interpolable targets
+ * 
+ */
+const PUBLICATION_DOI_ELEMENT = '<br/><br/><a href="https://doi.org/${doi}">${doi}</a>';
+
+
+/**
+ * PUBLICATION_NOTIFICATIONS
+ * @desc notification text that is used to present information
+ *       to the client, _e.g._ to inform them of a validation
+ *       error, or to confirm them of a forced change _etc_
+ * 
+ */
+const PUBLICATION_NOTIFICATIONS = {
+  // e.g. in the case of a user providing a DOI
+  //      that isn't matched by utils.js' `CLU_DOI_PATTERN` regex
+  InvalidDOIProvided: 'We couldn\'t validate the DOI you provided. Are you sure it\'s correct?',
+}
+
+
+/**
  * @class PublicationCreator
  * @desc A class that can be used to control publication lists
  * 
  * e.g.
  * 
- * ```js
- *  const startValue = ['Publication 1', 'Publication 2'];
- *  const element = document.querySelector('#publication-component');
- *  const creator = new PublicationCreator(element, startValue);
- * ```
+  ```js
+    // initialise
+    const startValue = [
+      { details: 'some publication title', doi?: 'some optional DOI' },
+      { details: 'some other title', doi?: 'some other optional DOI' }
+    ];
+
+    const element = document.querySelector('#publication-component');
+    const creator = new PublicationCreator(element, startValue);
+
+    // ...when retrieving data
+    if (creator.isDirty()) {
+      const data = creator.getData();
+      
+      // TODO: some save method
+
+
+    }
+  ```
  * 
  */
 export default class PublicationCreator {
-  constructor(element, data) {
-    this.data = data || [ ];
-    this.element = element;
+  constructor(element, data, options) {
+    this.data = Array.isArray(data) ? data : [ ];
     this.dirty = false;
+    this.element = element;
+
+    // parse opts
+    if (!isObjectType(options)) {
+      options = { };
+    }
+    this.options = mergeObjects(options, PUBLICATION_OPTIONS);
  
+    // init
     this.#setUp();
     this.#redrawPublications();
   }
@@ -76,22 +172,26 @@ export default class PublicationCreator {
    *************************************/
   /**
    * drawItem
-   * @param {integer} index the index of the publication in our data
-   * @param {string} publication the publication name 
+   * @param {int} index the index of the publication in our data
+   * @param doi
+   * @param {string} publication the publication name
+   * @param {int} primary Primary Publication Flag
    * @returns {string} html string representing the element
    */
-  #drawItem(index, doi, publication) {
-    const interp = (!isNullOrUndefined(doi) && !isStringEmpty(doi)) ? `<br/><br/><a href="https://doi.org/${doi}">${doi}</a>` : '';
-    return `
-    <div class="publication-list-group__list-item" data-target="${index}">
-      <div class="publication-list-group__list-item-url">
-        <p>${publication}${interp}</p>
-      </div>
-      <button class="publication-list-group__list-item-btn" data-target="${index}">
-        <span class="delete-icon"></span>
-        <span>Remove</span>
-      </button>
-    </div>`
+  #drawItem(index, doi, publication, primary) {
+    let doiElement;
+    if (!isNullOrUndefined(doi) && !isStringEmpty(doi)) {
+      doiElement = interpolateString(PUBLICATION_DOI_ELEMENT, { doi: doi });
+    } else {
+      doiElement = '';
+    }
+
+    return interpolateString(PUBLICATION_ITEM_ELEMENT, {
+      index: index,
+      doiElement: doiElement,
+      publication: publication,
+      primary: primary
+    });
   }
 
   /**
@@ -107,7 +207,7 @@ export default class PublicationCreator {
       this.renderables.none.classList.remove('show');
 
       for (let i = 0; i < this.data.length; ++i) {
-        const node = this.#drawItem(i, this.data[i]?.doi, this.data[i]?.details);
+        const node = this.#drawItem(i, this.data[i]?.doi, this.data[i]?.details,  this.data[i]?.primary);
         this.renderables.list.insertAdjacentHTML('beforeend', node);
       }
 
@@ -123,22 +223,25 @@ export default class PublicationCreator {
    * @desc initialises the publication component
    */
   #setUp() {
-    this.publicationInput = this.element.querySelector('#publication-input-box');
-    this.doiInput = this.element.querySelector('#doi-input-box');
-    this.addButton = this.element.querySelector('#add-input-btn');
+    this.publicationInput = this.element.querySelector(this.options.textInputId);
+    this.doiInput = this.element.querySelector(this.options.doiInputId);
+    this.primaryPubCheckbox = this.element.querySelector(this.options.primaryPubCheckboxId);
+
+    this.addButton = this.element.querySelector(this.options.addButtonId);
     this.addButton.addEventListener('click', this.#handleInput.bind(this));
     window.addEventListener('click', this.#handleClick.bind(this));
 
-    const noneAvailable = this.element.parentNode.querySelector('#no-available-publications');
-    const publicationGroup = this.element.parentNode.querySelector('#publication-group');
-    const publicationList = this.element.parentNode.querySelector('#publication-list');
+    const noneAvailable = this.element.parentNode.querySelector(this.options.availabilityId);
+    const publicationGroup = this.element.parentNode.querySelector(this.options.publicationGroupId);
+    const publicationList = this.element.parentNode.querySelector(this.options.publicationListId);
     this.renderables = {
       none: noneAvailable,
       group: publicationGroup,
       list: publicationList,
     }
 
-    this.dataResult = this.element.parentNode.querySelector(`[for="${this.element.getAttribute('data-field')}"]`);
+    const attr = this.element.getAttribute(this.options.dataAttribute);
+    this.dataResult = this.element.parentNode.querySelector(`[for="${attr}"]`);
   }
 
   /*************************************
@@ -155,26 +258,30 @@ export default class PublicationCreator {
     e.preventDefault();
     e.stopPropagation();
 
-    const publication = this.publicationInput.value;
-    const doi = this.doiInput.value;
+    const publication = strictSanitiseString(this.publicationInput.value);
+    const doi = strictSanitiseString(this.doiInput.value);
+    const primary= Number(this.primaryPubCheckbox.checked ? this.primaryPubCheckbox.dataset.value: '0');
+
     if (!this.publicationInput.checkValidity() || isNullOrUndefined(publication) || isStringEmpty(publication)) {
       return;
     }
 
-    const matches = parseDOI(doi);
+    const matches = parseString(doi, CLU_DOI_PATTERN);
     if (!matches?.[0]) {
       window.ToastFactory.push({
         type: 'danger',
-        message: 'We couldn\'t validate the DOI you provided. Are you sure it\'s correct?',
-        duration: PUBLICATION_MIN_MSG_DURATION,
+        message: PUBLICATION_NOTIFICATIONS.InvalidDOIProvided,
+        duration: this.options.notificationDuration,
       });
     }
 
     this.doiInput.value = '';
     this.publicationInput.value = '';
+    this.primaryPubCheckbox.checked = false;
     this.data.push({
       details: publication,
       doi: matches?.[0],
+      primary: primary
     });
     this.makeDirty();
     
@@ -196,7 +303,7 @@ export default class PublicationCreator {
       return;
     }
 
-    const index = target.getAttribute('data-target');
+    const index = target.getAttribute(this.options.targetAttribute);
     if (isNullOrUndefined(index)) {
       return;
     }

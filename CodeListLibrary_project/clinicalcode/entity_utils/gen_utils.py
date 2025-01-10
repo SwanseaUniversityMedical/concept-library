@@ -13,7 +13,8 @@ import json
 import datetime
 import urllib
 
-from . import constants
+from . import constants, sanitise_utils
+
 
 def is_datetime(x):
     """
@@ -29,6 +30,7 @@ def is_datetime(x):
     else:
         return True
 
+
 def is_float(x):
     """
         Legacy method from ./utils.py
@@ -42,6 +44,7 @@ def is_float(x):
         return False
     else:
         return True
+
 
 def is_int(x):
     """
@@ -57,6 +60,7 @@ def is_int(x):
         return False
     else:
         return a == b
+
 
 def clean_str_as_db_col_name(txt):
     """
@@ -74,6 +78,7 @@ def clean_str_as_db_col_name(txt):
     s = re.sub('_+', '_', s)
     return re.sub('[^A-Za-z0-9_]+', '', s)
 
+
 def try_parse_form(request):
     """
         Attempts to parse multipart/form-data from the request body
@@ -86,6 +91,7 @@ def try_parse_form(request):
     else:
         return post, files
 
+
 def get_request_body(request):
     """
         Decodes the body of a request and attempts to load it as JSON
@@ -96,6 +102,7 @@ def get_request_body(request):
         return body
     except:
         return None
+
 
 def try_get_param(request, key, default=None, method='GET'):
     """
@@ -117,6 +124,7 @@ def try_get_param(request, key, default=None, method='GET'):
 
     return param
 
+
 def is_empty_string(value):
     """
         Checks whether a string is empty or contains only spaces
@@ -129,9 +137,10 @@ def is_empty_string(value):
     """
     if value is None:
         return True
-    
+
     value = str(value).strip()
     return len(value) < 1 or value.isspace()
+
 
 def is_fetch_request(request):
     """
@@ -146,6 +155,7 @@ def is_fetch_request(request):
     """
     return request.headers.get('X-Requested-With') == constants.FETCH_REQUEST_HEADER
 
+
 def handle_fetch_request(request, obj, *args, **kwargs):
     """
         @desc Parses the X-Target header to determine which GET method
@@ -154,13 +164,14 @@ def handle_fetch_request(request, obj, *args, **kwargs):
     target = request.headers.get('X-Target', None)
     if target is None or target not in obj.fetch_methods:
         raise BadRequest('No such target')
-    
+
     try:
         response = getattr(obj, target)
     except Exception as e:
         raise BadRequest('Invalid request')
     else:
-        return response 
+        return response
+
 
 def decode_uri_parameter(value, default=None):
     """
@@ -182,6 +193,7 @@ def decode_uri_parameter(value, default=None):
     else:
         return value
 
+
 def jsonify_response(**kwargs):
     """
         Creates a JSON response with the given status
@@ -198,16 +210,17 @@ def jsonify_response(**kwargs):
     status = kwargs.get('status', 'false')
     message = kwargs.get('message', '')
     return JsonResponse({
-        'status': status,
-        'message': message
+            'status': status,
+            'message': message
     }, status=code)
+
 
 def try_match_pattern(value, pattern):
     """
         Tries to match a string by a pattern
     """
-    pattern = re.compile(pattern)
-    return pattern.match(value)
+    return re.match(pattern, value)
+
 
 def is_valid_uuid(value):
     """
@@ -217,8 +230,9 @@ def is_valid_uuid(value):
         uuid = UUID(value)
     except ValueError:
         return False
-    
+
     return str(uuid) == value
+
 
 def parse_int(value, default=0):
     """
@@ -237,6 +251,7 @@ def parse_int(value, default=0):
     else:
         return value
 
+
 def get_start_and_end_dates(daterange):
     """
         Sorts a date range to [min, max] and sets their timepoints to the [start] and [end] of the day respectively
@@ -248,10 +263,11 @@ def get_start_and_end_dates(daterange):
             A sorted (list) of datetime objects, combined with their respective start and end times
     """
     dates = [dateparser.parse(x).date() for x in daterange]
-    
+
     max_date = datetime.datetime.combine(max(dates), datetime.time(23, 59, 59, 999))
     min_date = datetime.datetime.combine(min(dates), datetime.time(00, 00, 00, 000))
     return [min_date, max_date]
+
 
 def parse_date(value, default=0):
     """
@@ -264,12 +280,105 @@ def parse_date(value, default=0):
     else:
         return date.strftime('%Y-%m-%d %H:%M:%S')
 
+
 def parse_as_int_list(value):
     result = []
     for x in value.split(','):
         if parse_int(x, default=None) is not None:
             result.append(int(x))
     return result
+
+def parse_prefixed_references(values, acceptable=None, pattern=None, transform=None, should_trim=False, default=None):
+    """
+        Attempts to parse prefixed references from a list object. Note that this
+        is primarily used for Ontology-like source mapping(s).
+        
+        Non-prefixed and/or unmapped items will fallback to parsing each element
+        as an integer-like value.
+
+        Args:
+            values           (list): the request context of the form
+            acceptable  (dict|None): a dict in which each key describes a prefix and its corresponding value specifies how to parse said prefix
+            pattern   (string|None): a regex pattern to separate individual values into [prefix, value] pairs (optional)
+            transform (string|None): a regex pattern to manipulate results (e.g. creating `alt_codes` with no dot formatting) (optional)
+            should_trim   (boolean): specifies whether the input value should be trimmed
+            default             (*): the default value to return if this method fails
+
+        Returns:
+            Either...
+                a) If successful: a dict specifying each of the matched values for the mapping(s) and a `__root__` key describing the parsed integer values (if any)
+                b) On failure: the specified default value
+    """
+    if not isinstance(values, list):
+        return None
+
+    if not isinstance(acceptable, dict):
+        acceptable = None
+
+    if not is_empty_string(pattern):
+        try:
+            pattern = re.compile(pattern)
+        except:
+            return default
+    else:
+        pattern = None
+
+    should_trim = not not should_trim
+    if not is_empty_string(transform):
+        try:
+            transform = re.compile(transform)
+        except:
+            transform = None
+    else:
+        transform = None
+
+    root = []
+    prefixed = {}
+    for value in values:
+        if isinstance(value, (int, float, complex)) and not isinstance(value, bool):
+            root.append(value)
+            continue
+        elif is_empty_string(value):
+            continue
+
+        if should_trim:
+            value = value.strip()
+
+        matched = pattern.findall(value) if pattern is not None else None
+        if matched is not None and len(matched) > 0:
+            matched = matched.pop(0)
+
+            prefix = matched[0].lower()
+            target = matched[1]
+            if acceptable is not None:
+                if not prefix in acceptable:
+                    target = None
+                else:
+                    expected = acceptable.get(prefix).get('type')
+                    if not is_empty_string(expected):
+                        target = try_value_as_type(target, expected, default=None)
+
+            if target is not None:
+                if not prefix in prefixed:
+                    prefixed.update({ prefix: [] })
+                prefixed.get(prefix).append(target)
+
+                if isinstance(target, str) and transform:
+                    alt_target = transform.sub('', target)
+                    if not is_empty_string(alt_target) and target != alt_target:
+                        prefixed.get(prefix).append(alt_target)
+                continue
+
+        value = parse_int(value, default=None)
+        if value is not None:
+            root.append(value)
+
+    result = { '__root__': root }
+    if len(prefixed) > 0:
+        result |= prefixed
+
+    return result
+
 
 def try_value_as_type(field_value, field_type, validation=None, default=None):
     """
@@ -284,12 +393,22 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     elif field_type == 'int_array':
         if isinstance(field_value, int):
             return [field_value]
-        
+
         if not isinstance(field_value, list):
             return default
-        
+
+        if validation is not None:
+            source = validation.get('source', None)
+            references = source.get('references', False) if isinstance(source, dict) else None
+            if references:
+                mapping = references.get('mapping', None)
+                pattern = references.get('pattern', None)
+                transform = references.get('transform', None)
+                should_trim = references.get('trim', False)
+                return parse_prefixed_references(field_value, mapping, pattern, transform, should_trim, default)
+
         valid = True
-        cleaned = [ ]
+        cleaned = []
         for val in field_value:
             result = parse_int(val, None)
             if result is None:
@@ -306,7 +425,12 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         try:
             value = str(field_value) if field_value is not None else ''
             if validation is not None:
-                value = value.encode('ascii', 'ignore').decode('unicode')
+                sanitiser = validation.get('sanitise')
+                if sanitiser is not None:
+                    empty = is_empty_string(value)
+                    value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                    if value is None or (is_empty_string(value) and not empty):
+                        return default
 
                 pattern = validation.get('regex')
                 mandatory = validation.get('mandatory')
@@ -323,6 +447,13 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         try:
             value = str(field_value) if field_value is not None else ''
             if validation is not None:
+                sanitiser = validation.get('sanitise')
+                if sanitiser is not None:
+                    empty = is_empty_string(value)
+                    value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                    if value is None or (is_empty_string(value) and not empty):
+                        return default
+
                 pattern = validation.get('regex')
                 mandatory = validation.get('mandatory')
                 if pattern is not None and not try_match_pattern(value, pattern):
@@ -337,19 +468,27 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
     elif field_type == 'string_array':
         if isinstance(field_value, str):
             return [field_value]
-        
+
         if not isinstance(field_value, list):
             return default
-        
+
         valid = True
-        cleaned = [ ]
+        cleaned = []
         for val in field_value:
             try:
                 value = str(val)
                 if validation is not None:
-                    pattern = validation.get('regex')
-                    if pattern is not None and not try_match_pattern(value, pattern):
-                        valid = False
+                    sanitiser = validation.get('sanitise')
+                    if sanitiser is not None:
+                        empty = is_empty_string(value)
+                        value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                        if value is None or (is_empty_string(value) and not empty):
+                            valid = False
+
+                    if valid:
+                        pattern = validation.get('regex')
+                        if pattern is not None and not try_match_pattern(value, pattern):
+                            valid = False
             except:
                 valid = False
             else:
@@ -357,61 +496,102 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
 
             if not valid:
                 break
-        
+
         return cleaned if valid else default
     elif field_type == 'concept':
         if not isinstance(field_value, list):
             return default
         return field_value
-    elif field_type == 'publication':
+    elif field_type == 'url_list':
         if not isinstance(field_value, list):
             return default
-        
+
         if len(field_value) < 0:
             return field_value
-        
+
         valid = True
         for val in field_value:
             if not isinstance(val, dict):
                 valid = False
                 break
-            
-            details = val.get('details')
-            if not details or not isinstance(details, str):
+
+            title = val.get('title')
+            if not title or not isinstance(title, str) or is_empty_string(title):
                 valid = False
                 break
-            
-            doi = val.get('doi')
+
+            url = val.get('url')
+            if url is not None and not isinstance(url, str):
+                valid = False
+                break
+
+        return field_value if valid else default
+    elif field_type == 'publication':
+        if not isinstance(field_value, list):
+            return default
+
+        if len(field_value) < 0:
+            return field_value
+
+        valid = True
+        for val in field_value:
+            if not isinstance(val, dict):
+                valid = False
+                break
+
+            details = val.get('details')
+            empty = is_empty_string(details)
+
+            details = sanitise_utils.sanitise_value(details, method='strict', default=None)
+            if not details or not isinstance(details, str) or (is_empty_string(details) and empty):
+                valid = False
+                break
+
+            doi = sanitise_utils.sanitise_value(val.get('doi'), method='strict', default=None)
             if doi is not None and not isinstance(doi, str):
                 valid = False
                 break
-        
+
+            if 'primary' in val:
+                primary = val.get('primary')
+                if not isinstance(primary, int) and primary not in (0, 1):
+                    valid = False
+                    break
+
         return field_value if valid else default
-    
+
     return field_value
 
-def measure_perf(func):
+
+def measure_perf(func, show_args=False):
     """
         Helper function to estimate view execution time
 
         Ref @ https://stackoverflow.com/posts/62522469/revisions
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if settings.DEBUG:
             start = time.time()
             result = func(*args, **kwargs)
             duration = (time.time() - start) * 1000
-            print('view {} takes {:.2f} ms'.format(func.__name__, duration))
+            if show_args:
+                print('view {} takes {:.2f} ms... \n  1. args: {}\n  2.kwargs:{}'.format(func.__name__, duration, args, kwargs))
+            else:
+                print('view {} takes {:.2f} ms'.format(func.__name__, duration))
             return result
         return func(*args, **kwargs)
+
     return wrapper
+
 
 class ModelEncoder(JSONEncoder):
     """
         Encoder class to override behaviour of the JSON encoder to allow
         encoding of datetime objects - used to JSONify instances of a model
     """
+
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()

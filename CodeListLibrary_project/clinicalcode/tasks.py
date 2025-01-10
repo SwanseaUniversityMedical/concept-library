@@ -16,7 +16,7 @@ def send_message_test(self):
 @shared_task(name="review_email_background_task")
 def send_review_email(request,data):
     email_utils.send_review_email_generic(request, data)
-    return f"Email sent - {data['id']} with name {data['entity_name']} and owner_id {data['owner_id']}"
+    return f"Email sent - {data['id']} with name {data['entity_name']} and owner_id {data['entity_user_id']}"
 
 @shared_task(bind=True)
 def send_scheduled_email(self):
@@ -35,7 +35,7 @@ def send_scheduled_email(self):
                               })
 
     for j in range(len(overal_result)):
-        if not settings.IS_DEVELOPMENT_PC:
+        if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE:
             try:
                 time.sleep(7)
                 msg = EmailMultiAlternatives(email_subject,

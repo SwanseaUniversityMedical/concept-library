@@ -3,16 +3,17 @@
     COMMON VIEW CODE
     ---------------------------------------------------------------------------
 """
-import logging
-import sys
-
-import requests
 from django.conf import settings
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.http import HttpResponse
 from django.http.response import Http404
 from django.shortcuts import render
+
+import logging
+import sys
+import requests
 
 from ..forms.ContactUsForm import ContactForm
 
@@ -23,9 +24,9 @@ from ..models.DataSource import DataSource
 from ..models.Statistics import Statistics
 from ..models.OntologyTag import OntologyTag
 
+from ..entity_utils import gen_utils
 from ..entity_utils.constants import ONTOLOGY_TYPES
 from ..entity_utils.permission_utils import should_render_template, redirect_readonly
-
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ def index(request):
         if not brand.exists():
             return index_home(request, index_path)
         brand = brand.first()
-        return getattr(sys.modules[__name__], "index_%s" % brand)(request, brand.index_path)
+        return getattr(sys.modules[__name__], 'index_%s' % brand)(request, brand.index_path)
     except:
         return index_home(request, index_path)
 
@@ -157,6 +158,33 @@ def brand_about_index_return(request, pg_name):
 
 # --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
+# Custom err / msg views
+# --------------------------------------------------------------------------
+def notify_err(request, title=None, status_code=None, details=None):
+    if gen_utils.is_empty_string(title):
+        title = None
+
+    if not isinstance(status_code, int):
+        status_code = 400
+
+    if isinstance(details, list):
+        for group in details:
+            if isinstance(group, dict):
+                try:
+                    messages.add_message(request, **group)
+                except Exception as e:
+                    logger.warning(f'Failed to pass message to FmtError<title: {title}, status_code: {status_code} view with err: {str(e)}')
+            elif group is not None:
+                messages.add_message(request, messages.INFO, str(group))
+
+    return render(
+        status=status_code,
+        request=request,
+        context={ 'errheader': { 'title': title, 'status_code': status_code } },
+        content_type='text/html',
+        template_name='fmt-error.html'
+    )
 
 # --------------------------------------------------------------------------
 # Misc. pages e.g. T&C, P&C, Technical pages, Contact us etc
@@ -191,7 +219,7 @@ def contact_us(request):
         Generation of Contact us page/form and email send functionality.
     """
 
-    if settings.CLL_READ_ONLY:
+    if settings.CLL_READ_ONLY or settings.IS_GATEWAY_PC:
         raise PermissionDenied
 
     captcha = True
@@ -212,22 +240,22 @@ def contact_us(request):
 
             try:
                 html_content = \
-                    "<strong>New Message from Concept Library Website</strong><br><br>" \
-                    "<strong>Name:</strong><br>" \
-                    "{name}" \
-                    "<br><br>" \
-                    "<strong>Email:</strong><br>" \
-                    "{from_email}" \
-                    "<br><br>" \
-                    "<strong>Issue Type:</strong><br>" \
-                    "{category}" \
-                    "<br><br>" \
-                    "<strong> Tell us about your Enquiry: </strong><br>" \
-                    "{message}".format(
+                    '<strong>New Message from Concept Library Website</strong><br><br>' \
+                    '<strong>Name:</strong><br>' \
+                    '{name}' \
+                    '<br><br>' \
+                    '<strong>Email:</strong><br>' \
+                    '{from_email}' \
+                    '<br><br>' \
+                    '<strong>Issue Type:</strong><br>' \
+                    '{category}' \
+                    '<br><br>' \
+                    '<strong> Tell us about your Enquiry: </strong><br>' \
+                    '{message}'.format(
                         name=name, from_email=from_email, category=category, message=message
                     )
 
-                if not settings.IS_DEVELOPMENT_PC:
+                if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE:
                     message = EmailMultiAlternatives(
                         email_subject,
                         html_content,
@@ -235,13 +263,15 @@ def contact_us(request):
                         to=[settings.HELPDESK_EMAIL],
                         cc=[from_email]
                     )
-                    message.content_subtype = "html"
+                    message.content_subtype = 'html'
                     message.send()
 
                 form = ContactForm()
                 sent_status = True
             except BadHeaderError:
                 return HttpResponse('Invalid header found')
+            except Exception as e:
+                logger.error('Failed to process ContactUsForm<src: %s> with error: %s' % (str(from_email), str(e), ))
 
     sent_status = captcha
 

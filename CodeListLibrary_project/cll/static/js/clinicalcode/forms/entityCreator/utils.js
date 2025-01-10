@@ -2,7 +2,10 @@ import Tagify from '../../components/tagify.js';
 import ConceptCreator from '../clinical/conceptCreator.js';
 import GroupedEnum from '../../components/groupedEnumSelector.js';
 import PublicationCreator from '../clinical/publicationCreator.js';
+import TrialCreator from '../clinical/trialCreator.js';
+import EndorsementCreator from '../clinical/endorsementCreator.js';
 import StringInputListCreator from '../stringInputListCreator.js';
+import UrlReferenceListCreator from '../generic/urlReferenceListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
 
 import {
@@ -20,7 +23,7 @@ import {
 export const ENTITY_HANDLERS = {
   // Generates a groupedenum component context
   'groupedenum': (element) => {
-    const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     const packet = { };
     for (let i = 0; i < data.length; ++i) {
@@ -42,14 +45,14 @@ export const ENTITY_HANDLERS = {
   },
 
   // Generates a tagify component for an element
-  'tagify': (element) => {
-    const data = element.parentNode.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+  'tagify': (element, dataset) => {
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let value = [];
     let options = [];
     for (let i = 0; i < data.length; ++i) {
       const datafield = data[i];
-      const type = datafield.getAttribute('data-type')
+      const type = datafield.getAttribute('desc-type');
       if (!datafield.innerText.trim().length) {
         continue;
       }
@@ -76,16 +79,17 @@ export const ENTITY_HANDLERS = {
       'allowDuplicates': false,
       'restricted': true,
       'items': options,
-    });
+      'onLoad': (box) => {
+        for (let i = 0; i < value.length; ++i) {
+          const item = value[i];
+          if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
+            continue;
+          }
 
-    for (let i = 0; i < value.length; ++i) {
-      const item = value[i];
-      if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
-        continue;
+          box.addTag(item.name, item.value);
+        }
       }
-
-      tagbox.addTag(item.name, item.value);
-    }
+    }, dataset);
 
     return tagbox;
   },
@@ -173,43 +177,55 @@ export const ENTITY_HANDLERS = {
 
   // Generates a markdown editor component for an element
   'md-editor': (element) => {
-    const toolbar = element.parentNode.querySelector(`div[for="${element.getAttribute('data-field')}"]`);
-    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelector(`script[for="${element.getAttribute('data-field')}"]`);
+    const value = data?.innerText;
 
-    let value = data?.innerHTML;
-    if (!isStringEmpty(value) && !isStringWhitespace(value)) {
-      value = convertMarkdownData(data)
-    } else {
-      value = '';
-    }
-
-    if (isStringEmpty(value) || isStringWhitespace(value)) {
-      value = ' ';
-    }
-
-    const mde = new TinyMDE.Editor({
+    const mde = new EasyMDE({
+      // Elem
       element: element,
-      content: value
+      maxHeight: '500px',
+      minHeight: '300px',
+
+      // Behaviour
+      autofocus: false,
+      forceSync: false,
+      autosave: { enabled: false },
+      placeholder: 'Enter content here...',
+      promptURLs: false,
+      spellChecker: false,
+      lineWrapping: true,
+      unorderedListStyle: '-',
+      renderingConfig: {
+        singleLineBreaks: false,
+        codeSyntaxHighlighting: false,
+        sanitizerFunction: (renderedHTML) => strictSanitiseString(renderedHTML, { html: true }),
+      },
+
+      // Controls
+      status: ['lines', 'words', 'cursor'],
+      tabSize: 2,
+      toolbar: [
+        'heading', 'bold', 'italic', 'strikethrough', '|',
+        'unordered-list', 'ordered-list', 'code', 'quote', '|',
+        'link', 'image', 'table', '|',
+        'preview', 'guide',
+      ],
+      toolbarTips: true,
+      toolbarButtonClassPrefix: 'mde',
     });
 
-    const bar = new TinyMDE.CommandBar({
-      element: toolbar,
-      editor: mde
-    });
-
-    element.addEventListener('click', () => {
-      mde.e.focus();
-    });
+    if (!isStringEmpty(value) && !isStringWhitespace(value)) {
+      mde.value(value);
+    }
 
     return {
       editor: mde,
-      toolbar: bar,
     };
   },
 
   // Generates a list component for an element
   'string_inputlist': (element) => {
-    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let parsed;
     try {
@@ -222,9 +238,24 @@ export const ENTITY_HANDLERS = {
     return new StringInputListCreator(element, parsed)
   },
 
+  // Generates a list component for an element
+  'url_list': (element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new UrlReferenceListCreator(element, parsed)
+  },
+
   // Generates a clinical publication list component for an element
   'clinical-publication': (element) => {
-    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let parsed;
     try {
@@ -236,10 +267,38 @@ export const ENTITY_HANDLERS = {
 
     return new PublicationCreator(element, parsed)
   },
+  'clinical-trial': (element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new TrialCreator(element, parsed)
+  },
+
+  'clinical-endorsement':(element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new EndorsementCreator(element, parsed)
+
+  },
 
   // Generates a clinical concept component for an element
   'clinical-concept': (element, dataset) => {
-    const data = element.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
 
     let parsed;
     try {
@@ -254,7 +313,7 @@ export const ENTITY_HANDLERS = {
 
   // Generates an ontology selection component for an element
   'ontology': (element, dataset) => {
-    const nodes = element.querySelectorAll(`data[for="${element.getAttribute('data-field')}"]`);
+    const nodes = element.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
 
     const data = { };
     for (let i = 0; i < nodes.length; ++i) {
@@ -294,7 +353,7 @@ export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates text inputbox components
   'inputbox': (field, packet) => {
     const element = packet.element;
-    const value = element.value;
+    const value = strictSanitiseString(element.value);
     if (isMandatoryField(packet)) {
       if (!element.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
         return {
@@ -629,6 +688,36 @@ export const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
+  // Retrieves and validates list components
+  'url_list': (field, packet) => {
+    const handler = packet.handler;
+    const listItems = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(listItems) || listItems.length < 1) {
+        return {
+          valid: false,
+          value: listItems,
+          message: (isNullOrUndefined(listItems) || listItems.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, listItems);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: listItems,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
   // Retrieves and validates publication components
   'clinical-publication': (field, packet) => {
     const handler = packet.handler;
@@ -652,7 +741,65 @@ export const ENTITY_FIELD_COLLECTOR = {
         message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
-    
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  'clinical-trial': (field, packet) => {
+    const handler = packet.handler;
+    const trials = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(trials) || trials.length < 1) {
+        return {
+          valid: false,
+          value: trials,
+          message: (isNullOrUndefined(trials) || trials.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, trials);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: trials,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  'clinical-endorsement': (field, packet) => {
+    const handler = packet.handler;
+    const endorsements = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(endorsements) || endorsements.length < 1) {
+        return {
+          valid: false,
+          value: endorsements,
+          message: (isNullOrUndefined(endorsements) || endorsements.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, endorsements);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: endorsements,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
     return {
       valid: true,
       value: parsedValue?.value
@@ -662,7 +809,7 @@ export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates MDE components
   'md-editor': (field, packet) => {
     const handler = packet.handler;
-    const value = handler.editor.getContent();
+    const value = handler.editor.value();
     
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(value) || isStringEmpty(value)) {
@@ -736,20 +883,20 @@ export const ENTITY_FIELD_COLLECTOR = {
 
 /**
  * collectFormData
- * @desc Method that retrieves all relevant <data/> elements with
+ * @desc Method that retrieves all relevant <script type="application/json" /> elements with
  *       its data-owner attribute pointing to the entity creator.
  * @return {object} An object describing the data, with each key representing
- *                  the name of the <data/> element
+ *                  the name of the <script type="application/json" /> element
  */
 export const collectFormData = () => {
-  const values = document.querySelectorAll('data[data-owner="entity-creator"]');
+  const values = document.querySelectorAll('script[type="application/json"][data-owner="entity-creator"]');
 
   // collect the form data
   const result = { };
   for (let i = 0; i < values.length; ++i) {
     const data = values[i];
     const name = data.getAttribute('name');
-    const type = data.getAttribute('type');
+    const type = data.getAttribute('desc-type');
 
     let value = data.innerText;
     if (!isNullOrUndefined(value) && !isStringEmpty(value.trim())) {

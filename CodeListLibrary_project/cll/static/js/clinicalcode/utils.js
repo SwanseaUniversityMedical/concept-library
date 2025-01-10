@@ -1,30 +1,186 @@
-/**
- * CLU_TRANSITION_METHODS
- * @desc defines the transition methods associated
- *       with the animation of an element
- * 
- */
-const CLU_TRANSITION_METHODS = {
-  'transition': 'transitionend',
-  'WebkitTransition': 'webkitTransitionEnd',
-  'OTransition': 'oTransitionEnd otransitionend',
-  'MozTransition': 'mozTransitionEnd',
-};
+/* CONSTANTS */
+const
+  /**
+   * CLU_DOMAINS
+   * @desc Domain host targets
+   */
+  CLU_DOMAINS = {
+    ROOT: 'https://conceptlibrary.saildatabank.com',
+    HDRUK: 'https://phenotypes.healthdatagateway.org',
+  }
+  /**
+   * CLU_TRANSITION_METHODS
+   * @desc defines the transition methods associated
+   *       with the animation of an element
+   * 
+   */
+  CLU_TRANSITION_METHODS = {
+    'transition': 'transitionend',
+    'WebkitTransition': 'webkitTransitionEnd',
+    'OTransition': 'oTransitionEnd otransitionend',
+    'MozTransition': 'mozTransitionEnd',
+  },
+  /**
+   * CLU_DOI_PATTERN
+   * @desc Regex pattern to match DOI
+   */
+  CLU_DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?!["&'<>])\S)+)\b/gm,
+  /**
+   * CLU_OBJ_PATTERN
+   * @desc Regex pattern to match `[object (.*)]` classname
+   * 
+   */
+  CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/;
+
+  /**
+   * CLU_TRIAL_LINK_PATTERN
+   * @desc Regex pattern to match urls
+   *
+   */
+  CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm;
+
+
+
+/* METHODS */
 
 /**
- * CLU_DOI_PATTERN
- * @desc Regex pattern to match DOI
+ * getObjectClassName
+ * @desc derives the given object's classname
+ * @param {any} val the value to examine
+ * @returns {string} the classname describing the object
  */
-const CLU_DOI_PATTERN = /\b(10[.][0-9]{4,}(?:[.][0-9]+)*\/(?:(?![\"&\'<>])\S)+)\b/gm;
+const getObjectClassName = (val) => {
+  if (val === null) {
+    return 'null';
+  } else if (typeof val === 'undefined') {
+    return 'undefined';
+  }
+
+  try {
+    if (val.constructor == Object && !(typeof val === 'function')) {
+      return 'Object';
+    }
+  }
+  finally {
+    return Object.prototype.toString
+      .call(val)
+      .match(CLU_OBJ_PATTERN)[1];
+  }
+}
+
+/**
+ * isObjectType
+ * @desc determines whether a value is an Object type
+ * @param {any} val the value to check
+ * @returns {boolean} a boolean describing whether the value is an Object 
+ */
+const isObjectType = (val) => {
+  if (typeof val !== 'object' || val === null) {
+    return false;
+  }
+
+  let className = getObjectClassName(val);
+  return className === 'Object' || className === 'Map';
+}
+
+/**
+ * isCloneableType
+ * @desc determines whether a value is a structured-cloneable type
+ *       as described by its specification, reference to the supported
+ *       types can be found here: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#supported_types
+ * 
+ * @param {any} val the value to check
+ * @returns {boolean} a boolean describing whether the value is of a
+ *                    structured-cloneable type
+ */
+const isCloneableType = (val) => {
+  if (Object(val) !== val || val.constructor == Object) {
+    return true;
+  }
+
+  let className = getObjectClassName(val);
+  switch (className) {
+    case 'Date':
+    case 'Blob':
+    case 'Number':
+    case 'String':
+    case 'RegExp':
+    case 'Boolean':
+    case 'FileList':
+    case 'ImageData':
+    case 'ArrayBuffer':
+    case 'ImageBitmap':
+      return true;
+
+    case 'Set':
+      return [...val].every(isCloneableType);
+
+    case 'Map': {
+      return [...val.entries()]
+        .every(element => isCloneableType(element[0]) && isCloneableType(element[1]));
+    };
+
+    case 'Array':
+    case 'Object': {
+      return Object.keys(val)
+        .every(key => isCloneableType(val[key]))
+    };
+  }
+
+  return false;
+}
+
+/**
+ * cloneObject
+ * @desc Simplistic clone of an object/array
+ * @param {object|array} obj the object to clone
+ * @returns {array|object} the cloned object
+ */
+const cloneObject = (obj) => {
+  let result = { };
+  Object.keys(obj).forEach(key => {
+    result[key] = cloneObject(obj[key]);
+  });
+
+  return result;
+}
 
 /**
   * deepCopy
   * @desc Performs a deep clone of the object i.e. recursive clone
-  * @param {object} obj The object to clone
-  * @returns {object} The cloned object
+  * @param {any} obj The object to clone
+  * @returns {any} The cloned object
   */
 const deepCopy = (obj) => {
-  return structuredClone(obj); // JSON.parse(JSON.stringify(obj));
+  let className = getObjectClassName(obj);
+  if (isCloneableType(obj) && typeof structuredClone === 'function') {
+    let result;
+    try {
+      result = structuredClone(obj);
+    }
+    catch (err) {
+      if (className === 'Object' || className === 'Array') {
+        return cloneObject(obj);
+      }
+
+      throw err;
+    }
+
+    return result;
+  }
+
+  switch (className) {
+    case 'Set':
+    case 'Map':
+    case 'Array':
+    case 'Object':
+      return JSON.parse(JSON.stringify(obj));
+
+    default:
+      break
+  }
+
+  return obj;
 }
 
 /**
@@ -32,13 +188,32 @@ const deepCopy = (obj) => {
   * @desc Merges two objects together where the first object takes precedence (i.e., it's not overriden)
   * @param {object} a An object to clone that takes precedence
   * @param {object} b The object to clone and merge into the first object
+  * @param {boolean} copy Whether to copy the object(s)
   * @returns {object} The merged object
   */
-const mergeObjects = (a, b) => {
-  Object.keys(b).forEach(key => {
-    if (!(key in a))
-      a[key] = b[key];
-  });
+const mergeObjects = (a, b, copy = false) => {
+  if (copy) {
+    a = deepCopy(a);
+  }
+
+  Object.keys(b)
+    .forEach(key => {
+      if (key in a) {
+        return;
+      }
+
+      let value = b[key];
+      if (copy) {
+        if (!isCloneableType(value)) {
+          a[key] = value;
+          return;
+        }
+  
+        a[key] = deepCopy(value);
+      } else {
+        a[key] = value;
+      }
+    });
 
   return a;
 }
@@ -206,11 +381,55 @@ const getBrandedHost = () => {
   const host = getCurrentHost();
   const brand = document.documentElement.getAttribute('data-brand');
   const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
-  if (host === 'https://phenotypes.healthdatagateway.org' || isUnbranded) {
+  if ((host === CLU_DOMAINS.HDRUK) || isUnbranded) {
     return host;
   }
 
   return `${host}/${brand}`;
+}
+
+/**
+ * getBrandUrlTarget
+ * @desc Returns the brand URL target for management redirect buttons (used in navigation menu)
+ * @param {string[]} brandTargets an array of strings containing the brand target names
+ * @param {boolean} productionTarget a boolean flag specifying whether this is a production target
+ * @param {Node} element the html event node
+ * @param {string} oldRoot the path root (excluding brand context)
+ * @param {string} path the window's location href
+ * @returns {string} the target URL
+ */
+const getBrandUrlTarget = (brandTargets, productionTarget, element, oldRoot, path) =>{
+  const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
+  const pathTarget = path.split('/').slice(pathIndex).join('/');
+
+  let elementTarget = element.getAttribute('value');
+  if (!isStringEmpty(elementTarget)) {
+    elementTarget = `${elementTarget}/${pathTarget}`;
+  } else {
+    elementTarget = pathTarget;
+  }
+
+  let targetLocation;
+  if (!productionTarget) {
+    targetLocation = `${document.location.origin}/${elementTarget}`;
+  } else {
+    switch (elementTarget) {
+      case '/HDRUK': {
+        targetLocation = `${CLU_DOMAINS.HDRUK}/${pathTarget}`;
+      } break;
+
+      default: {
+        const isHDRUKSubdomain = window.location.href
+          .toLowerCase()
+          .includes('phenotypes.healthdatagateway');
+
+        targetLocation = isHDRUKSubdomain ? CLU_DOMAINS.ROOT : document.location.origin;
+        targetLocation = `${targetLocation}/${elementTarget}`;
+      } break;
+    }
+  }
+
+  window.location.href = strictSanitiseString(targetLocation);
 }
 
 /**
@@ -292,7 +511,7 @@ const redirectToTarget = (elem) => {
     return;
   }
   
-  window.location.href = target;
+  window.location.href = strictSanitiseString(target);
 }
 
 /**
@@ -306,15 +525,15 @@ const redirectToTarget = (elem) => {
  * 
  * e.g. usage:
  * 
- * ```js
- *  const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
- *    if (!selected) {
- *      return;
- *    }
- * 
- *    console.log(files); --> [file_1, ..., file_n]
- *  }});
- * ```
+  ```js
+    const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
+      if (!selected) {
+        return;
+      }
+
+      console.log(files); --> [file_1, ..., file_n]
+    }});
+  ```
  * 
  */
 const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {
@@ -337,33 +556,6 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
   });
 
   input.click();
-}
-
-/**
- * interpolateString
- * @desc Interpolate string template
- *       Ref @ https://stackoverflow.com/posts/41015840/revisions
- * 
- * @param  {str} str The string to interpolate
- * @param  {object} params The parameters
- * @return {str} The interpolated string
- * 
- */
-const interpolateString = (str, params) => {
-  let names = Object.keys(params);
-  let values = Object.values(params);
-  return new Function(...names, `return \`${str}\`;`)(...values);
-}
-
-/**
- * parseHTMLFromString
- * @desc given a string of HTML, will return a parsed DOM
- * @param {str} str The string to parse as DOM elem
- * @returns {DOM} the parsed html
- */
-const parseHTMLFromString = (str) => {
-  const parser = new DOMParser();
-  return parser.parseFromString(str, 'text/html');
 }
 
 /**
@@ -494,10 +686,11 @@ const hasDeltaDiff = (lhs, rhs) => {
  * parseDOI
  * @desc attempts to match a DOI in a string (.*\/gm)
  * @param {string} value the string to match
- * @returns {list} a list of matches
+ * @param {RegExp} pattern the pattern to be matched
+ * @returns {RegExpMatchArray} a list of matches
  */
-const parseDOI = (value) => {
-  return value.match(CLU_DOI_PATTERN);
+const parseString = (value, pattern) => {
+  return value.match(pattern);
 }
 
 /**
@@ -642,17 +835,10 @@ const startLoadingSpinner = (container) => {
 const convertMarkdownData = (parent) => {
   let content = '';
   for (const child of parent.childNodes) {
-    const tagName = child.tagName;
-    if (tagName == 'BR' || (tagName == 'DIV' && !child.querySelector('br'))) {
-      content += '\n';
-    }
-
     if (child instanceof Text) {
       let textContent = child.textContent
       let isEmptyContent = isStringEmpty(textContent) || isStringWhitespace(textContent);
-      if (child.previousSibling && !isEmptyContent) {
-        textContent = '\n' + textContent;
-      } else if (isEmptyContent) {
+      if (isEmptyContent) {
         textContent = '\n';
       }
 

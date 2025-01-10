@@ -2,7 +2,7 @@
   "template_details": {
     "version": 1,
     "name": "OpenCodelists Phenotype",
-    "description": "",
+    "description": "OpenSafely's OpenCodelist Phenotypes, visit https://www.opencodelists.org/ to learn more",
     "card_type": "generic"
   },
 
@@ -58,7 +58,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -73,7 +74,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -88,7 +90,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -102,7 +105,8 @@
       "active": true,
       "validation": {
         "type": "string",
-        "mandatory": false
+        "mandatory": false,
+        "sanitise": "markdown"
       },
       "hide_if_empty": true
     },
@@ -113,7 +117,8 @@
       "active": true,
       "validation": {
         "type": "string_array",
-        "mandatory": false
+        "mandatory": false,
+        "sanitise": "strict"
       },
       "hide_if_empty": true
     },
@@ -123,7 +128,7 @@
       "field_type": "url_list",
       "active": true,
       "validation": {
-        "type": "string_array",
+        "type": "url_list",
         "mandatory": false
       },
       "hide_if_empty": true
@@ -137,7 +142,8 @@
         "type": "string",
         "mandatory": false,
         "length": [0, 250]
-      }
+      },
+      "hide_if_empty": true
     },
     "coding_system": {
       "title": "Coding System",
@@ -179,7 +185,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "hide_if_empty": true
     }

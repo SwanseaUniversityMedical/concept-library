@@ -33,20 +33,20 @@ const RDS_REFERENCE_MAP = (item, index) => {
 
 /** 
  * getReferenceData
- * @desc Method that retrieves all relevant <data/> elements with
+ * @desc Method that retrieves all relevant <script type="application/json" /> elements with
  *       its data-owner attribute pointing to the entity creator.
  * 
  * @returns {object} An object describing the data, with each key representing 
- *                   the name of the <data/> element
+ *                   the name of the <script type="application/json" /> element
  */
 const getReferenceData = () => {
-  const values = document.querySelectorAll('data[data-owner="reference-data-service"]');
+  const values = document.querySelectorAll('script[type="application/json"][data-owner="reference-data-service"]');
 
   const result = { };
   for (let i = 0; i < values.length; i++) {
     const data = values[i];
     const name = data.getAttribute('name');
-    const type = data.getAttribute('type');
+    const type = data.getAttribute('desc-type');
     
     let value = data.innerText.trim();
     if (!isNullOrUndefined(value) && !isStringEmpty(value.trim())) {
@@ -66,7 +66,7 @@ const getReferenceData = () => {
 
 /**
  * renderTreeViewComponent
- * @desc given the data associated with the `<data/>` elements,
+ * @desc given the data associated with the `<script type="application/json" />` elements,
  *       attempt to render a tree view component for the
  *       ontology API
  * 
@@ -209,7 +209,7 @@ const renderTreeViewComponent = (key, container, sources) => {
 
 /**
  * renderReferenceComponent
- * @desc given the data associated with the `<data/>` elements,
+ * @desc given the data associated with the `<script type="application/json" />` elements,
  *       attempt to render the component(s) for each of the reference
  *       item(s)
  * 

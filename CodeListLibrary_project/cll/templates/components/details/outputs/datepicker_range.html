@@ -1,7 +1,7 @@
-<div class="detailed-input-group fill-width">
+<div class="detailed-input-group fill">
   <div class="box-container">
     <div class="row">
-      <div class="col-sm-2 row-padding">{{ component.field_data.title }}</div>
+      <div class="col-sm-2 row-padding detail-field-title">{{ component.field_data.title }}</div>
       <div class="col-sm-10">
         <span id="entity-{{ component.field_name }}">
           {% if component.value|length %}
@@ -13,5 +13,4 @@
       </div>
     </div>
   </div>
-
 </div>

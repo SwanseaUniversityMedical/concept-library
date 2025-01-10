@@ -59,32 +59,32 @@ const TAGIFY__TAG_OPTIONS = {
   *           a the Tagify instance's element through the 'TagChanged' hook
   * 
   * e.g.
-  * ```js
-  *   import Tagify from '../components/tagify.js'
-  * 
-  *   const tags = [
-  *     {
-  *       name: 'SomeTagName',
-  *       value: 'SomeTagValue',
-  *     },
-  *     {
-  *       name: 'SomeTagName',
-  *       value: 'SomeTagValue',
-  *     }
-  *   ];
-  * 
-  *   const tagComponent = new Tagify('phenotype-tags', {
-  *     'autocomplete': true,
-  *     'useValue': false,
-  *     'allowDuplicates': false,
-  *     'restricted': true,
-  *     'items': tags,
-  *   });
-  * ```
+  ```js
+    import Tagify from '../components/tagify.js';
+
+    const tags = [
+      {
+        name: 'SomeTagName',
+        value: 'SomeTagValue',
+      },
+      {
+        name: 'SomeTagName',
+        value: 'SomeTagValue',
+      }
+    ];
+
+    const tagComponent = new Tagify('phenotype-tags', {
+      'autocomplete': true,
+      'useValue': false,
+      'allowDuplicates': false,
+      'restricted': true,
+      'items': tags,
+    });
+  ```
   * 
   */
 export default class Tagify {
-  constructor(obj, options) {
+  constructor(obj, options, phenotype) {
     this.uuid = generateUUID();
 
     if (typeof obj === 'string') {
@@ -92,17 +92,21 @@ export default class Tagify {
       this.element = document.getElementById(id);
     } else {
       this.element = obj;
-      
-      if (typeof this.element !== 'undefined') {
+
+      if (!isNullOrUndefined(this.element)) {
         this.id = this.element.getAttribute('id');
       }
     }
+
+    if (!isNullOrUndefined(this.element)) {
+      this.fieldName = this.element.getAttribute('data-field');
+    }
+
     this.isBackspace = false;
     this.tags = [ ];
     this.currentFocus = -1;
-    
-    this.#buildOptions(options || { });
-    this.#initialise();
+
+    this.#initialise(options, phenotype);
   }
 
   /*************************************
@@ -296,7 +300,6 @@ export default class Tagify {
           } break;
   
           case TAGIFY__KEYCODES.BACK: {
-
             if (name === '') {
               this.#clearAutocomplete(true);
   
@@ -351,8 +354,10 @@ export default class Tagify {
   /**
    * initialise
    * @desc responsible for the main initialisation & render of this component
+   * @param {dict} options the option parameter 
+   * @param {dict|*} phenotype optional initialisation template
    */
-  #initialise() {
+  async #initialise(options, phenotype) {
     this.container = createElement('div', {
       'className': 'tags-root-container',
     });
@@ -378,7 +383,15 @@ export default class Tagify {
     this.element.type = 'hidden';
     this.element.parentNode.insertBefore(this.container, this.element.nextSibling);
 
-    this.#bindEvents();
+    this.#buildOptions(options || { }, phenotype)
+      .catch(e => console.error(e))
+      .finally(() => {
+        if (this.options?.onLoad && this.options.onLoad instanceof Function) {
+          this.options.onLoad(this);
+        }
+
+        this.#bindEvents();
+      });
   }
 
   /**
@@ -429,9 +442,45 @@ export default class Tagify {
    * buildOptions
    * @desc private method to merge the expected options with the passed options - passed takes priority
    * @param {dict} options the option parameter 
+   * @param {dict} phenotype the initialisation template
    */
-  #buildOptions(options) {
+  async #buildOptions(options, phenotype) {
     this.options = mergeObjects(options, TAGIFY__TAG_OPTIONS);
+
+    const hasFieldName = !isStringEmpty(this.fieldName);
+    const needsInitialiser = !isNullOrUndefined(phenotype) && (isNullOrUndefined(options?.items) || options?.items.length < 1);
+    if (needsInitialiser && hasFieldName) {
+      const parameters = new URLSearchParams({
+        parameter: this.fieldName,
+        template: phenotype.template.id,
+      });
+  
+      const response = await fetch(
+        `${getCurrentURL()}?` + parameters,
+        {
+          method: 'GET',
+          headers: {
+            'X-Target': 'get_options',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Cache-Control': 'max-age=28800',
+            'Pragma': 'max-age=28800',
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to retrieve tag box entities with Err<code: ${response.status}> and message:\n${String(response)}`);
+      }
+
+      const dataset = await response.json();
+      if (!(dataset instanceof Object) || Array.isArray(dataset) || !Array.isArray(dataset?.result)) {
+        throw new Error(`Expected tagify init data to be an object with a result array, got ${dataset}`);
+      }
+
+      this.options.items = dataset.result;
+    }
+
+    return;
   }
 
   /**

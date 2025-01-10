@@ -14,7 +14,7 @@ from .forms.EntityClassForm import EntityAdminForm
 
 @admin.register(OntologyTag)
 class OntologyTag(admin.ModelAdmin):
-    list_display = ['id', 'name', 'type_id', 'atlas_id']
+    list_display = ['id', 'name', 'type_id']
 
 
 @admin.register(CodingSystemFilter)

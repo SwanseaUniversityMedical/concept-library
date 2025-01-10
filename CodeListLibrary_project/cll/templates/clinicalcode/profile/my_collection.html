@@ -22,7 +22,7 @@
 
   <!-- Page Stylesheets -->
   {% compress css %}
-    <link href="{% sass_src 'scss/pages/profile.scss' %}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/profile.scss' %}" type="text/css" />
   {% endcompress %}
 
   <!-- Main -->
@@ -65,11 +65,9 @@
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="profile-collection">
         <section class="profile-collection__inner-container" id="content">
-          <data aria-hidden="true" data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="content" type="text/json">
-            {% if content %}
-              {{ content|jsonify|striptags }}
-            {% endif %}
-          </data>
+          {% if content %}
+            {% to_json_script content data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="content" desc-type="text/json" %}
+          {% endif %}
           <h3>1. My Phenotypes</h3>
           <p>Phenotypes that you own or have access to.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
@@ -82,11 +80,9 @@
           </div>
         </section>
         <section class="profile-collection__inner-container" id="archived">
-          <data aria-hidden="true" data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="archived" type="text/json">
-            {% if archived_content %}
-              {{ archived_content|jsonify|striptags }}
-            {% endif %}
-          </data>
+          {% if archived_content %}
+            {% to_json_script archived_content data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="archived" desc-type="text/json" %}
+          {% endif %}
           <h3>2. Archived Phenotypes</h3>
           <p>Content that has been marked as archived is still present on the system but is hidden by default.</p>
           <section class="profile-collection__none-available show" id="empty-collection">

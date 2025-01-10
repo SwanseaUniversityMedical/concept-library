@@ -1,19 +1,15 @@
 <div class="detailed-input-group fill">
   <div class="box-container">
     <div class="row">
-      <div class="col-sm-2 row-padding">{{ component.field_data.title }}</div>
+      <div class="col-sm-2 row-padding detail-field-title">{{ component.field_data.title }}</div>
       <div class="col-sm-10">
-        <em>
-          <b>
-            <span id="entity-{{ component.field_name }}">
-              {% for option in component.options %}
-                {% if component.value|length > 0 and component.value.0.value == option.value %} 
-                  {{ option.name }}
-                {% endif %}
-              {% endfor %}
+        {% if component.value|length > 0 %}
+          {% for val in component.value %}
+            <span id="entity-{{ component.field_name }}" class="badge wrapped-tspan">
+              <strong><em>{{ val.name }}</em></strong>
             </span>
-          </b>
-        </em>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
   </div>

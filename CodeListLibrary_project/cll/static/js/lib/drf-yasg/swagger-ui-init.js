@@ -89,10 +89,7 @@ function initSwaggerUi() {
     oauth2RedirectUrl.parentNode.removeChild(oauth2RedirectUrl);
   }
 
-  console.log('swaggerSettings', swaggerSettings);
   var oauth2Config = JSON.parse(document.getElementById('oauth2-config').innerHTML);
-  console.log('oauth2Config', oauth2Config);
-
   initSwaggerUiConfig(swaggerSettings, oauth2Config);
   window.ui = SwaggerUIBundle(swaggerUiConfig);
   window.ui.initOAuth(oauth2Config);

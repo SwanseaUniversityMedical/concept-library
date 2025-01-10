@@ -108,16 +108,16 @@ if not settings.CLL_READ_ONLY:
         # Add admin tools
         url(r'^admin/run-stats/$', Admin.EntityStatisticsView.as_view(), name='run_entity_statistics'),
         url(r'^admin/run-homepage-stats/$', Admin.run_homepage_statistics, name='run_homepage_statistics'),
-
         # # Temporary admin tools
         # url(r'^adminTemp/admin_mig_phenotypes_dt/$', adminTemp.admin_mig_phenotypes_dt, name='admin_mig_phenotypes_dt'),
         # url(r'^adminTemp/admin_fix_read_codes_dt/$', adminTemp.admin_fix_read_codes_dt, name='admin_fix_read_codes_dt'),
         # url(r'^adminTemp/admin_mig_concepts_dt/$', adminTemp.admin_mig_concepts_dt, name='admin_mig_concepts_dt'),
         # url(r'^adminTemp/admin_force_links_dt/$', adminTemp.admin_force_concept_linkage_dt, name='admin_force_links_dt'),
         # url(r'^adminTemp/admin_fix_breathe_dt/$', adminTemp.admin_fix_breathe_dt, name='admin_fix_breathe_dt'),
-        #url(r'^adminTemp/admin_fix_malformed_codes/$', adminTemp.admin_fix_malformed_codes, name='admin_fix_malformed_codes'),
+        # url(r'^adminTemp/admin_fix_malformed_codes/$', adminTemp.admin_fix_malformed_codes, name='admin_fix_malformed_codes'),
         url(r'^adminTemp/admin_force_adp_links/$', adminTemp.admin_force_adp_linkage, name='admin_force_adp_links'),
         url(r'^adminTemp/admin_fix_coding_system_linkage/$', adminTemp.admin_fix_coding_system_linkage, name='admin_fix_coding_system_linkage'),
         url(r'^adminTemp/admin_fix_concept_linkage/$', adminTemp.admin_fix_concept_linkage, name='admin_fix_concept_linkage'),
         url(r'^adminTemp/admin_force_brand_links/$', adminTemp.admin_force_brand_links, name='admin_force_brand_links'),
+        url(r'^adminTemp/admin_update_phenoflowids/$', adminTemp.admin_update_phenoflowids, name='admin_update_phenoflowids'),
     ]

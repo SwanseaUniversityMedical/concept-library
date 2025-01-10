@@ -2,7 +2,7 @@ from django.apps import apps
 from django.db import connection
 from django.db.models import Q
 from django.db.models.functions import Lower
-from django.db.models.expressions import RawSQL
+from django.db.models.expressions import Subquery
 from django.db.models.query import QuerySet
 from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
@@ -286,7 +286,7 @@ def apply_param_to_query(query, where, params, template, param, data,
     
     if field_type == 'int' or field_type == 'enum':
         if 'options' in validation or 'source' in validation:
-            data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
+            data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None]
             clean = validate_query_param(param, template_data, data, default=None, request=request)
             if clean is None and force_term:
                 clean = data
@@ -305,7 +305,7 @@ def apply_param_to_query(query, where, params, template, param, data,
                 query[f'{param}__in'] = clean
             return True
     elif field_type == 'int_array':
-        data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None)]
+        data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None]
         clean = validate_query_param(param, template_data, data, default=None, request=request)
         if clean is None and force_term:
             clean = data
@@ -653,7 +653,6 @@ def try_search_template_descendants(entities, field_type, search=None, order_cla
 
     return results
 
-@gen_utils.measure_perf
 def get_template_entities(request, template_id, method='GET', force_term=True, field_type='concept'):
     """
         Method to get a Template's entities that:
@@ -792,28 +791,16 @@ def reorder_search_results(search_results, order=None, searchterm=''):
     if order == constants.ORDER_BY.get('1') and not gen_utils.is_empty_string(searchterm):
         return search_results.order_by('-score')
 
-    result_ids = None
-    result_vds = None
-    try:
-        result_ids = list(search_results.values_list('id', flat=True))
-        result_vds = list(search_results.values_list('history_id', flat=True))
-    except:
-        return search_results
-
-    results = GenericEntity.history.filter(
-        id__in=result_ids,
-        history_id__in=result_vds
-    )
-
     if order != constants.ORDER_BY['1']:
-        return results.order_by(order.get('clause'))
+        return GenericEntity.history.filter(
+            history_id__in=Subquery(search_results.values('history_id'))
+        ) \
+        .order_by(order.get('clause'))
     
-    results = results.all().extra(
-        select={'true_id': """CAST(REGEXP_REPLACE(id, '[a-zA-Z]+', '') AS INTEGER)"""}
-    ) \
-    .order_by('true_id')
-    
-    return results
+    return GenericEntity.history.filter(
+            history_id__in=Subquery(search_results.values('history_id'))
+        ) \
+        .extra(select={'true_id': """cast(regexp_replace(id, '[a-zA-Z]+', '') as integer)"""}, order_by=['true_id']) \
 
 def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
     """
@@ -883,8 +870,9 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
             apply_param_to_query(query, where, params, template_fields, param, data, is_dynamic=True, force_term=force_term, request=request)
     
     # Collect all entities that are (1) published and (2) match request parameters
-    entities = entities.filter(Q(**query))
-    entities = entities.extra(where=where)
+    if len(query) | len(where):
+        entities = entities.filter(Q(**query))
+        entities = entities.extra(where=where)
 
     # Prepare order clause
     search_order = gen_utils.try_get_param(request, 'order_by', '1', method)
@@ -966,7 +954,7 @@ def get_source_references(struct, default=None, modifier=None):
     query = template_utils.try_get_content(source_info, 'query', 'pk')
     if not relative:
         return default
-    
+
     try:
         model = apps.get_model(app_label='clinicalcode', model_name=source)
         objs = model.objects.all()

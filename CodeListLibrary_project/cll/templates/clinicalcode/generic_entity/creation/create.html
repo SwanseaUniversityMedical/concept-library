@@ -9,12 +9,6 @@
 
 {% block title %}| {% if form_method.value == 1 %} Create your Phenotype {% else %} Update your Phenotype{% endif %}{% endblock title %}
 
-{% block cache_tags %}
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-{% endblock cache_tags %}
-
 {% block embedding_wrapper %}
   {% if form_method.value == 1 %}
     {% render_og_tags header='Create Phenotype' %}
@@ -30,9 +24,8 @@
 {% endblock indexing_robots %}
 
 {% block container %}
-  <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
-  <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/lib/easymde/easymde.min.js' %}"></script>
   <script src="{% static 'js/lib/moment.min.js' %}"></script>
   <script src="{% static 'js/lib/xlsx.mini.min.js' %}"></script>
 
@@ -46,7 +39,7 @@
   {% endcompress %}
 
   {% compress css %}
-    <link href="{% sass_src 'scss/pages/create.scss' %}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/create.scss' %}" type="text/css" />
   {% endcompress %}
 
   <header class="main-header">
@@ -111,35 +104,34 @@
     </div>
   </main>
 
-  <data aria-hidden="true" data-owner="entity-creator" id="referral-links" name="links" type="text/json" referral-url="{% url 'search_phenotypes' %}"></data>
-  <data aria-hidden="true" data-owner="entity-creator" id="form-method" name="method" type="int">{{ form_method.value }}</data>
-  <data aria-hidden="true" data-owner="entity-creator" id="historical-data" name="is_historical" type="int">
+  {% url 'search_phenotypes' as referral_url %}
+  {% to_json_script None data-owner="entity-creator" id="referral-links" name="links" desc-type="text/json" referral-url=referral_url %}
+
+  <script type="application/json" data-owner="entity-creator" id="form-method" name="method" desc-type="int">{{ form_method.value }}</script>
+  <script type="application/json" data-owner="entity-creator" id="historical-data" name="is_historical" desc-type="int">
     {% if is_historical %}
       1
     {% else %}
       0
     {% endif %}
-  </data>
-  <data aria-hidden="true" data-owner="entity-creator" id="derived-from-group" name="derived_access" type="int">
+  </script>
+  <script type="application/json" data-owner="entity-creator" id="derived-from-group" name="derived_access" desc-type="int">
     {% if derived_ownership %}
       1
     {% else %}
       0
     {% endif %}
-  </data>
-  <data aria-hidden="true" data-owner="entity-creator" id="metadata-data" name="metadata" type="text/json">{{ metadata|jsonify|striptags }}</data>
-  <data aria-hidden="true" data-owner="entity-creator" id="template-data" name="template" type="text/json">{{ template|jsonify|striptags }}</data>
+  </script>
+
+  {% to_json_script metadata data-owner="entity-creator" id="metadata-data" name="metadata" desc-type="text/json" %}
+  {% to_json_script template data-owner="entity-creator" id="template-data" name="template" desc-type="text/json" %}
 
   {% if entity is not None %}
-    {% parse_as_json_object entity False False as jsonified_entity %}
-    <data aria-hidden="true" data-owner="entity-creator" id="entity-data" name="entity" type="text/json">{{ jsonified_entity|striptags }}</data>
+    {% to_json_script entity data-owner="entity-creator" id="entity-data" name="entity" desc-type="text/json" %}
   {% endif %}
 
   {% if object_reference is not None %}
-    <data aria-hidden="true" data-owner="entity-creator" id="entity-object" name="object" type="text/json"
-      referral-url="{% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id %}">
-
-      {{ object_reference|jsonify|striptags }}
-    </data>
+    {% url 'entity_history_detail' pk=object_reference.id history_id=object_reference.history_id as entity_referral %}
+    {% to_json_script object_reference data-owner="entity-creator" id="entity-object" name="object" desc-type="text/json" referral-url=entity_referral %}
   {% endif %}
 {% endblock container %}
