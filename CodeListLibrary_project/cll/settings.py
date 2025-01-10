@@ -295,9 +295,13 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'compressor',
     # HTML Minifier
     'django_minify_html',
-    # Engagelens-related
-    'easyaudit'
 ]
+
+if not CLL_READ_ONLY and not IS_GATEWAY_PC:
+    INSTALLED_APPS += [
+        # Engagelens-related
+        'easyaudit'
+    ]
 
 # ==============================================================================#
 
@@ -323,9 +327,13 @@ MIDDLEWARE = [
     'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
     'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
-    # Engagelens-related
-    'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
 ]
+
+if not CLL_READ_ONLY and not IS_GATEWAY_PC:
+    MIDDLEWARE += [
+        # Engagelens-related
+        'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
+    ]
 
 # ==============================================================================#
 
