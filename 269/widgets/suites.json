@@ -1,0 +1,1 @@
+{"total":2,"items":[{"uid":"6b66f3e1422405e22f4216d5e7a439d7","name":"clinicalcode.tests.functional_tests","statistic":{"failed":0,"broken":0,"skipped":2,"passed":22,"unknown":0,"total":24}},{"uid":"ef43c2a20a79c94eccd21a6c788c3e48","name":"clinicalcode.tests.unit_tests","statistic":{"failed":0,"broken":0,"skipped":0,"passed":21,"unknown":0,"total":21}}]}
