@@ -74,5 +74,5 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: ${cll_log_path:-./cl_log}
+      device: ${cll_log_path:-./root/cl_log}
       o: bind
