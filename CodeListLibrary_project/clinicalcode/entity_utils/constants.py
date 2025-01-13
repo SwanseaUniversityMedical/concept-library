@@ -180,7 +180,7 @@ INVITE_TIMEOUT = 30
 """
 ONTOLOGY_LABELS = {
     ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
-    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (ICD-10)',
+    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (SNOMED)',
     ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
 }
 
@@ -475,7 +475,10 @@ metadata = {
                 'query': 'id',
                 'relative': 'name',
             }
-        }
+        },
+        "search": {
+            "api": True
+        },
     },
     "name": {
         "title": "Name",
@@ -580,6 +583,7 @@ metadata = {
         "description": "List of content collections this phenotype belongs to.",
         "field_type": "collections",
         "active": True,
+        "hydrated": True,
         "compute_statistics": True,
         "validation": {
             "type": "int_array",
@@ -607,6 +611,7 @@ metadata = {
         "description": "Optional keywords helping to categorize this content.",
         "field_type": "tags",
         "active": True,
+        "hydrated": True,
         "compute_statistics": True,
         "validation": {
             "type": "int_array",
@@ -884,8 +889,8 @@ FIELD_TYPES = {
         'output_type': 'string_inputlist',
     },
     'url_list': {
-        'input_type': 'string_inputlist',
-        'output_type': 'url_list',
+        'input_type': 'generic/url_list',
+        'output_type': 'generic/url_list',
     },
     'source_reference': {
         'data_type': 'string',

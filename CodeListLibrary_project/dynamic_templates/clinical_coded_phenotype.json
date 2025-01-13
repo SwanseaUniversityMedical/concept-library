@@ -8,7 +8,7 @@
 
   "sections": [
     {
-      "title": "Name - Author",
+      "title": "Name & Author",
       "description": "",
       "fields": ["name", "author"],
       "hide_on_detail": true
@@ -96,12 +96,76 @@
       "description": "A set of taggable categories and concepts that describe this Phenotype.",
       "field_type": "ontology",
       "active": true,
+      "hydrated": true,
       "validation": {
         "type": "int_array",
         "mandatory": false,
         "source": {
           "model": "OntologyTag",
           "trees": [ 0, 1, 2 ],
+          "references": {
+            "trim": true,
+            "pattern": "^(\\w+):([\\w\\.\\-\\_ ]+)$",
+            "transform": "([^a-zA-Z0-9]+)",
+            "mapping": {
+              "mesh": {
+                "type": "string",
+                "match_in": "mesh_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "icd9": {
+                "type": "string",
+                "match_in": "icd9_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "icd10": {
+                "type": "string",
+                "match_in": "icd10_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "opsc4": {
+                "type": "string",
+                "match_in": "opcs4_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "readv2": {
+                "type": "string",
+                "match_in": "readcv2_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "readv3": {
+                "type": "string",
+                "match_in": "readcv3_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "snomed": {
+                "type": "string",
+                "match_in": "code",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "in",
+                "link_target": "properties__code"
+              }
+            }
+          },
           "subquery": {
             "id": {
               "type": "int_array",
@@ -142,6 +206,7 @@
       "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.",
       "field_type": "data_sources",
       "active": true,
+      "hydrated": true,
       "validation": {
         "type": "int_array",
         "mandatory": false,
@@ -229,7 +294,7 @@
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
-      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
+      "description": "URL of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
       "field_type": "phenoflowid",
       "active": true,
       "validation": {

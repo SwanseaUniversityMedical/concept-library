@@ -114,7 +114,6 @@ if not settings.CLL_READ_ONLY:
         # Add admin tools
         url(r'^admin/run-stats/$', Admin.EntityStatisticsView.as_view(), name='run_entity_statistics'),
         url(r'^admin/run-homepage-stats/$', Admin.run_homepage_statistics, name='run_homepage_statistics'),
-
         # # Temporary admin tools
         # url(r'^adminTemp/admin_mig_phenotypes_dt/$', adminTemp.admin_mig_phenotypes_dt, name='admin_mig_phenotypes_dt'),
         # url(r'^adminTemp/admin_fix_read_codes_dt/$', adminTemp.admin_fix_read_codes_dt, name='admin_fix_read_codes_dt'),

@@ -1,14 +1,15 @@
 services:
   app:
     platform: linux/amd64
-    image: cll/app
+    container_name: ${cll_healthcheck_addr:-app}
+    image: ${cll_app_image:-cll/app:latest}
     restart: always
-    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    stop_grace_period: ${cll_grace_period:-3s}
     env_file: ./env_vars.txt
     command: >
       sh -c "/usr/bin/supervisord -c /etc/supervisord.conf"
     ports:
-      - ${app_port:-8080}:80
+      - ${app_port:-80}:80
     expose:
       - 80
       - 443
@@ -19,47 +20,59 @@ services:
         source: app-logs
         target: /home/config_cll/cll_srvr_logs
     healthcheck:
-      test: ["CMD-SHELL", "/bin/web-healthcheck.sh"]
-      interval: 60s
-      timeout: 5s
-      start_period: 5s
+      test: ["CMD-SHELL", "/home/config_cll/health/web-healthcheck.sh"]
       retries: 5
+      timeout: 10s
+      interval: 30s
+      # When supported:
+      # timeout: 10s
+      # interval: 5m
+      # start_period: 120s
+      # start_interval: 10s
     depends_on:
       redis:
         condition: service_healthy
+        required: false
 
   redis:
-    image: redis:7.0-bullseye
+    image: ${redis_image:-redis:7.0-bullseye}
     container_name: redis
     restart: always
-    stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
-    ports:
-      - 6379:6379
-    expose:
-      - 6379
-    networks:
-      - backend
+    stop_grace_period: ${cll_grace_period:-3s}
     environment:
       REDIS_HOST: redis
-      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PORT: ${redis_port:-6379}
+    ports:
+      - ${redis_port:-6379}:${redis_port:-6379}
+    expose:
+      - ${redis_port:-6379}
+    networks:
+      - backend
+    profiles:
+      - live
     healthcheck:
       test: redis-cli ping | grep PONG
-      interval: 10s
-      timeout: 5s
       retries: 5
+      timeout: 10s
+      interval: 10s
+      # When supported:
+      # timeout: 10s
+      # interval: 5m
+      # start_period: 120s
+      # start_interval: 10s
 
 networks:
   backend:
-    name: cllnet
+    name: ${cll_backend_name:-cllnet}
     driver: bridge
     attachable: true
     driver_opts:
-      com.docker.network.bridge.host_binding_ipv4: 127.0.0.1
+      com.docker.network.bridge.host_binding_ipv4: ${cll_host_binding:-0.0.0.0}
 
 volumes:
   app-logs:
     driver: local
     driver_opts:
       type: none
-      device: ./cl_log
+      device: ${cll_log_path:-./root/cl_log}
       o: bind

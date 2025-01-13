@@ -5,7 +5,6 @@ from rest_framework.request import Request as RESTRequest
 
 import json
 
-from ..models.GenericEntity import GenericEntity
 from ..models.Concept import Concept
 from ..models.PublishedConcept import PublishedConcept
 from ..models.ConceptReviewStatus import ConceptReviewStatus

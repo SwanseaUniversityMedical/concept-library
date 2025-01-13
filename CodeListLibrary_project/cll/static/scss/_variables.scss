@@ -12,13 +12,14 @@ $lightblack-grey:rgb(110,109,122);
 $dark_grey: rgb(140, 140, 140);
 $light_grey: rgb(170, 170, 170);
 $lightest_grey: rgb(220, 220, 220);
-$pixie_green: rgb(196, 223, 170);
-$lime_green: rgb(133,213,126);
 $pastel_red: rgb(255, 135, 135);
 $light_red:rgb(242,242,242);
 $bright_blue: rgb(0, 0, 255);
+$malibu_blue: rgb(104, 200, 255);
 $royal_blue: rgb(62, 119, 232);
 $soft_blue: rgb(140, 192, 222);
+$mystic_blue: rgb(224, 229, 238);
+$botticelli_blue: rgb(211, 220, 235);
 $soft_blue20: rgba(140, 192, 222, 0.2);
 $soft_cyan: rgb(204, 243, 238);
 $solitude: rgb(223, 233, 255);
@@ -28,30 +29,36 @@ $cow_black02: rgba(75, 72,  72, 0.2);
 $dusky_blue: rgb(71, 93, 167);
 $iris: rgb(78, 105, 194);
 $glaucous: rgb(104, 127, 203);
+$periwinkle: rgba(191, 216, 255, 1);
+$indigo: rgb(90, 103, 216);
+$cornflower_blue: rgb(102, 126, 234);
+$san_juan_blue: rgb(55, 72, 113);
 $pickled_bluewood: rgb(51, 65, 85);
+$pixie_green: rgb(196, 223, 170);
+$light_grey_green: rgb(182, 226, 161);
+$yellow_green: rgb(185, 217, 129);
+$lime_green: rgb(133,213,126);
+$viridian_green: rgb(62, 116, 99);
 $platinum: rgb(226, 226, 226);
+$mercury: rgb(232, 232, 232);
 $boulder: rgb(117, 117, 117);
 $lavender_mist: rgb(225, 230, 249);
 $zircon: rgb(246, 248, 255);
 $wax_flower: rgb(254, 190, 140);
-$light_grey_green: rgb(182, 226, 161);
 $debian_red: rgb(214, 19, 85);
-$periwinkle: rgba(191, 216, 255, 1);
-$indigo: rgb(90, 103, 216);
-$cornflower_blue: rgb(102, 126, 234);
 
 /* ADP COLOURS */
 // Legacy
-  $dark_blue: rgb(0, 100, 148); // primary text
+  $dark_blue: rgb(0, 100, 148);
   $darkish_blue: rgb(0, 121, 176);
-  $very_dark_blue: rgb(16, 43, 65); // used for borders
-  $moderate_cyan: rgb(72, 176, 205); // anchors
-  $bright_blue: rgb(126, 174, 251); // used for focus
-  $light_grayish_blue: rgb(206, 212, 218); // hover???
-  $very_light_gray: rgb(233,233,233); // washed
-  $lighter_ghost_white: rgb(240, 247, 247); // bg?
+  $very_dark_blue: rgb(16, 43, 65);
+  $moderate_cyan: rgb(72, 176, 205);
+  $bright_blue: rgb(126, 174, 251);
+  $light_grayish_blue: rgb(206, 212, 218);
+  $very_light_gray: rgb(233,233,233);
+  $lighter_ghost_white: rgb(240, 247, 247);
 // Generated gradient
-  $brighter_ghost_white: rgb(209, 239, 255); // bg?
+  $brighter_ghost_white: rgb(209, 239, 255);
   $dark_cyan: rgb(0,136,172);
   $darkish_cyan: rgb(0,171,174);
   $cyan_lime_green: rgb(36,203,156);
@@ -181,6 +188,16 @@ $modifiers: (
   'vertical-align': (
     property: vertical-align,
     values: baseline top middle bottom text-bottom text-top,
+  ),
+  'max-width': (
+    property: max-width,
+    values: (
+      25: 25%,
+      50: 50%,
+      75: 75%,
+      100: 100%,
+      auto: auto
+    )
   ),
   'width': (
     property: width,

@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
 
 
             --[!] create, update & manage OntologyTag trigger;
-            create function ot_gin_tgram_trigger() returns trigger
+            create or replace function ot_gin_tgram_trigger() returns trigger
             language plpgsql AS $bd$
             begin
                 new.search_vector := 
@@ -135,6 +135,11 @@ class Migration(migrations.Migration):
                     setweight(to_tsvector('pg_catalog.english', coalesce(new.properties::json->>'code'::text, '')), 'A') ||
                     setweight(coalesce(new.relation_vector, to_tsvector('')), 'B') ||
                     setweight(coalesce(new.synonyms_vector, to_tsvector('')), 'B');
+
+                new.relation_vector := 
+                    setweight(to_tsvector('pg_catalog.english', coalesce(new.properties::json->>'code'::text, '')), 'A') ||
+                    setweight(coalesce(new.synonyms_vector, to_tsvector('')), 'B');
+
                 return new;
             end;
             $bd$;

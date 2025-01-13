@@ -8,10 +8,14 @@ from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django_postgresql_dag.models import node_factory, edge_factory
 
+import logging
+
 from ..entity_utils import gen_utils
 from ..entity_utils import constants
 
 from .CodingSystem import CodingSystem
+
+logger = logging.getLogger(__name__)
 
 class OntologyTagEdge(edge_factory('OntologyTag', concrete=False)):
 	"""
@@ -30,6 +34,11 @@ class OntologyTagEdge(edge_factory('OntologyTag', concrete=False)):
 
 	class Meta:
 		unique_together = ('child_id', 'parent_id',)
+		indexes = [
+			models.Index(fields=['child_id']),
+			models.Index(fields=['parent_id']),
+			models.Index(fields=['child_id', 'parent_id']),
+		]
 
 
 
@@ -77,6 +86,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 		ordering = ('type_id', 'id', )
 		indexes = [
 			models.Index(fields=['id']),
+			models.Index(fields=['type_id']),
 			models.Index(fields=['reference_id']),
 			models.Index(fields=['id', 'type_id']),
 			models.Index(fields=['id', 'reference_id']),
@@ -234,32 +244,98 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 						   tree model data
 
 		"""
+		source_ids = []
+		label_field = []
+
 		if not isinstance(ontology_ids, list):
-			ontology_ids = OntologyTag.objects.all().distinct('type_id').values_list('type_id')
-			ontology_ids = list(ontology_ids)
+			for ont_type in constants.ONTOLOGY_TYPES:
+				model_label = constants.ONTOLOGY_LABELS.get(ont_type)
+				if gen_utils.is_empty_string(model_label):
+					model_label = ont_type.name
 
-		output = None
-		for ontology_id in ontology_ids:
-			model_source = None
-			if isinstance(ontology_id, constants.ONTOLOGY_TYPES):
-				model_source = ontology_id.value
-			elif isinstance(ontology_id, int) and ontology_id in constants.ONTOLOGY_TYPES:
-				model_source = ontology_id
+				source_ids.append(ont_type.value)
+				label_field.append('''when node.type_id = %s then \'%s\'''' % (ont_type.value, model_label))
+		else:
+			for ont_type in ontology_ids:
+				model_source = None
+				if isinstance(ont_type, constants.ONTOLOGY_TYPES):
+					model_source = ont_type
+				elif isinstance(ont_type, int) and ont_type in constants.ONTOLOGY_TYPES:
+					model_source = constants.ONTOLOGY_TYPES(ont_type)
 
-			if not isinstance(model_source, int):
-				continue
+				if model_source is None or not isinstance(model_source.value, int):
+					continue
 
-			model_label = constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(ontology_id)]
-			data = OntologyTag.get_group_data(model_source, model_label, default=default)
-			if not isinstance(data, dict):
-				continue
+				model_label = constants.ONTOLOGY_LABELS.get(model_source)
+				if gen_utils.is_empty_string(model_label):
+					model_label = model_source.name
 
-			if output is None:
-				output = []
+				source_ids.append(model_source.value)
+				label_field.append('''when node.type_id = %s then \'%s\'''' % (model_source.value, model_label))
 
-			output.append(data)
+		if len(source_ids) < 1:
+			return default
 
-		return output
+		label_field = '\n'.join(label_field)
+		try:
+			with connection.cursor() as cursor:
+				sql = f"""
+				with
+				  roots as (
+				    select node.*
+					    from public.clinicalcode_ontologytag as node
+					    full outer join public.clinicalcode_ontologytagedge as edge
+						    on node.id = edge.child_id
+				     where edge.id is null
+						   and node.type_id = any(%(source_ids)s)
+				  ),
+					tree as (
+						select
+						    node.id,
+								count(case when edge.id is not null then 1 else 0 end) as child_count
+						  from roots as node
+						  left join public.clinicalcode_ontologytagedge as edge
+							  on node.id = edge.parent_id
+						 group by node.id
+					)
+				select
+				    case
+							{label_field}
+					    else 'Unknown'
+					  end as label,
+						node.type_id as source,
+				    json_agg(
+					    json_build_object(
+                'id', node.id,
+								'label', node.name,
+								'properties', node.properties,
+								'isLeaf', false,
+								'isRoot', true,
+								'type_id', node.type_id,
+								'reference_id', node.reference_id,
+								'child_count', coalesce(children.child_count, 0)
+					    )
+				    ) as nodes
+					from roots as node
+					left join tree as children
+					  using (id)
+					where node.type_id = any(%(source_ids)s)
+          group by node.type_id
+				"""
+				cursor.execute(
+					sql,
+					params={ 'source_ids': source_ids }
+				)
+
+				results = [
+					{ 'model': { 'label': row[0], 'source': row[1] }, 'nodes': list(row[2]) if not isinstance(row[2], list) else row[2] }
+					for row in cursor.fetchall()
+				]
+		except Exception as e:
+			logger.error('Failed to get ontology groups of \'%s\' with err: \n\t%s' % (source_ids, str(e)))
+			return default
+		else:
+			return results
 
 
 	@classmethod
@@ -283,46 +359,77 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 		elif not isinstance(model_source, int) or model_source not in constants.ONTOLOGY_TYPES:
 			return default
 
+		model_label = model_label if isinstance(model_label, str) and not gen_utils.is_empty_string(model_label) else None
+
+		label_field = []
+		for ont_type in constants.ONTOLOGY_TYPES:
+			if ont_type.value == model_source and model_label is not None:
+				label = model_label
+			else:
+				label = constants.ONTOLOGY_LABELS.get(ont_type, None)
+				if gen_utils.is_empty_string(label):
+					label = ont_type.name
+
+			label_field.append('''when node.type_id = %s then \'%s\'''' % (ont_type.value, label))
+
+		label_field = '\n'.join(label_field)
 		try:
-			model_roots = OntologyTag.objects.roots().filter(type_id=model_source)
-			model_roots_len = model_roots.count() if isinstance(model_roots, QuerySet) else 0
-			if model_roots_len < 1:
-				return default
-
-			model_roots = model_roots.values('id', 'name') \
-				.annotate(
-					child_count=Count(F('children')),
-					max_parent_id=Max(F('parents'))
-				) \
-				.annotate(
-					tree_dataset=JSONObject(
-						id=F('id'),
-						label=F('name'),
-						properties=F('properties'),
-						isLeaf=Case(
-							When(child_count__lt=1, then=True),
-							default=False
-						),
-						isRoot=Case(
-							When(max_parent_id__isnull=True, then=True),
-							default=False
-						),
-						type_id=F('type_id'),
-						reference_id=F('reference_id'),
-						child_count=F('child_count')
+			with connection.cursor() as cursor:
+				sql = f"""
+				with
+				  roots as (
+				    select node.*
+					    from public.clinicalcode_ontologytag as node
+					    full outer join public.clinicalcode_ontologytagedge as edge
+						    on node.id = edge.child_id
+				     where edge.id is null
+						   and node.type_id = %(source)s
+				  ),
+					tree as (
+						select
+						    node.id,
+								count(case when edge.id is not null then 1 else 0 end) as child_count
+						  from roots as node
+						  left join public.clinicalcode_ontologytagedge as edge
+							  on node.id = edge.parent_id
+						 group by node.id
 					)
-				) \
-				.values_list('tree_dataset', flat=True)
-		except:
-			pass
-		else:
-			model_label = model_label or constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(model_source)]
-			return {
-				'model': { 'source': model_source, 'label': model_label },
-				'nodes': list(model_roots),
-			}
+				select
+				    case
+							{label_field}
+					    else 'Unknown'
+					  end as label,
+						node.type_id as source,
+				    json_agg(
+					    json_build_object(
+                'id', node.id,
+								'label', node.name,
+								'properties', node.properties,
+								'isLeaf', false,
+								'isRoot', true,
+								'type_id', node.type_id,
+								'reference_id', node.reference_id,
+								'child_count', coalesce(children.child_count, 0)
+					    )
+				    ) as nodes
+					from roots as node
+					left join tree as children
+					  using (id)
+					where node.type_id = %(source)s
+          group by node.type_id
+				"""
+				cursor.execute(
+					sql,
+					params={ 'source': model_source }
+				)
 
-		return default
+				results = cursor.fetchone()
+				results = { 'model': { 'label': results[0], 'source': results[1] }, 'nodes': results[2] } if results else default
+		except Exception as e:
+			logger.error('Failed to get ontology group data of \'%s\' with err: \n\t%s' % (model_label, str(e)))
+			return default
+		else:
+			return results
 
 
 	@classmethod

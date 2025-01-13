@@ -1,6 +1,10 @@
 {% load static %}
 {% load entity_renderer %}
 
+{% block cache_tags %}
+  <meta http-equiv="Cache-Control" content="must-revalidate" />
+{% endblock cache_tags %}
+
 <section class="concepts-view" id="concepts-view" data-field="{{ component.field_name }}" data-class="clinical-concept">
   {% if component.value %}
     {% to_json_script component.value desc-type="value" for=component.field_name %}
@@ -218,13 +222,12 @@
           </fieldset>
           <fieldset class="search-options justify-content-end align-items-center">
             <div class="search-options__container">
-              <p class="search-options__title"><strong>Fields:</strong></p>
-              <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option-${id}" x-target="codes" ${used_code}>
+              <input class="search-options__input" aria-label="Search by Codes" type="radio" id="search-codes-${id}" name="search-by-option-${id}" data-ctrl="search-by" data-target="codes" ${used_code}>
               <label class="search-options__label" role="button" tabindex="0" for="search-codes-${id}">
                 <span class="search-options__label-icon"></span>
                 Code
               </label>
-              <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option-${id}" x-target="description" ${used_description}>
+              <input class="search-options__input" aria-label="Search by Description" type="radio" id="search-desc-${id}" name="search-by-option-${id}" data-ctrl="search-by" data-target="description" ${used_description}>
               <label class="search-options__label" role="button" tabindex="0" for="search-desc-${id}">
                 <span class="search-options__label-icon"></span>
                 Description

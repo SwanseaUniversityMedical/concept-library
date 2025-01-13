@@ -29,7 +29,6 @@
       src="https://www.googletagmanager.com/gtag/js?id=G-W6XK339B16"
     ></script>
 
-    {% compress js inline %}
     <script type="text/javascript">
       domReady.finally(() => {
         // Attach click event handler to #cookie_preference element
@@ -64,9 +63,7 @@
         });
       });
     </script>
-    {% endcompress %}
   {% else %}
-    {% compress js inline %}
     <script type="text/javascript">
       domReady.finally(() => {
         // Attach click event handler to #cookie_preference element
@@ -96,10 +93,8 @@
         });
       });
     </script>
-    {% endcompress %}
   {% endif %}
 {% else %}
-  {% compress js inline %}
   <script type="text/javascript">
     domReady.finally(() => {
       document.getElementById("button_cookie").addEventListener("click", function (e) {
@@ -113,6 +108,5 @@
       });
     });
   </script>
-  {% endcompress %}
 {% endif %}
 {% endblock content %}

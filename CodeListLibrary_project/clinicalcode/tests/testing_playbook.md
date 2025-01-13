@@ -298,11 +298,13 @@ Instructions on how to run tests locally:
 
 3. Make sure that in PGadmin you will see the clluser_test user
 
-4. Inside of the web-test container type ```pytest -s -v``` or ```pytest ``` if you do not want to see print statement
+4. Exec into the container, e.g. `docker exec -it cll-web-test-1 /bin/bash` (use `docker ps -a` to get the container name as it may differ from `cll-web-test-1`)
 
-5. For functional test using selenium you can view local sessions at http://localhost:4444/.
+5. Inside of the web-test container type ```pytest -s -v``` or ```pytest ``` if you do not want to see print statement
 
-6. If you encounter any problems run ```docker compose -p cll -f docker-compose.dev.yaml --profile test down --volumes```
+6. For functional test using selenium you can view local sessions at http://localhost:4444/.
+
+7. If you encounter any problems run ```docker compose -p cll -f docker-compose.dev.yaml --profile test down --volumes```
 
 
 ## 6. Mocking

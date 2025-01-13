@@ -93,14 +93,14 @@
 								</td>
 								<td>
 									{% if h.publish_date %}
-										{{ h.publish_date|date:"Y-m-d H:i" }}
+										{{ h.publish_date }}
 									{% else %}
 										<span title="Not Published" aria-label="Not Published">&#8722;</span>
 									{% endif %}
 								</td>
 							{% else %}
 								<td>{{ h.owner }}</td>
-								<td>{{ h.publish_date|date:"Y-m-d" }}</td>
+								<td>{{ h.publish_date }}</td>
 							{% endif %}
 						</tr>
 					{% empty %}

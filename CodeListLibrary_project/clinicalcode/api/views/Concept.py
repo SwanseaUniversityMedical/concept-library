@@ -16,16 +16,20 @@ from ...entity_utils.constants import CLINICAL_RULE_TYPE
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_concepts(request, should_paginate=True):
+def get_concepts(request):
     """
         Get all concepts accessible to the user, optionally, provide parameters to filter the resultset.
 
         Available API parameters can be derived from the [Reference Data](/reference-data/) page.
 
         Other available parameters:
-        - `page` (`int`) - the page cursor
-        - `page_size` (`int`) - the desired page size from one of: `20`, `50`, `100`
-        - `should_paginate` (`bool`) - optionally turn off pagination; defaults to `True`
+
+        | Param               | Type           | Default            | Desc                                                                   |
+        |---------------------|----------------|--------------------|------------------------------------------------------------------------|
+        | search              | `string`       | `NULL`             | Full-text search                                                       |
+        | page                | `number`       | `1`                | Page cursor                                                            |
+        | page_size           | `enum/number`  | `1` (_20_ results) | Page size enum, where `1` = 20, `2` = 50 & `3` = 100 rows              |
+        | no_pagination       | `empty`        | `NULL`             | you can append this parameter to your query to disable pagination      |
 
     """
     # Get all concepts accesible to the user
@@ -59,21 +63,27 @@ def get_concepts(request, should_paginate=True):
     if phenotype_id is not None:
         phenotype_id = phenotype_id.split(',')
         concepts = concepts.filter(Q(phenotype_owner__id__in=phenotype_id))
-    
-    page = request.query_params.get('page', 1 if should_paginate else None)
+
+    page = request.query_params.get('page', None)
     page = gen_utils.try_value_as_type(page, 'int')
-    page = max(page, 1) if isinstance(page, int) else None
+    page = max(page, 1) if isinstance(page, int) else 1
+
+    should_paginate = 'no_pagination' not in request.query_params.keys()
 
     page_size = None
-    if page:
+    if should_paginate:
         page_size = request.query_params.get('page_size', None)
-        page_size = gen_utils.try_value_as_type(page_size, 'int')
-        page_size = str(page_size) if isinstance(page_size, int) else '2'
+        page_size = gen_utils.try_value_as_type(page_size, 'int', default=None)
 
-        if page_size is None or page_size not in constants.PAGE_RESULTS_SIZE:
-            page_size = constants.PAGE_RESULTS_SIZE.get('2')
-        else:
-            page_size = constants.PAGE_RESULTS_SIZE.get(str(page_size))
+        if isinstance(page_size, int):
+            tmp = constants.PAGE_RESULTS_SIZE.get(str(page_size), None)
+            if isinstance(tmp, int):
+                page_size = tmp
+            elif page_size not in list(constants.PAGE_RESULTS_SIZE.values()):
+                page_size = None
+
+        if not isinstance(page_size, int):
+            page_size = constants.PAGE_RESULTS_SIZE.get('1')
 
         should_paginate = True
 
@@ -125,8 +135,9 @@ def get_concepts(request, should_paginate=True):
         result.append(concept_data)
 
     result = result if not should_paginate else {
-        'page': page,
-        'num_pages': concepts.paginator.num_pages,
+        'page': min(concepts.paginator.num_pages, page),
+        'total_pages': concepts.paginator.num_pages,
+        'page_size': page_size,
         'data': result
     }
 

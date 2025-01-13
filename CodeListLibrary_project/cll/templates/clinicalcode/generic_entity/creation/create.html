@@ -9,12 +9,6 @@
 
 {% block title %}| {% if form_method.value == 1 %} Create your Phenotype {% else %} Update your Phenotype{% endif %}{% endblock title %}
 
-{% block cache_tags %}
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-{% endblock cache_tags %}
-
 {% block embedding_wrapper %}
   {% if form_method.value == 1 %}
     {% render_og_tags header='Create Phenotype' %}
@@ -30,9 +24,8 @@
 {% endblock indexing_robots %}
 
 {% block container %}
-  <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
-  <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
+  <script src="{% static 'js/lib/easymde/easymde.min.js' %}"></script>
   <script src="{% static 'js/lib/moment.min.js' %}"></script>
   <script src="{% static 'js/lib/xlsx.mini.min.js' %}"></script>
 
