@@ -9,6 +9,7 @@ from django.contrib.postgres.aggregates.general import ArrayAgg
 from django_postgresql_dag.models import node_factory, edge_factory
 
 import logging
+import psycopg2
 
 from ..entity_utils import gen_utils
 from ..entity_utils import constants
@@ -16,6 +17,16 @@ from ..entity_utils import constants
 from .CodingSystem import CodingSystem
 
 logger = logging.getLogger(__name__)
+
+"""
+	Default const. value specifying the minimum amount of characters required before a typeahead request will be queried
+"""
+TYPEAHEAD_MIN_CHARS = 3
+
+"""
+	Default const. value specifying the maximum number of results to return in a typeahead query
+"""
+TYPEAHEAD_MAX_RESULTS = 20
 
 class OntologyTagEdge(edge_factory('OntologyTag', concrete=False)):
 	"""
@@ -522,6 +533,9 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			else:
 				children = []
 
+			# print(parents.query)
+			# print(children.query)
+
 			is_root = node.is_root() or node.is_island()
 			is_leaf = node.is_leaf()
 
@@ -601,7 +615,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					),
 					ancestors as (
 						select p0.child_id,
-							   p0.path
+							     p0.path
 						  from ancestry as p0
 						  join (
 									select child_id,
@@ -609,13 +623,16 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 									  from ancestry
 									 group by child_id
 							) as lim
-							on lim.child_id = p0.child_id
-						   and lim.max_depth = p0.depth
+							 on lim.child_id = p0.child_id
+						  and lim.max_depth = p0.depth
 					),
 					objects as (
-						select selected.child_id,
+						select
+								selected.child_id,
+								nodes.id as nodes_id,
 							   jsonb_build_object(
 									'id', nodes.id,
+									'idx', selected.idx,
 									'label', nodes.name,
 									'properties', nodes.properties,
 									'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
@@ -623,29 +640,94 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 									'type_id', nodes.type_id,
 									'reference_id', nodes.reference_id,
 									'child_count', count(edges1.child_id)
-							   ) as tree
+									) as tree
 						  from (
 									select id,
-										   child_id
+										   child_id,
+											 idx
 									  from ancestors,
-										   unnest(path) as id
-									 group by id, child_id
+										   unnest(path) with ordinality as ids(id, idx)
+									 group by id, child_id, idx
 								) as selected
 						  join public.clinicalcode_ontologytag as nodes
-							on nodes.id = selected.id
+							  on nodes.id = selected.id
 						  left outer join public.clinicalcode_ontologytagedge as edges0
-							on nodes.id = edges0.child_id
+							  on nodes.id = edges0.child_id
 						  left outer join public.clinicalcode_ontologytagedge as edges1
-							on nodes.id = edges1.parent_id
-						 group by selected.child_id, nodes.id
+							  on nodes.id = edges1.parent_id
+						 group by selected.child_id, nodes.id, selected.idx
+					),
+					recur as (
+						select
+								obj.child_id,
+								obj.tree || jsonb_build_object(
+									'children', coalesce(children.tree, '[]'::json),
+									'parents', coalesce(parents.tree, '[]'::json)
+								) as tree
+							from objects as obj
+						  left outer join (
+								select c0.id, json_agg(c0.tree) as tree
+								  from (
+										select o0.nodes_id as id, jsonb_build_object(
+												'id', n0.id,
+												'label', n0.name,
+												'properties', n0.properties,
+												'isRoot', false,
+												'isLeaf', case when count(T5.child_id) < 1 then true else false end,
+												'type_id', n0.type_id,
+												'reference_id', n0.reference_id,
+												'child_count', count(T5.child_id),
+												'parents', array_agg(distinct T4.parent_id)
+											) as tree
+										from objects as o0
+										join public.clinicalcode_ontologytagedge as e0
+											on (o0.nodes_id = e0.parent_id)
+										join public.clinicalcode_ontologytag as n0
+											on e0.child_id = n0.id
+										left outer join public.clinicalcode_ontologytagedge T4
+											on (n0.id = T4.child_id)
+										left outer join public.clinicalcode_ontologytagedge T5
+											on (n0.id = T5.parent_id)
+										group by o0.nodes_id, n0.id
+								) as c0
+								group by c0.id
+							) as children
+							  on children.id = obj.nodes_id
+						  left outer join (
+								select c0.id, json_agg(c0.tree) as tree
+								  from (
+										select o0.nodes_id as id, jsonb_build_object(
+												'id', n0.id,
+												'label', n0.name,
+												'properties', n0.properties,
+												'isRoot', case when count(T4.parent_id) < 1 then true else false end,
+												'isLeaf', case when count(T5.child_id) < 1 then true else false end,
+												'type_id', n0.type_id,
+												'reference_id', n0.reference_id,
+												'child_count', count(T5.child_id),
+												'parents', array_agg(distinct T4.parent_id)
+											) as tree
+										from objects as o0
+										join public.clinicalcode_ontologytagedge as e0
+											on (o0.nodes_id = e0.child_id)
+										join public.clinicalcode_ontologytag as n0
+											on e0.parent_id = n0.id
+										left outer join public.clinicalcode_ontologytagedge T4
+											on (n0.id = T4.child_id)
+										left outer join public.clinicalcode_ontologytagedge T5
+											on (n0.id = T5.parent_id)
+										group by o0.nodes_id, n0.id
+								) as c0
+								group by c0.id
+							) as parents
+							  on parents.id = obj.nodes_id
 					)
-
 				select ancestor.child_id,
 					     ancestor.path,
-					     json_agg(obj.tree) as dataset
+					     json_agg(obj.tree order by obj.tree->>'idx') as dataset
 				  from ancestors as ancestor
-				  join objects as obj
-					on obj.child_id = ancestor.child_id
+				  join recur as obj
+					  on obj.child_id = ancestor.child_id
 				 group by ancestor.child_id, ancestor.path;
 				'''
 
@@ -656,7 +738,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 				columns = [col[0] for col in cursor.description]
 				ancestry = [dict(zip(columns, row)) for row in cursor.fetchall()]
-		except:
+		except Exception as e:
 			pass
 
 		return ancestry
@@ -734,13 +816,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			) \
 			.values_list('tree_dataset', flat=True)
 
-		nodes = [
+		return [
 			node | { 'full_names': roots.get(node.get('id')) }
 			if not node.get('isRoot') and roots.get(node.get('id')) else node
 			for node in nodes
 		]
-	
-		return nodes
 
 
 	@classmethod
@@ -775,14 +855,17 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			return default
 
 		nodes = OntologyTag.objects.filter(id__in=node_ids, type_id__in=type_ids)
-		ancestors = [
-			[
-				OntologyTag.get_node_data(ancestor.id, default=None)
-				for ancestor in node.ancestors()
-			]
-			for node in nodes
-			if not node.is_root() and not node.is_island()
-		]
+		ancestors = []
+
+		tree = cls.build_tree(node_ids, None)
+		if tree:
+			for node in nodes:
+				if node.is_root() or node.is_island():
+					continue
+
+				obj = next(x for x in tree if x.get('child_id') == node.id)
+				if obj is not None and isinstance(obj.get('dataset'), list):
+					ancestors.append(obj.get('dataset'))
 
 		return {
 			'ancestors': ancestors,
@@ -822,3 +905,90 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			return default
 
 		return list(nodes.annotate(value=F('id')).values('name', 'value'))
+
+
+	@classmethod
+	def query_typeahead(cls, searchterm = '', type_ids=None, result_limit = TYPEAHEAD_MAX_RESULTS):
+		"""
+			Autocomplete, typeahead-like web search for Ontology search components
+
+			Note:
+				The searchterm must satisfy the `TYPEAHEAD_MIN_CHARS` size (gte 3) to return results
+
+			Args:
+				searchterm (str): some web query search term; defaults to an empty `str`
+
+				type_ids (int|str|int[]): optionally narrow the resultset by specifying the ontology type ids; defaults to `None`
+
+				result_limit (int): maximum number of results to return per request; defaults to `TYPEAHEAD_MAX_RESULTS`
+
+			Returns:
+				An array, ordered by search rank, listing each of the matching ontological terms
+
+		"""
+		if not isinstance(searchterm, str) or gen_utils.is_empty_string(searchterm) or len(searchterm) < TYPEAHEAD_MIN_CHARS:
+			return []
+
+		if isinstance(type_ids, str):
+			type_ids = gen_utils.try_value_as_type(type_ids, 'int')
+
+		if isinstance(type_ids, int):
+			type_ids = [type_ids]
+		elif isinstance(type_ids, list):
+			type_ids = gen_utils.try_value_as_type(type_ids, 'int_array')
+
+		if not isinstance(type_ids, list):
+			type_ids = []
+
+		with connection.cursor() as cursor:
+			sql = psycopg2.sql.SQL('''
+			with
+				matches as (
+					select
+								node.id,
+								node.name,
+								node.type_id,
+								node.properties,
+								ts_rank_cd(node.search_vector, websearch_to_tsquery('pg_catalog.english', %(searchterm)s)) as score
+						from public.clinicalcode_ontologytag as node
+					 where ((
+								search_vector
+								@@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|'))
+						  )
+							 or (
+								(relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|')))
+								or (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|')))
+						  )
+					   )
+			''')
+
+			if len(type_ids) > 0:
+				sql = sql + psycopg2.sql.SQL('''and node.type_id = any(%(type_ids)s::int[])''')
+
+			sql = sql + psycopg2.sql.SQL('''		
+					 group by node.id
+					 limit {lim_size}
+				)
+			select json_agg(
+							jsonb_build_object(
+								'id', node.id,
+								'label', node.name,
+								'properties', coalesce(node.properties, jsonb_build_object()),
+								'type_id', node.type_id
+							)
+							order by node.score desc
+						) as agg
+				from matches as node
+			''') \
+				.format(
+					lim_size=psycopg2.sql.Literal(result_limit)
+				)
+
+			cursor.execute(sql, params={
+				'type_ids': type_ids,
+				'searchterm': searchterm,
+			})
+
+			columns = [col[0] for col in cursor.description]
+			results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+			return results[0].get('agg') if len(results) > 0 and isinstance(results[0].get('agg'), list) else []

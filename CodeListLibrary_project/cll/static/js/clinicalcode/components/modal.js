@@ -201,7 +201,7 @@ class ModalFactory {
       const { id, title, content, showFooter, buttons, size } = options;
     
       const html = interpolateString(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content, size: size });
-      const doc = parseHTMLFromString(html);
+      const doc = parseHTMLFromString(html, true);
       const currentHeight = window.scrollY;
       const modal = document.body.appendChild(doc.body.children[0]);
       const container = modal.querySelector('.target-modal__container');
@@ -220,7 +220,7 @@ class ModalFactory {
       if (!isNullOrUndefined(footer)) {
         for (let i = 0; i < buttons.length; ++i) {
           let button = buttons[i];
-          let item = parseHTMLFromString(button.html);
+          let item = parseHTMLFromString(button.html, true);
           item = footer.appendChild(item.body.children[0]);
           item.innerText = button.name;
           item.setAttribute('aria-label', button.name);

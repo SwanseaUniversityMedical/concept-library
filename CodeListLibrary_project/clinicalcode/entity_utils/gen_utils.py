@@ -1,6 +1,7 @@
 from uuid import UUID
 from json import JSONEncoder
 from functools import wraps
+from typing import Pattern
 from dateutil import parser as dateparser
 from django.conf import settings
 from django.http.response import JsonResponse
@@ -11,10 +12,12 @@ import re
 import time
 import json
 import datetime
+import logging
 import urllib
 
 from . import constants, sanitise_utils
 
+logger = logging.getLogger(__name__)
 
 def is_datetime(x):
     """
@@ -215,11 +218,33 @@ def jsonify_response(**kwargs):
     }, status=code)
 
 
-def try_match_pattern(value, pattern):
+def try_match_pattern(value, pattern, flags = re.IGNORECASE):
     """
         Tries to match a string by a pattern
     """
-    return re.match(pattern, value)
+    if not isinstance(value, str):
+        return False
+
+    if isinstance(pattern, (str, Pattern)):
+        return re.match(pattern, value)
+    elif isinstance(pattern, list):
+        res = None
+        try:
+            for x in pattern:
+                if not isinstance(x, (str, Pattern)):
+                    continue
+
+                res = re.match(x, value, flags)
+                if res:
+                    break
+        except Exception as e:
+            logger.warning(f'Failed to test Pattern<value: {value}, re: {x}> with err: {e}')
+            res = None
+        finally:
+            return res
+
+    logger.warning(f'Expected Pattern to be of (str, Pattern) type but got Arg<type: {type(pattern)}, value: {pattern}>')
+    return False
 
 
 def is_valid_uuid(value):

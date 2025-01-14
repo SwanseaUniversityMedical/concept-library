@@ -112,11 +112,9 @@
           </div>
         </section>
 
-        {% if ontology %}
+        {% if ontology_groups %}
           <section class="reference-collection__inner-container" id="ontology">
-            {% if ontology %}
-              {% to_json_script ontology data-owner="reference-data-service" name="ontology" desc-type="text/json" %}
-            {% endif %}
+            {% to_json_script ontology_groups data-owner="reference-data-service" name="ontology-groups" desc-type="text/json" %}
 
             <h3>Ontology</h3>
             <p>A set of taggable categories and concepts that describes a Phenotype.</p>

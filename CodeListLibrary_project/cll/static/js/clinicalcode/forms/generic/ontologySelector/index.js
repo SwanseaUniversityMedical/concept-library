@@ -8,7 +8,6 @@ import VirtualisedList, { DebouncedTask } from '../../../components/virtualisedL
  *       directed acyclic graphs that define taggable ontologies
  * 
  */
-
 export default class OntologySelectionService {
   static DataTarget = 'ontology-service';
   #originalValue = null;
@@ -27,6 +26,15 @@ export default class OntologySelectionService {
         .then(dataset => {
           this.dataset.splice(this.dataset.length, 0, ...dataset);
           this.#initialiseTree();
+
+          // this.#fetchTypeahead('atrial')
+          //   .then(res => this.#appendTypeaheadNode(res?.[0]?.id, res?.[0]?.type_id))
+          //   .then(console.log)
+          //   .catch(console.error);
+
+          if (componentData && componentData?.value) {
+            this.#computeComponentValue(componentData?.value, true);
+          }
         })
         .catch(console.error);
     }
@@ -206,7 +214,7 @@ export default class OntologySelectionService {
     this.options = mergeObjects(options || { }, Constants.OPTIONS);
 
     this.#initialiseTree();
-    this.#computeComponentValue(componentData?.value);
+    this.#computeComponentValue(componentData?.value, true);
 
     // Initialise element & child template(s)
     const button = this.element.querySelector('#add-input-btn');
@@ -292,14 +300,19 @@ export default class OntologySelectionService {
   /**
    * computeComponentValue
    * @desc computes the component data, given a dict containing the ancestry & value
-   * @param {object} param
+   * 
+   * @param {object}      param
    * @param {object|null} param.ancestors   optional ancestor-related data to be spliced into the tree
    * @param {array|null}  param.value       optional value for this field, e.g. when editing
+   * @param {boolean}     setInitValue      specify whether to set the initial value of this component
+   * 
    * @returns {object} this class for chaining
    * 
    */
-  #computeComponentValue({ ancestors = undefined, value = [] } = { }) {
-    this.value = Array.isArray(value) ? value : [];
+  #computeComponentValue({ ancestors = undefined, value = [] } = { }, setInitValue = false) {
+    if (setInitValue) {
+      this.value = Array.isArray(value) ? value : [];
+    }
 
     if (Array.isArray(ancestors)) {
       OntologySelectionService.applyToTree(ancestors, elem => {
@@ -338,9 +351,10 @@ export default class OntologySelectionService {
                 elem.children.push(child);
               }
             } else {
+              node.children = Array.isArray(node?.children) ? node.children : [];
               elem.children = node.children;
             }
-            elem.parents = node.parents;
+            elem.parents = Array.isArray(node?.parents) ? node.parents : [];
 
             return true;
           });
@@ -358,7 +372,96 @@ export default class OntologySelectionService {
       selected.processed = true;
     }
 
-    this.#originalValue = deepCopy(this.value);
+    if (setInitValue) {
+      this.#originalValue = deepCopy(this.value);
+    }
+  }
+
+  /**
+   * @desc typeahead search query fn  (searches only current template source types)
+   * 
+   * @param {string} searchterm expects min char len of 3
+   * 
+   * @returns {Promise<Array>} an array of nodes that meet the search criteria
+   */
+  async #fetchTypeahead(searchterm = '') {
+    if (isStringEmpty(searchterm) || isStringWhitespace(searchterm) || searchterm.length < 3) {
+      return [];
+    }
+
+    const parameters = new URLSearchParams({
+      search: searchterm,
+      type_ids: this.dataset.reduce((filtered, x) => {
+        if (typeof x?.model?.source === 'number') {
+          filtered.push(x.model.source);
+        }
+
+        return filtered;
+      }, []),
+    });
+  
+    return fetch(
+      `${getCurrentURL()}?` + parameters,
+      {
+        method: 'GET',
+        headers: {
+          'X-Target': 'query_ontology_typeahead',
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      }
+    )
+    .then(response => response.json())
+    .then(response => {
+      if (!Array.isArray(response?.result)) {
+        return [];
+      }
+
+      return response.result;
+    })
+  }
+
+
+  /**
+   * @desc fetches a known node by its ID & type resolved from a typeahead query
+   * 
+   * @param {number} nodeId expects min char len of 3
+   * @param {number} typeId expects min char len of 3
+   * 
+   * @returns {Promise<object|null>} thenable, resolving a nullable array if successful
+   */
+  async #fetchKnownNode(nodeId, typeId) {
+    if (typeof nodeId !== 'number' || typeof typeId !== 'number') {
+      return Promise.reject(new Error('Expected nodeId and typeId to be typeof number'));
+    }
+
+    const parameters = new URLSearchParams({ node_id: nodeId, type_id: typeId });
+    return fetch(
+      `${getCurrentURL()}?` + parameters,
+      {
+        method: 'GET',
+        headers: {
+          'X-Target': 'query_ontology_record',
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      }
+    )
+    .then(async response => {
+      if (!response.ok) {
+        return response.text()
+          .then(text => {
+            throw new Error(`Failed to retrieve known node Err<code: ${response.status}> and message:\n${text ?? 'Unknown err'}`);
+          })
+      }
+
+      return response.json();
+    })
+    .then(response => {
+      if (!typeof response === 'object' || !Array.isArray(response?.ancestors) || !Array.isArray(response?.value)) {
+        return null;
+      }
+
+      return response;
+    })
   }
 
   /**
@@ -392,6 +495,139 @@ export default class OntologySelectionService {
     }
 
     return res;
+  }
+
+  async #appendTypeaheadNode(nodeId, typeId) {
+    return this.#fetchKnownNode(nodeId, typeId)
+      .then(obj => {
+        if (!Array.isArray(obj?.value) || !Array.isArray(obj?.ancestors)) {
+          throw new Error(`Node<id: ${nodeId}, type: ${typeId}> contained no results on fetch`);
+        }
+
+        const treeComponent = this.renderable.treeComponent;
+
+        return obj;
+      })
+  }
+
+  /**
+   * @desc attempts to fetch & load some node resource by its ID
+   * 
+   * @param {object}   [param0={}]              the data object describing the node
+   * @param {number}   [id=undefined]           the node id
+   * @param {number}   [type_id=undefined]      the node source type id
+   * @param {Array}    [nodeChildren=undefined] the node's current children, if any
+   * @param {Function} [callback=undefined]     optionally define some callback to process the loading
+   *  
+   * @returns {Promise<void>} some thenable whose status will evaluate to the success of the operation 
+   */
+  async #buildNode({ id = undefined, type_id: sourceId = undefined } = { }, nodeChildren = undefined, callback = undefined) {
+    if (isNullOrUndefined(id) || isNullOrUndefined(sourceId)) {
+      return Promise.resolve();
+    }
+
+    const dataIndex = this.dataset.findIndex(e => e?.model?.source == sourceId);
+    const dataset = dataIndex >= 0 ? this.dataset[dataIndex] : null;
+    if (isNullOrUndefined(dataset)) {
+      return Promise.reject(new Error(`Expected dataset at Group<type_id: ${sourceId}, dataIndex: ${dataIndex}> but got null`));
+    }
+
+    let children = nodeChildren;
+    if (!Array.isArray(nodeChildren)) {
+      children = [];
+    }
+
+    const treeComponent = this.renderable.treeComponent;
+    return this.#fetchNodeData(id)
+      .then(async node => {
+        const isRoot = node.isRoot;
+        const isLeaf = node.isLeaf;
+
+        OntologySelectionService.applyToTree(node.children, elem => {
+          if (typeof(elem?.label) === 'string' && !elem?.processed) {
+            elem.label = OntologySelectionService.getLabel(elem);
+            elem.processed = true;
+          }
+        });
+
+        if (isRoot) {
+          for (let i = 0; i < dataset.nodes.length; ++i) {
+            const elem = dataset.nodes[i];
+            const { id } = elem;
+            if (id === node.id) {
+              const newChildren = node.children.filter(x => elem?.children && elem?.children?.findIndex(e => e.id === x.id) < 0);
+              const newAncestors = node.parents.filter(x => elem?.parents && elem?.parents?.findIndex(e => e.id === x.id) < 0);
+
+              if (newChildren.length > 0) {
+                elem.children = [...deepCopy(newChildren), ...(elem?.children ?? [])];
+              }
+
+              if (newAncestors.length > 0) {
+                elem.parents = [...deepCopy(newAncestors), ...(elem?.parents ?? [])];
+              }
+            }
+          }
+        } else if (!isLeaf) {
+          OntologySelectionService.applyToTree(dataset.nodes, elem => {
+            const { id } = elem;
+            if (id === node.id) {
+              const newChildren = node.children.filter(x => elem?.children && elem?.children?.findIndex(e => e.id === x.id) < 0);
+              const newAncestors = node.parents.filter(x => elem?.parents && elem?.parents?.findIndex(e => e.id === x.id) < 0);
+
+              if (newChildren.length > 0) {
+                elem.children = [...deepCopy(newChildren), ...(elem?.children ?? [])];
+              }
+
+              if (newAncestors.length > 0) {
+                elem.parents = [...deepCopy(newAncestors), ...(elem?.parents ?? [])];
+              }
+            }
+          });
+        }
+
+        const mapped = { };
+        children = deepCopy(node?.children);
+        for (let i = 0; i < children.length; ++i) {
+          let child = children[i];
+          let parents = child?.parents;
+          if (!Array.isArray(parents)) {
+            continue;
+          }
+
+          for (let j = 0; j < parents.length; ++j) {
+            let parentId = parents[j];
+            if (isNullOrUndefined(parentId) || parentId === node.id) {
+              continue;
+            }
+
+            if (!mapped.hasOwnProperty(parentId)) {
+              mapped[parentId] = [];
+            }
+
+            if (mapped[parentId].findIndex(x => x?.id === child.id) < 0) {
+              mapped[parentId].push(child);
+            }
+          }
+        }
+
+        OntologySelectionService.applyToTree(treeComponent.getAllNodeData(), elem => {
+          const { id } = elem;
+          if (mapped[id]) {
+            if (!Array.isArray(elem.children)) {
+              elem.children = deepCopy(mapped[id]);
+            } else {
+              const related = mapped[id].filter(e => elem.children.findIndex(x => x.id === e.id) < 0);
+              for (let i = 0; i < related; ++i) {
+                elem.children.push(deepCopy(related[i]));
+              }
+            }
+          }
+        });
+
+        callback?.(children);
+      })
+      .then(() => this.#resolveSelectedItems() && this.#toggleDeselectorButtons())
+      .then(() => { treeComponent.setChecked(this.selectedItems.map(x => x.id)) })
   }
 
   /**
@@ -530,6 +766,39 @@ export default class OntologySelectionService {
    *************************************/
 
   /**
+   * @desc toggles the deselection buttons
+   */
+  #toggleDeselectorButtons() {
+    if (!this.isOpen()) {
+      return;
+    }
+
+    const dialogue = this.renderable.dialogue;
+    const activeId = this.activeItem?.model?.source
+
+    const activeSelector = dialogue?.container?.querySelector('[data-target="deselect-available-group"]');
+    const activeSelections = this.selectedItems?.reduce((filtered, e) => {
+      const id = e?.id;
+      const sourceId = e?.type_id;
+      if (!isNullOrUndefined(id) && sourceId === activeId) {
+        filtered++;
+      }
+
+      return filtered;
+    }, 0) ?? 0;
+
+    if (activeSelector) {
+      activeSelector.setAttribute('disabled', activeSelections <= 0);
+    }
+
+    const allSelector = dialogue?.container?.querySelector('[data-target="deselect-all-group"]');
+    const totalSelections = this.selectedItems?.length ?? 0;
+    if (allSelector) {
+      allSelector.setAttribute('disabled', totalSelections <= 0);
+    }
+  }
+
+  /**
    * showDialogue
    * @desc internal renderable handler to instantiate
    *       the selection modal
@@ -579,6 +848,8 @@ export default class OntologySelectionService {
           if (checked.length > 0) {
             this.renderable?.treeComponent.setChecked(checked, true);
           }
+
+          this.#toggleDeselectorButtons();
         }
       }
       this.renderable = renderable;
@@ -652,7 +923,7 @@ export default class OntologySelectionService {
         label: dataset.model.label,
       });
 
-      let component = parseHTMLFromString(html);
+      let component = parseHTMLFromString(html, true);
       component = ontologyContainer.appendChild(component.body.children[0]);
 
       let active = parseInt(component.getAttribute('data-source')) === activeId;
@@ -710,17 +981,18 @@ export default class OntologySelectionService {
         },
         onRender: (index, height) => {
           let selectedItem = selectedItems[index];
+          
           if (!selectedItem) {
             return document.createElement('div');
           }
 
           const html = interpolateString(this.templates.item, {
-            id: selectedItem?.id,
-            source: selectedItem?.type_id,
-            label: selectedItem?.label,
+            id: selectedItem.id,
+            source: selectedItem.type_id.toString(),
+            label: selectedItem.label,
           });
 
-          let component = parseHTMLFromString(html);
+          let component = parseHTMLFromString(html, true);
           component = component.body.children[0];
           
           const btn = component.querySelector('[data-target="delete"]');
@@ -736,6 +1008,12 @@ export default class OntologySelectionService {
     this.renderable.selectionComponent = selectionComponent;
     this.renderable.resizeObserverGroup = resizeObserverGroup
     this.#toggleSelectionView(selectedLength);
+
+    const allSelector = dialogue.container.querySelector('[data-target="deselect-all-group"]');
+    allSelector.addEventListener('click', this.#handleDeselectorButton.bind(this));
+
+    const activeSelector = dialogue.container.querySelector('[data-target="deselect-available-group"]');
+    activeSelector.addEventListener('click', this.#handleDeselectorButton.bind(this));
   }
 
   /**
@@ -809,13 +1087,13 @@ export default class OntologySelectionService {
             label: sources[type_id],
           });
 
-          let component = parseHTMLFromString(html);
+          let component = parseHTMLFromString(html, true);
           component = ontologyList.appendChild(component.body.children[0]);
         }
 
         let html = interpolateString(this.templates.value, { label: label });
 
-        let component = parseHTMLFromString(html);
+        let component = parseHTMLFromString(html, true);
         component = ontologyList.appendChild(component.body.children[0]);
       }
     }
@@ -837,6 +1115,65 @@ export default class OntologySelectionService {
    */
   #handleAddButton(e) {
     this.#showDialogue();
+  }
+
+  /**
+   * handleDeselectorButton
+   * @desc handles the 'Deselect all' and 'Deselect items' button(s)
+   * @param {event} e the assoc. event
+   */
+  #handleDeselectorButton(e) {
+    if (!this.isOpen()) {
+      return;
+    }
+
+    const target = e.target;
+    if (isNullOrUndefined(target) || target.getAttribute('disabled') == 'true') {
+      return;
+    }
+
+    const activeId = this.activeItem?.model?.source;
+    const btnTarget = target.getAttribute('data-target');
+
+    let removable;
+    switch (btnTarget) {
+      case 'deselect-all-group': {
+        removable = this.selectedItems.slice(0);
+      } break;
+
+      case 'deselect-available-group': {
+        removable = this.selectedItems?.reduce((filtered, e) => {
+          const id = e?.id;
+          const sourceId = e?.type_id;
+          if (!isNullOrUndefined(id) && sourceId === activeId) {
+            filtered.push(e);
+          }
+    
+          return filtered;
+        }, []);
+      } break;
+
+      default:
+        break
+    }
+
+    if (removable) {
+      for (let i = 0; i < removable.length; ++i) {
+        const { id: targetId, type_id: targetSourceId } = removable[i];
+
+        if (targetSourceId === activeId) {
+          this.renderable.treeComponent.unChecked([parseInt(targetId)]);
+        } else {
+          const index = this.selectedItems.findIndex(x => x?.id === targetId && x?.type_id === targetSourceId);
+          if (index >= 0) {
+            this.selectedItems.splice(index, 1);
+          }
+        }
+      }
+
+      this.#resolveSelectedItems();
+      this.#toggleDeselectorButtons();
+    }
   }
 
   /**
@@ -867,6 +1204,7 @@ export default class OntologySelectionService {
       }
     }
     this.#resolveSelectedItems();
+    this.#toggleDeselectorButtons();
   }
 
   /**
@@ -898,91 +1236,12 @@ export default class OntologySelectionService {
 
     if (!isNullOrUndefined(children)) {
       load([]);
-      this.#resolveSelectedItems()
+      this.#resolveSelectedItems();
+      this.#toggleDeselectorButtons();
       return;
     }
 
-    const treeComponent = this.renderable.treeComponent;
-    this.#fetchNodeData(data.id)
-      .then(async node => {
-        const isRoot = node.isRoot;
-        const isLeaf = node.isLeaf;
-
-        OntologySelectionService.applyToTree(node.children, elem => {
-          if (typeof(elem?.label) === 'string' && !elem?.processed) {
-            elem.label = OntologySelectionService.getLabel(elem);
-            elem.processed = true;
-          }
-        });
-
-        if (isRoot) {
-          for (let i = 0; i < dataset.nodes.length; ++i) {
-            const elem = dataset.nodes[i];
-            const { id } = elem;
-            if (id === node.id) {
-              const newChildren = node.children.filter(x => !elem?.children || elem.children.findIndex(e => e.id === x.id) < 0);
-              const newAncestors = node.parents.filter(x => !elem?.parents || !elem.parents.includes(x.id));
-              elem.children = [...deepCopy(newChildren), ...(elem?.children || [])];
-              elem.parents = [...deepCopy(newAncestors), ...(elem?.parents || [])];
-            }
-          }
-        } else if (!isLeaf) {
-          OntologySelectionService.applyToTree(dataset.nodes, elem => {
-            const { id } = elem;
-            if (id === node.id) {
-              const newChildren = node.children.filter(x => !elem?.children || elem.children.findIndex(e => e.id === x.id) < 0);
-              const newAncestors = node.parents.filter(x => !elem?.parents || !elem.parents.includes(x.id));
-              elem.children = [...deepCopy(newChildren), ...(elem?.children || [])];
-              elem.parents = [...deepCopy(newAncestors), ...(elem?.parents || [])];
-            }
-          });
-        }
-
-        const mapped = { };
-        children = deepCopy(node.children);
-        for (let i = 0; i < children.length; ++i) {
-          let child = children[i];
-          let parents = child?.parents;
-          if (!Array.isArray(parents)) {
-            continue;
-          }
-
-          for (let j = 0; j < parents.length; ++j) {
-            let parentId = parents[j];
-            if (isNullOrUndefined(parentId) || parentId === node.id) {
-              continue;
-            }
-
-            if (!mapped.hasOwnProperty(parentId)) {
-              mapped[parentId] = [];
-            }
-
-            if (!mapped[parentId].includes(child.id)) {
-              mapped[parentId].push(child);
-            }
-          }
-        }
-
-        OntologySelectionService.applyToTree(treeComponent.getAllNodeData(), elem => {
-          const { id } = elem;
-          if (mapped[id]) {
-            if (!Array.isArray(elem.children)) {
-              elem.children = [...deepCopy(mapped[id])];
-            } else {
-              const related = mapped[id].filter(e => elem.children.findIndex(x => x.id === e.id) < 0);
-              for (let i = 0; i < related; ++i) {
-                elem.children.push(deepCopy(related[i]));
-              }
-            }
-          }
-        });
-
-        load(children);
-      })
-      .then(() => this.#resolveSelectedItems())
-      .then(() => treeComponent.setChecked(
-        this.selectedItems.map(x => x.id)
-      ))
+    this.#buildNode(data, children, load)
       .catch(console.error);
   }
 
@@ -1025,5 +1284,6 @@ export default class OntologySelectionService {
 
     this.#resolveSelectedItems();
     this.renderable.treeComponent.setChecked(this.selectedItems.map(x => x.id));
+    this.#toggleDeselectorButtons();
   }
 }

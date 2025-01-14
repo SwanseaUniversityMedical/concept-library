@@ -29,7 +29,7 @@ def is_concept_published(concept_id, version_id):
         version_id (int): the Concept's history_id
 
     Returns:
-        bool: Reflects published status
+        bool: Reflects publish status
 
     """
     concept_id = gen_utils.parse_int(concept_id, None)
@@ -95,7 +95,7 @@ def was_concept_ever_published(concept_id, version_id=None):
         version_id (int|null): the Concept's history_id
 
     Returns:
-        bool: Reflects all-time published status
+        bool: Reflects all-time publish status
 
     """
     concept_id = gen_utils.parse_int(concept_id, None)

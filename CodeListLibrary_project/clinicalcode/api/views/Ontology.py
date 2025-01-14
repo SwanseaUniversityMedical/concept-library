@@ -61,7 +61,6 @@ def get_ontology_detail(request, ontology_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-@cache_page(60 * 60 * 2)
 def get_ontology_node(request, node_id):
     """
         Gets an Ontology node by the given request
@@ -86,7 +85,6 @@ def get_ontology_node(request, node_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-@cache_page(60 * 60 * 2)
 def get_ontology_nodes(request):
     """
         Queries Ontology nodes by the given request

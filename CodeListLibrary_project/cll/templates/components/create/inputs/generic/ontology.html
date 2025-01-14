@@ -112,8 +112,21 @@
               </div>
               <div id="ontology-container"
                   class="ontology-modal-body__section ontology-modal-body__section--flex-order-1-2">
-                <div class="ontology-modal-body__header">                  
+                <div class="ontology-modal-body__header ontology-modal-body__header--action-header">
                   <h4>Available Items</h4>
+                  <div class="ontology-modal-body__header-actions">
+                    <p>Deselect items:</p>
+                    <span tooltip="Deselect Items" direction="left">
+                      <span
+                          id="deselect-available-ontology" 
+                          class="ontology-modal-body__header-actions-deselector"
+                          tabindex="0"
+                          role="button"
+                          aria-label="Deselect items selected here"
+                          data-target="deselect-available-group">
+                      </span>
+                    </span>
+                  </div>
                 </div>
                 <div class="ontology-modal-body__window slim-scrollbar" id="ontology-tree-view">
 
@@ -121,8 +134,21 @@
               </div>
               <div id="ontology-items" 
                   class="ontology-modal-body__section ontology-modal-body__section--flex-order-2-1">
-                <div class="ontology-modal-body__header">                  
-                  <h4>Selected Items</h4>
+                <div class="ontology-modal-body__header ontology-modal-body__header--action-header">
+                  <h4>Selected</h4>
+                  <div class="ontology-modal-body__header-actions">
+                    <p>Deselect all:</p>
+                    <span tooltip="Deselect all" direction="left">
+                      <span
+                          id="deselect-all-ontology" 
+                          class="ontology-modal-body__header-actions-deselector"
+                          tabindex="0"
+                          role="button"
+                          aria-label="Deselect all items"
+                          data-target="deselect-all-group">
+                      </span>
+                    </span>
+                  </div>
                 </div>
                 <div class="ontology-modal-body__window ontology-modal-body__window--max-vh slim-scrollbar">
                   <div class="ontology-modal-body__none-available" id="no-items-selected">
