@@ -1,0 +1,25 @@
+WARNING  django.request:log.py:248 Forbidden (Permission denied): /moderation/
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.11.11/x64/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.11/x64/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.11/x64/lib/python3.11/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.11/x64/lib/python3.11/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.11/x64/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/runner/_work/concept-library/concept-library/CodeListLibrary_project/clinicalcode/entity_utils/permission_utils.py", line 35, in wrap
+    return fn(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/runner/_work/concept-library/concept-library/CodeListLibrary_project/clinicalcode/views/Moderation.py", line 39, in dispatch
+    raise PermissionDenied
+django.core.exceptions.PermissionDenied
+WARNING  django.request:base.py:146 Method Not Allowed (GET): /account/logout/
+WARNING  django.request:log.py:248 Method Not Allowed: /account/logout/
