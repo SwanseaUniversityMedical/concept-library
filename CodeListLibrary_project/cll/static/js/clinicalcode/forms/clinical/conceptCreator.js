@@ -1216,7 +1216,7 @@ export default class ConceptCreator {
     const isImportedItem = concept?.details?.phenotype_owner && !!concept?.details?.requested_entity_id && concept?.details?.phenotype_owner !== concept?.details?.requested_entity_id;
     const html = interpolateString(template, {
       'subheader': access ? 'Codelist' : 'Imported Codelist',
-      'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
+      'concept_name': access ? strictSanitiseString(concept?.details?.name) : this.#getImportedName(concept),
       'concept_id': concept?.concept_id,
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
@@ -1231,7 +1231,7 @@ export default class ConceptCreator {
     });
 
     const containerList = this.element.querySelector('#concept-content-list');
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const conceptItem = containerList.appendChild(doc.body.children[0]);
     conceptItem.setAttribute('live', true);
 
@@ -1495,7 +1495,7 @@ export default class ConceptCreator {
     const html = interpolateString(template, {
       'id': rule?.id,
       'index': index,
-      'name': rule?.name,
+      'name': strictSanitiseString(rule?.name),
       'source': (isNullOrUndefined(source) && sourceInfo.template == 'file-rule') ? 'Unknown File' : (source || ''),
       'used_code': !rule?.used_description ? 'checked' : '',
       'used_description': rule?.used_description ? 'checked' : '',
@@ -1503,7 +1503,7 @@ export default class ConceptCreator {
       'was_wildcard_sensitive': rule?.was_wildcard_sensitive ? 'checked' : '',
     });
 
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const item = ruleList.appendChild(doc.body.children[0]);
     const input = item.querySelector('input[data-item="rule"]');
 
@@ -1727,18 +1727,17 @@ export default class ConceptCreator {
     accordion.classList.add('is-open');
     conceptGroup.setAttribute('editing', true);
 
-
     const systemOptions = await this.#fetchCodingOptions(dataset);
     const template = this.templates['concept-editor'];
     const html = interpolateString(template, {
-      'concept_name': dataset?.details?.name,
+      'concept_name': strictSanitiseString(dataset?.details?.name),
       'coding_system_id': dataset?.coding_system?.id,
       'coding_system_options': systemOptions,
       'has_inclusions': false,
       'has_exclusions': false,
     });
 
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const editor = conceptGroup.appendChild(doc.body.children[0]);
     this.state.data = dataset;
     this.state.editor = editor;

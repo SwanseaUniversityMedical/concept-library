@@ -23,15 +23,15 @@ def render_errors_approval(context, *args, **kwargs):
         errors.append(message)
     else:
         if  not context['is_allowed_view_children']:
-            message = 'You must have view access to all concepts/phenotypes.'
+            message = 'You must have view access to all Concepts/Phenotypes.'
             errors.append(message)
         
         if not context['all_not_deleted']:
-            message = 'All concepts/phenotypes must not be deleted.'
+            message = 'All Concepts/Phenotypes must not be deleted.'
             errors.append(message)
         
         if not context['all_are_published']:
-            message = 'All concepts/phenotypes must be published.'
+            message = 'All Concepts/Phenotypes must be published.'
             errors.append(message)
 
     return {'errors': errors}
@@ -79,7 +79,7 @@ def render_publish_button(context, *args, **kwargs):
                 button_context.update({'class_modal':"primary-btn bold text-danger dropdown-btn__label",
                                  'disabled': 'true',
                                  'Button_type':"Entity is deleted",
-                                 'title':  "Deleted phenotypes cannot be published!"
+                                 'title':  "Deleted Phenotypes cannot be published!"
                                })
         return button_context
     elif user_entity_access:
@@ -112,7 +112,7 @@ def render_publish_button(context, *args, **kwargs):
                   button_context.update({'class_modal':"primary-btn bold text-danger dropdown-btn__label",
                                  'disabled': 'true',
                                  'Button_type': "Entity is deleted",
-                                 'title': "Deleted phenotypes cannot be published!"
+                                 'title': "Deleted Phenotypes cannot be published!"
                                })
                  
             elif context["approval_status"] == constants.APPROVAL_STATUS.REJECTED:

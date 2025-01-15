@@ -30,6 +30,7 @@ from ..entity_utils import (concept_utils, entity_db_utils, permission_utils,
 from clinicalcode.views import View
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
+from clinicalcode.models.OntologyTag import OntologyTag
 from clinicalcode.models.CodingSystem import CodingSystem
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
@@ -192,7 +193,10 @@ class CreateEntityView(TemplateView):
                   of having a form dynamically created to
                   reflect the dynamic model.
     """
-    fetch_methods = ['search_codes', 'get_options', 'import_rule', 'import_concept']
+    fetch_methods = [
+        'search_codes', 'get_options', 'import_rule', 'import_concept',
+        'query_ontology_typeahead', 'query_ontology_record',
+    ]
     templates = {
         'form': 'clinicalcode/generic_entity/creation/create.html',
         'select': 'clinicalcode/generic_entity/creation/select.html'
@@ -352,8 +356,8 @@ class CreateEntityView(TemplateView):
         if concept_id is None or concept_version_id is None:
             raise BadRequest('Parameters are missing')
 
-        concept_id = gen_utils.parse_int(concept_id)
-        concept_version_id = gen_utils.parse_int(concept_version_id)
+        concept_id = gen_utils.parse_int(concept_id, None)
+        concept_version_id = gen_utils.parse_int(concept_version_id, None)
         if concept_id is None or concept_version_id is None:
             raise BadRequest('Parameter type mismatch')
         
@@ -400,6 +404,76 @@ class CreateEntityView(TemplateView):
         return JsonResponse({
             'concepts': concepts
         })
+
+    def query_ontology_record(self, request, *args, **kwargs):
+        """
+			Queries ontology node & its ancestry
+
+            See: :func:`~clinicalcode.models.OntologyTag.OntologyTag.get_creation_data~`
+
+			Query Params:
+				node_id (int): the node id
+
+				type_id (str|int): the node's type id
+
+			Returns:
+				An object describing the node and its ancestry if found; otherwise returns an appropriate err
+
+        """
+        node_id = gen_utils.try_value_as_type(
+            gen_utils.try_get_param(request, 'node_id'),
+            'int',
+            default=None
+        )
+
+        type_id = gen_utils.try_value_as_type(
+            gen_utils.try_get_param(request, 'type_id'),
+            'int',
+            default=None
+        )
+
+        if node_id is None or type_id is None:
+            return gen_utils.jsonify_response(message='Invalid NodeId and/or TypeId parameter', code=400, status='false')
+
+        result = OntologyTag.build_tree([node_id], None) # OntologyTag.get_creation_data([node_id], [type_id], None)
+        if result is None:
+            return gen_utils.jsonify_response(message=f'Node<id: {node_id}, type: {type_id}> not found', code=404, status='false')
+
+        return JsonResponse({ 'result': result })
+
+    def query_ontology_typeahead(self, request, *args, **kwargs):
+        """
+			Autocomplete, typeahead-like web search for Ontology search components
+
+            See: :func:`~clinicalcode.models.OntologyTag.OntologyTag.query_typeahead~`
+
+			Query Params:
+				search (str): some web query search term; defaults to an empty `str`
+
+				type_ids (str|int|int[]): narrow the resultset by specifying the ontology type ids; defaults to `None`
+
+			Returns:
+				An array, ordered by search rank, listing each of the matching ontological terms
+
+        """
+        searchterm = gen_utils.try_value_as_type(
+            gen_utils.try_get_param(request, 'search'),
+            'string',
+            default=None
+        )
+        if not isinstance(searchterm, str) or gen_utils.is_empty_string(searchterm):
+            return JsonResponse({ 'result': [] })
+
+        type_ids = gen_utils.try_value_as_type(
+            gen_utils.try_get_param(request, 'type_ids', default='').split(','),
+            'int_array',
+            default=None
+        )
+
+        if not isinstance(type_ids, list):
+            return JsonResponse({ 'result': [] })
+
+        return JsonResponse({ 'result': OntologyTag.query_typeahead(searchterm, type_ids) })
 
     def get_options(self, request, *args, **kwargs):
         """

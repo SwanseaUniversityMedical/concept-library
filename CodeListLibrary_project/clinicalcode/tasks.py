@@ -45,7 +45,6 @@ def send_scheduled_email(self):
                                              )
                 msg.content_subtype = 'html'
                 msg.send()
-                #print(overal_result[j])
             except BadHeaderError:
                 return False
     return True, overal_result

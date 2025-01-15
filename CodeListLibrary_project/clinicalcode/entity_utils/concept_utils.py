@@ -29,7 +29,7 @@ def is_concept_published(concept_id, version_id):
         version_id (int): the Concept's history_id
 
     Returns:
-        bool: Reflects published status
+        bool: Reflects publish status
 
     """
     concept_id = gen_utils.parse_int(concept_id, None)
@@ -95,7 +95,7 @@ def was_concept_ever_published(concept_id, version_id=None):
         version_id (int|null): the Concept's history_id
 
     Returns:
-        bool: Reflects all-time published status
+        bool: Reflects all-time publish status
 
     """
     concept_id = gen_utils.parse_int(concept_id, None)
@@ -298,7 +298,7 @@ def get_concept_headers(concept_information, default=None):
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    if len(results) < 0:
+    if len(results) < 1:
         return default
 
     return results
@@ -377,7 +377,7 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    if len(results) < 0:
+    if len(results) < 1:
         return default
 
     return results

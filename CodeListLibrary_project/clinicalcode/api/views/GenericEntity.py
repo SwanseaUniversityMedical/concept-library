@@ -272,7 +272,7 @@ def get_generic_entities(request):
 
         groups = list(user.groups.all().values_list('id', flat=True))
         if len(groups) > 0:
-            group_ids = [ gen_utils.parse_int(group) for group in groups ]
+            group_ids = [ int(group) for group in groups if gen_utils.parse_int(group, default=None) ]
             user_clause = f'''{user_clause} or (entity.group_id = any(%(group_ids)s) and entity.group_access = any(array[2, 3]))'''
 
     accessible_clauses.append(f'({user_clause})')

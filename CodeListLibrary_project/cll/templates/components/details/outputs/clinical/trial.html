@@ -13,14 +13,29 @@
         <ul>
           {% for p in component.value %}
             <li>
-              <strong>ID</strong>: {{ p.id }}
-              <strong>Link</strong>: <a href="{{ p.link }}">{{ p.link }}</a>
-              <strong>Name</strong>: {{ p.name }}
-              {% if p.primary and p.primary == 1 %}
-                <span class="badge">
-                  <strong>Primary</strong>
-                </span>
-              {% endif %}
+              <div class="box-container">
+                <div class="row">
+                  <div class="col-sm-11">
+                    <div class="row">
+                      <div class="col-sm-12">
+                        <strong>ID</strong>: {{ p.id }}
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-sm-12">
+                        <strong>Trial</strong>: <a href="{{ p.link }}">{{ p.name }}</a>
+                      </div>
+                    </div>
+                  </div>
+                {% if p.primary and p.primary == 1 %}
+                  <div class="col-sm-1">
+                    <span class="badge">
+                      <strong>Primary</strong>
+                    </span>
+                  </div>
+                {% endif %}
+                </div>
+              </div>
             </li>
           {% endfor %}
         </ul>

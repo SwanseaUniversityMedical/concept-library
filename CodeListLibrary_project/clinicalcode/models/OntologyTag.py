@@ -9,6 +9,7 @@ from django.contrib.postgres.aggregates.general import ArrayAgg
 from django_postgresql_dag.models import node_factory, edge_factory
 
 import logging
+import psycopg2
 
 from ..entity_utils import gen_utils
 from ..entity_utils import constants
@@ -16,6 +17,16 @@ from ..entity_utils import constants
 from .CodingSystem import CodingSystem
 
 logger = logging.getLogger(__name__)
+
+"""
+	Default const. value specifying the minimum amount of characters required before a typeahead request will be queried
+"""
+TYPEAHEAD_MIN_CHARS = 3
+
+"""
+	Default const. value specifying the maximum number of results to return in a typeahead query
+"""
+TYPEAHEAD_MAX_RESULTS = 20
 
 class OntologyTagEdge(edge_factory('OntologyTag', concrete=False)):
 	"""
@@ -446,110 +457,402 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 			Returns:
 				Either (a) the default value if none are found,
-					or (b) a dict containing the associated node's data
+					  or (b) a dict containing the associated node's data
 		"""
+		if not isinstance(node_id, int):
+			return default
+
 		model_source = None
 		if isinstance(ontology_id, constants.ONTOLOGY_TYPES):
 			model_source = ontology_id.value
 		elif isinstance(ontology_id, int) and ontology_id in constants.ONTOLOGY_TYPES:
 			model_source = ontology_id
 
-		if not isinstance(node_id, int):
-			return default
+		with connection.cursor() as cursor:
+			try:
+				label_cases = None
+				if not isinstance(model_source, int) or model_source < 0:
+					model_label = 'Unknown'
+					model_source = -1
 
-		try:
-			node = None
-			if isinstance(model_source, int):
-				node = OntologyTag.objects.filter(id=node_id, type_id=model_source)
-			else:
-				node = OntologyTag.objects.filter(id=node_id)
+					label_cases = psycopg2.sql.SQL('case')
+					for x in constants.ONTOLOGY_LABELS:
+						label_cases += psycopg2.sql.SQL('''\nwhen sel.type_id = {value} then {label}''') \
+								.format(
+									value=psycopg2.sql.Literal(x.value),
+									label=psycopg2.sql.Literal(constants.ONTOLOGY_LABELS[x] if x in constants.ONTOLOGY_LABELS else x.name),
+								)
 
-			node = node.first() if node.exists() else None
-			if node is None:
+					label_cases += psycopg2.sql.SQL('''\nelse 'Unknown'\n end\n''')
+				else:
+					if not isinstance(model_label, str) or gen_utils.is_empty_string(model_label):
+						model_label = constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(model_source)]
+
+					label_cases = psycopg2.sql.Literal(model_label)
+
+				sql = psycopg2.sql.SQL('''
+				with
+					recursive ancestry(parent_id, child_id, trg, depth, path) as (
+						select
+									n0.parent_id,
+									n0.child_id,
+									n0.child_id as trg,
+									1 as depth,
+									array[n0.parent_id, n0.child_id] as path
+							from public.clinicalcode_ontologytagedge as n0
+							left outer join public.clinicalcode_ontologytagedge as n1
+								on n0.parent_id = n1.child_id
+						 where n0.child_id = %(node_id)s
+						union
+						select
+									n2.parent_id,
+									ancestry.child_id,
+									ancestry.trg,
+									ancestry.depth + 1 as depth,
+									n2.parent_id || ancestry.path
+							from ancestry
+							join public.clinicalcode_ontologytagedge as n2
+								on n2.child_id = ancestry.parent_id
+					),
+					selected as (
+						select *
+							from public.clinicalcode_ontologytag as node
+						 where node.id = %(node_id)s
+						 limit 1
+					),
+					root_path as (
+						select path.*
+							from ancestry as path
+							join (
+								select
+											trg,
+											min(depth) as depth
+									from ancestry
+								 group by trg
+							) as roots
+								on (roots.depth = path.depth and roots.trg = path.trg)
+					),
+					root_nodes as (
+						select
+									sel.id,
+									json_agg(
+										jsonb_build_object(
+											'id', node.id,
+											'label', node.name
+										)
+										order by node.id asc
+									) as tree
+							from selected as sel
+							join root_path as path
+								on path.trg = sel.id
+							join public.clinicalcode_ontologytag as node
+								on node.id = path.parent_id
+						 group by sel.id
+					),
+					child_nodes as (
+						select
+									c0.id,
+									count(*) as cnt,
+									json_agg(c0.tree) as tree
+							from (
+								select
+											obj.id as id,
+											jsonb_build_object(
+												'id', n0.id,
+												'label', n0.name,
+												'properties', n0.properties,
+												'isRoot', false,
+												'isLeaf', case when count(t1.child_id) < 1 then true else false end,
+												'type_id', n0.type_id,
+												'reference_id', n0.reference_id,
+												'child_count', count(t1.child_id),
+												'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
+											) as tree
+									from selected as obj
+									join public.clinicalcode_ontologytagedge as e0
+										on obj.id = e0.parent_id
+									join public.clinicalcode_ontologytag as n0
+										on e0.child_id = n0.id
+									left outer join public.clinicalcode_ontologytagedge as t0
+										on n0.id = t0.child_id
+									left outer join public.clinicalcode_ontologytagedge as t1
+										on n0.id = t1.parent_id
+								 group by obj.id, n0.id
+							) as c0
+						 group by c0.id
+					),
+					parent_nodes as (
+						select
+									c0.id,
+									count(*) as cnt,
+									json_agg(c0.tree) as tree
+							from (
+								select
+										obj.id as id,
+										jsonb_build_object(
+											'id', n0.id,
+											'label', n0.name,
+											'properties', n0.properties,
+											'isRoot', case when count(t0.parent_id) < 1 then true else false end,
+											'isLeaf', case when count(t1.child_id) < 1 then true else false end,
+											'type_id', n0.type_id,
+											'reference_id', n0.reference_id,
+											'child_count', count(t1.child_id),
+											'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
+										) as tree
+								from selected as obj
+								join public.clinicalcode_ontologytagedge as e0
+									on obj.id = e0.child_id
+								join public.clinicalcode_ontologytag as n0
+									on e0.parent_id = n0.id
+								left outer join public.clinicalcode_ontologytagedge t0
+									on n0.id = t0.child_id
+								left outer join public.clinicalcode_ontologytagedge t1
+									on n0.id = t1.parent_id
+							 group by obj.id, n0.id
+							) as c0
+						 group by c0.id
+					)
+				select
+							json_build_object(
+								'id', sel.id,
+								'label', sel.name,
+								'model', (
+									case
+										when sel.type_id = {model_source} then
+											json_build_object(
+												'label', {model_label},
+												'source', {model_source}
+											)
+										else
+											json_build_object(
+												'label', ({label_cases}),
+												'source', sel.type_id
+											)
+									end
+								),
+								'properties', sel.properties,
+								'isLeaf', case when coalesce(children.cnt, 0) < 1 then True else False end,
+								'isRoot', case when parents.id is NULL then True else False end,
+								'type_id', sel.type_id,
+								'reference_id', sel.reference_id,
+								'child_count', coalesce(children.cnt, 0),
+								'parents', coalesce(parents.tree, '[]'::json),
+								'children', coalesce(children.tree, '[]'::json),
+								'roots', coalesce(roots.tree, '[]'::json)
+							) as tree
+					from selected as sel
+					left outer join parent_nodes as parents
+						using (id)
+					left outer join child_nodes as children
+						using (id)
+					left outer join root_nodes as roots
+						using (id)
+				''') \
+					.format(
+						model_label=psycopg2.sql.Literal(model_label),
+						model_source=psycopg2.sql.Literal(model_source),
+						label_cases=label_cases
+					)
+
+				cursor.execute(sql, params={ 'node_id': node_id })
+
+				columns = [col[0] for col in cursor.description]
+				results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+				return results[0].get('tree') if len(results) > 0 and results[0].get('tree') is not None else default
+			except:
 				return default
 
-			model_source = node.type_id
-			parents = node.parents.all()
-			if parents.count() > 0:
-				parents = parents.annotate(
-						tree_dataset=JSONObject(
-							id=F('id'),
-							label=F('name'),
-							properties=F('properties'),
-							isRoot=Case(
-								When(
-									Exists(OntologyTag.parents.through.objects.filter(
-										child_id=OuterRef('pk'),
-									)),
-									then=False
+
+	@classmethod
+	def get_node_resultset(cls, node_ids, default=None):
+		"""
+			Computes an array of objects describing the nodes matched by the specified node_ids
+
+			Args:
+				node_ids (int|str|list): the node id(s); this could be one or more node ids
+
+				default (any|None): the default return value
+
+			Returns:
+				Either (a) the default value if none are found,
+					  or (b) a list of objects containing the node data
+		"""
+		node_ids = gen_utils.try_value_as_type(node_ids, 'int_array', loose_coercion=True, strict_elements=False, default=None)
+		if not isinstance(node_ids, list) or len(node_ids) < 1:
+			return default
+
+		with connection.cursor() as cursor:
+			try:
+				label_cases = psycopg2.sql.SQL('case')
+				for x in constants.ONTOLOGY_LABELS:
+					label_cases += psycopg2.sql.SQL('''\nwhen sel.type_id = {value} then {label}''') \
+							.format(
+								value=psycopg2.sql.Literal(x.value),
+								label=psycopg2.sql.Literal(constants.ONTOLOGY_LABELS[x] if x in constants.ONTOLOGY_LABELS else x.name),
+							)
+
+				label_cases += psycopg2.sql.SQL('''\nelse 'Unknown'\n end\n''')
+
+				sql = psycopg2.sql.SQL('''
+				with
+					recursive ancestry(parent_id, child_id, trg, depth, path) as (
+						select
+									n0.parent_id,
+									n0.child_id,
+									n0.child_id as trg,
+									1 as depth,
+									array[n0.parent_id, n0.child_id] as path
+							from public.clinicalcode_ontologytagedge as n0
+							left outer join public.clinicalcode_ontologytagedge as n1
+								on n0.parent_id = n1.child_id
+						 where n0.child_id = any(%(node_ids)s)
+						union
+						select
+									n2.parent_id,
+									ancestry.child_id,
+									ancestry.trg,
+									ancestry.depth + 1 as depth,
+									n2.parent_id || ancestry.path
+							from ancestry
+							join public.clinicalcode_ontologytagedge as n2
+								on n2.child_id = ancestry.parent_id
+					),
+					selected as (
+						select *
+							from public.clinicalcode_ontologytag as node
+						 where node.id = any(%(node_ids)s)
+					),
+					root_path as (
+						select path.*
+							from ancestry as path
+							join (
+								select
+											trg,
+											min(depth) as depth
+									from ancestry
+								 group by trg
+							) as roots
+								on (roots.depth = path.depth and roots.trg = path.trg)
+					),
+					root_nodes as (
+						select
+									sel.id,
+									json_agg(
+										jsonb_build_object(
+											'id', node.id,
+											'label', node.name
+										)
+										order by node.id asc
+									) as tree
+							from selected as sel
+							join root_path as path
+								on path.trg = sel.id
+							join public.clinicalcode_ontologytag as node
+								on node.id = path.parent_id
+						 group by sel.id
+					),
+					child_nodes as (
+						select
+									c0.id,
+									count(*) as cnt,
+									json_agg(c0.tree) as tree
+							from (
+								select
+											obj.id as id,
+											jsonb_build_object(
+												'id', n0.id,
+												'label', n0.name,
+												'properties', n0.properties,
+												'isRoot', false,
+												'isLeaf', case when count(t1.child_id) < 1 then true else false end,
+												'type_id', n0.type_id,
+												'reference_id', n0.reference_id,
+												'child_count', count(t1.child_id),
+												'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
+											) as tree
+									from selected as obj
+									join public.clinicalcode_ontologytagedge as e0
+										on obj.id = e0.parent_id
+									join public.clinicalcode_ontologytag as n0
+										on e0.child_id = n0.id
+									left outer join public.clinicalcode_ontologytagedge as t0
+										on n0.id = t0.child_id
+									left outer join public.clinicalcode_ontologytagedge as t1
+										on n0.id = t1.parent_id
+								 group by obj.id, n0.id
+							) as c0
+						 group by c0.id
+					),
+					parent_nodes as (
+						select
+									c0.id,
+									count(*) as cnt,
+									json_agg(c0.tree) as tree
+							from (
+								select
+										obj.id as id,
+										jsonb_build_object(
+											'id', n0.id,
+											'label', n0.name,
+											'properties', n0.properties,
+											'isRoot', case when count(t0.parent_id) < 1 then true else false end,
+											'isLeaf', case when count(t1.child_id) < 1 then true else false end,
+											'type_id', n0.type_id,
+											'reference_id', n0.reference_id,
+											'child_count', count(t1.child_id),
+											'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
+										) as tree
+								from selected as obj
+								join public.clinicalcode_ontologytagedge as e0
+									on obj.id = e0.child_id
+								join public.clinicalcode_ontologytag as n0
+									on e0.parent_id = n0.id
+								left outer join public.clinicalcode_ontologytagedge t0
+									on n0.id = t0.child_id
+								left outer join public.clinicalcode_ontologytagedge t1
+									on n0.id = t1.parent_id
+							 group by obj.id, n0.id
+							) as c0
+						 group by c0.id
+					)
+				select
+							json_build_object(
+								'id', sel.id,
+								'label', sel.name,
+								'model', json_build_object(
+									'label', ({label_cases}),
+									'source', sel.type_id
 								),
-								default=True
-							),
-							isLeaf=False,
-							type_id=F('type_id'),
-							reference_id=F('reference_id'),
-							child_count=Count(F('children')),
-							parents=ArrayAgg('parents', distinct=True)
-						)
-					) \
-					.values_list('tree_dataset', flat=True)
-			else:
-				parents = []
+								'properties', sel.properties,
+								'isLeaf', case when coalesce(children.cnt, 0) < 1 then True else False end,
+								'isRoot', case when parents.id is NULL then True else False end,
+								'type_id', sel.type_id,
+								'reference_id', sel.reference_id,
+								'child_count', coalesce(children.cnt, 0),
+								'parents', coalesce(parents.tree, '[]'::json),
+								'children', coalesce(children.tree, '[]'::json),
+								'roots', coalesce(roots.tree, '[]'::json)
+							) as tree
+					from selected as sel
+					left outer join parent_nodes as parents
+						using (id)
+					left outer join child_nodes as children
+						using (id)
+					left outer join root_nodes as roots
+						using (id)
+				''') \
+					.format(
+						label_cases=label_cases
+					)
 
-			children = node.children.all()
-			if children.count() > 0:
-				children = OntologyTag.objects.filter(id__in=children) \
-					.annotate(
-						child_count=Count(F('children'))
-					) \
-					.annotate(
-						tree_dataset=JSONObject(
-							id=F('id'),
-							label=F('name'),
-							properties=F('properties'),
-							isRoot=False,
-							isLeaf=Case(
-								When(child_count__lt=1, then=True),
-								default=False
-							),
-							type_id=F('type_id'),
-							reference_id=F('reference_id'),
-							child_count=F('child_count'),
-							parents=ArrayAgg('parents', distinct=True)
-						)
-					) \
-					.values_list('tree_dataset', flat=True)
-			else:
-				children = []
+				cursor.execute(sql, params={ 'node_ids': node_ids })
 
-			is_root = node.is_root() or node.is_island()
-			is_leaf = node.is_leaf()
-
-			model_label = model_label or constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(model_source)]
-
-			result = {
-				'id': node_id,
-				'label': node.name,
-				'model': { 'source': model_source, 'label': model_label },
-				'properties': node.properties,
-				'isRoot': is_root,
-				'isLeaf': is_leaf,
-				'type_id': node.type_id,
-				'reference_id': node.reference_id,
-				'child_count': len(children),
-				'parents': list(parents) if not isinstance(parents, list) else parents,
-				'children': list(children) if not isinstance(children, list) else children,
-			}
-
-			if not is_root:
-				roots = [ { 'id': x.id, 'label': x.name } for x in node.roots() ]
-				result.update({ 'roots': roots })
-
-			return result
-		except:
-			pass
-
-		return default
+				results = cursor.fetchall()
+				results = [row[0] for row in results if isinstance(row, (list, tuple,)) and len(row) > 0]
+				return results
+			except Exception as e:
+				return default
 
 
 	@classmethod
@@ -568,12 +871,20 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 				default (any|None): the default return value
 
 			Returns:
-				Either (a) the default value if we're unable to resolve the data,
-					or (b) a list of dicts containing the associated node's data
-						and its ancestry data
+				Either:
+					1. On failure: the default value if we're unable to resolve the data,
+					2. On success: a list of dicts containing the associated node's data and its ancestry data
 
 		"""
-		if not isinstance(descendant_ids, list):
+		descendant_ids = gen_utils.try_value_as_type(
+			descendant_ids,
+			'int_array',
+			loose_coercion=True,
+			strict_elements=False,
+			default=None
+		)
+
+		if descendant_ids is None:
 			return default
 
 		ancestry = default
@@ -582,70 +893,149 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 				sql = '''
 				with
 					recursive ancestry(parent_id, child_id, depth, path) as (
-						select n0.parent_id,
-							   n0.child_id,
-							   1 as depth,
-							   array[n0.parent_id, n0.child_id] as path
-						  from public.clinicalcode_ontologytagedge as n0
+						select
+									n0.parent_id,
+									n0.child_id,
+									1 as depth,
+									array[n0.parent_id, n0.child_id] as path
+							from public.clinicalcode_ontologytagedge as n0
 						  left outer join public.clinicalcode_ontologytagedge as n1
-							on n0.parent_id = n1.child_id
+							  on n0.parent_id = n1.child_id
 						 where n0.child_id = any(%(node_ids)s)
-						 union
-						select n2.parent_id,
-							   ancestry.child_id,
-							   ancestry.depth + 1 as depth,
-							   n2.parent_id || ancestry.path
-						  from ancestry
+						union
+						select
+									n2.parent_id,
+									ancestry.child_id,
+									ancestry.depth + 1 as depth,
+									n2.parent_id || ancestry.path
+							from ancestry
 						  join public.clinicalcode_ontologytagedge as n2
-							on n2.child_id = ancestry.parent_id
+							  on n2.child_id = ancestry.parent_id
 					),
 					ancestors as (
-						select p0.child_id,
-							   p0.path
+						select
+									p0.child_id,
+							    p0.path
 						  from ancestry as p0
 						  join (
-									select child_id,
-										   max(depth) as max_depth
-									  from ancestry
-									 group by child_id
+								select
+										child_id,
+										max(depth) as max_depth
+									from ancestry
+								 group by child_id
 							) as lim
-							on lim.child_id = p0.child_id
+								on lim.child_id = p0.child_id
 						   and lim.max_depth = p0.depth
 					),
 					objects as (
-						select selected.child_id,
-							   jsonb_build_object(
-									'id', nodes.id,
-									'label', nodes.name,
-									'properties', nodes.properties,
-									'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
-									'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
-									'type_id', nodes.type_id,
-									'reference_id', nodes.reference_id,
-									'child_count', count(edges1.child_id)
-							   ) as tree
+						select
+									selected.child_id,
+									nodes.id as nodes_id,
+									jsonb_build_object(
+										'id', nodes.id,
+										'idx', selected.idx,
+										'label', nodes.name,
+										'properties', nodes.properties,
+										'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
+										'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
+										'type_id', nodes.type_id,
+										'reference_id', nodes.reference_id,
+										'child_count', count(edges1.child_id)
+									) as tree
 						  from (
-									select id,
-										   child_id
-									  from ancestors,
-										   unnest(path) as id
-									 group by id, child_id
-								) as selected
+								select
+										id,
+										child_id,
+										idx
+									from
+											ancestors,
+											unnest(path) with ordinality as ids(id, idx)
+								 group by id, child_id, idx
+							) as selected
 						  join public.clinicalcode_ontologytag as nodes
-							on nodes.id = selected.id
+							  on nodes.id = selected.id
 						  left outer join public.clinicalcode_ontologytagedge as edges0
-							on nodes.id = edges0.child_id
+							  on nodes.id = edges0.child_id
 						  left outer join public.clinicalcode_ontologytagedge as edges1
-							on nodes.id = edges1.parent_id
-						 group by selected.child_id, nodes.id
+							  on nodes.id = edges1.parent_id
+						 group by selected.child_id, nodes.id, selected.idx
+					),
+					recur as (
+						select
+									obj.child_id,
+									obj.tree || jsonb_build_object(
+										'children', coalesce(children.tree, '[]'::json),
+										'parents', coalesce(parents.tree, '[]'::json)
+									) as tree
+							from objects as obj
+						  left outer join (
+								select c0.id, json_agg(c0.tree) as tree
+								  from (
+										select
+													sel.nodes_id as id,
+													jsonb_build_object(
+														'id', n0.id,
+														'label', n0.name,
+														'properties', n0.properties,
+														'isRoot', false,
+														'isLeaf', case when count(t1.child_id) < 1 then true else false end,
+														'type_id', n0.type_id,
+														'reference_id', n0.reference_id,
+														'child_count', count(t1.child_id),
+														'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
+													) as tree
+										from objects as sel
+										join public.clinicalcode_ontologytagedge as e0
+											on sel.nodes_id = e0.parent_id
+										join public.clinicalcode_ontologytag as n0
+											on e0.child_id = n0.id
+										left outer join public.clinicalcode_ontologytagedge as t0
+											on n0.id = t0.child_id
+										left outer join public.clinicalcode_ontologytagedge as t1
+											on n0.id = t1.parent_id
+										group by sel.nodes_id, n0.id
+								  ) as c0
+								 group by c0.id
+							) as children
+							  on children.id = obj.nodes_id
+						  left outer join (
+								select c0.id, json_agg(c0.tree) as tree
+								  from (
+										select
+													sel.nodes_id as id,
+													jsonb_build_object(
+														'id', n0.id,
+														'label', n0.name,
+														'properties', n0.properties,
+														'isRoot', case when count(t0.parent_id) < 1 then true else false end,
+														'isLeaf', case when count(t1.child_id) < 1 then true else false end,
+														'type_id', n0.type_id,
+														'reference_id', n0.reference_id,
+														'child_count', count(t1.child_id),
+														'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
+													) as tree
+										from objects as sel
+										join public.clinicalcode_ontologytagedge as e0
+											on sel.nodes_id = e0.child_id
+										join public.clinicalcode_ontologytag as n0
+											on e0.parent_id = n0.id
+										left outer join public.clinicalcode_ontologytagedge as t0
+											on n0.id = t0.child_id
+										left outer join public.clinicalcode_ontologytagedge as t1
+											on n0.id = t1.parent_id
+										group by sel.nodes_id, n0.id
+								  ) as c0
+								 group by c0.id
+							) as parents
+							  on parents.id = obj.nodes_id
 					)
-
-				select ancestor.child_id,
-					     ancestor.path,
-					     json_agg(obj.tree) as dataset
+				select
+							ancestor.child_id,
+							ancestor.path,
+							json_agg(obj.tree order by obj.tree->>'idx') as dataset
 				  from ancestors as ancestor
-				  join objects as obj
-					on obj.child_id = ancestor.child_id
+				  join recur as obj
+					  on obj.child_id = ancestor.child_id
 				 group by ancestor.child_id, ancestor.path;
 				'''
 
@@ -734,13 +1124,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			) \
 			.values_list('tree_dataset', flat=True)
 
-		nodes = [
+		return [
 			node | { 'full_names': roots.get(node.get('id')) }
 			if not node.get('isRoot') and roots.get(node.get('id')) else node
 			for node in nodes
 		]
-	
-		return nodes
 
 
 	@classmethod
@@ -765,28 +1153,28 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					or (b) a dict containing the value id(s) and any pre-fetched ancestor-related data 
 
 		"""
-		if not isinstance(node_ids, list) or not isinstance(type_ids, list):
+		node_ids = gen_utils.try_value_as_type(node_ids, 'int_array', loose_coercion=True, strict_elements=False, default=None)
+		type_ids = gen_utils.try_value_as_type(type_ids, 'int_array', loose_coercion=True, strict_elements=False, default=None)
+
+		if (node_ids is None or len(node_ids) < 1) or (type_ids and len(type_ids) < 1):
 			return default
 
-		node_ids = [int(node_id) for node_id in node_ids if gen_utils.parse_int(node_id, default=None) is not None]
-		type_ids = [int(type_id) for type_id in type_ids if gen_utils.parse_int(type_id, default=None) is not None]
+		nodes = OntologyTag.get_node_resultset(node_ids, default=[])
+		ancestors = []
 
-		if len(node_ids) < 1 or len(type_ids) < 1:
-			return default
+		tree = cls.build_tree(node_ids, default=None)
+		if tree:
+			for node in nodes:
+				if len(node.get('children', [])) + len(node.get('parents', [])) < 1:
+					continue
 
-		nodes = OntologyTag.objects.filter(id__in=node_ids, type_id__in=type_ids)
-		ancestors = [
-			[
-				OntologyTag.get_node_data(ancestor.id, default=None)
-				for ancestor in node.ancestors()
-			]
-			for node in nodes
-			if not node.is_root() and not node.is_island()
-		]
+				obj = next((x for x in tree if x.get('child_id') == node.get('id')), None)
+				if obj is not None and isinstance(obj.get('dataset'), list):
+					ancestors.append(obj.get('dataset'))
 
 		return {
 			'ancestors': ancestors,
-			'value': [OntologyTag.get_node_data(node_id) for node_id in node_ids],
+			'value': nodes,
 		}
 
 
@@ -808,13 +1196,10 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					or (b) a list of objects containing the sourced value data
 
 		"""
-		if not isinstance(node_ids, list) or not isinstance(type_ids, list):
-			return default
+		node_ids = gen_utils.try_value_as_type(node_ids, 'int_array', loose_coercion=True, strict_elements=False, default=None)
+		type_ids = gen_utils.try_value_as_type(type_ids, 'int_array', loose_coercion=True, strict_elements=False, default=None)
 
-		node_ids = [int(node_id) for node_id in node_ids if gen_utils.parse_int(node_id, default=None) is not None]
-		type_ids = [int(type_id) for type_id in type_ids if gen_utils.parse_int(type_id, default=None) is not None]
-
-		if len(node_ids) < 1 or len(type_ids) < 1:
+		if (node_ids is None or len(node_ids) < 1) or (type_ids is None or len(type_ids) < 1):
 			return default
 
 		nodes = OntologyTag.objects.filter(id__in=node_ids, type_id__in=type_ids)
@@ -822,3 +1207,80 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 			return default
 
 		return list(nodes.annotate(value=F('id')).values('name', 'value'))
+
+
+	@classmethod
+	def query_typeahead(cls, searchterm = '', type_ids=None, result_limit = TYPEAHEAD_MAX_RESULTS):
+		"""
+			Autocomplete, typeahead-like web search for Ontology search components
+
+			Note:
+				The searchterm must satisfy the `TYPEAHEAD_MIN_CHARS` size (gte 3) to return results
+
+			Args:
+				searchterm (str): some web query search term; defaults to an empty `str`
+
+				type_ids (int|str|int[]): optionally narrow the resultset by specifying the ontology type ids; defaults to `None`
+
+				result_limit (int): maximum number of results to return per request; defaults to `TYPEAHEAD_MAX_RESULTS`
+
+			Returns:
+				An array, ordered by search rank, listing each of the matching ontological terms
+
+		"""
+		if not isinstance(searchterm, str) or gen_utils.is_empty_string(searchterm) or len(searchterm) < TYPEAHEAD_MIN_CHARS:
+			return []
+
+		type_ids = gen_utils.try_value_as_type(type_ids, 'int_array', loose_coercion=True, strict_elements=False, default=[])
+		with connection.cursor() as cursor:
+			sql = psycopg2.sql.SQL('''
+			with
+				matches as (
+					select
+								node.id,
+								node.name,
+								node.type_id,
+								node.properties,
+								ts_rank_cd(node.search_vector, websearch_to_tsquery('pg_catalog.english', %(searchterm)s)) as score
+						from public.clinicalcode_ontologytag as node
+					 where ((
+								search_vector
+								@@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|'))
+						  )
+							 or (
+								(relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|')))
+								or (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|')))
+						  )
+					   )
+			''')
+
+			if len(type_ids) > 0:
+				sql = sql + psycopg2.sql.SQL('''and node.type_id = any(%(type_ids)s::int[])''')
+
+			sql = sql + psycopg2.sql.SQL('''		
+					 group by node.id
+					 limit {lim_size}
+				)
+			select json_agg(
+							jsonb_build_object(
+								'id', node.id,
+								'label', node.name,
+								'properties', coalesce(node.properties, jsonb_build_object()),
+								'type_id', node.type_id
+							)
+							order by node.score desc
+						) as agg
+				from matches as node
+			''') \
+				.format(
+					lim_size=psycopg2.sql.Literal(result_limit)
+				)
+
+			cursor.execute(sql, params={
+				'type_ids': type_ids,
+				'searchterm': searchterm,
+			})
+
+			columns = [col[0] for col in cursor.description]
+			results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+			return results[0].get('agg') if len(results) > 0 and isinstance(results[0].get('agg'), list) else []

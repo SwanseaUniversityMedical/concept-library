@@ -9,11 +9,11 @@
         "mandatory": false,
         "sanitise": "strict"
       },
-      "description": "The name of the corresponding author."
+      "description": "The name of the corresponding author (optional)."
     },
     "ontology": {
       "title": "Ontology",
-      "description": "A set of taggable categories and concepts that describe this Phenotype.",
+      "description": "A set of taggable categories and concepts that best describe this Phenotype (optional).",
       "field_type": "ontology",
       "active": true,
       "hydrated": true,
@@ -124,16 +124,18 @@
     "corresp_email": {
       "title": "Email Address",
       "active": true,
+      "requires_auth": true,
       "field_type": "string_inputbox",
       "validation": {
         "type": "string",
         "regex": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
         "mandatory": false
       },
-      "description": "The preferred email address."
+      "description": "The preferred e-mail address of the corresponding author (optional)."
     },
     "phenotype_uuid": {
       "title": "Phenotype UUID",
+      "description": "If applicable, the UUID referencing this Phenotype's source (optional).",
       "active": true,
       "search": {
         "api": true
@@ -174,29 +176,28 @@
         },
         "mandatory": true
       },
-      "description": "The category of patient characteristic this phenotype falls under."
+      "description": "The category of patient characteristics this Phenotype is best described by."
     },
     "endorsements": {
       "title": "Endorsements",
-      "description": "Endorsements for this phenotype.",
+      "description": "Endorsements for this Phenotype (optional).",
       "field_type": "endorsements",
       "active": true,
       "validation": {
-          "type": "endorsement",
-          "mandatory": false
+        "type": "endorsement",
+        "mandatory": false
       }
     },
     "trials": {
       "title": "Clinical Trials",
-      "description": "Clinical Trials associated with this phenotype.",
+      "description": "Clinical Trials associated with this Phenotype.",
       "field_type": "trials",
       "active": true,
       "validation": {
-          "type": "trial",
-          "mandatory": false
+        "type": "trial",
+        "mandatory": false
       }
     },
-   
     "data_sources": {
       "title": "Data Sources",
       "active": true,
@@ -219,7 +220,7 @@
         },
         "mandatory": false
       },
-      "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for."
+      "description": "A list identifying data sources referenced, used or required by this Phenotype (optional)."
     },
     "event_date_range": {
       "title": "Valid Event Date Range",
@@ -231,7 +232,7 @@
         "mandatory": false,
         "sanitise": "strict"
       },
-      "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional)."
+      "description": "If this Phenotype is only applicable within a limited time period, please specify that here (optional)."
     },
     "sex": {
       "title": "Sex",
@@ -259,20 +260,7 @@
           }
         ]
       },
-      "description": "The biological sex this phenotype is applicable to."
-    },
-    "agreement_date": {
-      "title": "Agreement Date",
-      "active": false,
-      "field_type": "date",
-      "validation": {
-        "type": "string",
-        "regex": "(0[1-9]|[12]\\d|30|31)\\/(0[1-9]|1[0-2])\\/(\\d{4})",
-        "mandatory": false
-      },
-      "description": "A date representing when this phenotype was first finalized (may predate the Phenotype Library). Deprecated.",
-      "hide_if_empty": true,
-      "hide_on_create": true
+      "description": "The biological sex this Phenotype is applicable to."
     },
     "coding_system": {
       "title": "Coding System",
@@ -292,12 +280,12 @@
         "computed": true,
         "mandatory": false
       },
-      "description": "Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
+      "description": "Clinical coding system(s) contained within this Phenotype. A Phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
       "hide_on_create": true
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
-      "description": "URL of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
+      "description": "URL of this Phenotype's PhenoFLOW implementation, if applicable (optional). For more information: https://kclhi.org/phenoflow/",
       "field_type": "phenoflowid",
       "active": true,
       "validation": {
@@ -317,29 +305,13 @@
         "mandatory": false,
         "has_children": true
       },
-      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this phenotype."
-    },
-    "source_reference": {
-      "title": "Source Reference",
-      "active": false,
-      "field_type": "string_inputbox",
-      "validation": {
-        "type": "string",
-        "length": [
-          0,
-          250
-        ],
-        "mandatory": false,
-        "sanitise": "strict"
-      },
-      "description": "If this phenotype is derived from a third-party source, define that here. Deprecated.",
-      "hide_if_empty": true,
-      "hide_on_create": true
+      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this Phenotype."
     }
   },
+
   "sections": [
     {
-      "title": "Name - Author",
+      "title": "Name & Author",
       "fields": [
         "name",
         "author",
@@ -362,7 +334,7 @@
         "collections",
         "tags"
       ],
-      "description": "An overview of the phenotype with basic metadata."
+      "description": "An overview of the Phenotype with metadata, or descriptors, that identifies this Phenotype."
     },
     {
       "title": "Definition",
@@ -379,7 +351,7 @@
         "phenoflowid",
         "implementation"
       ],
-      "description": "How this phenotype definition is run against data.",
+      "description": "How this Phenotype definition might be used in practice, and its relation to other practical applications.",
       "hide_if_empty": true
     },
     {
@@ -387,7 +359,7 @@
       "fields": [
         "validation"
       ],
-      "description": "Description of how correctness, appropriateness, and/or quality was assessed.",
+      "description": "A description of the methods used to validate this Phenotype and any assessment of its quality.",
       "hide_if_empty": true,
       "do_not_show_in_production": true
     },
@@ -396,7 +368,8 @@
       "fields": [
         "concept_information"
       ],
-      "description": "Clinical codes used to define this phenotype."
+      "documentation": "clinical-coded-phenotype-docs",
+      "description": "Clinical codes that defines this Phenotype."
     },
     {
       "title": "Publication",
@@ -404,14 +377,14 @@
         "publications",
         "citation_requirements"
       ],
-      "description": "Publication(s) where this phenotype is defined and/or used."
+      "description": "Publications that reference this Phenotype and how this Phenotype might be cited in further research."
     }
-
   ],
+
   "template_details": {
     "name": "BHF Data Science Centre Phenotype",
     "version": 1,
     "card_type": "clinical",
-    "description": "BHF Data Science Centre Phenotype definitions that are based on lists of clinical codes, or algorithms using clinical codes."
+    "description": "BHF Data Science Centre Phenotype definitions that describe a list of clinical codes, algorithms using clinical codes, or set of clinical trials. Visit the BHF Data Science Centre website to learn more: https://bhfdatasciencecentre.org"
   }
 }

@@ -15,7 +15,7 @@
     },
     {
       "title": "Overview",
-      "description": "An overview of the phenotype with basic metadata.",
+      "description": "An overview of the Phenotype with basic metadata.",
       "fields": ["type", "coding_system", "data_sources", "collections", "tags", "ontology", "source_reference"]
     },
     {
@@ -25,7 +25,7 @@
     },
     {
       "title": "Implementation",
-      "description": "How this phenotype definition is run against data.",
+      "description": "How this Phenotype definition is run against data.",
       "fields": ["implementation"],
       "hide_if_empty": true
     },
@@ -39,12 +39,12 @@
     {
       "title": "Phecodes",
       "documentation": "clinical-coded-phenotype-docs",
-      "description": "Clinical codes used to define this phenotype.",
+      "description": "Clinical codes used to define this Phenotype.",
       "fields": ["concept_information"]
     },
     {
       "title": "Publication",
-      "description": "Publication(s) where this phenotype is defined and/or used.",
+      "description": "Publication(s) where this Phenotype is defined and/or used.",
       "fields": ["publications", "citation_requirements"]
     }
   ],
@@ -52,7 +52,7 @@
   "fields": {
     "type": {
       "title": "Phenotype Type",
-      "description": "The category of patient characteristic this phenotype falls under.",
+      "description": "The category of patient characteristic this Phenotype falls under.",
       "field_type": "enum_dropdown_badge",
       "active": true,
       "validation": {
@@ -75,7 +75,7 @@
     },
     "data_sources": {
       "title": "Data Sources",
-      "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.",
+      "description": "Data sources the Phenotype creators have run this Phenotype against; or view as appropriate to use this Phenotype for.",
       "field_type": "data_sources",
       "active": true,
       "hydrated": true,
@@ -206,7 +206,7 @@
     },
     "coding_system": {
       "title": "Coding System",
-      "description":"Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
+      "description":"Clinical coding system(s) contained within this Phenotype. A Phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
       "field_type": "coding_system",
       "active": true,
       "validation": {

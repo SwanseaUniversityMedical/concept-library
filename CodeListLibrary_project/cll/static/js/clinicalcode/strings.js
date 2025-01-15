@@ -5,6 +5,7 @@ import DOMPurify from '../lib/purify.min.js';
  * @desc strictly sanitise the given string (remove html, svg, mathML)
  * 
  * @param {string} str
+ * 
  * @return {str} The sanitised string 
  */
 window.strictSanitiseString = (dirty, opts) => {
@@ -27,9 +28,10 @@ window.strictSanitiseString = (dirty, opts) => {
  * @desc Interpolate string template
  *       Ref @ https://stackoverflow.com/posts/41015840/revisions
  * 
- * @param {string} str The string to interpolate
- * @param {object} params The parameters
+ * @param {string}      str The string to interpolate
+ * @param {object}      params The parameters
  * @param {boolean|any} noSanitise Skip string sanitisation
+ * 
  * @return {str} The interpolated string
  * 
  */
@@ -47,14 +49,17 @@ window.interpolateString = (str, params, noSanitise) => {
 /**
  * parseHTMLFromString
  * @desc given a string of HTML, will return a parsed DOM
- * @param {str} str The string to parse as DOM elem
+ * 
+ * @param {str}         str        The string to parse as DOM elem
  * @param {boolean|any} noSanitise Skip string sanitisation
+ * @param {vararg}      params1    Sanitiser args
+ * 
  * @returns {DOM} the parsed html
  */
-window.parseHTMLFromString = (str, noSanitise) => {
+window.parseHTMLFromString = (str, noSanitise, ...sanitiseArgs) => {
   const parser = new DOMParser();
   if (!noSanitise) {
-    str = DOMPurify.sanitize(str);
+    str = DOMPurify.sanitize(str, ...sanitiseArgs);
   }
 
   return parser.parseFromString(str, 'text/html');
