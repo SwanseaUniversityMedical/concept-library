@@ -298,7 +298,7 @@ def get_concept_headers(concept_information, default=None):
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    if len(results) < 0:
+    if len(results) < 1:
         return default
 
     return results
@@ -377,7 +377,7 @@ def get_concept_dataset(packet, field_name='concept_information', default=None):
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    if len(results) < 0:
+    if len(results) < 1:
         return default
 
     return results

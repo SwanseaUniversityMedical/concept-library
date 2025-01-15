@@ -356,8 +356,8 @@ class CreateEntityView(TemplateView):
         if concept_id is None or concept_version_id is None:
             raise BadRequest('Parameters are missing')
 
-        concept_id = gen_utils.parse_int(concept_id)
-        concept_version_id = gen_utils.parse_int(concept_version_id)
+        concept_id = gen_utils.parse_int(concept_id, None)
+        concept_version_id = gen_utils.parse_int(concept_version_id, None)
         if concept_id is None or concept_version_id is None:
             raise BadRequest('Parameter type mismatch')
         
@@ -420,7 +420,6 @@ class CreateEntityView(TemplateView):
 				An object describing the node and its ancestry if found; otherwise returns an appropriate err
 
         """
-        print(gen_utils.try_get_param(request, 'node_id'), gen_utils.try_get_param(request, 'type_id'))
         node_id = gen_utils.try_value_as_type(
             gen_utils.try_get_param(request, 'node_id'),
             'int',

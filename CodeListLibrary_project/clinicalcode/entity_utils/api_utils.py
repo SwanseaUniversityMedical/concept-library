@@ -373,7 +373,7 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
             ltype = '::bigint'
             datatype = '::bigint'
         elif sub_type == 'string_array':
-            data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') ]
+            data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
             ltype = '::text'
             datatype = ''
             processor = 'lower'
@@ -520,7 +520,7 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
         data = [ int(x) for x in data.split(',') if isinstance(gen_utils.parse_int(x, default=None), int) ]
         datatype = 'bigint'
     elif sub_type == 'string_array':
-        data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') ]
+        data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
         datatype = 'text'
         processor = 'lower'
 
@@ -651,7 +651,7 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
             source = validation.get('source')
             trees = source.get('trees') if source and 'trees' in validation.get('source') else None
             if trees:
-                data = [ str(x) for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') ]
+                data = [ str(x) for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
                 model = source.get('model') if isinstance(source.get('model'), str) else None
 
                 if model:

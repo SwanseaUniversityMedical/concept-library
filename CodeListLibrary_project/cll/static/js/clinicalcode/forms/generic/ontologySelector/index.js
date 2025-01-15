@@ -3,6 +3,25 @@ import OntologySelectionModal from './modal.js';
 import VirtualisedList, { DebouncedTask } from '../../../components/virtualisedList/index.js';
 
 /**
+ * @desc constructs a predicate to find an object within an arr
+ * 
+ * @param {number} id some parent id 
+ * 
+ * @returns {Function} a predicate to locate the index of the parent within an arr (if found) 
+ */
+const hasParentPred = (id) => {
+  return (x) => {
+    if (typeof x === 'object' && x?.id === id) {
+      return true;
+    } else if (typeof x === 'number' && x === id) {
+      return true;
+    }
+
+    return false;
+  };
+}
+
+/**
  * @class OntologySelectionService
  * @desc Class that allows the selection of items from arbitrary
  *       directed acyclic graphs that define taggable ontologies
@@ -336,43 +355,79 @@ export default class OntologySelectionService {
             continue;
           }
 
-          OntologySelectionService.applyToTree(dataset.nodes, elem => {
-            if (elem.id !== node.id) {
-              return false;
-            }
+          const nodeHasParents = Array.isArray(node?.parents);
+          const nodeHasChildren = Array.isArray(node?.children);
+          const expectedParents = nodeHasParents ? node.parents.length : 0;
 
-            if (node?.children && elem?.children) {
-              for (let k = 0; k < node.children; ++k) {
-                let child = node.children[k];
-                if (!isNullOrUndefined(elem.children.find(x => x.id === child.id))) {
-                  continue;
+          let countedParents = 0,
+              hasVisitedNode = false;
+
+          OntologySelectionService.applyToTree(dataset.nodes, elem => {
+            if (elem.id === node.id && !hasVisitedNode) {
+              if (nodeHasChildren && elem?.children) {
+                for (let k = 0; k < node.children; ++k) {
+                  let child = node.children[k];
+                  if (elem.children.findIndex(x => x.id === child.id) >= 0) {
+                    continue;
+                  }
+
+                  elem.children.push(child);
+                }
+              } else if (!elem?.children) {
+                node.children = nodeHasChildren ? node.children : [];
+                elem.children = node.children;
+              }
+
+              if (!elem?.parents) {
+                elem.parents = nodeHasParents ? node.parents : [];
+              } else if (nodeHasParents) {
+                elem.parents = Array.isArray(elem?.parents) ? elem.parents : [];
+                for (let k = 0; k < node.parents; ++k) {
+                  let parent = node.parents[k];
+                  if (elem.parents.findIndex(hasParentPred(parent.id)) >= 0) {
+                    continue;
+                  }
+
+                  elem.parents.push(parent.id);
+                }
+              }
+              hasVisitedNode = true;
+            } else if (nodeHasParents && countedParents < expectedParents) {
+              const rel = node.parents.findIndex(hasParentPred(elem.id));
+
+              if (rel) {
+                if (!Array.isArray(elem?.children)) {
+                  elem.children = [];
                 }
 
-                elem.children.push(child);
+                const idx = elem.children.findIndex(x => x.id === node.id);
+                if (idx) {
+                  elem.children[idx] = node;
+                  countedParents++;
+                } else {
+                  elem.children.push(node);
+                  countedParents++;
+                }
               }
-            } else {
-              node.children = Array.isArray(node?.children) ? node.children : [];
-              elem.children = node.children;
             }
-            elem.parents = Array.isArray(node?.parents) ? node.parents : [];
 
-            return true;
+            return hasVisitedNode && countedParents >= expectedParents;
           });
         }
       }
     }
 
-    for (let j = 0; j < this.value.length; ++j) {
-      let selected = this.value[j];
-      if (selected?.processed) {
-        continue;
+    if (setInitValue) {
+      for (let j = 0; j < this.value.length; ++j) {
+        let selected = this.value[j];
+        if (selected?.processed) {
+          continue;
+        }
+  
+        selected.label = OntologySelectionService.getLabel(selected);
+        selected.processed = true;
       }
 
-      selected.label = OntologySelectionService.getLabel(selected);
-      selected.processed = true;
-    }
-
-    if (setInitValue) {
       this.#originalValue = deepCopy(this.value);
     }
   }
@@ -556,7 +611,7 @@ export default class OntologySelectionService {
             const { id } = elem;
             if (id === node.id) {
               const newChildren = node.children.filter(x => elem?.children && elem?.children?.findIndex(e => e.id === x.id) < 0);
-              const newAncestors = node.parents.filter(x => elem?.parents && elem?.parents?.findIndex(e => e.id === x.id) < 0);
+              const newAncestors = node.parents.filter(x => elem?.parents && elem?.parents?.findIndex(hasParentPred(x.id)) < 0);
 
               if (newChildren.length > 0) {
                 elem.children = [...deepCopy(newChildren), ...(elem?.children ?? [])];
@@ -572,7 +627,7 @@ export default class OntologySelectionService {
             const { id } = elem;
             if (id === node.id) {
               const newChildren = node.children.filter(x => elem?.children && elem?.children?.findIndex(e => e.id === x.id) < 0);
-              const newAncestors = node.parents.filter(x => elem?.parents && elem?.parents?.findIndex(e => e.id === x.id) < 0);
+              const newAncestors = node.parents.filter(x => elem?.parents && elem?.parents?.findIndex(hasParentPred(x.id)) < 0);
 
               if (newChildren.length > 0) {
                 elem.children = [...deepCopy(newChildren), ...(elem?.children ?? [])];
@@ -595,7 +650,7 @@ export default class OntologySelectionService {
           }
 
           for (let j = 0; j < parents.length; ++j) {
-            let parentId = parents[j];
+            let parentId = typeof parents[j] === 'number' ? parents[j] : parents?.id;
             if (isNullOrUndefined(parentId) || parentId === node.id) {
               continue;
             }
@@ -604,7 +659,7 @@ export default class OntologySelectionService {
               mapped[parentId] = [];
             }
 
-            if (mapped[parentId].findIndex(x => x?.id === child.id) < 0) {
+            if (mapped[parentId].findIndex(hasParentPred(child.id)) < 0) {
               mapped[parentId].push(child);
             }
           }

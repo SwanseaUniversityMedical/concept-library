@@ -129,7 +129,17 @@
       "active": true,
       "validation": {
         "type": "url_list",
-        "mandatory": false
+        "mandatory": false,
+        "composition": {
+          "title": {
+            "sanitise": "strict",
+            "length": [0, 250]
+          },
+          "url": {
+            "sanitise": "strict",
+            "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
+          }
+        }
       },
       "hide_if_empty": true
     },

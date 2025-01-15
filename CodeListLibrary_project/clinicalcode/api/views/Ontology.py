@@ -14,7 +14,7 @@ from ...models.OntologyTag import OntologyTag
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-@cache_page(60 * 60 * 2)
+@cache_page(60 * 60 * 8)
 def get_ontologies(request):
     """
         Get all ontology groups and their root
@@ -29,7 +29,7 @@ def get_ontologies(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-@cache_page(60 * 60 * 2)
+@cache_page(60 * 60 * 8)
 def get_ontology_detail(request, ontology_id):
     """
         Get specified ontology group type detail by the given `ontology_id`
