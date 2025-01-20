@@ -13,9 +13,8 @@
               </div>
             {% else %}
               <div class="chip bold primary-accent text-accent-darkest" disabled>
-                <a target="_blank" rel="noopener noreferrer" class="chip-text no-icon">{{ ds.name }}</a>
+                <a target="_blank" rel="noopener noreferrer" class="chip-text no-icon" aria-disabled="true" disabled>{{ ds.name }}</a>
               </div>
-              {{ ds.name }}{% if not forloop.last %},{% endif %}
             {% endif %}
           {% endfor %}
         {% else %}

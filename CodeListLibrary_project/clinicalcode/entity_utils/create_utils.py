@@ -592,7 +592,7 @@ def validate_concept_form(form, errors):
         #     errors.append(f'Invalid concept with ID {concept_id} - Component codes is a non-nullable, list field')
         #     return None
         
-        codes = [ ]
+        codes = { }
         for component_code in component_codes:
             code = { }
             if not isinstance(component_code, dict):
@@ -614,6 +614,9 @@ def validate_concept_form(form, errors):
             if gen_utils.is_empty_string(code_name):
                 errors.append(f'Invalid concept with ID {concept_id} - A code\'s code is a non-nullable, string field')
                 return None
+            
+            if code_name in codes:
+                continue
 
             code_desc = gen_utils.try_value_as_type(component_code.get('description'), 'string', { 'sanitise': 'strict' })
 
@@ -635,7 +638,7 @@ def validate_concept_form(form, errors):
             code['is_new'] = is_new_code
             code['code'] = code_name.strip()
             code['description'] = code_desc
-            codes.append(code)
+            codes[code_name] = code
 
         # validate and append search related options
         used_wildcard = gen_utils.parse_int(concept_component.get('used_wildcard'), None)
@@ -653,7 +656,7 @@ def validate_concept_form(form, errors):
         component['logical_type'] = component_logical_type
         component['component_type'] = component_source_type
         component['source'] = component_source
-        component['codes'] = codes
+        component['codes'] = list(codes.values())
         components.append(component)
 
     field_value['concept']['is_new'] = is_new_concept
