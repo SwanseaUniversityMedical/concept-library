@@ -599,9 +599,10 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
         sql = '''
         with 
         concept as (
-            select id,
-                   history_id,
-                   history_date
+            select
+                    id,
+                    history_id,
+                    history_date
               from public.clinicalcode_historicalconcept
              where id = %(concept_id)s
                and history_id = %(concept_history_id)s
@@ -610,17 +611,18 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
              limit 1
         ),
         component as (
-        	select concept.id as concept_id,
-                   concept.history_id as concept_history_id,
-		           concept.history_date as concept_history_date,
-		           component.id as component_id,
-		           max(component.history_id) as component_history_id,
-	               component.logical_type as logical_type,
-	               codelist.id as codelist_id,
-	               max(codelist.history_id) as codelist_history_id,
-                   codes.id as id,
-	               codes.code,
-		           codes.description
+        	select
+                    concept.id as concept_id,
+                    concept.history_id as concept_history_id,
+                    concept.history_date as concept_history_date,
+                    component.id as component_id,
+                    max(component.history_id) as component_history_id,
+                    component.logical_type as logical_type,
+                    codelist.id as codelist_id,
+                    max(codelist.history_id) as codelist_history_id,
+                    codes.id as id,
+                    codes.code,
+                    codes.description
               from concept as concept
               join public.clinicalcode_historicalcomponent as component
                 on component.concept_id = concept.id
@@ -649,13 +651,16 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
                       codes.id,
                       codes.code,
                       codes.description
-        )
-        '''
+        ),
+        grouped as ('''
 
+        grouped_sql = None
         if incl_attributes:
-            sql += '''
-            select included_codes.*,
-                   attributes.attributes
+            grouped_sql = '''
+            select
+                    included_codes.*,
+                    attributes.attributes,
+                    row_number() over (partition by included_codes.code order by included_codes.id desc) as rn
               from component as included_codes
               left join component as excluded_codes
                 on excluded_codes.code = included_codes.code
@@ -677,20 +682,29 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
                and attributes.history_date <= included_codes.concept_history_date
                and attributes.code = included_codes.code
              where included_codes.logical_type = 1
-               and excluded_codes.code is null;
+               and excluded_codes.code is null
             '''
         else:
-            sql += '''
-            select included_codes.id,
-                   included_codes.code,
-                   included_codes.description
+            grouped_sql = '''
+            selec
+                    included_codes.id,
+                    included_codes.code,
+                    included_codes.description,
+                    row_number() over (partition by included_codes.code order by included_codes.id desc) as rn
               from component as included_codes
               left join component as excluded_codes
                 on excluded_codes.code = included_codes.code
                and excluded_codes.logical_type = 2
              where included_codes.logical_type = 1
-               and excluded_codes.code is null;
+               and excluded_codes.code is null
             '''
+        
+        sql += grouped_sql + '''
+        )
+        select *
+          from grouped
+         where rn = 1;
+        '''
 
         cursor.execute(
             sql,
