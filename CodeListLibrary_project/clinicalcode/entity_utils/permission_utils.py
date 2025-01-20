@@ -85,6 +85,13 @@ def has_member_access(user, entity, permissions):
 
     return False
 
+def has_org_member_edit(user,organisation,roles):
+    if organisation.user_id == user.id:
+        if organisation.role in roles:
+            return True
+    else:
+        return False 
+
 def is_publish_status(entity, status):
     """
       Checks the publication status of an entity
@@ -1175,6 +1182,8 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     if has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
         is_allowed_to_edit = True
 
+    print(is_brand_accessible(request,entity_id))
+    
     if is_allowed_to_edit:
         if not is_brand_accessible(request, entity_id):
             is_allowed_to_edit = False

@@ -212,6 +212,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         """
         #get additional checks in case if ws is deleted/approved etc
         checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
+        print(checks)
         checks['entity_history_id'] = history_id
         checks['entity_id'] = pk
 
@@ -228,6 +229,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
         """
         is_published = permission_utils.check_if_published(GenericEntity, pk, history_id)
         checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
+     
         if not is_published:
             checks = publish_utils.check_entity_to_publish(self.request, pk, history_id)
 
