@@ -253,14 +253,14 @@ const CSEL_INTERFACE = {
     <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">${name}</span> \
   </div>',
 
-  // Card accordian for children data
-  CARD_ACCORDIAN: ' \
-  <div class="fill-accordian" id="children-accordian-${id}" style="margin-top: 0.5rem"> \
-    <input class="fill-accordian__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
-    <label class="fill-accordian__label" id="children-${id}" for="children-${id}" role="button" tabindex="0"> \
+  // Card accordion for children data
+  CARD_ACCORDION: ' \
+  <div class="fill-accordion" id="children-accordion-${id}" style="margin-top: 0.5rem"> \
+    <input class="fill-accordion__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
+    <label class="fill-accordion__label" id="children-${id}" for="children-${id}" role="button" tabindex="0"> \
       <span>${title}</span> \
     </label> \
-    <article class="fill-accordian__container" id="data" style="padding: 0.5rem;"> \
+    <article class="fill-accordion__container" id="data" style="padding: 0.5rem;"> \
       ${content} \
     </article> \
   </div>',
@@ -283,26 +283,26 @@ const CSEL_FILTER_COMPONENTS = {
   </div>',
 
   CHECKBOX_GROUP: ' \
-  <div class="accordian" data-class="checkbox" data-field="${field}" data-type="${datatype}" \
+  <div class="accordion" data-class="checkbox" data-field="${field}" data-type="${datatype}" \
     role="collapsible" tabindex="0" aria-labelledby="${title} Filters" aria-controls="filter-${field}"> \
-    <input class="accordian__input" id="filter-${field}" name="filter-${field}" type="checkbox" /> \
-    <label class="accordian__label" for="filter-${field}"> \
+    <input class="accordion__input" id="filter-${field}" name="filter-${field}" type="checkbox" /> \
+    <label class="accordion__label" for="filter-${field}"> \
       <h4>${title}</h4> \
     </label> \
-    <article class="accordian__container"> \
+    <article class="accordion__container"> \
       <div class="filter-group filter-scrollbar"> \
       </div> \
     </article> \
   </div>',
 
   DATEPICKER_GROUP: ' \
-  <div class="accordian" data-class="datepicker" data-field="${field}" data-type="${datatype}" \
+  <div class="accordion" data-class="datepicker" data-field="${field}" data-type="${datatype}" \
     role="collapsible" tabindex="0" aria-labelledby="${title} Filters" aria-controls="filter-${field}"> \
-    <input class="accordian__input" id="filter-${field}" name="filter-${field}" type="checkbox" /> \
-    <label class="accordian__label" for="filter-${field}"> \
+    <input class="accordion__input" id="filter-${field}" name="filter-${field}" type="checkbox" /> \
+    <label class="accordion__label" for="filter-${field}"> \
       <h4>${title}</h4> \
     </label> \
-    <article class="accordian__container"> \
+    <article class="accordion__container"> \
       <fieldset class="date-range-field date-range-field--wrapped" id="filter-${field}-fields" data-class="daterange" data-field="${field}"> \
         <div> \
           <span class="date-range-field__label">Start:</span> \
@@ -319,13 +319,13 @@ const CSEL_FILTER_COMPONENTS = {
   </div>',
 
   SEARCHBAR_GROUP: ' \
-  <div class="accordian" data-class="searchbar" data-field="search" data-type="string" \
+  <div class="accordion" data-class="searchbar" data-field="search" data-type="string" \
     role="collapsible" tabindex="0" aria-labelledby="Searchterm Filter" aria-controls="filter-search"> \
-    <input class="accordian__input" id="filter-search" name="filter-search" type="checkbox" checked /> \
-    <label class="accordian__label" for="filter-search"> \
+    <input class="accordion__input" id="filter-search" name="filter-search" type="checkbox" checked /> \
+    <label class="accordion__label" for="filter-search"> \
       <h4>Search</h4> \
     </label> \
-    <article class="accordian__container"> \
+    <article class="accordion__container"> \
       <div class="filter-group filter-scrollbar"> \
         <input class="code-text-input" aria-label="Search by term..." type="text" id="searchterm" \
           placeholder="Search..." minlength="3" value="" data-class="searchbar" data-field="search" \
@@ -407,7 +407,7 @@ const CSEL_FILTER_GENERATORS = {
       datatype: data.details.type,
     });
 
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let group = container.appendChild(doc.body.children[0]);
     let descendants = group.querySelector('.filter-group');
     for (let i = 0; i < data.options.length; ++i) {
@@ -418,7 +418,7 @@ const CSEL_FILTER_GENERATORS = {
         field: data.details.field,
         value: option.value,
       });
-      doc = parseHTMLFromString(html);
+      doc = parseHTMLFromString(html, true);
       descendants.appendChild(doc.body.children[0]);
     }
 
@@ -433,14 +433,14 @@ const CSEL_FILTER_GENERATORS = {
       datatype: data.details.type,
     });
 
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     return container.appendChild(doc.body.children[0]);
   },
 
   // creates a searchbar filter group
   SEARCHBAR: (container, data) => {
     let html = CSEL_FILTER_COMPONENTS.SEARCHBAR_GROUP;
-    let doc = parseHTMLFromString(html)
+    let doc = parseHTMLFromString(html, true)
     return container.appendChild(doc.body.children[0]);
   },
 }
@@ -682,6 +682,8 @@ export class ConceptSelectionService {
         headers: {
           'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.SPECIFICATION,
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     );
@@ -727,6 +729,8 @@ export class ConceptSelectionService {
       headers: {
         'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.RESULTS,
         'X-Requested-With': 'XMLHttpRequest',
+        'Cache-Control': 'max-age=3600',
+        'Pragma': 'max-age=3600',
       }
     };
 
@@ -845,7 +849,7 @@ export class ConceptSelectionService {
       hidden: 'false',
     });
   
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let modal = document.body.appendChild(doc.body.children[0]);
     
     // create footer
@@ -859,11 +863,11 @@ export class ConceptSelectionService {
     
     // create buttons
     const buttons = { };
-    let confirmBtn = parseHTMLFromString(CSEL_BUTTONS.CONFIRM);
+    let confirmBtn = parseHTMLFromString(CSEL_BUTTONS.CONFIRM, true);
     confirmBtn = footer.appendChild(confirmBtn.body.children[0]);
     confirmBtn.innerText = this.options.promptConfirm;
 
-    let cancelBtn = parseHTMLFromString(CSEL_BUTTONS.CANCEL);
+    let cancelBtn = parseHTMLFromString(CSEL_BUTTONS.CANCEL, true);
     cancelBtn = footer.appendChild(cancelBtn.body.children[0]);
     cancelBtn.innerText = this.options.promptCancel;
 
@@ -884,7 +888,7 @@ export class ConceptSelectionService {
     let contentContainer = body;
     if (this.options.allowMultiple) {
       html = CSEL_INTERFACE.TAB_VIEW;
-      doc = parseHTMLFromString(html);
+      doc = parseHTMLFromString(html, true);
       contentContainer = body.appendChild(doc.body.children[0]);
       
       const tabs = contentContainer.querySelectorAll('button.tab-view__tab');
@@ -977,7 +981,7 @@ export class ConceptSelectionService {
   #renderSearchView() {
     // Draw page
     let html = CSEL_INTERFACE.SEARCH_VIEW;
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let page = this.dialogue.content.appendChild(doc.body.children[0]);
     this.dialogue.page = page;
     
@@ -1007,7 +1011,7 @@ export class ConceptSelectionService {
       noneSelectedMessage: this.options?.noneSelectedMessage,
     });
   
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let page = this.dialogue.content.appendChild(doc.body.children[0]);
     this.dialogue.page = page;
 
@@ -1080,7 +1084,7 @@ export class ConceptSelectionService {
         'index': i,
       });
 
-      let doc = parseHTMLFromString(html);
+      let doc = parseHTMLFromString(html, true);
       let checkbox = content.appendChild(doc.body.children[0]);
       checkbox.addEventListener('change', this.#handleSelectedItem.bind(this));
     }
@@ -1194,7 +1198,7 @@ export class ConceptSelectionService {
       'next_disabled': !response?.details?.has_next,
     });
 
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let pagination = pageContainer.appendChild(doc.body.children[0]);
 
     this.filters['page'] = {
@@ -1248,7 +1252,7 @@ export class ConceptSelectionService {
         'tags': '',
       });
       
-      let doc = parseHTMLFromString(html);
+      let doc = parseHTMLFromString(html, true);
       let card = resultContainer.appendChild(doc.body.children[0]);
       let datagroup = card.querySelector('#datagroup');
 
@@ -1268,15 +1272,15 @@ export class ConceptSelectionService {
         });
       }
 
-      html = interpolateString(CSEL_INTERFACE.CARD_ACCORDIAN, {
+      html = interpolateString(CSEL_INTERFACE.CARD_ACCORDION, {
         id: result?.id,
         title: `Available Concepts (${children.length})`,
         content: childContents,
       });
-      doc = parseHTMLFromString(html);
+      doc = parseHTMLFromString(html, true);
 
-      let accordian = datagroup.appendChild(doc.body.children[0]);
-      let checkboxes = accordian.querySelectorAll('#child-selector > input[type="checkbox"]');
+      let accordion = datagroup.appendChild(doc.body.children[0]);
+      let checkboxes = accordion.querySelectorAll('#child-selector > input[type="checkbox"]');
       for (let j = 0; j < checkboxes.length; j++) {
         let checkbox = checkboxes[j];
         checkbox.addEventListener('change', this.#handleChildSelection.bind(this));
@@ -1630,7 +1634,7 @@ export class ConceptSelectionService {
 
     const target = e.target;
     const field = target.getAttribute('data-field');
-    const value = target.value;
+    const value = strictSanitiseString(target.value);
     if (isNullOrUndefined(field) || isNullOrUndefined(value)) {
       return;
     }

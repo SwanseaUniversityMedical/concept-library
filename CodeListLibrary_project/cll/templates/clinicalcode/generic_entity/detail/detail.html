@@ -24,25 +24,16 @@
 {% endblock embedding_wrapper %}
 
 {% block container %}
-<!-- Vendor -->
-  <link rel="stylesheet" type="text/css" href="{% static 'js/lib/tinymde/tiny-mde.min.css' %}" />
+  <!-- Vendor -->
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
-  <script src="{% static 'js/lib/tinymde/tiny-mde.min.js' %}"></script>
-  <script src="{% static 'js/lib/moment.min.js' %}"></script>
-
-  <!-- Dependencies -->
-  {% compress js %}
-  <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
-  {% endcompress %}
 
   {% compress js %}
   <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
-  <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
   {% endcompress %}
 
   <!-- Page Stylesheets -->
   {% compress css %}
-  <link href="{% sass_src 'scss/pages/detail.scss' %}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/detail.scss' %}" type="text/css" />
   {% endcompress %}
 
   <!-- Form -->
@@ -82,13 +73,13 @@
             {% if user.is_authenticated %}
               (
               {% if is_latest_version %}
-                <span class="tag label label-highlighted">LATEST VERSION</span>
+                <span class="tag label label-highlighted wrapped-tspan">LATEST VERSION</span>
               {% else %}
-                <span class="tag label label-default">LEGACY VERSION</span>
+                <span class="tag label label-default wrapped-tspan">LEGACY VERSION</span>
               {% endif %}
               )
             {% endif %}
-            <span class="badge">
+            <span class="badge wrapped-tspan">
               <strong>
                 {{ template.definition.template_details.name }}
               </strong>

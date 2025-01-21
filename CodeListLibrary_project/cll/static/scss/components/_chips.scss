@@ -116,7 +116,7 @@
     padding: 0.25rem 0.5rem;
     width: auto;
     height: auto;
-    max-width: 100%;
+    max-width: calc(50% - 0.5rem);
     background-color: hsla(var(--hue), 60%, 85%, 0.75);
     border-radius: 0.5rem;
     color: var(--text-color);
@@ -131,7 +131,9 @@
       max-width: 400px;
       max-height: 50px;
       overflow: hidden;
+      line-clamp: 2;
       -webkit-line-clamp: 2;
+      -moz-box-orient: vertical;
       -webkit-box-orient: vertical;
       word-wrap:break-word;
       text-overflow: ellipsis;
@@ -149,6 +151,13 @@
 	margin: 0;
 	padding: 0;
 	list-style-type: none;
+
+  &--presentation {
+    overflow-y: auto;
+    overflow-x: hide;
+    max-height: 100px;
+    padding: 0.5rem 0.5rem calc(0.5rem + 12px) 0.2rem;
+  }
 }
 
 .chip {
@@ -169,6 +178,7 @@
   margin: 0.25rem 0;
   transition: background-color 250ms ease, box-shadow 250ms ease;
 	box-shadow: 0 0 0 2px var(--accent-color);
+  width: fit-content;
 
   &.bold {
     &>.chip-text {
@@ -183,7 +193,7 @@
     position: relative;
     color: var(--text-color);
     padding: 0.25rem 1rem 0.25rem 2rem;
-    
+
     &[href="#"] {
       cursor: inherit;
       pointer-events: none;
@@ -206,6 +216,14 @@
       border-radius: 100%;
       background-color: var(--icon-color);
       transform: translateY(-50%);
+    }
+
+    &.no-icon {
+      padding: 0.25rem 0.5rem !important;
+
+      &:before {
+        display: none !important;
+      }
     }
   }
 

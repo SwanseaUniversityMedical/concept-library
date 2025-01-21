@@ -1,7 +1,7 @@
 import * as Constants from './constants.js';
 
 /**
- * @class OntologySelectionService
+ * @class OntologySelectionModal
  * @desc Class that allows the selection of items from arbitrary
  *       directed acyclic graphs that define taggable ontologies
  * 
@@ -167,7 +167,7 @@ export default class OntologySelectionModal {
       modalConfirm: this.options.modalConfirm,
     });
 
-    let modal = parseHTMLFromString(html);
+    let modal = parseHTMLFromString(html, true);
     modal = document.body.appendChild(modal.body.children[0]);
 
     let buttons = modal.querySelectorAll('#target-modal-footer > button');

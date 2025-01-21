@@ -1,16 +1,10 @@
 from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
-from django.utils.safestring import mark_safe
-from django.conf.urls.static import static
-from functools import partial
-from re import IGNORECASE, compile, escape as rescape
 
 import os
-import re
-import bleach
-import markdown
 
+from ..entity_utils import gen_utils
 from ..entity_utils.constants import TypeStatus
 
 register = template.Library()
@@ -22,7 +16,7 @@ def render_og_tags(context, *args, **kwargs):
 
     title = None
     embed = None
-    if not brand or not getattr(brand, 'site_title'):
+    if brand is None or ((isinstance(brand, dict) and not brand.get('id')) or not getattr(brand, 'site_title')):
         title = settings.APP_TITLE
         embed = settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
     else:
@@ -64,6 +58,14 @@ def from_phenotype(value, index, default=''):
     if index in value:
         return value[index]['concepts']
     return default
+
+@register.filter(name='is_empty_value')
+def is_empty_value(value):
+    if value is None:
+        return True
+    elif isinstance(value, str):
+        return gen_utils.is_empty_string(value)
+    return False
 
 @register.filter(name='size')
 def size(value):
@@ -111,178 +113,11 @@ def getBrandLogo(value):
     """get brand logos"""
     return f'/static/img/brands/{value}/apple-touch-icon.png'
 
-@register.filter
-def markdownify00(text):
-    # safe mode is deprecated, see: https://pythonhosted.org/Markdown/reference.html#safe_mode
-    untrusted_text = markdown.markdown(text)  #, safe_mode='escape'
-    html = bleach.clean(
-        untrusted_text,
-        tags=settings.MARKDOWNIFY["default"]["WHITELIST_TAGS"],
-        attributes=settings.MARKDOWNIFY["default"]["WHITELIST_ATTRS"],
-    )
-    html = bleach.linkify(html)
-    return html
-
-def legacy():
-    """
-    Function used to transform old style settings to new style settings
-    """
-
-    # Bleach settings
-    whitelist_tags = getattr(settings, 'MARKDOWNIFY_WHITELIST_TAGS', bleach.sanitizer.ALLOWED_TAGS)
-    whitelist_attrs = getattr(settings, 'MARKDOWNIFY_WHITELIST_ATTRS', bleach.sanitizer.ALLOWED_ATTRIBUTES)
-    whitelist_styles = getattr(settings, 'MARKDOWNIFY_WHITELIST_STYLES', bleach.sanitizer.ALLOWED_STYLES)
-    whitelist_protocols = getattr(settings, 'MARKDOWNIFY_WHITELIST_PROTOCOLS', bleach.sanitizer.ALLOWED_PROTOCOLS)
-
-    # Markdown settings
-    strip = getattr(settings, 'MARKDOWNIFY_STRIP', True)
-    extensions = getattr(settings, 'MARKDOWNIFY_MARKDOWN_EXTENSIONS', [])
-
-    # Bleach Linkify
-    values = {}
-    linkify_text = getattr(settings, 'MARKDOWNIFY_LINKIFY_TEXT', True)
-
-    if linkify_text:
-        values = {
-            "PARSE_URLS": True,
-            "PARSE_EMAIL": getattr(settings, 'MARKDOWNIFY_LINKIFY_PARSE_EMAIL', False),
-            "CALLBACKS": getattr(settings, 'MARKDOWNIFY_LINKIFY_CALLBACKS', None),
-            "SKIP_TAGS": getattr(settings, 'MARKDOWNIFY_LINKIFY_SKIP_TAGS', None)
-        }
-
-    return {
-        "STRIP": strip,
-        "MARKDOWN_EXTENSIONS": extensions,
-        "WHITELIST_TAGS": whitelist_tags,
-        "WHITELIST_ATTRS": whitelist_attrs,
-        "WHITELIST_STYLES": whitelist_styles,
-        "WHITELIST_PROTOCOLS": whitelist_protocols,
-        "LINKIFY_TEXT": values,
-        "BLEACH": getattr(settings, 'MARKDOWNIFY_BLEACH', True)
-    }
-
-@register.filter
-def markdownify(text, custom_settings="default"):
-
-    # Check for legacy settings
-    setting_keys = [
-        'WHITELIST_TAGS',
-        'WHITELIST_ATTRS',
-        'WHITELIST_STYLES',
-        'WHITELIST_PROTOCOLS',
-        'STRIP',
-        'MARKDOWN_EXTENSIONS',
-        'LINKIFY_TEXT',
-        'BLEACH',
-    ]
-    has_settings_old_style = False
-    for key in setting_keys:
-        #        if getattr(settings, f"MARKDOWNIFY_{key}", None):
-        if getattr(settings, "MARKDOWNIFY_" + key, None):
-            has_settings_old_style = True
-            break
-
-    if has_settings_old_style:
-        markdownify_settings = legacy()
-    else:
-        try:
-            markdownify_settings = settings.MARKDOWNIFY[custom_settings]
-        except (AttributeError, KeyError):
-            markdownify_settings = {}
-
-    # Bleach settings
-    whitelist_tags = markdownify_settings.get('WHITELIST_TAGS', bleach.sanitizer.ALLOWED_TAGS)
-    whitelist_attrs = markdownify_settings.get('WHITELIST_ATTRS', bleach.sanitizer.ALLOWED_ATTRIBUTES)
-    whitelist_styles = markdownify_settings.get('WHITELIST_STYLES', bleach.sanitizer.ALLOWED_STYLES)
-    whitelist_protocols = markdownify_settings.get('WHITELIST_PROTOCOLS', bleach.sanitizer.ALLOWED_PROTOCOLS)
-
-    # Markdown settings
-    strip = markdownify_settings.get('STRIP', True)
-    extensions = markdownify_settings.get('MARKDOWN_EXTENSIONS', [])
-
-    # Bleach Linkify
-    linkify = None
-    linkify_text = markdownify_settings.get('LINKIFY_TEXT', {"PARSE_URLS": True})
-    if linkify_text.get("PARSE_URLS"):
-        linkify_parse_email = linkify_text.get('PARSE_EMAIL', False)
-        linkify_callbacks = linkify_text.get('CALLBACKS', [])
-        linkify_skip_tags = linkify_text.get('SKIP_TAGS', [])
-        linkifyfilter = bleach.linkifier.LinkifyFilter
-
-        linkify = [
-            partial(linkifyfilter,
-                    callbacks=linkify_callbacks,
-                    skip_tags=linkify_skip_tags,
-                    parse_email=linkify_parse_email)
-        ]
-
-    # Convert markdown to html
-    html = markdown.markdown(text or "", extensions=extensions)
-
-    # Sanitize html if wanted
-    if markdownify_settings.get("BLEACH", True):
-        cleaner = bleach.Cleaner(
-            tags=whitelist_tags,
-            attributes=whitelist_attrs,
-            styles=whitelist_styles,
-            protocols=whitelist_protocols,
-            strip=strip,
-            filters=linkify,
-        )
-
-        html = cleaner.clean(html)
-
-    # this weird step is to reverse the effect of code tag although it is blacklisted 
-    html = html.replace('&lt;','<').replace('&gt;', '>')
-    
-    return mark_safe(html)
-
-@register.filter   
-def highlight(text, q):
-    q = q.lower()
-    q = q.replace('"', '').replace(' -', ' ').replace(' - ', ' ')
-    q = q.replace(' or ', ' ')
-
-    q = re.sub(' +', ' ', q.strip())
-    return_text = text
-    for w in q.split(' '):
-        if w.strip() == '':
-            continue
-        
-        rw = r'\b{}\b'.format(rescape(w)) 
-        rgx = compile(rw, IGNORECASE)
-        
-        #rgx = compile(rescape(w), IGNORECASE)
-        return_text = rgx.sub(
-                            lambda m: "<b stylexyz001>{}</b>".format(m.group()),
-                            return_text
-                        )
-
-    return mark_safe(return_text.replace("stylexyz001", " class='hightlight-txt' "))
-  
-def highlight_all_search_text(text, q):
-    # highlight all phrase as a unit
-    q = q.strip()
-    if q == '':
-        return text
-    
-    rw = r'\b{}\b'.format(rescape(q)) 
-    rgx = compile(rw, IGNORECASE)
-        
-    #rgx = compile(rescape(q), IGNORECASE)
-    return mark_safe(
-        rgx.sub(
-            lambda m: '<b class="hightlight-txt">{}</b>'.format(m.group()),
-            text
-        )
-    )  
-
 @register.filter   
 def get_ws_type_name(type_int):
     '''
         get working set type name
     '''
-    
     return str([t[1] for t in TypeStatus.Type_status if t[0]==type_int][0])
     
 @register.filter   
@@ -294,7 +129,6 @@ def get_title(txt, makeCapital=''):
     txt = txt.title()
     if makeCapital.strip() != '':
         txt = txt.replace(makeCapital.title(), makeCapital.upper())
-    
     return txt
     
 @register.filter   
@@ -302,32 +136,28 @@ def is_in_list(txt, list_values):
     '''
         check is value is in list
     '''
-    return(txt in [i.strip() for i in list_values.split(',')])
+    return (txt in [i.strip() for i in list_values.split(',')])
 
 @register.filter   
-def concat_str(txt, txt2):
+def concat_str(txt0, txt1):
     '''
-        concat 2 strings
+        Safely concatenate the given string(s)
     '''
-    ret_str = ''
-    if txt:
-        ret_str = txt
-        
-    if txt2:
-        ret_str += ' ' + txt2
-        
-    return ret_str
+    if txt0 is not None and txt1 is not None:
+        return '%s %s' % (str(txt0), str(txt1),) 
+    elif txt0 is not None:
+        return str(txt0)
+    elif txt1 is not None:
+        return str(txt1)
+    return ''
 
 @register.filter   
 def concat_doi(details, doi):
     '''
         concat publications details + doi
     '''
-    ret_str = ''
-    if details:
-        ret_str = details
-        
-    if doi:
-        ret_str += ' (DOI:' + doi + ')'
-        
-    return ret_str
+    details = str(details)
+    if doi is None or (isinstance(doi, str) and (len(doi.strip()) < 1 or doi.isspace())):
+        return details
+
+    return '%s (DOI: %s)' % (details, str(doi))

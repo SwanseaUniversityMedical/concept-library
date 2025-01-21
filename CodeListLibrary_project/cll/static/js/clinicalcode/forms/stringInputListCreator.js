@@ -150,7 +150,7 @@ export default class StringInputListCreator {
     e.preventDefault();
     e.stopPropagation();
 
-    const listItem = this.listInput.value;
+    const listItem = strictSanitiseString(this.listInput.value);
     if (!this.listInput.checkValidity() || isNullOrUndefined(listItem) || isStringEmpty(listItem)) {
       return;
     }

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}|{% if errheader and errheader.title and errheader.title|length %} {{ errheader.title }} {% else %} Error! {% endif %}{% endblock title %}
+
+{% block container %}
+  <header class="main-header search-banner">
+    <div
+      class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+      <div class="search-banner__header search-banner__header--pad-bottom-2">
+        <h2 class="search-banner__title">Concept Library</h2>
+      </div>
+    </div>
+  </header>
+  <main class="main-content main-content--inner-padding">
+    <div
+        class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <h2>
+        {% if errheader %}
+          {% if errheader.status_code %}
+            {{ errheader.status_code }}{% if errheader.status_code and errheader.title %}:{% endif %}
+          {% endif %}
+          {% if errheader.title %}
+            {{ errheader.title }}
+          {% endif %}
+          {% if not errheader.status_code and not errheader.title %}
+            Error occurred!
+          {% endif %}
+        {% else %}
+          Error!
+        {% endif %}
+      </h2>
+      {% if messages and messages|length %}
+        {% for message in messages %}
+          <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+        {% endfor %}
+      {% else %}
+        <p>W're sorry but we couldn't process this request</p>
+      {% endif %}
+      <p>Follow this link to get back to the <a href="{% url 'concept_library_home' %}">homepage</a>.</p>
+      <p>Or, click <a href="javascript:history.back()">here</a> to go back.</p>
+    </div>
+  </main>
+{% endblock container %}

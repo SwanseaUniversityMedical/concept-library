@@ -6,26 +6,28 @@
 {%else%}
   <li class="content-container">
 {% endif %}
-    <a href="{{url}}" class="item-dropdown">
-      <div class="item-dropdown__icon">
-        {% svg icon %}
-      </div>
+  <a href="{{url}}" class="item-dropdown">
+    <div class="item-dropdown__icon">
+      {% svg icon %}
+    </div>
 
-      <div class="item-dropdown__text">
-        <div class="item-dropdown__title">{{ title }}</div>
+    <div class="item-dropdown__text">
+      <div class="item-dropdown__title">{{ title }}</div>
+      {% if description|length %}
         <p class="item-dropdown__description">{{ description }}</p>
-      </div>
-    </a>
+      {% endif %}
+    </div>
+  </a>
 
-    {% if list_pages %}
-      <ul class="nested-menu">
-        {% for item in list_pages %}
-          <li>
-            <a href="{% url 'about_page' pg_name=item.page_name %}">
-              {{ item.title }}
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  </li>
+  {% if list_pages %}
+    <ul class="nested-menu">
+      {% for item in list_pages %}
+        <li>
+          <a href="{% url 'about_page' pg_name=item.page_name %}">
+            {{ item.title }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</li>

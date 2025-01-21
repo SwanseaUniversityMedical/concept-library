@@ -10,7 +10,7 @@
 {% block container %}
 <!-- Page Stylesheets -->
 {% compress css %}
-  <link href="{% sass_src 'scss/pages/about.scss' %}" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="{% sass_src 'scss/pages/about.scss' %}" type="text/css" />
 {% endcompress %}
 
 <!-- Dependencies -->
@@ -29,7 +29,7 @@
             <div class="scrollspy__container">
               <button class="scrollspy__container__item scrollspy__container__item--tertiary active"
                 aria-label="Go to What is BREATHE?" data-target="#home">
-                <a href="#home">What is the BHF Data Science Centre?</a>
+                <a href="#home">What is BREATHE?</a>
               </button>
               <button class="scrollspy__container__item scrollspy__container__item--tertiary"
                 aria-label="Go to How we're aiming to help" data-target="#aims">
@@ -44,7 +44,7 @@
         </div>
         <div class="page-split__right">
           <div class="page-split__container">
-            <img class="img-banner img-banner--sz-6x1" src="{% static 'img/brands/BREATHE/breathe_banner_big.png'%}" />
+            <img loading="lazy" class="img-banner img-banner--sz-6x1" src="{% static 'img/brands/BREATHE/breathe_banner_big.png'%}" />
             <h2>
               BREATHE - Health Data Research Hub for Respiratory Health
             </h2>

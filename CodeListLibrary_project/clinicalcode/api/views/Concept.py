@@ -9,14 +9,28 @@ from ...models import *
 from ...entity_utils import api_utils
 from ...entity_utils import permission_utils
 from ...entity_utils import concept_utils
+from ...entity_utils import search_utils
 from ...entity_utils import gen_utils
+from ...entity_utils import constants
 from ...entity_utils.constants import CLINICAL_RULE_TYPE
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_concepts(request):
     """
-        Get all concepts accessible to the user, optionally, provide parameters to filter by
+        Get all concepts accessible to the user, optionally, provide parameters to filter the resultset.
+
+        Available API parameters can be derived from the [Reference Data](/reference-data/) page.
+
+        Other available parameters:
+
+        | Param               | Type           | Default            | Desc                                                                   |
+        |---------------------|----------------|--------------------|------------------------------------------------------------------------|
+        | search              | `string`       | `NULL`             | Full-text search                                                       |
+        | page                | `number`       | `1`                | Page cursor                                                            |
+        | page_size           | `enum/number`  | `1` (_20_ results) | Page size enum, where `1` = 20, `2` = 50 & `3` = 100 rows              |
+        | no_pagination       | `empty`        | `NULL`             | you can append this parameter to your query to disable pagination      |
+
     """
     # Get all concepts accesible to the user
     concepts = permission_utils.get_accessible_concepts(
@@ -49,7 +63,30 @@ def get_concepts(request):
     if phenotype_id is not None:
         phenotype_id = phenotype_id.split(',')
         concepts = concepts.filter(Q(phenotype_owner__id__in=phenotype_id))
-    
+
+    page = request.query_params.get('page', None)
+    page = gen_utils.try_value_as_type(page, 'int')
+    page = max(page, 1) if isinstance(page, int) else 1
+
+    should_paginate = 'no_pagination' not in request.query_params.keys()
+
+    page_size = None
+    if should_paginate:
+        page_size = request.query_params.get('page_size', None)
+        page_size = gen_utils.try_value_as_type(page_size, 'int', default=None)
+
+        if isinstance(page_size, int):
+            tmp = constants.PAGE_RESULTS_SIZE.get(str(page_size), None)
+            if isinstance(tmp, int):
+                page_size = tmp
+            elif page_size not in list(constants.PAGE_RESULTS_SIZE.values()):
+                page_size = None
+
+        if not isinstance(page_size, int):
+            page_size = constants.PAGE_RESULTS_SIZE.get('1')
+
+        should_paginate = True
+
     # Handle searching
     search = request.query_params.get('search')
     if search is not None:
@@ -78,7 +115,13 @@ def get_concepts(request):
     # Exit early if queries do not match
     if not concepts.exists():
         return Response([], status=status.HTTP_200_OK)
-    
+
+    # Paginate results
+    if should_paginate:
+        concepts = search_utils.try_get_paginated_results(
+            request, concepts, page, page_size=page_size
+        )
+
     # Format concepts
     result = []
     for concept in concepts:
@@ -90,7 +133,14 @@ def get_concepts(request):
         )
 
         result.append(concept_data)
-    
+
+    result = result if not should_paginate else {
+        'page': min(concepts.paginator.num_pages, page),
+        'total_pages': concepts.paginator.num_pages,
+        'page_size': page_size,
+        'data': result
+    }
+
     return Response(
         data=result,
         status=status.HTTP_200_OK
@@ -98,7 +148,7 @@ def get_concepts(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_concept_detail(request, concept_id, version_id=None, export_codes=False):
+def get_concept_detail(request, concept_id, version_id=None, export_codes=False, export_component=False):
     """
         Get the detail of specified concept by concept_id, optionally target a specific
             version using version_id and/or export the concept codelist
@@ -144,6 +194,27 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False)
         
         return Response(
             data=concept_codes,
+            status=status.HTTP_200_OK
+        )
+    elif export_component:
+        # Build component data
+        entity_id = request.query_params.get('requested_entity', None)
+        entity_id = gen_utils.try_value_as_type(entity_id, 'string', default=None)
+
+        concept_data = concept_utils.get_clinical_concept_data(
+            historical_concept.id,
+            historical_concept.history_id,
+            remove_userdata=True,
+            hide_user_details=True,
+            include_component_codes=False,
+            include_attributes=True,
+            requested_entity_id=entity_id,
+            include_reviewed_codes=True,
+            derive_access_from=request
+        )
+
+        return Response(
+            data=concept_data,
             status=status.HTTP_200_OK
         )
     

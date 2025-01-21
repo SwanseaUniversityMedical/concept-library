@@ -125,6 +125,18 @@ class FORM_METHODS(int, enum.Enum, metaclass=IterableMeta):
     CREATE = 1
     UPDATE = 2
 
+class CASE_SIGNIFICANCE(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Indicates whether the text can be modified by varying the case
+        of characters describing a SNOMED Concept
+
+        See: https://confluence.ihtsdotools.org/pages/viewpage.action?pageId=28739261
+
+    """
+    CL = 0 # First character can be varied; rest is cast sensitive
+    CI = 1 # All characters are case insensitive
+    CS = 2 # All characters are case sensitive
+
 class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     """
         Defines the ontology internal type id,
@@ -142,7 +154,7 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
 """
 ONTOLOGY_LABELS = {
     ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
-    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (ICD-10)',
+    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (SNOMED)',
     ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
 }
 
@@ -333,9 +345,9 @@ ENTITY_FILTER_PARAMS = {
 """
 APPENDED_SECTIONS = [
     {
-        "title": "Permissions",
-        "description": "Settings for sharing and collaboration.",
-        "fields": ["group", "group_access", "world_access"]
+        'title': 'Permissions',
+        'description': 'Settings for sharing and collaboration.',
+        'fields': ['group', 'group_access', 'world_access']
     }
 ]
 
@@ -347,20 +359,20 @@ APPENDED_SECTIONS = [
 """
 DETAIL_PAGE_APPENDED_SECTIONS = [
     {
-        "title": "Permissions",
-        "description": "",
-        "fields": ["permissions"],
-        "requires_auth": True
+        'title': 'Permissions',
+        'description': '',
+        'fields': ['permissions'],
+        'requires_auth': True
     },
     {
-        "title": "API",
-        "description": "",
-        "fields": ["api"]
+        'title': 'API',
+        'description': '',
+        'fields': ['api']
     },
     {
-        "title": "Version History",
-        "description": "",
-        "fields": ["version_history"]
+        'title': 'Version History',
+        'description': '',
+        'fields': ['version_history']
     }
 ]
 
@@ -369,29 +381,29 @@ DETAIL_PAGE_APPENDED_SECTIONS = [
         - fields that relate to DETAIL_PAGE_APPENDED_SECTIONS for the detail page
 """
 DETAIL_PAGE_APPENDED_FIELDS = {
-    "permissions": {
-        "title": "Permissions",
-        "field_type": "permissions_section",
-        "active": True,
-        "hide_on_create": True
+    'permissions': {
+        'title': 'Permissions',
+        'field_type': 'permissions_section',
+        'active': True,
+        'hide_on_create': True
     },
-    "api": {
-        "title": "API",
-        "field_type": "api_section",
-        "active": True,
-        "hide_on_create": True
+    'api': {
+        'title': 'API',
+        'field_type': 'api_section',
+        'active': True,
+        'hide_on_create': True
     },
-    "version_history": {
-        "title": "Version History",
-        "field_type": "version_history_section",
-        "active": True,
-        "hide_on_create": True
+    'version_history': {
+        'title': 'Version History',
+        'field_type': 'version_history_section',
+        'active': True,
+        'hide_on_create': True
     },
-    "history_id": {
-        "title": "Version ID",
-        "field_type": "history_id",
-        "active": True,
-        "hide_on_create": True
+    'history_id': {
+        'title': 'Version ID',
+        'field_type': 'history_id',
+        'active': True,
+        'hide_on_create': True
     }
 }
 
@@ -437,71 +449,80 @@ metadata = {
                 'query': 'id',
                 'relative': 'name',
             }
-        }
+        },
+        'search': {
+            'api': True
+        },
     },
-    "name": {
-        "title": "Name",
-        "description": "Unsurprisingly, the name of the phenotype.",
-        "field_type": "string_inputbox",
-        "active": True,
-        "validation": {
-            "type": "string",
-            "mandatory": True
+    'name': {
+        'title': 'Name',
+        'description': 'The name or title of this Phenotype.',
+        'field_type': 'string_inputbox',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': True,
+            'sanitise': 'strict',
         },
         'is_base_field': True
     },
-    "definition": {
-        "title": "Definition",
-        "description": "An overview of the phenotype.",
-        "field_type": "textarea_markdown",
-        "active": True,
-        "validation": {
-            "type": "string",
-            "mandatory": False
+    'definition': {
+        'title': 'Definition',
+        'description': 'An overview of the Phenotype.',
+        'field_type': 'textarea_markdown',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': False,
+            'sanitise': 'markdown',
         },
         'is_base_field': True
     },
-    "implementation": {
-        "title": "Implementation",
-        "description": "Information on how the phenotype is applied to data.",
-        "field_type": "textarea_markdown",
-        "active": True,
-        "validation": {
-            "type": "string",
-            "mandatory": False
+    'implementation': {
+        'title': 'Implementation',
+        'description': "Information on how the Phenotype is applied to data (optional).",
+        'field_type': 'textarea_markdown',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': False,
+            'sanitise': 'markdown',
         },
         'is_base_field': True
     },
-    "publications": {
-        "title": "Publications",
-        "description": "Publication(s) where the phenotype was defined or has been used.",
-        "field_type": "publications",
-        "sort": {"key": lambda pub: 0 if pub.get('primary') == 1 else 1},
-        "active": True,
-        "validation": {
-            "type": "publication",
-            "mandatory": False
+    'publications': {
+        'title': 'Publications',
+        'description': "Publication(s) where this Phenotype was defined or has been used (optional).",
+        'field_type': 'publications',
+        'sort': {'key': lambda pub: 0 if pub.get('primary') == 1 else 1},
+        'active': True,
+        'validation': {
+            'type': 'publication',
+            'mandatory': False
         },
         'is_base_field': True
     },
     'validation': {
         'title': 'Validation',
+        'description': "A description of the methods used to validate this Phenotype (optional).",
         'field_type': 'textarea_markdown',
         'active': True,
         'validation': {
             'type': 'string',
-            'mandatory': False
+            'mandatory': False,
+            'sanitise': 'markdown',
         },
         'is_base_field': True
     },
-    "citation_requirements": {
-        "title": "Citation Requirements",
-        "description": "A request for how this phenotype is referenced if used in other work.",
-        "field_type": "citation_requirements",
-        "active": True,
-        "validation": {
-            "type": "string",
-            "mandatory": False
+    'citation_requirements': {
+        'title': 'Citation Requirements',
+        'description': "A request for how this Phenotype is referenced if used in other work (optional).",
+        'field_type': 'citation_requirements',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': False,
+            'sanitise': 'markdown',
         },
         'is_base_field': True
     },
@@ -520,35 +541,37 @@ metadata = {
         'hide_on_create': True,
         'is_base_field': True
     },
-    "author": {
-        "title": "Author",
-        "description": "List of authors who contributed to this phenotype.",
-        "field_type": "string_inputbox",
-        "active": True,
-        "validation": {
-            "type": "string",
-            "mandatory": True
+    'author': {
+        'title': 'Author',
+        'description': 'List of authors who contributed to this Phenotype.',
+        'field_type': 'string_inputbox',
+        'active': True,
+        'validation': {
+            'type': 'string',
+            'mandatory': True,
+            'sanitise': 'strict',
         },
         'is_base_field': True
     },
-    "collections": {
-        "title": "Collections",
-        "description": "List of content collections this phenotype belongs to.",
-        "field_type": "collections",
-        "active": True,
-        "compute_statistics": True,
-        "validation": {
-            "type": "int_array",
-            "mandatory": False,
-            "source": {
-                "table": "Tag",
-                "query": "id",
-                "relative": "description",
-                "filter": {
-                    "tag_type": 2,
+    'collections': {
+        'title': 'Collections',
+        'description': "A list of content collections that this Phenotype belongs to (optional).",
+        'field_type': 'collections',
+        'active': True,
+        'hydrated': True,
+        'compute_statistics': True,
+        'validation': {
+            'type': 'int_array',
+            'mandatory': False,
+            'source': {
+                'table': 'Tag',
+                'query': 'id',
+                'relative': 'description',
+                'filter': {
+                    'tag_type': 2,
 
                     ## Can be added once we det. what we're doing with brands
-                    # "source_by_brand": None
+                    # 'source_by_brand': None
                 }
             }
         },
@@ -558,24 +581,25 @@ metadata = {
         },
         'is_base_field': True
     },
-    "tags": {
-        "title": "Tags",
-        "description": "Optional keywords helping to categorize this content.",
-        "field_type": "tags",
-        "active": True,
-        "compute_statistics": True,
-        "validation": {
-            "type": "int_array",
-            "mandatory": False,
-            "source": {
-                "table": "Tag",
-                "query": "id",
-                "relative": "description",
-                "filter": {
-                    "tag_type": 1,
+    'tags': {
+        'title': 'Tags',
+        'description': "A list of keywords helping to categorise this content (optional).",
+        'field_type': 'tags',
+        'active': True,
+        'hydrated': True,
+        'compute_statistics': True,
+        'validation': {
+            'type': 'int_array',
+            'mandatory': False,
+            'source': {
+                'table': 'Tag',
+                'query': 'id',
+                'relative': 'description',
+                'filter': {
+                    'tag_type': 1,
 
                     ## Can be added once we det. what we're doing with brands
-                    # "source_by_brand": None
+                    # 'source_by_brand': None
                 }
             }
         },
@@ -585,39 +609,39 @@ metadata = {
         },
         'is_base_field': True
     },
-    "group": {
-        "title": "Group",
-        "description": "The group that owns this phenotype for permissions purposes.",
-        "field_type": "group_field",
-        "active": True,
-        "validation": {
-            "type": "int",
-            "mandatory": False,
-            "computed": True
+    'group': {
+        'title': 'Group',
+        'description': "The group that owns this Phenotype for permissions purposes (optional).",
+        'field_type': 'group_field',
+        'active': True,
+        'validation': {
+            'type': 'int',
+            'mandatory': False,
+            'computed': True
         },
         'is_base_field': True
     },
-    "group_access": {
-        "title": "Group Access",
-        "description": "Optionally enable this phenotype to be viewed or edited by the group.",
-        "field_type": "access_field_editable",
-        "active": True,
-        "validation": {
-            "type": "int",
-            "mandatory": True,
-            "range": [1, 3]
+    'group_access': {
+        'title': 'Group Access',
+        'description': 'Optionally enable this Phenotype to be viewed or edited by the group.',
+        'field_type': 'access_field_editable',
+        'active': True,
+        'validation': {
+            'type': 'int',
+            'mandatory': True,
+            'range': [1, 3]
         },
         'is_base_field': True
     },
-    "world_access": {
-        "title": "All authenticated users",
-        "description": "Enables this phenotype to be viewed by all logged-in users of the Library (does not make it public on the web -- use the Publish action for that).",
-        "field_type": "access_field",
-        "active": True,
-        "validation": {
-            "type": "int",
-            "mandatory": True,
-            "range": [1, 3]
+    'world_access': {
+        'title': 'All authenticated users',
+        'description': "Enables this Phenotype to be viewed by all logged-in users of the Library (does not make it public on the web -- use the Publish action for that).",
+        'field_type': 'access_field',
+        'active': True,
+        'validation': {
+            'type': 'int',
+            'mandatory': True,
+            'range': [1, 3]
         },
         'is_base_field': True
     },
@@ -760,7 +784,7 @@ FIELD_TYPES = {
 
     'concept_information': {
         'system_defined': True,
-        'description': 'json of concept ids/ver used in phenotype (managed by code snippet)',
+        'description': 'json of concept ids/ver used in Phenotype (managed by code snippet)',
         'input_type': 'clinical/concept',
         'output_type': 'phenotype_clinical_code_lists'
     },
@@ -778,7 +802,7 @@ FIELD_TYPES = {
     },
     'coding_system': {
         'system_defined': True,
-        'description': 'list of coding system ids (calculated from phenotype concepts) (managed by code snippet)',
+        'description': 'list of coding system ids (calculated from Phenotype concepts) (managed by code snippet)',
         'input_type': 'tagbox',
         'output_type': 'tagbox'
     },
@@ -840,8 +864,8 @@ FIELD_TYPES = {
         'output_type': 'string_inputlist',
     },
     'url_list': {
-        'input_type': 'string_inputlist',
-        'output_type': 'url_list',
+        'input_type': 'generic/url_list',
+        'output_type': 'generic/url_list',
     },
     'source_reference': {
         'data_type': 'string',

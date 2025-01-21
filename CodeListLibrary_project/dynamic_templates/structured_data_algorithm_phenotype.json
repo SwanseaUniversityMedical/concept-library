@@ -15,12 +15,12 @@
     },
     {
       "title": "Definition",
-      "description": "An overview of the phenotype with basic metadata.",
+      "description": "An overview of the Phenotype with metadata, or descriptors, that identifies this Phenotype.",
       "fields": ["definition", "event_date_range", "sex", "type", "tags", "collections", "data_sources"]
     },
     {
       "title": "Implementation",
-      "description": "How this phenotype definition is run against data.",
+      "description": "How this Phenotype definition might be applied to data.",
       "fields": ["phenoflowid", "code_repository", "implementation"]
     },
     {
@@ -30,7 +30,7 @@
     },
     {
       "title": "Publication",
-      "description": "Publication(s) where this phenotype is defined and/or used.",
+      "description": "Publication(s) in which this Phenotype was first defined or any publications that make reference to this Phenotype.",
       "fields": ["publications", "citation_requirements"]
     }
   ],
@@ -38,7 +38,7 @@
   "fields": {
     "type": {
       "title": "Phenotype Type",
-      "description": "The category of patient characteristic this phenotype falls under.",
+      "description": "The category of patient characteristics that best describe this Phenotype.",
       "field_type": "enum_dropdown_badge",
       "active": true,
       "validation": {
@@ -61,7 +61,7 @@
     },
     "data_sources": {
       "title": "Data Sources",
-      "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.",
+      "description": "A list identifying data sources referenced, used or required by this Phenotype (optional).",
       "field_type": "data_sources",
       "active": true,
       "validation": {
@@ -80,7 +80,7 @@
     },
     "event_date_range": {
       "title": "Valid Event Date Range",
-      "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional).",
+      "description": "If this Phenotype is only applicable within a limited time period, please specify that here (optional).",
       "field_type": "daterange",
       "active": false,
       "validation": {
@@ -91,7 +91,7 @@
     },
     "sex": {
       "title": "Sex",
-      "description": "Biological sex this phenotype is applicable to.",
+      "description": "Biological sex this Phenotype is applicable to.",
       "field_type": "grouped_enum",
       "active": true,
       "validation": {
@@ -116,7 +116,7 @@
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
-      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
+      "description": "ID of this Phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
       "field_type": "phenoflowid",
       "active": true,
       "validation": {
@@ -129,7 +129,7 @@
     },
     "code_repository": {
       "title": "Code Repository",
-      "description": "Link to a code repository where an implementation of this phenotype is held",
+      "description": "Link to a code repository where an implementation of this Phenotype is held",
       "field_type": "string_inputbox",
       "active": true,
       "validation": {
@@ -144,7 +144,7 @@
     },
     "source_reference": {
       "title": "Source Reference",
-      "description": "If this phenotype is derived from a third-party source, define that here. Deprecated.",
+      "description": "If this Phenotype is derived from a third-party source, define that here. Deprecated.",
       "field_type": "string_inputbox",
       "active": false,
       "validation": {

@@ -1,10 +1,13 @@
+{% load compress %}
+
 <!--   API   -->
 <div class="col-sm-12 no-print shadow-frame">
 	{% comment %} 
   <h3 class="paneltitle" id="API_Header" style="margin-top:20px; margin-bottom:20px;">
     <span id="API"></span>
     <strong>API</strong>
-	</h3> {% endcomment %}
+	</h3>
+  {% endcomment %}
 
 	<span id="api_id" entity_id="{{ entity.id }}">
 		<p> To Export {{ entity_class }} Details: </p>

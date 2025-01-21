@@ -7,13 +7,23 @@
 //  @desc defines a rectangular banner shown along the top of a page
 .banner {
   @include flex-col();
-  background-color: var(--phenotype-banner-bg-color);
 
-  &.image {
+  &--background {
+    background-color: var(--banner-bg-color, #000);
+  }
+
+  & > div:first-child:not(.banner--background) {
+    background-color: var(--phenotype-banner-bg-color);
+  }
+
+  &-image {
     background: var(--banner-url);
     background-repeat: no-repeat;
-    background-color: #000000;
     background-position: center;
+
+    &:not(.banner-image--transparent) {
+      background-color: var(--banner-bg-color, #000);
+    }
 
     @include media('<tablet', 'screen') {
       background-position: 50% 50%;

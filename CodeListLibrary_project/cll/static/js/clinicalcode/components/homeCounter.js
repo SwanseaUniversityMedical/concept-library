@@ -129,7 +129,6 @@ const handleCounterSection = () => {
 const handleFeaturesSection = () => {
   document.querySelectorAll('#fade-item').forEach((e, k) => {
     if (isScrolledIntoView(e)) {
-      console.log(e);
       setTimeout(() => {
         e.classList.add('show');
       }, k * 50)

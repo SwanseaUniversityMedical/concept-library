@@ -3,23 +3,23 @@
 {% load cl_extras %}
 
 <div class="detailed-input-group fill">
-
   <div class="col-sm-12 shadow-frame">
     <h3 class="paneltitle">
       <span id="entity-{{ component.field_name }}"></span>
       {% if not component.hide_input_title %}
-      <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+        <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
       {% endif %}
       {% if not component.hide_input_details %}
         <p class="detailed-input-group__description">{{ component.description }}</p> 
-      {% endif %}      
+      {% endif %}
     </h3>
-    
-    {% if component.value|length %}
-      {{ component.value|markdownify }}
-    {% else %}
+    {% if component.value|length < 1 %}
       <span class="card-no-data">No data</span>
     {% endif %}
   </div>
-
+  {% if component.value|length %}
+    <div class="markdown-render-container slim-scrollbar">
+      {{ component.value|markdownify }}
+    </div>
+  {% endif %}
 </div>

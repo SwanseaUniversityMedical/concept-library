@@ -1,11 +1,11 @@
-<div class="detailed-input-group fill-width">
+<div class="detailed-input-group fill">
   <div class="box-container">
     <div class="row">
-      <div class="col-sm-2 row-padding">
+      <div class="col-sm-2 row-padding detail-field-title" aria-label="{{ component.field_data.title }}">
         {{ component.field_data.title }}
       </div>
       <div class="col-sm-10">
-        <span id="entity-{{ component.field_name }}">
+        <span class="wrapped-tspan" id="entity-{{ component.field_name }}" aria-label="{{ component.value }}">
           {{ component.value }}
         </span>
       </div>

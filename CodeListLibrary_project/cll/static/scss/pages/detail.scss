@@ -3,6 +3,53 @@
 @import '../_media';
 @import '../_utils';
 
+// row-wise field title
+//  @desc used for detail page row item(s)
+.detail-field-title {
+  font-weight: bold;
+}
+
+// Wraps a text span
+//  @desc used by inputbox.html for UUID reference(s)
+.wrapped-tspan {
+  white-space: normal !important;
+  word-break: break-word;
+  word-wrap: break-word;
+  text-wrap: pretty;
+}
+
+// Top-level container for detail header buttons
+//  @desc defines button layout for detail page header actions, e.g. export/edit/publish
+.action-buttons-container {
+  align-items: flex-end;
+
+  @include media("<=phone", "screen") {
+    align-items: center;
+  }
+}
+
+// Detail header buttons
+//  @desc defines button layout for detail page header actions, e.g. export/edit/publish
+.detail-actions {
+  display: flex;
+  flex-flow: row wrap;
+  width: fit-content;
+  box-sizing: content-box;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin: 0.5rem 0rem 0.5rem 0rem;
+
+  @include media("<=phone", "screen") {
+    justify-content: center;
+  }
+
+  & > button,
+  & > label {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 // Detail version history
 //  @desc used to constrain the version history table
 .constrained-version-history {
@@ -105,7 +152,6 @@
   max-width: 100%;
   height: auto;
   margin-top: 1rem;
-  padding: 0.5rem 1rem 0 1rem;
   counter-reset: item;
   list-style-type: none;
 
@@ -119,6 +165,11 @@
     max-width: 100%;
     min-height: var(--progress-item-min-step-height);
     counter-increment: item;
+
+    white-space: normal;
+    word-break: break-word;
+    word-wrap: break-word;
+    text-wrap: pretty;
 
     &:not(:last-child):before {
       content: "";
@@ -526,17 +577,32 @@
 
 .codelist-extents {
   margin-bottom: 0.5rem;
-  padding: 0 1.75rem 0 0;
+  padding: 0 0.5rem;
 }
 
 .row {
   padding: 0 0.5rem 0 0 !important;
+
+  &.no-pad {
+    padding: 0 !important;
+  }
 }
 
 .row-padding {
   padding: 0 0.5rem 0 0 !important;
 }
 
+.shadow-frame {
+  max-width: 100%;
+  word-break: break-all;
+}
+
+.publication-list-group {
+  & p {
+    white-space: normal;
+    word-wrap: break-word;
+  }
+}
 
 
 /* Modifiers */

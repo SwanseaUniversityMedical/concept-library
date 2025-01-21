@@ -1,15 +1,17 @@
+from django.http import HttpResponse
 from django.conf import settings
 from django_minify_html.middleware import MinifyHtmlMiddleware
 
+import minify_html
+
 class HTMLCompressionMiddleware(MinifyHtmlMiddleware):
     """
-        HTML minifier middleware to determine whether
-        we should compress a HTML response
+        HTML minifier middleware to determine how and whether to compress a HTML response
     """
     minify_args = {
         'keep_comments': False,
         'minify_css': False,
-        'minify_js': False
+        'minify_js': False,
     }
 
     def should_minify(self, request, response):

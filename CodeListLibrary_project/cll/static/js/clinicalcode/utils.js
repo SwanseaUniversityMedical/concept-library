@@ -1,6 +1,14 @@
 /* CONSTANTS */
 const
   /**
+   * CLU_DOMAINS
+   * @desc Domain host targets
+   */
+  CLU_DOMAINS = {
+    ROOT: 'https://conceptlibrary.saildatabank.com',
+    HDRUK: 'https://phenotypes.healthdatagateway.org',
+  }
+  /**
    * CLU_TRANSITION_METHODS
    * @desc defines the transition methods associated
    *       with the animation of an element
@@ -29,8 +37,16 @@ const
    * @desc Regex pattern to match urls
    *
    */
-  CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm;
-
+  CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm,
+  /**
+   * ES_REGEX_URL
+   * @desc Regex pattern matching URLs
+   * @type {RegExp}
+   */
+  CLU_URL_PATTERN = new RegExp(
+    /((https?|ftps?):\/\/[^"<\s]+)(?![^<>]*>|[^"]*?<\/a)/,
+    'gm'
+  );
 
 
 /* METHODS */
@@ -373,11 +389,55 @@ const getBrandedHost = () => {
   const host = getCurrentHost();
   const brand = document.documentElement.getAttribute('data-brand');
   const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
-  if (host === 'https://phenotypes.healthdatagateway.org' || isUnbranded) {
+  if ((host === CLU_DOMAINS.HDRUK) || isUnbranded) {
     return host;
   }
 
   return `${host}/${brand}`;
+}
+
+/**
+ * getBrandUrlTarget
+ * @desc Returns the brand URL target for management redirect buttons (used in navigation menu)
+ * @param {string[]} brandTargets an array of strings containing the brand target names
+ * @param {boolean} productionTarget a boolean flag specifying whether this is a production target
+ * @param {Node} element the html event node
+ * @param {string} oldRoot the path root (excluding brand context)
+ * @param {string} path the window's location href
+ * @returns {string} the target URL
+ */
+const getBrandUrlTarget = (brandTargets, productionTarget, element, oldRoot, path) =>{
+  const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
+  const pathTarget = path.split('/').slice(pathIndex).join('/');
+
+  let elementTarget = element.getAttribute('value');
+  if (!isStringEmpty(elementTarget)) {
+    elementTarget = `${elementTarget}/${pathTarget}`;
+  } else {
+    elementTarget = pathTarget;
+  }
+
+  let targetLocation;
+  if (!productionTarget) {
+    targetLocation = `${document.location.origin}/${elementTarget}`;
+  } else {
+    switch (elementTarget) {
+      case '/HDRUK': {
+        targetLocation = `${CLU_DOMAINS.HDRUK}/${pathTarget}`;
+      } break;
+
+      default: {
+        const isHDRUKSubdomain = window.location.href
+          .toLowerCase()
+          .includes('phenotypes.healthdatagateway');
+
+        targetLocation = isHDRUKSubdomain ? CLU_DOMAINS.ROOT : document.location.origin;
+        targetLocation = `${targetLocation}/${elementTarget}`;
+      } break;
+    }
+  }
+
+  window.location.href = strictSanitiseString(targetLocation);
 }
 
 /**
@@ -459,7 +519,7 @@ const redirectToTarget = (elem) => {
     return;
   }
   
-  window.location.href = target;
+  window.location.href = strictSanitiseString(target);
 }
 
 /**
@@ -504,33 +564,6 @@ const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callbac
   });
 
   input.click();
-}
-
-/**
- * interpolateString
- * @desc Interpolate string template
- *       Ref @ https://stackoverflow.com/posts/41015840/revisions
- * 
- * @param  {string} str The string to interpolate
- * @param  {object} params The parameters
- * @return {str} The interpolated string
- * 
- */
-const interpolateString = (str, params) => {
-  let names = Object.keys(params);
-  let values = Object.values(params);
-  return new Function(...names, `return \`${str}\`;`)(...values);
-}
-
-/**
- * parseHTMLFromString
- * @desc given a string of HTML, will return a parsed DOM
- * @param {str} str The string to parse as DOM elem
- * @returns {DOM} the parsed html
- */
-const parseHTMLFromString = (str) => {
-  const parser = new DOMParser();
-  return parser.parseFromString(str, 'text/html');
 }
 
 /**
@@ -810,17 +843,10 @@ const startLoadingSpinner = (container) => {
 const convertMarkdownData = (parent) => {
   let content = '';
   for (const child of parent.childNodes) {
-    const tagName = child.tagName;
-    if (tagName == 'BR' || (tagName == 'DIV' && !child.querySelector('br'))) {
-      content += '\n';
-    }
-
     if (child instanceof Text) {
       let textContent = child.textContent
       let isEmptyContent = isStringEmpty(textContent) || isStringWhitespace(textContent);
-      if (child.previousSibling && !isEmptyContent) {
-        textContent = '\n' + textContent;
-      } else if (isEmptyContent) {
+      if (isEmptyContent) {
         textContent = '\n';
       }
 
@@ -929,3 +955,151 @@ const isElementSizeExplicit = (element, axes = undefined) => {
 
   return results;
 }
+
+/**
+ * linkifyText
+ * @desc process a plain-text string, finding all valid URLs and converts them to HTML tags as specified by the given options
+ * 
+ * @example
+ * const source = `Some block of text describing URLs:
+ *     1. http://some-website.co.uk
+ *     2. https://some-url.co.uk/
+ *     3. The inner link here processed: <p>http://website.com</p>
+ *     4. This anchor is ignored: <a href="http://ignored-link.com">http://ignored.com</a>
+ *     5. This link is ignored: <div data-link="https://ignored.com"></div>
+ *     6. http://some-removed-link.com
+ *     7. http://some-replaced-link.com
+ *     8. http://retarget-underlying-text.com
+ * `;
+ * 
+ * const result = linkifyText(
+ *   // The text to process
+ *   source,
+ *   // Optionally specify a set of options
+ *   {
+ *     // Optionally specify default anchor attributes 
+ *     cls: 'some-anchor-class',
+ *     rel: 'noopener',
+ *     trg: '_blank',
+ *     // Optionally specify a callback to process the url
+ *     //   -> [Fallthrough]: return `null | undefined` to accept defaults
+ *     //   -> [   Retarget]: return `{ retarget: string }` to retarget the underlying text
+ *     //   -> [   Deletion]: return `{ remove: true }` to remove the link entirely
+ *     //   -> [    Replace]: return `{ replace: string }` to skip linkify and replace with text
+ *     //   -> [VaryContent]: return `{ url?: string, title?: string, rel?: string, trg?: string, cls?: string }`
+ *     anchorCallback: (url, offset, text) => {
+ *       const idx = text.lastIndexOf('.', offset);
+ *       const pos = text.substring(idx - 1, idx);
+ *       if (pos === '6') {
+ *         return { remove: true };
+ *       } else if (pos === '7') {
+ *         return { replace: '{REDACTED}' };
+ *       } else if (pos === '8') {
+ *         return { retarget: text.substring(0, idx - 1) + text.substring(offset + url.length) };
+ *       }
+ * 
+ *       return { title: 'Linkified', rel: 'noopener noreferrer' };
+ *     },
+ *     // Optionally specify a callback to render the URL
+ *     //   -> The arguments given to the callback are derived from the default set and may be varied by the `anchorCallback`
+ *     //   -> Returning an empty or non-string-like object will 
+ *     renderCallback: (url, title, rel, trg, cls) => {
+ *       return `<a href="${url}" rel="${rel}" target="${trg}" class="${cls}">${title}</a>`;
+ *     },
+ *   }
+ * );
+ * 
+ * @param {string}   source                            the string to process
+ * @param {Object}   [param1]                          optionally specify a set of options that vary this function's behaviour 
+ * @param {string}   [param1.cls]                      optionally specify the anchor's `class` attribute
+ * @param {string}   [param1.rel='noopener']           optionally specify the relationship between the linked resource and this document; defaults to `noopener`
+ * @param {string}   [param1.trg='_blank']             optionally specify how to display the linked resource; defaults to `_blank`
+ * @param {Function} [param1.anchorCallback=undefined] optionally specify a callback to vary processed links; defaults to `undefined`
+ * @param {Function} [param1.renderCallback=undefined] optionally specify a callback to render processed links; defaults to `undefined`
+ * 
+ * @returns {string} the processed text
+ */
+const linkifyText = (
+  source,
+  { cls = '', rel = 'noopener', trg = '_blank', anchorCallback = undefined, renderCallback = undefined } = {}
+) => {
+  if (isNullOrUndefined(source) || isStringEmpty(source) || isStringWhitespace(source)) {
+    return '';
+  }
+
+  if (typeof cls !== 'string') {
+    cls = '';
+  }
+
+  if (typeof rel !== 'string') {
+    rel = '';
+  }
+
+  if (typeof trg !== 'string') {
+    trg = '';
+  }
+
+  const hasAnchorCallback = typeof anchorCallback === 'function',
+        hasRenderCallback = typeof renderCallback === 'function';
+
+  let url, len, uTitle, uRel, uTarget, uClass;
+  while ((match = CLU_URL_PATTERN.exec(source)) != null) {
+    url = match[0], offset = match.index, len = url.length;
+    uTitle = url, uRel = rel, uTarget = trg, uClass = cls;
+    if (hasAnchorCallback) {
+      const result = anchorCallback(url, offset, match.input);
+      if (typeof result === 'object') {
+        if (result?.replace) {
+          const str = typeof result.replace === 'string' ? result.replace : String(result.replace);
+          source = source.substring(0, offset) + str + source.substring(offset + len);
+          continue;
+        } else if (result?.retarget) {
+          source = result.retarget;
+          continue;
+        }
+
+        const shouldDelete = result?.remove;
+        if (!shouldDelete) {
+          if (typeof result?.url === 'string') {
+            if (!isStringEmpty(result.url)) {
+              url = result.url;
+            } else {
+              shouldDelete = true;
+            }
+          }
+
+          if (typeof result?.title === 'string') {
+            if (!isStringEmpty(result.title)) {
+              uTitle = result.title;
+            } else {
+              shouldDelete = true;
+            }
+          }
+        }
+
+        if (shouldDelete) {
+          source = source.substring(0, offset) + source.substring(offset + len);
+          continue;
+        }
+
+        uRel = typeof result?.rel === 'string' ? result.rel : uRel;
+        uClass = typeof result?.cls === 'string' ? result.cls : uClass;
+        uTarget = typeof result?.trg === 'string' ? result.trg : uTarget;
+      }
+    }
+
+    let result;
+    if (hasRenderCallback) {
+      result = renderCallback(url, uTitle, uRel, uTarget, uClass);
+      if (typeof result !== 'string' || isStringEmpty(result)) {
+        result = '';
+      }
+    } else {
+      result = `<a href="${url}" rel="${uRel}" target="${uTarget}" class=${uClass}>${uTitle}</a>`;
+    }
+
+    source = source.substring(0, offset) + result + source.substring(offset + len);
+  }
+
+  return source;
+};

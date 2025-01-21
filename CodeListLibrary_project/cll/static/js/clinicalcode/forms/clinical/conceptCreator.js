@@ -45,8 +45,8 @@ const tryCleanCodingItem = (val, row, col) => {
   if (col > 2) {
     return;
   }
-  
-  return val.replace(/^\s+|\s+$/gm, '');
+
+  return strictSanitiseString(val.replace(/^\s+|\s+$/gm, ''));
 }
 
 /**
@@ -779,7 +779,7 @@ export default class ConceptCreator {
       const { id, history_id } = this.state.editing;
       const element = this.state.element;
       const editor = this.state.editor;
-      const accordian = element.querySelector('#concept-accordian-header');
+      const accordion = element.querySelector('#concept-accordion-header');
       const information = element.querySelector('#concept-information');
       this.state.editing = null;
       this.state.editor = null;
@@ -797,7 +797,7 @@ export default class ConceptCreator {
       // Clean up active editor
       element.setAttribute('editing', false);
       information.classList.add('show');
-      accordian.classList.remove('is-open');
+      accordion.classList.remove('is-open');
       editor.remove();
 
       return [id, history_id];
@@ -1154,15 +1154,15 @@ export default class ConceptCreator {
 
   /**
    * collapseConcepts
-   * @desc method to collapse all concept accordians
+   * @desc method to collapse all concept accordions
    */
   #collapseConcepts() {
     const concepts = this.element.querySelectorAll('.concept-list__group');
     for (let i = 0; i < concepts.length; ++i) {
       const concept = concepts[i];
       if (concept.getAttribute('live')) {
-        const accordian = concept.querySelector('#concept-accordian-header');
-        accordian.classList.remove('is-open');
+        const accordion = concept.querySelector('#concept-accordion-header');
+        accordion.classList.remove('is-open');
 
         const container = concept.querySelector('#concept-codelist-table');
         container.innerHTML = '';
@@ -1181,7 +1181,7 @@ export default class ConceptCreator {
     const conceptId = conceptGroup.getAttribute('data-concept-id');
     const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
-    const item = conceptGroup.querySelector('#concept-accordian-header');
+    const item = conceptGroup.querySelector('#concept-accordion-header');
     if (!isNullOrUndefined(this.state?.editing)) {
       const { id, history_id } = this.state.editing;
       if (conceptId == id && historyId == history_id) {
@@ -1250,7 +1250,7 @@ export default class ConceptCreator {
     const isImportedItem = concept?.details?.phenotype_owner && !!concept?.details?.requested_entity_id && concept?.details?.phenotype_owner !== concept?.details?.requested_entity_id;
     const html = interpolateString(template, {
       'subheader': access ? 'Codelist' : 'Imported Codelist',
-      'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
+      'concept_name': access ? strictSanitiseString(concept?.details?.name) : this.#getImportedName(concept),
       'concept_id': concept?.concept_id,
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
@@ -1265,11 +1265,11 @@ export default class ConceptCreator {
     });
 
     const containerList = this.element.querySelector('#concept-content-list');
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const conceptItem = containerList.appendChild(doc.body.children[0]);
     conceptItem.setAttribute('live', true);
 
-    const headerButtons = conceptItem.querySelectorAll('#concept-accordian-header span[role="button"]');
+    const headerButtons = conceptItem.querySelectorAll('#concept-accordion-header span[role="button"]');
     for (let i = 0; i < headerButtons.length; ++i) {
       headerButtons[i].addEventListener('click', this.#handleConceptHeaderButton.bind(this));
     }
@@ -1529,7 +1529,7 @@ export default class ConceptCreator {
     const html = interpolateString(template, {
       'id': rule?.id,
       'index': index,
-      'name': rule?.name,
+      'name': strictSanitiseString(rule?.name),
       'source': (isNullOrUndefined(source) && sourceInfo.template == 'file-rule') ? 'Unknown File' : (source || ''),
       'used_code': !rule?.used_description ? 'checked' : '',
       'used_description': rule?.used_description ? 'checked' : '',
@@ -1537,7 +1537,7 @@ export default class ConceptCreator {
       'was_wildcard_sensitive': rule?.was_wildcard_sensitive ? 'checked' : '',
     });
 
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const item = ruleList.appendChild(doc.body.children[0]);
     const input = item.querySelector('input[data-item="rule"]');
 
@@ -1756,23 +1756,22 @@ export default class ConceptCreator {
     this.#collapseConcepts();
 
     const information = conceptGroup.querySelector('#concept-information');
-    const accordian = conceptGroup.querySelector('#concept-accordian-header');
+    const accordion = conceptGroup.querySelector('#concept-accordion-header');
     information.classList.remove('show');
-    accordian.classList.add('is-open');
+    accordion.classList.add('is-open');
     conceptGroup.setAttribute('editing', true);
-
 
     const systemOptions = await this.#fetchCodingOptions(dataset);
     const template = this.templates['concept-editor'];
     const html = interpolateString(template, {
-      'concept_name': dataset?.details?.name,
+      'concept_name': strictSanitiseString(dataset?.details?.name),
       'coding_system_id': dataset?.coding_system?.id,
       'coding_system_options': systemOptions,
       'has_inclusions': false,
       'has_exclusions': false,
     });
 
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const editor = conceptGroup.appendChild(doc.body.children[0]);
     this.state.data = dataset;
     this.state.editor = editor;
@@ -1882,7 +1881,7 @@ export default class ConceptCreator {
     this.#applyRulesetState({ id: this.state.data.coding_system.id, editor: this.state.editor });
 
     // Open most relevant checkbox, hide the rest
-    const checkboxes = element.querySelectorAll(`.fill-accordian__input`);
+    const checkboxes = element.querySelectorAll(`.fill-accordion__input`);
     for (let i = 0; i < checkboxes.length; ++i) {
       let checkbox = checkboxes[i];
       checkbox.checked = checkbox.matches(`#rule-${rule.id}`);
@@ -1961,13 +1960,13 @@ export default class ConceptCreator {
       e.preventDefault();
       e.stopPropagation();
 
-      const value = input.value;
+      const value = strictSanitiseString(input.value);
       if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
-        input.classList.add('fill-accordian__name-input--invalid');
+        input.classList.add('fill-accordion__name-input--invalid');
         return;
       }
 
-      input.classList.remove('fill-accordian__name-input--invalid');
+      input.classList.remove('fill-accordion__name-input--invalid');
 
       this.state.data.components[index].name = value;
       this.#updateEditorCodelistColumns(index, value);
@@ -2008,8 +2007,8 @@ export default class ConceptCreator {
       let caseSensitive = input.parentNode.parentNode.querySelector('input[name="search-sensitive"]:checked');
       caseSensitive = !isNullOrUndefined(caseSensitive);
 
-      let useDesc = input.parentNode.parentNode.querySelector('input[type="radio"]:checked');
-      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('x-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
+      let useDesc = input.parentNode.parentNode.querySelector('input[data-ctrl="search-by"]:checked');
+      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('data-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
       useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES;
 
       const spinner = startLoadingSpinner();
@@ -2028,7 +2027,7 @@ export default class ConceptCreator {
           const component = this.state.data.components[index];
           const prevCodeLength = component?.codes?.length;
           component.codes = codes.length > 0 ? codes : [ ];
-          component.source = codes.length > 0 ? value : null;
+          component.source = codes.length > 0 ? strictSanitiseString(value) : null;
           component.code_count = codes.length;
           component.used_description = useDesc;
           component.used_wildcard = useWildcard;
@@ -2063,7 +2062,7 @@ export default class ConceptCreator {
                 message: interpolateString(
                   CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_EXCHANGE,
                   {
-                    value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+                    value: strictSanitiseString(value).substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
                     code_len: prevCodeLength,
                   }
                 )
@@ -2077,7 +2076,7 @@ export default class ConceptCreator {
               message: interpolateString(
                 CONCEPT_CREATOR_TEXT.NO_CODE_SEARCH_MATCH,
                 {
-                  value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
+                  value: strictSanitiseString(value).substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE)
                 }
               )
             });
@@ -2094,7 +2093,7 @@ export default class ConceptCreator {
                 {
                   prev_code_len: prevCodeLength,
                   new_code_len: codes.length.toLocaleString(),
-                  value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+                  value: strictSanitiseString(value).substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
                 }
               )
             });
@@ -2109,7 +2108,7 @@ export default class ConceptCreator {
               CONCEPT_CREATOR_TEXT.ADDED_SEARCH_CODES,
               {
                 code_len: codes.length.toLocaleString(),
-                value: value.substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
+                value: strictSanitiseString(value).substring(0, CONCEPT_CREATOR_LIMITS.STRING_TRUNCATE),
               }
             )
           });
@@ -2243,7 +2242,7 @@ export default class ConceptCreator {
    */
   #handleConceptNameChange(e) {
     const input = e.target;
-    const value = input.value;
+    const value = strictSanitiseString(input.value);
     if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
       return;
     }
@@ -2495,7 +2494,7 @@ export default class ConceptCreator {
   /**
    * handleConceptHeaderButton
    * @desc switch method to determine which handler is necessary to undertake the event
-   *       when the user interacts with the header buttons of a Concept's accordian
+   *       when the user interacts with the header buttons of a Concept's accordion
    * @param {event} e the associated event
    */
   #handleConceptHeaderButton(e) {

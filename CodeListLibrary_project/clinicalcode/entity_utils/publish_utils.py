@@ -292,21 +292,20 @@ def send_email_decision_entity(request, entity, entity_history_id, entity_type,d
     @param workingset: workingset object
     @param approved: approved status flag
     """
-    #print(entity_db_utils.send_review_email_generic(entity.id,entity.name, entity.owner_id, "Published", "review_message"))
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
     context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user_id": entity.owner_id,"url_redirect":url_redirect}
     if data['approval_status'].value == constants.APPROVAL_STATUS.PENDING:
         context["status"] = "Pending"
-        context["message"] = "submitted and is under review"
+        context["message"] = "Your Phenotype has been submitted and is under review"
         context["staff_emails"] = get_emails_by_groupname("Moderators")
         send_review_email(request, context)
     elif data['approval_status'].value == constants.APPROVAL_STATUS.APPROVED:
         # This line for the case when user want to get notification of same workingset id but different version
         context["status"] = "Published"
-        context["message"] = "approved and successfully published"
+        context["message"] = "Your Phenotype has been approved and successfully published"
         send_review_email(request, context)
     elif data['approval_status'].value == constants.APPROVAL_STATUS.REJECTED:
         context["status"] = "Rejected"
-        context["message"] = "rejected by the moderator"
-        context["custom_message"] = "Please adjust changes and try again" #TODO add custom message logic
+        context["message"] = "Your Phenotype submission has been rejected by the moderator"
+        context["custom_message"] = "We welcome you to try again but please address these concerns with your Phenotype first" #TODO add custom message logic
         send_review_email(request, context)

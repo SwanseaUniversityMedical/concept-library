@@ -2,7 +2,7 @@
   "template_details": {
     "version": 1,
     "name": "OpenCodelists Phenotype",
-    "description": "",
+    "description": "OpenSafely's OpenCodelist Phenotype, visit https://www.opencodelists.org/ to learn more",
     "card_type": "generic"
   },
 
@@ -15,7 +15,7 @@
     },
     {
       "title": "Overview",
-      "description": "An overview of the phenotype with basic metadata.",
+      "description": "An overview of the Phenotype with basic metadata.",
       "fields": [
         "open_codelist_id", "open_codelist_version_id", "open_codelist_version_tag", 
         "coding_system", "coding_system_release", "collections", "tags"
@@ -44,7 +44,7 @@
     {
       "title": "Clinical Code List",
       "documentation": "clinical-coded-phenotype-docs",
-      "description": "Clinical codes used to define this phenotype.",
+      "description": "Clinical codes that defines this Phenotype.",
       "fields": ["concept_information"]
     }
   ],
@@ -58,7 +58,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -73,7 +74,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -88,7 +90,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "search": {
         "api": true
@@ -102,7 +105,8 @@
       "active": true,
       "validation": {
         "type": "string",
-        "mandatory": false
+        "mandatory": false,
+        "sanitise": "markdown"
       },
       "hide_if_empty": true
     },
@@ -113,7 +117,8 @@
       "active": true,
       "validation": {
         "type": "string_array",
-        "mandatory": false
+        "mandatory": false,
+        "sanitise": "strict"
       },
       "hide_if_empty": true
     },
@@ -123,8 +128,18 @@
       "field_type": "url_list",
       "active": true,
       "validation": {
-        "type": "string_array",
-        "mandatory": false
+        "type": "url_list",
+        "mandatory": false,
+        "composition": {
+          "title": {
+            "sanitise": "strict",
+            "length": [0, 250]
+          },
+          "url": {
+            "sanitise": "strict",
+            "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
+          }
+        }
       },
       "hide_if_empty": true
     },
@@ -137,11 +152,12 @@
         "type": "string",
         "mandatory": false,
         "length": [0, 250]
-      }
+      },
+      "hide_if_empty": true
     },
     "coding_system": {
       "title": "Coding System",
-      "description":"Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
+      "description":"Clinical coding system(s) contained within this Phenotype. A Phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
       "field_type": "coding_system",
       "active": true,
       "validation": {
@@ -162,7 +178,7 @@
     },
     "concept_information": {
       "title": "Clinical Codes",
-      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this phenotype.",
+      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this Phenotype.",
       "field_type": "concept_information",
       "active": true,
       "validation": {
@@ -173,13 +189,14 @@
     },
     "source_reference": {
       "title": "Source Reference",
-      "description": "If this phenotype is derived from a third-party source, define that here.",
+      "description": "If this Phenotype is derived from a third-party source, define that here.",
       "field_type": "source_reference",
       "active": true,
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 500]
+        "length": [0, 500],
+        "sanitise": "strict"
       },
       "hide_if_empty": true
     }
