@@ -2356,34 +2356,10 @@ export default class ConceptCreator {
   }
 
   /**
-   * handleAttributeCreation
-   * @desc handles the creation of a new attribute
+   * Calling the attribute settings
+   * @param {*} e 
    */
-
-  #handleAttributeCreation(e){
-    const attribute_component = this.templates['attribute-component'];
-
-      window.ModalFactory.create({
-        title: 'Add attribute',
-        content: attribute_component,
-        beforeAccept: (modal) =>{
-          const attribute_name = modal.querySelector('#attribute-name-input').value;
-          const attribute_value = modal.querySelector('#attribute-value-input').value;
-          const attribute_type = modal.querySelector('#attribute-type').value;
-          const attribute = {
-            name: attribute_name,
-            type: attribute_type,
-            value: attribute_value
-          }
-          return attribute
-        }
-    }).then((result) => {
-      console.log(result)
-    })
-  }
-
   #handleAttributeSettings(e){ 
-    //TODO need to add the row component with an concept data
     this.tryCloseEditor()
       .then(() => {
         return this.tryCallAttributeSettings();
