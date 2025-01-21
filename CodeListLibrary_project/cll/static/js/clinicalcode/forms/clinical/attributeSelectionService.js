@@ -74,7 +74,7 @@ const CSEL_BUTTONS = {
 
 const CSEL_UTILITY_BUTTONS = {
   DELETE_BUTTON:
-    '<button class="fill-accordian__label__delete-icon" id="children-button-${id}" type="button" aria-label="Delete"></button> ',
+    '<button class="fill-accordion__label__delete-icon" id="children-button-${id}" type="button" aria-label="Delete"></button> ',
 };
 
 /**
@@ -124,29 +124,20 @@ const CSEL_INTERFACE = {
       </fieldset> \
     </div>',
 
-  ATTRIBUTE_ACCORDIAN:
+  ATTRIBUTE_ACCORDION:
     ' \
-    <div class="fill-accordian" id="attribute-accordian-${id}" style="margin-top: 0.5rem"> \
-    <input class="fill-accordian__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
-    <label class="fill-accordian__label" id="children-label-${id}" for="children-${id}" role="button" tabindex="0"> \
+    <div class="fill-accordion" id="attribute-accordion-${id}" style="margin-top: 0.5rem"> \
+    <input class="fill-accordion__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
+    <label class="fill-accordion__label" id="children-label-${id}" for="children-${id}" role="button" tabindex="0"> \
       ${title} \
     </label> \
-    <article class="fill-accordian__container" id="data" style="padding: 0.5rem;"> \
+    <article class="fill-accordion__container" id="data" style="padding: 0.5rem;"> \
       ${content} \
     </article> \
   </div>',
 };
 
-/**
- * @class ConceptSelectionService
- * @desc Class that can be used to prompt users to select 1 or more concepts
- *       from a list given by the server, where:
- *
- *          1. The owner phenotype is published
- *            OR
- *          2. The requesting user has access to the child concepts via permissions
- *
- */
+
 /**
  * AttributeSelectionService class provides methods to manage and manipulate attribute data for clinical concepts.
  * It allows for the creation, validation, and rendering of attribute data within a dialogue interface.
@@ -343,13 +334,13 @@ export class AttributeSelectionService {
     // create dialogue
     const currentHeight = window.scrollY;
     let html = interpolateString(CSEL_INTERFACE.DIALOGUE, {
-      id: this.id,
+      id: 'attribute-concepts',
       promptTitle: this.options?.promptTitle,
       promptSize: this.options?.promptSize,
       hidden: "false",
-    });
+    },true);
 
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html,true);
     let modal = document.body.appendChild(doc.body.children[0]);
 
     // create footer
@@ -363,11 +354,11 @@ export class AttributeSelectionService {
 
     // create buttons
     const buttons = {};
-    let confirmBtn = parseHTMLFromString(CSEL_BUTTONS.CONFIRM);
+    let confirmBtn = parseHTMLFromString(CSEL_BUTTONS.CONFIRM,true);
     confirmBtn = footer.appendChild(confirmBtn.body.children[0]);
     confirmBtn.innerText = this.options.promptConfirm;
 
-    let cancelBtn = parseHTMLFromString(CSEL_BUTTONS.CANCEL);
+    let cancelBtn = parseHTMLFromString(CSEL_BUTTONS.CANCEL,true);
     cancelBtn = footer.appendChild(cancelBtn.body.children[0]);
     cancelBtn.innerText = this.options.promptCancel;
 
@@ -388,7 +379,7 @@ export class AttributeSelectionService {
     let contentContainer = body;
     if (this.options.allowMultiple) {
       html = CSEL_INTERFACE.TAB_VIEW;
-      doc = parseHTMLFromString(html);
+      doc = parseHTMLFromString(html,true);
       contentContainer = body.appendChild(doc.body.children[0]);
 
       const tabs = contentContainer.querySelectorAll("button.tab-view__tab");
@@ -413,7 +404,7 @@ export class AttributeSelectionService {
 
       // dialogue methods
       show: () => {
-        createElement("a", { href: `#${this.id}` }).click();
+        createElement("a", { href: `#attribute-concepts` }).click();
         window.scrollTo({
           top: currentHeight,
           left: window.scrollX,
@@ -669,9 +660,9 @@ export class AttributeSelectionService {
     // Draw page
     let html = interpolateString(CSEL_INTERFACE.SELECTION_VIEW, {
       noneSelectedMessage: this.options?.noneSelectedMessage,
-    });
+    },true);
 
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html,true);
     let page = this.dialogue.content.appendChild(doc.body.children[0]);
     this.dialogue.page = page;
 
@@ -821,27 +812,27 @@ export class AttributeSelectionService {
     page.querySelector("#add-attribute-btn").setAttribute("disabled", true);
     const noneAvailable = page.querySelector("#no-items-selected");
 
-    let attribute_progress = parseHTMLFromString(this.attribute_component);
+    let attribute_progress = parseHTMLFromString(this.attribute_component,true);
     const uniqueId = this.#generateUUID();
     attribute_progress = interpolateString(this.attribute_component, {
       id: uniqueId,
     });
 
     if (this.attribute_data.length <= 0) {
-      let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
+      let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDION, {
         id: uniqueId,
         title: `New attribute value`,
         content: attribute_progress,
-      });
+      },true);
       let doc = parseHTMLFromString(attributerow);
       noneAvailable.classList.remove("show");
       page.appendChild(doc.body.children[0]);
     } else {
-      let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN, {
+      let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDION, {
         id: uniqueId,
         title: "New attribute value",
         content: attribute_progress,
-      });
+      },true);
       let doc = parseHTMLFromString(attributerow);
       page.appendChild(doc.body.children[0]);
     }
@@ -996,8 +987,8 @@ export class AttributeSelectionService {
   #deleteAttribute(attribute) {
     const page = this.dialogue.page;
 
-    const accordian = page.querySelector(
-      "#attribute-accordian-" + attribute.id
+    const accordion = page.querySelector(
+      "#attribute-accordion-" + attribute.id
     );
 
     const noneAvailable = page.querySelector("#no-items-selected");
@@ -1018,13 +1009,13 @@ export class AttributeSelectionService {
         }
       });
 
-      // Remove the accordian element
-      accordian.remove();
+      // Remove the accordion element
+      accordion.remove();
 
       // Show the "no items selected" message if there are no attributes left
       if (
         this.attribute_data.length <= 0 &&
-        page.querySelectorAll(".fill-accordian").length <= 0
+        page.querySelectorAll(".fill-accordion").length <= 0
       ) {
         noneAvailable.classList.add("show");
       }
@@ -1141,31 +1132,31 @@ export class AttributeSelectionService {
       }
     });
 
-    // Update the accordian label with the new attribute details
-    const accordian = this.dialogue.page.querySelector(
-      "#attribute-accordian-" + attribute.id
+    // Update the accordion label with the new attribute details
+    const accordion = this.dialogue.page.querySelector(
+      "#attribute-accordion-" + attribute.id
     );
-    const accordianLabel = accordian.querySelector(
+    const accordionLabel = accordion.querySelector(
       "#children-label-" + attribute.id
     );
-    let accordianDeleteButton = interpolateString(
+    let accordionDeleteButton = interpolateString(
       CSEL_UTILITY_BUTTONS.DELETE_BUTTON,
       {
         id: attribute.id,
       }
     );
-    const deleteButtonElement = parseHTMLFromString(accordianDeleteButton).body
+    const deleteButtonElement = parseHTMLFromString(accordionDeleteButton).body
       .children[0];
-    accordianLabel.textContent = "";
-    accordianLabel.insertBefore(deleteButtonElement, accordianLabel.firstChild);
-    accordianLabel.appendChild(
+    accordionLabel.textContent = "";
+    accordionLabel.insertBefore(deleteButtonElement, accordionLabel.firstChild);
+    accordionLabel.appendChild(
       document.createTextNode(
         ` ${attribute.name} - ${this.#typeConversion(attribute.type)}`
       )
     );
 
-    // Close the accordian and re-enable the add attribute button
-    accordianLabel.click();
+    // Close the accordion and re-enable the add attribute button
+    accordionLabel.click();
     this.dialogue.page
       .querySelector("#add-attribute-btn")
       .removeAttribute("disabled");
@@ -1198,23 +1189,23 @@ export class AttributeSelectionService {
     const attribute_type = page.querySelector(
       "#attribute-type-" + attribute.id
     );
-    const accordian = page.querySelector(
-      "#attribute-accordian-" + attribute.id
+    const accordion = page.querySelector(
+      "#attribute-accordion-" + attribute.id
     );
     const noneAvailable = page.querySelector("#no-items-selected");
 
     if (this.attribute_data.length <= 0) {
       attribute_name_input.value = null;
       attribute_type.value = -1;
-      accordian.remove();
+      accordion.remove();
       noneAvailable.classList.add("show");
       page.querySelector("#add-attribute-btn").removeAttribute("disabled");
     } else {
       if (attribute_name_input.value === "" || attribute_type.value === "-1") {
-        accordian.remove();
+        accordion.remove();
         page.querySelector("#add-attribute-btn").removeAttribute("disabled");
       }
-      accordian.querySelector("#children-label-" + attribute.id).click();
+      accordion.querySelector("#children-label-" + attribute.id).click();
     }
   }
 
@@ -1290,7 +1281,7 @@ export class AttributeSelectionService {
           id: attribute.id,
         });
 
-        attribute_progress = parseHTMLFromString(attribute_progress);
+        attribute_progress = parseHTMLFromString(attribute_progress,true);
 
         attribute_progress
           .querySelector("#attribute-name-input-" + attribute.id)
@@ -1301,7 +1292,7 @@ export class AttributeSelectionService {
           .setAttribute("selected", true);
 
         let attributerow = interpolateString(
-          CSEL_INTERFACE.ATTRIBUTE_ACCORDIAN,
+          CSEL_INTERFACE.ATTRIBUTE_ACCORDION,
           {
             id: attribute.id,
             title: `${attribute.name} - ${this.#typeConversion(
@@ -1313,23 +1304,23 @@ export class AttributeSelectionService {
 
         let doc = parseHTMLFromString(attributerow);
 
-        const accordianLabel = doc.querySelector(
+        const accordionLabel = doc.querySelector(
           "#children-label-" + attribute.id
         );
-        let accordianDeleteButton = interpolateString(
+        let accordionDeleteButton = interpolateString(
           CSEL_UTILITY_BUTTONS.DELETE_BUTTON,
           {
             id: attribute.id,
           }
         );
-        const deleteButtonElement = parseHTMLFromString(accordianDeleteButton)
+        const deleteButtonElement = parseHTMLFromString(accordionDeleteButton)
           .body.children[0];
-        accordianLabel.textContent = "";
-        accordianLabel.insertBefore(
+        accordionLabel.textContent = "";
+        accordionLabel.insertBefore(
           deleteButtonElement,
-          accordianLabel.firstChild
+          accordionLabel.firstChild
         );
-        accordianLabel.appendChild(
+        accordionLabel.appendChild(
           document.createTextNode(
             `${attribute.name} - ${this.#typeConversion(attribute.type)}`
           )
