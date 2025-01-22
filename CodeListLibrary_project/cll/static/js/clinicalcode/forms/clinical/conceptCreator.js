@@ -1,4 +1,5 @@
 import { parse as parseCSV } from '../../../lib/csv.min.js';
+import { AttributeSelectionService } from './attributeSelectionService.js';
 import { ConceptSelectionService } from './conceptSelectionService.js';
 
 /**
@@ -347,6 +348,8 @@ const CONCEPT_CREATOR_TEXT = {
   CONCEPT_UPDATE_FAILED: 'Failed to update Concept, please try again.',
 }
 
+
+
 /**
  * @class ConceptCreator
  * @desc A class that can be used to control concept creation
@@ -524,12 +527,28 @@ export default class ConceptCreator {
       allowMultiple: true,
     });
 
+
     return prompt.show()
       .then((data) => {
         return this.#tryRetrieveCodelists(data);
       });
   }
 
+  tryCallAttributeSettings() {
+    const prompt = new AttributeSelectionService({
+      promptTitle: 'Attribute settings',
+      attribute_component: this.templates['attribute-component'],
+      template: this.template?.id,
+      entity_id: this.entity?.id,
+      entity_history_id: this.entity?.history_id,
+      concept_data: this.data,
+    });
+
+    return prompt.show()
+    .then((data) => {
+      this.data = data;
+    });
+  }
   /**
    * tryPromptConceptRuleImport
    * @desc tries to prompt the user to import a Concept as a rule,
@@ -842,6 +861,10 @@ export default class ConceptCreator {
 
     const importBtn = this.element.querySelector('#import-concept-btn');
     importBtn.addEventListener('click', this.#handleConceptImporting.bind(this));
+
+    const addAttrBtn = this.element.querySelector('#add-concept-attribute-btn');
+    this.#hideAttributeSettingsButton(this.data.length <= 0);
+    addAttrBtn.addEventListener('click', this.#handleAttributeSettings.bind(this));
   }
 
   /*************************************
@@ -1120,6 +1143,15 @@ export default class ConceptCreator {
     noConcepts.classList[hide ? 'remove' : 'add']('show');
   }
 
+  #hideAttributeSettingsButton(hide) {
+    const addAttrBtn = this.element.querySelector('#add-concept-attribute-btn');
+    if (hide) { 
+      addAttrBtn.setAttribute('disabled','disabled');
+    } else {
+      addAttrBtn.removeAttribute('disabled');
+    }
+  }
+
   /**
    * collapseConcepts
    * @desc method to collapse all concept accordions
@@ -1164,6 +1196,7 @@ export default class ConceptCreator {
       // Render codelist
       let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
       dataset = dataset.shift();
+      console.log(dataset);
 
       return this.#tryRenderCodelist(container, dataset);
     }
@@ -1184,6 +1217,7 @@ export default class ConceptCreator {
     containerList.innerHTML = '';
     
     this.#toggleNoConceptBox(this.data.length > 0);
+    this.#hideAttributeSettingsButton(this.data.length <= 0);
 
     if (this.data.length > 0) {
       for (let i = 0; i < this.data.length; ++i) {
@@ -2303,6 +2337,7 @@ export default class ConceptCreator {
           this.#tryRenderConceptComponent(data);
         }
         this.#toggleNoConceptBox(this.data.length > 0);
+        this.#hideAttributeSettingsButton(this.data.length <= 0);
 
         if (failedImports.length > 0) {
           this.#pushToast({
@@ -2319,6 +2354,18 @@ export default class ConceptCreator {
         }
       })
   }
+
+  /**
+   * Calling the attribute settings
+   * @param {*} e 
+   */
+  #handleAttributeSettings(e){ 
+    this.tryCloseEditor()
+      .then(() => {
+        return this.tryCallAttributeSettings();
+      })
+  }
+
 
   /**
    * handleConceptCreation
@@ -2343,6 +2390,7 @@ export default class ConceptCreator {
         const conceptGroup = this.#tryRenderConceptComponent(concept);
         this.#tryRenderEditor(conceptGroup, concept);
         this.#toggleNoConceptBox(true);
+        this.#hideAttributeSettingsButton(this.data.length <= 0);
       })
       .catch(() => { /* User does not want to lose progress, sink edit request */ })
   }
