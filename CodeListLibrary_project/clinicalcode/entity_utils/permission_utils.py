@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 
 from functools import wraps
 
+from ..models.Organisation import OrganisationAuthority, OrganisationMembership
 from . import model_utils, gen_utils
 from ..models.Brand import Brand
 from ..models.Concept import Concept
@@ -13,7 +14,7 @@ from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedGenericEntity import PublishedGenericEntity
-from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
+from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS, ORGANISATION_ROLES
 
 """ Permission decorators """
 
@@ -85,12 +86,27 @@ def has_member_access(user, entity, permissions):
 
     return False
 
-def has_org_member_edit(user,organisation,roles):
-    if organisation.user_id == user.id:
-        if organisation.role in roles:
+def has_org_member(user):
+    organisation_memebership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
+    if organisation_memebership.role in ORGANISATION_ROLES:
             return True
     else:
         return False 
+
+def has_org_authority(user,organisation):
+    if has_org_member(user):
+        authority = model_utils.try_get_instance(OrganisationAuthority, organisation_id=organisation.id)
+        return {"can_moderate":authority.can_moderate, "can_post": authority.can_post}
+    else:
+        return False
+      
+def get_organisation_info(user):
+    if has_org_member(user):
+        organisation_memebership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
+        return organisation_memebership.organisation
+    else:
+        return None
+
 
 def is_publish_status(entity, status):
     """
@@ -1182,8 +1198,6 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     if has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
         is_allowed_to_edit = True
 
-    print(is_brand_accessible(request,entity_id))
-    
     if is_allowed_to_edit:
         if not is_brand_accessible(request, entity_id):
             is_allowed_to_edit = False
