@@ -4,6 +4,8 @@ import re
 from django.contrib.auth.models import  User
 from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
+from clinicalcode.entity_utils import model_utils
+from clinicalcode.models import Organisation
 from clinicalcode.tasks import send_review_email
 from clinicalcode.entity_utils import constants, permission_utils, entity_db_utils
 
@@ -131,6 +133,8 @@ def check_entity_to_publish(request, pk, entity_history_id):
     if not entity_has_data and entity_class == "Workingset":
         allow_to_publish = False
     
+    check_organisation_authorities(request,entity, entity_class)
+    
     checks = {
         'entity_type': entity_class,
         'name': entity_ver.name,
@@ -153,6 +157,9 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
 def check_organisation_authorities(request,entity,entity_class):
     organisation_checks = {}
+
+    organisation = permission_utils.get_organisation_info(request.user)
+    print(permission_utils.has_org_authority(request.user,organisation))
 
     return organisation_checks
 
