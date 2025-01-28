@@ -106,7 +106,24 @@ def get_organisation_info(user):
         return organisation_memebership.organisation
     else:
         return None
+    
+def get_organisation_role(user):
 
+    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
+
+    match org_membership.role:
+        case ORGANISATION_ROLES.ADMIN:
+            return ORGANISATION_ROLES.ADMIN
+        case ORGANISATION_ROLES.MODERATOR:
+            return ORGANISATION_ROLES.MODERATOR
+        case ORGANISATION_ROLES.EDITOR:
+            return ORGANISATION_ROLES.EDITOR
+        case ORGANISATION_ROLES.MEMBER:
+            return ORGANISATION_ROLES.MEMBER
+        case _:
+            return -1
+
+          
 
 def is_publish_status(entity, status):
     """

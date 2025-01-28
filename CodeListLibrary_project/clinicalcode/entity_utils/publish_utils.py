@@ -160,6 +160,7 @@ def check_organisation_authorities(request,entity,entity_class):
 
     organisation = permission_utils.get_organisation_info(request.user)
     print(permission_utils.has_org_authority(request.user,organisation))
+    print(permission_utils.get_organisation_role(request.user))
 
     return organisation_checks
 
