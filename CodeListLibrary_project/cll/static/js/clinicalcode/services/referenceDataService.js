@@ -206,12 +206,12 @@ const renderTreeViewComponent = async (key, container, _groups) => {
 
   for (let i = 0; i < sources.length; ++i) {
     const item = sources[i];
-    if (typeof(item) !== 'object') {
+    if (typeof item !== 'object') {
       continue;
     }
 
-    const nodes = item?.nodes;
-    const model = item?.model || {};
+    const nodes = item.nodes;
+    const model = typeof item.model === 'object' ? item.model : { };
     const sourceId = model?.source;
     const sourceLabel = model?.label;
     if (typeof sourceId !== 'number' || typeof sourceLabel !== 'string' || !Array.isArray(nodes)) {

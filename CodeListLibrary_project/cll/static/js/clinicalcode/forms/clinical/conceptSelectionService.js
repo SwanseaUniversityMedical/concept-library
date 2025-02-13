@@ -1235,7 +1235,7 @@ export class ConceptSelectionService {
     resultContainer.innerHTML = '';
 
     // then render cards, apply selection to concepts if found
-    const results = response?.results || [ ];
+    const results = Array.isArray(response?.results) ? response.results : [];
     for (let i = 0; i < results.length; ++i) {
       let result = results[i];
       let children = this.#getFilterSafeChildren(result?.children);

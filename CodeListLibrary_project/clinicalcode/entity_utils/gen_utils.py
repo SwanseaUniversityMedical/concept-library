@@ -462,11 +462,12 @@ def try_value_as_type(
                 or (b) if validated as some type given the inputs, the typed value
     """
     if field_type == 'enum' or field_type == 'int':
-        if validation is not None:
+        field_value = parse_int(field_value, default)
+        if field_value is not None and validation is not None:
             limits = validation.get('range')
-            if limits is not None and (field_value < limits[0] or field_value > limits[1]):
+            if isinstance(limits, list) and isinstance(field_type, int) and (field_value < limits[0] or field_value > limits[1]):
                 return default
-        return parse_int(field_value, default)
+        return field_value
     elif field_type == 'int_array':
         if isinstance(field_value, int):
             return [field_value]
