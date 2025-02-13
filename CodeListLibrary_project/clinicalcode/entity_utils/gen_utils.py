@@ -463,7 +463,7 @@ def try_value_as_type(
     """
     if field_type == 'enum' or field_type == 'int':
         field_value = parse_int(field_value, default)
-        if value is not None and validation is not None:
+        if field_value is not None and validation is not None:
             limits = validation.get('range')
             if isinstance(limits, list) and isinstance(field_type, int) and (field_value < limits[0] or field_value > limits[1]):
                 return default

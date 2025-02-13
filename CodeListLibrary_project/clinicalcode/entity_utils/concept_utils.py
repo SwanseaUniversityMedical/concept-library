@@ -686,7 +686,7 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
             '''
         else:
             grouped_sql = '''
-            selec
+            select
                     included_codes.id,
                     included_codes.code,
                     included_codes.description,

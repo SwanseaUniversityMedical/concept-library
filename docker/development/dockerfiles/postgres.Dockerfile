@@ -1,4 +1,4 @@
-FROM postgres:14.4
+FROM postgres:17
 
 # Install and upgrade packages
 RUN apt-get update -y -q && \
