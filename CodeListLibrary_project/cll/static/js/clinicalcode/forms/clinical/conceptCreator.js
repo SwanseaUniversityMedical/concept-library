@@ -2265,6 +2265,21 @@ export default class ConceptCreator {
     // Create or update the concept given the editor data
     let index = this.data.findIndex(item => item.concept_id == data.concept_id && item.concept_version_id == data.concept_version_id);
     let isNew = index < 0;
+
+    const components = data?.components;
+    for (let i = components.length; i > 0; --i) {
+      const component = components[i - 1];
+      if (!component.is_new || component.imported) {
+        continue;
+      }
+
+      const invalidCodes = !Array.isArray(component.codes) || component.codes.length < 1;
+      const isEmptySource = !invalidCodes && (typeof component.source !== 'string' || isStringEmpty(component.source) || component.source.length < 3);
+      if (invalidCodes || isEmptySource) {
+        components.splice(i, 1);
+      }
+    }
+
     if (isNew) {
       this.data.push(data);
     } else {
