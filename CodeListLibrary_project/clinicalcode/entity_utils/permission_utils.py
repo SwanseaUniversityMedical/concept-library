@@ -93,10 +93,12 @@ def has_org_member(user):
     else:
         return False 
 
-def has_org_authority(user,organisation):
-    if has_org_member(user):
+def has_org_authority(request,organisation):
+    if has_org_member(request.user):
         authority = model_utils.try_get_instance(OrganisationAuthority, organisation_id=organisation.id)
-        return {"can_moderate":authority.can_moderate, "can_post": authority.can_post}
+        brand = model_utils.try_get_brand(request)
+        org_user_managed = brand.org_user_managed if brand else None
+        return {"can_moderate":authority.can_moderate, "can_post": authority.can_post, "org_user_managed": org_user_managed }
     else:
         return False
       
