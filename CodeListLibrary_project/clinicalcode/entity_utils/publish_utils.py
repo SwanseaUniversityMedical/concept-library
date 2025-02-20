@@ -159,8 +159,17 @@ def check_organisation_authorities(request,entity,entity_class):
     organisation_checks = {}
 
     organisation = permission_utils.get_organisation_info(request.user)
-    print(permission_utils.has_org_authority(request.user,organisation))
-    print(permission_utils.get_organisation_role(request.user))
+    organisation_permissions = permission_utils.has_org_authority(request,organisation)
+    organisation_user_role = permission_utils.get_organisation_role(request.user)
+    print(organisation_permissions)
+     
+    if organisation_permissions["org_user_managed"] is None or False:
+        return False
+
+    if organisation_permissions["can_moderate"]:
+       if organisation_user_role.value >= 1:
+           organisation_checks["allowed_to_publish"] = True
+           print(organisation_checks)
 
     return organisation_checks
 
