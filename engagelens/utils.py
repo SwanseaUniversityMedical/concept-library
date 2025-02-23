@@ -127,6 +127,7 @@ def get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand):
         Returns:
             tuple: Filtered DataFrames for new phenotypes, edited phenotypes, and published phenotypes.
     """
+
     new_phenotype_df = phenotype_df[phenotype_df['status'] == 2][['date', 'created_by_id', 'id', 'brands',
                                                                   'publish_status', 'history_id']]
 

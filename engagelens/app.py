@@ -12,16 +12,18 @@ from flask import request, redirect
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
+from constants import BRAND_LOGO_PATHS
 from utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
     get_filtered_users_df, get_conn
 
-app = Dash(__name__, requests_pathname_prefix='/dash/', external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+# app = Dash(__name__, requests_pathname_prefix='/dash/', external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # PostgresSQL connection
 conn = get_conn()
 
 # Create a session factory
-SessionLocal = sessionmaker(bind=conn)
+# SessionLocal = sessionmaker(bind=conn)
 
 def validate_django_session():
     """
@@ -64,7 +66,8 @@ def validate_django_session():
             # Query to check if the session exists and has not expired
             result = db_session.execute(
                 text("""
-                    SELECT session_data FROM django_session 
+                    SELECT session_data 
+                    FROM django_session
                     WHERE session_key = :session_key AND expire_date > NOW()
                 """),
                 {'session_key': session_cookie}
@@ -88,33 +91,27 @@ def validate_django_session():
 
     return False
 
-@app.server.before_request
-def restrict_access():
-    """
-    A before-request function that restricts access to the application by validating the user's session.
-
-    This function checks if the current request has a valid Django session. If the session is invalid
-    or the user is not authenticated, it redirects the user to the login page.
-
-    Redirects:
-        Flask redirect: Redirects the user to the login page if the session is invalid.
-    """
-    is_auth = validate_django_session()
-    if not is_auth:
-        return redirect(f'/account/login/?next=/dash/')
+# @app.server.before_request
+# def restrict_access():
+#     """
+#     A before-request function that restricts access to the application by validating the user's session.
+#
+#     This function checks if the current request has a valid Django session. If the session is invalid
+#     or the user is not authenticated, it redirects the user to the login page.
+#
+#     Redirects:
+#         Flask redirect: Redirects the user to the login page if the session is invalid.
+#     """
+#     is_auth = validate_django_session()
+#     if not is_auth:
+#         return redirect(f'/account/login/?next=/dash/')
 
 app.layout = dbc.Container(
         [
                 dbc.Row(children=[
                         dbc.Col(
-                                html.A(
-                                    html.Img(id='header-logo' ,
-                                             src = get_asset_url('images/header_logo.png'),
-                                             ),
-                                    href='/',
-                                    target='_self'
-                                ),
-                                    md=5
+                                id='branding',
+                                md=5
 
                         ),
                         dbc.Col(
@@ -213,6 +210,35 @@ app.layout = dbc.Container(
         fluid=True,
         style={'padding': '20px'}
 )
+
+
+@callback(
+Output(component_id='branding', component_property='children'),
+    Input(component_id='brand-dropdown', component_property='value')
+)
+def render_header_logo(brand):
+    match brand:
+        case 1:
+            logo_loc = BRAND_LOGO_PATHS[1]['path']
+            href = BRAND_LOGO_PATHS[1]['href']
+        case 2:
+            logo_loc = BRAND_LOGO_PATHS[2]['path']
+            href = BRAND_LOGO_PATHS[2]['href']
+        case 3:
+            logo_loc = BRAND_LOGO_PATHS[3]['path']
+            href = BRAND_LOGO_PATHS[3]['href']
+        case _:
+            logo_loc = BRAND_LOGO_PATHS[0]['path']
+            href = BRAND_LOGO_PATHS[0]['href']
+
+
+    return html.A(
+                    html.Img(id='header-logo' ,
+                             src = get_asset_url(logo_loc),
+                             ),
+                    href=href,
+                    target='_self'
+                )
 
 @callback(
         Output('total-users', 'children'),
@@ -404,6 +430,7 @@ def render_time_series(start_date, end_date, brand, user_type):
     else:
         tot_users_df_filtered = tot_users_df[tot_users_df.user_id.isna()]
         tot_users_ts = tot_users_df_filtered.groupby('date')['remote_ip'].nunique().reset_index(name='users')
+
         fig = px.line(tot_users_ts, x='date',
                       y=['users'],
                       labels={'value': 'Count', 'date': 'Date'},
@@ -414,7 +441,7 @@ def render_time_series(start_date, end_date, brand, user_type):
             legend=dict(
                     orientation='h',
                     yanchor='bottom',
-                    y=-0.3,
+                    y=-0.4,
                     xanchor='center',
                     x=0.5,
                     font={'size': 18}
