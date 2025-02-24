@@ -27,6 +27,7 @@ conn = get_conn()
 phenotype_df = read_phenotype_df(conn)
 request_df = read_request_df(conn)
 
+
 # Create a session factory
 # SessionLocal = sessionmaker(bind=conn)
 
@@ -163,7 +164,7 @@ app.layout = dbc.Container(
                                                 dcc.Loading(
                                                         type="default",
                                                         children=dbc.CardBody([
-                                                                html.H5("Phenotypes Edited",
+                                                                html.H5("Phenotype Edits",
                                                                         className="card-title"),
                                                                 html.H2(id='edit-phenotypes', className='card-title')
                                                         ])
@@ -322,13 +323,16 @@ def render_phenotype_kpis(start_date, end_date, brand, user_type):
     start_date = datetime.fromisoformat(start_date).date()
     end_date = datetime.fromisoformat(end_date).date()
 
-    new_phenotype_df, edit_phenotypes_df, published_phenotypes_df = get_filtered_phenotype_dfs(phenotype_df, start_date,
-                                                                                               end_date, brand)
+    filtered_phenotype_df = get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand)
 
-    edit_phenotypes_count = len(edit_phenotypes_df)
-    published_phenotypes_count = published_phenotypes_df['id'].nunique()
-    new_phenotypes_count = new_phenotype_df['id'].nunique()
-    return [f"{new_phenotypes_count}", f"{edit_phenotypes_count}", f"{published_phenotypes_count}"]
+    # Count of unique phenotypes that were published
+    unique_published_count = filtered_phenotype_df[filtered_phenotype_df['is_published']]['id'].nunique()
+    # Total number of edits made
+    total_edits_count = filtered_phenotype_df['is_edited'].sum()
+    # Total number of new phenotypes
+    new_phenotypes_count = filtered_phenotype_df['is_new'].sum()
+
+    return [f"{new_phenotypes_count}", f"{total_edits_count}", f"{unique_published_count}"]
 
 
 @callback(
@@ -414,13 +418,11 @@ def render_time_series(start_date, end_date, brand, user_type):
         tot_users_df_filtered = tot_users_df[~tot_users_df.user_id.isna()]
         tot_users_ts = tot_users_df_filtered.groupby('date')['user_id'].nunique().reset_index(name='users')
 
-        new_phenotype_df, edit_phenotypes_df, published_phenotypes_df = get_filtered_phenotype_dfs(phenotype_df,
-                                                                                                   start_date, end_date,
-                                                                                                   brand)
+        new_phenotype_df = get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand)
 
-        edit_phenotypes_ts = edit_phenotypes_df.groupby('date').size().reset_index(name='edited phenotypes')
-        published_phenotypes_ts = published_phenotypes_df.groupby('date')['id'].nunique().reset_index(
-                name='published phenotypes')
+        # edit_phenotypes_ts = edit_phenotypes_df.groupby('date').size().reset_index(name='edited phenotypes')
+        # published_phenotypes_ts = published_phenotypes_df.groupby('date')['id'].nunique().reset_index(
+        #         name='published phenotypes')
         new_phenotypes_ts = new_phenotype_df.groupby('date')['id'].nunique().reset_index(name='new phenotypes')
 
         date_range = pd.date_range(start=start_date, end=end_date, freq='D')
@@ -429,8 +431,8 @@ def render_time_series(start_date, end_date, brand, user_type):
         dates.set_index('date', inplace=True)
         tot_users_ts.set_index('date', inplace=True)
         new_phenotypes_ts.set_index('date', inplace=True)
-        published_phenotypes_ts.set_index('date', inplace=True)
-        edit_phenotypes_ts.set_index('date', inplace=True)
+        # published_phenotypes_ts.set_index('date', inplace=True)
+        # edit_phenotypes_ts.set_index('date', inplace=True)
 
         time_series_data = pd.concat([dates, tot_users_ts, new_phenotypes_ts, published_phenotypes_ts,
                                       edit_phenotypes_ts], axis=1)

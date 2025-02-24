@@ -38,7 +38,12 @@ def read_phenotype_df(conn):
             DataFrame: A pandas DataFrame containing the phenotype data.
     """
     phenotype_df = pd.read_sql_table('clinicalcode_historicalgenericentity', conn)
-    phenotype_df['date'] = pd.to_datetime(phenotype_df['created']).dt.date
+    phenotype_df['date'] = pd.to_datetime(phenotype_df['history_date']).dt.date
+
+    first_published_dates = phenotype_df[phenotype_df['publish_status'] == 2].groupby('id')['date'].min()
+
+    # Assign the first publication date to the DataFrame
+    phenotype_df['publish_date'] = phenotype_df['id'].map(first_published_dates)
 
     return phenotype_df
 
@@ -128,8 +133,8 @@ def get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand):
             tuple: Filtered DataFrames for new phenotypes, edited phenotypes, and published phenotypes.
     """
 
-    new_phenotype_df = phenotype_df[phenotype_df['status'] == 2][['date', 'created_by_id', 'id', 'brands',
-                                                                  'publish_status', 'history_id']]
+    new_phenotype_df = phenotype_df[['date', 'created_by_id', 'id', 'brands',
+                                                                  'publish_status', 'history_id', 'publish_date']]
 
     new_phenotype_df['min_version'] = new_phenotype_df.groupby('id')['history_id'].transform('min')
     new_phenotype_df = new_phenotype_df[(new_phenotype_df.date >= start_date) &
@@ -137,10 +142,12 @@ def get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand):
     if brand > 0:
         new_phenotype_df = new_phenotype_df[new_phenotype_df.brands.apply(lambda brand_list: brand in brand_list)]
 
-    edit_phenotypes_df = new_phenotype_df[new_phenotype_df.history_id != new_phenotype_df.min_version]
-    published_phenotypes_df = new_phenotype_df[new_phenotype_df.publish_status == 2]
+    # Create new boolean columns instead of filtering into separate DataFrames
+    new_phenotype_df['is_new'] = new_phenotype_df['history_id'] == new_phenotype_df['min_version']
+    new_phenotype_df['is_edited'] = new_phenotype_df['history_id'] != new_phenotype_df['min_version']
+    new_phenotype_df['is_published'] = new_phenotype_df['date'] == new_phenotype_df['publish_date']
 
-    return new_phenotype_df, edit_phenotypes_df, published_phenotypes_df
+    return new_phenotype_df
 
 
 def get_filtered_users_df(request_df, start_date, end_date, brand):
