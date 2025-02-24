@@ -31,3 +31,10 @@ GRANULARITY_OPTIONS  = [
                             {"label": "Yearly", "value": 3}
                     ]
 
+# Define the granularity settings as a dictionary
+GRANULARITY_SETTINGS = {
+    1: {'freq': 'M', 'date_format': "%b %Y"},  # Monthly: Format as "Jun 2023"
+    2: {'freq': 'Q', 'date_format': "Q%q %Y"},  # Quarterly: Format as "Q1 2023"
+    3: {'freq': 'Y', 'date_format': "%Y"},     # Yearly: Format as "2023"
+}
+

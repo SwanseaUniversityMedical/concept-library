@@ -12,7 +12,7 @@ from flask import request, redirect
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from constants import BRAND_LOGO_PATHS, GRANULARITY_OPTIONS
+from constants import BRAND_LOGO_PATHS, GRANULARITY_OPTIONS, GRANULARITY_SETTINGS
 from utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
     get_filtered_users_df, get_conn
 
@@ -198,7 +198,7 @@ app.layout = dbc.Container(
                                                 children=[html.Div(
                                                             [
                                                                     dbc.RadioItems(
-                                                                        id="radios",
+                                                                        id="granularity_radio",
                                                                         className="btn-group",
                                                                         inputClassName="btn-check",
                                                                         labelClassName="btn btn-outline-primary",
@@ -394,9 +394,10 @@ def render_tree_map(start_date, end_date, brand, user_type):
         Input('start-date-filter', 'date'),
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
-        Input('usertype-dropdown', 'value')
+        Input('usertype-dropdown', 'value'),
+        Input('granularity_radio', 'value')
 )
-def render_time_series(start_date, end_date, brand, user_type):
+def render_time_series(start_date, end_date, brand, user_type, granularity):
     """Render the time series graph.
 
         Args:
@@ -408,9 +409,14 @@ def render_time_series(start_date, end_date, brand, user_type):
         Returns:
             Figure: A Plotly figure for the time series graph.
     """
+    granularity = GRANULARITY_SETTINGS.get(granularity, GRANULARITY_SETTINGS)
+    # Extract frequency and date format from the dictionary
+    freq = granularity['freq']
+    date_format = granularity['date_format']
 
     start_date = datetime.fromisoformat(start_date).date()
     end_date = datetime.fromisoformat(end_date).date()
+    date_range = pd.date_range(start=start_date, end=end_date, freq=freq)
 
     tot_users_df = get_filtered_users_df(request_df, start_date, end_date, brand)
 
@@ -420,39 +426,52 @@ def render_time_series(start_date, end_date, brand, user_type):
 
         new_phenotype_df = get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand)
 
-        # edit_phenotypes_ts = edit_phenotypes_df.groupby('date').size().reset_index(name='edited phenotypes')
-        # published_phenotypes_ts = published_phenotypes_df.groupby('date')['id'].nunique().reset_index(
-        #         name='published phenotypes')
-        new_phenotypes_ts = new_phenotype_df.groupby('date')['id'].nunique().reset_index(name='new phenotypes')
+        phenotype_ts = new_phenotype_df.groupby('date').agg(
+            **{'published phenotypes': ('id', lambda x: x[new_phenotype_df.loc[x.index, 'is_published']].nunique())},
+            **{'phenotype edits': ('is_edited', 'sum')},
+            **{'new phenotypes': ('is_new', 'sum')}
+        ).reset_index()
 
-        date_range = pd.date_range(start=start_date, end=end_date, freq='D')
-        dates = pd.DataFrame(date_range.date, columns=['date'])
-
-        dates.set_index('date', inplace=True)
+        # Ensure 'date' is in datetime format for resampling and index on date column
+        tot_users_ts['date'] = pd.to_datetime(tot_users_ts['date'])
+        phenotype_ts['date'] = pd.to_datetime(phenotype_ts['date'])
         tot_users_ts.set_index('date', inplace=True)
-        new_phenotypes_ts.set_index('date', inplace=True)
-        # published_phenotypes_ts.set_index('date', inplace=True)
-        # edit_phenotypes_ts.set_index('date', inplace=True)
+        phenotype_ts.set_index('date', inplace=True)
 
-        time_series_data = pd.concat([dates, tot_users_ts, new_phenotypes_ts, published_phenotypes_ts,
-                                      edit_phenotypes_ts], axis=1)
-        time_series_data.fillna(0, inplace=True)
+        # Resample the data to the correct granularity (Monthly, Quarterly, Yearly)
+        tot_users_ts_resampled = tot_users_ts.resample(freq).sum()  # Resampling by sum (you can also use 'count', 'mean', etc.)
+        phenotype_ts_resampled = phenotype_ts.resample(freq).sum()
+
+        # Reindexing the data to the new date range
+        tot_users_ts_resampled = tot_users_ts_resampled.reindex(date_range.date, fill_value=0)
+        phenotype_ts_resampled = phenotype_ts_resampled.reindex(date_range.date, fill_value=0)
+
+        time_series_data = pd.concat([tot_users_ts_resampled, phenotype_ts_resampled], axis=1)
 
         fig = px.line(time_series_data, x=time_series_data.index,
-                      y=['edited phenotypes', 'new phenotypes', 'published phenotypes', 'users'],
+                      y=['phenotype edits', 'new phenotypes', 'published phenotypes', 'users'],
                       labels={'value': 'Count', 'date': 'Date'},
                       title='Time Series Data')
     else:
         tot_users_df_filtered = tot_users_df[tot_users_df.user_id.isna()]
         tot_users_ts = tot_users_df_filtered.groupby('date')['remote_ip'].nunique().reset_index(name='users')
+        # Ensure 'date' is in datetime format for resampling
+        tot_users_ts['date'] = pd.to_datetime(tot_users_ts['date'])
+        tot_users_ts.set_index('date', inplace=True)
+        # Resample the data to the correct granularity
+        tot_users_ts_resampled = tot_users_ts.resample(freq).sum()
 
-        fig = px.line(tot_users_ts, x='date',
+        # Reindex the data to the new date range and fill missing values with 0
+        tot_users_ts_resampled = tot_users_ts_resampled.reindex(date_range.date, fill_value=0)
+
+        fig = px.line(tot_users_ts_resampled, x=tot_users_ts_resampled.index,
                       y=['users'],
                       labels={'value': 'Count', 'date': 'Date'},
                       title='Time Series Data',
                       line_shape='spline')
 
     fig.update_layout(
+            xaxis_tickformat=date_format,
             legend=dict(
                 title_text="",
                     orientation='h',

@@ -40,7 +40,7 @@ def read_phenotype_df(conn):
     phenotype_df = pd.read_sql_table('clinicalcode_historicalgenericentity', conn)
     phenotype_df['date'] = pd.to_datetime(phenotype_df['history_date']).dt.date
 
-    first_published_dates = phenotype_df[phenotype_df['publish_status'] == 2].groupby('id')['date'].min()
+    first_published_dates = phenotype_df[ phenotype_df['publish_status'] == 2].groupby('id')['date'].min()
 
     # Assign the first publication date to the DataFrame
     phenotype_df['publish_date'] = phenotype_df['id'].map(first_published_dates)
@@ -134,7 +134,7 @@ def get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand):
     """
 
     new_phenotype_df = phenotype_df[['date', 'created_by_id', 'id', 'brands',
-                                                                  'publish_status', 'history_id', 'publish_date']]
+                                                                  'publish_status', 'history_id', 'publish_date']].copy()
 
     new_phenotype_df['min_version'] = new_phenotype_df.groupby('id')['history_id'].transform('min')
     new_phenotype_df = new_phenotype_df[(new_phenotype_df.date >= start_date) &
