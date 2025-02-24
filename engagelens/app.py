@@ -12,7 +12,7 @@ from flask import request, redirect
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from constants import BRAND_LOGO_PATHS
+from constants import BRAND_LOGO_PATHS, GRANULARITY_OPTIONS
 from utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
     get_filtered_users_df, get_conn
 
@@ -21,6 +21,11 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # PostgresSQL connection
 conn = get_conn()
+
+# Data read here as it does not change much
+# TODO: consider caching as the data doesn't change much
+phenotype_df = read_phenotype_df(conn)
+request_df = read_request_df(conn)
 
 # Create a session factory
 # SessionLocal = sessionmaker(bind=conn)
@@ -123,7 +128,7 @@ app.layout = dbc.Container(
                 ],
                     className='logo-container'
                 ),
-                render_filters(conn),
+                render_filters(phenotype_df, request_df),
                 dbc.Row(
                         id="kpi-row",
                         children=[
@@ -189,7 +194,21 @@ app.layout = dbc.Container(
                                 dbc.Col(
                                         dcc.Loading(
                                                 type="default",
-                                                children=dcc.Graph(id='time-series-graph')
+                                                children=[html.Div(
+                                                            [
+                                                                    dbc.RadioItems(
+                                                                        id="radios",
+                                                                        className="btn-group",
+                                                                        inputClassName="btn-check",
+                                                                        labelClassName="btn btn-outline-primary",
+                                                                        labelCheckedClassName="active",
+                                                                        options=GRANULARITY_OPTIONS,
+                                                                        value=1,
+                                                                    ),
+                                                            ],
+                                                            className="radio-group",
+                                                        ),
+                                                    dcc.Graph(id='time-series-graph')]
                                         ),
                                         md=8,
                                         style={'padding': '0'}
@@ -261,7 +280,6 @@ def render_user_kpi(start_date, end_date, brand, user_type):
         Returns:
             int: The total number of users.
     """
-    request_df = read_request_df(conn)
     start_date = datetime.fromisoformat(start_date).date()
     end_date = datetime.fromisoformat(end_date).date()
 
@@ -298,7 +316,6 @@ def render_phenotype_kpis(start_date, end_date, brand, user_type):
         Returns:
             int: The total number of new phenotypes.
     """
-    phenotype_df = read_phenotype_df(conn)
     if not user_type:
         return ["N/A", "N/A", "N/A"]
 
@@ -339,8 +356,6 @@ def render_tree_map(start_date, end_date, brand, user_type):
             return match.group(1).replace('+', ' ')
         else:
             return None
-
-    request_df = read_request_df(conn)
 
     start_date = datetime.fromisoformat(start_date).date()
     end_date = datetime.fromisoformat(end_date).date()
@@ -389,8 +404,6 @@ def render_time_series(start_date, end_date, brand, user_type):
         Returns:
             Figure: A Plotly figure for the time series graph.
     """
-    phenotype_df = read_phenotype_df(conn)
-    request_df = read_request_df(conn)
 
     start_date = datetime.fromisoformat(start_date).date()
     end_date = datetime.fromisoformat(end_date).date()
@@ -439,15 +452,15 @@ def render_time_series(start_date, end_date, brand, user_type):
 
     fig.update_layout(
             legend=dict(
+                title_text="",
                     orientation='h',
-                    yanchor='bottom',
-                    y=-0.4,
+                    yanchor='top',
+                    y=1.2,
                     xanchor='center',
                     x=0.5,
-                    font={'size': 18}
+                    font={'size': 15}
             )
     )
-
     return fig
 
 # Expose the WSGI application object

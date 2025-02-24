@@ -24,4 +24,10 @@ USER_TYPE_LABELS = [
                     {'label': 'Non-Authenticated', 'value': 0}
               ]
 
+# granularity options for the time series chart
+GRANULARITY_OPTIONS  = [
+                            {"label": "Monthly", "value": 1},
+                            {"label": "Quaterly", "value": 2},
+                            {"label": "Yearly", "value": 3}
+                    ]
 

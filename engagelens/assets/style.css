@@ -135,19 +135,35 @@ h1 {
     margin-top: 20px
 }
 
-/* Buttons */
-.btn-primary {
-    background-color: #005f99;
-    border-color: #005f99;
-    color: #fff;
-    font-size: 16px;
-    padding: 10px 20px;
-    border-radius: 5px;
-    transition: background-color 0.2s ease-in-out;
+/* restyle radio items */
+.radio-group {
+  display: flex;
+  justify-content: center; /* Center the button group */
+  align-items: center;
+}
+.radio-group .btn {
+  font-size: 10px; /* Smaller font size */
+  padding: 2px 5px; /* Reduce padding */
+  height: 25px; /* Reduce button height */
+  line-height: 25px; /* Center text vertically */
+  display: flex;
+  align-items: center; /* Ensure vertical centering */
+  justify-content: center; /* Center text horizontally */
 }
 
-.btn-primary:hover {
-    background-color: #004f7c;
+.radio-group .form-check {
+  padding-left: 0;
+}
+
+.radio-group .btn-group > .form-check:not(:last-child) > .btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.radio-group .btn-group > .form-check:not(:first-child) > .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
 }
 
 /* Footer Styles */

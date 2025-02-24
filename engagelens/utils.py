@@ -43,14 +43,14 @@ def read_phenotype_df(conn):
     return phenotype_df
 
 
-def render_filters(conn):
+def render_filters(phenotype_df, request_df):
     """Render filter components for the dashboard.
             conn: SQLAlchemy connection object.
         Returns:
             Row: A Dash Row component containing filter components.
     """
-    min_date = read_phenotype_df(conn)['date'].min()
-    max_date = read_request_df(conn)['date'].max()
+    min_date = phenotype_df['date'].min()
+    max_date = request_df['date'].max()
 
     return dbc.Row(
             children=[
