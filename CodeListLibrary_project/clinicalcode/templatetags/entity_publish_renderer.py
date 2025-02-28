@@ -2,7 +2,9 @@ from django import template
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
-from ..entity_utils import permission_utils, constants
+
+
+from ..entity_utils import permission_utils, publish_utils, constants
 
 register = template.Library()
 
@@ -39,9 +41,10 @@ def render_errors_approval(context, *args, **kwargs):
 
 @register.inclusion_tag('components/publish_request/publish_button.html', takes_context=True, name='render_publish_button')
 def render_publish_button(context, *args, **kwargs):
-    user_is_moderator = permission_utils.is_member(context['request'].user, "Moderators")
+    publish_checks = publish_utils.check_entity_to_publish(context['request'], context['entity'].id, context['entity'].history_id)
+    user_is_moderator = publish_checks['is_moderator']
     user_entity_access = permission_utils.can_user_edit_entity(context['request'], context['entity'].id) #context['entity'].owner == context['request'].user
-    user_is_publisher = user_entity_access and permission_utils.is_member(context['request'].user, "publishers")
+    user_is_publisher = publish_checks['is_publisher']
 
     button_context = {
         'url_decline': reverse('generic_entity_decline', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
