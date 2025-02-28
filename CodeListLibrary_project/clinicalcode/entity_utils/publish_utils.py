@@ -154,7 +154,6 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'all_are_published': all_are_published,
         'all_not_deleted': all_not_deleted
     } | organisation_checks
-    print(checks)
     return checks
 
 def check_organisation_authorities(request,entity,entity_class):
@@ -164,15 +163,17 @@ def check_organisation_authorities(request,entity,entity_class):
     organisation_permissions = permission_utils.has_org_authority(request,organisation)
     organisation_user_role = permission_utils.get_organisation_role(request.user)
      
-    if organisation_permissions["org_user_managed"] is None or False:
-        return False
-
-    if organisation_permissions["can_moderate"]:
-       if organisation_user_role.value >= 1:
-           organisation_checks["allowed_to_publish"] = True
-           organisation_checks["is_moderator"] = True
-           return organisation_checks
-    
+    if isinstance(organisation_permissions,dict):
+        if organisation_permissions["can_moderate"]:
+            if organisation_user_role.value >= 1:
+                organisation_checks["allowed_to_publish"] = True
+                organisation_checks["is_moderator"] = True
+            else:
+                organisation_checks["allowed_to_publish"] = False
+                organisation_checks["is_moderator"] = False
+    else:
+        return organisation_checks
+        
 
     return organisation_checks
 
