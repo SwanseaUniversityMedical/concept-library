@@ -88,10 +88,13 @@ def has_member_access(user, entity, permissions):
 
 def has_org_member(user):
     organisation_memebership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
-    if organisation_memebership.role in ORGANISATION_ROLES:
-        return True
+    if organisation_memebership is not None:
+        if organisation_memebership.role in ORGANISATION_ROLES:
+            return True
+        else:
+            return False
     else:
-        return False 
+        return False
 
 def has_org_authority(request,organisation):
     if has_org_member(request.user):
@@ -110,8 +113,10 @@ def get_organisation_info(user):
         return None
     
 def get_organisation_role(user):
-
     org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
+
+    if org_membership is None:
+        return None
 
     match org_membership.role:
         case ORGANISATION_ROLES.ADMIN:
@@ -1220,6 +1225,10 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     if is_allowed_to_edit:
         if not is_brand_accessible(request, entity_id):
             is_allowed_to_edit = False
+    
+    print(has_org_authority(request,get_organisation_info(request.user)))
+    print(get_organisation_role(user))
+    
 
     return is_allowed_to_edit
 
