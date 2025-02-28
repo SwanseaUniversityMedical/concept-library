@@ -89,7 +89,7 @@ def has_member_access(user, entity, permissions):
 def has_org_member(user):
     organisation_memebership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
     if organisation_memebership.role in ORGANISATION_ROLES:
-            return True
+        return True
     else:
         return False 
 
