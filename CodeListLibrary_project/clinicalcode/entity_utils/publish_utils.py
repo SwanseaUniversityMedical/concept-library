@@ -133,7 +133,8 @@ def check_entity_to_publish(request, pk, entity_history_id):
     if not entity_has_data and entity_class == "Workingset":
         allow_to_publish = False
     
-    check_organisation_authorities(request,entity, entity_class)
+    organisation_checks = check_organisation_authorities(request,entity, entity_class)
+
     
     checks = {
         'entity_type': entity_class,
@@ -152,7 +153,8 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'is_latest_pending_version': is_latest_pending_version,
         'all_are_published': all_are_published,
         'all_not_deleted': all_not_deleted
-    }
+    } | organisation_checks
+    print(checks)
     return checks
 
 def check_organisation_authorities(request,entity,entity_class):
@@ -161,7 +163,6 @@ def check_organisation_authorities(request,entity,entity_class):
     organisation = permission_utils.get_organisation_info(request.user)
     organisation_permissions = permission_utils.has_org_authority(request,organisation)
     organisation_user_role = permission_utils.get_organisation_role(request.user)
-    print(organisation_permissions)
      
     if organisation_permissions["org_user_managed"] is None or False:
         return False
@@ -169,7 +170,9 @@ def check_organisation_authorities(request,entity,entity_class):
     if organisation_permissions["can_moderate"]:
        if organisation_user_role.value >= 1:
            organisation_checks["allowed_to_publish"] = True
-           print(organisation_checks)
+           organisation_checks["is_moderator"] = True
+           return organisation_checks
+    
 
     return organisation_checks
 
