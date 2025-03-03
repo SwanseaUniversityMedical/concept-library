@@ -134,5 +134,8 @@ def render_publish_button(context, *args, **kwargs):
                                 })
             else:
                 button_context.update({ 'pub_btn_hidden': True })
+    
+    else:
+        button_context.update({ 'pub_btn_hidden': True })
 
-        return button_context
+    return button_context
