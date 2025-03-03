@@ -1225,10 +1225,21 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     if is_allowed_to_edit:
         if not is_brand_accessible(request, entity_id):
             is_allowed_to_edit = False
-    
+
+    org_info = has_org_authority(request,get_organisation_info(request.user))
+    if isinstance(org_info,dict):
+        if org_info['org_user_managed'] and has_org_member(request.user):
+            if get_organisation_role(user).value != 0:
+                is_allowed_to_edit = True
+            else:
+                is_allowed_to_edit = False
+
+
+    print(has_org_member(request.user))
     print(has_org_authority(request,get_organisation_info(request.user)))
     print(get_organisation_role(user))
     
+    print('is_allowed to edit' + str(is_allowed_to_edit))
 
     return is_allowed_to_edit
 
