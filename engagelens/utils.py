@@ -139,9 +139,8 @@ def get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand):
     new_phenotype_df['min_version'] = new_phenotype_df.groupby('id')['history_id'].transform('min')
     new_phenotype_df = new_phenotype_df[(new_phenotype_df.date >= start_date) &
                                         (new_phenotype_df.date <= end_date)]
-    if brand > 0:
-        new_phenotype_df = new_phenotype_df[new_phenotype_df.brands.apply(lambda brand_list: brand in brand_list)]
-
+    if brand > 0 :
+        new_phenotype_df = new_phenotype_df[new_phenotype_df.brands.apply(lambda brand_list: isinstance(brand_list, list) and brand in brand_list)].copy()
     # Create new boolean columns instead of filtering into separate DataFrames
     new_phenotype_df['is_new'] = new_phenotype_df['history_id'] == new_phenotype_df['min_version']
     new_phenotype_df['is_edited'] = new_phenotype_df['history_id'] != new_phenotype_df['min_version']
