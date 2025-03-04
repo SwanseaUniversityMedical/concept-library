@@ -133,7 +133,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
     if not entity_has_data and entity_class == "Workingset":
         allow_to_publish = False
     
-    organisation_checks = check_organisation_authorities(request,entity, entity_class)
+    organisation_checks = check_organisation_authorities(request)
 
     
     checks = {
@@ -158,7 +158,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
     print(checks)
     return checks
 
-def check_organisation_authorities(request,entity,entity_class):
+def check_organisation_authorities(request):
     organisation_checks = {}
 
     organisation = permission_utils.get_organisation_info(request.user)
@@ -166,16 +166,16 @@ def check_organisation_authorities(request,entity,entity_class):
     organisation_user_role = permission_utils.get_organisation_role(request.user)
      
     if isinstance(organisation_permissions,dict):
-        
-        organisation_checks["allowed_to_publish"] = False
-        organisation_checks["is_moderator"] = False
-        
-        if organisation_permissions["can_moderate"]:
-            if organisation_user_role.value >= 1:
+        if organisation_permissions['org_user_managed']:
+
+            organisation_checks["allowed_to_publish"] = False
+            organisation_checks["is_moderator"] = False
+                
+            if organisation_permissions.get("can_post", False) and organisation_user_role.value >= 1:
                 organisation_checks["allowed_to_publish"] = True
-            
-            if organisation_user_role.value == 2:
-                 organisation_checks["is_moderator"] = True
+
+            if organisation_permissions.get("can_moderate", False) and organisation_user_role.value >= 2:
+                organisation_checks["is_moderator"] = True
            
     else:
         return organisation_checks
