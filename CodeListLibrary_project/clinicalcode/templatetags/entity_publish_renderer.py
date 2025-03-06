@@ -43,9 +43,10 @@ def render_errors_approval(context, *args, **kwargs):
 def render_publish_button(context, *args, **kwargs):
     publish_checks = publish_utils.check_entity_to_publish(context['request'], context['entity'].id, context['entity'].history_id)
     user_is_moderator = publish_checks['is_moderator']
-    user_entity_access = permission_utils.can_user_edit_entity(context['request'], context['entity'].id) #context['entity'].owner == context['request'].user
     user_is_publisher = publish_checks['is_publisher']
-
+    user_allowed_publish = publish_checks['allowed_to_publish']
+    user_entity_access = permission_utils.can_user_edit_entity(context['request'], context['entity'].id) #context['entity'].owner == context['request'].user
+    
     button_context = {
         'url_decline': reverse('generic_entity_decline', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
         'url_redirect': reverse('entity_history_detail', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
@@ -85,7 +86,7 @@ def render_publish_button(context, *args, **kwargs):
                                  'title':  "Deleted phenotypes cannot be published!"
                                })
         return button_context
-    elif user_entity_access:
+    elif user_allowed_publish:
         if not context["is_lastapproved"] and (context["approval_status"] is None or context["approval_status"] == constants.APPROVAL_STATUS.ANY) and user_entity_access and not context["live_ver_is_deleted"]:
             if user_is_publisher:
                 button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
