@@ -176,6 +176,7 @@ def check_organisation_authorities(request):
 
             if organisation_permissions.get("can_moderate", False) and organisation_user_role.value >= 2:
                 organisation_checks["is_moderator"] = True
+                organisation_checks["allowed_to_publish"] = True
            
     else:
         return organisation_checks
