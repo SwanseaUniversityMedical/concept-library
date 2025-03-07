@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group
 
 from functools import wraps
 
-from ..models.Organisation import OrganisationAuthority, OrganisationMembership
+from ..models.Organisation import Organisation, OrganisationAuthority, OrganisationMembership
 from . import model_utils, gen_utils
 from ..models.Brand import Brand
 from ..models.Concept import Concept
@@ -86,34 +86,8 @@ def has_member_access(user, entity, permissions):
 
     return False
 
-def has_org_member(user):
-    organisation_memebership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
-    if organisation_memebership is not None:
-        if organisation_memebership.role in ORGANISATION_ROLES:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-def has_org_authority(request,organisation):
-    if has_org_member(request.user):
-        authority = model_utils.try_get_instance(OrganisationAuthority, organisation_id=organisation.id)
-        brand = model_utils.try_get_brand(request)
-        org_user_managed = brand.org_user_managed if brand else None
-        return {"can_moderate":authority.can_moderate, "can_post": authority.can_post, "org_user_managed": org_user_managed }
-    else:
-        return False
-      
-def get_organisation_info(user):
-    if has_org_member(user):
-        organisation_memebership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
-        return organisation_memebership.organisation
-    else:
-        return None
-    
-def get_organisation_role(user):
-    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id)
+def get_organisation_role(user, organisation):
+    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
 
     if org_membership is None:
         return None
@@ -129,6 +103,31 @@ def get_organisation_role(user):
             return ORGANISATION_ROLES.MEMBER
         case _:
             return -1
+
+def has_org_member(user, organisation):
+    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
+    return org_membership is not None and org_membership.role in ORGANISATION_ROLES
+
+def has_org_authority(request,organisation):
+    if has_org_member(request.user,organisation):
+        authority = model_utils.try_get_instance(OrganisationAuthority, organisation_id=organisation.id)
+        brand = model_utils.try_get_brand(request)
+        org_user_managed = brand.org_user_managed if brand else None
+        return {"can_moderate":authority.can_moderate, "can_post": authority.can_post, "org_user_managed": org_user_managed }
+    else:
+        return False
+      
+def get_organisation(request):
+    brand = model_utils.try_get_brand(request)
+    if brand:
+        organisation = model_utils.try_get_instance(Organisation,slug=brand.name.lower())
+        if organisation:
+            return organisation
+        else:
+            return None
+
+
+
 
           
 
@@ -1226,10 +1225,11 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
         if not is_brand_accessible(request, entity_id):
             is_allowed_to_edit = False
 
-    org_info = has_org_authority(request,get_organisation_info(request.user))
-    if isinstance(org_info,dict):
-        if org_info['org_user_managed'] and has_org_member(request.user):
-            if get_organisation_role(user).value != 0:
+    organisation = get_organisation(request)
+    if organisation:
+        organisation_permissions = has_org_authority(request, organisation)
+        if isinstance(organisation_permissions, dict) and organisation_permissions.get('org_user_managed'):
+            if get_organisation_role(user, organisation) != ORGANISATION_ROLES.MEMBER:
                 is_allowed_to_edit = True
             else:
                 is_allowed_to_edit = False
