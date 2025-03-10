@@ -483,7 +483,7 @@ def get_entity_full_template_data(entity_record, template_id, return_queryset_as
             entity_data_sources = fields_data[field_name]['value']
             if entity_data_sources:
                 if return_queryset_as_list:
-                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('datasource_id', 'name', 'url'))
+                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('id', 'name', 'url'))
                 else:
                     data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
                 fields_data[field_name]['value'] = data_sources
