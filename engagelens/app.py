@@ -2,7 +2,6 @@ import base64
 import json
 import re
 import zlib
-from datetime import datetime
 
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -12,24 +11,17 @@ from flask import request, redirect
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from constants import BRAND_LOGO_PATHS, GRANULARITY_OPTIONS, GRANULARITY_SETTINGS
-from utils import read_request_df, read_phenotype_df, render_filters, get_filtered_phenotype_dfs, \
-    get_filtered_users_df, get_conn
+from constants import BRAND_LOGO_PATHS, GRANULARITY_OPTIONS, GRANULARITY_SETTINGS, USER_TYPE_LABELS, BRAND_LABELS
+from utils import read_request_df, read_phenotype_df, get_filtered_phenotype_dfs, \
+    get_filtered_users_df, get_conn, get_date_range
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-# app = Dash(__name__, requests_pathname_prefix='/dash/', external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(__name__, requests_pathname_prefix='/dash/', external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-# PostgresSQL connection
-conn = get_conn()
-
-# Data read here as it does not change much
-# TODO: consider caching as the data doesn't change much
-phenotype_df = read_phenotype_df(conn)
-request_df = read_request_df(conn)
 
 
 # Create a session factory
-# SessionLocal = sessionmaker(bind=conn)
+conn = get_conn(use_engine=True)
+SessionLocal = sessionmaker(bind=conn)
 
 def validate_django_session():
     """
@@ -97,24 +89,26 @@ def validate_django_session():
 
     return False
 
-# @app.server.before_request
-# def restrict_access():
-#     """
-#     A before-request function that restricts access to the application by validating the user's session.
-#
-#     This function checks if the current request has a valid Django session. If the session is invalid
-#     or the user is not authenticated, it redirects the user to the login page.
-#
-#     Redirects:
-#         Flask redirect: Redirects the user to the login page if the session is invalid.
-#     """
-#     is_auth = validate_django_session()
-#     if not is_auth:
-#         return redirect(f'/account/login/?next=/dash/')
+@app.server.before_request
+def restrict_access():
+    """
+    A before-request function that restricts access to the application by validating the user's session.
+
+    This function checks if the current request has a valid Django session. If the session is invalid
+    or the user is not authenticated, it redirects the user to the login page.
+
+    Redirects:
+        Flask redirect: Redirects the user to the login page if the session is invalid.
+    """
+    is_auth = validate_django_session()
+    if not is_auth:
+        return redirect(f'/account/login/?next=/dash/')
 
 app.layout = dbc.Container(
         [
                 dbc.Row(children=[
+                        dcc.Store(id='data-store', storage_type="local"), # persists data across sessions
+                        dcc.Interval(id="interval", interval=24 * 60 * 60 * 1000, n_intervals=0),
                         dbc.Col(
                                 id='branding',
                                 md=5
@@ -129,7 +123,60 @@ app.layout = dbc.Container(
                 ],
                     className='logo-container'
                 ),
-                render_filters(phenotype_df, request_df),
+                dbc.Row(id="filter-row", className='filters-container',
+                        children=[
+                                dbc.Col(
+                                        [
+                                                html.Label('Start Date', className='filter-label'),
+                                                dcc.DatePickerSingle(
+                                                        className='date-picker',
+                                                        id='start-date-filter',
+                                                        display_format='DD-MM-YYYY'
+                                                )
+                                        ],
+                                        md=3,
+                                        className='filter'
+                                ),
+                                dbc.Col(
+                                        [
+                                                html.Label('End Date', className='filter-label'),
+                                                dcc.DatePickerSingle(
+                                                        className='date-picker',
+                                                        id='end-date-filter',
+                                                        display_format='DD-MM-YYYY'
+                                                )
+                                        ],
+                                        md=3,
+                                        className='filter'
+                                ),
+                                dbc.Col(
+                                        [
+                                                html.Label('Brand', className='filter-label'),
+                                                dcc.Dropdown(
+                                                        className='drop-down',
+                                                        options=BRAND_LABELS,
+                                                        value=0,
+                                                        id='brand-dropdown'
+                                                )
+                                        ],
+                                        md=3,
+                                        className='filter'
+                                ),
+                                dbc.Col(
+                                        [
+                                                html.Label('User Type', className='filter-label'),
+                                                dcc.Dropdown(
+                                                        className='drop-down',
+                                                        options=USER_TYPE_LABELS,
+                                                        value=1,
+                                                        id='usertype-dropdown'
+                                                )
+                                        ],
+                                        md=3,
+                                        className='filter'
+                                )
+                        ]
+                        ),
                 dbc.Row(
                         id="kpi-row",
                         children=[
@@ -151,7 +198,7 @@ app.layout = dbc.Container(
                                                 dcc.Loading(
                                                         type="default",
                                                         children=dbc.CardBody([
-                                                                html.H5("New Phenotypes", className="card-title"),
+                                                                html.H5("Phenotypes Created", className="card-title"),
                                                                 html.H2(id="new-phenotypes", className='card-title')
                                                         ])
                                                 ),
@@ -231,6 +278,50 @@ app.layout = dbc.Container(
         style={'padding': '20px'}
 )
 
+@callback(
+Output("data-store", "data"),
+ Input("interval", "n_intervals")
+)
+def fetch_data(n):
+    # PostgresSQL connection
+    conn, cursor = get_conn()
+
+    # Data read here as it does not change much
+    # TODO: consider caching as the data doesn't change much, and use celery to schedule periodic refresh
+    phenotype_dict = read_phenotype_df(cursor)
+    request_dict = read_request_df(cursor)
+
+    cursor.close()
+    conn.close()
+
+    return {
+        "phenotype_df": phenotype_dict,
+        "requests_df": request_dict
+    }
+
+@callback(Output("start-date-filter", "min_date_allowed"),
+    Output("start-date-filter", "max_date_allowed"),
+    Output("start-date-filter", "date"),
+    Output("end-date-filter", "min_date_allowed"),
+    Output("end-date-filter", "max_date_allowed"),
+    Output("end-date-filter", "date"),
+Input("data-store", "data")
+)
+def render_filters(data):
+    """Render filter components for the dashboard.
+            conn: SQLAlchemy connection object.
+        Returns:
+            Row: A Dash Row component containing filter components.
+    """
+    phenotype_df = pd.DataFrame(data['phenotype_df'])
+    request_df = pd.DataFrame(data['requests_df'])
+
+    min_date = phenotype_df['date'].min()
+    max_date = request_df['date'].max()
+
+    return min_date, max_date, min_date, min_date, max_date, max_date
+
+
 
 @callback(
 Output(component_id='branding', component_property='children'),
@@ -265,9 +356,10 @@ def render_header_logo(brand):
         Input('start-date-filter', 'date'),
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
-        Input('usertype-dropdown', 'value')
+        Input('usertype-dropdown', 'value'),
+        Input("data-store", "data")
 )
-def render_user_kpi(start_date, end_date, brand, user_type):
+def render_user_kpi(start_date, end_date, brand, user_type, data):
     """Render the total user KPI.
 
         Args:
@@ -281,8 +373,7 @@ def render_user_kpi(start_date, end_date, brand, user_type):
         Returns:
             int: The total number of users.
     """
-    start_date = datetime.fromisoformat(start_date).date()
-    end_date = datetime.fromisoformat(end_date).date()
+    request_df = pd.DataFrame(data['requests_df'])
 
     tot_users_df = get_filtered_users_df(request_df, start_date, end_date, brand)
 
@@ -303,9 +394,10 @@ def render_user_kpi(start_date, end_date, brand, user_type):
         Input('start-date-filter', 'date'),
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
-        Input('usertype-dropdown', 'value')
+        Input('usertype-dropdown', 'value'),
+        Input("data-store", "data")
 )
-def render_phenotype_kpis(start_date, end_date, brand, user_type):
+def render_phenotype_kpis(start_date, end_date, brand, user_type, data):
     """Render the phenotypes KPI.
 
         Args:
@@ -317,11 +409,9 @@ def render_phenotype_kpis(start_date, end_date, brand, user_type):
         Returns:
             int: The total number of new phenotypes.
     """
+    phenotype_df = pd.DataFrame(data['phenotype_df'])
     if not user_type:
         return ["N/A", "N/A", "N/A"]
-
-    start_date = datetime.fromisoformat(start_date).date()
-    end_date = datetime.fromisoformat(end_date).date()
 
     filtered_phenotype_df = get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand)
 
@@ -340,9 +430,10 @@ def render_phenotype_kpis(start_date, end_date, brand, user_type):
         Input('start-date-filter', 'date'),
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
-        Input('usertype-dropdown', 'value')
+        Input('usertype-dropdown', 'value'),
+        Input("data-store", "data")
 )
-def render_tree_map(start_date, end_date, brand, user_type):
+def render_tree_map(start_date, end_date, brand, user_type, data):
     """Render the tree map.
 
         Args:
@@ -361,8 +452,7 @@ def render_tree_map(start_date, end_date, brand, user_type):
         else:
             return None
 
-    start_date = datetime.fromisoformat(start_date).date()
-    end_date = datetime.fromisoformat(end_date).date()
+    request_df = pd.DataFrame(data['requests_df'])
 
     search_term_df = request_df[['date', 'user_id', 'query_string', 'brand']]
     search_term_df = search_term_df[(search_term_df.brand == brand) & (search_term_df.date >= start_date) &
@@ -395,9 +485,10 @@ def render_tree_map(start_date, end_date, brand, user_type):
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
         Input('usertype-dropdown', 'value'),
-        Input('granularity_radio', 'value')
+        Input('granularity_radio', 'value'),
+        Input("data-store", "data")
 )
-def render_time_series(start_date, end_date, brand, user_type, granularity):
+def render_time_series(start_date, end_date, brand, user_type, granularity, data):
     """Render the time series graph.
 
         Args:
@@ -409,16 +500,21 @@ def render_time_series(start_date, end_date, brand, user_type, granularity):
         Returns:
             Figure: A Plotly figure for the time series graph.
     """
+    request_df = pd.DataFrame(data['requests_df'])
+    phenotype_df = pd.DataFrame(data['phenotype_df'])
+
+
     granularity = GRANULARITY_SETTINGS.get(granularity, GRANULARITY_SETTINGS)
     # Extract frequency and date format from the dictionary
     freq = granularity['freq']
     date_format = granularity['date_format']
+    dtick = granularity['dtick']
+    axis_label = granularity['axis_label']
 
-    start_date = datetime.fromisoformat(start_date).date()
-    end_date = datetime.fromisoformat(end_date).date()
-    date_range = pd.date_range(start=start_date, end=end_date, freq=freq)
+    date_range = get_date_range(start_date, end_date, freq)
 
     tot_users_df = get_filtered_users_df(request_df, start_date, end_date, brand)
+    tot_users_df['date'] = pd.to_datetime(tot_users_df['date']).dt.date
 
     if user_type:
         tot_users_df_filtered = tot_users_df[~tot_users_df.user_id.isna()]
@@ -426,20 +522,21 @@ def render_time_series(start_date, end_date, brand, user_type, granularity):
 
         new_phenotype_df = get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand)
 
+        new_phenotype_df['date'] = pd.to_datetime(new_phenotype_df['date']).dt.date
         phenotype_ts = new_phenotype_df.groupby('date').agg(
             **{'published phenotypes': ('id', lambda x: x[new_phenotype_df.loc[x.index, 'is_published']].nunique())},
             **{'phenotype edits': ('is_edited', 'sum')},
-            **{'new phenotypes': ('is_new', 'sum')}
+            **{'phenotypes created': ('is_new', 'sum')}
         ).reset_index()
 
-        # Ensure 'date' is in datetime format for resampling and index on date column
         tot_users_ts['date'] = pd.to_datetime(tot_users_ts['date'])
         phenotype_ts['date'] = pd.to_datetime(phenotype_ts['date'])
+
         tot_users_ts.set_index('date', inplace=True)
         phenotype_ts.set_index('date', inplace=True)
 
         # Resample the data to the correct granularity (Monthly, Quarterly, Yearly)
-        tot_users_ts_resampled = tot_users_ts.resample(freq).sum()  # Resampling by sum (you can also use 'count', 'mean', etc.)
+        tot_users_ts_resampled = tot_users_ts.resample(freq).sum()
         phenotype_ts_resampled = phenotype_ts.resample(freq).sum()
 
         # Reindexing the data to the new date range
@@ -449,9 +546,11 @@ def render_time_series(start_date, end_date, brand, user_type, granularity):
         time_series_data = pd.concat([tot_users_ts_resampled, phenotype_ts_resampled], axis=1)
 
         fig = px.line(time_series_data, x=time_series_data.index,
-                      y=['phenotype edits', 'new phenotypes', 'published phenotypes', 'users'],
-                      labels={'value': 'Count', 'date': 'Date'},
-                      title='Time Series Data')
+                      y=['phenotype edits', 'phenotypes created', 'published phenotypes', 'users'],
+                      labels={'value': 'Count', 'date': axis_label},
+                      title='Time Series Data',
+                      line_shape='spline',
+                      markers=True)
     else:
         tot_users_df_filtered = tot_users_df[tot_users_df.user_id.isna()]
         tot_users_ts = tot_users_df_filtered.groupby('date')['remote_ip'].nunique().reset_index(name='users')
@@ -464,14 +563,18 @@ def render_time_series(start_date, end_date, brand, user_type, granularity):
         # Reindex the data to the new date range and fill missing values with 0
         tot_users_ts_resampled = tot_users_ts_resampled.reindex(date_range.date, fill_value=0)
 
-        fig = px.line(tot_users_ts_resampled, x=tot_users_ts_resampled.index,
+        fig = px.line(
+                      tot_users_ts_resampled, x=tot_users_ts_resampled.index,
                       y=['users'],
-                      labels={'value': 'Count', 'date': 'Date'},
+                      labels={'value': 'Count', 'date': axis_label},
                       title='Time Series Data',
-                      line_shape='spline')
+                      line_shape='spline',
+                      markers=True
+                      )
 
     fig.update_layout(
             xaxis_tickformat=date_format,
+            xaxis_dtick= dtick,
             legend=dict(
                 title_text="",
                     orientation='h',
@@ -482,6 +585,7 @@ def render_time_series(start_date, end_date, brand, user_type, granularity):
                     font={'size': 15}
             )
     )
+    fig.update_xaxes(rangeslider_visible=True)
     return fig
 
 # Expose the WSGI application object
