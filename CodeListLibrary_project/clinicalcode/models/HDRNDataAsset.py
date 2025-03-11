@@ -33,7 +33,7 @@ class HDRNDataAsset(TimeStampedModel):
 		ordering = ('name', )
 		indexes = [
 			GinIndex(name='hdrn_danm_trgm_idx', fields=['name'], opclasses=['gin_trgm_ops']),
-            GinIndex(name='hdrn_dadc_arr_idx', fields=['data_categories'], opclasses=['array_ops']),
+			GinIndex(name='hdrn_dadc_arr_idx', fields=['data_categories'], opclasses=['array_ops']),
 		]
 
 	def __str__(self):

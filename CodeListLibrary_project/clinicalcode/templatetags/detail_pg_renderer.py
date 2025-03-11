@@ -1,10 +1,11 @@
-from django.apps import apps
+from copy import deepcopy
 from django import template
+from django.apps import apps
+from django.conf import settings
 from jinja2.exceptions import TemplateSyntaxError
+from django.http.request import HttpRequest
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from django.http.request import HttpRequest
-from django.conf import settings
 
 import re
 import json
@@ -356,6 +357,7 @@ class EntityWizardSections(template.Node):
                 if component is None:
                     continue
 
+                component = deepcopy(component)
                 active = template_field.get('active', False)
                 is_hidden = (
                     (isinstance(active, bool) and not active)

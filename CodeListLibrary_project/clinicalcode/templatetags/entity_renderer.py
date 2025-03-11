@@ -1,3 +1,4 @@
+from copy import deepcopy
 from django import template
 from django.conf import settings
 from django.urls import reverse
@@ -414,17 +415,10 @@ class EntityCardsNode(template.Node):
             layout = template_utils.try_get_content(layouts, f'{entity.template.id}/{entity.template_version}')
             if not template_utils.is_layout_safe(layout):
                 continue
+
             card = template_utils.try_get_content(layout['definition'].get('template_details'), 'card_type', constants.DEFAULT_CARD)
             card = f'{constants.CARDS_DIRECTORY}/{card}.html'
-            try:
-                html = render_to_string(card, {
-                    'entity': entity,
-                    'layout': layout
-                })
-            except:
-                raise
-            else:
-                output += html
+            output += render_to_string(card, { 'entity': entity, 'layout': layout })
         return output
 
 @register.tag(name='render_entity_filters')
@@ -508,7 +502,8 @@ class EntityFiltersNode(template.Node):
         if 'compute_statistics' in structure:
             current_brand = request.CURRENT_BRAND or 'ALL'
             options = search_utils.get_metadata_stats_by_field(field, brand=current_brand)
-            options = self.__check_excluded_brand_collections(context, field, current_brand, options)
+            print(field, options)
+            # options = self.__check_excluded_brand_collections(context, field, current_brand, options)
 
         if options is None:
             validation = template_utils.try_get_content(structure, 'validation')
@@ -743,17 +738,19 @@ class EntityWizardSections(template.Node):
             return permission_utils.get_user_groups(request)
         return
 
-    def __apply_mandatory_property(self, template, field):
+    def __apply_properties(self, component, template, _field):
         """
-            Returns boolean that reflects the mandatory status of a field given its
-            template's validation field (if present)
+            Applies properties assoc. with some template's field to some target
+
+            Returns:
+                Updates in place but returns the updated (dict)
         """
         validation = template_utils.try_get_content(template, 'validation')
-        if validation is None:
-            return False
-        
-        mandatory = template_utils.try_get_content(validation, 'mandatory')
-        return mandatory if isinstance(mandatory, bool) else False
+        if validation is not None:
+            mandatory = template_utils.try_get_content(validation, 'mandatory')
+            component['mandatory'] = mandatory if isinstance(mandatory, bool) else False
+
+        return component
 
     def __append_section(self, output, section_content):
         if gen_utils.is_empty_string(section_content):
@@ -801,6 +798,7 @@ class EntityWizardSections(template.Node):
                 if component is None:
                     continue
 
+                component = deepcopy(component)
                 if template_utils.is_metadata(GenericEntity, field):
                     field_data = template_utils.try_get_content(constants.metadata, field)
                 else:
@@ -843,7 +841,8 @@ class EntityWizardSections(template.Node):
                     component['value'] = self.__try_get_entity_value(request, template, entity, field)
                 else:
                     component['value'] = ''
-                component['mandatory'] = self.__apply_mandatory_property(template_field, field)
+
+                self.__apply_properties(component, template_field, field)
 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
                 section_content += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })

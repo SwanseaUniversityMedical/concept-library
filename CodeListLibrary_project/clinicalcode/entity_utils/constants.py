@@ -571,7 +571,14 @@ metadata = {
                     'tag_type': 2,
 
                     ## Can be added once we det. what we're doing with brands
-                    # 'source_by_brand': None
+                    'source_by_brand': {
+                        'ADP': {
+                            'allowed_brands': [3],
+                            'allow_null': True,
+                        },
+                        'HDRUK': 'allow_null',
+                        'SAIL': False,
+                    },
                 }
             }
         },
@@ -599,7 +606,11 @@ metadata = {
                     'tag_type': 1,
 
                     ## Can be added once we det. what we're doing with brands
-                    # 'source_by_brand': None
+                    'source_by_brand': {
+                        'ADP': 'allow_null',
+                        'HDRUK': 'allow_null',
+                        'SAIL': False,
+                    },
                 }
             }
         },
@@ -810,13 +821,15 @@ FIELD_TYPES = {
         'system_defined': True,
         'description': 'list of tags ids (managed by code snippet)',
         'input_type': 'tagbox',
-        'output_type': 'tagbox'
+        'output_type': 'tagbox',
+        'vis_vary_on_opts': True,
     },
     'collections': {
         'system_defined': True,
         'description': 'list of collections ids (managed by code snippet)',
         'input_type': 'tagbox',
-        'output_type': 'tagbox'
+        'output_type': 'tagbox',
+        'vis_vary_on_opts': True,
     },
     'data_sources': {
         'system_defined': True,

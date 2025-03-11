@@ -30,9 +30,10 @@ class EntityStatisticsView(TemplateView):
         if not request.user.is_superuser:
             raise PermissionDenied
 
-        stats_utils.collect_statistics(request)
+        stat = stats_utils.collect_statistics(request)
         return render(request, 'clinicalcode/admin/run_statistics.html', {
-            'successMsg': ['Filter statistics for Concepts/Phenotypes saved']
+            'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
+            'stat': stat,
         })
 
 
@@ -51,7 +52,7 @@ def run_homepage_statistics(request):
             'clinicalcode/admin/run_statistics.html', 
             {
                 'successMsg': ['Homepage statistics saved'],
-                'stat': stat
+                'stat': stat,
             }
         )
 
