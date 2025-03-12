@@ -29,7 +29,7 @@ class HDRNDataAsset(TimeStampedModel):
 	collection_period = models.TextField(null=True, blank=True)
 
 	data_level = models.CharField(max_length=256, unique=False, null=True, blank=True)
-	data_categories = ArrayField(models.IntegerField(), blank=True, null=True)
+	data_categories = ArrayField(models.IntegerField(), blank=True, null=True) # Note: ref to `Tag`
 
 	class Meta:
 		ordering = ('name', )

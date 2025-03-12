@@ -813,14 +813,14 @@ def admin_upload_hdrn_assets(request):
                 '''HDRNSite'''
                 result = HDRNSite.objects.bulk_create([HDRNSite(name=v) for v in data])
             case 'categories':
-                '''Tags (tag_type=2)'''
-                result = Tag.objects.bulk_create([Tag(description=v, tag_type=2, collection_brand=brand) for v in data])
-            case 'data_categories':
                 '''HDRNDataCategory'''
                 result = HDRNDataCategory.objects.bulk_create([HDRNDataCategory(name=v) for v in data])
+            case 'data_categories':
+                '''Tag (tag_type=2)'''
+                result = Tag.objects.bulk_create([Tag(description=v, tag_type=2, collection_brand=brand) for v in data])
             case _:
                 pass
-        
+
         if result is not None:
             models.update({ key: result })
 
@@ -833,8 +833,7 @@ def admin_upload_hdrn_assets(request):
         cats = data.get('data_categories')
 
         if isinstance(cats, list):
-            cats = [next((x for x in models.get('data_categories') if x.id == v), None) for v in cats]
-            cats = [x.id for x in cats if x is not None]
+            cats = [models.get('data_categories')[v - 1].id for v in cats if models.get('data_categories')[v - 1] is not None]
 
         site = next((x for x in models.get('site') if x.id == site), None) if isinstance(site, int) else None
         created_date = try_parse_hdrn_datetime(data.get('created_date', None), default=now)
