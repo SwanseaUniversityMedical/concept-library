@@ -23,10 +23,9 @@ class DataSource(TimeStampedModel):
                                    null=True,
                                    related_name="data_source_updated")
     datasource_id = models.IntegerField(unique=False, null=True)
+    source = models.CharField(max_length=100, null=True, blank=True)
 
     history = HistoricalRecords()
-
-    source = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.name

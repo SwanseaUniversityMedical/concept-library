@@ -1,32 +1,65 @@
 from datetime import datetime
-from django.db.models import Q
-from django.utils.timezone import make_aware
-from django.db import connection, transaction
+from operator import is_not
+from functools import partial
+from django.db import connection
 from django.conf import settings
-from django.contrib import messages
 from django.urls import reverse
-from django.core.exceptions import BadRequest, PermissionDenied
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.shortcuts import render
+from django.utils.timezone import make_aware
 from rest_framework.reverse import reverse
+from django.core.exceptions import BadRequest, PermissionDenied
+from django.contrib.auth.models import Group
+from django.contrib.auth.decorators import login_required
 
 import re
 import json
 import logging
+import dateutil
 
-from clinicalcode.entity_utils import permission_utils, gen_utils, create_utils
+from clinicalcode.entity_utils import permission_utils, gen_utils
+
 from clinicalcode.models.Tag import Tag
+from clinicalcode.models.Brand import Brand
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
 from clinicalcode.models.Phenotype import Phenotype
-from clinicalcode.models.WorkingSet import WorkingSet
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 
+from clinicalcode.models.HDRNSite import HDRNSite
+from clinicalcode.models.HDRNDataAsset import HDRNDataAsset
+from clinicalcode.models.HDRNDataCategory import HDRNDataCategory
+
 logger = logging.getLogger(__name__)
 
+####       Const       ####
+BASE_LINKAGE_TEMPLATE = {
+    # all sex is '3' unless specified by user
+    'sex': '3',
+    # all PhenotypeType is 'Disease or syndrome' unless specified by user
+    'type': '2',
+    # all version is '1' for migration
+    'version': '1',
+}
+
 #### Dynamic Template  ####
+def try_parse_hdrn_datetime(obj, default=None):
+    if not isinstance(obj, dict):
+        return default
+
+    typed = obj.get('type')
+    value = obj.get('value')
+    if typed != 'datetime' or not isinstance(value, str) or gen_utils.is_empty_string(value):
+        return default
+
+    try:
+        result = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f')
+    except:
+        return default
+    else:
+        return make_aware(result)
+
 def sort_pk_list(a, b):
     pk1 = int(a.replace('PH', ''))
     pk2 = int(b.replace('PH', ''))
@@ -71,15 +104,6 @@ def compute_related_brands(pheno, default=''):
     
     related_brands = ','.join([str(x) for x in list(related_brands)])
     return "brands='{%s}' " % related_brands
-
-BASE_LINKAGE_TEMPLATE = {
-    # all sex is '3' unless specified by user
-    'sex': '3',
-    # all PhenotypeType is 'Disease or syndrome' unless specified by user
-    'type': '2',
-    # all version is '1' for migration
-    'version': '1',
-}
 
 def get_publications(concept):
     publication_doi = concept.publication_doi
@@ -733,6 +757,207 @@ def admin_update_phenoflowids(request):
     )
 
 @login_required
+def admin_upload_hdrn_assets(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_upload_hdrn_assets'),
+                'action_title': 'Upload HDRN Assets',
+                'hide_phenotype_options': False,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    try:
+        input_data = request.POST.get('input_data')
+        input_data = json.loads(input_data)
+    except:
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html',
+            {
+                'pk': -10,
+                'errorMsg': { 'message': 'Unable to read data provided' },
+                'action_title': 'Upload HDRN Assets',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    brand = Brand.objects.filter(name__iexact='HDRN')
+    if brand.exists():
+        brand = brand.first()
+    else:
+        brand = Brand.objects.create(name='HDRN')
+
+    models = {}
+    metadata = input_data.get('metadata')
+    for key, data in metadata.items():
+        result = None
+        match key:
+            case 'site':
+                '''HDRNSite'''
+                result = HDRNSite.objects.bulk_create([HDRNSite(name=v) for v in data])
+            case 'categories':
+                '''Tags (tag_type=2)'''
+                result = Tag.objects.bulk_create([Tag(description=v, tag_type=2, collection_brand=brand) for v in data])
+            case 'data_categories':
+                '''HDRNDataCategory'''
+                result = HDRNDataCategory.objects.bulk_create([HDRNDataCategory(name=v) for v in data])
+            case _:
+                pass
+        
+        if result is not None:
+            models.update({ key: result })
+
+    now = make_aware(datetime.now())
+    assets = input_data.get('assets')
+    to_create = []
+
+    for data in assets:
+        site = data.get('site')
+        cats = data.get('data_categories')
+
+        if isinstance(cats, list):
+            cats = [next((x for x in models.get('data_categories') if x.id == v), None) for v in cats]
+            cats = [x.id for x in cats if x is not None]
+
+        site = next((x for x in models.get('site') if x.id == site), None) if isinstance(site, int) else None
+        created_date = try_parse_hdrn_datetime(data.get('created_date', None), default=now)
+        modified_date = try_parse_hdrn_datetime(data.get('modified_date', None), default=now)
+
+        to_create.append(HDRNDataAsset(
+            name=data.get('name'),
+            description=data.get('description'),
+            hdrn_id=data.get('hdrn_id'),
+            hdrn_uuid=data.get('hdrn_uuid'),
+            site=site,
+            link=data.get('link'),
+            years=data.get('years'),
+            scope=data.get('scope'),
+            region=data.get('region'),
+            purpose=data.get('purpose'),
+            collection_period=data.get('collection_period'),
+            data_level=data.get('data_level'),
+            data_categories=cats,
+            created=created_date,
+            modified=modified_date
+        ))
+
+    models.update({ 'assets': HDRNDataAsset.objects.bulk_create(to_create) })
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { k: len(v) for k, v in models.items() },
+            'action_title': 'Upload HDRN Assets',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
+def admin_update_phenoflow_targets(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_update_phenoflow_targets'),
+                'action_title': 'Update Phenoflow Targets',
+                'hide_phenotype_options': False,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    try:
+        input_data = request.POST.get('input_data')
+        input_data = json.loads(input_data)
+    except:
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html',
+            {
+                'pk': -10,
+                'errorMsg': { 'message': 'Unable to read data provided' },
+                'action_title': 'Update Phenoflow Targets',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    with connection.cursor() as cursor:
+        sql = f'''
+        update public.clinicalcode_genericentity as trg
+           set template_data['phenoflowid'] = to_jsonb(src.target)
+          from (
+            select *
+            from jsonb_to_recordset(
+                '{json.dumps(input_data)}'::jsonb
+            ) as x(id varchar, source int, target varchar)
+          ) as src
+         where trg.id = src.id
+           and trg.template_data::jsonb ? 'phenoflowid';
+        '''
+        cursor.execute(sql)
+        entity_updates = cursor.rowcount
+
+        sql = f'''
+        update public.clinicalcode_historicalgenericentity as trg
+           set template_data['phenoflowid'] = to_jsonb(src.target)
+          from (
+            select *
+            from jsonb_to_recordset(
+                '{json.dumps(input_data)}'::jsonb
+            ) as x(id varchar, source int, target varchar)
+          ) as src
+         where trg.id = src.id
+           and trg.template_data::jsonb ? 'phenoflowid';
+        '''
+        cursor.execute(sql)
+        historical_updates = cursor.rowcount
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { 
+                '1': f'entities: {entity_updates}, historical: {historical_updates}' 
+            },
+            'action_title': 'Update Phenoflow Targets',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_force_concept_linkage_dt(request):
     """
         Bulk updates unlinked Concepts such that they have a phenotype owner by creating
@@ -968,10 +1193,6 @@ def admin_mig_phenotypes_dt(request):
     
     elif request.method == 'POST':
         if not settings.CLL_READ_ONLY: 
-            code = request.POST.get('code')
-            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
-                raise PermissionDenied
-    
             phenotype_ids = request.POST.get('phenotype_ids')
             phenotype_ids = phenotype_ids.strip().upper()
 

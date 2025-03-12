@@ -502,7 +502,6 @@ class EntityFiltersNode(template.Node):
         if 'compute_statistics' in structure:
             current_brand = request.CURRENT_BRAND or 'ALL'
             options = search_utils.get_metadata_stats_by_field(field, brand=current_brand)
-            print(field, options)
             # options = self.__check_excluded_brand_collections(context, field, current_brand, options)
 
         if options is None:

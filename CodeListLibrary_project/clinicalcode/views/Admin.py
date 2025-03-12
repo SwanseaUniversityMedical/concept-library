@@ -1,15 +1,15 @@
-from django.db.models import Q
+from http import HTTPStatus
+from celery import shared_task
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
-from django.core.exceptions import BadRequest
 from django.test import RequestFactory
+from django.db.models import Q
 from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.contrib.auth.decorators import login_required
+from django.core.exceptions import BadRequest
+from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
-from celery import shared_task
-from http import HTTPStatus
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.decorators import login_required
 
 import time
 import logging
