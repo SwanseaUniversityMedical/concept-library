@@ -22,11 +22,10 @@ from ..models.Brand import Brand
 from ..models.CodingSystem import CodingSystem
 from ..models.DataSource import DataSource
 from ..models.Statistics import Statistics
-from ..models.OntologyTag import OntologyTag
 
-from ..entity_utils import gen_utils
+from ..entity_utils import gen_utils, template_utils, constants, model_utils
 from ..entity_utils.constants import ONTOLOGY_TYPES
-from ..entity_utils.permission_utils import should_render_template, redirect_readonly
+from ..entity_utils.permission_utils import redirect_readonly
 
 logger = logging.getLogger(__name__)
 
@@ -313,18 +312,14 @@ def reference_data(request):
     """
         Open page to list Data sources, Coding systems, Tags, Collections, Phenotype types, etc 
     """
-    tags = Tag.objects.extra(select={
-        'name': 'description'
-    }).order_by('id')
-
-    collections = tags.filter(tag_type=2).values('id', 'name')
-    tags = tags.filter(tag_type=1).values('id', 'name')
+    tags = template_utils.get_template_sourced_values(constants.metadata, 'tags', request=request, default=[])
+    collections = template_utils.get_template_sourced_values(constants.metadata, 'collections', request=request, default=[])
 
     context = {
         'data_sources': list(DataSource.objects.all().order_by('id').values('id', 'name')),
         'coding_system': list(CodingSystem.objects.all().order_by('id').values('id', 'name')),
-        'tags': list(tags),
-        'collections': list(collections),
+        'tags': tags,
+        'collections': collections,
         'ontology_groups': [x.value for x in ONTOLOGY_TYPES]
     }
 

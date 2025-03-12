@@ -26,7 +26,7 @@ const
 const RDS_REFERENCE_MAP = (item, index) => {
   return [
     index,
-    item.id,
+    item?.id ?? item?.value,
     item.name
   ];
 }
