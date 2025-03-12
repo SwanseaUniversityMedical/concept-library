@@ -816,8 +816,8 @@ def admin_upload_hdrn_assets(request):
                 '''HDRNDataCategory'''
                 result = HDRNDataCategory.objects.bulk_create([HDRNDataCategory(name=v) for v in data])
             case 'data_categories':
-                '''Tag (tag_type=2)'''
-                result = Tag.objects.bulk_create([Tag(description=v, tag_type=2, collection_brand=brand) for v in data])
+                '''Tag (tag_type=1)'''
+                result = Tag.objects.bulk_create([Tag(description=v, tag_type=1, collection_brand=brand) for v in data])
             case _:
                 pass
 
