@@ -68,31 +68,38 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                 with transaction.atomic():
                     entity = GenericEntity.objects.get(pk=pk)
 
-                    #Check if moderator first and if was already approved to filter by only approved entitys
-                    if checks['is_moderator']:
-                        if checks['is_lastapproved']:
-                            self.last_approved_publish(self.request,entity,history_id)
-                        else:
-                            self.moderator_publish(self.request,history_id,pk,checks,data)
-                    
-                    if checks['is_publisher']:
-                        published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
+                    if checks['org_user_managed']:
+                        if checks['is_moderator']:
+                              published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
                                                         created_by_id=GenericEntity.objects.get(pk=pk).created_by.id,approval_status=constants.APPROVAL_STATUS.APPROVED)
-                        published_entity.save()
-                            
-                    #Check if was already published by user only to filter entitys and take the moderator id
-                    if checks['is_lastapproved'] and not checks['is_moderator'] and not checks['is_publisher']:
-                        self.last_approved_publish(self.request,entity,history_id)
+                              published_entity.save()
 
-                    #Approve other pending entity if available to publish
-                    if checks['other_pending']:
-                        published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                                    approval_status=constants.APPROVAL_STATUS.PENDING)
-                        for en in published_entity:
-                            en.approval_status = constants.APPROVAL_STATUS.APPROVED
-                            en.moderator_id = self.request.user.id
-                            en.modified = make_aware(datetime.now())
-                            en.save()
+                    else:
+                        #Check if moderator first and if was already approved to filter by only approved entitys
+                        if checks['is_moderator']:
+                            if checks['is_lastapproved']:
+                                self.last_approved_publish(self.request,entity,history_id)
+                            else:
+                                self.moderator_publish(self.request,history_id,pk,checks,data)
+                        
+                        if checks['is_publisher']:
+                            published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
+                                                            created_by_id=GenericEntity.objects.get(pk=pk).created_by.id,approval_status=constants.APPROVAL_STATUS.APPROVED)
+                            published_entity.save()
+                                
+                        #Check if was already published by user only to filter entitys and take the moderator id
+                        if checks['is_lastapproved'] and not checks['is_moderator'] and not checks['is_publisher']:
+                            self.last_approved_publish(self.request,entity,history_id)
+
+                        #Approve other pending entity if available to publish
+                        if checks['other_pending']:
+                            published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
+                                                                                        approval_status=constants.APPROVAL_STATUS.PENDING)
+                            for en in published_entity:
+                                en.approval_status = constants.APPROVAL_STATUS.APPROVED
+                                en.moderator_id = self.request.user.id
+                                en.modified = make_aware(datetime.now())
+                                en.save()
 
                     data['form_is_valid'] = True
                     data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
@@ -138,14 +145,21 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
     def moderator_publish(self,request,history_id,pk,conditions,data):  
         entity = GenericEntity.objects.get(pk=pk) 
         if conditions['approval_status'] == constants.APPROVAL_STATUS.PENDING:
-            published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
-                                                                        approval_status=constants.APPROVAL_STATUS.PENDING)
-            #filter and publish all pending ws
-            for en in published_entity:
-                en.approval_status = constants.APPROVAL_STATUS.APPROVED
-                en.modified = make_aware(datetime.now())
-                en.moderator_id = request.user.id
-                en.save()
+            if conditions['org_user_managed']:
+                published_entity =  PublishedGenericEntity.objects.get(entity_id=entity.id,entity_history_id=history_id,approval_status=constants.APPROVAL_STATUS.PENDING)
+                published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
+                published_entity.modified = make_aware(datetime.now())
+                published_entity.moderator_id = request.user.id
+                published_entity.save()
+            else:
+                published_entity = PublishedGenericEntity.objects.filter(entity_id=entity.id,
+                                                                            approval_status=constants.APPROVAL_STATUS.PENDING)
+                #filter and publish all pending ws
+                for en in published_entity:
+                    en.approval_status = constants.APPROVAL_STATUS.APPROVED
+                    en.modified = make_aware(datetime.now())
+                    en.moderator_id = request.user.id
+                    en.save()
 
             data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
             data['form_is_valid'] = True
