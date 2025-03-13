@@ -153,8 +153,9 @@ def check_entity_to_publish(request, pk, entity_history_id):
         'is_latest_pending_version': is_latest_pending_version,
         'all_are_published': all_are_published,
         'all_not_deleted': all_not_deleted
-    } | organisation_checks
+    } 
 
+    checks |= organisation_checks
     print(checks)
     return checks
 
@@ -173,16 +174,23 @@ def check_organisation_authorities(request):
         if organisation_permissions['org_user_managed']:
              #Todo Fix the bug if moderator has 2 groups unless has to organisations and check if it from the same org 
 
+            organisation_checks['org_user_managed'] = organisation_permissions['org_user_managed']
+            # Reset everything because of organisations
             organisation_checks["allowed_to_publish"] = False
             organisation_checks["is_moderator"] = False
-                
+            organisation_checks["is_publisher"] = False
+            organisation_checks["other_pending"] = False
+            organisation_checks["is_lastapproved"] = False
+            organisation_checks["is_published"] = False
+            organisation_checks["is_latest_pending_version"] = False
+            organisation_checks["all_are_published"] = False
+                 
             if organisation_permissions.get("can_post", False) and organisation_user_role.value >= 1:
                 organisation_checks["allowed_to_publish"] = True
 
             if organisation_permissions.get("can_moderate", False) and organisation_user_role.value >= 2:
                 organisation_checks["is_moderator"] = True
                 organisation_checks["allowed_to_publish"] = True
-           
     else:
         return organisation_checks
         
