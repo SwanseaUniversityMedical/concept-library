@@ -184,13 +184,13 @@ def check_organisation_authorities(request):
             organisation_checks["is_published"] = False
             organisation_checks["is_latest_pending_version"] = False
             organisation_checks["all_are_published"] = False
-                 
-            if organisation_permissions.get("can_post", False) and organisation_user_role.value >= 1:
-                organisation_checks["allowed_to_publish"] = True
+            
 
-            if organisation_permissions.get("can_moderate", False) and organisation_user_role.value >= 2:
-                organisation_checks["is_moderator"] = True
-                organisation_checks["allowed_to_publish"] = True
+            if organisation_permissions.get("can_moderate", False):
+                if organisation_user_role.value >= 1:
+                    organisation_checks["allowed_to_publish"] = True
+                if organisation_user_role.value >= 2:
+                    organisation_checks["is_moderator"] = True
     else:
         return organisation_checks
         
