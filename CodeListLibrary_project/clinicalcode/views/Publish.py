@@ -68,7 +68,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
                 with transaction.atomic():
                     entity = GenericEntity.objects.get(pk=pk)
 
-                    if checks['org_user_managed']:
+                    if checks.get('org_user_managed', False):
                         if checks['is_moderator']:
                               published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
                                                         created_by_id=GenericEntity.objects.get(pk=pk).created_by.id,approval_status=constants.APPROVAL_STATUS.APPROVED)
@@ -145,7 +145,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
     def moderator_publish(self,request,history_id,pk,conditions,data):  
         entity = GenericEntity.objects.get(pk=pk) 
         if conditions['approval_status'] == constants.APPROVAL_STATUS.PENDING:
-            if conditions['org_user_managed']:
+            if conditions.get('org_user_managed',False):
                 published_entity =  PublishedGenericEntity.objects.get(entity_id=entity.id,entity_history_id=history_id,approval_status=constants.APPROVAL_STATUS.PENDING)
                 published_entity.approval_status = constants.APPROVAL_STATUS.APPROVED
                 published_entity.modified = make_aware(datetime.now())
