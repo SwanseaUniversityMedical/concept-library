@@ -43,6 +43,12 @@ from .MESH_CODES import MESH_CODES
 from .Template import Template
 from .GenericEntity import GenericEntity
 from .PublishedGenericEntity import PublishedGenericEntity
+from .Organisation import (
+  Organisation, 
+  OrganisationMembership, 
+  OrganisationAuthority, 
+  OrganisationInvite
+)
 
 from .ATCDDD_CODES import ATCDDD_CODES
 from .ICD10CA_CODES import ICD10CA_CODES

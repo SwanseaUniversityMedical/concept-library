@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Create Organisation {% endblock title %}
+
+{% block container %}
+  <!-- Dependencies -->
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/organisations.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">{{instance.name}}</h2>
+        <p class="banner__description">
+          {{instance.description}}
+        </p>
+        <div class="banner__footer-items" tabindex="0" aria-label="Organisation email" >
+          {% if instance.email|length %}
+            {% if user.is_authenticated %}
+            <p>
+              <span class="email-icon"></span>
+              <a href="mailto:{{instance.email}}" aria-label="Contact email">
+                Contact us
+              </a>
+            </p>
+            {% else %}
+              <p>
+                <span class="email-icon"></span>
+                Sign in to see our e-mail
+              </p>
+            {% endif %}
+          {% endif %}
+          {% if instance.website|length %}
+            <p>
+              <span class="website-icon" tabindex="0" aria-label="Organisation website" ></span>
+              <a href="{{instance.website}}" rel="noopener" target="_blank" aria-label="View {{ instance.name}}'s website">
+                Find out more about us here
+              </a>
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="organisation-page">
+        <section class="organisation-page__section">
+          <article class="organisation-page__section__title">
+            <h3>Contributors</h3>
+          </article>
+          <article class="organisation-page__section__body row">
+            <div class="organisation-page__section__body__collaborator">
+              {{instance.owner.username}}
+            </div>
+            {% for member in members %}
+              <div class="organisation-page__section__body__collaborator">
+                {{member.user.username}}
+              </div>
+            {% endfor %}
+          </article>
+        </section>
+        <section class="organisation-page__section">
+          <article class="organisation-page__section__title">
+            <h3>Collection</h3>
+          </article>
+          <article class="organisation-page__section__body">
+            {% for entity in entities %}
+              <div>{{entity.name}}</div>
+            {% endfor %}
+          </article>
+        </section>
+      </article>
+    </div>
+  </main>
+
+{% endblock container %}

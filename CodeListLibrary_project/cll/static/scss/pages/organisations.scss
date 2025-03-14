@@ -1,0 +1,164 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+/// Organisation page
+///   @desc Stylesheet relating to organisations
+.organisation-page {
+  @include flex-col();
+  align-self: center;
+  width: var(--phenotype-article-lg-size);
+  max-width: var(--phenotype-article-lg-size);
+
+  @include media(">desktop", "screen") {
+    width: var(--phenotype-article-sm-size);
+    max-width: var(--phenotype-article-sm-size);
+  }
+
+  @include media("<desktop", "screen") {
+    width: var(--phenotype-article-lg-size);
+    max-width: var(--phenotype-article-lg-size);
+  }
+
+  &__section {
+    &__title {
+
+    }
+
+    &__body {
+      @include flex-col();
+      gap: 0.25rem;
+
+      &.row {
+        @include flex-row();
+      }
+
+      &__collaborator {
+        padding: 0.5rem 1rem;
+        width: fit-content;
+        border-radius: 1rem;
+        background-color: col(accent-washed);
+      }
+    }
+  }
+
+  &__submit {
+    display: flex;
+    flex-flow: row nowrap;
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+
+  .member-management {
+    @include flex-col();
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+  
+    &__header {
+      display: flex;
+      flex-flow: row nowrap;
+      height: min-content;
+      justify-content: space-between;
+      align-items: flex-end;
+      
+      h3 {
+        color: col(text-darkest);
+      }
+  
+      &-actions {
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: flex-end;
+
+        button {
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+          font-weight: normal;
+          margin-bottom: 0.25rem;
+        }
+      }
+    }
+
+    &__container {
+      @include flex-col();
+      flex-wrap: nowrap;
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    &__none-available {
+      max-width: calc(100% - 2rem);
+      width: calc(100% - 2rem);
+      padding: 1rem;
+      border-radius: 0.1rem;
+  
+      &-message {
+        text-align: center;
+      }
+  
+      &:not(.show) {
+        display: none;
+      }
+    }
+
+    &__list {
+      @include flex-col();
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      flex-wrap: nowrap;
+      overflow-y: auto;
+      max-height: 150px;
+  
+      &-item {
+        @include flex-row();
+        
+        position: relative;
+        color: col(text-darkest);
+        padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+        max-width: 100%;
+  
+        .edit-icon:after {
+          @include fontawesome-icon();
+          content: '\f304';
+          color: col(accent-primary);
+        }
+      
+        .delete-icon:after {
+          @include fontawesome-icon();
+          content: '\f1f8';
+          color: col(accent-danger);
+        }
+  
+        .member-name {
+          @include wrap-words();
+          cursor: pointer;
+          pointer-events: auto;
+          font-weight: normal;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          max-width: 80%;
+  
+          a {
+            @include wrap-words();
+          }
+        }
+  
+        .action-buttons {
+          @include flex-row($gap: 1rem);
+          margin-left: auto;
+          
+          @include media("<tablet", "screen") {
+            &__text {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+  }
+}
