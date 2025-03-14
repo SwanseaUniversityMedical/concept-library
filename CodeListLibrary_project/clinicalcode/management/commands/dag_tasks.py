@@ -4,7 +4,6 @@ from django.db import transaction, connection
 import re
 import os
 import json
-import enum
 import time
 
 from .constants import GraphType, LogType
@@ -12,7 +11,6 @@ from ...entity_utils import constants
 from ...models.CodingSystem import CodingSystem
 from ...models.OntologyTag import OntologyTagEdge, OntologyTag
 from ...generators.graphs.generator import Graph as GraphGenerator
-
 
 ######################################################
 #                                                    #
@@ -48,6 +46,9 @@ class GraphBuilders:
     @classmethod
     def CODE_CATEGORIES(cls, data):
         """
+            [!] NOTE:
+                - This is a legacy loader; used for ICD-10 ontologies pre-SNOMED
+
             ICD-10 Disease Category builder test(s)
 
             Note:
@@ -293,7 +294,7 @@ class GraphBuilders:
 class Command(BaseCommand):
     help = 'Various tasks associated with the generation of DAGs'
 
-    DEFAULT_FILE = 'data/graphs/categories.json'
+    DEFAULT_FILE = 'data/graphs/anatomical.json'
     VALID_FILE_TYPES = ['.json']
     LOG_FILE_NAME = 'DAG_LOGS'
     LOG_FILE_EXT = '.txt'
@@ -492,15 +493,16 @@ class Command(BaseCommand):
 
         """
         # init parameters
-        verbose = kwargs.get('print')
-        filepath = kwargs.get('file')
-        is_debug = kwargs.get('debug')
-        log_file = kwargs.get('log')
+        verbose = kwargs.get('print', False)
+        filepath = kwargs.get('file', None)
+        is_debug = kwargs.get('debug', False)
+        log_file = kwargs.get('log', None)
+
+        # det. log behaviour
+        self._verbose = verbose
+        self._log_dir = log_file if isinstance(log_file, str) and len(log_file.strip()) > 0 else None
 
         # det. handle
-        self._verbose = verbose
-        self._log_dir = log_file if isinstance(log_file, str) and len(log_file) > 0 else None
-
         if is_debug:
             self.__generate_debug_dag()
         else:

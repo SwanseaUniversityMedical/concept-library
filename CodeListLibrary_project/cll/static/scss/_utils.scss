@@ -113,14 +113,17 @@
   }
 }
 
-/// Mixin to apply wordwrap/break
-@mixin wrap-words() {
+/// Mixin to apply pre-wrap
+@mixin pre-wrapped() {
   white-space: pre-wrap; /* CSS3 */    
   white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
   white-space: -pre-wrap; /* Opera 4-6 */    
   white-space: -o-pre-wrap; /* Opera 7 */    
-  word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
 
+/// Mixin to apply wordwrap/break
+@mixin wrap-words() {
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
   word-break: break-word;
   -ms-word-break: break-all; /* Legacy IE support */
   -webkit-hyphens: auto;

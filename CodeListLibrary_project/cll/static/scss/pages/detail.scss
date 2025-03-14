@@ -9,6 +9,15 @@
   font-weight: bold;
 }
 
+// Wraps a text span
+//  @desc used by inputbox.html for UUID reference(s)
+.wrapped-tspan {
+  white-space: normal !important;
+  word-break: break-word;
+  word-wrap: break-word;
+  text-wrap: pretty;
+}
+
 // Top-level container for detail header buttons
 //  @desc defines button layout for detail page header actions, e.g. export/edit/publish
 .action-buttons-container {
@@ -156,6 +165,11 @@
     max-width: 100%;
     min-height: var(--progress-item-min-step-height);
     counter-increment: item;
+
+    white-space: normal;
+    word-break: break-word;
+    word-wrap: break-word;
+    text-wrap: pretty;
 
     &:not(:last-child):before {
       content: "";

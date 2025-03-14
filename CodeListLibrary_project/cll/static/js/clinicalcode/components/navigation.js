@@ -14,7 +14,7 @@ const updateNavBarStyle = (navbar) => {
     return;
   }
 
-  if (y >= navbar.offsetHeight/2 - navbar.offsetTop) {
+  if (y >= navbar.offsetHeight*0.25) {
     navbar.classList.add('scrolled');
     navbar.classList.remove('transparent');
   } else {

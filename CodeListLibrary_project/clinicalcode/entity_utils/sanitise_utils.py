@@ -1,13 +1,19 @@
 from functools import partial
 from django.conf import settings
-from urllib.parse import urlparse
 
 import bleach
+import logging
 import markdown
 import pyhtml2md
 
+from clinicalcode.entity_utils.markdown import utils as md_utils
+
+logger = logging.getLogger(__name__)
+
+"""Available sanitisation methods"""
 SANITISE_METHODS = ['strict', 'markdown']
 
+"""Default `strict` sanitisation properties"""
 SANITISE_STRICT = {
 	'tags': {},
 	'attributes': {},
@@ -15,28 +21,6 @@ SANITISE_STRICT = {
 	'strip': True,
 	'strip_comments': True
 }
-
-def is_external_ref(url):
-	"""
-	Compares the given URL string to the allowed hosts defined within settings.py
-
-	Args:
-		url (string|any): some input string
-
-	Returns:
-		A boolean specifying whether the given URL is an external host or not
-	"""
-	if not isinstance(url, str):
-		return False
-
-	url = str(url).strip()
-	if len(url) < 1 or url.isspace():
-		return False
-
-	url = urlparse(url)
-	if not url.hostname in settings.ALLOWED_HOSTS.split(','):
-		return True
-	return False
 
 def sanitise_markdown_html(text):
 	"""
@@ -99,8 +83,11 @@ def sanitise_markdown_html(text):
 
 	# See [!note] above for why we're doing this...
 	text = cleaner.clean(html)
-	if isinstance(text, str) and len(str(text).strip()) > 0 and not text.isspace():
-		return pyhtml2md.convert(text)
+	if isinstance(text, str) and len(text) > 0 and not text.isspace():
+		text = pyhtml2md.convert(text)
+	else:
+		text = ''
+
 	return text
 
 def sanitise_value(value, method='strict', default=None):
@@ -139,28 +126,67 @@ def sanitise_value(value, method='strict', default=None):
 
 	return value
 
-def apply_anchor_rel_attr(attrs, new=False):
+def apply_anchor_props(attrs, new=False):
 	"""
 	Method used to apply HTML attributes to anchors parsed by django-markdownify;
-	intention is to apply the `noreferrer` and `external` attributes where appropriate
+	intention is to:
 
-	See the following for more details: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel
+		- URL references: prefix URLs with protocol, apply rel attributes if external & apply other props
+		- Email references: apply the `mailto` prefix
+
+	See the following for more details:
+
+		- Rel attributes found [here](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel)
+		- Bleach / Markdown callbacks found [here](https://pythonhosted.org/bleach/linkify.html#callbacks-for-adjusting-attributes-callbacks)
 
 	Args:
 		attrs (dict): a dictionary describing the anchor's attributes
 		new (boolean): ignore
 
 	Returns:
-		A dictionary object with the 
+		The processed `attr` dict
 	"""
-	rel = [u'noreferrer'] # Or would we prefer the less strict noopener?
+	text = attrs.get('_text', None)
 	try:
-		external = is_external_ref(attrs[(None, u'href')])
+		href = attrs[(None, u'href')].strip()
 	except:
-		external = True
+		href = None
 
-	if external:
-		rel.append(u'external')
+	# Early exit & disable if no valid href / text props
+	has_href = isinstance(href, str) and len(href) > 0 and not href.isspace()
+	has_text = isinstance(text, str) and len(text) > 0 and not text.isspace()
+	if not has_href and not has_text:
+		attrs[(None, u'disabled')] = ''
+		return attrs
 
-	attrs[(None, u'rel')] = ' '.join(rel)
-	return attrs
+	try:
+		if email := md_utils.EmailValidator.get_components(href):
+			# Apply email props
+			attrs.update({ (None, u'href'): 'mailto:' + email.get('address') })
+		elif url := md_utils.get_valid_url(href):
+			# Apply URL props
+			address = url.get('address')
+			attrs.update({ (None, u'href'): address })
+
+			# Apply rel attributes if external URL
+			if url.get('is_external'):
+				attrs[(None, u'rel')] = u'noopener noreferrer'
+
+			# Open in new window
+			attrs[(None, u'target')] = u'_blank'
+
+			# Update title/text dependent on source value
+			text_ref = md_utils.get_valid_url(text)
+			if text_ref and text_ref.get('address') == address:
+				attrs.update({ '_text': address })
+			else:
+				attrs[(None, u'title')] = text
+		else:
+			# Disable if no match
+			attrs[(None, u'disabled')] = ''
+	except Exception as e:
+		# Disable if invalid
+		logger.warning(f'Failed to process anchor<href: {href}, text: {text}> with err: {e}')
+		attrs[(None, u'disabled')] = ''
+	finally:
+		return attrs

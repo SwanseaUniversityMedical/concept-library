@@ -4,6 +4,7 @@
     ---------------------------------------------------------------------------
 """
 from django.conf import settings
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.http import HttpResponse
@@ -23,6 +24,7 @@ from ..models.DataSource import DataSource
 from ..models.Statistics import Statistics
 from ..models.OntologyTag import OntologyTag
 
+from ..entity_utils import gen_utils
 from ..entity_utils.constants import ONTOLOGY_TYPES
 from ..entity_utils.permission_utils import should_render_template, redirect_readonly
 
@@ -156,6 +158,33 @@ def brand_about_index_return(request, pg_name):
 
 # --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
+# Custom err / msg views
+# --------------------------------------------------------------------------
+def notify_err(request, title=None, status_code=None, details=None):
+    if gen_utils.is_empty_string(title):
+        title = None
+
+    if not isinstance(status_code, int):
+        status_code = 400
+
+    if isinstance(details, list):
+        for group in details:
+            if isinstance(group, dict):
+                try:
+                    messages.add_message(request, **group)
+                except Exception as e:
+                    logger.warning(f'Failed to pass message to FmtError<title: {title}, status_code: {status_code} view with err: {str(e)}')
+            elif group is not None:
+                messages.add_message(request, messages.INFO, str(group))
+
+    return render(
+        status=status_code,
+        request=request,
+        context={ 'errheader': { 'title': title, 'status_code': status_code } },
+        content_type='text/html',
+        template_name='fmt-error.html'
+    )
 
 # --------------------------------------------------------------------------
 # Misc. pages e.g. T&C, P&C, Technical pages, Contact us etc
@@ -296,14 +325,7 @@ def reference_data(request):
         'coding_system': list(CodingSystem.objects.all().order_by('id').values('id', 'name')),
         'tags': list(tags),
         'collections': list(collections),
+        'ontology_groups': [x.value for x in ONTOLOGY_TYPES]
     }
-
-    #
-    # [!] Note: Temporary solution to block ontology rendering on reference data 
-    #
-    #       i.e. remove reference data to ontology unless template.hide_on_create=False
-    #
-    if should_render_template(name='Atlas Phecode Phenotype'):
-        context.update({ 'ontology': OntologyTag.get_groups([x.value for x in ONTOLOGY_TYPES], default=[]) })
 
     return render(request, 'clinicalcode/about/reference_data.html', context)

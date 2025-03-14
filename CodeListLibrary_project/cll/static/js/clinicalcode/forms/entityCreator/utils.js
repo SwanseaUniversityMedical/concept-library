@@ -5,6 +5,7 @@ import PublicationCreator from '../clinical/publicationCreator.js';
 import TrialCreator from '../clinical/trialCreator.js';
 import EndorsementCreator from '../clinical/endorsementCreator.js';
 import StringInputListCreator from '../stringInputListCreator.js';
+import UrlReferenceListCreator from '../generic/urlReferenceListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
 
 import {
@@ -44,7 +45,7 @@ export const ENTITY_HANDLERS = {
   },
 
   // Generates a tagify component for an element
-  'tagify': (element) => {
+  'tagify': (element, dataset) => {
     const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
     
     let value = [];
@@ -78,16 +79,17 @@ export const ENTITY_HANDLERS = {
       'allowDuplicates': false,
       'restricted': true,
       'items': options,
-    });
+      'onLoad': (box) => {
+        for (let i = 0; i < value.length; ++i) {
+          const item = value[i];
+          if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
+            continue;
+          }
 
-    for (let i = 0; i < value.length; ++i) {
-      const item = value[i];
-      if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
-        continue;
+          box.addTag(item.name, item.value);
+        }
       }
-
-      tagbox.addTag(item.name, item.value);
-    }
+    }, dataset);
 
     return tagbox;
   },
@@ -109,12 +111,13 @@ export const ENTITY_HANDLERS = {
 
     value = value.split(/[\.\,\-]/)
       .map(date => moment(date.trim(), ENTITY_ACCEPTABLE_DATE_FORMAT))
-      .filter(date => date.isValid())
-      .slice(0, 2)
-      .sort((a, b) => a.diff(b))
-      .map(date => date.format('YYYY-MM-DD'));
+      .slice(0, 2);
 
-    const [start, end] = value;
+    if (value.every(x => x.isValid())) {
+      value = value.sort((a, b) => a.diff(b));
+    }
+
+    const [start, end] = value.map(x => x.isValid() ? x.format('YYYY-MM-DD') : undefined);
     startDateInput.setAttribute('value', start);
     endDateInput.setAttribute('value', end);
   },
@@ -175,37 +178,49 @@ export const ENTITY_HANDLERS = {
 
   // Generates a markdown editor component for an element
   'md-editor': (element) => {
-    const toolbar = element.parentNode.querySelector(`div[for="${element.getAttribute('data-field')}"]`);
-    const data = element.parentNode.querySelector(`data[for="${element.getAttribute('data-field')}"]`);
+    const data = element.parentNode.querySelector(`script[for="${element.getAttribute('data-field')}"]`);
+    const value = data?.innerText;
 
-    let value = data?.innerHTML;
-    if (!isStringEmpty(value) && !isStringWhitespace(value)) {
-      value = convertMarkdownData(data)
-    } else {
-      value = '';
-    }
-
-    if (isStringEmpty(value) || isStringWhitespace(value)) {
-      value = ' ';
-    }
-
-    const mde = new TinyMDE.Editor({
+    const mde = new EasyMDE({
+      // Elem
       element: element,
-      content: value
+      maxHeight: '500px',
+      minHeight: '300px',
+
+      // Behaviour
+      autofocus: false,
+      forceSync: false,
+      autosave: { enabled: false },
+      placeholder: 'Enter content here...',
+      promptURLs: false,
+      spellChecker: false,
+      lineWrapping: true,
+      unorderedListStyle: '-',
+      renderingConfig: {
+        singleLineBreaks: false,
+        codeSyntaxHighlighting: false,
+        sanitizerFunction: (renderedHTML) => strictSanitiseString(renderedHTML, { html: true }),
+      },
+
+      // Controls
+      status: ['lines', 'words', 'cursor'],
+      tabSize: 2,
+      toolbar: [
+        'heading', 'bold', 'italic', 'strikethrough', '|',
+        'unordered-list', 'ordered-list', 'code', 'quote', '|',
+        'link', 'image', 'table', '|',
+        'preview', 'guide',
+      ],
+      toolbarTips: true,
+      toolbarButtonClassPrefix: 'mde',
     });
 
-    const bar = new TinyMDE.CommandBar({
-      element: toolbar,
-      editor: mde
-    });
-
-    element.addEventListener('click', () => {
-      mde.e.focus();
-    });
+    if (!isStringEmpty(value) && !isStringWhitespace(value)) {
+      mde.value(value);
+    }
 
     return {
       editor: mde,
-      toolbar: bar,
     };
   },
 
@@ -222,6 +237,21 @@ export const ENTITY_HANDLERS = {
     }
 
     return new StringInputListCreator(element, parsed)
+  },
+
+  // Generates a list component for an element
+  'url_list': (element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new UrlReferenceListCreator(element, parsed)
   },
 
   // Generates a clinical publication list component for an element
@@ -452,29 +482,44 @@ export const ENTITY_FIELD_COLLECTOR = {
     const startDateInput = element.querySelector(`#${id}-startdate`);
     const endDateInput = element.querySelector(`#${id}-enddate`);
 
+    const validation = packet?.validation;
+    const dateClosureOptional = typeof validation === 'object' && validation?.date_closure_optional;
+
+    const startValid = startDateInput.checkValidity(),
+          endValid   = endDateInput.checkValidity();
+
+    const meetsCriteria = (startValid && endValid) || (dateClosureOptional && (startValid || endValid));
     let value;
-    if (startDateInput.checkValidity() && endDateInput.checkValidity()) {
+    if (meetsCriteria) {
       let dates = [moment(startDateInput.value, ['YYYY-MM-DD']), moment(endDateInput.value, ['YYYY-MM-DD'])]
       dates = dates.sort((a, b) => a.diff(b))
-                   .filter(date => date.isValid());
 
-      if (dates.length === 2) {
-        let [ startDate, endDate ] = dates.map(date => date.format(ENTITY_DATEPICKER_FORMAT));
-        value = `${startDate} - ${endDate}`;
+      const count = dates.reduce((filtered, x) => x.isValid() ? ++filtered : filtered, 0);
+      switch (count) {
+        case 1: {
+          if (dateClosureOptional) {
+            const [ startDate, endDate ] = dates.map(date => date.isValid() ? date.format(ENTITY_DATEPICKER_FORMAT) : '');
+            value = `${startDate} - ${endDate}`;
+          }
+        } break;
+
+        case 2: {
+          const  [ startDate, endDate ] = dates.map(date => date.format(ENTITY_DATEPICKER_FORMAT));
+          value = `${startDate} - ${endDate}`;
+        } break;
+
+        default:
+          break;
       }
     }
-    
-    if (isMandatoryField(packet)) {
-      if (!startDateInput.checkValidity() || !endDateInput.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
-        return {
-          valid: false,
-          value: value,
-          message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
-        }
-      }
-    }
 
-    if (isNullOrUndefined(value) || isStringEmpty(value)) {
+    if (isMandatoryField(packet) && (!meetsCriteria || isNullOrUndefined(value) || isStringEmpty(value))) {
+      return {
+        valid: false,
+        value: value,
+        message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      };
+    } else if (isNullOrUndefined(value) || isStringEmpty(value)) {
       return {
         valid: true,
         value: null,
@@ -659,6 +704,36 @@ export const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
+  // Retrieves and validates list components
+  'url_list': (field, packet) => {
+    const handler = packet.handler;
+    const listItems = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(listItems) || listItems.length < 1) {
+        return {
+          valid: false,
+          value: listItems,
+          message: (isNullOrUndefined(listItems) || listItems.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, listItems);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: listItems,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
   // Retrieves and validates publication components
   'clinical-publication': (field, packet) => {
     const handler = packet.handler;
@@ -750,7 +825,7 @@ export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates MDE components
   'md-editor': (field, packet) => {
     const handler = packet.handler;
-    const value = handler.editor.getContent();
+    const value = handler.editor.value();
     
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(value) || isStringEmpty(value)) {
@@ -888,12 +963,12 @@ export const getTemplateFields = (template) => {
  * @param {string} cls The data-class attribute value of that particular element
  * @return {object} An interface to control the behaviour of the component
  */
-export const createFormHandler = (element, cls, data) => {
+export const createFormHandler = (element, cls, data, validation = undefined) => {
   if (!ENTITY_HANDLERS.hasOwnProperty(cls)) {
     return;
   }
 
-  return ENTITY_HANDLERS[cls](element, data);
+  return ENTITY_HANDLERS[cls](element, data, validation);
 }
 
 /**
@@ -945,14 +1020,36 @@ export const parseAsFieldType = (packet, value) => {
 
     case 'string': {
       value = String(value);
-      
+
       const pattern = validation?.regex;
       if (isNullOrUndefined(pattern)) {
         valid = true;
         break;
       }
 
-      valid = new RegExp(pattern).test(value);
+      try {
+        if (typeof pattern === 'string') {
+          valid = new RegExp(pattern).test(value);
+        } else if (Array.isArray(pattern)) {
+          let test = undefined, i = 0;
+          while (i < pattern.length) {
+            test = pattern[i];
+            if (typeof test !== 'string') {
+              continue;
+            }
+
+            valid = new RegExp(test).test(value);
+            if (valid) {
+              break;
+            }
+          }
+        }
+      }
+      catch (e) {
+        console.error(`Failed to test String<value: ${value}> with err: ${e}`);
+        valid = false;
+      }
+
     } break;
 
     case 'string_array': {

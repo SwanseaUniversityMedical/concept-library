@@ -1,7 +1,6 @@
 /**
  * ES_DEFAULT_DESCRIPTOR
  * @desc Default description string if none provided
- * 
  */
 const ES_DEFAULT_DESCRIPTOR = 'Create a ${name}'
 
@@ -41,7 +40,7 @@ const createGroup = (container, template, id, title, description) => {
     'description': description,
   });
 
-  const doc = parseHTMLFromString(html);
+  const doc = parseHTMLFromString(html, true);
   return container.appendChild(doc.body.children[0]);
 }
 
@@ -64,10 +63,10 @@ const createCard = (container, template, id, type, hint, title, description) => 
     'id': id,
     'hint': hint,
     'title': title,
-    'description': description,
+    'description': linkifyText(description),
   });
   
-  const doc = parseHTMLFromString(html);
+  const doc = parseHTMLFromString(html, true);
   return container.appendChild(doc.body.children[0]);
 }
 

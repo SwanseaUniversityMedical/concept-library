@@ -8,14 +8,14 @@
 
   "sections": [
     {
-      "title": "Name - Author",
+      "title": "Name & Author",
       "description": "",
       "fields": ["name", "author"],
       "hide_on_detail": true
     },
     {
       "title": "Overview",
-      "description": "An overview of the phenotype with basic metadata.",
+      "description": "An overview of the Phenotype with metadata, or descriptors, that identifies this Phenotype.",
       "fields": ["type", "phenotype_uuid", "sex", "event_date_range", "coding_system", "data_sources", "collections", "tags", "ontology"]
     },
     {
@@ -25,13 +25,13 @@
     },
     {
       "title": "Implementation",
-      "description": "How this phenotype definition is run against data.",
+      "description": "How this Phenotype definition might be used in practice, and its relation to other practical applications.",
       "fields": ["phenoflowid", "implementation"],
       "hide_if_empty": true
     },
     {
       "title": "Validation",
-      "description": "Description of how correctness, appropriateness, and/or quality was assessed.",
+      "description": "A description of the methods used to validate this Phenotype and any assessment of its quality.",
       "fields": ["validation"],
       "do_not_show_in_production": true,
       "hide_if_empty": true
@@ -39,12 +39,12 @@
     {
       "title": "Clinical Code List",
       "documentation": "clinical-coded-phenotype-docs",
-      "description": "Clinical codes used to define this phenotype.",
+      "description": "Clinical codes that defines this Phenotype.",
       "fields": ["concept_information"]
     },
     {
       "title": "Publication",
-      "description": "Publication(s) where this phenotype is defined and/or used.",
+      "description": "Publications that reference this Phenotype and how this Phenotype might be cited in further research.",
       "fields": ["publications", "citation_requirements"]
     }
   ],
@@ -52,6 +52,7 @@
   "fields": {
     "phenotype_uuid": {
       "title": "Phenotype UUID",
+      "description": "If applicable, the UUID referencing this Phenotype's HDRUK source (optional).",
       "field_type": "string_inputbox_code",
       "active": true,
       "requires_auth": true,
@@ -70,7 +71,7 @@
     },
     "type": {
       "title": "Phenotype Type",
-      "description": "The category of patient characteristic this phenotype falls under.",
+      "description": "The category of patient characteristics this Phenotype is best described by.",
       "field_type": "enum_dropdown_badge",
       "active": true,
       "validation": {
@@ -93,15 +94,79 @@
     },
     "ontology": {
       "title": "Ontology",
-      "description": "A set of taggable categories and concepts that describe this Phenotype.",
+      "description": "A set of taggable categories and concepts that best describe this Phenotype (optional).",
       "field_type": "ontology",
       "active": true,
+      "hydrated": true,
       "validation": {
         "type": "int_array",
         "mandatory": false,
         "source": {
           "model": "OntologyTag",
           "trees": [ 0, 1, 2 ],
+          "references": {
+            "trim": true,
+            "pattern": "^(\\w+):([\\w\\.\\-\\_ ]+)$",
+            "transform": "([^a-zA-Z0-9]+)",
+            "mapping": {
+              "mesh": {
+                "type": "string",
+                "match_in": "mesh_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "icd9": {
+                "type": "string",
+                "match_in": "icd9_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "icd10": {
+                "type": "string",
+                "match_in": "icd10_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "opsc4": {
+                "type": "string",
+                "match_in": "opcs4_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "readv2": {
+                "type": "string",
+                "match_in": "readcv2_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "readv3": {
+                "type": "string",
+                "match_in": "readcv3_codes",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "overlap",
+                "link_target": "properties__code"
+              },
+              "snomed": {
+                "type": "string",
+                "match_in": "code",
+                "match_out": "code",
+                "match_src": "clinicalcode_SNOMED_CODES",
+                "match_type": "in",
+                "link_target": "properties__code"
+              }
+            }
+          },
           "subquery": {
             "id": {
               "type": "int_array",
@@ -139,9 +204,10 @@
     },
     "data_sources": {
       "title": "Data Sources",
-      "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.",
+      "description": "A list identifying data sources referenced, used or required by this Phenotype (optional).",
       "field_type": "data_sources",
       "active": true,
+      "hydrated": true,
       "validation": {
         "type": "int_array",
         "mandatory": false,
@@ -159,18 +225,23 @@
     },
     "event_date_range": {
       "title": "Valid Event Date Range",
-      "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional).",
+      "description": "If this Phenotype is only applicable within a limited time period, please specify that here (optional).",
       "field_type": "daterange",
       "active": true,
       "validation": {
         "type": "string",
         "mandatory": false,
-        "regex": "(?:\\d+\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\/|\\d+)+"
+        "regex": [
+          "(?:\\d+\\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\\/|\\d+)+",
+          "[\\s+]?\\-[\\s+]?(?:\\d+\\/|\\d+)+",
+          "(?:\\d+\\/|\\d+)+[\\s+]?\\-[\\s+]?"
+        ],
+        "date_closure_optional": true
       }
     },
     "sex": {
       "title": "Sex",
-      "description": "The biological sex this phenotype is applicable to.",
+      "description": "The biological sex this Phenotype is applicable to.",
       "field_type": "grouped_enum",
       "active": true,
       "validation": {
@@ -195,7 +266,7 @@
     },
     "agreement_date": {
       "title": "Agreement Date",
-      "description":"A date representing when this phenotype was first finalized (may predate the Phenotype Library). Deprecated.",
+      "description":"A date representing when this Phenotype was first finalised (may predate the Phenotype Library). Deprecated.",
       "field_type": "date",
       "active": false,
       "validation": {
@@ -208,7 +279,7 @@
     },
     "coding_system": {
       "title": "Coding System",
-      "description":"Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
+      "description":"Clinical coding system(s) contained by this Phenotype. A Phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
       "field_type": "coding_system",
       "active": true,
       "validation": {
@@ -229,7 +300,7 @@
     },
     "phenoflowid": {
       "title": "Phenoflow ID",
-      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
+      "description": "URL of this Phenotype's PhenoFLOW implementation, if applicable (optional). For more information: https://kclhi.org/phenoflow/",
       "field_type": "phenoflowid",
       "active": true,
       "validation": {
@@ -242,7 +313,7 @@
     },
     "concept_information": {
       "title": "Clinical Codes",
-      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this phenotype.",
+      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this Phenotype.",
       "field_type": "concept_information",
       "active": true,
       "validation": {
@@ -253,7 +324,7 @@
     },
     "source_reference": {
       "title": "Source Reference",
-      "description": "If this phenotype is derived from a third-party source, define that here. Deprecated.",
+      "description": "If this Phenotype is derived from a third-party source, define that here. Deprecated.",
       "field_type": "string_inputbox",
       "active": false,
       "validation": {

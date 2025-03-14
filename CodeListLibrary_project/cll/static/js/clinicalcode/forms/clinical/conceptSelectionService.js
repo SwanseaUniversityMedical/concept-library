@@ -407,7 +407,7 @@ const CSEL_FILTER_GENERATORS = {
       datatype: data.details.type,
     });
 
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let group = container.appendChild(doc.body.children[0]);
     let descendants = group.querySelector('.filter-group');
     for (let i = 0; i < data.options.length; ++i) {
@@ -418,7 +418,7 @@ const CSEL_FILTER_GENERATORS = {
         field: data.details.field,
         value: option.value,
       });
-      doc = parseHTMLFromString(html);
+      doc = parseHTMLFromString(html, true);
       descendants.appendChild(doc.body.children[0]);
     }
 
@@ -433,14 +433,14 @@ const CSEL_FILTER_GENERATORS = {
       datatype: data.details.type,
     });
 
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     return container.appendChild(doc.body.children[0]);
   },
 
   // creates a searchbar filter group
   SEARCHBAR: (container, data) => {
     let html = CSEL_FILTER_COMPONENTS.SEARCHBAR_GROUP;
-    let doc = parseHTMLFromString(html)
+    let doc = parseHTMLFromString(html, true)
     return container.appendChild(doc.body.children[0]);
   },
 }
@@ -682,6 +682,8 @@ export class ConceptSelectionService {
         headers: {
           'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.SPECIFICATION,
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     );
@@ -727,6 +729,8 @@ export class ConceptSelectionService {
       headers: {
         'X-Target': CSEL_BEHAVIOUR.ENDPOINTS.RESULTS,
         'X-Requested-With': 'XMLHttpRequest',
+        'Cache-Control': 'max-age=3600',
+        'Pragma': 'max-age=3600',
       }
     };
 
@@ -845,7 +849,7 @@ export class ConceptSelectionService {
       hidden: 'false',
     });
   
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let modal = document.body.appendChild(doc.body.children[0]);
     
     // create footer
@@ -859,11 +863,11 @@ export class ConceptSelectionService {
     
     // create buttons
     const buttons = { };
-    let confirmBtn = parseHTMLFromString(CSEL_BUTTONS.CONFIRM);
+    let confirmBtn = parseHTMLFromString(CSEL_BUTTONS.CONFIRM, true);
     confirmBtn = footer.appendChild(confirmBtn.body.children[0]);
     confirmBtn.innerText = this.options.promptConfirm;
 
-    let cancelBtn = parseHTMLFromString(CSEL_BUTTONS.CANCEL);
+    let cancelBtn = parseHTMLFromString(CSEL_BUTTONS.CANCEL, true);
     cancelBtn = footer.appendChild(cancelBtn.body.children[0]);
     cancelBtn.innerText = this.options.promptCancel;
 
@@ -884,7 +888,7 @@ export class ConceptSelectionService {
     let contentContainer = body;
     if (this.options.allowMultiple) {
       html = CSEL_INTERFACE.TAB_VIEW;
-      doc = parseHTMLFromString(html);
+      doc = parseHTMLFromString(html, true);
       contentContainer = body.appendChild(doc.body.children[0]);
       
       const tabs = contentContainer.querySelectorAll('button.tab-view__tab');
@@ -977,7 +981,7 @@ export class ConceptSelectionService {
   #renderSearchView() {
     // Draw page
     let html = CSEL_INTERFACE.SEARCH_VIEW;
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let page = this.dialogue.content.appendChild(doc.body.children[0]);
     this.dialogue.page = page;
     
@@ -1007,7 +1011,7 @@ export class ConceptSelectionService {
       noneSelectedMessage: this.options?.noneSelectedMessage,
     });
   
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let page = this.dialogue.content.appendChild(doc.body.children[0]);
     this.dialogue.page = page;
 
@@ -1079,7 +1083,7 @@ export class ConceptSelectionService {
         'index': i,
       });
 
-      let doc = parseHTMLFromString(html);
+      let doc = parseHTMLFromString(html, true);
       let checkbox = content.appendChild(doc.body.children[0]);
       checkbox.addEventListener('change', this.#handleSelectedItem.bind(this));
     }
@@ -1193,7 +1197,7 @@ export class ConceptSelectionService {
       'next_disabled': !response?.details?.has_next,
     });
 
-    let doc = parseHTMLFromString(html);
+    let doc = parseHTMLFromString(html, true);
     let pagination = pageContainer.appendChild(doc.body.children[0]);
 
     this.filters['page'] = {
@@ -1231,7 +1235,7 @@ export class ConceptSelectionService {
     resultContainer.innerHTML = '';
 
     // then render cards, apply selection to concepts if found
-    const results = response?.results || [ ];
+    const results = Array.isArray(response?.results) ? response.results : [];
     for (let i = 0; i < results.length; ++i) {
       let result = results[i];
       let children = this.#getFilterSafeChildren(result?.children);
@@ -1247,7 +1251,7 @@ export class ConceptSelectionService {
         'tags': '',
       });
       
-      let doc = parseHTMLFromString(html);
+      let doc = parseHTMLFromString(html, true);
       let card = resultContainer.appendChild(doc.body.children[0]);
       let datagroup = card.querySelector('#datagroup');
 
@@ -1272,7 +1276,7 @@ export class ConceptSelectionService {
         title: `Available Concepts (${children.length})`,
         content: childContents,
       });
-      doc = parseHTMLFromString(html);
+      doc = parseHTMLFromString(html, true);
 
       let accordion = datagroup.appendChild(doc.body.children[0]);
       let checkboxes = accordion.querySelectorAll('#child-selector > input[type="checkbox"]');

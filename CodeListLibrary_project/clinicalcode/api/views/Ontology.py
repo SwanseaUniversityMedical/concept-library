@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import connection
+from django.views.decorators.cache import cache_page
 
 import re
 import math
@@ -13,6 +14,7 @@ from ...models.OntologyTag import OntologyTag
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
+@cache_page(60 * 60 * 8)
 def get_ontologies(request):
     """
         Get all ontology groups and their root
@@ -27,6 +29,7 @@ def get_ontologies(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
+@cache_page(60 * 60 * 8)
 def get_ontology_detail(request, ontology_id):
     """
         Get specified ontology group type detail by the given `ontology_id`
@@ -82,21 +85,21 @@ def get_ontology_node(request, node_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-@gen_utils.measure_perf
 def get_ontology_nodes(request):
     """
         Queries Ontology nodes by the given request
         parameters, returning a `QuerySet` of all
         matched node(s)
 
-        Query Params:
-            - `page` - the page number cursor (defaults to 1)
-            - `page_size` - denotes page size enum, where `1` = 20 rows, `2` = 50 rows and `3` = 100 rows
-            - `codes` - one or more SNOMED code(s) to filter on the related ontology code string (delimited by ',')
-            - `search` - full-text search on ontology name(s)
-            - `type_ids` - one or more id(s) to filter on ontology type (delimited by ',')
-            - `reference_ids` - one or more id(s) to filter on atlas reference id (delimited by ',')
-
+        | Param         | Type     | Default            | Desc                                                                    |
+        |---------------|----------|--------------------|-------------------------------------------------------------------------|
+        | search        | `string` | `NULL`             | Full-text search                                                        |
+        | codes         | `list`   | `NULL`             | Either (a) SNOMED code (see below); or (b) Code ID                      |
+        | exact_codes   | `empty`  | `NULL`             | apply this parameter if you would like to search for exact codes instead of fuzzy matching the given `codes` across all related mappings (ICD-9/10, MeSH, OPSC4, ReadCodes etc) |
+        | type_ids      | `list`   | `NULL`             | Filter ontology type by ID                                              |
+        | reference_ids | `list`   | `NULL`             | Filter ontology by Atlas reference                                      |
+        | page          | `number` | `1`                | Page cursor                                                             |
+        | page_size     | `enum`   | `1` (_20_ results) | Page size enum, where: `1` = 20, `2` = 50 & `3` = 100 rows              |
     """
 
     response = { }
@@ -104,20 +107,25 @@ def get_ontology_nodes(request):
 
     clauses = []
     row_clause = '''row_number() over (order by node.id asc) as rn,'''
-    order_clause = '''order by t.rn asc'''
+    order_clause = '''order by node.rn asc'''
+    count_clause = '''select reltuples as row_count from pg_class where relname = \'clinicalcode_ontologytag\''''
 
     page = params.pop('page', None)
     page = gen_utils.try_value_as_type(page, 'int')
     page = max(page, 1) if isinstance(page, int) else 1
 
     page_size = params.pop('page_size', None)
-    page_size = gen_utils.try_value_as_type(page_size, 'int')
-    page_size = str(page_size) if isinstance(page_size, int) else '2'
+    page_size = gen_utils.try_value_as_type(page_size, 'int', default=None)
 
-    if page_size is None or page_size not in constants.PAGE_RESULTS_SIZE:
-        page_size = constants.PAGE_RESULTS_SIZE.get('2')
-    else:
-        page_size = constants.PAGE_RESULTS_SIZE.get(str(page_size))
+    if isinstance(page_size, int):
+        tmp = constants.PAGE_RESULTS_SIZE.get(str(page_size), None)
+        if isinstance(tmp, int):
+            page_size = tmp
+        elif page_size not in list(constants.PAGE_RESULTS_SIZE.values()):
+            page_size = None
+        
+    if not isinstance(page_size, int):
+        page_size = constants.PAGE_RESULTS_SIZE.get('1')
 
     type_ids = params.pop('type_ids', None)
     type_ids = type_ids.split(',') if type_ids is not None else None
@@ -134,29 +142,34 @@ def get_ontology_nodes(request):
     codes = params.pop('codes', None)
     codes = codes.split(',') if codes is not None else None
     codes = gen_utils.try_value_as_type(codes, 'string_array')
+
     alt_codes = None
-    if isinstance(codes, list):
-        alt_cleaner = re.compile('[^0-9a-zA-Z]')
-
+    if isinstance(codes, list) and len(codes) > 0:
         codes = [ code.lower() for code in codes ]
-        alt_codes = [ alt_cleaner.sub('', code) for code in codes ]
+        alt_codes = [ re.sub('[^0-9a-zA-Z]', '', code) for code in codes ]
 
-        # Direct search for snomed?
-        clauses.append('''node.properties::json->>'code' is not null and (
-            lower(node.properties::json->>'code'::text) = any(%(codes)s)
-            or regexp_replace(lower(node.properties::json->>'code'::text), '[^aA-zZ0-9\-]', '', 'g') = any(%(alt_codes)s)
-        )''')
-
-        # Opt?
+        # Future Opt?
         #  -> Direct search for other coding systems?
 
-        # Opt?
-        #  -> Fuzzy code search option?
-
+        if 'exact_codes' not in request.query_params.keys():
+            # Fuzzy across every code mapping
+            clauses.append('''(
+                (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', array_to_string(%(codes)s, '|'))::text || ':*', '<->', '|')))
+                or (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', array_to_string(%(alt_codes)s, '|'))::text || ':*', '<->', '|')))
+            )''')
+        else:
+            # Direct search for snomed
+            clauses.append('''node.properties::json->>'code' is not null and (
+                lower(node.properties::json->>'code'::text) = any(%(codes)s)
+                or regexp_replace(lower(node.properties::json->>'code'::text), '[^aA-zZ0-9\-]', '', 'g') = any(%(alt_codes)s)
+            )''')
 
     search = params.pop('search', None)
     search_rank = ''
-    if isinstance(search, str):
+    if isinstance(search, str) and not gen_utils.is_empty_string(search):
+        # Future Opt?
+        #  -> Change search params, i.e. across syn, rel or desc?
+
         # Fuzzy across code / desc / synonyms / relation
         clauses.append('''(
             node.search_vector
@@ -167,90 +180,92 @@ def get_ontology_nodes(request):
         row_clause = '''row_number() over (order by %s) as rn,''' % search_rank
 
         search_rank = search_rank + ' as score,'
-        order_clause = '''order by t.score desc'''
+        order_clause = '''order by node.score desc'''
 
-        # Opt?
-        #  -> Could impl. selection of syn/rel/vec
+    page_details = {
+        'offset_start': (page - 1)*page_size,
+        'offset_end': page*page_size,
+        'page_size': page_size,
+    }
 
     if len(clauses) > 0:
-        clauses = 'where %s' % (' and '.join(clauses), )
+        node_limit = ''
+
+        clauses = 'where (%s)' % (' and '.join(clauses), )
+        count_clause = '''select max(rn) as row_count from records'''
+
+        query_limit = '''
+            where node.rn >= %(offset_start)s and node.rn < %(offset_end)s
+            limit %(page_size)s
+        ''' % page_details
     else:
         clauses = ''
+        query_limit = ''
+
+        node_limit = '''where node.id >= %(offset_start)s and node.id < %(offset_end)s
+            group by match_id
+            limit %(page_size)s
+        ''' % page_details
 
     with connection.cursor() as cursor:
         sql = '''
         with
-            recursive ancestry(parent_id, child_id, depth, path) as (
-                select
-                        n0.parent_id,
-                        n0.child_id,
-                        1 as depth,
-                        array[n0.parent_id, n0.child_id] as path
-                  from public.clinicalcode_ontologytagedge as n0
-                  left outer join public.clinicalcode_ontologytagedge as n1
-                    on n0.parent_id = n1.child_id
-                union
-                select
-                        n2.parent_id,
-                        ancestry.child_id,
-                        ancestry.depth + 1 as depth,
-                        n2.parent_id || ancestry.path
-                  from ancestry
-                  join public.clinicalcode_ontologytagedge as n2
-                    on n2.child_id = ancestry.parent_id
+            matches as (
+                select %(search_rank)s
+                       %(row_clause)s
+                       node.id as match_id
+                  from public.clinicalcode_ontologytag as node
+                 %(where)s
+                 %(node_limit)s
             ),
-            ancestors as (
-                select
-                        p0.child_id,
-                        p0.path
-                  from ancestry as p0
-                  join (
-                    select
-                            child_id,
-                            max(depth) as max_depth
-                      from ancestry
-                     group by child_id
-                  ) as lim
-                    on lim.child_id = p0.child_id
-                   and lim.max_depth = p0.depth
+            records as (
+                select t0.*, t1.*
+                  from matches as t0
+                  join public.clinicalcode_ontologytag as t1
+                    on t0.match_id = t1.id
+            ),
+            total_count as (
+                %(count_clause)s
             ),
             results as (
                 select
-                        %(search_rank)s
-                        %(row_clause)s
-                        jsonb_build_object(
-                            'id', node.id,
-                            'label', node.name,
-                            'properties', node.properties,
-                            'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
-                            'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
-                            'type_id', node.type_id,
-                            'reference_id', node.reference_id,
-                            'child_count', count(edges1.child_id)
-                        ) as res
-                  from public.clinicalcode_ontologytag as node
-                  left outer join public.clinicalcode_ontologytagedge as edges0
-                    on node.id = edges0.child_id
-                  left outer join public.clinicalcode_ontologytagedge as edges1
-                    on node.id = edges1.parent_id
-                 %(where)s
-                 group by node.id
+                    json_agg(jsonb_build_object(
+                        'id', node.id,
+                        'label', node.name,
+                        'properties', node.properties,
+                        'isLeaf', case when tree.child_count < 1 then True else False end,
+                        'isRoot', case when tree.max_parents is NULL then True else False end,
+                        'type_id', node.type_id,
+                        'reference_id', node.reference_id,
+                        'child_count', tree.child_count
+                    ) %(order)s) as items
+                from records as node
+                join (
+                    select rec.id, count(edges1.child_id) as child_count, max(edges0.parent_id) as max_parents
+                      from records as rec
+                      left outer join public.clinicalcode_ontologytagedge as edges0
+                        on rec.id = edges0.child_id
+                      left outer join public.clinicalcode_ontologytagedge as edges1
+                        on rec.id = edges1.parent_id
+                     group by rec.id
+                ) as tree
+                  on node.id = tree.id
+               %(query_limit)s
             )
-
         select
-            json_agg(t.res %(order)s) filter (where t.rn > %(offset_start)s and t.rn <= %(offset_end)s) items,
-            count(*) as total_rows
-          from results as t
-         limit %(page_size)s;
+            (select t.row_count from total_count as t) as total_rows,
+            t0.items as items
+          from results as t0;
 
         ''' % {
-            'offset_start': (page - 1)*page_size,
-            'offset_end': page*page_size,
-            'page_size': page_size,
             'search_rank': search_rank,
             'row_clause': row_clause,
             'where': clauses,
-            'order': order_clause
+            'order': order_clause,
+            'count_clause': count_clause,
+            'node_limit': node_limit,
+            'query_limit': query_limit,
+            'score_field': 'node.score,' if len(search_rank) > 0 else '',
         }
         
         cursor.execute(sql, params={
@@ -263,16 +278,17 @@ def get_ontology_nodes(request):
 
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        results = results[0] if len(results) > 0 else []
+        results = results[0] if len(results) > 0 else {}
 
         rows = results.get('items', None) or list()
-        total_rows = results.get('total_rows', 0)
+        total_rows = gen_utils.parse_int(results.get('total_rows', 0), default=0)
+        total_pages = math.ceil(total_rows / page_size)
 
         response = {
-            'page': page,
-            'total_pages': math.ceil(total_rows / page_size),
+            'page': min(page, total_pages),
+            'total_pages': total_pages,
             'page_size': page_size,
-            'results': rows
+            'data': rows
         }
 
     return Response(

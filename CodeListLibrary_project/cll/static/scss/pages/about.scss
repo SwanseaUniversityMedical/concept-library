@@ -141,6 +141,10 @@
     background-position-x: 100%;
     min-height: 100px;
 
+    &--sz-inherit {
+      aspect-ratio: unset;
+    }
+
     &--sz-6x1 {
       aspect-ratio: 6 / 1;
     }

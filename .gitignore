@@ -33,14 +33,18 @@ CodeListLibrary_project/media/*
 CodeListLibrary_project/staticroot/*
 
 # Testing artefacts
+**/.pytest_cache/
 **/tests/**/allure*/
 
 # Docker
-**/docker/**/cl_log/
+**/cl_log/
 **/docker/**/backup/
 **/docker/development/db/*.sql
 **/docker/development/db/postgresql.conf
 **/docker/CodeListLibrary_project
+
+# Engagelens
+**/engagelens/.env
 
 # Allow docker env directory
 !**/docker/.env/
@@ -53,3 +57,4 @@ CodeListLibrary_project/staticroot/*
 # Misc. files
 docs/~$plication Guide.docx
 CodeListLibrary_project/debug.log
+

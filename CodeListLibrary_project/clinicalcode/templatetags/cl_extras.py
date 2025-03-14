@@ -16,7 +16,7 @@ def render_og_tags(context, *args, **kwargs):
 
     title = None
     embed = None
-    if not brand or not getattr(brand, 'site_title'):
+    if brand is None or ((isinstance(brand, dict) and not brand.get('id')) or not getattr(brand, 'site_title')):
         title = settings.APP_TITLE
         embed = settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
     else:

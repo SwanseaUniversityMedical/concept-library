@@ -86,6 +86,7 @@ def render_citation_block(entity, request):
     ))
 
     brand = request.BRAND_OBJECT
+    brand = None if not isinstance(brand, Brand) else brand
     site_name = settings.APP_TITLE if not brand or not getattr(brand, 'site_title') else brand.site_title
 
     return f'{author}. *{phenotype_id} - {name}*. {site_name} [Online]. {updated}. Available from: [{url}]({url}). [Accessed {date}]'
@@ -816,18 +817,24 @@ class EntityWizardSections(template.Node):
                     component['hide_input_details'] = False
                 else:
                     component['hide_input_details'] = True
-                
-                if template_utils.is_metadata(GenericEntity, field):
-                    options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
 
-                    if options is None:
-                        options = self.__try_get_computed(request, field)
-                else:
-                    options = template_utils.get_template_sourced_values(template, field, request=request)
-                
+                is_metadata = template_utils.is_metadata(GenericEntity, field)
+                field_struct = template_utils.get_layout_field(constants.metadata if is_metadata else template, field)
+                will_hydrate = field_struct is not None and field_struct.get('hydrated', False)
+
+                options = None
+                if not will_hydrate:
+                    if is_metadata:
+                        options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
+
+                        if options is None:
+                            options = self.__try_get_computed(request, field)
+                    else:
+                        options = template_utils.get_template_sourced_values(template, field, request=request)
+
                 if options is not None:
                     component['options'] = options
-                
+
                 field_properties = self.__try_get_props(template, field)
                 if field_properties is not None:
                     component['properties'] = field_properties

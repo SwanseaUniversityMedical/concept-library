@@ -1216,7 +1216,7 @@ export default class ConceptCreator {
     const isImportedItem = concept?.details?.phenotype_owner && !!concept?.details?.requested_entity_id && concept?.details?.phenotype_owner !== concept?.details?.requested_entity_id;
     const html = interpolateString(template, {
       'subheader': access ? 'Codelist' : 'Imported Codelist',
-      'concept_name': access ? concept?.details?.name : this.#getImportedName(concept),
+      'concept_name': access ? strictSanitiseString(concept?.details?.name) : this.#getImportedName(concept),
       'concept_id': concept?.concept_id,
       'concept_version_id': concept?.concept_version_id,
       'coding_id': concept?.coding_system?.id,
@@ -1231,7 +1231,7 @@ export default class ConceptCreator {
     });
 
     const containerList = this.element.querySelector('#concept-content-list');
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const conceptItem = containerList.appendChild(doc.body.children[0]);
     conceptItem.setAttribute('live', true);
 
@@ -1322,7 +1322,7 @@ export default class ConceptCreator {
       data: {
         headings: ['Final State', 'Code', 'Description'],
         data: rows.map(item => {
-          const isIncluded = this.#isCodeInclusionary(item, dataset?.components || []);
+          const isIncluded = this.#isCodeInclusionary(item, Array.isArray(dataset?.components) ? dataset.components : []);
           return [isIncluded, item[1], item[2]];
         }),
       }
@@ -1495,7 +1495,7 @@ export default class ConceptCreator {
     const html = interpolateString(template, {
       'id': rule?.id,
       'index': index,
-      'name': rule?.name,
+      'name': strictSanitiseString(rule?.name),
       'source': (isNullOrUndefined(source) && sourceInfo.template == 'file-rule') ? 'Unknown File' : (source || ''),
       'used_code': !rule?.used_description ? 'checked' : '',
       'used_description': rule?.used_description ? 'checked' : '',
@@ -1503,7 +1503,7 @@ export default class ConceptCreator {
       'was_wildcard_sensitive': rule?.was_wildcard_sensitive ? 'checked' : '',
     });
 
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const item = ruleList.appendChild(doc.body.children[0]);
     const input = item.querySelector('input[data-item="rule"]');
 
@@ -1652,7 +1652,7 @@ export default class ConceptCreator {
 
       this.state.data.aggregatedStateView = codes;
     } else {
-      codes = this.state?.data?.aggregatedStateView || [ ];
+      codes = Array.isArray(this.state?.data?.aggregatedStateView) ? this.state?.data?.aggregatedStateView : [ ];
     }
 
     if (codes.length < 1) {
@@ -1727,18 +1727,17 @@ export default class ConceptCreator {
     accordion.classList.add('is-open');
     conceptGroup.setAttribute('editing', true);
 
-
     const systemOptions = await this.#fetchCodingOptions(dataset);
     const template = this.templates['concept-editor'];
     const html = interpolateString(template, {
-      'concept_name': dataset?.details?.name,
+      'concept_name': strictSanitiseString(dataset?.details?.name),
       'coding_system_id': dataset?.coding_system?.id,
       'coding_system_options': systemOptions,
       'has_inclusions': false,
       'has_exclusions': false,
     });
 
-    const doc = parseHTMLFromString(html);
+    const doc = parseHTMLFromString(html, true);
     const editor = conceptGroup.appendChild(doc.body.children[0]);
     this.state.data = dataset;
     this.state.editor = editor;
@@ -1974,8 +1973,8 @@ export default class ConceptCreator {
       let caseSensitive = input.parentNode.parentNode.querySelector('input[name="search-sensitive"]:checked');
       caseSensitive = !isNullOrUndefined(caseSensitive);
 
-      let useDesc = input.parentNode.parentNode.querySelector('input[type="radio"]:checked');
-      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('x-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
+      let useDesc = input.parentNode.parentNode.querySelector('input[data-ctrl="search-by"]:checked');
+      useDesc = !isNullOrUndefined(useDesc) ? useDesc.getAttribute('data-target') : CONCEPT_CREATOR_SEARCH_METHODS.CODES;
       useDesc = useDesc !== CONCEPT_CREATOR_SEARCH_METHODS.CODES;
 
       const spinner = startLoadingSpinner();
@@ -2266,6 +2265,21 @@ export default class ConceptCreator {
     // Create or update the concept given the editor data
     let index = this.data.findIndex(item => item.concept_id == data.concept_id && item.concept_version_id == data.concept_version_id);
     let isNew = index < 0;
+
+    const components = data?.components;
+    for (let i = components.length; i > 0; --i) {
+      const component = components[i - 1];
+      if (!component.is_new || component.imported) {
+        continue;
+      }
+
+      const invalidCodes = !Array.isArray(component.codes) || component.codes.length < 1;
+      const isEmptySource = !invalidCodes && (typeof component.source !== 'string' || isStringEmpty(component.source) || component.source.length < 3);
+      if (invalidCodes || isEmptySource) {
+        components.splice(i - 1, 1);
+      }
+    }
+
     if (isNew) {
       this.data.push(data);
     } else {

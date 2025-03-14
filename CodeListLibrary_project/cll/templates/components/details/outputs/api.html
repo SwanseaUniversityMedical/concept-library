@@ -192,7 +192,6 @@
 	</span>
 </div>
 
-{% compress js inline %}
 <script type="text/javascript">
   domReady.finally(() => {
     let elem = document.querySelector('#api_id');
@@ -201,4 +200,3 @@
     elem.innerHTML = html;
   });
 </script>
-{% endcompress %}

@@ -72,10 +72,40 @@ const getReferenceData = () => {
  * 
  * @param {string|any} key the data associated key
  * @param {node} container the relevant container node
- * @param {object} data the associated data object
+ * @param {object} groups the associated data object
  * @returns 
  */
-const renderTreeViewComponent = (key, container, sources) => {
+const renderTreeViewComponent = async (key, container, _groups) => {
+  const sources = await fetch(
+    `${getBrandedHost()}/api/v1/ontology/`,
+    {
+      method: 'GET',
+      headers: {
+        'X-Target': 'get_options',
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    }
+  )
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to GET ontology options with Err<code: ${response.status}> and response:\n${response}`);
+      }
+
+      return response.json();
+    })
+    .then(dataset => {
+      if (!(dataset instanceof Object) || !Array.isArray(dataset)) {
+        throw new Error(`Expected ontology init data to be an object with a result array, got ${dataset}`);
+      }
+
+      return dataset;
+    });
+
+  if (!Array.isArray(sources)) {
+    console.warn('Failed to load tree component with err:', sources);
+    return;
+  }
+  
   const tabItems = container.querySelector('#tab-items');
   const tabContent = container.querySelector('#tab-content');
 
@@ -176,12 +206,12 @@ const renderTreeViewComponent = (key, container, sources) => {
 
   for (let i = 0; i < sources.length; ++i) {
     const item = sources[i];
-    if (typeof(item) !== 'object') {
+    if (typeof item !== 'object') {
       continue;
     }
 
-    const nodes = item?.nodes;
-    const model = item?.model || {};
+    const nodes = item.nodes;
+    const model = typeof item.model === 'object' ? item.model : { };
     const sourceId = model?.source;
     const sourceLabel = model?.label;
     if (typeof sourceId !== 'number' || typeof sourceLabel !== 'string' || !Array.isArray(nodes)) {
@@ -196,7 +226,7 @@ const renderTreeViewComponent = (key, container, sources) => {
       <button aria-label="tab" data-id="${sourceId}" class="tab-view__tab ${i == selectedIndex ? 'active' : ''}">
         ${sourceLabel}
       </button>
-    `);
+    `, true);
 
     const elem = tabItems.appendChild(doc.body.children[0]);
     elem.addEventListener('click', () => {

@@ -23,15 +23,15 @@ def render_errors_approval(context, *args, **kwargs):
         errors.append(message)
     else:
         if  not context['is_allowed_view_children']:
-            message = 'You must have view access to all concepts/phenotypes.'
+            message = 'You must have view access to all Concepts/Phenotypes.'
             errors.append(message)
         
         if not context['all_not_deleted']:
-            message = 'All concepts/phenotypes must not be deleted.'
+            message = 'All Concepts/Phenotypes must not be deleted.'
             errors.append(message)
         
         if not context['all_are_published']:
-            message = 'All concepts/phenotypes must be published.'
+            message = 'All Concepts/Phenotypes must be published.'
             errors.append(message)
 
     return {'errors': errors}
@@ -79,11 +79,11 @@ def render_publish_button(context, *args, **kwargs):
                 button_context.update({'class_modal':"primary-btn bold text-danger dropdown-btn__label",
                                  'disabled': 'true',
                                  'Button_type':"Entity is deleted",
-                                 'title':  "Deleted phenotypes cannot be published!"
+                                 'title':  "Deleted Phenotypes cannot be published!"
                                })
         return button_context
     elif user_entity_access:
-        if not context["is_lastapproved"] and context["approval_status"] is None and user_entity_access and not context["live_ver_is_deleted"]:
+        if not context["is_lastapproved"] and (context["approval_status"] is None or context["approval_status"] == constants.APPROVAL_STATUS.ANY) and user_entity_access and not context["live_ver_is_deleted"]:
             if user_is_publisher:
                 button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
                             'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
@@ -112,7 +112,7 @@ def render_publish_button(context, *args, **kwargs):
                   button_context.update({'class_modal':"primary-btn bold text-danger dropdown-btn__label",
                                  'disabled': 'true',
                                  'Button_type': "Entity is deleted",
-                                 'title': "Deleted phenotypes cannot be published!"
+                                 'title': "Deleted Phenotypes cannot be published!"
                                })
                  
             elif context["approval_status"] == constants.APPROVAL_STATUS.REJECTED:
@@ -125,16 +125,11 @@ def render_publish_button(context, *args, **kwargs):
             elif context["approval_status"] == constants.APPROVAL_STATUS.PENDING and user_entity_access:
                 button_context.update({'class_modal':"primary-btn bold text-warning dropdown-btn__label",
                                 'disabled': 'true',
-                                'Button_type': constants.APPROVAL_STATUS.PENDING.name.capitalize(),
+                                'Button_type': 'Pending Approval',
                                 'title': "This version is pending approval.",
                                 'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                 })
             else:
                 button_context.update({ 'pub_btn_hidden': True })
-                #  button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
-                #                         'Button_type': "Not permitted",
-                #                         'disabled': 'true',
-                #                         'title': "Unavailable to publish"
-                #                         })
 
         return button_context

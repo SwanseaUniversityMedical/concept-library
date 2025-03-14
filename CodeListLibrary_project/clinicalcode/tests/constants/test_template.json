@@ -135,7 +135,7 @@
         },
         "mandatory": true
       },
-      "description": "The category of patient characteristic this phenotype falls under."
+      "description": "The category of patient characteristic this Phenotype falls under."
     },
     "data_sources": {
       "title": "Data Sources",
@@ -158,7 +158,7 @@
         },
         "mandatory": false
       },
-      "description": "Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for."
+      "description": "Data sources the Phenotype creators have run this Phenotype against; or view as appropriate to use this Phenotype for."
     },
     "event_date_range": {
       "title": "Valid Event Date Range",
@@ -169,7 +169,7 @@
         "regex": "(?:\\d+/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+/|\\d+)+",
         "mandatory": false
       },
-      "description": "If this phenotype is only applicable within a limited time period, please specify that here (optional)."
+      "description": "If this Phenotype is only applicable within a limited time period, please specify that here (optional)."
     },
     "sex": {
       "title": "Sex",
@@ -197,7 +197,7 @@
           }
         ]
       },
-      "description": "The biological sex this phenotype is applicable to."
+      "description": "The biological sex this Phenotype is applicable to."
     },
     "agreement_date": {
       "title": "Agreement Date",
@@ -208,7 +208,7 @@
         "regex": "(0[1-9]|[12]\\d|30|31)\\/(0[1-9]|1[0-2])\\/(\\d{4})",
         "mandatory": false
       },
-      "description": "A date representing when this phenotype was first finalized (may predate the Phenotype Library). Deprecated.",
+      "description": "A date representing when this Phenotype was first finalized (may predate the Phenotype Library). Deprecated.",
       "hide_if_empty": true,
       "hide_on_create": true
     },
@@ -230,7 +230,7 @@
         "computed": true,
         "mandatory": false
       },
-      "description": "Clinical coding system(s) contained within this phenotype. A phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
+      "description": "Clinical coding system(s) contained within this Phenotype. A Phenotype may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
       "hide_on_create": true
     },
     "phenoflowid": {
@@ -244,7 +244,7 @@
         "type": "int",
         "mandatory": false
       },
-      "description": "ID of this phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
+      "description": "ID of this Phenotype's PhenoFLOW implementation, if applicable. For more information: https://kclhi.org/phenoflow/",
       "hide_if_empty": true
     },
     "concept_information": {
@@ -256,7 +256,7 @@
         "mandatory": false,
         "has_children": true
       },
-      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this phenotype."
+      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this Phenotype."
     },
     "source_reference": {
       "title": "Source Reference",
@@ -270,7 +270,7 @@
         ],
         "mandatory": false
       },
-      "description": "If this phenotype is derived from a third-party source, define that here. Deprecated.",
+      "description": "If this Phenotype is derived from a third-party source, define that here. Deprecated.",
       "hide_if_empty": true,
       "hide_on_create": true
     }
@@ -297,7 +297,7 @@
         "collections",
         "tags"
       ],
-      "description": "An overview of the phenotype with basic metadata."
+      "description": "An overview of the Phenotype with basic metadata."
     },
     {
       "title": "Definition",
@@ -310,7 +310,15 @@
         "regulatory_approval_organisation",
         "regulatory_approval_date"
       ],
-      "description": "Definition of the phenotype."
+      "description": "Definition of the Phenotype."
+    },
+    {
+      "title": "Endorsement",
+      "fields": [
+        "endorsement_organisation",
+        "endorsement_date"
+      ],
+      "description": ""
     },
     {
       "title": "Implementation",
@@ -318,7 +326,7 @@
         "phenoflowid",
         "implementation"
       ],
-      "description": "How this phenotype definition is run against data.",
+      "description": "How this Phenotype definition is run against data.",
       "hide_if_empty": true
     },
     {
@@ -335,7 +343,7 @@
       "fields": [
         "concept_information"
       ],
-      "description": "Clinical codes used to define this phenotype."
+      "description": "Clinical codes used to define this Phenotype."
     },
     {
       "title": "Publication",
@@ -343,7 +351,7 @@
         "publications",
         "citation_requirements"
       ],
-      "description": "Publication(s) where this phenotype is defined and/or used."
+      "description": "Publication(s) where this Phenotype is defined and/or used."
     }
   ],
   "template_details": {

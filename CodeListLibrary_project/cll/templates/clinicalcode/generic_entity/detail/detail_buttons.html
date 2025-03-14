@@ -1,5 +1,6 @@
 {% load static %}
 {% load cl_extras %}
+{% load entity_renderer %}
 {% load entity_publish_renderer %}
 
 <div id="topButtons" class="box-container action-buttons-container">
@@ -11,13 +12,11 @@
 
       <input type="checkbox" class="dropdown-group__input" id="dd_1">
     
-      <ul class="dropdown-group__menu dropdown-group__menu--fall-right" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} >
+      <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export Phenotype">
         <li aria-label="Export phenotype as JSON" role="button" tabindex="0">
-          <a {% if user_can_export %}
-              href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
-              target=_blank 
-              aria-label="Export JSON"
-              {% endif %}>
+          <a href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
+             target=_blank 
+             aria-label="Export as JSON">
             JSON
           </a>
         </li>
@@ -36,19 +35,18 @@
         </button>
       {% endif %}
 
-      {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
-        {% if user_can_edit %}
-          <button 
-                  id="publication-information"
+      {% if user_can_edit or user|is_member:"Moderators" or user.is_superuser%}
+        {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
+          <button id="publication-information"
                   class="primary-btn bold dropdown-btn__label text-success"
                   title="This version is already published"
                   aria-disabled="true"
                   disabled>
             &nbsp;Published&nbsp;
           </button>
+        {% else %}
+          {% render_publish_button %} 
         {% endif %}
-      {% else %}
-        {% render_publish_button %} 
       {% endif %}
     {% endif %}
   </div>
