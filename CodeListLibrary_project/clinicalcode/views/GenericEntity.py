@@ -495,7 +495,15 @@ class CreateEntityView(TemplateView):
             return gen_utils.jsonify_response(message='Invalid field parameter', code=400, status='false')
 
         if template_utils.is_metadata(GenericEntity, field):
-            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
+            default_value = None
+
+            struct = template_utils.get_layout_field(constants.metadata, field)
+            if struct is not None:
+                struct = template_utils.try_get_content(struct, 'validation')
+                if struct is not None:
+                    default_value = [] if struct.get('type') == 'int_array' else default_value
+
+            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, default=default_value)
         else:
             options = template_utils.get_template_sourced_values(template, field, request=request)
         

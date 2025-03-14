@@ -1,3 +1,5 @@
+from operator import and_
+from functools import reduce
 from django.apps import apps
 from django.db import connection
 from django.db.models import Q
@@ -240,15 +242,18 @@ def validate_query_param(param, template, data, default=None, request=None):
             try:
                 source_info = validation.get('source')
                 model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
-                query = {
-                    'pk__in': data
-                }
+                query = { 'pk__in': data }
 
                 if 'filter' in source_info:
                     filter_query = template_utils.try_get_filter_query(param, source_info.get('filter'), request=request)
-                    query = {**query, **filter_query}
-                
-                queryset = model.objects.filter(Q(**query))
+                    if isinstance(filter_query, list):
+                        query = [Q(**query), *filter_query]
+
+                if isinstance(query, list):
+                    queryset = model.objects.filter(reduce(and_, query))
+                else:
+                    queryset = model.objects.filter(**query)
+
                 queryset = list(queryset.values_list('id', flat=True))
             except:
                 return default

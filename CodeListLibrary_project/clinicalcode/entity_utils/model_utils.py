@@ -7,14 +7,11 @@ import re
 import json
 import simple_history
 
-from . import gen_utils
-from ..models.GenericEntity import GenericEntity
+from . import gen_utils, filter_utils, constants
 from ..models.Tag import Tag
+from ..models.Brand import Brand
 from ..models.CodingSystem import CodingSystem
-from ..models import Brand
-from ..models import Tag
-from .constants import (USERDATA_MODELS, STRIPPED_FIELDS, APPROVAL_STATUS,
-                        GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS)
+from ..models.GenericEntity import GenericEntity
 
 def try_get_instance(model, **kwargs):
     """
@@ -61,15 +58,65 @@ def get_entity_id(primary_key):
         return entity_id[:2]
     return False
 
+def get_brand_tag_ids(brand_name):
+    """
+      Returns list of tags (tags with tag_type=1) ids associated with the brand
+    """
+    brand = Brand.objects.all().filter(name__iexact=brand_name)
+    if not brand.exists():
+        return list(Tag.objects.filter(tag_type=1).values_list('id', flat=True))
+
+    brand = brand.first()
+    source = constants.metadata.get('tags', {}) \
+        .get('validation', {}) \
+        .get('source', {}) \
+        .get('filter', {}) \
+        .get('source_by_brand', None)
+
+    if source is not None:
+        result = filter_utils.DataTypeFilters.try_generate_filter(
+            desired_filter='brand_filter',
+            expected_params=None,
+            source_value=source,
+            column_name='collection_brand',
+            brand_target=brand
+        )
+
+        if isinstance(result, list) and len(result) > 0:
+            res = list(Tag.objects.filter(*result).values_list('id', flat=True))
+            return res
+
+    return list(Tag.objects.filter(collection_brand=brand.id, tag_type=1).values_list('id', flat=True))
+
 def get_brand_collection_ids(brand_name):
     """
-      Returns list of collections (tags) ids associated with the brand
+      Returns list of collections (tags with tag_type=2) ids associated with the brand
     """
-    if Brand.objects.all().filter(name__iexact=brand_name).exists():
-        brand = Brand.objects.get(name__iexact=brand_name)
-        brand_collection_ids = list(Tag.objects.filter(collection_brand=brand.id).values_list('id', flat=True))
-        return brand_collection_ids
-    return [-1]
+    brand = Brand.objects.all().filter(name__iexact=brand_name)
+    if not brand.exists():
+        return list(Tag.objects.filter(tag_type=2).values_list('id', flat=True))
+
+    brand = brand.first()
+    source = constants.metadata.get('collections', {}) \
+        .get('validation', {}) \
+        .get('source', {}) \
+        .get('filter', {}) \
+        .get('source_by_brand', None)
+
+    if source is not None:
+        result = filter_utils.DataTypeFilters.try_generate_filter(
+            desired_filter='brand_filter',
+            expected_params=None,
+            source_value=source,
+            column_name='collection_brand',
+            brand_target=brand
+        )
+
+        if isinstance(result, list):
+            res = list(Tag.objects.filter(*result).values_list('id', flat=True))
+            return res
+
+    return list(Tag.objects.filter(collection_brand=brand.id, tag_type=2).values_list('id', flat=True))
 
 def get_entity_approval_status(entity_id, historical_id):
     """
@@ -104,7 +151,7 @@ def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fiel
     if remove_userdata or strip_fields:
         for field in obj._meta.fields:
             field_type = field.get_internal_type()
-            if strip_fields and field_type and field.get_internal_type() in STRIPPED_FIELDS:
+            if strip_fields and field_type and field.get_internal_type() in constants.STRIPPED_FIELDS:
                 instance.pop(field.name, None)
                 continue
 
@@ -120,7 +167,7 @@ def jsonify_object(obj, remove_userdata=True, strip_fields=True, strippable_fiel
                 continue
 
             model = str(field.target_field.model)
-            if model not in USERDATA_MODELS:
+            if model not in constants.USERDATA_MODELS:
                 continue
             instance.pop(field.name, None)
 

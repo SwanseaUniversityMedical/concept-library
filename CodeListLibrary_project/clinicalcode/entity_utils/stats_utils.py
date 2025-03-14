@@ -30,12 +30,31 @@ def sort_by_count(a, b):
         return -1
     return 0
 
-def get_field_values(field, validation, struct):
+def get_field_values(field, field_value, validation, struct, brand=None):
     value = None
     if 'options' in validation:
-        value = template_utils.get_options_value(field, struct)
+        value = template_utils.get_options_value(field_value, struct)
     elif 'source' in validation:
-        value = template_utils.get_sourced_value(field, struct)
+        source = None
+        if brand is not None and (field == 'collections' or field == 'tags'):
+            source = constants.metadata.get(field, {}) \
+                .get('validation', {}) \
+                .get('source', {}) \
+                .get('filter', {}) \
+                .get('source_by_brand', None)
+
+        if source is not None:
+            value = template_utils.get_sourced_value(field_value, struct, filter_params={
+                'field_name': field,
+                'desired_filter': 'brand_filter',
+                'expected_params': None,
+                'source_value': source,
+                'column_name': 'collection_brand',
+                'brand_target': brand
+            })
+        else:
+            value = template_utils.get_sourced_value(field_value, struct)
+
     return value
 
 def transform_counted_field(data):
@@ -50,23 +69,24 @@ def transform_counted_field(data):
     array.sort(key=sort_fn)
     return array
 
-def try_get_cached_data(cache, entity, template, field, field_value, validation, struct, brand=None):
+def try_get_cached_data(cache, _entity, template, field, field_value, validation, struct, brand=None):
     if template is None or not isinstance(cache, dict):
-        return get_field_values(field_value, validation, struct)
-    
+        return get_field_values(field, field_value, validation, struct, brand)
+
     if brand is not None:
         cache_key = f'{brand.name}__{field}__{field_value}__{template.id}__{template.template_version}'
     else:
         cache_key = f'{field}__{field_value}__{template.id}__{template.template_version}'
-    
+
     if cache_key not in cache:
-        value = get_field_values(field_value, validation, struct)
+        value = get_field_values(field, field_value, validation, struct, brand)
         if value is None:
+            cache[cache_key] = None
             return None
-        
+
         cache[cache_key] = value
         return value
-    
+
     return cache[cache_key]
 
 def build_statistics(statistics, entity, field, struct, data_cache=None, template_entity=None, brand=None):
@@ -161,7 +181,6 @@ def compute_statistics(statistics, entity, data_cache=None, template_cache=None,
         if not isinstance(struct, dict):
             continue
 
-
         build_statistics(statistics['all'], entity, field, struct, data_cache=data_cache, template_entity=template, brand=brand)
 
         if entity.publish_status == constants.APPROVAL_STATUS.APPROVED:
@@ -199,10 +218,11 @@ def collect_statistics(request):
     cache = { }
     template_cache = { }
 
-    all_entities = GenericEntity.objects.all()
-
     to_update = [ ]
     to_create = [ ]
+
+    results = []
+    all_entities = GenericEntity.objects.all()
     for brand in Brand.objects.all():
         stats = collate_statistics(
             all_entities,
@@ -217,20 +237,24 @@ def collect_statistics(request):
         )
 
         if obj.exists():
+            action = 'update'
             obj = obj.first()
             obj.stat = stats
+            obj.modified = datetime.datetime.now()
             obj.updated_by = user
             to_update.append(obj)
-            continue
+        else:
+            action = 'create'
+            obj = Statistics(
+                org=brand.name,
+                type='GenericEntity',
+                stat=stats,
+                created_by=user
+            )
+            to_create.append(obj)
 
-        obj = Statistics(
-            org=brand.name,
-            type='GenericEntity',
-            stat=stats,
-            created_by=user
-        )
-        to_create.append(obj)
-    
+        results.append({ 'brand': brand.name, 'value': stats, 'action': action })
+
     stats = collate_statistics(
         all_entities,
         data_cache=cache,
@@ -243,11 +267,14 @@ def collect_statistics(request):
     )
 
     if obj.exists():
+        action = 'update'
         obj = obj.first()
         obj.stat = stats
+        obj.modified = datetime.datetime.now()
         obj.updated_by = user
         to_update.append(obj)
     else:
+        action = 'create'
         obj = Statistics(
             org='ALL',
             type='GenericEntity',
@@ -255,12 +282,15 @@ def collect_statistics(request):
             created_by=user
         )
         to_create.append(obj)
-    
+
+    results.append({ 'brand': 'all', 'value': stats, 'action': action })
+
     # Create / Update stat objs
     Statistics.objects.bulk_create(to_create)
-    Statistics.objects.bulk_update(to_update, ['stat', 'updated_by'])
+    Statistics.objects.bulk_update(to_update, ['stat', 'updated_by', 'modified'])
 
     clear_statistics_history()
+    return results
 
 
 def clear_statistics_history():

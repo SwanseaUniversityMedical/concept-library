@@ -1,3 +1,5 @@
+from operator import and_
+from functools import reduce
 from django.db import transaction, IntegrityError, connection
 from django.apps import apps
 from django.db.models import Q
@@ -301,21 +303,18 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
                 try:
                     source_info = validation.get('source')
                     model = apps.get_model(app_label='clinicalcode', model_name=model_name)
-
-                    if isinstance(data, list):
-                        query = {
-                            'pk__in': data
-                        }
-                    else:
-                        query = {
-                            'pk': data
-                        }
+                    query = { 'pk__in': data } if isinstance(data, list) else { 'pk': data }
 
                     if 'filter' in source_info:
                         filter_query = template_utils.try_get_filter_query(field, source_info.get('filter'), request=request)
-                        query = {**query, **filter_query}
-                    
-                    queryset = model.objects.filter(Q(**query))
+                        if isinstance(filter_query, list):
+                            query = [Q(**query), *filter_query]
+
+                    if isinstance(query, list):
+                        queryset = model.objects.filter(reduce(and_, query))
+                    else:
+                        queryset = model.objects.filter(**query)
+
                     queryset = list(queryset.values_list('id', flat=True))
 
                     if isinstance(data, list):
