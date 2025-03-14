@@ -1,5 +1,5 @@
 {% load entity_renderer %}
-<li class="phenotype-progress__item" id="{{ section.title|trimmed|escape }}-progress">
+<li class="phenotype-progress__item" id="{{ section.title|shrink_underscore|escape }}-progress">
   <h2 class="phenotype-progress__item-title">
     {{ section.title }}
   </h2>

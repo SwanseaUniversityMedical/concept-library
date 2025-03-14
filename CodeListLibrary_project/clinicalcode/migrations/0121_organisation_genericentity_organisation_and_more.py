@@ -10,7 +10,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('clinicalcode', '0116_ontology_descendants'),
+        ('clinicalcode', '0120_ontologytag_clinicalcod_type_id_c68d0b_idx_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

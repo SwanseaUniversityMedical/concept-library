@@ -123,26 +123,6 @@ def get_concept_ids_from_phenotypes(data, return_id_or_history_id="both"):
     return []
 
 
-def getConceptBrands(request, concept_list):
-    '''
-        return concept brands 
-    '''
-    conceptBrands = {}
-    concepts = Concept.objects.filter(id__in=concept_list).values('id', 'name', 'group')
-
-    for c in concepts:
-        conceptBrands[c['id']] = []  
-        if c['group'] != None:
-            g = Group.objects.get(pk=c['group'])
-            for item in request.BRAND_GROUPS:
-                for brand, groups in item.items():
-                    if g.name in groups:
-                        #conceptBrands[c['id']].append('<img src="{% static "img/brands/' + brand + '/logo.png %}" height="10px" title="' + brand + '" alt="' + brand + '" />')
-                        conceptBrands[c['id']].append(brand)
-
-    return conceptBrands
-
-
 
 #=============================================================================
  # TO BE CONVERTED TO THE GENERIC ENTITY  .......
@@ -483,7 +463,7 @@ def get_entity_full_template_data(entity_record, template_id, return_queryset_as
             entity_data_sources = fields_data[field_name]['value']
             if entity_data_sources:
                 if return_queryset_as_list:
-                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('datasource_id', 'name', 'url'))
+                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('id', 'name', 'url'))
                 else:
                     data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
                 fields_data[field_name]['value'] = data_sources
