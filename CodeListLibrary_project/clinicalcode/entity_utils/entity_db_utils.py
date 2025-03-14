@@ -123,26 +123,6 @@ def get_concept_ids_from_phenotypes(data, return_id_or_history_id="both"):
     return []
 
 
-def getConceptBrands(request, concept_list):
-    '''
-        return concept brands 
-    '''
-    conceptBrands = {}
-    concepts = Concept.objects.filter(id__in=concept_list).values('id', 'name', 'group')
-
-    for c in concepts:
-        conceptBrands[c['id']] = []  
-        if c['group'] != None:
-            g = Group.objects.get(pk=c['group'])
-            for item in request.BRAND_GROUPS:
-                for brand, groups in item.items():
-                    if g.name in groups:
-                        #conceptBrands[c['id']].append('<img src="{% static "img/brands/' + brand + '/logo.png %}" height="10px" title="' + brand + '" alt="' + brand + '" />')
-                        conceptBrands[c['id']].append(brand)
-
-    return conceptBrands
-
-
 
 #=============================================================================
  # TO BE CONVERTED TO THE GENERIC ENTITY  .......

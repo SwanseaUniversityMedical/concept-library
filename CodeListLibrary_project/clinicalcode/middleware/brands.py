@@ -24,13 +24,11 @@ class BrandMiddleware(MiddlewareMixin):
         # if the user is a member of  'ReadOnlyUsers' group, make READ-ONLY True
         if request.user.is_authenticated:
             CLL_READ_ONLY_org = self.get_env_value('CLL_READ_ONLY', cast='bool')
+            settings.CLL_READ_ONLY = CLL_READ_ONLY_org
+
             if settings.DEBUG:
                 print("CLL_READ_ONLY_org = ", str(CLL_READ_ONLY_org))
-            settings.CLL_READ_ONLY = CLL_READ_ONLY_org
-            if settings.DEBUG:
-                print("CLL_READ_ONLY_org (after) = ", str(CLL_READ_ONLY_org))
 
-            #self.chkReadOnlyUsers(request)
             if not settings.CLL_READ_ONLY:
                 if (request.user.groups.filter(name='ReadOnlyUsers').exists()):
                     msg1 = "You are assigned as a Read-Only-User."
@@ -42,11 +40,11 @@ class BrandMiddleware(MiddlewareMixin):
                     if settings.DEBUG:
                         print("settings.CLL_READ_ONLY = ", str(settings.CLL_READ_ONLY))
 
-    #---------------------------------
+        #---------------------------------
 
-    #if request.user.is_authenticated:
-    #print "...........start..............."
-    #brands = Brand.objects.values_list('name', flat=True)
+        #if request.user.is_authenticated:
+        #print "...........start..............."
+        #brands = Brand.objects.values_list('name', flat=True)
         brands = Brand.objects.all()
         brands_list = [x.upper() for x in list(brands.values_list('name', flat=True)) ]
         current_page_url = request.path_info.lstrip('/')
@@ -85,24 +83,11 @@ class BrandMiddleware(MiddlewareMixin):
         request.session['all_brands'] = brands_list  #json.dumps(brands_list)
         request.session['current_brand'] = root
 
-        request.BRAND_GROUPS = []
-        userBrands = []
-        all_brands_groups = []
-        for b in brands:
-            b_g = {}
-            groups = b.groups.all()
-            if (any(x in request.user.groups.all() for x in groups) or b.owner == request.user):
-                userBrands.append(b.name.upper())
-
-            b_g[b.name.upper()] = list(groups.values_list('name', flat=True))
-            all_brands_groups.append(b_g)
-
-        request.session['user_brands'] = userBrands  #json.dumps(userBrands)
-        request.BRAND_GROUPS = all_brands_groups
-
         do_redirect = False
         if root in brands_list:
-            if settings.DEBUG: print("root=", root)
+            if settings.DEBUG:
+                print("root=", root)
+
             settings.CURRENT_BRAND = root
             request.CURRENT_BRAND = root
 
@@ -121,18 +106,10 @@ class BrandMiddleware(MiddlewareMixin):
 
             if (request.get_host().lower().find('phenotypes.healthdatagateway') != -1 or
                 request.get_host().lower().find('web-phenotypes-hdr') != -1):
-
                 pass
             else:
                 # # path_info does not change address bar urls
                 request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
-
-#                 print "-------"
-#                 print current_page_url
-#                 print current_page_url.split('/')[1:]
-#                 print '/'.join([root.upper()] + current_page_url.split('/')[1:])
-#                 print request.path_info
-#                 print "-------"
 
             urlconf = "cll.urls_brand"
             set_urlconf(urlconf)
@@ -154,22 +131,9 @@ class BrandMiddleware(MiddlewareMixin):
             print(request.path_info)
             print(str(request.get_full_path()))
 
-        # Do NOT allow concept create under HDRUK - for now
-        if (str(request.get_full_path()).upper().replace('/', '') == "/HDRUK/concepts/create/".upper().replace('/', '') or
-            ((request.get_host().lower().find('phenotypes.healthdatagateway') != -1 or request.get_host().lower().find('web-phenotypes-hdr') != -1)
-             and str(request.get_full_path()).upper().replace('/', '').endswith('/concepts/create/'.upper().replace('/', '')))):
-
-            raise PermissionDenied
-
         # redirect /{brand}/api/  to  /{brand}/api/v1/ to appear in URL address bar
         if do_redirect:
             return redirect(reverse('api:root'))
-
-        #print "get_urlconf=" , str(get_urlconf())
-        #print "settings.CURRENT_BRAND=" , settings.CURRENT_BRAND
-        #print "request.CURRENT_BRAND=" , request.CURRENT_BRAND
-
-        #print "...........end..............."
 
         return None
 

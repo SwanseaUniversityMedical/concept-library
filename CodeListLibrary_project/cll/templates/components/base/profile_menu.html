@@ -33,18 +33,20 @@
             <div class="item-dropdown__icon profile-row--stylised-icon" id="collection_icon">
               {% svg "collection_icon" %}
             </div>
-            <div class="item-dropdown__title">My collection</div> 
+            <div class="item-dropdown__title">My Collection</div> 
           </a>
         </li>
         <hr/>
 
         <!-- Brands -->
-        {% if request.user.is_superuser  and request.session.all_brands %}
+        {% if request.user.is_superuser and request.session.all_brands %}
           {% include "components/navigation/dropdown_profile_item.html" with  currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title="Concept Library" %}
 
           {% for brand in request.session.all_brands %}
             {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo  title=brand|upper %}
           {% endfor %}
+
+          {% to_json_script request.session.all_brands id="brand-target-source" name="brand-targets" desc-type="text/json" host-target=IS_PRODUCTION_SERVER %}
 
           <hr/>
         {% endif %}
@@ -64,6 +66,4 @@
       </ul>
     </div>
   </div>
-
-  {% to_json_script request.session.all_brands id="brand-target-source" name="brand-targets" desc-type="text/json" host-target=IS_PRODUCTION_SERVER %}
 {% endblock content %}
