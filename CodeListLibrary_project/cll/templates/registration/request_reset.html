@@ -7,7 +7,7 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| Login {% endblock title %}
+{% block title %}| Password Reset {% endblock title %}
 
 {% block container %}
   <!-- Page Stylesheets -->
@@ -57,70 +57,41 @@
           </div>
         </div>
         <div class="account-container__form-container">
-					<h1>Login</h1>
-          <form method="post" action="{% url 'login' %}">
-						<input type="hidden" name="next" value="{{ next }}" />
-            <div class="detailed-input-group">
+					<h1>Password Reset</h1>
+          <form method="post" action="{% url 'password_reset' %}">
+            <div class="detailed-input-group constrained">
               <h3 class="detailed-input-group__title">
-                Username
+                E-mail
                 <span class="detailed-input-group__mandatory">*</span>
               </h3>
-              <input class="text-input" 
-								 id="id_username" 
-								 aria-label="Account username"
-								 name="username" 
-								 type="text" 
-								 maxlength="254" 
-								 placeholder="username" 
-								 autofocus 
-								 required />
+							<p class="detailed-input-group__description account-container--text-wrappable">
+								Please 
+								<a target="_blank" href="{% url 'contact_us' %}">contact us</a> 
+								for assistance if you are unable to recall the e-mail associated with your account. 
+							</p>
+							<input
+								id="id_email"
+								class="text-input"
+								name="email"
+								type="email"
+								maxlength="254"
+								placeholder="your.account.email@email.com"
+								autocomplete="email"
+								autofocus
+								required 
+							/>
             </div>
-
-            <div class="detailed-input-group">
-              <h3 class="detailed-input-group__title">
-								Password
-                <span class="detailed-input-group__mandatory">*</span>
-              </h3>
-							<input class="text-input" 
-								 id="id_password" 
-								 aria-label="Account password"
-								 name="password" 
-								 type="password" 
-								 placeholder="password" 
-								 required />
-            </div>
-
-						<div class="account-container__form-container__options-container">
-							<div class="checkbox-item-container">
-								<input class="checkbox-item"
-											id="login-remember" 
-											aria-label="Remember my login details" 
-											type="checkbox" 
-											name="remember" 
-											value="1" />
-								<label class="constrained-filter-item" for="login-remember">
-									Remember me
-								</label>
-							</div>
-							
-							{% if not CLL_READ_ONLY %}
-							<a href="{% url 'password_reset' %}"
-								aria-label="Request a password reset">
-								Forgotten your password?
-							</a>
-							{% endif %}
-						</div>
 
             <div class="account-container__form-container__submit-container">
-              {% csrf_token %}
-              <button class="primary-btn text-accent-darkest bold tertiary-accent sweep-left" 
-											id="save-changes"
+							{% csrf_token %}
+              <button id="save-changes"
+											class="primary-btn text-accent-darkest bold tertiary-accent sweep-left" 
 											type="submit"
                       aria-label="Log in to account">
-                Login
+                Reset Password
               </button>
             </div>
-          </form>
+					</form>
         </div>
       </div>
     </div>

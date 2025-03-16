@@ -52,14 +52,6 @@ urlpatterns = [
     url(r'^org/create/?$', Organisation.OrganisationCreateView.as_view(), name='create_organisation'),
     url(r'^org/manage/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationManageView.as_view(), name='manage_organisation'),
 
-    ## Changing password(s)
-    url(
-        route='^change-password/$',
-        view=auth_views.PasswordChangeView.as_view(),
-        name='password_change',
-        kwargs={ 'post_change_redirect': 'concept_library_home' }
-    ),
-
     # GenericEnities (Phenotypes)
     ## Search
     url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
