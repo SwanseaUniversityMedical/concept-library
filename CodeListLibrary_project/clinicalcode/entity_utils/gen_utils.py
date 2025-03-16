@@ -641,6 +641,13 @@ def try_value_as_type(
         if not isinstance(field_value, list):
             return default
         return field_value
+    elif field_type == 'group': # [!] CHANGE
+        if isinstance(field_value, str) and not is_empty_string(field_value):
+            group = Group.objects.filter(name__iexact=field_value)
+            return group.first().pk if group.exists() else default
+        elif isinstance(field_value, int):
+            return field_value
+        return default
     elif field_type == 'url_list':
         if not isinstance(field_value, list):
             return default

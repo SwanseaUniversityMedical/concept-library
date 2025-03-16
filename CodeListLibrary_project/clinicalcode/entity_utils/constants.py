@@ -652,7 +652,7 @@ metadata = {
         'field_type': 'group_field',
         'active': True,
         'validation': {
-            'type': 'int',
+            'type': 'group',
             'mandatory': False,
             'computed': True
         },
