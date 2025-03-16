@@ -520,9 +520,13 @@ if IS_LINUX or IS_DEVELOPMENT_PC:
             },
         },
         'loggers': {
+            '': {
+                'level': 'INFO',
+                'handlers': ['console'],
+            },
             'django': {
                 'handlers': ['console'],
-                'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+                'level': 'INFO',
             },
         },
     }

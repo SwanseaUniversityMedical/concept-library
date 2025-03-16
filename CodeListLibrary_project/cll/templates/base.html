@@ -1,9 +1,9 @@
+{% load i18n %}
 {% load static %}
 {% load compress %}
 {% load sass_tags %}
-{% load entity_renderer %}
-{% load i18n %}
 {% load cl_extras %}
+{% load entity_renderer %}
 
 {% if SHOW_COOKIE_ALERT %}
   {% load cookielaw_tags %}
@@ -18,11 +18,14 @@
 {% endif %}
   <head>
     <!-- Metadata incl. robots -->
+    {% get_brand_base_desc request.BRAND_OBJECT as base_desc %}
+    {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block description %}{% if not request.CURRENT_BRAND|length %}The concept library is a system for storing, managing, sharing, and documenting clinical code lists in health research.{% endif %}{% endblock description %}">
-    <meta name="keywords" content="Concept Library{% if request.CURRENT_BRAND|length and request.BRAND_OBJECT.site_title is not none %}, {{ request.BRAND_OBJECT.site_title }}{% endif %}{% block keywords %}{% endblock keywords %}">
+    <meta name="description" content="{% block description %}{{ base_desc }}{% endblock description %}">
+    <meta name="keywords" content="Concept Library{% if request.CURRENT_BRAND|length %}, {{ base_page_title }}{% endif %}{% block keywords %}{% endblock keywords %}">
+
     {% block indexing_robots %}
       {% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' or stop_robot_indexing %}
         <meta name="robots" content="noindex, nofollow">
@@ -46,23 +49,22 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static base_icons.favicon %}">
 
     <!-- URL embedding -->
-    {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
     {% block embedding_wrapper %}
       {% if not hide_embedding %}
-        {% get_brand_base_embed_desc request.BRAND_OBJECT as base_desc %}
+        {% get_brand_base_embed_desc request.BRAND_OBJECT as base_embed_desc %}
         {% get_brand_base_embed_img request.BRAND_OBJECT as base_embed_img %}
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">
         <meta property="og:url" content="{{ request.build_absolute_uri }}">
         <meta property="og:title" content="{{ base_page_title }}">
-        <meta property="og:description" content="{{ base_desc }}">
+        <meta property="og:description" content="{{ base_embed_desc }}">
         <meta property="og:image" content="{% static base_embed_img %}">
 
         <!-- Twitter -->
         <meta property="twitter:card" content="summary_large_image">
         <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
         <meta property="twitter:title" content="{{ base_page_title }}">
-        <meta property="twitter:description" content="{{ base_desc }}">
+        <meta property="twitter:description" content="{{ base_embed_desc }}">
         <meta property="twitter:image" content="{% static base_embed_img %}">
       {% endif %}
     {% endblock embedding_wrapper %}

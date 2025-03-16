@@ -1,31 +1,29 @@
 from operator import and_
+from datetime import datetime
 from functools import reduce
 from django.db import transaction, IntegrityError, connection
 from django.apps import apps
 from django.db.models import Q
 from django.utils.timezone import make_aware
-from datetime import datetime
 
 import logging
 import psycopg2
 
-from ..models.EntityClass import EntityClass
-from ..models.Template import Template
-from ..models.GenericEntity import GenericEntity
-from ..models.CodingSystem import CodingSystem
-from ..models.Concept import Concept
-from ..models.ConceptCodeAttribute import ConceptCodeAttribute
-from ..models.Component import Component
-from ..models.CodeList import CodeList
-from ..models.Code import Code
 from ..models.Tag import Tag
+from ..models.Code import Code
+from ..models.Concept import Concept
+from ..models.CodeList import CodeList
+from ..models.Template import Template
+from ..models.Component import Component
+from ..models.EntityClass import EntityClass
+from ..models.CodingSystem import CodingSystem
+from ..models.GenericEntity import GenericEntity
+from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 
-from . import gen_utils
-from . import model_utils
-from . import permission_utils
-from . import template_utils
-from . import concept_utils
-from . import constants
+from . import (
+    gen_utils, model_utils, permission_utils,
+    template_utils, concept_utils, constants
+)
 
 logger = logging.getLogger(__name__)
 

@@ -62,8 +62,8 @@ def get_brand_base_icons(brand):
             A (dict) with key-value pairs specifying the `favicon` and `apple` (`apple-touch-icon`) path
     """
     path = settings.APP_LOGO_PATH
-    if brand and getattr(brand, 'logo_path'):
-        path = brand.logo_path
+    if brand and hasattr(brand, 'logo_path') and getattr(brand, 'logo_path', None):
+        path = brand.logo_path if not gen_utils.is_empty_string(brand.logo_path) else path
 
     return {
         'favicon': path + 'favicon-32x32.png',
@@ -85,7 +85,7 @@ def get_brand_base_title(brand):
     if isinstance(brand, dict):
         title = brand.get('site_title', None)
     elif isinstance(brand, Model):
-        title = getattr(brand, 'site_title', None)
+        title = getattr(brand, 'site_title', None) if hasattr(brand, 'site_title') else None
     else:
         title = None
 
@@ -95,9 +95,9 @@ def get_brand_base_title(brand):
 
 
 @register.simple_tag
-def get_brand_base_embed_desc(brand):
+def get_brand_base_desc(brand):
     """
-        Gets the brand-related site desc if available, otherwise returns the `APP_DESC` per `settings.py`
+        Gets the brand-related site description if available, otherwise returns the base embed description (see `APP_DESC` in `settings.py`)
 
         Args:
             brand (Brand|dict|None): the brand from which to resolve the info
@@ -105,9 +105,42 @@ def get_brand_base_embed_desc(brand):
         Returns:
             A (str) specifying the site description
     """
-    if not brand or not getattr(brand, 'site_title'):
+    if isinstance(brand, dict):
+        desc = brand.get('site_description', None)
+    elif isinstance(brand, Model):
+        desc = getattr(brand, 'site_description', None) if hasattr(brand, 'site_description') else None
+    else:
+        desc = None
+
+    if desc is None or gen_utils.is_empty_string(desc):
         return settings.APP_DESC.format(app_title=settings.APP_TITLE)
-    return settings.APP_DESC.format(app_title=brand.site_title)
+    return desc
+
+
+@register.simple_tag
+def get_brand_base_embed_desc(brand):
+    """
+        Gets the brand-related embedding desc if available, otherwise returns the `APP_DESC` per `settings.py` (OG tags)
+
+        Note:
+            - Interpolated by the `Brand`'s `site_title` attribute
+
+        Args:
+            brand (Brand|dict|None): the brand from which to resolve the info
+
+        Returns:
+            A (str) specifying the embed description
+    """
+    if isinstance(brand, dict):
+        title = brand.get('site_title', None)
+    elif isinstance(brand, Model):
+        title = getattr(brand, 'site_title', None) if hasattr(brand, 'site_title') else None
+    else:
+        title = None
+
+    if title is None or gen_utils.is_empty_string(title):
+        return settings.APP_DESC.format(app_title=settings.APP_TITLE)
+    return settings.APP_DESC.format(app_title=title)
 
 
 @register.simple_tag
@@ -121,9 +154,16 @@ def get_brand_base_embed_img(brand):
         Returns:
             A (str) specifying the site embed icon
     """
-    if not brand or not getattr(brand, 'logo_path'):
+    if isinstance(brand, dict):
+        path = brand.get('logo_path', None)
+    elif isinstance(brand, Model):
+        path = getattr(brand, 'logo_path', None) if hasattr(brand, 'logo_path') else None
+    else:
+        path = None
+
+    if path is None or gen_utils.is_empty_string(path):
         return settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
-    return settings.APP_EMBED_ICON.format(logo_path=brand.logo_path)
+    return settings.APP_EMBED_ICON.format(logo_path=path)
 
 
 @register.simple_tag

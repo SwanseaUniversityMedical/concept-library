@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% load static %}
 {% load compress %}
 {% load sass_tags %}
@@ -16,6 +17,7 @@
   <script type="text/javascript" src="{% static 'js/clinicalcode/components/homeCounter.js' %}"></script>
 {% endcompress %}
 
+{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 <header class="main-header main-header--collapse homepage-hero-banner">
   <div
     class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
@@ -23,10 +25,10 @@
       <div class="homepage-hero__container">
         <div class="homepage-hero__details">
           <h1>
-            Concept Library
+            {{ base_page_title }}
           </h1>
           <h2>
-            The Concept Library is a system for storing, managing, sharing, and documenting clinical code lists in health research.
+            The {{ base_page_title }} is a system for storing, managing, sharing, and documenting clinical code lists in health research.
           </h2>
           <p>
             Our goal is to create a system that describes research study designs in a machine-readable format to facilitate rapid study development;
@@ -172,7 +174,7 @@
           What do we do?
         </h3>
         <p>
-          The Concept Library is an open source software application enabling researchers to create, 
+          The {{ base_page_title }} is an open source software application enabling researchers to create, 
           document and share definitions and algorithms that are used in health data research.
           This tool serves as a key enabler to the open research agenda, driving efficient, high 
           quality, and repeatable research.  
@@ -180,10 +182,10 @@
         <p>
           For example, the <a href="https://www.go-fair.org/fair-principles/">FAIR principles</a> state that 
           digital assets used in research should be <em>"Findable, Accessible, Interoperable, and Reusable"</em>.
-          The Library implements a solution to those goals within the electronic phenotype space. 
+          The {{ base_page_title }} implements a solution to those goals within the electronic phenotype space. 
         </p>
         <p>
-          Originally developed by the SAIL Databank team, the Concept Library has been adopted as 
+          Originally developed by the SAIL Databank team, the {{ base_page_title }} has been adopted as 
           a sharing solution by multiple organizations, including Health Data Research UK. 
           A multi-institutional, interdisciplinary team is responsible for ongoing development.
         </p>
@@ -297,7 +299,7 @@
               Explore Phenotypes
             </span>
             <span class="homepage-carousel__item-text">
-              View the Library's Phenotypes.
+              View the {{ base_page_title }}'s Phenotypes.
             </span>
             <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Search Phenotypes"
               id="explore-btn" href="{% url 'search_phenotypes' %}">
@@ -309,7 +311,7 @@
               Create a Phenotype
             </span>
             <span class="homepage-carousel__item-text">
-              Start here to contribute to the Library.
+              Start here to contribute to the {{ base_page_title }}.
             </span>
             <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a Phenotype" 
               id="create-btn" href="{% url 'create_phenotype' %}">
@@ -334,7 +336,7 @@
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              The Library stores phenotyping algorithms, metadata and tools only. No data is stored in the Library.
+              The {{ base_page_title }} stores phenotyping algorithms, metadata and tools only. No data is stored in the {{ base_page_title }}.
             </p>
           </div>
         </div>
@@ -349,7 +351,7 @@
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              Ideally, phenotypes that are deposited in the Library will have undergone some form of 
+              Ideally, phenotypes that are deposited in the {{ base_page_title }} will have undergone some form of 
               peer-review to assess validity and quality either through peer-reviewed publication or 
               some other means of sharing the definition(s).
             </p>
@@ -358,7 +360,7 @@
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              Users should cite the Phenotype Library in all publications,
+              Users should cite the {{ base_page_title }} in all publications,
               presentations and reports as follows: “HDR UK CALIBER Phenotype Library https://portal.caliberresearch.org/”.
             </p>
           </div>
@@ -366,7 +368,7 @@
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s)
+              All material deposited in the {{ base_page_title }} remain the intellectual property of the research group who created the phenotype(s)
               &#8208; the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC-A).
             </p>
           </div>
@@ -374,7 +376,7 @@
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              The aim of the Library is not to standardize or harmonize disease definitions,
+              The aim of the {{ base_page_title }} is not to standardize or harmonize disease definitions,
               therefore several phenotypes may be stored for the same condition and the onus is on
               individual researchers to explore which phenotypes they wish to use.
             </p>

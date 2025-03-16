@@ -1,12 +1,13 @@
-{% load static %}
-{% load i18n %}
 {% load svg %}
-{% load cl_extras %}
+{% load i18n %}
+{% load static %}
 {% load compress %}
+{% load cl_extras %}
 {% load entity_renderer %}
 
 {% block content %}
   <!-- about tab -->
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <div class="nav-dropdown">
     {% include "components/navigation/avatar_component.html"  %}
     
@@ -40,7 +41,7 @@
 
         <!-- Brands -->
         {% if request.user.is_superuser and request.session.all_brands %}
-          {% include "components/navigation/dropdown_profile_item.html" with  currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title="Concept Library" %}
+          {% include "components/navigation/dropdown_profile_item.html" with currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title=base_page_title %}
 
           {% for brand in request.session.all_brands %}
             {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|getBrandLogo  title=brand|upper %}

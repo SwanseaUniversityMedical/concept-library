@@ -20,8 +20,12 @@ def render_og_tags(context, *args, **kwargs):
         title = settings.APP_TITLE
         embed = settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
     else:
-        title = brand.site_title
-        embed = settings.APP_EMBED_ICON.format(logo_path=brand.logo_path)
+        title = brand.get('site_title') if isinstance(brand, dict) else brand.site_title
+        lpath = brand.get('logo_path') if isinstance(brand, dict) else brand.logo_path
+        if lpath is None or gen_utils.is_empty_string(lpath):
+            lpath = settings.APP_LOGO_PATH
+
+        embed = settings.APP_EMBED_ICON.format(logo_path=lpath)
 
     desc = kwargs.pop('desc', settings.APP_DESC.format(app_title=title))
     title = kwargs.pop('title', title)
@@ -82,7 +86,7 @@ def cut(value, arg):
 
 @register.filter(name='has_group')
 def has_group(user, group_name):
-    return user.groups.filter(name=group_name).exists() # [!] Change | Additional org
+    return user.groups.filter(name=group_name).exists()
 
 @register.filter
 def islist(value):

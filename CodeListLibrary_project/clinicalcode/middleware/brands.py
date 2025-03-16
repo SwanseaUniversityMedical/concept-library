@@ -1,11 +1,11 @@
-from django.conf import settings
-from django.contrib import auth, messages
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.shortcuts import redirect
-from django.urls import clear_url_caches, set_urlconf
-from django.utils.deprecation import MiddlewareMixin
-from rest_framework.reverse import reverse
 from importlib import import_module
+from django.conf import settings
+from django.urls import clear_url_caches, set_urlconf
+from django.contrib import auth, messages
+from django.shortcuts import redirect
+from rest_framework.reverse import reverse
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.utils.deprecation import MiddlewareMixin
 
 import os
 import sys
@@ -13,6 +13,7 @@ import numbers
 import importlib
 
 from clinicalcode.models import Brand
+from clinicalcode.entity_utils import gen_utils
 
 class BrandMiddleware(MiddlewareMixin):
     '''
@@ -45,8 +46,7 @@ class BrandMiddleware(MiddlewareMixin):
         #if request.user.is_authenticated:
         #print "...........start..............."
         #brands = Brand.objects.values_list('name', flat=True)
-        brands = Brand.objects.all()
-        brands_list = [x.upper() for x in list(brands.values_list('name', flat=True)) ]
+        brands_list = Brand.names_list_cached()
         current_page_url = request.path_info.lstrip('/')
 
         #print "**** get_host= " , str(request.get_host())
@@ -94,10 +94,11 @@ class BrandMiddleware(MiddlewareMixin):
             settings.CURRENT_BRAND_WITH_SLASH = "/" + root
             request.CURRENT_BRAND_WITH_SLASH = "/" + root
 
-            brand_object = Brand.objects.get(name__iexact=root)
+            brand_object = next((x for x in Brand.all_cached() if x.name.upper() == root.upper()), {})
+
             settings.BRAND_OBJECT = brand_object
             request.BRAND_OBJECT = brand_object
-            if brand_object.site_title is not None:
+            if brand_object is not None and brand_object.site_title is not None and not gen_utils.is_empty_string(brand_object.site_title):
                 request.SWAGGER_TITLE = brand_object.site_title + " API"
                 settings.SWAGGER_TITLE = brand_object.site_title + " API"
 
@@ -125,7 +126,7 @@ class BrandMiddleware(MiddlewareMixin):
             importlib.reload(sys.modules[urlconf])
             importlib.reload(import_module(urlconf))
             importlib.reload(sys.modules["clinicalcode.api.urls"])
-            importlib.reload(import_module("clinicalcode.api.urls"))            
+            importlib.reload(import_module("clinicalcode.api.urls"))
 
         if settings.DEBUG:
             print(request.path_info)

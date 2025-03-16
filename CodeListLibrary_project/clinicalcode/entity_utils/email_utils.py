@@ -1,19 +1,24 @@
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.db.models import Model
+from email.mime.image import MIMEImage
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
-from email.mime.image import MIMEImage
 
-import datetime
+import os
 import logging
+import datetime
 
+from clinicalcode.entity_utils import model_utils, gen_utils
 from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 
 logger = logging.getLogger(__name__)
 
+
 def send_review_email_generic(request,data,message_from_reviewer=None):
+    brand_title = model_utils.try_get_brand_string(request.BRAND_OBJECT, 'site_title', default='Concept Library')
     owner_email = User.objects.filter(id=data.get('entity_user_id','')) 
     owner_email = owner_email.first().email if owner_email and owner_email.exists() else ''
     staff_emails = data.get('staff_emails', [])
@@ -22,7 +27,7 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
     if len(owner_email.strip()) > 1:
         all_emails.append(owner_email)
 
-    email_subject = 'Concept Library - Phenotype %s: %s' % (data['id'], data['message'])
+    email_subject = '%s - Phenotype %s: %s' % (brand_title, data['id'], data['message'])
     email_content = render_to_string(
         'clinicalcode/email/email_content.html',
         data,
@@ -30,6 +35,8 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
     )
     if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE: 
         try:
+            branded_imgs = get_branded_email_images(request.BRAND_OBJECT)
+
             msg = EmailMultiAlternatives(email_subject,
                                         email_content,
                                         settings.DEFAULT_FROM_EMAIL,
@@ -37,10 +44,9 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
                                     )
             msg.content_subtype = 'related'
             msg.attach_alternative(email_content, "text/html")
-            
-            msg.attach(attach_image_to_email('img/email_images/apple-touch-icon.jpg','mainlogo'))
-            msg.attach(attach_image_to_email('img/email_images/combine.jpg','sponsors'))
 
+            msg.attach(attach_image_to_email(branded_imgs.get('apple', 'img/email_images/apple-touch-icon.jpg'), 'mainlogo'))
+            msg.attach(attach_image_to_email(branded_imgs.get('logo', 'img/email_images/combine.jpg'), 'sponsors'))
             msg.send()
             return True
         except BadHeaderError as error:
@@ -49,7 +55,8 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
     else:
         logging.info(f'Scheduled emails sent:\n- Targets: {all_emails}')
         return True
-    
+
+
 def attach_image_to_email(image,cid):
     with open(finders.find(image), 'rb') as f:
         img = MIMEImage(f.read())
@@ -57,6 +64,33 @@ def attach_image_to_email(image,cid):
         img.add_header('Content-Disposition', 'inline', filename=image)
     
     return img
+
+
+def get_branded_email_images(brand=None):
+    """
+        Gets the brand-related e-mail image path(s)
+
+        Args:
+            brand (Brand|dict|None): the brand from which to resolve the info
+
+        Returns:
+            A (dict) with key-value pairs specifying the `logo`, `apple`, and `favicon` path target(s)
+    """
+    if isinstance(brand, dict):
+        path = brand.get('logo_path', None)
+    elif isinstance(brand, Model):
+        path = getattr(brand, 'logo_path', None) if hasattr(brand, 'logo_path') else None
+    else:
+        path = None
+
+    if path is None or gen_utils.is_empty_string(path):
+        path = settings.APP_LOGO_PATH
+
+    return {
+        'logo': os.path.join(path, 'header_logo.png'),
+        'apple': os.path.join(path, 'apple-touch-icon.png'),
+        'favicon': os.path.join(path, 'favicon-32x32.png'),
+    }
 
 
 def get_scheduled_email_to_send():

@@ -1,18 +1,22 @@
 {% extends "base.html" %}
+
 {% load static %}
 {% load compress %}
 {% load sass_tags %}
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
+
 {% block title %}| Home{% endblock title %}
+
 {% block container %}
 
+{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 <header class="main-header search-banner">
   <div
     class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
     <div class="search-banner__header search-banner__header--pad-bottom-2">
-      <h2 class="search-banner__title">Concept Library</h2>
+      <h2 class="search-banner__title">{{ base_page_title }}</h2>
     </div>
   </div>
 </header>
@@ -23,14 +27,14 @@
     <div class="headline__section__general">
       <h2>Overview</h2>
       <p>
-        The <strong>Concept Library</strong> project intends to create a system that describes research study designs in a machine-readable
+        The <strong>{{ base_page_title }}</strong> project intends to create a system that describes research study designs in a machine-readable
         format to facilitate rapid study development; higher quality research; easier replication; and sharing of methods between
         researchers, institutions, and countries.
       </p>
 
       <h2>Goals</h2>
       <p>
-        The Concept Library is a system for storing, managing, sharing, and documenting clinical code lists in health
+        The {{ base_page_title }} is a system for storing, managing, sharing, and documenting clinical code lists in health
         research. The specific goals of this work are:
       </p>
       <ul>
@@ -68,14 +72,14 @@
       <h2>Documentation</h2>
       {% if IS_INSIDE_GATEWAY or request.get_host == "conceptlibrary.serp.ac.uk" %}
         <p>
-          Concept Library documentation is available within the external application, or on Github.
+          {{ base_page_title }} documentation is available within the external application, or on Github.
         </p>
         <p>
           Please access the documentation outside of the gateway.
         </p>
       {% else %}
         <p>
-          Concept Library documentation is available on
+          {{ base_page_title }} documentation is available on
           <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation"
             target=_blank rel="noopener noreferrer">
             Github.

@@ -31,12 +31,13 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container">
         <h2 class="banner__title">Create a Phenotype</h2>
         <p class="banner__description">
-          Select the type of Phenotype you want to create to start contributing to the Library.
+          Select the type of Phenotype you want to create to start contributing to the {{ base_page_title }}.
         </p>
         <div class="banner__cards"></div>
       </div>

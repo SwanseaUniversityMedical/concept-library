@@ -26,12 +26,13 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container">
         <h2 class="banner__title">Reference Data</h2>
         <p class="banner__description">
-          Look up values for phenotype fields.
+          Look up values for Phenotype fields.
         </p>
         <div class="banner__cards">
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
@@ -50,7 +51,7 @@
                 <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
               </div>
               <div class="referral-card__body">
-                <p>Start here to contribute to the Library.</p>
+                <p>Start here to contribute to the {{ base_page_title }}.</p>
               </div>
             </article>
             {% url 'search_phenotypes' as search_url %}
@@ -59,7 +60,7 @@
                 <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
               </div>
               <div class="referral-card__body">
-                <p>Find Phenotypes within the Library.</p>
+                <p>Find Phenotypes within the {{ base_page_title }}.</p>
               </div>
             </article>
           </div>

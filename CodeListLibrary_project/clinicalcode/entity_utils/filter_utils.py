@@ -1,6 +1,6 @@
 from operator import or_
 from functools import reduce
-from django.db.models import Q
+from django.db.models import Q, Model
 
 import inspect
 
@@ -95,15 +95,17 @@ class DataTypeFilters:
         if request is None:
             current_brand = kwargs.get('brand_target', None)
         else:
-            current_brand = getattr(request, 'CURRENT_BRAND', None)
-            if not isinstance(current_brand, str) or gen_utils.is_empty_string(current_brand):
-                current_brand = None
-            else:
-                current_brand = Brand.objects.filter(name=current_brand)
-                if current_brand.exists():
-                    current_brand = current_brand.first()
-                else:
+            current_brand = getattr(request, 'BRAND_OBJECT', None)
+            if not isinstance(current_brand, Model):
+                current_brand = getattr(request, 'CURRENT_BRAND', None)
+                if not isinstance(current_brand, str) or gen_utils.is_empty_string(current_brand):
                     current_brand = None
+                else:
+                    current_brand = Brand.objects.filter(name=current_brand)
+                    if current_brand.exists():
+                        current_brand = current_brand.first()
+                    else:
+                        current_brand = None
 
         if current_brand is None:
             return None
