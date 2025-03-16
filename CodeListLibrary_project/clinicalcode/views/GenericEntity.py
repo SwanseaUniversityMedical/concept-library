@@ -1,22 +1,22 @@
-'''
+"""
     ---------------------------------------------------------------------------
     GENERIC-ENTITY VIEW
     ---------------------------------------------------------------------------
-'''
+"""
 from django.urls import reverse
-from django.contrib import messages
-from django.core.exceptions import BadRequest
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
-from django.http.response import HttpResponse, JsonResponse, Http404
-from django.shortcuts import render, redirect
-from django.template.loader import render_to_string
-from django.views.generic import TemplateView
-from django.utils.decorators import method_decorator
-from rest_framework.views import APIView
-from rest_framework.decorators import schema
 from collections import OrderedDict
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from rest_framework.views import APIView
+from django.views.generic import TemplateView
+from django.http.response import HttpResponse, JsonResponse, Http404
+from django.core.exceptions import BadRequest
+from django.core.exceptions import PermissionDenied
+from django.template.loader import render_to_string
+from django.utils.decorators import method_decorator
+from rest_framework.decorators import schema
+from django.contrib.auth.decorators import login_required
 
 import csv
 import json
@@ -28,32 +28,32 @@ from ..entity_utils import (concept_utils, entity_db_utils, permission_utils,
                             create_utils, search_utils, constants)
 
 from clinicalcode.views import View
+from clinicalcode.api.views.View import get_canonical_path_by_brand
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
 from clinicalcode.models.OntologyTag import OntologyTag
 from clinicalcode.models.CodingSystem import CodingSystem
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
-from clinicalcode.api.views.View import get_canonical_path_by_brand
 
 logger = logging.getLogger(__name__)
 
 class EntitySearchView(TemplateView):
     """
         Entity single search view
-            - Responsible for:
-                -> Managing context of template and which entities to render
-                -> SSR of entities at initial GET request based on request params
-                -> AJAX-driven update of template based on request params (through JsonResponse)
+
+        Note:
+            Responsibilities:
+            - Managing context of template and which entities to render
+            - SSR of entities at initial GET request based on request params
+            - AJAX-driven update of template based on request params (through JsonResponse)
     """
     template_name = 'clinicalcode/generic_entity/search/search.html'
     result_template = 'components/search/results.html'
     pagination_template = 'components/search/pagination_container.html'
 
     def get_context_data(self, *args, **kwargs):
-        '''
-            Provides contextful data to template based on request parameters
-        '''
+        """Provides contextful data to template based on request parameters"""
         context = super(EntitySearchView, self).get_context_data(*args, **kwargs)
         request = self.request
 
@@ -86,13 +86,14 @@ class EntitySearchView(TemplateView):
         """
             Manages get requests to this view
             
-            @note if search_filtered is passed as a parameter (through a fetch req),
-                  the GET request will return the pagination and results
-                  for hotreloading relevant search results instead of forcing
-                  a page reload
+            Note:
+                If `search_filtered` is passed as a parameter (through a fetch req),
+                the `GET` request will return the pagination and results
+                for hotreloading relevant search results instead of forcing
+                a page reload.
 
-                  in reality, we should change this to a JSON Response at some point
-                  and make the client render it rather than wasting server resources
+                In reality, we should change this to a `JSON` Response at some point
+                and make the client render it rather than wasting server resources.
         """
         context = self.get_context_data(*args, **kwargs)
         filtered = gen_utils.try_get_param(request, 'search_filtered', None)
@@ -109,20 +110,16 @@ class EntitySearchView(TemplateView):
 @schema(None)
 class EntityDescendantSelection(APIView):
     """
-        Selection Service View
-            @desc API-like view for internal services to discern
-                  template-related information and to retrieve
-                  entity descendant data via search
-            
-            @note Could be moved to API in future?
+        API-like view for internal services to discern template-related information and to retrieve entity descendant data via search.
+
+        TODO:
+            Could be moved to API in future?
     """
     fetch_methods = ['get_filters', 'get_results']
 
     ''' Private methods '''
     def __get_template(self, template_id):
-        """
-            Attempts to get the assoc. template if available or raises a bad request
-        """
+        """Attempts to get the assoc. template if available or raises a bad request"""
         template = model_utils.try_get_instance(Template, pk=template_id)
         if template is None:
             raise BadRequest('Template ID is invalid')
@@ -131,15 +128,11 @@ class EntityDescendantSelection(APIView):
     ''' View methods '''
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
-        """
-            @desc Dispatch view if not in read-only and user is authenticated
-        """
+        """Dispatch view if not in read-only and user is authenticated"""
         return super(EntityDescendantSelection, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
-        """
-            @desc Provides contextual data
-        """
+        """Provides contextual data"""
         context = { }
         request = self.request
 
@@ -149,10 +142,7 @@ class EntityDescendantSelection(APIView):
         return context | { 'template_id': template_id }
     
     def get(self, request, *args, **kwargs):
-        """
-            @desc Handles GET requests made by the client and directs
-                  the params to the appropriate method given the fetch target
-        """
+        """Handles GET requests made by the client and directs the params to the appropriate method given the fetch target"""
         if gen_utils.is_fetch_request(request):
             method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
             return method(request, *args, **kwargs)
@@ -160,9 +150,7 @@ class EntityDescendantSelection(APIView):
 
     ''' Fetch methods '''
     def get_filters(self, request, *args, **kwargs):
-        """
-            @desc Gets the filter specification for this template
-        """
+        """Gets the filter specification for this template"""
         context = self.get_context_data(*args, **kwargs)
 
         template = self.__get_template(context.get('template_id'))
@@ -175,10 +163,7 @@ class EntityDescendantSelection(APIView):
         })
     
     def get_results(self, request, *args, **kwargs):
-        """
-            @desc Gets the search results for the desired template
-                  after applying query params
-        """
+        """Gets the search results for the desired template after applying query params"""
         context = self.get_context_data(*args, **kwargs)
         template_id = context.get('template_id')
         result = search_utils.get_template_entities(request, template_id)
@@ -186,12 +171,10 @@ class EntityDescendantSelection(APIView):
 
 class CreateEntityView(TemplateView):
     """
-        Entity Create View
-            @desc Used to create entities
+        Used to create entities
             
-            @note CreateView isn't used due to the requirements
-                  of having a form dynamically created to
-                  reflect the dynamic model.
+        Note:
+            - `CreateView` isn't used due to the requirements of having a form dynamically created to reflect the dynamic model.
     """
     fetch_methods = [
         'search_codes', 'get_options', 'import_rule', 'import_concept',
@@ -205,9 +188,7 @@ class CreateEntityView(TemplateView):
     ''' View methods '''
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
-        """
-            @desc Dispatch view
-        """
+        """Dispatch view"""
         return super(CreateEntityView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
@@ -220,11 +201,10 @@ class CreateEntityView(TemplateView):
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def get(self, request, *args, **kwargs):
         """
-            @desc Handles get requests by determining whether it was made
-                  through the fetch method, or accessed via a browser.
-                  
-                  If requested via browser, will render a view. Otherwise
-                  will respond with appropriate method, if applicable.
+            Handles get requests by determining whether it was made through the fetch method, or accessed via a browser.
+
+            Note:
+                - If requested via browser, will render a view. Otherwise will respond with appropriate method, if applicable.
         """
         if gen_utils.is_fetch_request(request):
             method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
@@ -235,7 +215,7 @@ class CreateEntityView(TemplateView):
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def post(self, request, *args, **kwargs):
         """
-            @desc Handles form submissions for both:
+            Handles form submissions for both:
                 - creating
                 - updating
         """
@@ -277,11 +257,10 @@ class CreateEntityView(TemplateView):
     ''' Main view render '''
     def render_view(self, request, *args, **kwargs):
         """
-            @desc Template and entity is tokenised in the URL - providing the latter requires
-                  users to be permitted to modify that particular entity.
+            Template and entity is tokenised in the URL - providing the latter requires users to be permitted to modify that particular entity.
 
-                  If no entity_id is passed, a creation form is returned, otherwise the user is
-                  redirected to an update form.
+            Note:
+                - If no `entity_id` is passed, a creation form is returned, otherwise the user is redirected to an update form.
         """
         context = self.get_context_data(*args, **kwargs)
 
@@ -317,25 +296,19 @@ class CreateEntityView(TemplateView):
     
     ''' Forms '''
     def select_form(self, request, context):
-        """
-            @desc Renders the template selection form
-        """
+        """Renders the template selection form"""
         context['entity_data'] = create_utils.get_createable_entities(request)
         return render(request, self.templates.get('select'), context)
 
     def create_form(self, request, context, template):
-        """
-            @desc Renders the entity create form
-        """
+        """Renders the entity create form"""
         context['metadata'] = constants.metadata
         context['template'] = template
         context['form_method'] = constants.FORM_METHODS.CREATE
         return render(request, self.templates.get('form'), context)
 
     def update_form(self, request, context, template, entity):
-        """
-            @desc Renders the entity update form
-        """
+        """Renders the entity update form"""
         context['metadata'] = constants.metadata
         context['template'] = template
         context['entity'] = entity
@@ -347,10 +320,7 @@ class CreateEntityView(TemplateView):
 
     ''' Fetch methods '''
     def import_rule(self, request, *args, **kwargs):
-        """
-            @desc GET request made by client to retrieve the codelist assoc.
-                  with the concept they are attempting to import as a rule
-        """
+        """GET request made by client to retrieve the codelist _assoc._ with the concept they are attempting to import as a rule"""
         concept_id = gen_utils.try_get_param(request, 'concept_id')
         concept_version_id = gen_utils.try_get_param(request, 'concept_version_id')
         if concept_id is None or concept_version_id is None:
@@ -376,10 +346,7 @@ class CreateEntityView(TemplateView):
         })
     
     def import_concept(self, request, *args, **kwargs):
-        """
-            @desc GET request made by client to retrieve codelists assoc.
-                  with the concepts they are attempting to import as top-level objects
-        """
+        """GET request made by client to retrieve codelists _assoc._ with the concepts they are attempting to import as top-level objects"""
         concept_ids = gen_utils.try_get_param(request, 'concept_ids')
         concept_version_ids = gen_utils.try_get_param(request, 'concept_version_ids')
         if concept_ids is None or concept_version_ids is None:
@@ -411,9 +378,8 @@ class CreateEntityView(TemplateView):
 
             See: :func:`~clinicalcode.models.OntologyTag.OntologyTag.get_creation_data~`
 
-			Query Params:
-				node_id (int): the node id
-
+			QueryParams:
+				node_id     (int): the node id
 				type_id (str|int): the node's type id
 
 			Returns:
@@ -448,8 +414,7 @@ class CreateEntityView(TemplateView):
             See: :func:`~clinicalcode.models.OntologyTag.OntologyTag.query_typeahead~`
 
 			Query Params:
-				search (str): some web query search term; defaults to an empty `str`
-
+				search             (str): some web query search term; defaults to an empty `str`
 				type_ids (str|int|int[]): narrow the resultset by specifying the ontology type ids; defaults to `None`
 
 			Returns:
@@ -476,12 +441,7 @@ class CreateEntityView(TemplateView):
         return JsonResponse({ 'result': OntologyTag.query_typeahead(searchterm, type_ids) })
 
     def get_options(self, request, *args, **kwargs):
-        """
-            @desc GET request made by client to retrieve all available
-                  options for a given field within its template
-
-                  Atm, it is exclusively used to retrieve Coding Systems
-        """
+        """GET request made by client to retrieve all available options for a given field within its template. Atm, it is exclusively used to retrieve Coding Systems"""
         template_id = gen_utils.parse_int(gen_utils.try_get_param(request, 'template'), default=None)
         if not template_id:
             return gen_utils.jsonify_response(message='Invalid template parameter', code=400, status='false')
@@ -495,7 +455,15 @@ class CreateEntityView(TemplateView):
             return gen_utils.jsonify_response(message='Invalid field parameter', code=400, status='false')
 
         if template_utils.is_metadata(GenericEntity, field):
-            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
+            default_value = None
+
+            struct = template_utils.get_layout_field(constants.metadata, field)
+            if struct is not None:
+                struct = template_utils.try_get_content(struct, 'validation')
+                if struct is not None:
+                    default_value = [] if struct.get('type') == 'int_array' else default_value
+
+            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, default=default_value)
         else:
             options = template_utils.get_template_sourced_values(template, field, request=request)
         
@@ -508,12 +476,7 @@ class CreateEntityView(TemplateView):
         })
 
     def search_codes(self, request, *args, **kwargs):
-        """
-            @desc GET request made by client to search a codelist given its coding id,
-                  a search term, and the relevant template
-            
-                  e.g. entity/{update|create}/?search=C1&coding_system=4&template=1
-        """
+        """GET request made by client to search a codelist given its coding id, a search term, and the relevant template, _e.g._ `entity/{update|create}/?search=C1&coding_system=4&template=1`"""
         template_id = gen_utils.parse_int(gen_utils.try_get_param(request, 'template'), default=None)
         if not template_id:
             return gen_utils.jsonify_response(message='Invalid template parameter', code=400, status='false')
@@ -553,11 +516,10 @@ class CreateEntityView(TemplateView):
 
 class RedirectConceptView(TemplateView):
     """
-        [!] Note: Used to maintain legacy URLs where users could visit concepts/<pk>/detail
+        Redirects requests to the phenotype page, assuming a phenotype owner can be resolved from the child Concept
 
-        @desc Redirects requests to the phenotype page, assuming a phenotype owner
-              can be resolved from the child Concept
-
+        Note:
+            - Used to maintain legacy URLs where users could visit `concepts/C<pk>/detail`
     """
 
     # URL Name of the detail page
@@ -572,29 +534,42 @@ class RedirectConceptView(TemplateView):
         """
         concept_id = gen_utils.parse_int(kwargs.get('pk'), default=None)
         if concept_id is None:
-            raise Http404
-        
+            return View.notify_err(
+                request,
+                title='Bad Request - Invalid ID',
+                status_code=400,
+                details=['The Concept ID you supplied is invalid. If we sent you here, please contact us and let us know.']
+            )
+
         concept = model_utils.try_get_instance(Concept, id=concept_id)
         if concept is None:
-            raise Http404
-        
+            return View.notify_err(
+                request,
+                title='Page Not Found - Missing Concept',
+                status_code=404,
+                details=['Sorry but it looks like this Concept doesn\'t exist. If we sent you here, please contact us and let us know.']
+            )
+
         entity_owner = concept.phenotype_owner
         if entity_owner is None:
-            raise Http404
+            return View.notify_err(
+                request,
+                title='Page Not Found - Failed To Resolve',
+                status_code=404,
+                details=['Sorry but it looks like this Concept isn\'t currently associated with a Phenotype. Please use the API to access the contents of this Concept.']
+            )
 
         return redirect(reverse(self.ENTITY_DETAIL_VIEW, kwargs={ 'pk': entity_owner.id }))
 
 def generic_entity_detail(request, pk, history_id=None):
-    ''' 
-        Display the detail of a generic entity at a point in time.
-    '''
+    """Display the detail of a generic entity at a point in time."""
     # validate pk param
     if not model_utils.get_entity_id(pk):
         return View.notify_err(
             request,
-            title='Bad request',
+            title='Bad Request - Invalid ID',
             status_code=400,
-            details=['Invalid Phenotype ID']
+            details=['The Phenotype ID you supplied is invalid. If we sent you here, please contact us and let us know.']
         )
 
     # find latest accessible entity for given pk if historical id not specified
@@ -603,13 +578,30 @@ def generic_entity_detail(request, pk, history_id=None):
         entities = permission_utils.get_accessible_entities(request, pk=pk)
 
         if not entities.exists():
-            raise Http404
+            return View.notify_err(
+                request,
+                title='Page Not Found - Missing Phenotype',
+                status_code=404,
+                details=['Sorry but it looks like this Phenotype doesn\'t exist. If we sent you here, please contact us and let us know.']
+            )
         else:
             history_id = entities.first().history_id
 
-    accessibility = permission_utils.get_accessible_detail_entity(request, pk, history_id)
-    if not accessibility or not accessibility.get('view_access'):
-        raise PermissionDenied
+    accessibility, err = permission_utils.get_accessible_detail_entity(request, pk, history_id)
+    if err is not None:
+        return View.notify_err(
+            request,
+            title=err.get('title'),
+            status_code=err.get('status_code'),
+            details=[err.get('message')]
+        )
+    elif not accessibility or not accessibility.get('view_access'):
+        return View.notify_err(
+            request,
+            title='Forbidden - Permission Denied',
+            status_code=403,
+            details=['Sorry but it looks like this Phenotype hasn\'t been made accessible to you yet. Please contact the author of this Phenotype to grant you access.']
+        )
 
     entity = accessibility.get('historical_entity')
     live_entity = accessibility.get('entity')
@@ -668,10 +660,7 @@ def generic_entity_detail(request, pk, history_id=None):
 
 
 def get_history_table_data(request, pk):
-    """"
-        get history table data for the template
-    """
-    
+    """"Gets history table data for the template"""
     versions = GenericEntity.objects.get(pk=pk).history.all()
     historical_versions = []
 
@@ -697,7 +686,6 @@ def get_history_table_data(request, pk):
             if ver.approval_status != constants.APPROVAL_STATUS.ANY:
                 ver.approval_status_label = [s.name for s in constants.APPROVAL_STATUS if s == ver.approval_status][0]   
         
-        
         if request.user.is_authenticated:
             if permission_utils.can_user_edit_entity(request, pk) or permission_utils.can_user_view_entity(request, pk):
                 historical_versions.append(ver)
@@ -712,12 +700,21 @@ def get_history_table_data(request, pk):
    
    
 def export_entity_codes_to_csv(request, pk, history_id=None):
-    """
-        Return a csv file of codes for a clinical-coded phenotype for a specific historical version.
-    """
-    if history_id is None:
-        # get the latest version/ or latest published version
-        history_id = permission_utils.try_get_valid_history_id(request, GenericEntity, pk)        
+    """Returns a csv file of codes for a clinical-coded phenotype for a specific historical version."""
+
+    # get the latest version/ or latest published version
+    if not isinstance(history_id, int):
+        entities = permission_utils.get_accessible_entities(request, pk=pk)
+
+        if not entities.exists():
+            return View.notify_err(
+                request,
+                title='Page Not Found - Missing Codelist',
+                status_code=404,
+                details=['Sorry but it looks like this codelist doesn\'t exist.']
+            )
+        else:
+            history_id = entities.first().history_id
         
     # validate access for login and public site
     permission_utils.validate_access_to_view(request, pk, history_id)

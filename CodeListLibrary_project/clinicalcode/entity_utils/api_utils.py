@@ -87,16 +87,16 @@ def exists_historical_entity(entity_id, user, historical_id=None):
         returns response 404
     """
     if not historical_id:
-        historical_id = permission_utils.get_latest_entity_historical_id(
-            entity_id, user
+        historical_entity = GenericEntity.history.filter(id=entity_id).latest_of_each()
+    else:
+        historical_entity = model_utils.try_get_instance(
+            GenericEntity,
+            id=entity_id
         )
+        if historical_entity:
+            historical_entity = historical_entity.history.filter(history_id=historical_id)
 
-    historical_entity = model_utils.try_get_instance(
-        GenericEntity,
-        id=entity_id
-    ).history.filter(history_id=historical_id)
-
-    if not historical_entity.exists():
+    if not historical_entity or not historical_entity.exists():
         return Response(
             data={
                 'message': 'Historical entity version does not exist'

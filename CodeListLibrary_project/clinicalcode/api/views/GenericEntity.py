@@ -257,7 +257,7 @@ def get_generic_entities(request):
     # Finalise accessibility clause(s)
     user_id = None
     brand_id = None
-    group_ids = None
+    group_ids = None # [!] Change
 
     brand = model_utils.try_get_brand(request)
     if brand is not None:
@@ -270,6 +270,7 @@ def get_generic_entities(request):
         user_id = user.id
         user_clause = f'''({user_clause} or entity.world_access = 2) or entity.owner_id = %(user_id)s'''
 
+        # [!] Change
         groups = list(user.groups.all().values_list('id', flat=True))
         if len(groups) > 0:
             group_ids = [ int(group) for group in groups if gen_utils.parse_int(group, default=None) ]
@@ -525,7 +526,7 @@ def get_generic_entities(request):
                         order by entity.history_id desc
                     ) as rn_ref_n
                  from public.clinicalcode_historicalgenericentity as entity
-                 left join public.clinicalcode_genericentity as live_entity
+                 join public.clinicalcode_genericentity as live_entity
                    on entity.id = live_entity.id
                  join public.clinicalcode_historicaltemplate as template
                    on entity.template_id = template.id and entity.template_version = template.template_version

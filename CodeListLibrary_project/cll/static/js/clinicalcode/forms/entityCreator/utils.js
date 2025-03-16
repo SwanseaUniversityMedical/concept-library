@@ -1089,6 +1089,13 @@ export const parseAsFieldType = (packet, value) => {
       }
       break;
     }
+
+    case 'group': { // [!] CHANGE
+      if (value instanceof Number) {
+        valid = true;
+      }
+      break;
+    }
   }
 
   return {

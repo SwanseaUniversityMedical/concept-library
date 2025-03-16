@@ -481,7 +481,7 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
         if instance is None:
             errors.append(f'"{field}" is invalid')
             return None
-        
+
         if field == 'group':
             is_member = user.is_superuser or user.groups.filter(name__iexact=instance.name).exists()
             if not is_member:
@@ -1199,28 +1199,32 @@ def compute_brand_context(request, form_data):
         where brand is computed by the RequestContext's brand and its
         given collections
     """
-    related_brands = set([])
+    # related_brands = set([])
 
+    # brand = model_utils.try_get_brand(request)
+    # if brand:
+    #     related_brands.add(brand.id)
+    
+    # metadata = form_data.get('metadata')
+    # if not metadata:
+    #     return list(related_brands)
+    
+    # collections = metadata.get('collections')
+    # if isinstance(collections, list):
+    #     for collection_id in collections:
+    #         collection = Tag.objects.filter(id=collection_id)
+    #         if not collection.exists():
+    #             continue
+            
+    #         brand = collection.first().collection_brand
+    #         if brand is None:
+    #             continue
+    #         related_brands.add(brand.id)
+    # return list(related_brands)
     brand = model_utils.try_get_brand(request)
     if brand:
-        related_brands.add(brand.id)
-    
-    metadata = form_data.get('metadata')
-    if not metadata:
-        return list(related_brands)
-    
-    collections = metadata.get('collections')
-    if isinstance(collections, list):
-        for collection_id in collections:
-            collection = Tag.objects.filter(id=collection_id)
-            if not collection.exists():
-                continue
-            
-            brand = collection.first().collection_brand
-            if brand is None:
-                continue
-            related_brands.add(brand.id)
-    return list(related_brands)
+        return [brand.id]
+    return None
 
 @transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):

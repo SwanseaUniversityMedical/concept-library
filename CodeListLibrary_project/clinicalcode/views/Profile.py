@@ -36,21 +36,6 @@ class MyCollection(TemplateView):
     'id', 'name', 'history_id', 'updated', 'owner_name', 
     'group_name', 'publish_status', 'is_deleted'
   ]
-  
-  def __annotate_fields(self, queryset):
-    if not queryset:
-      return list()
-    
-    annotated = queryset.annotate(
-      group_name=Subquery(
-        Group.objects.filter(id=OuterRef('group_id')).values('name')
-      ),
-      owner_name=Subquery(
-        User.objects.filter(id=OuterRef('owner')).values('username')
-      )
-    )
-
-    return list(annotated.values(*self.template_fields))
 
   @method_decorator([login_required, permission_utils.redirect_readonly])
   def dispatch(self, request, *args, **kwargs):
@@ -60,13 +45,8 @@ class MyCollection(TemplateView):
     context = super(MyCollection, self).get_context_data(*args, **kwargs)
     request = self.request
 
-    content = self.__annotate_fields(
-      permission_utils.get_editable_entities(request)
-    )
-    
-    archived_content = self.__annotate_fields(
-      permission_utils.get_editable_entities(request, only_deleted=True)
-    )
+    content = permission_utils.get_editable_entities(request)
+    archived_content = permission_utils.get_editable_entities(request, only_deleted=True)
 
     form = None
     if not settings.CLL_READ_ONLY:
