@@ -146,7 +146,7 @@ def get_user_groups(request):
 
     return list(user.groups.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
 
-def get_editable_user_organisations(request):
+def get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.EDITOR):
     """
       Get the organisations related to the requesting user
     """
@@ -169,7 +169,7 @@ def get_editable_user_organisations(request):
     with connection.cursor() as cursor:
       cursor.execute(sql, params={
         'user_id': user.id,
-        'role_enum': ORGANISATION_ROLES.EDITOR
+        'role_enum': min_role_permission
       })
 
       columns = [col[0] for col in cursor.description]
