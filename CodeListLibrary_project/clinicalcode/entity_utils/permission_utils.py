@@ -10,6 +10,7 @@ from . import model_utils, gen_utils
 from ..models.Brand import Brand
 from ..models.Concept import Concept
 from ..models.Template import Template
+from ..models.Organisation import Organisation
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedGenericEntity import PublishedGenericEntity
@@ -71,7 +72,7 @@ def should_render_template(template=None, **kwargs):
 
 """ Status helpers """  
 
-def is_member(user, group_name): # [!] Change | Additional org
+def is_member(user, group_name):
     """
       Checks if a User instance is a member of a group
     """
@@ -132,7 +133,7 @@ def was_archived(entity_id):
 
     return True if entity.is_deleted else False
 
-def get_user_groups(request): # [!] Change | Add additional org func
+def get_user_groups(request):
     """
       Get the groups related to the requesting user
     """
@@ -144,6 +145,36 @@ def get_user_groups(request): # [!] Change | Add additional org func
         return list(Group.objects.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
 
     return list(user.groups.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
+
+def get_editable_user_organisations(request):
+    """
+      Get the organisations related to the requesting user
+    """
+    user = request.user
+    if not user or user.is_anonymous:
+        return []
+
+    if user.is_superuser:
+        return list(Organisation.objects.all().values('id', 'name'))
+    
+    sql = '''
+    select org.id, org.slug, org.name
+      from public.clinicalcode_organisation org
+      join public.clinicalcode_organisationmembership mem
+        on org.id = mem.organisation_id
+     where mem.user_id = %(user_id)s
+       and mem.role >= %(role_enum)s
+    ''' # [!] TODO: BrandAuthority
+
+    with connection.cursor() as cursor:
+      cursor.execute(sql, params={
+        'user_id': user.id,
+        'role_enum': ORGANISATION_ROLES.EDITOR
+      })
+
+      columns = [col[0] for col in cursor.description]
+      results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+      return results
 
 def get_moderation_entities(
     request,
@@ -366,7 +397,11 @@ def get_accessible_entity_history(
               on true
 			left join (
 			  select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
-			    from historical_entities as t
+			  from (
+				select *, row_number() over(partition by id, history_id) as rn
+				from historical_entities
+			  ) as t
+			  where rn = 1
 			) as t2
 			  on true
         '''
@@ -448,7 +483,11 @@ def get_accessible_entity_history(
           on true
 		left join (
 		  select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
-		    from historical_entities as t
+		    from (
+				select *, row_number() over(partition by id, history_id) as rn
+				from historical_entities
+			) as t
+		  where rn = 1
 		) as t2
 		  on true
     '''
@@ -457,6 +496,7 @@ def get_accessible_entity_history(
         cursor.execute(sql, query_params)
         columns = [col[0] for col in cursor.description]
         results = cursor.fetchone()
+        print(dict(zip(columns, results)) if results else None)
         return dict(zip(columns, results)) if results else None
 
 def get_accessible_entities(

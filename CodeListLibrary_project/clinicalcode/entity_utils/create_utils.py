@@ -479,12 +479,15 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
             errors.append(f'"{field}" is invalid')
             return None
 
-        if field == 'group':
-            is_member = user.is_superuser or user.groups.filter(name__iexact=instance.name).exists()
+        if field == 'organisation':
+            is_member = user.is_superuser or user.organisationmembership_set.filter(
+                Q(organisation_id=instance.id) & 
+                Q(role__gte=constants.ORGANISATION_ROLES.EDITOR.value)
+            ).exists()
             if not is_member:
                 errors.append(f'Tried to set {field} without being a member of that group.')
                 return None
-        
+
         return instance
     
     return value
@@ -1320,9 +1323,9 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             elif form_method == constants.FORM_METHODS.UPDATE:
                 entity = form_entity
 
-                group = metadata.get('group')
-                if not group and permission_utils.has_derived_edit_access(request, entity.id):
-                    group = entity.group
+                org = metadata.get('organisation')
+                if not org and permission_utils.has_derived_edit_access(request, entity.id):
+                    org = entity.organisation
 
                 entity.name = metadata.get('name')
                 entity.status = constants.ENTITY_STATUS.DRAFT
@@ -1334,9 +1337,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.tags = metadata.get('tags')
                 entity.collections = metadata.get('collections')
                 entity.publications = metadata.get('publications')
-                entity.group = group
-                entity.group_access = metadata.get('group_access')
-                entity.world_access = metadata.get('world_access')
+                entity.organisation = org
                 entity.template = template_instance
                 entity.template_version = form_template.template_version
                 entity.template_data = template_data

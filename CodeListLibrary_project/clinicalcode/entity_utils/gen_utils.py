@@ -3,7 +3,9 @@ from json import JSONEncoder
 from typing import Pattern
 from dateutil import parser as dateparser
 from functools import wraps
+from django.apps import apps
 from django.conf import settings
+from django.db.models import Q
 from django.core.cache import cache
 from django.http.response import JsonResponse
 from django.core.exceptions import BadRequest
@@ -643,9 +645,18 @@ def try_value_as_type(
         if not isinstance(field_value, list):
             return default
         return field_value
-    elif field_type == 'group': # [!] CHANGE
+    elif field_type == 'organisation':
         if isinstance(field_value, str) and not is_empty_string(field_value):
-            group = Group.objects.filter(name__iexact=field_value)
+            org = apps.get_model(app_label='clinicalcode', model_name='Organisation')
+            org = org.objects.filter(Q(name__iexact=field_value) | Q(slug__iexact=field_value))
+            return org.first().pk if org.exists() else default
+        elif isinstance(field_value, int):
+            return field_value
+        return default
+    elif field_type == 'group': # [!] Delete in future
+        if isinstance(field_value, str) and not is_empty_string(field_value):
+            group = apps.get_model(app_label='clinicalcode', model_name='Group')
+            group = group.objects.filter(name__iexact=field_value)
             return group.first().pk if group.exists() else default
         elif isinstance(field_value, int):
             return field_value

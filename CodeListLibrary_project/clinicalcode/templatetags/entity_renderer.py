@@ -1007,8 +1007,8 @@ class EntityCreateWizardSections(template.Node):
             return
         
         # append other computed fields if required
-        if field == 'group':
-            return permission_utils.get_user_groups(request)
+        if field == 'organisation':
+            return permission_utils.get_user_organisations(request)
         return
 
     def __apply_properties(self, component, template, _field):
@@ -1218,21 +1218,6 @@ class EntityDetailWizardSections(template.Node):
         else:
             return html
 
-    def __try_get_computed(self, request, field):
-        struct = template_utils.get_layout_field(constants.metadata, field)
-        if struct is None:
-            return
-
-        validation = template_utils.try_get_content(struct, 'validation')
-        if validation is None:
-            return
-
-        if not validation.get('computed'):
-            return
-
-        if field == 'group':
-            return self.user_groups
-
     def __append_section(self, output, section_content):
         if gen_utils.is_empty_string(section_content):
             return output
@@ -1348,10 +1333,5 @@ class EntityDetailWizardSections(template.Node):
         """Inherited method to render the nodes"""
         if not isinstance(self.request, HttpRequest):
             self.request = self.request.resolve(context)
-        
-        if self.request and self.request.user is not None and not self.request.user.is_anonymous:
-            self.user_groups = permission_utils.get_user_groups(self.request)
-        else:
-            self.user_groups = []
 
         return self.__generate_wizard(self.request, context)

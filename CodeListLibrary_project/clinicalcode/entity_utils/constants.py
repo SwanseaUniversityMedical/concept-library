@@ -278,7 +278,7 @@ DETAIL_WIZARD_OUTPUT_DIR = 'components/details/outputs'
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
 """
-USERDATA_MODELS = [str(User), str(Group)]
+USERDATA_MODELS = [str(User), str(Group), "<class 'clinicalcode.models.Organisation.Organisation'>"]
 STRIPPED_FIELDS = ['SearchVectorField']
 
 """
@@ -373,7 +373,7 @@ APPENDED_SECTIONS = [
     {
         'title': 'Permissions',
         'description': 'Settings for sharing and collaboration.',
-        'fields': ['group', 'group_access', 'world_access']
+        'fields': ['organisation']
     }
 ]
 
@@ -646,11 +646,23 @@ metadata = {
         },
         'is_base_field': True
     },
+    'organisation': {
+        'title': 'Organisation',
+        'description': "The organisation that owns this Phenotype for permissions purposes (optional).",
+        'field_type': 'group_field',
+        'active': True,
+        'validation': {
+            'type': 'organisation',
+            'mandatory': False,
+            'computed': True
+        },
+        'is_base_field': True
+    },
     'group': {
         'title': 'Group',
         'description': "The group that owns this Phenotype for permissions purposes (optional).",
         'field_type': 'group_field',
-        'active': True,
+        'active': False,
         'validation': {
             'type': 'group',
             'mandatory': False,
@@ -662,7 +674,19 @@ metadata = {
         'title': 'Group Access',
         'description': 'Optionally enable this Phenotype to be viewed or edited by the group.',
         'field_type': 'access_field_editable',
-        'active': True,
+        'active': False,
+        'validation': {
+            'type': 'int',
+            'mandatory': True,
+            'range': [1, 3]
+        },
+        'is_base_field': True
+    },
+    'owner_access': {
+        'title': 'Owner Access',
+        'description': 'Owner permissions',
+        'field_type': 'access_field_editable',
+        'active': False,
         'validation': {
             'type': 'int',
             'mandatory': True,
@@ -674,7 +698,7 @@ metadata = {
         'title': 'All authenticated users',
         'description': "Enables this Phenotype to be viewed by all logged-in users of the Library (does not make it public on the web -- use the Publish action for that).",
         'field_type': 'access_field',
-        'active': True,
+        'active': False,
         'validation': {
             'type': 'int',
             'mandatory': True,

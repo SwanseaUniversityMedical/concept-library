@@ -268,7 +268,7 @@ def get_generic_entities(request):
     user_clause = '''entity.publish_status = 2'''
     if user:
         user_id = user.id
-        user_clause = f'''({user_clause} or entity.world_access = 2) or entity.owner_id = %(user_id)s'''
+        user_clause = f'''{user_clause} or entity.owner_id = %(user_id)s'''
 
         # [!] Change
         groups = list(user.groups.all().values_list('id', flat=True))

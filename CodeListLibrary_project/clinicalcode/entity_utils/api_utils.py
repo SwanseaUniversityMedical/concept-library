@@ -7,6 +7,7 @@ from django.db.models import ForeignKey, F
 from rest_framework.renderers import JSONRenderer
 
 from ..models.GenericEntity import GenericEntity
+from ..models.Organisation import Organisation
 from ..models.Template import Template
 from ..models.Concept import Concept
 from . import model_utils
@@ -912,6 +913,10 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
         if field_name in constants.API_HIDDEN_FIELDS:
             continue
 
+        field_data = constants.metadata.get(field_name)
+        if field_data and field_data.get('active') == False:
+            continue
+
         field_value = template_utils.get_entity_field(entity, field_name)
         if field_value is None:
             result[field_name] = None
@@ -924,6 +929,8 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
                 if model_type == str(User):
                     result[field_name] = template_utils.get_one_of_field(
                         field_value, ['username', 'name'])
+                elif hasattr(model, 'serialise_api') and callable(getattr(model, 'serialise_api')):
+                    result[field_name] = getattr(entity, field_name).serialise_api()
                 else:
                     result[field_name] = {
                         'id': field_value.id,

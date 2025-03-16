@@ -1104,7 +1104,7 @@ export const parseAsFieldType = (packet, value) => {
       break;
     }
 
-    case 'group': { // [!] CHANGE
+    case 'organisation': {
       if (value instanceof Number) {
         valid = true;
       }
