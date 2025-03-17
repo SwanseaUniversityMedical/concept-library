@@ -37,8 +37,16 @@ const
    * @desc Regex pattern to match urls
    *
    */
-  CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm;
-
+  CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm,
+  /**
+   * ES_REGEX_URL
+   * @desc Regex pattern matching URLs
+   * @type {RegExp}
+   */
+  CLU_URL_PATTERN = new RegExp(
+    /((https?|ftps?):\/\/[^"<\s]+)(?![^<>]*>|[^"]*?<\/a)/,
+    'gm'
+  );
 
 
 /* METHODS */
@@ -947,3 +955,151 @@ const isElementSizeExplicit = (element, axes = undefined) => {
 
   return results;
 }
+
+/**
+ * linkifyText
+ * @desc process a plain-text string, finding all valid URLs and converts them to HTML tags as specified by the given options
+ * 
+ * @example
+ * const source = `Some block of text describing URLs:
+ *     1. http://some-website.co.uk
+ *     2. https://some-url.co.uk/
+ *     3. The inner link here processed: <p>http://website.com</p>
+ *     4. This anchor is ignored: <a href="http://ignored-link.com">http://ignored.com</a>
+ *     5. This link is ignored: <div data-link="https://ignored.com"></div>
+ *     6. http://some-removed-link.com
+ *     7. http://some-replaced-link.com
+ *     8. http://retarget-underlying-text.com
+ * `;
+ * 
+ * const result = linkifyText(
+ *   // The text to process
+ *   source,
+ *   // Optionally specify a set of options
+ *   {
+ *     // Optionally specify default anchor attributes 
+ *     cls: 'some-anchor-class',
+ *     rel: 'noopener',
+ *     trg: '_blank',
+ *     // Optionally specify a callback to process the url
+ *     //   -> [Fallthrough]: return `null | undefined` to accept defaults
+ *     //   -> [   Retarget]: return `{ retarget: string }` to retarget the underlying text
+ *     //   -> [   Deletion]: return `{ remove: true }` to remove the link entirely
+ *     //   -> [    Replace]: return `{ replace: string }` to skip linkify and replace with text
+ *     //   -> [VaryContent]: return `{ url?: string, title?: string, rel?: string, trg?: string, cls?: string }`
+ *     anchorCallback: (url, offset, text) => {
+ *       const idx = text.lastIndexOf('.', offset);
+ *       const pos = text.substring(idx - 1, idx);
+ *       if (pos === '6') {
+ *         return { remove: true };
+ *       } else if (pos === '7') {
+ *         return { replace: '{REDACTED}' };
+ *       } else if (pos === '8') {
+ *         return { retarget: text.substring(0, idx - 1) + text.substring(offset + url.length) };
+ *       }
+ * 
+ *       return { title: 'Linkified', rel: 'noopener noreferrer' };
+ *     },
+ *     // Optionally specify a callback to render the URL
+ *     //   -> The arguments given to the callback are derived from the default set and may be varied by the `anchorCallback`
+ *     //   -> Returning an empty or non-string-like object will 
+ *     renderCallback: (url, title, rel, trg, cls) => {
+ *       return `<a href="${url}" rel="${rel}" target="${trg}" class="${cls}">${title}</a>`;
+ *     },
+ *   }
+ * );
+ * 
+ * @param {string}   source                            the string to process
+ * @param {Object}   [param1]                          optionally specify a set of options that vary this function's behaviour 
+ * @param {string}   [param1.cls]                      optionally specify the anchor's `class` attribute
+ * @param {string}   [param1.rel='noopener']           optionally specify the relationship between the linked resource and this document; defaults to `noopener`
+ * @param {string}   [param1.trg='_blank']             optionally specify how to display the linked resource; defaults to `_blank`
+ * @param {Function} [param1.anchorCallback=undefined] optionally specify a callback to vary processed links; defaults to `undefined`
+ * @param {Function} [param1.renderCallback=undefined] optionally specify a callback to render processed links; defaults to `undefined`
+ * 
+ * @returns {string} the processed text
+ */
+const linkifyText = (
+  source,
+  { cls = '', rel = 'noopener', trg = '_blank', anchorCallback = undefined, renderCallback = undefined } = {}
+) => {
+  if (isNullOrUndefined(source) || isStringEmpty(source) || isStringWhitespace(source)) {
+    return '';
+  }
+
+  if (typeof cls !== 'string') {
+    cls = '';
+  }
+
+  if (typeof rel !== 'string') {
+    rel = '';
+  }
+
+  if (typeof trg !== 'string') {
+    trg = '';
+  }
+
+  const hasAnchorCallback = typeof anchorCallback === 'function',
+        hasRenderCallback = typeof renderCallback === 'function';
+
+  let url, len, uTitle, uRel, uTarget, uClass;
+  while ((match = CLU_URL_PATTERN.exec(source)) != null) {
+    url = match[0], offset = match.index, len = url.length;
+    uTitle = url, uRel = rel, uTarget = trg, uClass = cls;
+    if (hasAnchorCallback) {
+      const result = anchorCallback(url, offset, match.input);
+      if (typeof result === 'object') {
+        if (result?.replace) {
+          const str = typeof result.replace === 'string' ? result.replace : String(result.replace);
+          source = source.substring(0, offset) + str + source.substring(offset + len);
+          continue;
+        } else if (result?.retarget) {
+          source = result.retarget;
+          continue;
+        }
+
+        const shouldDelete = result?.remove;
+        if (!shouldDelete) {
+          if (typeof result?.url === 'string') {
+            if (!isStringEmpty(result.url)) {
+              url = result.url;
+            } else {
+              shouldDelete = true;
+            }
+          }
+
+          if (typeof result?.title === 'string') {
+            if (!isStringEmpty(result.title)) {
+              uTitle = result.title;
+            } else {
+              shouldDelete = true;
+            }
+          }
+        }
+
+        if (shouldDelete) {
+          source = source.substring(0, offset) + source.substring(offset + len);
+          continue;
+        }
+
+        uRel = typeof result?.rel === 'string' ? result.rel : uRel;
+        uClass = typeof result?.cls === 'string' ? result.cls : uClass;
+        uTarget = typeof result?.trg === 'string' ? result.trg : uTarget;
+      }
+    }
+
+    let result;
+    if (hasRenderCallback) {
+      result = renderCallback(url, uTitle, uRel, uTarget, uClass);
+      if (typeof result !== 'string' || isStringEmpty(result)) {
+        result = '';
+      }
+    } else {
+      result = `<a href="${url}" rel="${uRel}" target="${uTarget}" class=${uClass}>${uTitle}</a>`;
+    }
+
+    source = source.substring(0, offset) + result + source.substring(offset + len);
+  }
+
+  return source;
+};

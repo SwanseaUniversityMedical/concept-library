@@ -21,21 +21,18 @@
       <div class="col-md-6 text-align-right">
 
         <label class="dropdown-group">
-          <div class="dropdown-group__button">Export Code List </div>
+          <div class="dropdown-group__button">
+            Export Code List
+          </div>
           <input type="checkbox" class="dropdown-group__input"  id="dd_2">
-          <ul class="dropdown-group__menu dropdown-group__menu--fall-right" {% if not user_can_export %} disabled title="Component concept(s) deleted or revoked access!!" {% endif %} >
+          <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export Code List">
             <li aria-label="Export code list as CSV" role="button" tabindex="0">
-              <a {% if user_can_export %}
-                href="{% url 'export_entity_version_codes_to_csv' pk=entity.id history_id=entity.history_id %}" {% endif %}
-              >
+              <a href="{% url 'export_entity_version_codes_to_csv' pk=entity.id history_id=entity.history_id %}">
                 CSV
               </a>
             </li>
             <li aria-label="Export code list as Json" role="button" tabindex="0">
-              <a {% if user_can_export %}
-                  href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=json"
-                  target="_blank" {% endif %}
-              >
+              <a href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=json" target="_blank">
                 JSON
               </a>
             </li>

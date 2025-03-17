@@ -111,12 +111,13 @@ export const ENTITY_HANDLERS = {
 
     value = value.split(/[\.\,\-]/)
       .map(date => moment(date.trim(), ENTITY_ACCEPTABLE_DATE_FORMAT))
-      .filter(date => date.isValid())
-      .slice(0, 2)
-      .sort((a, b) => a.diff(b))
-      .map(date => date.format('YYYY-MM-DD'));
+      .slice(0, 2);
 
-    const [start, end] = value;
+    if (value.every(x => x.isValid())) {
+      value = value.sort((a, b) => a.diff(b));
+    }
+
+    const [start, end] = value.map(x => x.isValid() ? x.format('YYYY-MM-DD') : undefined);
     startDateInput.setAttribute('value', start);
     endDateInput.setAttribute('value', end);
   },
@@ -481,29 +482,44 @@ export const ENTITY_FIELD_COLLECTOR = {
     const startDateInput = element.querySelector(`#${id}-startdate`);
     const endDateInput = element.querySelector(`#${id}-enddate`);
 
+    const validation = packet?.validation;
+    const dateClosureOptional = typeof validation === 'object' && validation?.date_closure_optional;
+
+    const startValid = startDateInput.checkValidity(),
+          endValid   = endDateInput.checkValidity();
+
+    const meetsCriteria = (startValid && endValid) || (dateClosureOptional && (startValid || endValid));
     let value;
-    if (startDateInput.checkValidity() && endDateInput.checkValidity()) {
+    if (meetsCriteria) {
       let dates = [moment(startDateInput.value, ['YYYY-MM-DD']), moment(endDateInput.value, ['YYYY-MM-DD'])]
       dates = dates.sort((a, b) => a.diff(b))
-                   .filter(date => date.isValid());
 
-      if (dates.length === 2) {
-        let [ startDate, endDate ] = dates.map(date => date.format(ENTITY_DATEPICKER_FORMAT));
-        value = `${startDate} - ${endDate}`;
+      const count = dates.reduce((filtered, x) => x.isValid() ? ++filtered : filtered, 0);
+      switch (count) {
+        case 1: {
+          if (dateClosureOptional) {
+            const [ startDate, endDate ] = dates.map(date => date.isValid() ? date.format(ENTITY_DATEPICKER_FORMAT) : '');
+            value = `${startDate} - ${endDate}`;
+          }
+        } break;
+
+        case 2: {
+          const  [ startDate, endDate ] = dates.map(date => date.format(ENTITY_DATEPICKER_FORMAT));
+          value = `${startDate} - ${endDate}`;
+        } break;
+
+        default:
+          break;
       }
     }
-    
-    if (isMandatoryField(packet)) {
-      if (!startDateInput.checkValidity() || !endDateInput.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
-        return {
-          valid: false,
-          value: value,
-          message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
-        }
-      }
-    }
 
-    if (isNullOrUndefined(value) || isStringEmpty(value)) {
+    if (isMandatoryField(packet) && (!meetsCriteria || isNullOrUndefined(value) || isStringEmpty(value))) {
+      return {
+        valid: false,
+        value: value,
+        message: (isNullOrUndefined(value) || isStringEmpty(value)) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      };
+    } else if (isNullOrUndefined(value) || isStringEmpty(value)) {
       return {
         valid: true,
         value: null,
@@ -947,12 +963,12 @@ export const getTemplateFields = (template) => {
  * @param {string} cls The data-class attribute value of that particular element
  * @return {object} An interface to control the behaviour of the component
  */
-export const createFormHandler = (element, cls, data) => {
+export const createFormHandler = (element, cls, data, validation = undefined) => {
   if (!ENTITY_HANDLERS.hasOwnProperty(cls)) {
     return;
   }
 
-  return ENTITY_HANDLERS[cls](element, data);
+  return ENTITY_HANDLERS[cls](element, data, validation);
 }
 
 /**
@@ -1004,14 +1020,36 @@ export const parseAsFieldType = (packet, value) => {
 
     case 'string': {
       value = String(value);
-      
+
       const pattern = validation?.regex;
       if (isNullOrUndefined(pattern)) {
         valid = true;
         break;
       }
 
-      valid = new RegExp(pattern).test(value);
+      try {
+        if (typeof pattern === 'string') {
+          valid = new RegExp(pattern).test(value);
+        } else if (Array.isArray(pattern)) {
+          let test = undefined, i = 0;
+          while (i < pattern.length) {
+            test = pattern[i];
+            if (typeof test !== 'string') {
+              continue;
+            }
+
+            valid = new RegExp(test).test(value);
+            if (valid) {
+              break;
+            }
+          }
+        }
+      }
+      catch (e) {
+        console.error(`Failed to test String<value: ${value}> with err: ${e}`);
+        valid = false;
+      }
+
     } break;
 
     case 'string_array': {

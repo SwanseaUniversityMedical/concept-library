@@ -282,7 +282,7 @@
     padding: 0.5rem;
     margin-bottom: 0.5rem;
 
-    & > h4 {
+    & h4 {
       padding: 0;
       margin: 0;
       font-size: 18px;
@@ -291,9 +291,41 @@
       color: col(text-darkest);
     }
 
-    & > p {
+    & p {
       padding: 0;
       margin: 0.5rem 0 0 0;
+    }
+
+    &--action-header {
+      @include flex-row();
+      justify-content: space-between;
+    }
+
+    &-actions {
+      @include flex-row($gap: 1rem);
+      margin-left: auto;
+
+      & > p {
+        margin: 0 0.5rem 0 0;
+      }
+
+      &-deselector {
+        &:after {
+          @include fontawesome-icon();
+          content: '\f2d3';
+          color: col(accent-danger);
+        }
+
+        &[disabled="true"]:after {
+          color: col(accent-washed) !important;
+        }
+      }
+
+      @include media('<tablet', 'screen') {
+        & > p {
+          display: none;
+        }
+      }
     }
   }
 

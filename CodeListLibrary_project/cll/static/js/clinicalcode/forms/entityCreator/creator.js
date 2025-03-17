@@ -272,9 +272,7 @@ export default class EntityCreator {
           this.initialisedData = data;
           return content;
         })
-        .then(content => {
-          this.#redirectFormClosure(content);
-        })
+        .then(content => this.#redirectFormClosure(content))
         .catch(error => {
           if (typeof error.json === 'function') {
             this.#handleAPIError(error);
@@ -573,7 +571,7 @@ export default class EntityCreator {
         continue;
       }
 
-      this.form[field].handler = createFormHandler(pkg.element, cls, this.data);
+      this.form[field].handler = createFormHandler(pkg.element, cls, this.data, pkg?.validation);
       this.form[field].dataclass = cls;
     }
 

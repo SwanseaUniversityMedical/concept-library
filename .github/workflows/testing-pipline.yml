@@ -103,14 +103,14 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: CodeListLibrary_project/report.html
           retention-days: 5
 
       - name: Get Allure history
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         if: (success() || failure()) && github.event_name != 'pull_request'
         continue-on-error: true
         with:
@@ -129,7 +129,7 @@ jobs:
           keep_reports: 15 # Specify the number of previous reports to keep
 
       - name: Upload an artifact files for record
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         if: (success() || failure()) && github.event_name != 'pull_request'
         with:
           name: allure-report

@@ -4,9 +4,11 @@
     {{ section.title }}
   </h2>
   {% if section.documentation %}
-    <p class="phenotype-progress__item-description">
-      {{ section.description }}
-    </p>
+    {% if section.description and section.description|length %}
+      <p class="phenotype-progress__item-description">
+        {{ section.description }}
+      </p>
+    {% endif %}
     <div class="phenotype-progress__item-hint">
       <p class="phenotype-progress__item-description">
         <ul class="chips-group" id="documentation-chips">
@@ -20,7 +22,7 @@
         </ul>
       </p>
     </div>
-  {% else %}
+  {% elif section.description and section.description|length %}
     <p class="phenotype-progress__item-description">
       {{ section.description }}
     </p>

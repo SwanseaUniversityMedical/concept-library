@@ -10,18 +10,27 @@
     </h3>
     <section class="publication-list-group__list mg-sm show" id="string_inputlist-group">
       {% if component.value|length %}
-          <ul>
+        <ul>
           {% for p in component.value %}
-              <li>
-                  <strong>Organisation</strong>: {{p.endorsement_organisation}}
-                  <strong>Date</strong>: {{p.date}}
-              </li>
+            <li>
+              <div class="box-container">
+                <div class="row">
+                  <div class="col-sm-5">
+                    <strong>Organisation</strong>: {{p.endorsement_organisation}}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-5">
+                    <strong>Date</strong>: {{p.date}}
+                  </div>
+                </div>
+              </div>
+            </li>
           {% endfor %}
-          </ul>
+        </ul>
       {% else %}
         <span class="card-no-data">No endorsement</span>
       {% endif %}
-      <!-- </div> -->
     </section>
   </div>
 </div>

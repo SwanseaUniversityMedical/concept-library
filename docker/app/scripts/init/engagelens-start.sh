@@ -14,7 +14,7 @@ if [ ! -z $ENGAGELENS_START ] && [ $ENGAGELENS_START = "True" ]; then
   cd /var/www/concept_lib_sites/v1/engagelens
 
   # Run worker
-  gunicorn -b 0.0.0.0:${ENGAGELENS_PORT:-8050} app:server
+  gunicorn -b 0.0.0.0:${ENGAGELENS_PORT:-8050} app:server --workers 2
 else
   exit 0
 fi

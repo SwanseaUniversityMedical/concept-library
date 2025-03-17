@@ -1,6 +1,7 @@
 from uuid import UUID
 from json import JSONEncoder
 from functools import wraps
+from typing import Pattern
 from dateutil import parser as dateparser
 from django.conf import settings
 from django.http.response import JsonResponse
@@ -11,10 +12,13 @@ import re
 import time
 import json
 import datetime
+import logging
 import urllib
 
+from cll.settings import Symbol
 from . import constants, sanitise_utils
 
+logger = logging.getLogger(__name__)
 
 def is_datetime(x):
     """
@@ -120,6 +124,8 @@ def try_get_param(request, key, default=None, method='GET'):
             if type(key) is not type(default):
                 if isinstance(default, int):
                     return parse_int(param)
+                elif isinstance(default, str):
+                    return str(param)
                 # Add other types when necessary
 
     return param
@@ -215,11 +221,33 @@ def jsonify_response(**kwargs):
     }, status=code)
 
 
-def try_match_pattern(value, pattern):
+def try_match_pattern(value, pattern, flags=re.IGNORECASE):
     """
         Tries to match a string by a pattern
     """
-    return re.match(pattern, value)
+    if not isinstance(value, str):
+        return False
+
+    if isinstance(pattern, (str, Pattern)):
+        return re.match(pattern, value)
+    elif isinstance(pattern, list):
+        res = None
+        try:
+            for x in pattern:
+                if not isinstance(x, (str, Pattern)):
+                    continue
+
+                res = re.match(x, value, flags)
+                if res:
+                    break
+        except Exception as e:
+            logger.warning(f'Failed to test Pattern<value: {value}, re: {x}> with err: {e}')
+            res = None
+        finally:
+            return res
+
+    logger.warning(f'Expected Pattern to be of (str, Pattern) type but got Arg<type: {type(pattern)}, value: {pattern}>')
+    return False
 
 
 def is_valid_uuid(value):
@@ -234,7 +262,7 @@ def is_valid_uuid(value):
     return str(uuid) == value
 
 
-def parse_int(value, default=0):
+def parse_int(value, default=None):
     """
         Attempts to parse an int from a value, if it fails to do so, returns the default value
     """
@@ -269,7 +297,7 @@ def get_start_and_end_dates(daterange):
     return [min_date, max_date]
 
 
-def parse_date(value, default=0):
+def parse_date(value, default=None):
     """
         Attempts to parse a date from a string value, if it fails to do so, returns the default value
     """
@@ -281,12 +309,37 @@ def parse_date(value, default=0):
         return date.strftime('%Y-%m-%d %H:%M:%S')
 
 
-def parse_as_int_list(value):
-    result = []
-    for x in value.split(','):
-        if parse_int(x, default=None) is not None:
-            result.append(int(x))
-    return result
+def parse_as_int_list(value, default=Symbol('EmptyList')):
+    """
+        Coerces the given value into a list of integers
+
+        Args:
+            value (str|list|int): some value to coerce
+
+            default (any|None): the default value to return if this method fails; defaults to an empty list `[]`
+
+        Returns:
+            Either...
+                a) If successful: a list of integers
+                b) On failure: the specified default value
+
+    """
+    if isinstance(default, Symbol):
+        default = []
+
+    if isinstance(value, str):
+        if value.find(','):
+            return [int(x) for x in value.split(',') if parse_int(x, default=None) is not None]
+
+        value = parse_int(value, default=None)
+        if value is not None:
+            return [value]
+    elif isinstance(value, list):
+        return [int(x) for x in value if parse_int(x, default=None) is not None]
+    elif isinstance(value, int):
+        return [value]
+
+    return default
 
 def parse_prefixed_references(values, acceptable=None, pattern=None, transform=None, should_trim=False, default=None):
     """
@@ -380,19 +433,53 @@ def parse_prefixed_references(values, acceptable=None, pattern=None, transform=N
     return result
 
 
-def try_value_as_type(field_value, field_type, validation=None, default=None):
+def try_value_as_type(
+        field_value,
+        field_type,
+        validation=None,
+        loose_coercion=False,
+        strict_elements=True,
+        default=None
+    ):
     """
         Tries to parse a value as a given type, otherwise returns default
+
+        Args:
+            field_value (any): some input to consider
+
+            field_type (str): the type that 
+
+            validation (dict): a dict describing how the given value should be validated; defaults to `None`
+
+            loose_coercion (boolean): optionally specify whether to attempt to loosely coerce the value; defaults to `False`
+
+            strict_elements (boolean): optionally specify whether all items in a list should be validated (not appended otherwise); defaults to `True`
+
+            default (any|None): optionally specify the default return value; defaults to `None`
+
+        Returns:
+            Either (a) the default value if invalid
+                or (b) if validated as some type given the inputs, the typed value
     """
     if field_type == 'enum' or field_type == 'int':
-        if validation is not None:
+        field_value = parse_int(field_value, default)
+        if field_value is not None and validation is not None:
             limits = validation.get('range')
-            if limits is not None and (field_value < limits[0] or field_value > limits[1]):
+            if isinstance(limits, list) and isinstance(field_type, int) and (field_value < limits[0] or field_value > limits[1]):
                 return default
-        return parse_int(field_value, default)
+        return field_value
     elif field_type == 'int_array':
         if isinstance(field_value, int):
             return [field_value]
+
+        if loose_coercion:
+            if strict_elements and isinstance(field_value, str):
+                if field_value.find(','):
+                    field_value = field_value.split(',')
+                else:
+                    field_value = [int(field_value)] if parse_int(field_value, None) is not None else None
+            else:
+                field_value = parse_as_int_list(field_value, default=None)
 
         if not isinstance(field_value, list):
             return default
@@ -409,17 +496,26 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
 
         valid = True
         cleaned = []
+        limits = validation.get('range') if validation is not None and isinstance(validation.get('range'), list) else []
+        if not isinstance(limits, list) or len(limits) < 2:
+            limits = None
+
         for val in field_value:
             result = parse_int(val, None)
             if result is None:
                 valid = False
+            elif limits is not None and (result < limits[0] or result > limits[1]):
+                valid = False
+            else:
+                valid = True
+
+            if not valid and strict_elements:
                 break
-            if validation is not None:
-                limits = validation.get('range')
-                if limits is not None and (field_value < limits[0] or field_value > limits[1]):
-                    valid = False
-                    break
-            cleaned.append(result)
+            elif valid:
+                cleaned.append(result)
+
+        if not strict_elements:
+            return cleaned
         return cleaned if valid else default
     elif field_type == 'code':
         try:
@@ -454,6 +550,18 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                     if value is None or (is_empty_string(value) and not empty):
                         return default
 
+                length = validation.get('length')
+                if isinstance(length, int):
+                    # treat as max length
+                    charlen = len(value)
+                    if charlen > length:
+                        return default
+                elif isinstance(length, list) and len(length) >= 2:
+                    # treat as range
+                    charlen = len(value)
+                    if charlen < length[0] or charlen > length[1]:
+                        return default
+
                 pattern = validation.get('regex')
                 mandatory = validation.get('mandatory')
                 if pattern is not None and not try_match_pattern(value, pattern):
@@ -466,37 +574,68 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         else:
             return value
     elif field_type == 'string_array':
-        if isinstance(field_value, str):
-            return [field_value]
+        if loose_coercion:
+            if isinstance(field_value, str):
+                if field_value.find(','):
+                    field_value = field_value.split(',')
+                else:
+                    field_value = [field_value]
+            else:
+                field_value = str(field_value) if field_value is not None else ''
+        else:
+            if isinstance(field_value, str):
+                return [field_value]
 
         if not isinstance(field_value, list):
             return default
 
         valid = True
         cleaned = []
+
+        length = None
+        pattern = None
+        sanitiser = None
+
+        if validation is not None:
+            length = validation.get('length') \
+                if (isinstance(length, list) and len(length) >= 2) or isinstance(length, int) \
+                else None
+
+            pattern = validation.get('regex') if isinstance(pattern, (list, str, Pattern)) else None
+
+            sanitiser = validation.get('sanitise') if isinstance(validation.get('sanitise'), str) else None
+
         for val in field_value:
             try:
                 value = str(val)
-                if validation is not None:
-                    sanitiser = validation.get('sanitise')
-                    if sanitiser is not None:
-                        empty = is_empty_string(value)
-                        value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
-                        if value is None or (is_empty_string(value) and not empty):
+                if sanitiser is not None:
+                    empty = is_empty_string(value)
+                    value = sanitise_utils.sanitise_value(value, method=sanitiser, default=None)
+                    if value is None or (is_empty_string(value) and not empty):
+                        valid = False
+
+                if valid and length is not None:
+                    if isinstance(length, int):
+                        charlen = len(value)
+                        if charlen > length:
+                            valid = False
+                    elif isinstance(length, list):
+                        charlen = len(value)
+                        if charlen < length[0] or charlen > length[1]:
                             valid = False
 
-                    if valid:
-                        pattern = validation.get('regex')
-                        if pattern is not None and not try_match_pattern(value, pattern):
-                            valid = False
+                if valid and pattern is not None and not try_match_pattern(value, pattern):
+                    valid = False
             except:
                 valid = False
-            else:
-                cleaned.append(value)
 
-            if not valid:
+            if not valid and strict_elements:
                 break
+            elif valid:
+                cleaned.append(result)
 
+        if not strict_elements:
+            return cleaned
         return cleaned if valid else default
     elif field_type == 'concept':
         if not isinstance(field_value, list):
@@ -506,8 +645,18 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
         if not isinstance(field_value, list):
             return default
 
-        if len(field_value) < 0:
+        if len(field_value) < 1:
             return field_value
+
+        composition = validation.get('composition') if validation is not None else None
+
+        title_test = composition.get('title') \
+            if composition and isinstance(composition.get('title'), dict) \
+            else None
+
+        url_test = composition.get('url') \
+            if composition and isinstance(composition.get('url'), dict) \
+            else None
 
         valid = True
         for val in field_value:
@@ -515,22 +664,34 @@ def try_value_as_type(field_value, field_type, validation=None, default=None):
                 valid = False
                 break
 
-            title = val.get('title')
-            if not title or not isinstance(title, str) or is_empty_string(title):
-                valid = False
-                break
+            if title_test is not None:
+                title = try_value_as_type(val.get('title'), 'string', title_test, default=None)
+                if title is None:
+                    valid = False
+                    break
+            else:
+                title = sanitise_utils.sanitise_value(val.get('title'), method='strict', default=None)
+                if not title or not isinstance(title, str) or is_empty_string(title):
+                    valid = False
+                    break
 
-            url = val.get('url')
-            if url is not None and not isinstance(url, str):
-                valid = False
-                break
+            if url_test is not None:
+                url = try_value_as_type(val.get('url'), 'string', url_test, default=None)
+                if url is None:
+                    valid = False
+                    break
+            else:
+                url = sanitise_utils.sanitise_value(val.get('url'), method='strict', default=None)
+                if url is not None and not isinstance(url, str):
+                    valid = False
+                    break
 
         return field_value if valid else default
     elif field_type == 'publication':
         if not isinstance(field_value, list):
             return default
 
-        if len(field_value) < 0:
+        if len(field_value) < 1:
             return field_value
 
         valid = True

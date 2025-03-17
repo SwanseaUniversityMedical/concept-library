@@ -72,7 +72,7 @@ export const
     // Message when POST submission fails due to server error
     SERVER_ERROR_MESSAGE: 'It looks like we couldn\'t save. Please try again',
     // Message when the API fails
-    API_ERROR_INFORM: 'We can\'t seem to process your form. Please context an Admin',
+    API_ERROR_INFORM: 'An error has occurred, please contact an Admin',
     // Message when a user has failed to confirm / cancel an editable component before attemping to save
     CLOSE_EDITOR: 'Please close the ${field} editor first.'
   };
