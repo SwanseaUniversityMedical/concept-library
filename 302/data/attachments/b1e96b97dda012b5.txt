@@ -1,0 +1,2 @@
+WARNING  django.request:base.py:146 Method Not Allowed (GET): /account/logout/
+WARNING  django.request:log.py:248 Method Not Allowed: /account/logout/
