@@ -125,7 +125,14 @@ def get_organisation(request):
             return organisation
         else:
             return None
-
+        
+def is_org_managed(request):
+    brand = model_utils.try_get_brand(request)
+    if brand:
+        print(brand)
+        return brand.org_user_managed
+    else:
+        return False
 
 
 
