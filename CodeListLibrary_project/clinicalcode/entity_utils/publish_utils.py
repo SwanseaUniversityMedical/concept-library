@@ -192,7 +192,7 @@ def check_organisation_authorities(request):
                 if organisation_user_role.value >= 2:
                     organisation_checks["is_moderator"] = True
     else:
-        if organisation_and_brand['org_user_managed']:
+        if permission_utils.is_org_managed(request):
             organisation_checks["allowed_to_publish"] = False
         return organisation_checks
         
