@@ -43,20 +43,19 @@ class TestDetailComponents:
 
         self.driver.get(live_server + reverse('entity_detail_shortcut', kwargs={ 'pk' : entity.id }))
 
+        present = False
         try:
             wait = WebDriverWait(self.driver, 5)
             wait.until(expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#publish-btn")))
 
             self.driver.find_element(By.ID, 'publish-btn')
         except Exception as e:
-            if not isinstance(e, TimeoutException):
-                raise e
-            elif not isinstance(e, NoSuchElementException):
+            if not isinstance(e, NoSuchElementException):
                 raise e
             present = False
         else:
             present = True
-        finally:
-            assert present, f'Publication button not visible for {user_type} when approval_status={entity_status}!'
+
+        assert present, f'Publication button not visible for {user_type} when approval_status={entity_status}!'
 
         logout(self.driver)
