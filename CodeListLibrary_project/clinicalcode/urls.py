@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'^about/(?P<pg_name>([A-Za-z0-9\-\_]+))/$', View.brand_about_index_return, name='about_page'),
 
     ## Moderation
-    url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
+    url(r'^moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
 
     ## Contact
     url(r'^contact-us/$', View.contact_us, name='contact_us'),
