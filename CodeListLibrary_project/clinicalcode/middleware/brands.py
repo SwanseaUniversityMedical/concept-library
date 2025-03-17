@@ -46,7 +46,7 @@ class BrandMiddleware(MiddlewareMixin):
         #if request.user.is_authenticated:
         #print "...........start..............."
         #brands = Brand.objects.values_list('name', flat=True)
-        brands_list = Brand.names_list_cached()
+        brands_list = Brand.all_names()
         current_page_url = request.path_info.lstrip('/')
 
         #print "**** get_host= " , str(request.get_host())
@@ -94,7 +94,7 @@ class BrandMiddleware(MiddlewareMixin):
             settings.CURRENT_BRAND_WITH_SLASH = "/" + root
             request.CURRENT_BRAND_WITH_SLASH = "/" + root
 
-            brand_object = next((x for x in Brand.all_cached() if x.name.upper() == root.upper()), {})
+            brand_object = next((x for x in Brand.all_instances() if x.name.upper() == root.upper()), {})
 
             settings.BRAND_OBJECT = brand_object
             request.BRAND_OBJECT = brand_object

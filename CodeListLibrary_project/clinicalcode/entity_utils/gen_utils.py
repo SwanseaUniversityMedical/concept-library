@@ -3,11 +3,13 @@ from json import JSONEncoder
 from typing import Pattern
 from dateutil import parser as dateparser
 from functools import wraps
+from django.http import HttpRequest
 from django.apps import apps
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Model
 from django.core.cache import cache
 from django.http.response import JsonResponse
+from rest_framework.request import Request
 from django.core.exceptions import BadRequest
 from django.http.multipartparser import MultiPartParser
 
@@ -135,6 +137,83 @@ def try_get_param(request, key, default=None, method='GET'):
     return param
 
 
+def parse_model_field_query(model, params, ignored_fields=None, default=None):
+    """
+        Attempts to parse ORM query fields & desired values for the specified model given the request parameters
+
+        Args:
+            model                                       (Model): the model from which to build the ORM query
+            params         (dict[str, str]|Request|HttpRequest): either the query parameter dict or the request assoc. with this query
+            ignored_fields                          (list[str]): optionally specify a list of fields on the given model to ignore when building the query; defaults to `None`
+            default                                       (Any): optionally specify the default value to return on failure; defaults to `None`
+        
+        Returns:
+            Either (a) a `dict[str, Any]` containing the ORM query, or (b) the specified `default` param if no query could be resolved
+    """
+    ignored_fields = ignored_fields if isinstance(ignored_fields, list) else None
+
+    if not issubclass(model, Model):
+        return default
+
+    if isinstance(params, Request):
+        params = params.query_params
+    elif isinstance(params, HttpRequest):
+        params = params.GET.dict()
+
+    if not isinstance(params, dict):
+        return default
+
+    result = None
+    for field in model._meta.get_fields():
+        field_name = field.name
+        if ignored_fields is not None and field_name in ignored_fields:
+            continue
+
+        value = params.get(field_name)
+        if value is None:
+            continue
+
+        typed = field.get_internal_type()
+        is_fk = typed == 'ForeignKey' and field.auto_created and (field.many_to_one or field.one_to_one)
+        if is_fk:
+            typed = field.target_field.get_internal_type()
+
+        query = None
+        match typed:
+            case 'AutoField' | 'IntegerField' | 'BigAutoField' | 'BigIntegerField':
+                if not is_empty_string(value):
+                    value = parse_as_int_list(value, default=None)
+                    length = len(value) if isinstance(value, list) else 0
+                    if length == 1:
+                        value = value[0]
+                        query = f'{field_name}__eq'
+                    elif length > 1:
+                        value = value
+                        query = f'{field_name}__in'
+                    else:
+                        value = None
+            case 'CharField' | 'TextField':
+                if not is_empty_string(value):
+                    if is_fk:
+                        values = value.split(',')
+                        if len(values) > 1:
+                            value = values
+                            query = f'{field_name}__contained_by'
+
+                    if query is None:
+                        value = str(value)
+                        query = f'{field_name}__icontains'
+            case _:
+                pass
+
+        if query is not None and value is not None:
+            if not isinstance(result, dict):
+                result = { }
+            result[query] = value
+
+    return result if isinstance(result, dict) else default
+
+
 def is_empty_string(value):
     """
         Checks whether a string is empty or contains only spaces
@@ -143,7 +222,7 @@ def is_empty_string(value):
             value (string): the value to check
         
         Returns:
-            boolean
+            A (bool) reflecting whether the value is an empty string and/or contains only spaces
     """
     if value is None:
         return True

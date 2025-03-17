@@ -96,7 +96,7 @@ class DataTypeFilters:
             current_brand = kwargs.get('brand_target', None)
         else:
             current_brand = getattr(request, 'BRAND_OBJECT', None)
-            if not isinstance(current_brand, Model):
+            if not issubclass(current_brand, Model):
                 current_brand = getattr(request, 'CURRENT_BRAND', None)
                 if not isinstance(current_brand, str) or gen_utils.is_empty_string(current_brand):
                     current_brand = None

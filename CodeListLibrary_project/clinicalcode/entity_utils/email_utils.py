@@ -78,7 +78,7 @@ def get_branded_email_images(brand=None):
     """
     if isinstance(brand, dict):
         path = brand.get('logo_path', None)
-    elif isinstance(brand, Model):
+    elif issubclass(brand, Model):
         path = getattr(brand, 'logo_path', None) if hasattr(brand, 'logo_path') else None
     else:
         path = None

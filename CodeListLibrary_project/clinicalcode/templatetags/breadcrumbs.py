@@ -120,7 +120,7 @@ class BreadcrumbsNode(template.Node):
         if not isinstance(token, str):
             return False
 
-        element = next((x for x in Brand.all_cached() if x.name.lower() == token.lower()), None)
+        element = next((x for x in Brand.all_instances() if x.name.lower() == token.lower()), None)
         return element is not None
 
     def __is_valid_token(self, token):

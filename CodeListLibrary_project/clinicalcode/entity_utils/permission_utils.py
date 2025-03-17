@@ -1,6 +1,7 @@
+"""Permission-related utilities; defines functions to vary content access & render behaviour."""
 from django.db import connection
 from django.conf import settings
-from django.db.models import Q, Subquery, OuterRef, Model
+from django.db.models import Q, Model
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import Group
 
@@ -14,11 +15,13 @@ from ..models.Organisation import Organisation
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedGenericEntity import PublishedGenericEntity
-from . import model_utils
-from .constants import ORGANISATION_ROLES, APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
 
-""" Permission decorators """
+from .constants import (
+    ORGANISATION_ROLES, APPROVAL_STATUS,
+    GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
+)
 
+'''Permission decorators'''
 def redirect_readonly(fn):
     """
       Method decorator to raise 403 if we're on the read only site
@@ -39,8 +42,7 @@ def redirect_readonly(fn):
     return wrap
 
 
-""" Render helpers """
-
+'''Render helpers'''
 def should_render_template(template=None, **kwargs):
     """
         Method to det. whether a template should be renderable
@@ -70,8 +72,7 @@ def should_render_template(template=None, **kwargs):
     return not template.hide_on_create
 
 
-""" Status helpers """  
-
+'''Status helpers'''
 def is_member(user, group_name):
     """
       Checks if a User instance is a member of a group
@@ -112,8 +113,8 @@ def is_publish_status(entity, status):
         return approval_status in status
     return False
 
-""" General permissions """
 
+'''General permissions'''
 def was_archived(entity_id):
     """
       Checks whether an entity was ever archived:
@@ -1023,7 +1024,7 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
             if live_entity.owner == user or live_entity.created_by == user:
                 is_editable = True
 
-            entity_org = live_entity.organisation if isinstance(live_entity.organisation, Model) else None
+            entity_org = live_entity.organisation if issubclass(live_entity.organisation, Model) else None
             if entity_org is not None:
                 if entity_org.owner_id == user.id:
                     is_org_member = True
@@ -1436,17 +1437,6 @@ def allowed_to_permit(user, entity_id):
 
     return GenericEntity.objects.filter(Q(id=entity_id), Q(owner=user)).exists()
 
-class HasAccessToViewGenericEntityCheckMixin(object):
-  """
-    Mixin to check if user has view access to a working set
-    this mixin is used within class based views and can be overridden
-  """
-  def dispatch(self, request, *args, **kwargs):
-    if not can_user_view_entity(request, self.kwargs['pk']):
-      raise PermissionDenied
-    
-    return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
-
 def get_latest_entity_published(entity_id):
     """
       Gets latest published entity given an entity id
@@ -1460,7 +1450,21 @@ def get_latest_entity_published(entity_id):
     entity = entity.first()
     return entity
 
-""" Legacy methods that require clenaup """
+
+'''Permission Mixins'''
+class HasAccessToViewGenericEntityCheckMixin(object):
+  """
+    Mixin to check if user has view access to a working set
+    this mixin is used within class based views and can be overridden
+  """
+  def dispatch(self, request, *args, **kwargs):
+    if not can_user_view_entity(request, self.kwargs['pk']):
+      raise PermissionDenied
+    
+    return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
+
+
+'''Legacy methods that require cleanup'''
 def get_publish_approval_status(set_class, set_id, set_history_id):
     """
         [!] Note: Legacy method from ./permissions.py

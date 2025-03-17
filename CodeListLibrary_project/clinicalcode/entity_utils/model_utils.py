@@ -62,7 +62,7 @@ def try_get_brand_string(brand, field_name, default=None):
     try:
         if isinstance(brand, dict):
             value = brand.get(field_name, None)
-        elif isinstance(brand, Model):
+        elif issubclass(brand, Model):
             value = getattr(brand, field_name, None) if hasattr(brand, field_name) else None
         else:
             value = None

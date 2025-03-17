@@ -28,7 +28,7 @@ INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
 # Views
 class AccountManagementResultView(TemplateView):
 	"""
-		Simple account management result page
+		Simple account management result page.
 
 		Note:
 			- Intention is to display success/failure message relating to `Django Account Management <https://github.com/django/django/tree/ef6a83789b310a441237a190a493c9586a4cb260/django/contrib/admin/templates/registration>`__ registration pages;
@@ -62,7 +62,7 @@ class AccountManagementResultView(TemplateView):
 
 
 class AccountResetConfirmView(PasswordContextMixin, FormView):
-	"""Password reset form & view"""
+	"""Password reset form & view."""
 
 	title = _('Enter new password')
 	form_class = SetPasswordForm
