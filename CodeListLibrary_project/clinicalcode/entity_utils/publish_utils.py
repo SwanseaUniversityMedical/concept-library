@@ -170,7 +170,7 @@ def check_organisation_authorities(request):
     else:
         return organisation_checks
      
-    if isinstance(organisation_permissions,dict):
+    if isinstance(organisation_permissions,dict) and organisation_user_role is not None:
         if organisation_permissions['org_user_managed']:
              #Todo Fix the bug if moderator has 2 groups unless has to organisations and check if it from the same org 
 
@@ -185,7 +185,7 @@ def check_organisation_authorities(request):
             organisation_checks["is_latest_pending_version"] = False
             organisation_checks["all_are_published"] = False
             
-
+            
             if organisation_permissions.get("can_moderate", False):
                 if organisation_user_role.value >= 1:
                     organisation_checks["allowed_to_publish"] = True
