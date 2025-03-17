@@ -179,14 +179,14 @@ def get_generic_entities(request):
                 > node and its descendants, _e.g._ `/api/v1/phenotypes/ontology_code_descendants=48176007`
                 >  
 
-                | Details                         | Parameter                     | Values                                                             |
-                |---------------------------------|-------------------------------|--------------------------------------------------------------------|
-                | Search across ID, Name and Code | `?ontology=([^&]+)`           | Search string or List of deliminated strings                       |
-                | Search across ID                | `?ontology_id=([^&]+)`        | Single `ID` (`int`) or List of deliminated `ID`s                   |
-                | Search across Code              | `?ontology_code=([^&]+)`      | Single `Code` string (ICD-10) or List of deliminated `Codes`s      |
-                | Search acrross Name             | `?ontology_name=([^&]+)`      | Single `Name` string or List of deliminated `Name`s                |
-                | Search across Type              | `?ontology_type=([^&]+)`      | Single `Type` (`int`) or List of deliminated `Type`s               |
-                | Search across Reference         | `?ontology_reference=([^&]+)` | Single `ReferenceID` (`int`) or List of deliminated `ReferenceID`s |
+                | Details                         | Parameter                     | Values                                                                             |
+                |---------------------------------|-------------------------------|------------------------------------------------------------------------------------|
+                | Search across ID, Name and Code | `?ontology=([^&]+)`           | Search string or List of deliminated strings                                       |
+                | Search across ID                | `?ontology_id=([^&]+)`        | Single `ID` (`int`) or List of deliminated `ID`s                                   |
+                | Search across Code              | `?ontology_code=([^&]+)`      | Single `Code` string (_e.g._ ICD-10, SNOMED _etc_) or List of deliminated `Codes`s |
+                | Search acrross Name             | `?ontology_name=([^&]+)`      | Single `Name` string or List of deliminated `Name`s                                |
+                | Search across Type              | `?ontology_type=([^&]+)`      | Single `Type` (`int`) or List of deliminated `Type`s                               |
+                | Search across Reference         | `?ontology_reference=([^&]+)` | Single `ReferenceID` (`int`) or List of deliminated `ReferenceID`s                 |
 
     """
 
