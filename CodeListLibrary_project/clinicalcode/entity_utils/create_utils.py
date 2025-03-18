@@ -83,9 +83,13 @@ def get_template_creation_data(request, entity, layout, field, default=None):
     if field_type == 'concept':
         values = []
         for item in data:
+            workingset_concept_attributes = None
+            if 'attributes' in item:
+                workingset_concept_attributes = item['attributes']
             value = concept_utils.get_clinical_concept_data(
                 item['concept_id'],
                 item['concept_version_id'],
+                concept_attributes=workingset_concept_attributes,
                 aggregate_component_codes=False,
                 requested_entity_id=entity.id,
                 derive_access_from=request,
@@ -506,6 +510,28 @@ def validate_concept_form(form, errors):
         'components': [ ],
     }
 
+    # Validate concept attributes based on their type
+    concept_attributes = []
+    if form.get('attributes'):
+        for attribute in form.get('attributes'):
+            if attribute['value']:
+                attribute_type = attribute.get('type')
+                attribute_value = attribute.get('value')
+                if not gen_utils.is_empty_string(attribute_value):
+                    if attribute_type == 'INT':
+                        try:
+                            attribute_value = str(int(attribute_value))
+                        except ValueError:
+                            errors.append(f'Attribute {attribute["name"]} must be an integer.')
+                            continue
+                    elif attribute_type == 'FLOAT':
+                        try:
+                            attribute['value'] = str(float(attribute_value))
+                        except ValueError:
+                            errors.append(f'Attribute {attribute["name"]} must be a float.')
+                            continue
+                concept_attributes.append(attribute)
+
     if not is_new_concept and concept_id is not None and concept_history_id is not None:
         concept = model_utils.try_get_instance(Concept, id=concept_id)
         concept = model_utils.try_get_entity_history(concept, history_id=concept_history_id)
@@ -514,6 +540,7 @@ def validate_concept_form(form, errors):
             return None
         field_value['concept']['id'] = concept_id
         field_value['concept']['history_id'] = concept_history_id
+        field_value['concept']['attributes'] = concept_attributes
     else:
         is_new_concept = True
     
@@ -664,6 +691,7 @@ def validate_concept_form(form, errors):
     field_value['concept']['name'] = concept_name
     field_value['concept']['coding_system'] = concept_coding
     field_value['concept']['code_attribute_header'] = attribute_headers
+    field_value['concept']['attributes'] = concept_attributes
     field_value['components'] = components
 
     return field_value
@@ -1166,7 +1194,7 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
                 if override_dirty or concept.get('is_dirty'):
                     result = try_update_concept(request, item)
                     if result is not None:
-                        entities.append({'method': 'update', 'entity': result, 'historical': result.history.latest() })
+                        entities.append({'method': 'update', 'entity': result, 'historical': result.history.latest(), 'attributes': concept.get('attributes')})
                         continue
 
                 # If we're not dirty, append the current concept
@@ -1175,20 +1203,20 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
                     result = model_utils.try_get_instance(Concept, id=concept_id)
                     historical = model_utils.try_get_entity_history(result, history_id=concept_history_id)
                     if historical is not None:
-                        entities.append({ 'method': 'set', 'entity': result, 'historical': historical })
+                        entities.append({ 'method': 'set', 'entity': result, 'historical': historical, 'attributes': concept.get('attributes') })
                         continue
 
             # Create new concept & components
             result = try_create_concept(request, item, entity=entity)
             if result is None:
                 continue
-            entities.append({ 'method': 'create', 'entity': result, 'historical': result.history.latest() })
+            entities.append({ 'method': 'create', 'entity': result, 'historical': result.history.latest(), 'attributes': concept.get('attributes') })
 
         # Build concept list
         return True, [
             'phenotype_owner',
             [obj.get('entity') for obj in entities if obj.get('method') == 'create'],
-            [{ 'concept_id': obj.get('historical').id, 'concept_version_id': obj.get('historical').history_id } for obj in entities]
+            [{ 'concept_id': obj.get('historical').id, 'concept_version_id': obj.get('historical').history_id, 'attributes': obj.get('attributes')} for obj in entities]
         ]
 
     return False, None

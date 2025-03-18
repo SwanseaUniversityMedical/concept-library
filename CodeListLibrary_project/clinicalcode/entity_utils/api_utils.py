@@ -1077,6 +1077,10 @@ def build_final_codelist_from_concepts(
         if include_headers:
             concept_data |= { 'code_attribute_header': concept_entity.code_attribute_header}
 
+        if 'attributes' in concept and concept['attributes']:
+            concept_data |= {'attributes': concept['attributes']}
+  
+
         # Get codes
         concept_codes = concept_utils.get_concept_codelist(
             concept_id,

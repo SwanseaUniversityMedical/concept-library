@@ -844,9 +844,9 @@ def get_minimal_concept_data(concept):
         'coding_system': model_utils.get_coding_system_details(concept.coding_system)
     } | concept_data
 
-def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_codes=False,
+def get_clinical_concept_data(concept_id, concept_history_id,include_reviewed_codes=False,
                               aggregate_component_codes=False, include_component_codes=True,
-                              include_attributes=False, strippable_fields=None,
+                              include_attributes=False, strippable_fields=None,concept_attributes=None,
                               remove_userdata=False, hide_user_details=False,
                               derive_access_from=None, requested_entity_id=None,
                               format_for_api=False, include_source_data=False):
@@ -867,6 +867,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         include_attributes (boolean): Should we include attributes?
         strippable_fields (list): Whether to strip any fields from the Concept model when
                                   building the concept's data result
+        concept_attributes (list): The workingset list of attributes
         remove_userdata (boolean): Whether to remove userdata related fields from the result (assoc. with each Concept)
         derive_access_from (RequestContext): Using the RequestContext, determine whether a user can edit a Concept
         format_for_api (boolean): Flag to format against legacy API
@@ -1004,6 +1005,7 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
             'concept_version_id': concept_history_id,
             'coding_system': model_utils.get_coding_system_details(historical_concept.coding_system),
             'details': concept_data,
+            'attributes': concept_attributes,
             'components': components_data.get('components') if components_data is not None else [],
         }
     else:
