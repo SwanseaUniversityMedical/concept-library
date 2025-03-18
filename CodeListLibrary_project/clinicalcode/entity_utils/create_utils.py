@@ -1,29 +1,29 @@
+from operator import and_
+from datetime import datetime
+from functools import reduce
 from django.db import transaction, IntegrityError, connection
 from django.apps import apps
 from django.db.models import Q
 from django.utils.timezone import make_aware
-from datetime import datetime
 
 import logging
 import psycopg2
 
-from ..models.EntityClass import EntityClass
-from ..models.Template import Template
-from ..models.GenericEntity import GenericEntity
-from ..models.CodingSystem import CodingSystem
-from ..models.Concept import Concept
-from ..models.ConceptCodeAttribute import ConceptCodeAttribute
-from ..models.Component import Component
-from ..models.CodeList import CodeList
-from ..models.Code import Code
 from ..models.Tag import Tag
+from ..models.Code import Code
+from ..models.Concept import Concept
+from ..models.CodeList import CodeList
+from ..models.Template import Template
+from ..models.Component import Component
+from ..models.EntityClass import EntityClass
+from ..models.CodingSystem import CodingSystem
+from ..models.GenericEntity import GenericEntity
+from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 
-from . import gen_utils
-from . import model_utils
-from . import permission_utils
-from . import template_utils
-from . import concept_utils
-from . import constants
+from . import (
+    gen_utils, model_utils, permission_utils,
+    template_utils, concept_utils, constants
+)
 
 logger = logging.getLogger(__name__)
 
@@ -301,21 +301,18 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
                 try:
                     source_info = validation.get('source')
                     model = apps.get_model(app_label='clinicalcode', model_name=model_name)
-
-                    if isinstance(data, list):
-                        query = {
-                            'pk__in': data
-                        }
-                    else:
-                        query = {
-                            'pk': data
-                        }
+                    query = { 'pk__in': data } if isinstance(data, list) else { 'pk': data }
 
                     if 'filter' in source_info:
                         filter_query = template_utils.try_get_filter_query(field, source_info.get('filter'), request=request)
-                        query = {**query, **filter_query}
-                    
-                    queryset = model.objects.filter(Q(**query))
+                        if isinstance(filter_query, list):
+                            query = [Q(**query), *filter_query]
+
+                    if isinstance(query, list):
+                        queryset = model.objects.filter(reduce(and_, query))
+                    else:
+                        queryset = model.objects.filter(**query)
+
                     queryset = list(queryset.values_list('id', flat=True))
 
                     if isinstance(data, list):
@@ -481,13 +478,16 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
         if instance is None:
             errors.append(f'"{field}" is invalid')
             return None
-        
-        if field == 'group':
-            is_member = user.is_superuser or user.groups.filter(name__iexact=instance.name).exists()
+
+        if field == 'organisation':
+            is_member = user.is_superuser or user.organisationmembership_set.filter(
+                Q(organisation_id=instance.id) & 
+                Q(role__gte=constants.ORGANISATION_ROLES.EDITOR.value)
+            ).exists()
             if not is_member:
                 errors.append(f'Tried to set {field} without being a member of that group.')
                 return None
-        
+
         return instance
     
     return value
@@ -1199,28 +1199,32 @@ def compute_brand_context(request, form_data):
         where brand is computed by the RequestContext's brand and its
         given collections
     """
-    related_brands = set([])
+    # related_brands = set([])
 
+    # brand = model_utils.try_get_brand(request)
+    # if brand:
+    #     related_brands.add(brand.id)
+    
+    # metadata = form_data.get('metadata')
+    # if not metadata:
+    #     return list(related_brands)
+    
+    # collections = metadata.get('collections')
+    # if isinstance(collections, list):
+    #     for collection_id in collections:
+    #         collection = Tag.objects.filter(id=collection_id)
+    #         if not collection.exists():
+    #             continue
+            
+    #         brand = collection.first().collection_brand
+    #         if brand is None:
+    #             continue
+    #         related_brands.add(brand.id)
+    # return list(related_brands)
     brand = model_utils.try_get_brand(request)
     if brand:
-        related_brands.add(brand.id)
-    
-    metadata = form_data.get('metadata')
-    if not metadata:
-        return list(related_brands)
-    
-    collections = metadata.get('collections')
-    if isinstance(collections, list):
-        for collection_id in collections:
-            collection = Tag.objects.filter(id=collection_id)
-            if not collection.exists():
-                continue
-            
-            brand = collection.first().collection_brand
-            if brand is None:
-                continue
-            related_brands.add(brand.id)
-    return list(related_brands)
+        return [brand.id]
+    return None
 
 @transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
@@ -1319,9 +1323,9 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             elif form_method == constants.FORM_METHODS.UPDATE:
                 entity = form_entity
 
-                group = metadata.get('group')
-                if not group and permission_utils.has_derived_edit_access(request, entity.id):
-                    group = entity.group
+                org = metadata.get('organisation')
+                if not org and permission_utils.has_derived_edit_access(request, entity.id):
+                    org = entity.organisation
 
                 entity.name = metadata.get('name')
                 entity.status = constants.ENTITY_STATUS.DRAFT
@@ -1333,9 +1337,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.tags = metadata.get('tags')
                 entity.collections = metadata.get('collections')
                 entity.publications = metadata.get('publications')
-                entity.group = group
-                entity.group_access = metadata.get('group_access')
-                entity.world_access = metadata.get('world_access')
+                entity.organisation = org
                 entity.template = template_instance
                 entity.template_version = form_template.template_version
                 entity.template_data = template_data

@@ -72,6 +72,14 @@ $debian_red: rgb(214, 19, 85);
   $bright_orange: rgb(229,157,35);
   $bright_cyan: rgb(221, 250, 255);
 
+/* HDRN colours */
+$hdrn_dark_blue: rgb(0, 39, 72);
+$hdrn_steel_blue: rgb(0, 106, 120);
+$hdrn_light_blue: rgb(186, 216, 220);
+$hdrn_pale_aqua: rgb(154, 234, 206);
+$hdrn_sky_mint: rgb(209, 255, 246);
+$hdrn_light_gray: rgb(167, 165, 167);
+
 /* Layout definitions */
 $column-min: 1;
 $column-max: 12;
@@ -256,7 +264,7 @@ $modifiers: (
     )
   ),
   'margin-bottom': (
-    property: margin-left,
+    property: margin-bottom,
     values: (
       sm: 0.2rem,
       md: 0.5rem,
@@ -265,7 +273,7 @@ $modifiers: (
     )
   ),
   'margin-left': (
-    property: margin-bottom,
+    property: margin-left,
     values: (
       sm: 0.2rem,
       md: 0.5rem,

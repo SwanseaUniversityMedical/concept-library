@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% load static %}
-{% load markdownify %}
 {% load cl_extras %}
+{% load markdownify %}
 {% load breadcrumbs %}
-{% load detail_pg_renderer %}
+{% load entity_renderer %}
 {% load entity_publish_renderer %}
 {% load compress %}
 {% load sass_tags %}
@@ -58,8 +58,8 @@
   </header>
   
   <main class="main-content">
-    {% render_wizard_sidemenu %}
-    {% endrender_wizard_sidemenu %}
+    {% render_wizard_navigation detail_pg=True %}
+    {% endrender_wizard_navigation %}
 
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="phenotype-creation">
@@ -88,8 +88,8 @@
         </section>
 
         <ol class="phenotype-progress" id="main-wizard">
-          {% render_wizard_sections_detail_pg %}
-          {% endrender_wizard_sections_detail_pg %}
+          {% render_wizard_sections detail_pg=True %}
+          {% endrender_wizard_sections %}
         </ol>
       </article>
     </div>

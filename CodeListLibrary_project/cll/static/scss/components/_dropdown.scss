@@ -9,6 +9,14 @@
   float: left;
   overflow: hidden;
 
+  &--offset {
+    right: 25%;
+
+    @include media("<desktop", "screen") {
+      right: unset;
+    }
+  }
+
   &__content {
     display: none;
     position: fixed;
@@ -26,7 +34,7 @@
       box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
     }
 
-    @include media("<1250px", "screen") {
+    @include media("<desktop", "screen") {
       .nav-dropdown__content {
         display: none;
       }
@@ -49,7 +57,7 @@
     }
   }
 
-  @include media(">=1250px", "screen") {
+  @include media(">=desktop", "screen") {
     &__content--target::after {
       content: "";
       top: -10px;
@@ -79,7 +87,7 @@
     z-index: 999;
   }
 
-  @include media("<1250px", "screen") {
+  @include media("<desktop", "screen") {
     .nav-dropdown__content {
       overflow: hidden;
 
@@ -91,7 +99,7 @@
 }
 
 /* Define styles for the mobile version */
-@include media("<1250px", "screen") {
+@include media("<desktop", "screen") {
   .nav-dropdown {
     display: flex;
     justify-content: center;
@@ -178,7 +186,7 @@
 
 .content-container {
   &__nested {
-    @include media(">=1250px", "screen") {
+    @include media(">=desktop", "screen") {
       &:hover {
         .nested-menu {
           display: block;

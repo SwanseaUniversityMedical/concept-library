@@ -157,7 +157,7 @@ export default class EntityCreator {
         });
       }
 
-      return this.form?.group?.value;
+      return this.form?.organisation?.value;
     }
 
     return groupId;

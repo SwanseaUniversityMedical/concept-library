@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 
+from ..models.Organisation import Organisation
 from ..entity_utils import permission_utils, constants
 
 class EntityModeration(TemplateView):
@@ -21,7 +22,7 @@ class EntityModeration(TemplateView):
     
     annotated = queryset.annotate(
       group_name=Subquery(
-        Group.objects.filter(id=OuterRef('group_id')).values('name')
+        Organisation.objects.filter(id=OuterRef('organisation_id')).values('name')
       ),
       owner_name=Subquery(
         User.objects.filter(id=OuterRef('owner')).values('username')

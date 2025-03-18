@@ -386,11 +386,16 @@ export default class Tagify {
     this.#buildOptions(options || { }, phenotype)
       .catch(e => console.error(e))
       .finally(() => {
+        let callback;
         if (this.options?.onLoad && this.options.onLoad instanceof Function) {
-          this.options.onLoad(this);
+          callback = this.options.onLoad(this);
         }
 
         this.#bindEvents();
+
+        if (typeof callback === 'function') {
+          callback(this);
+        }
       });
   }
 

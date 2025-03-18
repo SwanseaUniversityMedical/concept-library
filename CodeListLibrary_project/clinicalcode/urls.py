@@ -7,12 +7,10 @@
 from django.conf import settings
 from django.urls import re_path as url
 from django.views.generic.base import RedirectView
-from django.contrib.auth import views as auth_views
 
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
-from clinicalcode.views import (View, Admin, adminTemp,
-                                GenericEntity, Profile, Moderation,
-                                Publish, Decline, site)
+from clinicalcode.views import (View, Admin, adminTemp, BrandAdmin, GenericEntity,
+                                Profile, Moderation, Publish, Decline, site, Organisation)
 
 # Main
 urlpatterns = [
@@ -35,14 +33,26 @@ urlpatterns = [
     
     ## About pages
     url(r'^about/(?P<pg_name>([A-Za-z0-9\-\_]+))/$', View.brand_about_index_return, name='about_page'),
-    
-    ## Changing password(s)
-    url(
-        route='^change-password/$',
-        view=auth_views.PasswordChangeView.as_view(),
-        name='password_change',
-        kwargs={ 'post_change_redirect': 'concept_library_home' }
-    ),
+
+    ## Moderation
+    url(r'^moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
+
+    ## Contact
+    url(r'^contact-us/$', View.contact_us, name='contact_us'),
+
+    # User
+    ## Profile
+    url(r'^profile/$', Profile.MyCollection.as_view(), name='my_profile'),
+    url(r'^profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
+
+    ## Organisation
+    url(r'^org/view/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationView.as_view(), name='view_organisation'),
+    url(r'^org/create/?$', Organisation.OrganisationCreateView.as_view(), name='create_organisation'),
+    url(r'^org/manage/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationManageView.as_view(), name='manage_organisation'),
+
+    # Brand
+    ## Brand Administration
+    url(r'^dashboard/$', BrandAdmin.BrandDashboard.as_view(), name=BrandAdmin.BrandDashboard.reverse_name),
 
     # GenericEnities (Phenotypes)
     ## Search
@@ -57,10 +67,6 @@ urlpatterns = [
     url(r'^phenotypes/(?P<pk>\w+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_latest_version_codes_to_csv'),
     url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_version_codes_to_csv'),   
 
-    ## Profile
-    url(r'profile/$', Profile.MyCollection.as_view(), name='my_profile'),
-    url(r'profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
-
     ## Selection service(s)
     url(r'^query/(?P<template_id>\w+)/?$', GenericEntity.EntityDescendantSelection.as_view(), name='entity_descendants'),
 
@@ -70,12 +76,6 @@ urlpatterns = [
 
     ## Documentation for create
     url(r'^documentation/(?P<documentation>([A-Za-z0-9\-]+))/?$', DocumentationViewer.as_view(), name='documentation_viewer'),
-
-    ## Moderation
-    url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
-
-    ## Contact
-    url(r'^contact-us/$', View.contact_us, name='contact_us'),
 
     # GenericEnities (Phenotypes)
     ## Create / Update
@@ -115,9 +115,11 @@ if not settings.CLL_READ_ONLY:
         # url(r'^adminTemp/admin_force_links_dt/$', adminTemp.admin_force_concept_linkage_dt, name='admin_force_links_dt'),
         # url(r'^adminTemp/admin_fix_breathe_dt/$', adminTemp.admin_fix_breathe_dt, name='admin_fix_breathe_dt'),
         # url(r'^adminTemp/admin_fix_malformed_codes/$', adminTemp.admin_fix_malformed_codes, name='admin_fix_malformed_codes'),
+        #url(r'^adminTemp/admin_update_phenoflowids/$', adminTemp.admin_update_phenoflowids, name='admin_update_phenoflowids'),
         url(r'^adminTemp/admin_force_adp_links/$', adminTemp.admin_force_adp_linkage, name='admin_force_adp_links'),
         url(r'^adminTemp/admin_fix_coding_system_linkage/$', adminTemp.admin_fix_coding_system_linkage, name='admin_fix_coding_system_linkage'),
         url(r'^adminTemp/admin_fix_concept_linkage/$', adminTemp.admin_fix_concept_linkage, name='admin_fix_concept_linkage'),
         url(r'^adminTemp/admin_force_brand_links/$', adminTemp.admin_force_brand_links, name='admin_force_brand_links'),
-        url(r'^adminTemp/admin_update_phenoflowids/$', adminTemp.admin_update_phenoflowids, name='admin_update_phenoflowids'),
+        url(r'^adminTemp/admin_update_phenoflow_targets/$', adminTemp.admin_update_phenoflow_targets, name='admin_update_phenoflow_targets'),
+        url(r'^adminTemp/admin_upload_hdrn_assets/$', adminTemp.admin_upload_hdrn_assets, name='admin_upload_hdrn_assets'),
     ]
