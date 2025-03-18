@@ -1,11 +1,12 @@
 """Permission-related utilities; defines functions to vary content access & render behaviour."""
+from functools import wraps
 from django.db import connection
 from django.conf import settings
 from django.db.models import Q, Model
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import Group
 
-from functools import wraps
+import inspect
 
 from . import model_utils, gen_utils
 from ..models.Brand import Brand
@@ -23,23 +24,86 @@ from .constants import (
 
 '''Permission decorators'''
 def redirect_readonly(fn):
-    """
-      Method decorator to raise 403 if we're on the read only site
-      to avoid insert / update methods via UI
+	"""
+		Method decorator to raise 403 if we're on the read only site to avoid insert / update methods via UI
 
-      e.g. 
+		Args:
+			fn (Callable): the view `Callable` to wrap
 
-      @permission_utils.redirect_readonly
-      def some_view_func(request):
-        # stuff
-    """
-    @wraps(fn)
-    def wrap(request, *args, **kwargs):
-        if settings.CLL_READ_ONLY:
-            raise PermissionDenied("ERR_403_GATEWAY")
-        return fn(request, *args, **kwargs)
+		Returns:
+			A (Callable) decorator
 
-    return wrap
+		Raises:
+			PermissionDenied
+
+		Example:
+		```py
+		from clinicalcode.entity_utils import permission_utils
+
+		@permission_utils.redirect_readonly
+		def some_view_func(request):
+			pass
+		```
+	"""
+	@wraps(fn)
+	def wrap(request, *args, **kwargs):
+		if settings.CLL_READ_ONLY:
+			raise PermissionDenied('ERR_403_GATEWAY')
+		return fn(request, *args, **kwargs)
+
+	return wrap
+
+def brand_admin_required(fn):
+	"""
+		Method decorator to raise a 403 if a view isn't accessed by a Brand Administrator
+
+		.. Note::
+			Brand administration privileges are checked by comparing the user against the current brand (per request middleware).
+
+		Args:
+			fn (Callable): the view `Callable` to wrap
+
+		Returns:
+			A (Callable) decorator
+
+		Raises:
+			PermissionDenied
+
+		Example:
+		```py
+		from django.utils.decorators import method_decorator
+
+		from clinicalcode.entity_utils import permission_utils
+
+		@method_decorator([permission_utils.brand_admin_required, *other_decorators])
+		def some_view_func(request):
+			pass
+
+		# Or...
+		@permission_utils.brand_admin_required
+		def some_view_func(request):
+			pass
+		```
+	"""
+	@wraps(fn)
+	def wrap(request, *args, **kwargs):
+		user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+		brand = request.BRAND_OBJECT if hasattr(request, 'BRAND_OBJECT') else None
+
+		if not user or not isinstance(brand, Brand) or brand.id is None:
+			raise PermissionDenied
+
+		if not user.is_superuser:
+			administrable = user.administeredbrands_set \
+				.filter(id=brand.id, is_administrable=True) \
+				.exists()
+
+			if not administrable:
+				raise PermissionDenied
+
+		return fn(request, *args, **kwargs)
+
+	return wrap
 
 
 '''Render helpers'''
@@ -497,7 +561,6 @@ def get_accessible_entity_history(
         cursor.execute(sql, query_params)
         columns = [col[0] for col in cursor.description]
         results = cursor.fetchone()
-        print(dict(zip(columns, results)) if results else None)
         return dict(zip(columns, results)) if results else None
 
 def get_accessible_entities(
@@ -1024,7 +1087,10 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
             if live_entity.owner == user or live_entity.created_by == user:
                 is_editable = True
 
-            entity_org = live_entity.organisation if issubclass(live_entity.organisation, Model) else None
+            entity_org = live_entity.organisation \
+                if inspect.isclass(live_entity.organisation) and issubclass(live_entity.organisation, Model) \
+                else None
+
             if entity_org is not None:
                 if entity_org.owner_id == user.id:
                     is_org_member = True

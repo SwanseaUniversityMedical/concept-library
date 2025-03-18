@@ -7,12 +7,10 @@
 from django.conf import settings
 from django.urls import re_path as url
 from django.views.generic.base import RedirectView
-from django.contrib.auth import views as auth_views
 
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
-from clinicalcode.views import (View, Admin, adminTemp,
-                                GenericEntity, Profile, Moderation,
-                                Publish, Decline, site, Organisation)
+from clinicalcode.views import (View, Admin, adminTemp, BrandAdmin, GenericEntity,
+                                Profile, Moderation, Publish, Decline, site, Organisation)
 
 # Main
 urlpatterns = [
@@ -44,13 +42,17 @@ urlpatterns = [
 
     # User
     ## Profile
-    url(r'profile/$', Profile.MyCollection.as_view(), name='my_profile'),
-    url(r'profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
+    url(r'^profile/$', Profile.MyCollection.as_view(), name='my_profile'),
+    url(r'^profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
 
     ## Organisation
     url(r'^org/view/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationView.as_view(), name='view_organisation'),
     url(r'^org/create/?$', Organisation.OrganisationCreateView.as_view(), name='create_organisation'),
     url(r'^org/manage/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationManageView.as_view(), name='manage_organisation'),
+
+    # Brand
+    ## Brand Administration
+    url(r'^dashboard/$', BrandAdmin.BrandDashboard.as_view(), name=BrandAdmin.BrandDashboard.reverse_name),
 
     # GenericEnities (Phenotypes)
     ## Search

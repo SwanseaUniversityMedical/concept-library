@@ -29,25 +29,6 @@ from django.views.decorators.cache import cache_control
 from django.contrib.staticfiles.views import serve
 
 #--------------------------------------------------------------------
-# Utils
-def db_table_exists(table_name):
-    return table_name.lower() in [x.lower() for x in connection.introspection.table_names()]
-
-#--------------------------------------------------------------------
-# Brands
-current_brand = ""
-current_brand = settings.CURRENT_BRAND
-if settings.DEBUG:
-    print("main url file ...")
-    print("current_brand(settings.CURRENT_BRAND)=", current_brand)
-
-brands = []
-if db_table_exists("clinicalcode_brand"):
-    from clinicalcode.models import Brand
-    brands = Brand.objects.values_list('name', flat=True)
-    brands = [x.upper() for x in brands]
-
-#--------------------------------------------------------------------
 # URLs
 urlpatterns = []
 

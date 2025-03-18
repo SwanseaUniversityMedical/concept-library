@@ -37,6 +37,7 @@ class Brand(TimeStampedModel):
     overrides = models.JSONField(blank=True, null=True)
 
     # Brand organisation controls
+    is_administrable = models.BooleanField(default=False)
     org_user_managed = models.BooleanField(default=False)
 
     # Brand menu targets

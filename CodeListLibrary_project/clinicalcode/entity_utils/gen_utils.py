@@ -17,6 +17,7 @@ import re
 import time
 import json
 import urllib
+import inspect
 import hashlib
 import logging
 import datetime
@@ -152,7 +153,7 @@ def parse_model_field_query(model, params, ignored_fields=None, default=None):
     """
     ignored_fields = ignored_fields if isinstance(ignored_fields, list) else None
 
-    if not issubclass(model, Model):
+    if not inspect.isclass(model) or not issubclass(model, Model):
         return default
 
     if isinstance(params, Request):
@@ -834,7 +835,7 @@ def cache_resultset(
     """
         Tries to parse a value as a given type, otherwise returns default
 
-        Note:
+        .. Note::
             - The `debug_metrics` parameter will only log _perf._ metrics if global `DEBUG` setting is active;
             - Cache prefixes & suffixes are ignored if the `cache_key` param is specified;
             - Returned values will not be cached if the optionally specified `cache_age` param is less than `1s`;

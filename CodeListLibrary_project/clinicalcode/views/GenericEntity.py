@@ -20,8 +20,8 @@ from django.contrib.auth.decorators import login_required
 
 import csv
 import json
-import logging
 import time
+import logging
 
 from ..entity_utils import (concept_utils, entity_db_utils, permission_utils,
                             template_utils, gen_utils, model_utils, 

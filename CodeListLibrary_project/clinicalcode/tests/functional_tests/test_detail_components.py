@@ -46,7 +46,7 @@ class TestDetailComponents:
         present = False
         try:
             wait = WebDriverWait(self.driver, 5)
-            wait.until(expected_conditions.presence_of_element_located((By.CSS_SELECTOR, "#publish-btn")))
+            wait.until(expected_conditions.presence_of_element_located((By.ID, 'publish-btn')))
 
             self.driver.find_element(By.ID, 'publish-btn')
         except Exception as e:

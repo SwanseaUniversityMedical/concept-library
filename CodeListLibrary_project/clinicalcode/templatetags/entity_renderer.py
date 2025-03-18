@@ -84,7 +84,7 @@ def get_brand_base_title(brand):
     """
     if isinstance(brand, dict):
         title = brand.get('site_title', None)
-    elif issubclass(brand, Model):
+    elif isinstance(brand, Model):
         title = getattr(brand, 'site_title', None) if hasattr(brand, 'site_title') else None
     else:
         title = None
@@ -107,7 +107,7 @@ def get_brand_base_desc(brand):
     """
     if isinstance(brand, dict):
         desc = brand.get('site_description', None)
-    elif issubclass(brand, Model):
+    elif isinstance(brand, Model):
         desc = getattr(brand, 'site_description', None) if hasattr(brand, 'site_description') else None
     else:
         desc = None
@@ -133,7 +133,7 @@ def get_brand_base_embed_desc(brand):
     """
     if isinstance(brand, dict):
         title = brand.get('site_title', None)
-    elif issubclass(brand, Model):
+    elif isinstance(brand, Model):
         title = getattr(brand, 'site_title', None) if hasattr(brand, 'site_title') else None
     else:
         title = None
@@ -156,7 +156,7 @@ def get_brand_base_embed_img(brand):
     """
     if isinstance(brand, dict):
         path = brand.get('logo_path', None)
-    elif issubclass(brand, Model):
+    elif isinstance(brand, Model):
         path = getattr(brand, 'logo_path', None) if hasattr(brand, 'logo_path') else None
     else:
         path = None

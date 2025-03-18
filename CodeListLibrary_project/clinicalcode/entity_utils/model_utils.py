@@ -6,6 +6,7 @@ from django.contrib.auth.models import User, Group
 
 import re
 import json
+import inspect
 import simple_history
 
 from . import gen_utils, filter_utils, constants
@@ -15,9 +16,7 @@ from ..models.CodingSystem import CodingSystem
 from ..models.GenericEntity import GenericEntity
 
 def try_get_instance(model, **kwargs):
-    """
-      Safely attempts to get an instance
-    """
+    """Safely attempts to get an instance"""
     try:
         instance = model.objects.get(**kwargs)
     except:
@@ -26,10 +25,7 @@ def try_get_instance(model, **kwargs):
         return instance
 
 def try_get_entity_history(entity, history_id):
-    """
-      Safely attempts to get an entity's historical record given an entity
-      and a history id
-    """
+    """Safely attempts to get an entity's historical record given an entity and a history id."""
     if not entity:
         return None
 
@@ -42,8 +38,12 @@ def try_get_entity_history(entity, history_id):
 
 def try_get_brand(request, default=None):
     """Safely get the Brand instance from the RequestContext"""
+    current_brand = request.BRAND_OBJECT
+    if inspect.isclass(current_brand) and issubclass(current_brand, Model):
+        return current_brand
+
     current_brand = request.CURRENT_BRAND
-    if gen_utils.is_empty_string(current_brand):
+    if gen_utils.is_empty_string(current_brand) or current_brand.lower() == 'ALL':
         return default
     return try_get_instance(Brand, name=current_brand)
 
@@ -62,7 +62,7 @@ def try_get_brand_string(brand, field_name, default=None):
     try:
         if isinstance(brand, dict):
             value = brand.get(field_name, None)
-        elif issubclass(brand, Model):
+        elif isinstance(brand, Model):
             value = getattr(brand, field_name, None) if hasattr(brand, field_name) else None
         else:
             value = None
