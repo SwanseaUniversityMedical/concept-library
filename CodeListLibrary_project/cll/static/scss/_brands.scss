@@ -717,6 +717,193 @@ $brand-map-SAIL: (
   'phenotype-banner-title-color': $black,
 );
 
+$brand-map-HDRN: (
+  // Brand logo
+  'logo-url': url('/static/img/brands/HDRN/header_logo.png'),
+
+  // Fonts
+  'font-name': 'Arial',
+  'heading-font': 'Lato',
+  'font-family': sans-serif,
+  'font-size': 14px,
+
+  // Color accents
+  'color-bg': $white,
+  'color-clear': $transparent,
+  'color-accent-bright': $white,
+  'color-accent-lightest': $hdrn_light_gray,
+  'color-accent-darkish': $hdrn_dark_blue,
+  'color-accent-dark': $hdrn_steel_blue,
+  'color-accent-washed': $hdrn_light_gray,
+  'color-accent-primary': $hdrn_light_blue,
+  'color-accent-secondary': $hdrn_pale_aqua,
+  'color-accent-tertiary': $hdrn_sky_mint,
+  'color-accent-highlight': $hdrn_steel_blue,
+  'color-accent-bubble': $hdrn_pale_aqua,
+  'color-accent-success': $light_grey_green,
+  'color-accent-danger': $pastel_red,
+  'color-accent-warning': $wax_flower,
+  'color-accent-anchor': $bright_blue,
+  'color-accent-transparent': $transparent,
+  'color-accent-semi-transparent': rgba($black, 0.05),
+
+  // Text accents
+  'color-text-darkest': $hdrn_dark_blue,
+  'color-text-darker': $hdrn_dark_blue,
+  'color-text-dark': $hdrn_steel_blue,
+  'color-text-washed': $hdrn_light_gray,
+  'color-text-brightest': $white,
+  'color-text-success': $light_grey_green,
+  'color-text-danger': $pastel_red,
+  'color-text-warning': $wax_flower,
+
+  // Icons
+  'icons-name': var(--fa-style-family-classic),
+  'icons-style': var(--fa-font-solid),
+  'icons-size': 1rem,
+
+  // Navigation
+  'navigation-offset': 1.5rem,
+  'navigation-gutter': 6rem,
+  'navigation-mobile-offset': 1rem,
+  'navigation-mobile-gutter': 1rem,
+  'navigation-hamburger-size': 1.5rem,
+  'navigation-height': 2rem,
+  'navigation-line-width': 0.15rem,
+  'navigation-selection-box': $white,
+  'navigation-item-selector': $hdrn_sky_mint,
+  'navigation-scroll-shadow': 'inset 0px -1px 0px #f3f3f4',
+  'navigation-panel-shadow': '0px 5px 15px -1px rgba(0, 0, 0, 0.5)',
+
+  // About_dropdown
+  'panel-shadow': 0px 2px 50px 7px rgba(0, 0, 0, 0.25),
+  'floating-shadow': 0px 10px 30px 3px rgba(0, 0, 0, 0.35),
+  'dropdown-shadow': 0px 10px 70px rgba(0, 0, 0, 0.15),
+  'item-icon-color': $hdrn_sky_mint,
+  'icon-width': 40px,
+  'icon-height': 40px,
+  'icon-background-color': $light_red,
+  'stroke-icon': $blackish-grey,
+  'description-text-color': $lightblack-grey,
+
+  // Loading spinner color
+  'loading-spinner-color': $solitude,
+  'loading-spinner-text-color': $white,
+
+  // Scrollbars
+  'slim-scrollbar-inactive-color': $lightest_grey,
+  'slim-scrollbar-active-color': $transparent_black,
+  'slim-scrollbar-radius': 6px,
+  'slim-scrollbar-width': 6px,
+
+  // Breadcrumbs
+  'breadcrumb-color': $dark_grey,
+  'breadcrumb-hover-color': $black,
+  'breadcrumb-active-weight': bold,
+
+  // Main page
+  'main-top-padding': 5rem,
+  'main-top-mobile-padding': 4rem,
+  'main-gutter': 6rem,
+  'main-mobile-gutter': 1.75rem,
+
+  // Footer
+  'footer-gutter': 6rem,
+  'footer-mobile-gutter': 1rem,
+  'footer-page-offset': 1rem,
+  'footer-top-offset': 0.25rem,
+  'footer-bottom-offset': 1rem,
+  'footer-copyright-size': 12px,
+  'footer-text-size': 12px,
+  'footer-row-gap': 4rem,
+
+  // Markdown
+  'blockquote-bg-color': $lightest_grey,
+  'blockquote-edge-color': $light_grey,
+
+  // Item lists
+  'item-list-odd-bg-color': $off_white02,
+  'item-list-even-bg-color': $white,
+
+  // Inputs
+  'switch-size': 50px,
+  'switch-thumb-color': $off_white,
+  'switch-bg-color': $lightest_grey,
+  'switch-bg-active-color': $soft_blue,
+
+  'search-shadow-inactive-color': $cow_black01,
+  'search-shadow-active-color': $cow_black02,
+
+  // Chips
+  'base-metachip-bg-color': $pickled_bluewood,
+
+  // Cards
+  'card-shadow-color': $cow_black01,
+  'card-border-radius': 0.1rem,
+  'referral-card-anchor-color': $iris,
+  'entity-card-anchor-color': $iris,
+
+  // Pagination controller
+  'pagination-inactive-color': $white_smoke,
+  'pagination-active-color': $platinum,
+  'pagination-disabled-color': $boulder,
+
+  /* Homepage */
+
+  // Hero
+  'hero-area-bg-color': $hdrn_light_blue,
+  'hero-gutter': 0px,
+  'hero-mobile-gutter': 0px,
+  'hero-drop-shadow': 0 3rem 0.05rem $periwinkle,
+
+  // Feature
+  'feature-highlight-color': $hdrn_steel_blue,
+  'feature-icon-color': $hdrn_steel_blue,
+
+  // Brand cards
+  'brand-card-bg-color': $hdrn_light_blue,
+
+  /* Articles */
+
+  // Phenotype creation
+  'phenotype-article-sm-size': 55%,
+  'phenotype-article-lg-size': calc(100% - 2.5rem),
+  'phenotype-article-header-border': $light_grey,
+  'phenotype-article-h1-size': 2em,
+  'phenotype-article-h1-weight': bold,
+  'phenotype-max-codelist-size': 200px,
+
+  'wizard-step-color': $pixie_green,
+  'progress-item-min-step-height': 4rem,
+  'progress-tracker-width': 2px,
+  'progress-tracker-offset': -1.5rem,
+  'progress-tracker-size': 26px,
+  'progress-tracker-bg-color': $white,
+  'progress-tracker-counter-weight': bold,
+  'progress-tracker-counter-color': black,
+  'progress-tracker-color': $light_grey,
+  'progress-tracker-active-color': $pixie_green,
+  'progress-tracker-off-color': $light_grey,
+  'progress-tracker-line-width': 2px,
+
+  'progress-tracker-header-size': 28px,
+  'progress-tracker-header-weight': bold,
+  'progress-tracker-header-color': black,
+  'progress-tracker-description-size': 16px,
+
+  'ruleset-bg-color': $lightest_grey,
+  'ruleset-icon-normal-color': $dark_grey,
+  'ruleset-include-icon-checked-color': $lime_green,
+  'ruleset-exclude-icon-checked-color': $pastel_red,
+
+  // Phenotype search
+  'phenotype-banner-bg-color': $hdrn_light_blue,
+  'phenotype-banner-title-size': 30px,
+  'phenotype-banner-title-color': $black,
+);
+
+
+
 
 // Append all brand-specific variables
 :root[data-brand="none"],
@@ -741,4 +928,10 @@ $brand-map-SAIL: (
 :root[data-brand="SAIL"]::after,
 :root[data-brand="SAIL"]::before {
   @include map-brand($brand-map-SAIL);
+}
+
+:root[data-brand="HDRN"],
+:root[data-brand="HDRN"]::after,
+:root[data-brand="HDRN"]::before {
+  @include map-brand($brand-map-HDRN);
 }

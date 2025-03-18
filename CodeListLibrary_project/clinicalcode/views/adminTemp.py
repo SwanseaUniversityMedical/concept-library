@@ -802,7 +802,26 @@ def admin_upload_hdrn_assets(request):
     if brand.exists():
         brand = brand.first()
     else:
-        brand = Brand.objects.create(name='HDRN')
+        brand = Brand.objects.create(
+            name='HDRN',
+
+                description='Health Data Research Network Canada (HDRN Canada) is a pan-Canadian network of member '
+                            'organizations that either hold linkable health and health-related data for entire populations '
+                            'and/or have mandates and roles relating directly to access or use of those data. ',
+                website='https://www.hdrn.ca',
+                logo_path='img/brands/ADP/',
+                index_path='clinicalcode/index.html',
+                footer_images=[
+                    {"url": "https://www.hdrn.ca", "brand": "HDRN",
+                     "image_src": "img/Footer_logos/HDRN_logo.png"},
+                    {"url": "https://conceptlibrary.saildatabank.com/", "brand": "Concept Library",
+                     "image_src": "img/Footer_logos/concept_library_on_white.png"},
+                    {"url": "http://saildatabank.com", "brand": "SAIL Databank ",
+                     "image_src": "img/Footer_logos/SAIL_alt_logo_on_white.png"}
+                ]
+
+
+        )
 
     models = {}
     metadata = input_data.get('metadata')
