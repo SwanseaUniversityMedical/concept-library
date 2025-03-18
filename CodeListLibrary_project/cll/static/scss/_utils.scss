@@ -12,10 +12,15 @@
 /// Mixin to apply a columnn wise flex-box with wrapping
 ///   @param {Number} $gap - To apply a flexbox gap
 ///   Ref @ https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
-@mixin flex-col($gap: false) {
+@mixin flex-col($gap: false, $nowrap: false) {
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
+
+  @if not $nowrap {
+    flex-wrap: wrap;
+  } @else {
+    flex-wrap: nowrap;
+  }
 
   @if $gap {
     gap: $gap;
@@ -25,17 +30,22 @@
 /// Mixin to apply a row wise flex-box with wrapping
 ///   @param {Number} $gap - To apply a flexbox gap
 ///   Ref @ https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
-@mixin flex-row($gap: false) {
+@mixin flex-row($gap: false, $nowrap: false) {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+
+  @if not $nowrap {
+    flex-wrap: wrap;
+  } @else {
+    flex-wrap: nowrap;
+  }
 
   @if $gap {
     gap: $gap;
   }
 }
 
-@mixin grid-template($gap: false,$col: 2, $fr: 1fr) {
+@mixin grid-template($gap: false, $col: 2, $fr: 1fr) {
   display: grid;
   grid-template-columns: repeat($col, $fr);
   flex-wrap: wrap;
@@ -129,4 +139,11 @@
   -webkit-hyphens: auto;
   -moz-hyphens: auto;
   hyphens: auto;
+}
+
+/// Mixin to apply box-sizing `border-box`
+@mixin apply-bbox() {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }

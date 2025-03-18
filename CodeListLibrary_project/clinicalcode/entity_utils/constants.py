@@ -603,6 +603,7 @@ metadata = {
                             'allow_null': True,
                         },
                         'HDRUK': 'allow_null',
+                        'HDRN': True,
                         'SAIL': False,
                     },
                 }
@@ -635,6 +636,7 @@ metadata = {
                     'source_by_brand': {
                         'ADP': 'allow_null',
                         'HDRUK': 'allow_null',
+                        'HDRN': False,
                         'SAIL': False,
                     },
                 }

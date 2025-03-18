@@ -105,13 +105,15 @@
         {% include "components/base/footer.html" %}
       {% endif %}
     {% endblock footer_wrapper %}
-    
+
     {% block scripts %}
       <!-- Scripts -->
 	  {% endblock scripts %}
 
-    {% if SHOW_COOKIE_ALERT %}
-      {% include "components/cookies/banner.html" %}
-    {% endif %}
+    {% block cookie_wrapper %}
+      {% if SHOW_COOKIE_ALERT %}
+        {% include "components/cookies/banner.html" %}
+      {% endif %}
+    {% endblock cookie_wrapper %}
   </body>
 </html>

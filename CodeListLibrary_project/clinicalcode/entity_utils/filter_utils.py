@@ -123,7 +123,7 @@ class DataTypeFilters:
             elif isinstance(modifier, str) and modifier == 'allow_null':
                 # Allow null values as well as request target
                 result.append(Q(**{f'{column_name}__isnull': True}))
-                result = [reduce(or_, result)] 
+                result = [reduce(or_, result)]
             elif isinstance(modifier, dict):
                 allowed_brands = gen_utils.parse_as_int_list(modifier.get('allowed_brands'), None)
                 if isinstance(allowed_brands, list):

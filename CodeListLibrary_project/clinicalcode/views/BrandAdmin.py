@@ -3,7 +3,6 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
 
 import logging
 
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class BrandDashboard(TemplateView):
 	"""
-	Brand Dashboard View
+	Dashboard View for Brand Administration.
 
 	:template:`clinicalcode/dashboard/index.html`
 	"""
@@ -25,7 +24,7 @@ class BrandDashboard(TemplateView):
 	@method_decorator([permission_utils.redirect_readonly, permission_utils.brand_admin_required])
 	def dispatch(self, request, *args, **kwargs):
 		"""
-		View dispatch management
+		Request-Response Middleman.
 
 		.. Note::
 		Dispatches if:
@@ -37,7 +36,7 @@ class BrandDashboard(TemplateView):
 
 	def get_context_data(self, *args, **kwargs):
 		"""
-		Resolves the View context data
+		Resolves the View context data.
 
 		Args:
 			*args: Variable length argument list.

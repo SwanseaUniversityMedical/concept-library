@@ -326,7 +326,7 @@ def get_editable_entities(
             params={
                 'user_id': user.id,
                 'role_enum': ORGANISATION_ROLES.EDITOR,
-                'brand': brand
+                'brand': brand.id if brand else None
             }
         )
         

@@ -362,14 +362,6 @@ def get_homepage_stats(request, brand=None):
 
     if brand is None:
         brand = request.CURRENT_BRAND if request.CURRENT_BRAND is not None and request.CURRENT_BRAND != '' else 'ALL'
-
-    collection_ids = [ ]
-    if brand == 'ALL':
-        collection_ids = Tag.objects.filter(tag_type=2)
-        collection_ids = [str(i) for i in collection_ids]
-    else:
-        collection_ids = model_utils.get_brand_collection_ids(brand)
-        collection_ids = [str(i) for i in collection_ids]
     
     published_phenotypes = entity_db_utils.get_visible_live_or_published_generic_entity_versions(
         request,
