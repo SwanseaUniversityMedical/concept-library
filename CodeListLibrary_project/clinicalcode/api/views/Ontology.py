@@ -17,9 +17,7 @@ from ...models.OntologyTag import OntologyTag
 @cache_page(60 * 60 * 8)
 def get_ontologies(request):
     """
-        Get all ontology groups and their root
-        nodes, _incl._ associated data such as the rood nodes, children _etc_
-
+        Get all ontology groups and their root nodes, _incl._ associated data such as the rood nodes, children _etc_
     """
     result = OntologyTag.get_groups([x.value for x in constants.ONTOLOGY_TYPES], default=[])
     return Response(
@@ -32,9 +30,7 @@ def get_ontologies(request):
 @cache_page(60 * 60 * 8)
 def get_ontology_detail(request, ontology_id):
     """
-        Get specified ontology group type detail by the given `ontology_id`
-        type, including associated data _e.g._ root nodes, children _etc_
-
+        Get specified ontology group type detail by the given `ontology_id` type, including associated data _e.g._ root nodes, children _etc_
     """
     ontology_id = gen_utils.parse_int(ontology_id, default=None)
     if not isinstance(ontology_id, int):
@@ -63,9 +59,7 @@ def get_ontology_detail(request, ontology_id):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_ontology_node(request, node_id):
     """
-        Gets an Ontology node by the given request
-        by a given `node_id`
-
+        Gets an Ontology node by the given request by a given `node_id`
     """
     node_id = gen_utils.parse_int(node_id, default=None)
     if not isinstance(node_id, int):
@@ -87,15 +81,17 @@ def get_ontology_node(request, node_id):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_ontology_nodes(request):
     """
-        Queries Ontology nodes by the given request
-        parameters, returning a `QuerySet` of all
-        matched node(s)
+        Queries Ontology nodes by the given request parameters, returning a `QuerySet` of all matched node(s).
+
+        Available API parameters can be derived from the [Reference Data](/reference-data/) page, _e.g._ in the case of `codes` Code identifiers (Code ID).
+
+        Endpoint query parameters:
 
         | Param         | Type     | Default            | Desc                                                                    |
         |---------------|----------|--------------------|-------------------------------------------------------------------------|
         | search        | `string` | `NULL`             | Full-text search                                                        |
-        | codes         | `list`   | `NULL`             | Either (a) SNOMED code (see below); or (b) Code ID                      |
-        | exact_codes   | `empty`  | `NULL`             | apply this parameter if you would like to search for exact codes instead of fuzzy matching the given `codes` across all related mappings (ICD-9/10, MeSH, OPSC4, ReadCodes etc) |
+        | codes         | `list`   | `NULL`             | Either (a) SNOMED code; or (b) Code ID                                  |
+        | exact_codes   | `empty`  | `NULL`             | Apply this parameter if you would like to search for exact codes instead of fuzzy matching the given `codes` across all related mappings (ICD-9/10, MeSH, OPSC4, ReadCodes etc) |
         | type_ids      | `list`   | `NULL`             | Filter ontology type by ID                                              |
         | reference_ids | `list`   | `NULL`             | Filter ontology by Atlas reference                                      |
         | page          | `number` | `1`                | Page cursor                                                             |
