@@ -809,7 +809,7 @@ def admin_upload_hdrn_assets(request):
                             'organizations that either hold linkable health and health-related data for entire populations '
                             'and/or have mandates and roles relating directly to access or use of those data. ',
                 website='https://www.hdrn.ca',
-                logo_path='img/brands/ADP/',
+                logo_path='img/brands/HDRN/',
                 index_path='clinicalcode/index.html',
                 footer_images=[
                     {"url": "https://www.hdrn.ca", "brand": "HDRN",
