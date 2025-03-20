@@ -5,7 +5,7 @@ from django.contrib.auth.models import  User
 from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from clinicalcode.entity_utils import model_utils
-from clinicalcode.models import Organisation
+from clinicalcode.models import Organisation,OrganisationMembership
 from clinicalcode.tasks import send_review_email
 from clinicalcode.entity_utils import constants, permission_utils, entity_db_utils
 
@@ -330,33 +330,58 @@ def format_message_and_send_email(request, pk, data, entity, entity_history_id, 
         pk=pk,
         history=entity_history_id
     )
-    send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
+    send_email_decision_entity(request,entity, entity_history_id, checks, data)
     return data
 
 def get_emails_by_groupname(groupname):
     user_list = User.objects.filter(groups__name=groupname)
     return [i.email for i in user_list]
 
-def send_email_decision_entity(request, entity, entity_history_id, entity_type,data):
+def get_emails_by_organization(request):
+    organisation = permission_utils.get_organisation(request)
+
+    if organisation:
+        user_list = OrganisationMembership.objects.filter(organisation_id=organisation.id)
+        email_list = []
+        for membership in user_list:
+
+            if membership.role >= 2:
+                email_list.append(membership.user.email)
+    
+        return email_list
+    else:
+        return None
+
+
+
+def send_email_decision_entity(request, entity, entity_history_id, checks,data):
     """
     Call util function to send email decision
     @param workingset: workingset object
     @param approved: approved status flag
     """
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
-    context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user_id": entity.owner_id,"url_redirect":url_redirect}
+
+    requested_userid = entity.owner_id
+    if checks['org_user_managed']:
+        requested_userid = request.user.id #will take the editor user id to send email
+    
+    context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user_id":requested_userid,"url_redirect":url_redirect}
     if data['approval_status'].value == constants.APPROVAL_STATUS.PENDING:
         context["status"] = "Pending"
-        context["message"] = "Your Phenotype has been submitted and is under review"
+        context["message"] = "Phenotype has been submitted and is under review"
         context["staff_emails"] = get_emails_by_groupname("Moderators")
+        if checks['org_user_managed']:
+            context['staff_emails'] = get_emails_by_organization(request)
+        
         send_review_email(request, context)
     elif data['approval_status'].value == constants.APPROVAL_STATUS.APPROVED:
         # This line for the case when user want to get notification of same workingset id but different version
         context["status"] = "Published"
-        context["message"] = "Your Phenotype has been approved and successfully published"
+        context["message"] = "Phenotype has been approved and successfully published"
         send_review_email(request, context)
     elif data['approval_status'].value == constants.APPROVAL_STATUS.REJECTED:
         context["status"] = "Rejected"
-        context["message"] = "Your Phenotype submission has been rejected by the moderator"
+        context["message"] = "Phenotype submission has been rejected by the moderator"
         context["custom_message"] = "We welcome you to try again but please address these concerns with your Phenotype first" #TODO add custom message logic
         send_review_email(request, context)
