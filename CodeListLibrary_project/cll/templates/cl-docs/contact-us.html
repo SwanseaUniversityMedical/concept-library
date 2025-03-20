@@ -16,6 +16,7 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container container--desktop-lg">
@@ -53,7 +54,7 @@
               <h2>Issues and Feature Requests</h2>
               <p>
                 If you would like to report a bug or give feedback or suggestions for the 
-                Phenotype Library website, please submit an issue to our 
+                {{ base_page_title }} website, please submit an issue to our 
                 <a href="https://github.com/SwanseaUniversityMedical/concept-library/issues">
                   Github Repository
                 </a>
@@ -73,7 +74,7 @@
                 By submitting your enquiry you are consenting to your data being held by the 
                 SAIL Databank, Swansea University. Your data will be used for the purposes 
                 of dealing with your enquiry and sending you relevant information about the 
-                Concept Library.
+                {{ base_page_title }}.
               </p>
             </div>
           </div>

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load entity_renderer %}
+
+{% block title %}| Dashboard{% endblock title %}
+
+{% block indexing_robots %}{% endblock indexing_robots %}
+
+{% block head %}
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/admin/dashboard.scss' %}" type="text/css" />
+  {% endcompress %}
+{% endblock head %}
+
+{% block navigation_wrapper %}{% endblock navigation_wrapper %}
+
+{% block container %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+  <main class="dashboard-layout">
+
+    <nav class="dashboard-nav">
+      <header class="dashboard-nav__header">
+        <img
+          class="dashboard-nav__header-logo"
+          loading="lazy"
+          src="{% static 'img/brands/'|add:request.CURRENT_BRAND|add:'/apple-touch-icon.png' %}" />
+        <h1>
+          Dashboard
+        </h1>
+      </header>
+    </nav>
+
+    <section class="dashboard-view slim-scrollbar">
+
+      <header class="dashboard-view__header dashboard-view__header--split-bar">
+        <div class="account-menu">
+          <a href="#" class="account-menu__controls">
+            {{ request.user.username }}
+            <span class="as-icon" icon-trg="&#xf007;"></span>
+          </a>
+          <div class="account-menu__popover">
+            <div class="account-menu__popover-content">
+              {% url 'concept_library_home' as home_url %}
+              <a href="{{ home_url }}" id="Home">
+                <span class="as-icon" icon-trg="&#xf2d0;"></span>
+                Home
+              </a>
+              <form method="post" action="{% url 'logout' %}?next={% url 'search_phenotypes' %}">
+                {% csrf_token %}
+                <button type="submit">
+                  <span class="as-icon" icon-trg="&#xf2f5;"></span>
+                  Sign out
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="dashboard-view__content">
+
+        <!-- Summary -->
+        <h2 id="summary" class="dashboard-view__content-title">
+          Summary
+        </h2>
+        <section class="dashboard-view__content-stats slim-scrollbar">
+          <article class="card">
+            <header class="card__header">
+              <h3>Phenotypes Created</h3>
+              <span class="as-icon as-icon--warning" icon-trg="&#xf024;"></span>
+            </header>
+            <p class="card__desc">
+              No. of Phenotypes created this week.
+            </p>
+            <figure class="card__data">
+              19
+            </figure>
+            <footer class="card__footer">
+              <time datetime="2021-11-24T20:00:00">
+                <span class="as-icon" icon-trg="&#xf024;"></span>
+                March 19
+              </time>
+            </footer>
+          </article>
+          <article class="card">
+            <header class="card__header">
+              <h3>Phenotypes Published</h3>
+              <span class="as-icon as-icon--warning" icon-trg="&#xf024;"></span>
+            </header>
+            <p class="card__desc">
+              No. of Phenotypes published this week.
+            </p>
+            <figure class="card__data">
+              <div class="loading"></div>
+            </figure>
+            <footer class="card__footer">
+              <div class="loading"></div>
+            </footer>
+          </article>
+          <article class="card">
+            <header class="card__header">
+              <h3>Phenotypes Edited</h3>
+              <span class="as-icon as-icon--warning" icon-trg="&#xf024;"></span>
+            </header>
+            <p class="card__desc">
+              No. of Phenotypes edited this week.
+            </p>
+            <figure class="card__data">
+              <div class="loading"></div>
+            </figure>
+            <footer class="card__footer">
+              <div class="loading"></div>
+            </footer>
+          </article>
+          <article class="card">
+            <header class="card__header">
+              <h3>Moderation Queue</h3>
+              <span class="as-icon as-icon--warning" icon-trg="&#xf024;"></span>
+            </header>
+            <p class="card__desc">
+              No. of Phenotypes awaiting moderation.
+            </p>
+            <figure class="card__data">
+              <div class="loading"></div>
+            </figure>
+            <footer class="card__footer">
+              <div class="loading"></div>
+            </footer>
+          </article>
+        </section>
+
+        <!-- Users -->
+        <h2 id="users" class="dashboard-view__content-title">
+          Users
+        </h2>
+
+      </section>
+
+    </section>
+
+  </main>
+{% endblock container %}
+
+{% block footer_wrapper %}
+  {% with hide_footer=True %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock footer_wrapper %}
+
+{% block cookie_wrapper %}{% endblock cookie_wrapper %}

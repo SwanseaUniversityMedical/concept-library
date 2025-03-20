@@ -1,9 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils.timezone import now
+from django.utils import timezone
 from django.utils.text import slugify
+from django.urls import reverse
 
 import uuid
+import datetime
 
 from .Brand import Brand
 from ..entity_utils import constants
@@ -37,7 +39,7 @@ class Organisation(models.Model):
     related_name='organisations'
   )
 
-  created = models.DateTimeField(default=now)
+  created = models.DateTimeField(default=timezone.now)
 
   def save(self, *args, **kwargs):
     self.slug = slugify(self.name)
@@ -54,6 +56,16 @@ class Organisation(models.Model):
       'edit_organisation',
       kwargs={'slug': self.slug}
     )
+
+  def serialise_api(self):
+    if self.id is None:
+      return None
+
+    return {
+      'id': self.id,
+      'slug': self.slug,
+      'name': self.name
+    }
 
   def __str__(self):
     return f'name={self.name}, slug={self.slug}'
@@ -75,7 +87,7 @@ class OrganisationMembership(models.Model):
     default=constants.ORGANISATION_ROLES.MEMBER.value
   )
 
-  joined = models.DateTimeField(default=now, editable=False)
+  joined = models.DateTimeField(default=timezone.now, editable=False)
 
   def __str__(self):
     return f'user: {self.user}, org: {self.organisation}'
@@ -128,7 +140,7 @@ class OrganisationInvite(models.Model):
     default=constants.ORGANISATION_INVITE_STATUS.ACTIVE.value
   )
   sent = models.BooleanField(default=False)
-  created = models.DateTimeField(default=now, editable=False)
+  created = models.DateTimeField(default=timezone.now, editable=False)
 
   def is_expired(self):
     if not self.sent:

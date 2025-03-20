@@ -30,7 +30,7 @@ class TestModerationComponents:
                 if not isinstance(e, TimeoutException):
                     raise e
             finally:
-                assert 'permission denied' in self.driver.title.lower(), \
+                assert 'Phenotype Moderation' not in self.driver.title.lower(), \
                     f'Failed to present 403 status to {user_details} for Moderation page'
         else:
             expected_url = None

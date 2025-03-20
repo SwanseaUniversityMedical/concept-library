@@ -7,6 +7,7 @@ from django.db.models import ForeignKey, F
 from rest_framework.renderers import JSONRenderer
 
 from ..models.GenericEntity import GenericEntity
+from ..models.Organisation import Organisation
 from ..models.Template import Template
 from ..models.Concept import Concept
 from . import model_utils
@@ -87,16 +88,16 @@ def exists_historical_entity(entity_id, user, historical_id=None):
         returns response 404
     """
     if not historical_id:
-        historical_id = permission_utils.get_latest_entity_historical_id(
-            entity_id, user
+        historical_entity = GenericEntity.history.filter(id=entity_id).latest_of_each()
+    else:
+        historical_entity = model_utils.try_get_instance(
+            GenericEntity,
+            id=entity_id
         )
+        if historical_entity:
+            historical_entity = historical_entity.history.filter(history_id=historical_id)
 
-    historical_entity = model_utils.try_get_instance(
-        GenericEntity,
-        id=entity_id
-    ).history.filter(history_id=historical_id)
-
-    if not historical_entity.exists():
+    if not historical_entity or not historical_entity.exists():
         return Response(
             data={
                 'message': 'Historical entity version does not exist'
@@ -650,8 +651,9 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
         if is_dynamic:
             source = validation.get('source')
             trees = source.get('trees') if source and 'trees' in validation.get('source') else None
+
+            data = [ str(x) for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
             if trees:
-                data = [ str(x) for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
                 model = source.get('model') if isinstance(source.get('model'), str) else None
 
                 if model:
@@ -911,6 +913,10 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
         if field_name in constants.API_HIDDEN_FIELDS:
             continue
 
+        field_data = constants.metadata.get(field_name)
+        if field_data and field_data.get('active') == False:
+            continue
+
         field_value = template_utils.get_entity_field(entity, field_name)
         if field_value is None:
             result[field_name] = None
@@ -923,6 +929,8 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
                 if model_type == str(User):
                     result[field_name] = template_utils.get_one_of_field(
                         field_value, ['username', 'name'])
+                elif hasattr(model, 'serialise_api') and callable(getattr(model, 'serialise_api')):
+                    result[field_name] = getattr(entity, field_name).serialise_api()
                 else:
                     result[field_name] = {
                         'id': field_value.id,

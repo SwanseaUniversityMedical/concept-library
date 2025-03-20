@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load entity_renderer %}
+
+{% block title %}| {{ template_title|default:'Account Management' }}{% endblock title %}
+
+{% block container %}
+  {% with hdr_trg=template_title|default:'Account Management' %}
+    {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+    <header class="main-header search-banner">
+      <div
+        class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+        <div class="search-banner__header search-banner__header--pad-bottom-2">
+          <h2 class="search-banner__title">{{ base_page_title }}</h2>
+        </div>
+      </div>
+    </header>
+    <main class="main-content main-content--inner-padding">
+      <div
+          class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+        <h2>
+          {% if template_header %}
+            {{ template_header }}
+          {% else %}
+            {{ hdr_trg }}
+          {% endif %}
+        </h2>
+
+        {% if template_target %}
+          {% include template_target %}
+        {% elif template_message %}
+          {{ template_message|safe }}
+        {% endif %}
+
+        {% if template_incl_redirect %}
+          <hr/>
+
+          {% if template_prompt_signin %}
+            <p>
+              Click <a href="{% url 'login' %}">here</a> to sign in again. Alternatively, you can:
+            </p>
+          {% else %}
+            <p>You can:</p>
+          {% endif %}
+          <ul>
+            <li>Follow this link to get back to the <a href="{% url 'concept_library_home' %}">homepage</a>;</li>
+            <li>Or, click <a href="javascript:history.back()">here</a> to go back.</li>
+          </ul>
+        {% endif %}
+      </div>
+    </main>
+  {% endwith %}
+{% endblock container %}
