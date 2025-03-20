@@ -117,6 +117,23 @@ def has_org_authority(request,organisation):
     else:
         return False
 
+def has_brand_other_org(request):
+    brand = model_utils.try_get_brand(request)
+
+    if brand:
+        brand_org_filter = OrganisationAuthority.objects.filter(brand_id=brand.id)
+        user_org_existence = OrganisationMembership.objects.filter(user_id=request.user.id)
+
+        print(brand_org_filter)
+        print(user_org_existence)
+        list_of_orgs = []
+        for organisation in user_org_existence:
+            request_organisation = model_utils.try_get_instance(OrganisationAuthority,organisation_id=organisation.id,brand_id=brand.id)
+            if request_organisation:
+                list_of_orgs.append(request_organisation)
+                
+        print(list_of_orgs)
+
 
 
 def get_organisation(request):
@@ -131,7 +148,6 @@ def get_organisation(request):
 def is_org_managed(request):
     brand = model_utils.try_get_brand(request)
     if brand:
-        print(brand)
         return brand.org_user_managed
     else:
         return False
