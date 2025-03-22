@@ -151,6 +151,8 @@ export default class StringInputListCreator {
     e.stopPropagation();
 
     const listItem = strictSanitiseString(this.listInput.value);
+    this.listInput.value = listItem;
+
     if (!this.listInput.checkValidity() || isNullOrUndefined(listItem) || isStringEmpty(listItem)) {
       return;
     }

@@ -228,7 +228,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
       </button>
     `, true);
 
-    const elem = tabItems.appendChild(doc.body.children[0]);
+    const elem = tabItems.appendChild(doc[0]);
     elem.addEventListener('click', () => {
       createViewer(sourceId);
     });

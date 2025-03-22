@@ -3,22 +3,19 @@
 @import '../../_media';
 @import '../../_utils';
 
-$lightblack-grey: rgb(110,109,122);
-$grayish_green: rgb(209, 222, 218);
-$grayish_lime-green: rgb(164, 190, 182);
+@mixin focusable-item {
+  outline: none;
+  @include prefix(box-shadow, 0 0 2px 2px #51a7e8, webkit moz o);
+}
 
-$mostly_black: rgb(31,28,46);
-
-$lgish_blue: rgb(235,240,247);
-
-@mixin dash-border() {
+@mixin dash-border {
   border-style: solid;
   border-width: 1px;
   border-color: $lightest_grey;
 }
 
-.visibility-hidden {
-  visibility: hidden;
+body {
+  align-items: center;
 }
 
 %load-skeleton {
@@ -43,15 +40,60 @@ $lgish_blue: rgb(235,240,247);
   }
 }
 
+.loading-cover {
+  @extend %load-skeleton;
+
+  width: 100%;
+  height: 100%;
+
+  &--min-htext {
+    min-height: 1em;
+  }
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
   }
 }
 
+[tooltip] {
+  --bd-col: rgba(27, 31, 35, 0.15);
+
+  &:after {
+    @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px', webkit moz o);
+    color: $mostly_black !important;
+    background: $white !important;
+  }
+
+  &:before {
+    background-color: $white;
+  }
+
+  &[direction^="up"]:before {
+    border-top-color: var(--bd-col) !important;
+  }
+
+  &[direction^="right"]:before {
+    border-right-color: var(--bd-col) !important;
+  }
+
+  &[direction^="down"]:before {
+    border-bottom-color: var(--bd-col) !important;
+  }
+
+  &[direction^="left"]:before {
+    border-left-color: var(--bd-col) !important;
+  }
+}
+
+.visibility-hidden {
+  visibility: hidden;
+}
+
 .as-icon {
   &:before {
-    content: attr(icon-trg);
+    content: attr(data-icon);
     font-size: var(--icons-size);
     font-style: var(--icons-style);
     font-family: var(--icons-name);
@@ -103,6 +145,220 @@ $lgish_blue: rgb(235,240,247);
   }
 }
 
+.popover-menu {
+  width: fit-content;
+  height: 50px;
+  max-height: 50px;
+  padding: 0 0.5rem;
+  border-radius: 5px;
+  background-color: transparent;
+
+  @include prefix(transition, box-shadow 250ms ease-in-out, webkit moz);
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  & a, button {
+    appearance: unset;
+    @include clear-anchor();
+  }
+
+  & a, button {
+    display: block;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    color: $mostly_black;
+    line-height: 50px;
+    text-align: center;
+    text-decoration: none;
+    background: none;
+    background-color: transparent;
+    border: none;
+    font-size: inherit;
+
+    &:disabled,
+    &[disabled] {
+      cursor: pointer;
+      pointer-events: none;
+      color: $light_grey;
+    }
+
+    &:not(:disabled):not([disabled]):hover,
+    &:not(:disabled):not([disabled]):focus-visible {
+      outline: none;
+      color: $dark_grey;
+
+      & .as-icon {
+        color: $dark_grey;
+      }
+    }
+  }
+
+  &:has(.popover-menu__controls:not(:disabled):not([disabled]):not(:focus-visible):hover) {
+    @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px', webkit moz o);
+  }
+
+  &:has(.popover-menu__controls:not(:disabled):not([disabled]):focus-visible) {
+    @include focusable-item;
+  }
+
+  &__popover {
+    display: block;
+    visibility: hidden;
+    position: absolute;
+    right: 0px;
+    width: fit-content;
+    height: 0px;
+    margin-top: 5px;
+    opacity: 0;
+    z-index: 100;
+
+    @include prefix(transition, all 150ms ease-out, webkit moz);
+
+    &:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 20px;
+      width: 8px;
+      height: 8px;
+      margin: -4px 0 0 -4px;
+      background-color: $white;
+      transform: rotate(45deg);
+
+      @include prefix(transform, rotate(45deg), webkit moz o);
+      @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.35) 0px 0px 0px 1px', webkit moz o);
+    }
+
+    &-content {
+      @include flex-col(false, true);
+      width: max-content;
+      height: fit-content;
+      max-height: 25vh;
+      padding: 0.5rem 1rem;
+      z-index: 101;
+      overflow-y: auto;
+      background-color: $white;
+
+      @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px', webkit moz o);
+    }
+
+    & a, button {
+      pointer-events: none;
+      width: fit-content;
+
+      & .as-icon {
+        margin-right: 1rem;
+      }
+    }
+
+    &[aria-hidden="false"],
+    &:not([hidden])[aria-hidden=""] {
+      visibility: visible;
+      height: fit-content;
+      opacity: 1;
+
+      & a, button {
+        pointer-events: auto;
+
+        &:focus-visible {
+          @include focusable-item;
+        }
+      }
+    }
+  }
+
+  &__controls {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    gap: 0.25rem;
+    align-content: center;
+    justify-content: flex-end;
+
+    & > span {
+      pointer-events: none;
+    }
+
+    &-user {
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100px;
+    }
+  }
+}
+
+.card {
+  @include flex-col(false, true);
+  width: 100%;
+  flex: 1;
+  padding: 20px 20px;
+  overflow: hidden;
+  color: $mostly_black;
+  background-color: $white;
+
+  @include dash-border;
+  @include prefix(box-shadow, rgba(99, 99, 99, 0.3) 0px 2px 8px 0px, webkit moz o);
+
+  &--flex-1 {
+    flex: 1;
+  }
+
+  &__desc {
+    color: $lightblack-grey;
+    margin: 0.25rem 0 1rem 0;
+  }
+
+  &__header { 
+    @include flex-row(false, true);
+    width: 100%;
+    max-width: 100%;
+    align-items: flex-start;
+    justify-content: space-between;
+    vertical-align: middle;
+
+    &:has(> :last-child:nth-child(1)) {
+      justify-content: flex-start;
+    }
+
+    & > h3 {
+      color: $blackish-grey;
+      font-size: 1.2em;
+      margin: 0 0 0.5rem 0
+    }
+  }
+
+  &__data {
+    display: flex;
+    flex: 1;
+    width: auto;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 2em;
+  }
+
+  &__footer {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    overflow: clip;
+    color: $lightblack-grey;
+
+    span:not(:last-of-type){
+      margin-right: 1rem;
+    }
+
+    svg {
+      margin-right: 5px;
+    }
+  }
+}
+
 .dashboard-layout {
   @include apply-bbox();
   @include flex-row(false, true);
@@ -111,21 +367,25 @@ $lgish_blue: rgb(235,240,247);
   height: 100vh;
   max-width: 100vw;
   max-height: 100vh;
+
+  &--constrained {
+    max-width: 2160px;
+  }
 }
 
 .dashboard-nav {
   @include apply-bbox();
   @include flex-col(false, true);
   @include prefix(transition, all 250ms ease-in-out, webkit moz);
-  width: 250px;
+  width: calc(50px + 2rem);
   height: 100%;
-  max-height: 100%;
+  max-height: 100vh;
   padding: 0.5rem 1rem;
   z-index: 1;
   color: $mostly_black;
   background-color: $white;
 
-  @include dash-border();
+  @include dash-border;
 
   &__header {
     @include flex-row(0.5rem, true);
@@ -134,15 +394,196 @@ $lgish_blue: rgb(235,240,247);
     max-width: 100%;
     align-items: center;
     justify-content: space-between;
+    margin: 0 0 1rem 0;
 
-    @include bottom-divider($size_pad: false, $border_col: col(accent-washed));
+    @include bottom-divider($size_pad: false, $border_col: col(accent-washed), $offset: -4px);
 
     &-logo {
+      width: 50px;
       height: 50px;
     }
 
     & > h1 {
       @include ignore-user();
+      margin: 0;
+      font-size: 1.5em;
+    }
+  }
+
+  &__targets {
+    @include apply-bbox();
+    @include flex-col(0.5rem, true);
+
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+
+    & > h2 {
+      @include ignore-user();
+      font-size: 1.35em;
+      margin: 0 0 0.5rem 0;
+    }
+
+    &-list {
+      @include flex-col(0.5rem, true);
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: calc(100% - 2rem);
+      margin: 0;
+      padding: 0;
+      justify-content: flex-start;
+      overflow-x: hidden;
+      overflow-y: auto;
+      list-style: none;
+      list-style-position: inside;
+  
+      &-item {
+        appearance: unset;
+        @include clear-anchor();
+
+        @include flex-row(0.5rem, true);
+        width: calc(100% - 2em);
+        align-items: center;
+        justify-content: flex-start;
+        vertical-align: middle;
+        margin: 0;
+        padding: 0.25rem 0 0 0.25rem;
+        list-style: none;
+        color: $mostly_black;
+        font-size: 1.2em;
+
+        & span {
+          pointer-events: none;
+          font-weight: inherit
+        }
+
+        & .as-icon {
+          display: inline-block;
+          width: 25px;
+
+          &:before {
+            font-size: inherit;
+          }
+        }
+
+        &[data-active="true"] {
+          font-weight: bold;
+        }
+
+        & [data-role="icon"] {
+          display: none;
+          width: 100%;
+          text-align: center;
+          vertical-align: middle;
+
+          &:before {
+            width: 45px;
+            height: 45px;
+            line-height: 45px;
+          }
+        }
+
+        &:not(:disabled):not([disabled]):hover {
+          color: $dark_grey;
+        }
+
+        &:not(:disabled):not([disabled]):focus-visible {
+          color: $dark_grey;
+          @include focusable-item;
+        }
+      }
+    }
+  }
+
+  &:not([data-open="true"]) {
+    & .dashboard-nav__header {
+      justify-content: center;
+
+      & > h1 {
+        display: none;
+      }
+
+      &-logo {
+        margin: auto;
+        width: 50px;
+        height: 50px;
+      }
+    }
+
+    & .dashboard-nav__targets {
+      & > h2 {
+        display: none;
+      }
+
+      &-list {
+        align-items: center;
+  
+        &-item {
+          width: 100%;
+  
+          & [data-role="label"] {
+            display: none;
+          }
+  
+          & [data-role="icon"] {
+            display: inline-block;
+          }
+        }
+      }
+    }
+  }
+
+  @include media('>desktop', 'screen') {
+    &[data-open="true"] {
+      width: 250px;
+    }
+  }
+}
+
+.dashboard-nav-toggle {
+  @include flex-col(0.5rem, true);
+  width: fit-content;
+  height: fit-content;
+  align-items: center;
+  justify-content: space-between;
+
+  &__logo {
+    display: none;
+    width: 50px;
+    height: 50px;
+  }
+
+  &__btn {
+    appearance: unset;
+    @include clear-anchor();
+
+    display: inline-block;
+    cursor: pointer;
+    width: 25px;
+    height: 25px;
+    color: $mostly_black;
+
+    &:before {
+      content: '\f0c9';
+      display: inline-block;
+      width: 25px;
+      height: 25px;
+      text-align: center;
+      vertical-align: center;
+      line-height: 25px;
+      font-size: var(--icons-size);
+      font-style: var(--icons-style);
+      font-family: var(--icons-name);
+      color: inherit;
+    }
+
+    &:not(:disabled):not([disabled]):focus-visible {
+      color: $dark_grey;
+      @include focusable-item;
     }
   }
 }
@@ -151,7 +592,6 @@ $lgish_blue: rgb(235,240,247);
   @include apply-bbox();
   @include flex-col(0.5rem, true);
   @include prefix(transition, all 250ms ease-in-out, webkit moz);
-  flex: 1;
   width: 100%;
   height: 100%;
   max-width: calc(100% - 250px);
@@ -180,14 +620,22 @@ $lgish_blue: rgb(235,240,247);
 
   &__content {
     @include apply-bbox();
-    @include flex-col(false, true);
+    @include flex-row(1rem, false);
 
-    flex: 1;
     overflow-x: none;
     overflow-y: auto;
     width: 100%;
     max-width: 100%;
     max-height: 100%;
+
+    &-group {
+      @include apply-bbox();
+      @include flex-col(false, true);
+      overflow: none;
+      width: fit-content;
+      height: fit-content;
+      max-width: 100%;
+    }
 
     &-title {
       color: $mostly_black;
@@ -196,24 +644,78 @@ $lgish_blue: rgb(235,240,247);
 
     &-stats {
       @include apply-bbox();
-      @include flex-row(1rem, true);
+      // @include flex-row(1rem, true);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-gap: 20px;
+      width: 100%;
+      height: fit-content;
+      max-width: 100%;
+      padding: 5px 10px;
+      align-items: stretch;
+      justify-content: space-evenly;
+      overflow-x: auto;
+      overflow-y: hidden;
+
+      &:has(> :last-child:nth-child(1)) {
+        justify-content: flex-start;
+      }
+
+      .card {
+        width: calc(100% - 40px);
+      }
+
+      @include media('<tablet', 'screen') {
+        height: calc(max-content + 40px);
+        overflow-x: hidden;
+        padding-right: 2px;
+      }
+    }
+
+    &-grid {
+      @include apply-bbox();
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 
       width: 100%;
       height: fit-content;
       max-width: 100%;
       align-items: stretch;
-      justify-content: space-evenly;
+      justify-items: space-evenly;
       overflow-y: clip;
       overflow-x: auto;
 
       &:has(> :last-child:nth-child(1)) {
-        justify-content: flex-start;
+        justify-items: flex-start;
       }
+    }
+
+    &--fill-w {
+      width: 100%;
+      max-width: 100%;
     }
   }
 }
 
+.dashboard-nav[data-open="true"] ~ .dashboard-view {
+  .dashboard-nav-toggle {
+    &__btn:before {
+      content: '\f550';
+    }
+  }
+}
+
+@include media('>=tablet', 'screen') {
+  .dashboard-nav:not([data-open="true"]) ~ .dashboard-view {
+    max-width: calc(100% - (50px + 2rem));
+  }
+}
+
 @include media('<desktop', 'screen') {
+  .dashboard-nav-toggle__btn {
+    visibility: hidden;
+  }
+
   .dashboard-nav {
     width: calc(50px + 2rem);
 
@@ -226,8 +728,30 @@ $lgish_blue: rgb(235,240,247);
 
       &-logo {
         margin: auto;
-        height: 45px;
-        padding: 5px;
+        width: 50px;
+        height: 50px;
+      }
+    }
+
+    &__targets {
+      & > h2 {
+        display: none;
+      }
+
+      &-list {
+        align-items: center;
+
+        &-item {
+          width: 100%;
+  
+          & [data-role="label"] {
+            display: none;
+          }
+  
+          & [data-role="icon"] {
+            display: inline-block;
+          }
+        }
       }
     }
   }
@@ -237,163 +761,43 @@ $lgish_blue: rgb(235,240,247);
   }
 }
 
-.account-menu {
-  width: fit-content;
-  height: 50px;
-  max-height: 50px;
-  padding: 0 0.5rem;
-  border-radius: 5px;
-  background-color: transparent;
-
-  @include prefix(transition, box-shadow 250ms ease-in-out, webkit moz);
-
-  & a, button {
-    all: unset;
-
-    display: block;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-    line-height: 50px;
-    text-align: center;
-    text-decoration: none;
+@include media('<800px', 'screen') {
+  body {
+    overflow-x: hidden;
   }
 
-  &__controls {
-    color: $mostly_black !important;
-
-    &:hover {
-      color: $dark_grey !important;
-    }
+  .dashboard-nav {
+    display: none;
   }
 
-  &:has(.account-menu__controls:hover) {
-    box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
-  }
+  .dashboard-view {
+    max-width: 100%;
 
-  &__popover {
-    position: absolute;
-    right: 0px;
-    width: fit-content;
-    margin-top: 5px;
-    opacity: 1;
-    z-index: 100;
-
-    @include prefix(transition, all 150ms ease-out, webkit moz);
-
-    &:before {
-      content: '';
-      position: absolute;
+    &__header {
+      position: fixed;
       top: 0;
-      right: 20px;
-      width: 8px;
-      height: 8px;
-      margin: -4px 0 0 -4px;
+      left: 0.25rem;
+      width: calc(100% - 1.5rem);
+      padding: 0.5rem;
+      z-index: 2;
       background-color: $white;
-      transform: rotate(45deg);
-
-      @include prefix(transform, rotate(45deg), webkit moz o);
-      box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.35) 0px 0px 0px 1px;
     }
 
-    &-content {
-      @include flex-col(false, true);
-      width: max-content;
-      height: fit-content;
-      max-height: 25vh;
-      padding: 0.5rem 1rem;
-      z-index: 101;
-      overflow-y: auto;
-      background-color: $white;
-
-      box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
-    }
-
-    & a, button {
-      width: fit-content;
-      color: $mostly_black;
-
-      & .as-icon {
-        margin-right: 1rem;
-        color: $mostly_black;
-      }
-    }
-
-    & a:hover .as-icon, button:hover .as-icon {
-      color: $dark_grey;
-    }
-  }
-}
-
-.loading {
-  @extend %load-skeleton;
-
-  width: 100%;
-  height: 100%;
-}
-
-.card {
-  @include flex-col(false, true);
-  width: 250px;
-  flex: 1;
-  min-width: 250px;
-  max-width: 250px;
-  padding: 20px 20px;
-  overflow: hidden;
-  color: $mostly_black;
-  background-color: $white;
-
-  @include dash-border();
-  @include prefix(box-shadow, rgba(99, 99, 99, 0.3) 0px 2px 8px 0px, webkit moz o);
-
-  &__desc {
-    color: $lightblack-grey;
-    margin: 0.25rem 0 1rem 0;
-  }
-
-  &__header { 
-    @include flex-row(false, true);
-    width: 100%;
-    max-width: 100%;
-    align-items: flex-start;
-    justify-content: space-between;
-    vertical-align: middle;
-
-    &:has(> :last-child:nth-child(1)) {
-      justify-content: flex-start;
-    }
-
-    & > h3 {
-      color: $blackish-grey;
-      margin: 0 0 0.5rem 0
+    &__content {
+      margin-top: 50px;
+      height: max-content;
+      max-height: max-content;
+      overflow-y: unset;
     }
   }
 
-  &__data {
-    display: flex;
-    flex: 1;
-    width: auto;
-    height: auto;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-size: 2em;
-  }
-
-  &__footer {
-    display: flex;
-    flex: 1;
-    width: 100%;
-    max-width: 100%;
-    overflow: clip;
-    color: $lightest_grey;
-
-    span:not(:last-of-type){
-      margin-right: 1rem;
+  .dashboard-nav-toggle {
+    &__btn {
+      display: none;
     }
 
-    svg {
-      margin-right: 5px;
+    &__logo {
+      display: inline-block;
     }
   }
 }

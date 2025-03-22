@@ -30,8 +30,7 @@ const
    * @desc Regex pattern to match `[object (.*)]` classname
    * 
    */
-  CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/;
-
+  CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/,
   /**
    * CLU_TRIAL_LINK_PATTERN
    * @desc Regex pattern to match urls
@@ -39,14 +38,20 @@ const
    */
   CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm,
   /**
-   * ES_REGEX_URL
+   * CLU_URL_PATTERN
    * @desc Regex pattern matching URLs
    * @type {RegExp}
    */
   CLU_URL_PATTERN = new RegExp(
     /((https?|ftps?):\/\/[^"<\s]+)(?![^<>]*>|[^"]*?<\/a)/,
     'gm'
-  );
+  ),
+  /**
+   * CLU_CSS_IMPORTANT
+   * @desc important suffix for DOM styling
+   * @type {string}
+   */
+  CLU_CSS_IMPORTANT = 'important!';
 
 
 /* METHODS */
@@ -92,6 +97,18 @@ const isObjectType = (val) => {
 }
 
 /**
+ * isRecordType
+ * @desc Record (Object) type guard
+ * 
+ * @param {*} obj some object to evaluate
+ * 
+ * @returns {boolean} flagging whether this object is Record-like
+ */
+const isRecordType = (obj) => {
+  return typeof obj === 'object' && obj instanceof Object && obj.constructor === Object;
+}
+
+/**
  * isCloneableType
  * @desc determines whether a value is a structured-cloneable type
  *       as described by its specification, reference to the supported
@@ -126,13 +143,13 @@ const isCloneableType = (val) => {
     case 'Map': {
       return [...val.entries()]
         .every(element => isCloneableType(element[0]) && isCloneableType(element[1]));
-    };
+    }
 
     case 'Array':
     case 'Object': {
       return Object.keys(val)
         .every(key => isCloneableType(val[key]))
-    };
+    }
   }
 
   return false;
@@ -141,16 +158,50 @@ const isCloneableType = (val) => {
 /**
  * cloneObject
  * @desc Simplistic clone of an object/array
+ * 
  * @param {object|array} obj the object to clone
+ * 
  * @returns {array|object} the cloned object
  */
 const cloneObject = (obj) => {
-  let result = { };
-  Object.keys(obj).forEach(key => {
-    result[key] = cloneObject(obj[key]);
-  });
+  const className = getObjectClassName(obj);
+  switch (className) {
+    case 'Set': {
+      if ([...obj].every(isCloneableType)) {
+        return structuredClone(obj);
+      }
 
-  return result;
+    } break;
+
+    case 'Map': {
+      const cloneable =- [...obj.entries()].every(x => isCloneableType(x[0]) && isCloneableType(x[1]));
+      if (cloneable) {
+        return structuredClone(obj);
+      }
+
+    } break;
+
+    case 'Array': {
+      const result = [];
+      Object.keys(obj).forEach(key => {
+        result[key] = cloneObject(obj[key]);
+      });
+
+      return result;
+    }
+
+    case 'Object': {
+      const result = {};
+      Object.keys(obj).forEach(key => {
+        result[key] = cloneObject(obj[key]);
+      });
+
+      return result;
+    }
+
+    default:
+      return obj;
+  }
 }
 
 /**
@@ -161,7 +212,7 @@ const cloneObject = (obj) => {
   */
 const deepCopy = (obj) => {
   let className = getObjectClassName(obj);
-  if (isCloneableType(obj) && typeof structuredClone === 'function') {
+  if (isCloneableType(obj) && window.structuredClone && typeof structuredClone === 'function') {
     let result;
     try {
       result = structuredClone(obj);
@@ -212,11 +263,6 @@ const mergeObjects = (a, b, copy = false) => {
 
       let value = b[key];
       if (copy) {
-        if (!isCloneableType(value)) {
-          a[key] = value;
-          return;
-        }
-  
         a[key] = deepCopy(value);
       } else {
         a[key] = value;
@@ -259,21 +305,332 @@ const getTransitionMethod = () => {
 }
 
 /**
+ * @desc attempts to parse the global listener key
+ * 
+ * @param {string} key the desired global listener key name
+ * 
+ * @returns {object|null} specifying the namespace, name, and type of listener; will return `null` if invalid
+ */
+const parseListenerKey = (key) => {
+  if (typeof key !== 'string' || !stringHasChars(key)) {
+    return null;
+  }
+
+  let target = key.trim().split(':');
+  if (target.length === 2) {
+    key = target[1];
+    target = target[0].split('.');
+    return {
+      name: target?.[1] ?? key,
+      type: key,
+      namespace: target[0],
+    };
+  }
+
+  return {
+    name: target[0],
+    type: target[0],
+    namespace: '__base',
+  };
+}
+
+/**
+ * @param {string|null} namespace optionally specify the global namespace listener key
+ * 
+ * @returns {object} specifying the global listener event(s)
+ */
+const getGlobalListeners = (namespace = null) => {
+  let listeners = window.hasOwnProperty('__globalListeners') ? window.__globalListeners : null;
+  if (!isRecordType(listeners)) {
+    listeners = { };
+    window.__globalListeners = listeners;
+  }
+
+  if (typeof namespace === 'string' && stringHasChars(namespace)) {
+    let group = listeners?.[namespace];
+    if (!group) {
+      group = { };
+      listeners[namespace] = group;
+    }
+
+    return group;
+  }
+
+  return listeners;
+}
+
+/** 
+ * @param {string|object} key either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * 
+ * @returns {boolean} specifying whether a listener exists at the given key
+ */
+const hasGlobalListener = (key) => {
+  let listeners = window.hasOwnProperty('__globalListeners') ? window.__globalListeners : null;
+  if (!isRecordType(listeners)) {
+    return false;
+  }
+
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return false;
+  }
+
+  return !!(listeners?.[key.namespace]?.[key.name]);
+}
+
+/**
+ * @desc utility method to listen to an event relating to a set of elements matched by the given CSS selector
+ * 
+ * @param {string|object}    key      either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * @param {string}           selector a CSS selector to compare against the event target
+ * @param {Function}         callback a callback function to call against each related event target
+ * @param {object}           opts     optionally specify the event listener options; defaults to `undefined`
+ * @param {HTMLElement|null} parent   optionally specify the parent element context; defaults to `document` otherwise
+ * 
+ * @returns {Function} a disposable to cleanup this listener
+ */
+const createGlobalListener = (key, selector, callback, opts = undefined, parent = document) => {
+  if (!stringHasChars(selector) || !isHtmlObject(parent)) {
+    return null;
+  }
+
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return null;
+  }
+
+  let hnd;
+  const listeners = getGlobalListeners(key.namespace);
+
+  const handler = (e) => {
+    const target = e.target;
+    if (!target || !target.matches(selector)) {
+      return;
+    }
+
+    callback(e);
+  };
+
+  const dispose = () => {
+    const prev = listeners?.[key.name];
+    if (!!hnd && prev === hnd) {
+      delete listeners[key.name];
+    }
+
+    parent.removeEventListener(key.type, handler, opts);
+  };
+
+  hnd = { ...key, dispose };
+  listeners[key.name] = hnd;
+
+  parent.addEventListener(key.type, handler, opts);
+  return dispose;
+}
+
+/**
+ * @param {string|object} key either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * 
+ * @returns {boolean} specifying whether a listener was disposed at the given key 
+ */
+const removeGlobalListener = (key) => {
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return false;
+  }
+
+  const listeners = getGlobalListeners(key.namespace);
+  const listenerHnd = listeners?.[key.name];
+  if (!listenerHnd) {
+    return false;
+  }
+
+  listenerHnd.dispose();
+  return true;
+}
+
+/**
   * createElement
-  * @desc Creates an element
-  * @param {string} tag The node tag e.g. div
-  * @param {object} attributes The object's attributes
+  * @desc Creates a DOM element
+  * 
+  * @note
+  * If the `behaviour` property is specified as sanitisation behaviour you should note that it expects _three_ key-value pairs, such that:
+  *   1. `key`   - sanitisation behaviour opts for the key component
+  *   2. `value` - sanitisation behaviour opts for the attribute value component
+  *   3. `html`  - specifies how to sanitise HTML string children
+  * 
+  * @param {string}                 tag The node tag e.g. div
+  * @param {object}          attributes The object's attributes
+  * @param {object|boolean}   behaviour Optionally specify the sanitisation behaviour of attributes; supplying a `true` boolean will enable strict sanitisation
+  * @param {...*}              children Optionally specify the children to be appended to this element
+  * 
   * @returns {node} The created element
   */
-const createElement = (tag, attributes) => {
-  let element = document.createElement(tag);
-  if (attributes !== null) {
-    for (var name in attributes) {
-      if (element[name] !== undefined) {
-        element[name] = attributes[name];
-      } else {
-        element.setAttribute(name, attributes[name]);
+const createElement = (tag, attributes = null, behaviour = null, ...children) => {
+  if (!!behaviour && typeof behaviour === 'boolean') {
+    behaviour = { key: { }, value: { }, html: { USE_PROFILES: { html: true, mathMl: false, svg: true, svgFilters: false } } };
+  }
+
+  let udfSanHtml, ustrSanitise;
+  if (!isRecordType(behaviour)) {
+    behaviour = null;
+    udfSanHtml = { USE_PROFILES: { html: true, mathMl: false, svg: true, svgFilters: false } };
+    ustrSanitise = (_type, value) => value;
+  } else {
+    udfSanHtml = isRecordType(behaviour.udfSanHtml) ? behaviour.udfSanHtml : null;
+    ustrSanitise = (type, value) => {
+      const opts = behaviour?.[type];
+      if (opts) {
+        return strictSanitiseString(value, opts);
       }
+
+      return value;
+    };
+  }
+
+  let element = document.createElement(tag);
+  if (isRecordType(attributes)) {
+    let attr;
+    for (let name in attributes) {
+      name = ustrSanitise('key', name);
+      attr = attributes[name];
+      switch (name) {
+        case 'class': {
+          element.classList.add(ustrSanitise('value', attr));
+        } break;
+
+        case 'className': {
+          element.className = ustrSanitise('value', attr);
+        } break;
+
+        case 'classList': {
+          if (Array.isArray(attr)) {
+            for (let i = 0; i < attr.length; ++i) {
+              element.classList.add(ustrSanitise('value', attr[i]));
+            }
+          } else {
+            element.classList.add(ustrSanitise('value', attr));
+          }
+        } break;
+
+        case 'dataset': {
+          for (let key in attr) {
+            element.dataset[key] = ustrSanitise('value', attr[key]);
+          }
+        } break;
+
+        case 'attributes': {
+          for (let key in attr) {
+            element.setAttribute(key, ustrSanitise('value', attr[key]));
+          }
+        } break;
+
+        case 'text':
+        case 'innerText': {
+          element.textContent = attr;
+        } break;
+
+        case 'html':
+        case 'innerHTML': {
+          let res;
+          if (typeof attr === 'string') {
+            res = parseHTMLFromString(attr.trim(), !udfSanHtml, udfSanHtml);
+          } else if (isRecordType(attr)) {
+            const src = attr.src;
+            if (typeof src !== 'string') {
+              break;
+            }
+
+            const ignore = !!attr.noSanitise;
+            const params = Array.isArray(attr.sanitiseArgs) ? attr.sanitiseArgs : [];
+            res = parseHTMLFromString.apply(null, [src.trim(), ignore, ...params]);
+          }
+
+          if (Array.isArray(res)) {
+            for (let i = 0; i < res.length; ++i) {
+              if (!isHtmlObject(res[i])) {
+                continue;
+              }
+
+              element.appendChild(res[i]);
+            }
+          }
+        } break;
+
+        case 'style': {
+          let value, priority;
+          if (isRecordType(attr)) {
+            for (let key in attr) {
+              value = ustrSanitise('value', attr[key]);
+              priority = value.indexOf(CLU_CSS_IMPORTANT);
+              if (priority > 0) {
+                value = value.substring(priority, priority + CLU_CSS_IMPORTANT.length - 1);
+                priority = 'important';
+              } else {
+                priority = value?.[3];
+              }
+              element.style.setProperty(key, value, priority);
+            }
+          } else if (Array.isArray(attr) && attr.length >= 2) {
+            value = ustrSanitise('value', attr[0]);
+            priority = value.indexOf(CLU_CSS_IMPORTANT);
+            if (priority > 0) {
+              attr = value.substring(priority, priority + CLU_CSS_IMPORTANT.length - 1);
+              priority = 'important';
+            } else {
+              priority = attr?.[3];
+            }
+
+            element.style.setProperty(value, attr[1], priority);
+          } else if (typeof attr === 'string') {
+            element.style.cssText = ustrSanitise('value', attr);
+          }
+        } break;
+
+        case 'childNodes': {
+          if (Array.isArray(attr)) {
+            for (let i = 0; i < attr.length; ++i) {
+              element.appendChild(attr[i])
+            }
+          } else {
+            element.appendChild(attr);
+          }
+        } break;
+
+        case 'parent': {
+          attr.appendChild(element);
+        } break;
+
+        default: {
+          if (name.startsWith('on') && typeof attr === 'function') {
+            element.addEventListener(name.substring(2), attr);
+          } else if (!element.hasOwnProperty(name) || name.startsWith('data-')) {
+            element.setAttribute(name, ustrSanitise('value', attr));
+          } else {
+            element[name] = ustrSanitise('value', attr);
+          }
+        } break;
+      }
+    }
+  }
+
+  let child;
+  for (let i = 0; i < children.length; ++i) {
+    child = children[i];
+    if (typeof child === 'string' || typeof child === 'number') {
+      child = document.createTextNode(child);
+    }
+
+    if (isHtmlObject(child)) {
+      element.appendChild(child);
     }
   }
 
@@ -337,7 +694,7 @@ const getCookie = (name) => {
   }
 
   return cookieValue;
-};
+}
 
 /**
   * getCurrentHost
@@ -494,6 +851,14 @@ const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
 const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;
 
 /**
+ * stringHasChars
+ * @desc checks if a `string` has any number of characters aside from whitespace chars
+ * @param {string} value the value to consider
+ * @returns {boolean} specifying whether the `string` has chars
+ */
+const stringHasChars = (value) => !isNullOrUndefined(value) && value.length && value.replace(/\s/g, '').length;
+
+/**
  * clearAllChildren
  * @desc removes all children from a node
  * @param {node} element the node to remove
@@ -518,7 +883,7 @@ const redirectToTarget = (elem) => {
   if (!target) {
     return;
   }
-  
+
   window.location.href = strictSanitiseString(target);
 }
 
@@ -655,7 +1020,7 @@ const getDeltaDiff = (lhs, rhs) => {
       if (diff.length > 0) {
         filtered.push(...diff.map(([i, ...val]) => [`${key} ${i}`, ...val]));
       }
-      
+
       return filtered;
     }
 
@@ -663,7 +1028,7 @@ const getDeltaDiff = (lhs, rhs) => {
       filtered.push([key, 'created', rhs[key]]);
       return filtered;
     }
-    
+
     if (key in lhs && !(key in rhs)) {
       filtered.push([key, 'deleted', lhs[key]]);
       return filtered;
@@ -723,7 +1088,6 @@ const waitForElement = (selector) => {
     observer.observe(document.body, { childList: true, subtree: true });
   });
 }
-
 
 /**
  * onElementRemoved
@@ -811,23 +1175,32 @@ const hideLoader = () => {
 /**
  * startLoadingSpinner
  * @desc instantiate a loading spinner, either within an element or at the root <body/>
- * @param {node|null} container the container - if null, uses the <body/>
+ * 
+ * @param {node|null} container   optionally specify the container - if null, uses the <body/>
+ * @param {boolean}   fillContent optionally specify whether to apply the absolute fill style; defaults to `false`
+ * 
  * @returns {node} the spinner element or its container - whichever is topmost
  */
-const startLoadingSpinner = (container) => {
-
+const startLoadingSpinner = (container, fillContent = false) => {
   let spinner;
   if (isNullOrUndefined(container)) {
     container = document.body;
 
     spinner = createElement('div', {
       className: 'loading-spinner',
-      innerHTML: '<div class="loading-spinner__icon"></div>'
+      childNodes: [
+        createElement('div', { className: 'loading-spinner__icon' })
+      ],
+    });
+  } else if (fillContent) {
+    spinner = createElement('div', {
+      className: 'loading-spinner loading-spinner--absolute',
+      childNodes: [
+        createElement('div', { className: 'loading-spinner__icon' })
+      ],
     });
   } else {
-    spinner = createElement('div', {
-      className: 'loading-spinner__icon',
-    });
+    spinner = createElement('div', { className: 'loading-spinner__icon' });
   }
   container.appendChild(spinner)
 
@@ -897,7 +1270,6 @@ const hasFixedElementSize = (element, axes = undefined) => {
 
   return results;
 }
-
 
 /**
  * isElementSizeExplicit
@@ -1102,4 +1474,88 @@ const linkifyText = (
   }
 
   return source;
-};
+}
+
+/**
+ * @desc a type-guard for `HTMLElement` | `HTMLNode` objects
+ * 
+ * @param {*}      obj         some DOM element to consider
+ * @param {string} desiredType optionally specify the type, expects one of `element` | `node` | `any`; defaults to `Any`
+ * 
+ * @returns {boolean} specifies whether the given obj is a `HTMLElement` | `HTMLNode` as specified by the `desiredType` param
+ */
+const isHtmlObject = (obj, desiredType = 'Any') => {
+  if (isNullOrUndefined(obj)) {
+    return false;
+  }
+
+  if (typeof desiredType !== 'string') {
+    desiredType = 'Any';
+  }
+
+  desiredType = desiredType.toLowerCase();
+  if (desiredType.startsWith('html')) {
+    desiredType = desiredType.substring(4);
+  }
+
+  let condition;
+  switch (desiredType) {
+    case 'node': {
+      condition = typeof Node === 'object'
+        ? obj instanceof Node
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string';
+    } break;
+
+    case 'element': {
+      condition = typeof HTMLElement === 'object'
+        ? obj instanceof HTMLElement
+        : typeof obj === 'object' && obj.nodeType === 1 && typeof obj.nodeName === 'string';
+    } break;
+
+    case 'any':
+    default: {
+      condition = (typeof Node === 'object' && typeof HTMLElement === 'object')
+        ? (obj instanceof Node || obj instanceof HTMLElement)
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string';
+    } break;
+  }
+
+  return !!condition;
+}
+
+/**
+ * @desc determines element visibility
+ * @note does not check client window intersection
+ * 
+ * @param {HTMLElement} elem some DOM element to evaluate
+ * 
+ * @returns {boolean} specifies whether the elem is currently rendered
+ */
+const isVisibleObj = (elem) => {
+  if (!isHtmlObject(elem, 'element')) {
+    return false;
+  }
+
+  try {
+    if (window.checkVisibility) {
+      return elem.checkVisibility({
+        opacityProperty: true,
+        visibilityProperty: true,
+        contentVisibilityAuto: true,
+      });
+    }
+
+    const style = document.defaultView.getComputedStyle(elem);
+    return (
+      style.width !== '0' &&
+      style.height !== '0' &&
+      style.display != 'none' &&
+      style.visibility !== 'hidden' &&
+      Number(style.opacity) > 0
+    );
+  }
+  catch {
+    // Default true on failure
+    return true;
+  }
+}

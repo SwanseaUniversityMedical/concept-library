@@ -979,7 +979,7 @@ export default class OntologySelectionService {
       });
 
       let component = parseHTMLFromString(html, true);
-      component = ontologyContainer.appendChild(component.body.children[0]);
+      component = ontologyContainer.appendChild(component[0]);
 
       let active = parseInt(component.getAttribute('data-source')) === activeId;
       if (active) {
@@ -1048,7 +1048,7 @@ export default class OntologySelectionService {
           });
 
           let component = parseHTMLFromString(html, true);
-          component = component.body.children[0];
+          component = component[0];
           
           const btn = component.querySelector('[data-target="delete"]');
           btn.addEventListener('click', this.#handleDeleteButton.bind(this));
@@ -1143,13 +1143,12 @@ export default class OntologySelectionService {
           });
 
           let component = parseHTMLFromString(html, true);
-          component = ontologyList.appendChild(component.body.children[0]);
+          component = ontologyList.appendChild(component[0]);
         }
 
         let html = interpolateString(this.templates.value, { label: label });
-
         let component = parseHTMLFromString(html, true);
-        component = ontologyList.appendChild(component.body.children[0]);
+        component = ontologyList.appendChild(component[0]);
       }
     }
 

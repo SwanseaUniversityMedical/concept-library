@@ -203,7 +203,7 @@ class ModalFactory {
       const html = interpolateString(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content, size: size });
       const doc = parseHTMLFromString(html, true);
       const currentHeight = window.scrollY;
-      const modal = document.body.appendChild(doc.body.children[0]);
+      const modal = document.body.appendChild(doc[0]);
       const container = modal.querySelector('.target-modal__container');
 
       let footer;
@@ -221,7 +221,7 @@ class ModalFactory {
         for (let i = 0; i < buttons.length; ++i) {
           let button = buttons[i];
           let item = parseHTMLFromString(button.html, true);
-          item = footer.appendChild(item.body.children[0]);
+          item = footer.appendChild(item[0]);
           item.innerText = button.name;
           item.setAttribute('aria-label', button.name);
   
@@ -237,7 +237,7 @@ class ModalFactory {
         document.body.classList.remove('modal-open');
         window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
         modal.remove();
-        history.pushState("", document.title, window.location.pathname + window.location.search);
+        history.pushState('', document.title, window.location.pathname + window.location.search);
         this.modal = null;
 
         if (!method) {

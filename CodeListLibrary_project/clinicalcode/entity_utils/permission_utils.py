@@ -2,8 +2,11 @@
 from functools import wraps
 from django.db import connection
 from django.conf import settings
+from rest_framework import status as RestHttpStatus
 from django.db.models import Q, Model
 from django.core.exceptions import PermissionDenied
+from rest_framework.exceptions import APIException, MethodNotAllowed, NotAuthenticated
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from django.contrib.auth.models import Group
 
 import inspect
@@ -37,13 +40,13 @@ def redirect_readonly(fn):
 			PermissionDenied
 
 		Example:
-		```py
-		from clinicalcode.entity_utils import permission_utils
+			```py
+			from clinicalcode.entity_utils import permission_utils
 
-		@permission_utils.redirect_readonly
-		def some_view_func(request):
-			pass
-		```
+			@permission_utils.redirect_readonly
+			def some_view_func(request):
+				pass
+			```
 	"""
 	@wraps(fn)
 	def wrap(request, *args, **kwargs):
@@ -70,20 +73,20 @@ def brand_admin_required(fn):
 			PermissionDenied
 
 		Example:
-		```py
-		from django.utils.decorators import method_decorator
+			```py
+			from django.utils.decorators import method_decorator
 
-		from clinicalcode.entity_utils import permission_utils
+			from clinicalcode.entity_utils import permission_utils
 
-		@method_decorator([permission_utils.brand_admin_required, *other_decorators])
-		def some_view_func(request):
-			pass
+			@method_decorator([permission_utils.brand_admin_required, *other_decorators])
+			def some_view_func(request):
+				pass
 
-		# Or...
-		@permission_utils.brand_admin_required
-		def some_view_func(request):
-			pass
-		```
+			# Or...
+			@permission_utils.brand_admin_required
+			def some_view_func(request):
+				pass
+			```
 	"""
 	@wraps(fn)
 	def wrap(request, *args, **kwargs):
@@ -106,17 +109,154 @@ def brand_admin_required(fn):
 	return wrap
 
 
+'''REST Permission Classes'''
+class IsReadOnlyRequest(BasePermission):
+	"""
+		Ensures that a request is one of `GET`, `HEAD`, or `OPTIONS`.
+
+		Raises:
+			MethodNotAllowed (405)
+
+		Example:
+			```py
+			from rest_framework.views import APIView
+			from rest_framework.response import Response
+			from rest_framework.decorators import decorators
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@schema(None)
+			class SomeEndpoint(APIView):
+				permission_classes = [permission_utils.IsReadOnlyRequest]
+
+				def get(self, request):
+					return Response({ 'message': 'Hello, world!' })
+			```
+	"""
+	ERR_STATUS_CODE = RestHttpStatus.HTTP_405_METHOD_NOT_ALLOWED
+	ERR_REQUEST_MSG = (
+		'Method Not Allowed: ' + \
+		'Expected read only method of type `GET`, `HEAD`, `OPTIONS` but got `%s`'
+	)
+
+	def has_permission(self, request, view):
+		method = request.method
+		if not method in SAFE_METHODS:
+			raise MethodNotAllowed(
+				method=method,
+				detail=self.ERR_REQUEST_MSG % method,
+				code=self.ERR_STATUS_CODE
+			)
+
+		return True
+
+class IsReadOnlyOrNotGateway(BasePermission):
+	"""
+		Ensures that a request is either (a) read-only or (b) not being made from a TRE read-only site.
+
+		.. Note::
+			- A request must be one of `GET`, `HEAD`, or `OPTIONS` to be considered `ReadOnly`;
+			- TRE read-only sites are declared as such by the deployment environment variables.
+
+		Raises:
+			MethodNotAllowed (405)
+
+		Example:
+			```py
+			from rest_framework.views import APIView
+			from rest_framework.response import Response
+			from rest_framework.decorators import decorators
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@schema(None)
+			class SomeEndpoint(APIView):
+				permission_classes = [permission_utils.IsReadOnlyOrNotGateway]
+
+				def get(self, request):
+					return Response({ 'message': 'Hello, world!' })
+			```
+	"""
+	ERR_STATUS_CODE = RestHttpStatus.HTTP_405_METHOD_NOT_ALLOWED
+	ERR_REQUEST_MSG = (
+		'Method Not Allowed: ' + \
+		'Only methods of type `GET`, `HEAD`, `OPTIONS` are accessible from the ReadOnly site, ' + \
+        'request of type `%s` is not allowed.'
+	)
+
+	def has_permission(self, request, view):
+		method = request.method
+		if not request.method in SAFE_METHODS and settings.CLL_READ_ONLY:
+			raise MethodNotAllowed(
+				method=method,
+				detail=self.ERR_REQUEST_MSG % method,
+				code=self.ERR_STATUS_CODE
+			)
+
+		return True
+
+class IsBrandAdmin(BasePermission):
+	"""
+		Ensures that the request user is authorised as a Brand Administrator for the request's Brand context.
+
+		.. Note::
+			Requests made by superusers will always granted regardless of Brand context.
+
+		Raises:
+			| Error          | Status | Reason                                                                         |
+            |----------------|--------|--------------------------------------------------------------------------------|
+            | Unauthorised   |    401 | If the request user is anonymous/hasn't supplied auth token                    |
+            | Forbidden      |    403 | If the request user is _not_ a known Brand Administrator                       |
+            | Not Acceptable |    406 | If the request user is attempting to access the Dashboard for an unknown Brand |
+
+		Example:
+			```py
+			from rest_framework.views import APIView
+			from rest_framework.response import Response
+			from rest_framework.decorators import decorators
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@schema(None)
+			class SomeEndpoint(APIView):
+				permission_classes = [permission_utils.IsBrandAdmin]
+
+				def get(self, request):
+					return Response({ 'message': 'Hello, world!' })
+			```
+	"""
+	def has_permission(self, request, view):
+		user = request.user if hasattr(request, 'user') and not request.user.is_anonymous else None
+		if user is None:
+			raise NotAuthenticated
+
+		if user.is_superuser:
+			return True
+
+		brand = request.BRAND_OBJECT if hasattr(request, 'BRAND_OBJECT') else None
+		if not isinstance(brand, Brand) or brand.id is None:
+			raise APIException(detail='Could not resolve Brand context', code=RestHttpStatus.HTTP_406_NOT_ACCEPTABLE)
+
+		administrable = user.administeredbrands_set \
+			.filter(id=brand.id, is_administrable=True) \
+			.exists()
+
+		if not administrable:
+			raise PermissionDenied
+
+		return True
+
+
 '''Render helpers'''
 def should_render_template(template=None, **kwargs):
     """
-        Method to det. whether a template should be renderable
-        based on its `hide_on_create` property
+        Method to det. whether a template should be renderable based on its `hide_on_create` property.
 
         Args:
             template {model}: optional parameter to check a model instance directly
 
             **kwargs (any): params to use when querying the template model
-        
+
         Returns:
             A boolean reflecting the renderable status of a template model
 
