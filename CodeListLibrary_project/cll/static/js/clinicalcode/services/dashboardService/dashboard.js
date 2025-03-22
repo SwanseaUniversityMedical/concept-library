@@ -79,15 +79,36 @@ export class DashboardService {
    *                                   *
    *************************************/
   #initialise(opts) {
-    this.#state = { page: opts.page };
-    this.#collectPage(opts.element);
+    let element = opts.element;
+    if (typeof element === 'string') {
+      element = document.querySelector(element);
+    }
 
+    if (!isHtmlObject(element)) {
+      throw new Exception('InitError: Failed to resolve DashboardService element');
+    }
+
+    this.#state = { page: opts.page };
+    this.element = element;
+    this.#collectPage();
+
+    // Init event listeners
     const eventHandler = this.#eventHandler.bind(this);
-    this.element.addEventListener('dashboard', eventHandler, false);
+    element.addEventListener('dashboard', eventHandler, false);
+
+    // Initialise managers
+    this.#disposables.push(
+      manageNavigation(
+        this.#handleNavigation.bind(this),
+        element
+      ),
+      managePlugins(element),
+      managePopoverMenu(),
+    );
 
     /* TEMP */
     const token = getCookie('csrftoken');
-    fetch('/HDRN/dashboard/stats-summary', {
+    fetch('/dashboard/stats-summary', {
       method: 'GET',
       credentials: 'same-origin',
       withCredentials: true,
@@ -134,16 +155,7 @@ export class DashboardService {
     });
   }
 
-  #collectPage(element) {
-    if (typeof element === 'string') {
-      element = document.querySelector(element);
-    }
-
-    if (!isHtmlObject(element)) {
-      throw new Exception('InitError: Failed to resolve DashboardService element');
-    }
-    this.element = element;
-
+  #collectPage() {
     const layout = document.querySelectorAll('[id^="app-"]');
     const templates = document.querySelectorAll('template[data-for="dashboard"]');
 
@@ -173,15 +185,5 @@ export class DashboardService {
 
       group[name] = elem;
     }
-
-    // Initialise managers
-    this.#disposables.push(
-      manageNavigation(
-        this.#handleNavigation.bind(this),
-        element
-      ),
-      managePlugins(element),
-      managePopoverMenu(),
-    );
   }
 };

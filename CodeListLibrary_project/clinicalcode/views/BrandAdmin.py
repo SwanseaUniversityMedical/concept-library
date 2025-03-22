@@ -109,8 +109,8 @@ class BrandDashboardView(TemplateView):
 
 		.. Context::
 
-		``administrators``
-			A :py:class:`QuerySet` of :model:`auth.User`s who can administrate this instance.
+		``logo_path``
+			A (str) specifying the static path to the branded logo
 
 		.. Template::
 

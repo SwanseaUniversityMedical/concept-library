@@ -53,8 +53,15 @@ class TooltipFactory {
    * @param {string} direction optionally specify the direction of the tooltip when active [right, left, up, down]; defaults to `data-tipdirection` if not specified, or `right` if that fails
    */
   addElement(elem, tip = null, direction = null) {
+    let trg = elem.getAttribute('data-tiptarget');
+    if (trg === 'parent') {
+      trg = elem.parentNode;
+    } else {
+      trg = elem;
+    }
+
     const uuid = generateUUID();
-    elem.setAttribute('data-tooltip', uuid);
+    trg.setAttribute('data-tooltip', uuid);
 
     if (typeof tip !== 'string') {
       tip = elem.getAttribute('data-tipcontent');
@@ -62,7 +69,6 @@ class TooltipFactory {
 
     tip = strictSanitiseString(tip);
     if (!stringHasChars(tip)) {
-      console.log(tip);
       return;
     }
 
@@ -79,7 +85,6 @@ class TooltipFactory {
 
     const showTooltip = () => {
       if (isNullOrUndefined(tooltip)) {
-        console.log('bruh', tooltip);
         return;
       }
 
@@ -93,8 +98,7 @@ class TooltipFactory {
                     .shift();
       height = height || 0;
 
-      const rect = elem.getBoundingClientRect();
-      console.log(tooltip, tip);
+      const rect = trg.getBoundingClientRect();
       switch (direction) {
         case 'up': {
           tooltip.style.left = `${rect.left + rect.width / 2}px`;
@@ -162,9 +166,9 @@ class TooltipFactory {
     };
     this.#handlers[uuid] = methods;
 
-    elem.addEventListener('mouseenter', methods.enter);
-    elem.addEventListener('mouseleave', methods.leave);
-    elem.addEventListener('contextmenu', methods.longpress);
+    trg.addEventListener('mouseenter', methods.enter);
+    trg.addEventListener('mouseleave', methods.leave);
+    trg.addEventListener('contextmenu', methods.longpress);
   }
 
   /**
