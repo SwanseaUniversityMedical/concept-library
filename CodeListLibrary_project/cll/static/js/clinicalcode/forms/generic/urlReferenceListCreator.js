@@ -161,6 +161,8 @@ export default class UrlReferenceListCreator {
     e.stopPropagation();
 
     const textItem = strictSanitiseString(this.textInput.value);
+    this.textInput.value = textItem;
+
     if (!this.textInput.checkValidity() || isNullOrUndefined(textItem) || isStringEmpty(textItem)) {
       window.ToastFactory.push({
         type: 'danger',

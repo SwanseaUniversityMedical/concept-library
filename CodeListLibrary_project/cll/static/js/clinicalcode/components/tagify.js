@@ -136,6 +136,13 @@ export default class Tagify {
    * @return {object} Returns a tag object
    */
   addTag(name, value) {
+    if (!stringHasChars(name)) {
+      return false;
+    }
+
+    name = strictSanitiseString(name);
+    value = typeof value === 'string' ? strictSanitiseString(value) : value;
+
     if (this.options.restricted) {
       const index = this.options.items.map(e => e.name.toLocaleLowerCase()).indexOf(name.toLocaleLowerCase());
       if (index < 0) {
@@ -248,7 +255,7 @@ export default class Tagify {
    */
   #onFocusLost(e) {
     this.#deselectHighlighted();
-    
+
     const target = e.relatedTarget;
     if (target && target.classList.contains('autocomplete-item')) {
       const name = target.getAttribute('data-name');
@@ -518,7 +525,10 @@ export default class Tagify {
     const tag = createElement('div', {
       'className': 'tag',
       'data-value': value,
-      'innerHTML': `<span class="tag__name">${name}</span><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button>`
+      'innerHTML': {
+        src: `<span class="tag__name">${name}</span><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button>`,
+        noSanitise: true,
+      }
     });
 
     this.tagbox.insertBefore(tag, this.field);
@@ -529,7 +539,7 @@ export default class Tagify {
     });
 
     if (this.options.showTooltips) {
-      window.TooltipFactory.addTooltip(tag.querySelector('button'), 'Remove Tag', 'left');
+      window.TooltipFactory.addElement(tag.querySelector('button'), 'Remove Tag', 'up');
     }
 
     this.#updateElement();
@@ -629,7 +639,7 @@ export default class Tagify {
 
       const text = createElement('span', {
         'className': 'autocomplete-item__title',
-        'innerHTML': data.name,
+        'innerText': data.name,
       });
 
       item.appendChild(text);

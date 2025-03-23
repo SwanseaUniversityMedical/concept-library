@@ -52,7 +52,11 @@ urlpatterns = [
 
     # Brand
     ## Brand Administration
-    url(r'^dashboard/$', BrandAdmin.BrandDashboard.as_view(), name=BrandAdmin.BrandDashboard.reverse_name),
+    url(r'^dashboard/$', BrandAdmin.BrandDashboardView.as_view(), name=BrandAdmin.BrandDashboardView.reverse_name),
+    url(r'^dashboard/brand/$', BrandAdmin.BrandConfigurationView.as_view(), name=BrandAdmin.BrandConfigurationView.reverse_name),
+    url(r'^dashboard/people/$', BrandAdmin.BrandPeopleView.as_view(), name=BrandAdmin.BrandPeopleView.reverse_name),
+    url(r'^dashboard/inventory/$', BrandAdmin.BrandInventoryView.as_view(), name=BrandAdmin.BrandInventoryView.reverse_name),
+    url(r'^dashboard/stats-summary/$', BrandAdmin.BrandStatsSummaryView.as_view(), name=BrandAdmin.BrandStatsSummaryView.reverse_name),
 
     # GenericEnities (Phenotypes)
     ## Search

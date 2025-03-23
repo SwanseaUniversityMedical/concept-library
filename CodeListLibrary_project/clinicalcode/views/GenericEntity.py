@@ -11,8 +11,7 @@ from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from django.views.generic import TemplateView
 from django.http.response import HttpResponse, JsonResponse, Http404
-from django.core.exceptions import BadRequest
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import BadRequest, PermissionDenied
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import schema

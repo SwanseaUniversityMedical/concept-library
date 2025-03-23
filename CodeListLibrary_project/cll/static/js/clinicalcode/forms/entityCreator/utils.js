@@ -839,8 +839,10 @@ export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates MDE components
   'md-editor': (field, packet) => {
     const handler = packet.handler;
-    const value = handler.editor.value();
-    
+
+    let value = handler.editor.value();
+    value = typeof value === 'string' ? strictSanitiseString(value) : '';
+
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(value) || isStringEmpty(value)) {
         return {

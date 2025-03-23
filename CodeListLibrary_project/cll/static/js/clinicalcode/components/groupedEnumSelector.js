@@ -212,6 +212,6 @@ export default class GroupedEnum {
     </div>`
 
     const doc = parseHTMLFromString(html, true);
-    return this.element.appendChild(doc.body.children[0]);
+    return this.element.appendChild(doc[0]);
   }
 }

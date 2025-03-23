@@ -89,6 +89,12 @@ class Brand(TimeStampedModel):
         return named_brands
 
     @staticmethod
+    def all_asset_rules(cached=True):
+        '''
+        '''
+        pass
+
+    @staticmethod
     def all_vis_rules(cached=True):
         """
             Resolves all Brand content visibility rules
@@ -116,15 +122,20 @@ class Brand(TimeStampedModel):
 
 
     '''Instance methods'''
+    def get_asset_rules(self, cached=False, default=None):
+        '''
+        '''
+        pass
+
     def get_vis_rules(self, cached=False, default=None):
         """
-            Attempts to resolve this Brand's `content-visibility` override attribute
+            Attempts to resolve this Brand's `content_visibility` override attribute
 
             Note:
-                A Brand's `content-visibility` may be one of: <br/>
+                A Brand's `content_visibility` may be one of: <br/>
 
                 a.) A "_falsy_" value, _e.g._ a `None` or `False` value, in which:
-                    - Falsy values specifies that no `content-visibility` rules should be applied;
+                    - Falsy values specifies that no `content_visibility` rules should be applied;
                     - _i.e._ that all content should be visible.
 
                 b.) Or, a `Literal` `str` value of either (a) `self` or (b) `allow_null`, such that:
@@ -139,10 +150,10 @@ class Brand(TimeStampedModel):
 
             Args:
                 cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `False`
-                default (Any): optionally specify the default return value if the `content-visibility` attr is undefined; defaults to `None`
+                default (Any): optionally specify the default return value if the `content_visibility` attr is undefined; defaults to `None`
 
             Returns:
-                This Brand's `content-visibility` rule if applicable, otherwise returns the specified `default` value
+                This Brand's `content_visibility` rule if applicable, otherwise returns the specified `default` value
         """
         # Handle case where instance has yet to be saved
         if self.id is None:
@@ -155,7 +166,7 @@ class Brand(TimeStampedModel):
             return vis_rules.get('value')
 
         vis_rules = getattr(self, 'overrides')
-        vis_rules = vis_rules.get('content-visibility') if isinstance(vis_rules, dict) else None
+        vis_rules = vis_rules.get('content_visibility') if isinstance(vis_rules, dict) else None
         if isinstance(vis_rules, bool) and vis_rules:
             vis_rules = { 'ids': [self.id], 'allow_null': False }
         if isinstance(vis_rules, str):
@@ -188,7 +199,7 @@ class Brand(TimeStampedModel):
                 }
             else:
                 vis_rules = default
-        elif isinstance(vis_rules, (None, bool)) and not vis_rules:
+        elif (vis_rules is None or isinstance(vis_rules, bool)) and not vis_rules:
             vis_rules = default
 
         if cached:

@@ -570,6 +570,40 @@ else:
 
 # ==============================================================================#
 
+''' Easyaudit settings '''
+
+# Ignores `Request` event signals in favour of custom implementation
+#
+#   Note:
+#     - See custom override setting(s) below, prefixed `OVERIDE_EASY_AUDIT_*``
+#
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+# Overrides `Request` event signal URL registration
+OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
+    # The following URL patterns will be ignored for all branded sites
+    'all_brands': [
+        # Ignore non-consumer usage
+        r'^/admin/',
+        r'^/adminTemp/',
+        r'^/moderation/',
+
+        # Ignore healthchecks
+        r'^/api/v1/health'
+
+        # Ignore bots & crawlers 
+        r'^/sitemap.xml',
+        r'^/robots.txt',
+
+        # Ignore static file requests
+        r'^/media/',
+        r'^/static/',
+        r'^/favicon.ico',
+    ],
+}
+
+# ==============================================================================#
+
 ''' Installed application settings '''
 
 # General settings
