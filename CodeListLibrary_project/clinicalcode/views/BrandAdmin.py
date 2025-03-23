@@ -194,6 +194,11 @@ class BrandStatsSummaryView(APIView):
 		cache.set(cache_key, { 'value': summary }, self.CACHE_TIMEOUT)
 		return summary
 
+	def __resolve_assets(self, brand):
+		'''
+		'''
+		pass
+
 	def __compute_summary(self, brand):
 		"""
 		Attempts to compute the statistics summary for the specified Brand
@@ -209,7 +214,7 @@ class BrandStatsSummaryView(APIView):
 
 			These can be modified by overrides defined for each brand, _e.g._ ...
 				- HDRN: `{"stats_context": "^/HDRN.*$"}`
-				- HDRUK: `{"stats_context": "^(?!/HDRN)", "content_visibility": {"allow_null": true, "allowed_brands": [1, 3, 2]}}`
+				- HDRUK: `{"stats_context": "^(?!/HDRN)", "content_visibility": {"allow_null": true, "allowed_brands": [1, 2, 3]}}`
 
 		Args:
 			brand (:model:`Brand`|None): the Request-specified Brand context

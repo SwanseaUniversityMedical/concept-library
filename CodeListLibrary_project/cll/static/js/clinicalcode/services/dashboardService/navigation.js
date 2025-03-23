@@ -3,12 +3,16 @@
  *  - navigation menu selection;
  *  - events relating to the `.dashboard-nav-toggle` class.
  * 
- * @param {Function|any} callback optionally specify the menu item click handler
- * @param {HTMLElement}  parent   optionally specify the parent `HTMLElement`
+ * @param {object}       param0          navigation behaviour opts
+ * @param {Function|any} param0.callback optionally specify the menu item click handler
+ * @param {HTMLElement}  param0.parent   optionally specify the parent `HTMLElement`
  * 
  * @returns {Function} a disposable to clean up the navigation interaction handlers
  */
-export const manageNavigation = (callback = (e, ref) => { }, parent = document) => {
+export const manageNavigation = ({
+  callback = (e, ref) => { },
+  parent = document
+} = { }) => {
   const disposables = [];
 
   const menuDisposable = createGlobalListener(

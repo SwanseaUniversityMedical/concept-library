@@ -37,9 +37,9 @@ export const closePopovers = (managed, target) => {
 /**
  * @desc initialises & manages events relating to the `.popover-menu` class
  * 
- * @param {object} param0
- * @param {parent}        param0.parent             optionally a HTMLElement in which to find popover menu item(s); defaults to `document`
- * @param {Function|null} param0.menuCallback       optionally specify a callback to be called when a menu item is clicked; defaults to `null`
+ * @param {object}        param0                    popover behaviour opts
+ * @param {HTMLElement}   param0.parent             optionally a HTMLElement in which to find popover menu item(s); defaults to `document`
+ * @param {Function|null} param0.callback           optionally specify a callback to be called when a menu item is clicked; defaults to `null`
  * @param {boolean}       param0.observeMutations   optionally specify whether to observe the addition & removal of popover menu items; defaults to `false`
  * @param {boolean}       param0.observeDescendants optionally specify whether to observe the descendant subtree when observing descendants; defaults to `false`
  * 
@@ -47,9 +47,9 @@ export const closePopovers = (managed, target) => {
  */
 export const managePopoverMenu = ({
   parent = document,
-  menuCallback = null,
-  observeMutations = true,
-  observeDescendants = true,
+  callback = null,
+  observeMutations = false,
+  observeDescendants = false,
 } = {}) => {
   const managed = [];
   const popoverMenus = parent.querySelectorAll('[data-controlledby="popover-menu"]');
@@ -103,7 +103,7 @@ export const managePopoverMenu = ({
   disposables.push(popoverDisposable);
 
   // Initialise menu listener (if applicable)
-  if (typeof menuCallback === 'function') {
+  if (typeof callback === 'function') {
     const menuDisposable = createGlobalListener(
       'popover.toggle:click',
       '[data-controlledby="popover-menu"] [data-role="menu"] [data-role="button"]',
@@ -124,7 +124,7 @@ export const managePopoverMenu = ({
           return;
         }
 
-        menuCallback(e, group, (trg) => closePopovers(managed, trg));
+        callback(e, group, (trg) => closePopovers(managed, trg));
       }
     );
     disposables.push(menuDisposable);

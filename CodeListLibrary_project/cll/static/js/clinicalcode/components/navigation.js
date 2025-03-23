@@ -219,7 +219,7 @@ const manageBrandTargets = () => {
     isProductionRoot = ['true', '1'].indexOf(isProductionRoot.toLowerCase()) >= 0;
   }
 
-  const handleBrandTarget = (e) => getBrandUrlTarget(brandTargets, isProductionRoot, e.target, oldRoot, path);
+  const handleBrandTarget = (e) => getBrandTargetURL(brandTargets, isProductionRoot, e.target, oldRoot, path);
   for (const element of elements) {
     element.addEventListener('click', handleBrandTarget);
   }

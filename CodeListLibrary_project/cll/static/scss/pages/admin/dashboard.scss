@@ -92,6 +92,10 @@ body {
 }
 
 .as-icon {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+
   &:before {
     content: attr(data-icon);
     font-size: var(--icons-size);
@@ -160,7 +164,7 @@ body {
   }
 
   & a, button {
-    appearance: unset;
+    @include remove-appearance;
     @include clear-anchor();
   }
 
@@ -246,11 +250,16 @@ body {
     }
 
     & a, button {
+      @include ignore-user();
       pointer-events: none;
       width: fit-content;
 
       & .as-icon {
         margin-right: 1rem;
+      }
+  
+      &:not(:disabled):not([disabled]):active {
+        @include prefix(transform, scale(0.95), webkit moz o);
       }
     }
 
@@ -431,10 +440,10 @@ body {
       @include flex-col(0.5rem, true);
       width: 100%;
       height: 100%;
-      max-width: 100%;
-      max-height: calc(100% - 2rem);
+      max-width: calc(100% - 4px);
+      max-height: calc(100% - 2rem - 2px);
       margin: 0;
-      padding: 0;
+      padding: 2px 4px;
       justify-content: flex-start;
       overflow-x: hidden;
       overflow-y: auto;
@@ -442,19 +451,21 @@ body {
       list-style-position: inside;
   
       &-item {
-        appearance: unset;
+        @include remove-appearance;
         @include clear-anchor();
+        @include ignore-user();
 
         @include flex-row(0.5rem, true);
-        width: calc(100% - 2em);
+        width: calc(100% - 1rem);
         align-items: center;
         justify-content: flex-start;
         vertical-align: middle;
         margin: 0;
-        padding: 0.25rem 0 0 0.25rem;
+        padding: 0.25rem;
         list-style: none;
-        color: $mostly_black;
+        color: $lightblack-grey;
         font-size: 1.2em;
+        font-weight: bold;
 
         & span {
           pointer-events: none;
@@ -470,15 +481,12 @@ body {
           }
         }
 
-        &[data-active="true"] {
-          font-weight: bold;
-        }
-
         & [data-role="icon"] {
           display: none;
           width: 100%;
           text-align: center;
           vertical-align: middle;
+          @include prefix(transition, transform 200ms ease-out, webkit moz);
 
           &:before {
             width: 45px;
@@ -487,12 +495,30 @@ body {
           }
         }
 
+        & [data-role="label"] {
+          @include flex-row(0.5rem, false);
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        &[data-active="true"] {
+          color: $mostly_black;
+
+          & [data-role="icon"] {
+            @include prefix(transform, scale(1.5), webkit moz o);
+          }
+
+          & [data-role="label"] {
+            font-size: 1.1em;
+          }
+        }
+
         &:not(:disabled):not([disabled]):hover {
-          color: $dark_grey;
+          color: $near-black;
         }
 
         &:not(:disabled):not([disabled]):focus-visible {
-          color: $dark_grey;
+          color: $near-black;
           @include focusable-item;
         }
       }
@@ -523,7 +549,8 @@ body {
         align-items: center;
   
         &-item {
-          width: 100%;
+          width: calc(100% - 0.5em);
+          padding: 0;
   
           & [data-role="label"] {
             display: none;
@@ -558,7 +585,7 @@ body {
   }
 
   &__btn {
-    appearance: unset;
+    @include remove-appearance;
     @include clear-anchor();
 
     display: inline-block;
@@ -608,6 +635,7 @@ body {
     justify-content: center;
     overflow: visible;
     min-height: 1rem;
+    z-index: 999;
 
     &--split-bar {
       justify-content: space-between;
@@ -742,7 +770,8 @@ body {
         align-items: center;
 
         &-item {
-          width: 100%;
+          width: calc(100% - 0.5em);
+          padding: 0;
   
           & [data-role="label"] {
             display: none;
@@ -779,7 +808,6 @@ body {
       left: 0.25rem;
       width: calc(100% - 1.5rem);
       padding: 0.5rem;
-      z-index: 2;
       background-color: $white;
     }
 

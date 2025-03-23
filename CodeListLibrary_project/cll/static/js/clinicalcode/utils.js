@@ -51,10 +51,23 @@ const
    * @desc important suffix for DOM styling
    * @type {string}
    */
-  CLU_CSS_IMPORTANT = 'important!';
+  CLU_CSS_IMPORTANT = 'important!',
+  /**
+   * CLU_ORIGIN_TYPE
+   * @desc URL origin descriptor enum
+   * @readonly
+   * @enum {string}
+   */
+  CLU_ORIGIN_TYPE = {
+    Unknown   : 'Unknown',
+    Malformed : 'Malformed',
+    Empty     : 'Empty',
+    Internal  : 'Internal',
+    External  : 'External',
+  };
 
 
-/* METHODS */
+/* UTILITIES */
 
 /**
  * getObjectClassName
@@ -754,7 +767,7 @@ const getBrandedHost = () => {
 }
 
 /**
- * getBrandUrlTarget
+ * getBrandTargetURL
  * @desc Returns the brand URL target for management redirect buttons (used in navigation menu)
  * @param {string[]} brandTargets an array of strings containing the brand target names
  * @param {boolean} productionTarget a boolean flag specifying whether this is a production target
@@ -763,7 +776,7 @@ const getBrandedHost = () => {
  * @param {string} path the window's location href
  * @returns {string} the target URL
  */
-const getBrandUrlTarget = (brandTargets, productionTarget, element, oldRoot, path) =>{
+const getBrandTargetURL = (brandTargets, productionTarget, element, oldRoot, path) =>{
   const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
   const pathTarget = path.split('/').slice(pathIndex).join('/');
 
@@ -839,7 +852,7 @@ const isNullOrUndefined = (value) => typeof value === 'undefined' || value === n
  * @returns {boolean} determines whether the value is (a) undefined; or (b) empty
  * 
  */
-const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
+const isStringEmpty = (value) => typeof value !== 'string' || !value.length;
 
 /**
  * isStringWhitespace
@@ -848,7 +861,7 @@ const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
  * @returns {boolean} reflecting whether the string contains only whitespace
  * 
  */
-const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;
+const isStringWhitespace = (value) => typeof value !== 'string' || !value.replace(/\s/g, '').length;
 
 /**
  * stringHasChars
@@ -856,7 +869,7 @@ const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;
  * @param {string} value the value to consider
  * @returns {boolean} specifying whether the `string` has chars
  */
-const stringHasChars = (value) => !isNullOrUndefined(value) && value.length && value.replace(/\s/g, '').length;
+const stringHasChars = (value) => typeof value === 'string' && value.length && value.replace(/\s/g, '').length;
 
 /**
  * clearAllChildren
@@ -1474,6 +1487,190 @@ const linkifyText = (
   }
 
   return source;
+}
+
+/**
+ * @desc determines whether the specified URL is malformed or not
+ * 
+ * @param {string|any} url some URL to evaluate
+ * 
+ * @returns {boolean} specifying whether this URL is valid
+ */
+const isValidURL = (url) => {
+  if (!stringHasChars(url)) {
+    return false;
+  }
+
+  try {
+    url = new URL(url);
+  } catch {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @desc determines the origin of the URL, i.e. whether it's external or internal
+ * @note this function may resolve a `CLU_ORIGIN_TYPE.Empty` or `CLU_ORIGIN_TYPE.Malformed` value if the URL is empty/malformed
+ * 
+ * @param {string|any} url some URL to evaluate
+ * 
+ * @returns {enum<string>} a `CLU_ORIGIN_TYPE` descriptor
+ */
+const getOriginTypeURL = (url, forceBrand = true) => {
+  if (!stringHasChars(url)) {
+    return CLU_ORIGIN_TYPE.Empty;
+  }
+
+  let target, malformed;
+  try {
+    target = new URL(url);
+    return target.origin !== window.location.origin ? CLU_ORIGIN_TYPE.External : CLU_ORIGIN_TYPE.Internal;
+  } catch {
+    malformed = true;
+  }
+
+  if (malformed) {
+    try {
+      if (forceBrand) {
+        target = new URL(url, getBrandedHost());
+      } else {
+        target = new URL(url, getCurrentURL())
+      }
+
+      return target.origin !== window.location.origin ? CLU_ORIGIN_TYPE.External : CLU_ORIGIN_TYPE.Internal;
+    }
+    catch {
+      return CLU_ORIGIN_TYPE.Malformed;
+    }
+  }
+
+  return CLU_ORIGIN_TYPE.Internal;
+}
+
+/**
+ * @desc determines whether the given URL is absolute/relative
+ * @note where:
+ *  - relative → _e.g._ `/some/path/` or `some/path`;
+ *  - absolute → _e.g._ `https://some.website/some/path` _etc_.
+ * 
+ * @param {string} url some URL to evaluate
+ * 
+ * @returns {boolean} specifying whether the given URL is absolute
+ */
+const isAbsoluteURL = (url) => {
+  return /^(?:[a-z]+:)?\/\//i.test(url);
+}
+
+/**
+ * @desc opens the specified link on the client
+ * @note attempts to replicate client content navigation via `<a/>` tags
+ * 
+ * @param {HTMLElement|string} link                either (a) some node specifying a `[href] | [data-link]` or (b) a `string` URL
+ * @param {object}             param1              navigation optuions
+ * @param {string|null}        param1.rel          optionally specify the `[rel]` attribute assoc. with this link; defaults to `null`
+ * @param {string|null}        param1.target       optionally specify the `[target]` attribute assoc. with this link; defaults to `null`
+ * @param {boolean}            param1.forceBrand   optionally specify whether to ensure that the Brand target is applied to the final URL; defaults to `true`
+ * @param {boolean}            param1.followEmpty  optionally specify whether empty links (i.e. towards index page) can be followed; defaults to `true`
+ * @param {boolean}            param1.allowNewTab  optionally specify whether `target=__blank` behaviour is allowed; defaults to `true`
+ * @param {boolean}            param1.metaKeyDown  optionally specify whether to navigate as if the meta key is held (_i.e._ ctrl + click); defaults to `false`
+ * @param {Event|null}         param1.relatedEvent optionally specify some DOM `Event` relating to this method (used to derive `ctrlKey` | `metaKey`); defaults to `null`
+ * 
+ * @returns 
+ */
+const tryNavigateLink = (link, {
+  rel = null,
+  target = null,
+  forceBrand = true,
+  followEmpty = true,
+  allowNewTab = true,
+  metaKeyDown = false,
+  relatedEvent = null,
+} = {}) => {
+  let url;
+  if (isHtmlObject(link)) {
+    url = link.getAttribute('href');
+    if (typeof url === 'string') {
+      rel = rel ?? link.getAttribute('rel');
+      target = target ?? link.getAttribute('target');
+    } else {
+      url = link.getAttribute('data-link');
+      if (url) {
+        rel = rel ?? link.getAttribute('data-linkrel');
+        target = target ?? link.getAttribute('data-linktarget');
+      }
+    }
+  } else if (typeof link === 'string') {
+    url = link;
+  }
+
+  if (typeof url !== 'string') {
+    return false;
+  }
+
+  const originType = getOriginTypeURL(url, forceBrand);
+  if (originType === 'Malformed' || (originType === 'Empty' && !followEmpty)) {
+    return false;
+  }
+
+  if (forceBrand && (originType === 'Internal' || originType === 'Empty')) {
+    let brandedHost = getBrandedHost();
+    brandedHost = new URL(brandedHost);
+
+    const absolute = isAbsoluteURL(url);
+    if (!absolute) {
+      const hasSlash = url.startsWith('/');
+      url = new URL(url, brandedHost.origin);
+
+      if (hasSlash || originType === 'Empty') {
+        const prefix = getCurrentBrandPrefix();
+        if (!url.pathname.startsWith(prefix)) {
+          url = new URL(prefix + url.pathname + url.search + url.hash, brandedHost.origin);
+        }
+      } else {
+        let path = getCurrentURL();
+        if (!path.endsWith('/')) {
+          path += '/';
+        }
+
+        url = new URL(path + url.pathname.substring(1) + url.search + url.hash);
+      }
+    } else {
+      url = new URL(url, brandedHost.origin);
+      if (url.origin === CLU_DOMAINS.HDRUK && url.origin !== brandedHost.origin) {
+        url = new URL(url.pathname + url.search + url.hash, brandedHost.origin);
+      }
+    }
+  } else if (originType === 'Internal' || originType === 'Empty') {
+    const absolute = isAbsoluteURL(url);
+    if (!absolute) {
+      if (!url.startsWith('/')) {
+        let path = getCurrentURL();
+        if (!path.endsWith('/')) {
+          path += '/';
+        }
+  
+        url = new URL(url, getCurrentHost());
+        url = new URL(path + url.pathname.substring(1) + url.search + url.hash);
+      } else {
+        url = new URL(url, getCurrentHost());
+      }
+    } else {
+      url = new URL(url);
+    }
+  } else {
+    url = new URL(url);
+  }
+
+  const metaActive = metaKeyDown || (!!relatedEvent && (relatedEvent.ctrlKey || relatedEvent.metaKey));
+  if (allowNewTab && (target === '__blank' || metaActive)) {
+    window.open(url.href, '_blank', rel);
+    return true;
+  }
+
+  window.location = url.href;
+  return true;
 }
 
 /**

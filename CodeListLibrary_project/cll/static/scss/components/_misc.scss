@@ -35,6 +35,7 @@
 
   &--absolute {
     position: absolute;
+    z-index: 99;
   }
 
   &__icon {

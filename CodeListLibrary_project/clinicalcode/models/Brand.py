@@ -89,6 +89,12 @@ class Brand(TimeStampedModel):
         return named_brands
 
     @staticmethod
+    def all_asset_rules(cached=True):
+        '''
+        '''
+        pass
+
+    @staticmethod
     def all_vis_rules(cached=True):
         """
             Resolves all Brand content visibility rules
@@ -116,6 +122,11 @@ class Brand(TimeStampedModel):
 
 
     '''Instance methods'''
+    def get_asset_rules(self, cached=False, default=None):
+        '''
+        '''
+        pass
+
     def get_vis_rules(self, cached=False, default=None):
         """
             Attempts to resolve this Brand's `content_visibility` override attribute

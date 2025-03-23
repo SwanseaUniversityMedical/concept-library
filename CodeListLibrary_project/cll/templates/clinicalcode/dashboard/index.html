@@ -50,7 +50,7 @@
             aria-label="See Overview"
             tabindex="0"
             role="button"
-            data-ref="summary"
+            data-ref="overview"
             data-active="true"
             data-controlledby="navigation"
           >
@@ -204,15 +204,15 @@
           <div class="popover-menu__popover" aria-live="off" aria-hidden="true" data-role="menu">
             <div class="popover-menu__popover-content">
               {% url 'concept_library_home' as home_url %}
-              <a
-                href="{{ home_url }}"
+              <button
                 title="Go to Home"
                 aria-label="Go to Home"
                 data-role="button"
+                data-link="{{ home_url }}"
               >
                 <span class="as-icon" data-icon="&#xf015;" aria-hidden="true"></span>
                 Home
-              </a>
+              </button>
               <form method="post" action="{% url 'logout' %}?next={% url 'search_phenotypes' %}">
                 {% csrf_token %}
                 <button

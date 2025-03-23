@@ -5,6 +5,31 @@ import { manageNavigation } from './navigation.js';
 import { managePopoverMenu } from './popoverMenu.js';
 
 /**
+ * Todo:
+ *  1. Page state
+ * 
+ *  2. Overview
+ *    -> Activity: render API data
+ *    -> Quick Access: Collect known editable data assets editable per brand
+ * 
+ *  3. People
+ *    -> People API fetch & render
+ *    -> Ability to create / edit user(s)
+ * 
+ *  4. Organisations
+ *    -> Organisation API fetch & render
+ *    -> Ability to create / modify organisation(s)
+ * 
+ *  5. Brand
+ *    -> Brand API fetch & render
+ *    -> Modify Brand data
+ * 
+ *  6. Inventory
+ *    -> Allow creation + editing of assets per `Quick Access` view
+ *
+ */
+
+/**
  * Class to serve & manage Dashboard page content
  * 
  * @class
@@ -18,7 +43,10 @@ export class DashboardService {
 
   element = null;
 
-  #state = null;
+  #state = {
+    initialised: false,
+  };
+
   #layout = {};
   #templates = {};
   #disposables = [];
@@ -35,6 +63,18 @@ export class DashboardService {
    *              Public               *
    *                                   *
    *************************************/
+  openPage(target) {
+    const state = this.#state;
+    if (state.page === target && state.initialised) {
+      return;
+    }
+
+    state.page = target;
+    state.initialised = true;
+
+    console.log('open', '->', target);
+  }
+
   dispose() {
     let disposable;
     for (let i = this.#disposables.length; i > 0; i--) {
@@ -47,16 +87,20 @@ export class DashboardService {
     }
   }
 
-  openPage(pageName) {
-
-  }
 
   /*************************************
    *                                   *
    *              Private              *
    *                                   *
    *************************************/
-
+  #toggleNavElement(target) {
+    const items = this.#layout.nav.querySelectorAll('[data-controlledby="navigation"]');
+    for (let i = 0; i < items.length; ++i) {
+      const btn = items[i];
+      const ref = btn.getAttribute('data-ref');
+      btn.setAttribute('data-active', ref === target);
+    }
+  }
 
 
   /*************************************
@@ -68,8 +112,18 @@ export class DashboardService {
     console.log(e);
   }
 
-  #handleNavigation(e, menuName) {
-    console.log(menuName)
+  #handleNavigation(e, targetName) {
+    this.#toggleNavElement(targetName);
+    this.openPage(targetName);
+  }
+
+  #handlePopoverMenu(e, _group, _closeHnd) {
+    const btn = e.target;
+
+    const link = btn.getAttribute('data-link');
+    if (typeof link === 'string') {
+      tryNavigateLink(btn, { relatedEvent: e });
+    }
   }
 
 
@@ -88,7 +142,7 @@ export class DashboardService {
       throw new Exception('InitError: Failed to resolve DashboardService element');
     }
 
-    this.#state = { page: opts.page };
+    this.#state = mergeObjects(this.#state, { page: opts.page }, false);
     this.element = element;
     this.#collectPage();
 
@@ -98,12 +152,19 @@ export class DashboardService {
 
     // Initialise managers
     this.#disposables.push(
-      manageNavigation(
-        this.#handleNavigation.bind(this),
-        element
-      ),
-      managePlugins(element),
-      managePopoverMenu(),
+      manageNavigation({
+        parent: element,
+        callback: this.#handleNavigation.bind(this),
+      }),
+      managePlugins({
+        parent: element,
+        observeMutations: true,
+        observeDescendants: true,
+      }),
+      managePopoverMenu({
+        parent: element,
+        callback: this.#handlePopoverMenu.bind(this),
+      }),
     );
 
     /* TEMP */
