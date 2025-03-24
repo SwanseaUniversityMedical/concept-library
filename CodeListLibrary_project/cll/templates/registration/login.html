@@ -21,10 +21,10 @@
 
   <main class="main-content">
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
-      <div class="login-container">
-        <div class="login-container__info-container">
-          <div class="login-container__info-container__content">
-            <div class="login-container__info-container__section">
+      <div class="account-container">
+        <div class="account-container__info-container">
+          <div class="account-container__info-container__content">
+            <div class="account-container__info-container__section">
               <h2>Request an Account</h2>
 							<p>
 								We're registering users by request at the moment. If you would like to
@@ -34,7 +34,7 @@
 								</a>
 							</p>
             </div>
-            <div class="login-container__info-container__section">
+            <div class="account-container__info-container__section">
               <h2>Terms and Conditions</h2>
 							<p>
 								Please explore our terms and conditions 
@@ -44,7 +44,7 @@
 								prior to accessing the site.
 							</p>
             </div>
-            <div class="login-container__info-container__section">
+            <div class="account-container__info-container__section">
               <h2>Privacy & Cookie Policy</h2>
 							<p>
 								Please explore our privacy and cookie policy 
@@ -56,7 +56,7 @@
             </div>
           </div>
         </div>
-        <div class="login-container__form-container">
+        <div class="account-container__form-container">
 					<h1>Login</h1>
           <form method="post" action="{% url 'login' %}">
 						<input type="hidden" name="next" value="{{ next }}" />
@@ -90,7 +90,7 @@
 								 required />
             </div>
 
-						<div class="login-container__form-container__options-container">
+						<div class="account-container__form-container__options-container">
 							<div class="checkbox-item-container">
 								<input class="checkbox-item"
 											id="login-remember" 
@@ -111,7 +111,7 @@
 							{% endif %}
 						</div>
 
-            <div class="login-container__form-container__submit-container">
+            <div class="account-container__form-container__submit-container">
               {% csrf_token %}
               <button class="primary-btn text-accent-darkest bold tertiary-accent sweep-left" 
 											id="save-changes"
@@ -124,5 +124,5 @@
         </div>
       </div>
     </div>
-
+	</main>
 {% endblock container %}

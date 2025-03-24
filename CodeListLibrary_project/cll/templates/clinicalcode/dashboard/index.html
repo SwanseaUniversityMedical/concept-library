@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load entity_renderer %}
+
+{% block title %}| Dashboard{% endblock title %}
+
+{% block indexing_robots %}{% endblock indexing_robots %}
+
+{% block head %}
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/admin/dashboard.scss' %}" type="text/css" />
+  {% endcompress %}
+  {% compress js %}
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
+  {% endcompress js %}
+{% endblock head %}
+
+{% block navigation_wrapper %}{% endblock navigation_wrapper %}
+
+{% block container %}
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/services/dashboardService/index.js' %}"></script>
+  {% endcompress js %}
+
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+  <main id="app" class="dashboard-layout dashboard-layout--constrained">
+
+    <!-- Navigation Content -->
+    <nav id="app-nav" class="dashboard-nav" data-ref="aside-bar" data-open="true">
+      <header class="dashboard-nav__header">
+        <img
+          class="dashboard-nav__header-logo"
+          loading="lazy"
+          src="{% static logo_path %}" />
+        <h1>
+          Dashboard
+        </h1>
+      </header>
+      <section class="dashboard-nav__targets">
+        <h2 role="heading" aria-level="5">
+          Navigation
+        </h2>
+        <section class="dashboard-nav__targets-list">
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="See Overview"
+            aria-label="See Overview"
+            tabindex="0"
+            role="button"
+            data-ref="overview"
+            data-active="true"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf03a;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="See Overview"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf03a;" aria-hidden="true"></span>
+              Overview
+            </span>
+          </a>
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="Manage People"
+            aria-label="Manage People"
+            tabindex="0"
+            role="button"
+            data-ref="people"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf007;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="Manage People"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf007;" aria-hidden="true"></span>
+              People
+            </span>
+          </a>
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="Manage Organisations"
+            aria-label="Manage Organisations"
+            tabindex="0"
+            role="button"
+            data-ref="organisations"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf500;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="Manage Organisations"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf500;" aria-hidden="true"></span>
+              Organisations
+            </span>
+          </a>
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="Manage Inventory"
+            aria-label="Manage Inventory"
+            tabindex="0"
+            role="button"
+            data-ref="inventory"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf0ce;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="Manage Inventory"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf0ce;" aria-hidden="true"></span>
+              Inventory
+            </span>
+          </a>
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="Manage Brand Configuration"
+            aria-label="Manage Brand Configuration"
+            tabindex="0"
+            role="button"
+            data-ref="brand-config"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf013;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="Manage Brand Configuration"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf013;" aria-hidden="true"></span>
+              Brand Config
+            </span>
+          </a>
+        </section>
+      </section>
+    </nav>
+
+    <!-- Main View -->
+    <section id="app-main" class="dashboard-view slim-scrollbar">
+
+      <!-- Topbar Navigation -->
+      <header id="app-header" class="dashboard-view__header dashboard-view__header--split-bar">
+        <div id="app-bar" class="dashboard-nav-toggle" data-controlledby="nav-toggle" data-toggle="aside-bar">
+          <img
+            class="dashboard-nav-toggle__logo"
+            loading="lazy"
+            src="{% static logo_path %}"
+          />
+          <a
+            class="dashboard-nav-toggle__btn"
+            title="Toggle Navigation"
+            aria-label="Toggle Navigation Menu"
+            aria-live="off"
+            tabindex="0"
+            role="button"
+            data-role="toggle"
+          >
+          </a>
+        </div>
+        <div class="popover-menu" data-controlledby="popover-menu">
+          <a
+            class="popover-menu__controls"
+            title="Toggle Account Menu"
+            aria-label="Toggle Account Menu"
+            aria-live="off"
+            tabindex="0"
+            role="button"
+            data-role="toggle"
+          >
+            <span class="popover-menu__controls-user">
+              {{ request.user.username }}
+            </span>
+            <span class="as-icon" data-icon="&#xf007;" aria-hidden="true"></span>
+          </a>
+          <div class="popover-menu__popover" aria-live="off" aria-hidden="true" data-role="menu">
+            <div class="popover-menu__popover-content">
+              {% url 'concept_library_home' as home_url %}
+              <button
+                title="Go to Home"
+                aria-label="Go to Home"
+                data-role="button"
+                data-link="{{ home_url }}"
+              >
+                <span class="as-icon" data-icon="&#xf015;" aria-hidden="true"></span>
+                Home
+              </button>
+              <form method="post" action="{% url 'logout' %}?next={% url 'search_phenotypes' %}">
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  title="Sign out"
+                  aria-label="Sign out"
+                  data-role="button"
+                >
+                  <span class="as-icon" data-icon="&#xf2f5;" aria-hidden="true"></span>
+                  Sign out
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Renderable Content -->
+      <section id="app-content" class="dashboard-view__content">
+
+        <!-- Activity -->
+        <article class="dashboard-view__content-group dashboard-view__content--fill-w">
+          <h2 id="activity" class="dashboard-view__content-title" role="heading" aria-level="1">
+            Activity
+          </h2>
+          <section class="dashboard-view__content-stats slim-scrollbar">
+            <article class="card">
+              <header class="card__header">
+                <h3>Phenotypes Created</h3>
+                <span class="as-icon as-icon--warning" data-icon="&#xf234;" aria-hidden="true"></span>
+              </header>
+              <p class="card__desc">
+                No. of Phenotypes created in the last 7 days.
+              </p>
+              <figure class="card__data">
+                19
+              </figure>
+              <footer class="card__footer">
+                <time datetime="2021-11-24T20:00:00">
+                  <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
+                  20/12/2012, 03:00:00
+                </time>
+              </footer>
+            </article>
+            <article class="card">
+              <header class="card__header">
+                <h3>Phenotypes Edited</h3>
+                <span class="as-icon as-icon--warning" data-icon="&#xf4ff;" aria-hidden="true"></span>
+              </header>
+              <p class="card__desc">
+                No. of times Phenotypes were edited in the last 7 days.
+              </p>
+              <figure class="card__data">
+                19
+              </figure>
+              <footer class="card__footer">
+                <time datetime="2021-11-24T20:00:00">
+                  <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
+                  20/12/2012, 03:00:00
+                </time>
+              </footer>
+            </article>
+            <article class="card">
+              <header class="card__header">
+                <h3>Phenotypes Published</h3>
+                <span class="as-icon as-icon--warning" data-icon="&#xf02d;" aria-hidden="true"></span>
+              </header>
+              <p class="card__desc">
+                No. of Phenotypes Published in the last 7 days.
+              </p>
+              <figure class="card__data">
+                <div class="loading-cover loading-cover--min-htext"></div>
+              </figure>
+              <footer class="card__footer">
+                <div class="loading-cover loading-cover--min-htext"></div>
+              </footer>
+            </article>
+          </section>
+        </article>
+
+      </section>
+
+    </section>
+  </main>
+
+  <template data-name="group" data-for="dashboard">
+    <article class="dashboard-view__content-group ${articleCls}">
+      <h2 id="${id}" class="dashboard-view__content-title" role="heading" aria-level="${level}">
+       ${title}
+      </h2>
+      <section class="${sectionCls}">
+        ${content}
+      </section>
+    </article>
+  </template>
+
+  <template data-name="card" data-for="dashboard">
+    <article class="card">
+      <header class="card__header">
+        <h3>${name}</h3>
+        <span class="as-icon ${iconCls}" data-icon="${icon}" aria-hidden="true"></span>
+      </header>
+      <p class="card__desc">
+        ${desc}
+      </p>
+      <figure class="card__data">
+        ${content}
+      </figure>
+      <footer class="card__footer">
+        ${footer}
+      </footer>
+    </article>
+  </template>
+
+  <template data-name="icon" data-for="dashboard">
+    <span class="as-icon ${cls}" data-icon="${icon}" aria-hidden="true"></span>
+  </template>
+
+  <template data-name="time" data-for="dashboard">
+    <time datetime="${datetime}">
+      <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
+      ${datefmt}
+    </time>
+  </template>
+{% endblock container %}
+
+{% block footer_wrapper %}
+  {% with hide_footer=True %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock footer_wrapper %}
+
+{% block cookie_wrapper %}{% endblock cookie_wrapper %}

@@ -3,6 +3,7 @@
 {% load static %}
 {% load compress %}
 {% load sass_tags %}
+{% load entity_renderer %}
 
 {% block head %}
   <meta charset="utf-8" />
@@ -13,6 +14,8 @@
 {% block title %}| API Documentation {% endblock title %}
 
 {% block container %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+
   {% compress css %}
     <link rel="stylesheet" href="{% sass_src 'scss/pages/select.scss' %}" type="text/css" />
     <link rel="stylesheet" href="{% sass_src 'scss/pages/swagger.scss' %}" type="text/css" />
@@ -21,12 +24,12 @@
   <div class="api-about">
     <div class="api-about__section">
       <p>
-        The Concept Library team maintain an R and Python package for easy integration into existing research projects, you can find more information here:
+        The {{ base_page_title }} team maintain an R and Python package for easy integration into existing research projects, you can find more information here:
       </p>
       <ul>
         <li><a href="https://github.com/SwanseaUniversityMedical/concept-library-client-r">R package GitHub repository</a></li>
         <li><a href="https://github.com/SwanseaUniversityMedical/pyconceptlibraryclient">Python package GitHub repository</a></li>
-        <li><a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki">Concept Library GitHub wiki</a></li>
+        <li><a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki">{{ base_page_title }} GitHub wiki</a></li>
       </ul>
     </div>
     <div class="api-about__section">

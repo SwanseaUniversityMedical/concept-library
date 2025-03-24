@@ -291,7 +291,7 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 250],
+        "length": [0, 500],
         "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
       },
       "hide_if_empty": true

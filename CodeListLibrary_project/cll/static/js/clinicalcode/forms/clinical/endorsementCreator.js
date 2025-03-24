@@ -245,29 +245,39 @@ export default class endorsementCreator {
     e.stopPropagation();
 
     const endorsement = strictSanitiseString(this.endorsementInput.value);
-    const date = this.element.querySelector(this.options.endorsementDatepickerId);
+
     if (!this.endorsementInput.checkValidity() || isNullOrUndefined(endorsement) || isStringEmpty(endorsement)) {
       window.ToastFactory.push({
         type: 'danger',
-        message: "Incorrect endorsement details provided",
+        message: 'Incorrect endorsement details provided',
         duration: this.options.notificationDuration,
       });
+      this.endorsementInput.value = endorsement;
+
       return;
     }
 
-    if (!date.getAttribute('data-value')) {
+    const picker = this.element.querySelector(this.options.endorsementDatepickerId);
+    const dateValue = picker ? picker.getAttribute('data-value') : null;
+    if (!dateValue) {
+      window.ToastFactory.push({
+        type: 'danger',
+        message: 'Date is required for endorsement',
+        duration: this.options.notificationDuration,
+      });
+
       return;
     }
 
-    this.endorsementInput.value = "";
-    let filteredDate = moment(date.getAttribute('data-value'), ENTITY_ACCEPTABLE_DATE_FORMAT);
+    let filteredDate = moment(dateValue, ENTITY_ACCEPTABLE_DATE_FORMAT);
     filteredDate = filteredDate.isValid() ? filteredDate : moment();
     filteredDate = filteredDate.format('DD/MM/YYYY');
-    this.element.querySelector(this.options.endorsementDatepickerId).setAttribute('data-value',filteredDate);
-    
-    this.data.push({ endorsement_organisation: endorsement, date: date.getAttribute('data-value')});
-    this.makeDirty();
+    picker.setAttribute('data-value', filteredDate);
 
+    this.endorsementInput.value = '';
+    this.data.push({ endorsement_organisation: endorsement, date: filteredDate });
+
+    this.makeDirty();
     this.#redrawendorsements();
   }
 

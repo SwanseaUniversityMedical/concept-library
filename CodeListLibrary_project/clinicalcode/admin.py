@@ -54,10 +54,9 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):
-    list_display = ['name', 'id', 'logo_path', 'owner', 'description']
-    list_filter = ['name', 'description', 'created', 'modified', 'owner']
+    list_filter = ['name', 'description', 'created', 'modified']
+    list_display = ['name', 'id', 'logo_path', 'description']
     search_fields = ['name', 'id', 'description']
-    exclude = ['created_by', 'updated_by']
 
 
 @admin.register(DataSource)

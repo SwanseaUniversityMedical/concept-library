@@ -24,7 +24,6 @@ export const ENTITY_HANDLERS = {
   // Generates a groupedenum component context
   'groupedenum': (element) => {
     const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
-    
     const packet = { };
     for (let i = 0; i < data.length; ++i) {
       let datafield = data[i];
@@ -46,8 +45,12 @@ export const ENTITY_HANDLERS = {
 
   // Generates a tagify component for an element
   'tagify': (element, dataset) => {
-    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
-    
+    const parent = element.parentElement;
+    const data = parent.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    let varyDataVis = parseInt(element.getAttribute('data-vis') ?? '0');
+    varyDataVis = !Number.isNaN(varyDataVis) && Boolean(varyDataVis);
+
     let value = [];
     let options = [];
     for (let i = 0; i < data.length; ++i) {
@@ -87,6 +90,17 @@ export const ENTITY_HANDLERS = {
           }
 
           box.addTag(item.name, item.value);
+        }
+
+        return () => {
+          if (!varyDataVis) {
+            return;
+          }
+
+          const choices = box?.options?.items?.length ?? 0;
+          if (choices < 1) {
+            parent.style.setProperty('display', 'none');
+          }
         }
       }
     }, dataset);
@@ -825,8 +839,10 @@ export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates MDE components
   'md-editor': (field, packet) => {
     const handler = packet.handler;
-    const value = handler.editor.value();
-    
+
+    let value = handler.editor.value();
+    value = typeof value === 'string' ? strictSanitiseString(value) : '';
+
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(value) || isStringEmpty(value)) {
         return {
@@ -1086,6 +1102,13 @@ export const parseAsFieldType = (packet, value) => {
     case 'publication': {
       if (!Array.isArray(value)) {
         valid = false;
+      }
+      break;
+    }
+
+    case 'organisation': {
+      if (value instanceof Number) {
+        valid = true;
       }
       break;
     }

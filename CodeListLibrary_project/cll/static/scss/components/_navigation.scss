@@ -272,7 +272,7 @@
       font-weight: 400;
     }
 
-    @include media("<1250px", "screen") {
+    @include media("<=desktop", "screen") {
       &__icon {
         display: none;
       }
@@ -293,7 +293,7 @@
   }
 }
 
-@include media("<1250px", "screen") {
+@include media("<desktop", "screen") {
   .about-row {
     display: block;
     background-color:var(--phenotype-banner-bg-color);
@@ -352,7 +352,7 @@
   }
 }
 
-@include media("<1250px", "screen") {
+@include media("<desktop", "screen") {
   .avatar-content {
     display: inline-flex;
     align-items: center;
@@ -559,6 +559,12 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   margin: 0;
   z-index: 99998;
 
+  & .search-navigation__search {
+    @media screen and (min-width: 1024px) and (max-width: 1250px) {
+      display: none;
+    }
+  }
+
   &.scrolled {
     box-shadow: var(--navigation-scroll-shadow);
   }
@@ -602,7 +608,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media("<1250px", "screen") {
+  @include media("<desktop", "screen") {
     &__container {
       margin: var(--navigation-mobile-offset) var(--navigation-mobile-gutter);
       width: calc(
@@ -623,7 +629,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     width: auto;
     z-index: 1;
 
-    @include media("<1250px", "screen") {
+    @include media("<desktop", "screen") {
       &:not(.open):after {
         --as-burger: "true";
 
@@ -645,7 +651,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media(">=1250px", "screen") {
+  @include media(">=desktop", "screen") {
     &__items {
       @include flex-row($gap: 1rem);
       height: var(--navigation-height);
@@ -665,7 +671,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media("<1250px", "screen") {
+  @include media("<desktop", "screen") {
     &__items {
       @include flex-col();
 
@@ -697,7 +703,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         right: 1rem;
         visibility: visible;
 
-        @include media("<=1023px", "screen") {
+        @include media("<desktop", "screen") {
           top: -2rem;
           max-width: 100%;
         }

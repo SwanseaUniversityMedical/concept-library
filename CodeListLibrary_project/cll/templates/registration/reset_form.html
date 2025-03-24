@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| {% if form.errors %}Error: {% endif %}Password Reset Confirmation{% endblock %}
+
+{% block container %}
+  <!-- Page Stylesheets -->
+  {% compress css %}
+		<link rel="stylesheet" href="{% sass_src 'scss/pages/login.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  {% if validlink %}
+    <!-- Main -->
+    <header class="main-header">
+    </header>
+
+    <main class="main-content">
+      <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+        <div class="account-container">
+          <div class="account-container__info-container">
+            <div class="account-container__info-container__content">
+              <div class="account-container__info-container__section">
+                <h2>Why did I get this link?</h2>
+                <p>
+                  You may have received this link if you or someone else requested their password to be reset. Please ignore this form and the e-mail if you do not wish to change your password.
+                </p>
+              </div>
+              <div class="account-container__info-container__section">
+                <h2>Terms and Conditions</h2>
+                <p>
+                  Please explore our terms and conditions 
+                  <a href="{% url 'terms' %}">
+                    here
+                  </a>
+                  prior to accessing the site.
+                </p>
+              </div>
+              <div class="account-container__info-container__section">
+                <h2>Privacy & Cookie Policy</h2>
+                <p>
+                  Please explore our privacy and cookie policy 
+                  <a href="{% url 'privacy_and_cookie_policy' %}">
+                    here
+                  </a>
+                  prior to accessing the site.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="account-container__form-container">
+            <h1>Password Reset</h1>
+            <form method="post">
+              <div class="detailed-input-group constrained">
+                <h3 class="detailed-input-group__title">
+                  New Password:
+                  <span class="detailed-input-group__mandatory">*</span>
+                </h3>
+                {% if form.new_password1.errors %}
+                  <div class="detailed-input-group__error" aria-live="true">
+                    {{ form.new_password1.errors }}
+                  </div>
+                {% endif %}
+                <input
+                    id="id_new_password1"
+                    name="new_password1"
+                    type="password"
+                    class="text-input"
+                    autocomplete="new-password"
+                    minlength="8"
+                    autofocus
+                    required
+                    />
+              </div>
+
+              <div class="detailed-input-group constrained">
+                <h3 class="detailed-input-group__title">
+                  Confirm New Password:
+                  <span class="detailed-input-group__mandatory">*</span>
+                </h3>
+                {% if form.new_password2.errors %}
+                  <div class="detailed-input-group__error" aria-live="true">
+                    {{ form.new_password2.errors }}
+                  </div>
+                {% endif %}
+                <input
+                    id="id_new_password2"
+                    name="new_password2"
+                    type="password"
+                    class="text-input"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                    />
+              </div>
+
+              <div class="account-container__form-container__submit-container">
+                {% csrf_token %}
+                <input
+                      id="save-changes"
+                      class="primary-btn text-accent-darkest bold tertiary-accent sweep-left" 
+                      type="submit"
+                      aria-label="Change my password"
+                      value="Change my password">
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  {% else %}
+    {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+    <header class="main-header search-banner">
+      <div
+        class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+        <div class="search-banner__header search-banner__header--pad-bottom-2">
+          <h2 class="search-banner__title">{{ base_page_title }}</h2>
+        </div>
+      </div>
+    </header>
+    <main class="main-content main-content--inner-padding">
+      <div
+          class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+        <p>The password reset link was invalid, possibly because it has already been used. Please request a new password reset.</p>
+        <p>You can do so by:</p>
+        <ul>
+          <li>Requesting a new password reset e-mail <a href="{% url 'password_reset' %}" aria-label="Request a password reset">here</a>;</li>
+          <li>Or by following this link to get back to the <a href="{% url 'concept_library_home' %}">homepage</a>;</li>
+          <li>Or, clicking <a href="javascript:history.back()">here</a> to go back.</li>
+        </ul>
+      </div>
+    </main>
+  {% endif %}
+{% endblock container %}

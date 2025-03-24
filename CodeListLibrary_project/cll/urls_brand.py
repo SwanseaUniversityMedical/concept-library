@@ -21,11 +21,10 @@
 from django.conf import settings
 from django.urls import re_path as url
 from django.urls import include
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.staticfiles.views import serve
+from django.conf.urls.static import static
 from django.views.decorators.cache import cache_control
-from django.views.generic import RedirectView
+from django.contrib.staticfiles.views import serve
 
 #--------------------------------------------------------------------
 # Brands
@@ -44,8 +43,8 @@ urlpatterns = [
     # api
     url(r'^' + current_brand + 'api/v1/', include(('clinicalcode.api.urls', 'cll'), namespace='api')),
 
-    # login
-    url(r'^' + current_brand + 'account/', include('django.contrib.auth.urls')),
+    # account management
+    url(r'^' + current_brand + 'account/', include('clinicalcode.urls_account')),
 
     # app urls
     url(r'^' + current_brand + '', include('clinicalcode.urls')),

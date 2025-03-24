@@ -157,7 +157,7 @@ export default class EntityCreator {
         });
       }
 
-      return this.form?.group?.value;
+      return this.form?.organisation?.value;
     }
 
     return groupId;
@@ -381,7 +381,7 @@ export default class EntityCreator {
         data[key] = value;
       }
     }
-    
+
     // package the data
     const packet = {
       method: this.getFormMethod(),

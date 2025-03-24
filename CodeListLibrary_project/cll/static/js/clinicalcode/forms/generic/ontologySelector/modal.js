@@ -168,7 +168,7 @@ export default class OntologySelectionModal {
     });
 
     let modal = parseHTMLFromString(html, true);
-    modal = document.body.appendChild(modal.body.children[0]);
+    modal = document.body.appendChild(modal[0]);
 
     let buttons = modal.querySelectorAll('#target-modal-footer > button');
     buttons = Object.fromEntries([...buttons].map(elem => {

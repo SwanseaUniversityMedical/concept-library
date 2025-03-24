@@ -43,7 +43,7 @@ def generate_user(create_groups):
                 'view_group_user': View group user instance
                 'edit_group_user': Edit group user instance
     """
-    su_user = User.objects.create_superuser(username='superuser', password='superuserpassword', email=None)
+    su_user = User.objects.create_user(username='superuser', password='superuserpassword', email=None, is_superuser=True, is_staff=True)
     nm_user = User.objects.create_user(username='normaluser', password='normaluserpassword', email=None)
     ow_user = User.objects.create_user(username='owneruser', password='owneruserpassword', email=None)
     gp_user = User.objects.create_user(username='groupuser', password='groupuserpassword', email=None)
@@ -125,7 +125,7 @@ def generate_entity_session(template, generate_user, brands=None):
                 name='TEST_%s_Entity' % status.name,
                 author=user.username,
                 status=ENTITY_STATUS.DRAFT.value,
-                publish_status=APPROVAL_STATUS.ANY.value,
+                publish_status=status.value,
                 template=template,
                 template_version=1,
                 template_data=template_data,

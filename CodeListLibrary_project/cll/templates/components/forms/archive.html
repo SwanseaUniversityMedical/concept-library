@@ -1,3 +1,5 @@
+{% load entity_renderer %}
+
 <form method="post" id="archive-form-area" class="base-form">
   {% csrf_token %}
   {{ form.entity_id }}
@@ -6,7 +8,8 @@
       Please explain why you are deleting this Phenotype
       <span class="detailed-input-group__mandatory">*</span>
     </h3>
-    <p class="detailed-input-group__description">This will only be visible to the Concept Library team</p>
+    {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+    <p class="detailed-input-group__description">This will only be visible to the {{ base_page_title }} team</p>
     {{ form.comments }}
   </div>
   <div class="detailed-input-group fill">

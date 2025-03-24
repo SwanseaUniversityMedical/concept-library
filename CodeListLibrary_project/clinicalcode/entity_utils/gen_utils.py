@@ -1,19 +1,26 @@
 from uuid import UUID
 from json import JSONEncoder
-from functools import wraps
 from typing import Pattern
 from dateutil import parser as dateparser
+from functools import wraps
+from django.http import HttpRequest
+from django.apps import apps
 from django.conf import settings
+from django.db.models import Q, Model
+from django.core.cache import cache
 from django.http.response import JsonResponse
+from rest_framework.request import Request
 from django.core.exceptions import BadRequest
 from django.http.multipartparser import MultiPartParser
 
 import re
 import time
 import json
-import datetime
-import logging
 import urllib
+import inspect
+import hashlib
+import logging
+import datetime
 
 from cll.settings import Symbol
 from . import constants, sanitise_utils
@@ -131,6 +138,83 @@ def try_get_param(request, key, default=None, method='GET'):
     return param
 
 
+def parse_model_field_query(model, params, ignored_fields=None, default=None):
+    """
+        Attempts to parse ORM query fields & desired values for the specified model given the request parameters
+
+        Args:
+            model                                       (Model): the model from which to build the ORM query
+            params         (dict[str, str]|Request|HttpRequest): either the query parameter dict or the request assoc. with this query
+            ignored_fields                          (list[str]): optionally specify a list of fields on the given model to ignore when building the query; defaults to `None`
+            default                                       (Any): optionally specify the default value to return on failure; defaults to `None`
+        
+        Returns:
+            Either (a) a `dict[str, Any]` containing the ORM query, or (b) the specified `default` param if no query could be resolved
+    """
+    ignored_fields = ignored_fields if isinstance(ignored_fields, list) else None
+
+    if not inspect.isclass(model) or not issubclass(model, Model):
+        return default
+
+    if isinstance(params, Request):
+        params = params.query_params
+    elif isinstance(params, HttpRequest):
+        params = params.GET.dict()
+
+    if not isinstance(params, dict):
+        return default
+
+    result = None
+    for field in model._meta.get_fields():
+        field_name = field.name
+        if ignored_fields is not None and field_name in ignored_fields:
+            continue
+
+        value = params.get(field_name)
+        if value is None:
+            continue
+
+        typed = field.get_internal_type()
+        is_fk = typed == 'ForeignKey' and field.auto_created and (field.many_to_one or field.one_to_one)
+        if is_fk:
+            typed = field.target_field.get_internal_type()
+
+        query = None
+        match typed:
+            case 'AutoField' | 'IntegerField' | 'BigAutoField' | 'BigIntegerField':
+                if not is_empty_string(value):
+                    value = parse_as_int_list(value, default=None)
+                    length = len(value) if isinstance(value, list) else 0
+                    if length == 1:
+                        value = value[0]
+                        query = f'{field_name}__eq'
+                    elif length > 1:
+                        value = value
+                        query = f'{field_name}__in'
+                    else:
+                        value = None
+            case 'CharField' | 'TextField':
+                if not is_empty_string(value):
+                    if is_fk:
+                        values = value.split(',')
+                        if len(values) > 1:
+                            value = values
+                            query = f'{field_name}__contained_by'
+
+                    if query is None:
+                        value = str(value)
+                        query = f'{field_name}__icontains'
+            case _:
+                pass
+
+        if query is not None and value is not None:
+            if not isinstance(result, dict):
+                result = { }
+            result[query] = value
+
+    return result if isinstance(result, dict) else default
+
+
 def is_empty_string(value):
     """
         Checks whether a string is empty or contains only spaces
@@ -139,7 +223,7 @@ def is_empty_string(value):
             value (string): the value to check
         
         Returns:
-            boolean
+            A (bool) reflecting whether the value is an empty string and/or contains only spaces
     """
     if value is None:
         return True
@@ -641,6 +725,22 @@ def try_value_as_type(
         if not isinstance(field_value, list):
             return default
         return field_value
+    elif field_type == 'organisation':
+        if isinstance(field_value, str) and not is_empty_string(field_value):
+            org = apps.get_model(app_label='clinicalcode', model_name='Organisation')
+            org = org.objects.filter(Q(name__iexact=field_value) | Q(slug__iexact=field_value))
+            return org.first().pk if org.exists() else default
+        elif isinstance(field_value, int):
+            return field_value
+        return default
+    elif field_type == 'group': # [!] Delete in future
+        if isinstance(field_value, str) and not is_empty_string(field_value):
+            group = apps.get_model(app_label='clinicalcode', model_name='Group')
+            group = group.objects.filter(name__iexact=field_value)
+            return group.first().pk if group.exists() else default
+        elif isinstance(field_value, int):
+            return field_value
+        return default
     elif field_type == 'url_list':
         if not isinstance(field_value, list):
             return default
@@ -724,11 +824,113 @@ def try_value_as_type(
     return field_value
 
 
-def measure_perf(func, show_args=False):
+def cache_resultset(
+    cache_age=3600,
+    cache_params=False,
+    cache_key=None,
+    cache_prefix='rs__',
+    cache_suffix='__ctrg',
+    debug_metrics=False
+):
     """
-        Helper function to estimate view execution time
+        Tries to parse a value as a given type, otherwise returns default
 
-        Ref @ https://stackoverflow.com/posts/62522469/revisions
+        .. Note::
+            - The `debug_metrics` parameter will only log _perf._ metrics if global `DEBUG` setting is active;
+            - Cache prefixes & suffixes are ignored if the `cache_key` param is specified;
+            - Returned values will not be cached if the optionally specified `cache_age` param is less than `1s`;
+            - Cache results are _NOT_ varied by arguments unless the `cache_params` param is flagged `True`.
+
+        Args:
+            cache_age      (int): optionally specify the max age, in seconds, of the callable's cached result; defaults to `3600`
+            cache_params  (bool): optionally specify whether to vary the cache key by the given parameters; defaults to `False`
+            cache_key      (str): optionally specify the key pair name; defaults to `None` - non-string type cache keys are built using the `cache_prefix` and `cache_suffix` args unless specified
+            cache_prefix   (str): optionally specify the cache key prefix; defaults to `rs__`
+            cache_suffix   (str): optionally specify the cache key suffix; defautls to `__ctrg`
+            debug_metrics (bool): optionally specify whether to log performance metrics; defaults to `False`
+
+        Returns:
+            The cached value, if applicable
+    """
+    cache_age = max(cache_age if isinstance(cache_age, int) else 0, 0)
+    has_cache_key = isinstance(cache_key, str) and not is_empty_string(cache_key)
+    debug_metrics = debug_metrics and settings.DEBUG
+
+    def _cache_resultset(func):
+        """
+        Cache resultset decorator
+
+        Args:
+            func (Callable): some callable function to decorate
+
+        Returns:
+            A (Callable) decorator
+        """
+        if not has_cache_key:
+            cache_key = f'{cache_prefix}{func.__name__}'
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if cache_age < 1:
+                return func(*args, **kwargs)
+
+            perf_start = None
+            perf_hashed = None
+            perf_duration = None
+            if debug_metrics:
+                perf_start = time.time()
+
+            if cache_params:
+                key = hashlib.md5(repr([args, kwargs]).encode('utf-8'), usedforsecurity=False).hexdigest()
+                key = '%s__%s%s' % (cache_key, key, '' if has_cache_key else cache_suffix)
+
+                perf_hashed = time.time() if debug_metrics else None
+            else:
+                key = cache_key
+
+            resultset = cache.get(key)
+            if not isinstance(resultset, dict):
+                resultset = func(*args, **kwargs)
+                resultset = { 'value': resultset, 'timepoint': time.time() }
+                cache.set(key, resultset, cache_age)
+
+            resultset = resultset.get('value')
+
+            if debug_metrics:
+                perf_duration = (time.time() - perf_start)*1000
+                if perf_hashed:
+                    perf_hashed = (perf_hashed - perf_start)*1000
+                    logger.info(
+                        ('CachedCallable<func: \'%s\', max-age: %ds> {\n' + \
+                        '  - Key: \'%s\'\n' + \
+                        '  - Perf:\n' + \
+                        '    - Hashed: %.2f ms\n' + \
+                        '    - Duration: %.2f ms\n' + \
+                        '}') % (func.__name__, cache_age, key, perf_hashed, perf_duration)
+                    )
+                else:
+                    logger.info(
+                        ('CachedCallable<func: \'%s\', max-age: %ds> {\n' + \
+                        '  - Key: \'%s\'\n' + \
+                        '  - Duration: %.2f ms\n' + \
+                        '}') % (func.__name__, cache_age, key, perf_duration)
+                    )
+
+            return resultset
+
+        return wrapper
+    return _cache_resultset
+
+
+def measure_perf(func):
+    """
+        Helper decorator to estimate view execution time
+
+        Args:
+            func (Callable): some callable function to decorate
+
+        Returns:
+            A (Callable) decorator
     """
 
     @wraps(func)
@@ -737,10 +939,7 @@ def measure_perf(func, show_args=False):
             start = time.time()
             result = func(*args, **kwargs)
             duration = (time.time() - start) * 1000
-            if show_args:
-                print('view {} takes {:.2f} ms... \n  1. args: {}\n  2.kwargs:{}'.format(func.__name__, duration, args, kwargs))
-            else:
-                print('view {} takes {:.2f} ms'.format(func.__name__, duration))
+            logger.info('View<name: \'%s\', duration: %.2f ms> {\n  1. args: %s\n  2. kwargs: %s\n}\n' % (func.__name__, duration, args, kwargs))
             return result
         return func(*args, **kwargs)
 
