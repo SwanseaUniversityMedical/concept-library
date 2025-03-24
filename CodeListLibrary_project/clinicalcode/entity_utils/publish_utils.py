@@ -163,7 +163,9 @@ def check_organisation_authorities(request):
     organisation_checks = {}
 
     organisation = permission_utils.get_organisation(request)
-     
+    permission_utils.has_brand_other_org(request)
+    
+    
     if organisation:
         organisation_permissions = permission_utils.has_org_authority(request,organisation)
         organisation_user_role = permission_utils.get_organisation_role(request.user,organisation)
