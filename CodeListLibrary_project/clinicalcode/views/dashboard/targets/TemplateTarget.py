@@ -1,25 +1,27 @@
-""""""
-from django.http import Http404
-from rest_framework import status, generics, mixins, serializers
+"""Brand Dashboard: API endpoints relating to Template model"""
+from rest_framework import status, serializers
 from django.utils.timezone import make_aware
-from django.core.exceptions import ValidationError, BadRequest
 from rest_framework.response import Response
 
 import json
 import datetime
 
-from clinicalcode.entity_utils import gen_utils, template_utils, permission_utils
+from .BaseTarget import BaseSerializer, BaseEndpoint
+from clinicalcode.entity_utils import gen_utils, template_utils
 from clinicalcode.models.Brand import Brand
 from clinicalcode.models.Template import Template
 
 
-class TemplateSerializer(serializers.Serializer):
-	""""""
-	id = serializers.IntegerField(read_only=True, required=False)
-	name = serializers.CharField(read_only=True, required=False)
-	description = serializers.CharField(read_only=True, required=False)
-	definition = serializers.JSONField(binary=False, encoder=gen_utils.PrettyPrintOrderedDefinition, required=True, read_only=False)
-	template_version = serializers.IntegerField(read_only=True, required=False)
+class TemplateSerializer(BaseSerializer):
+	"""Responsible for serialising the `Template` model and to handle PUT/POST validation"""
+
+	# Fields
+	id = serializers.IntegerField(label='Id', read_only=True, required=False)
+	name = serializers.CharField(label='Name', read_only=True, required=False)
+	description = serializers.CharField(label='Description', read_only=True, required=False)
+	brands = serializers.ListField(label='Brands', child=serializers.IntegerField(), required=False, allow_null=True, read_only=True)
+	definition = serializers.JSONField(label='Definition', binary=False, encoder=gen_utils.PrettyPrintOrderedDefinition, required=True, read_only=False)
+	template_version = serializers.IntegerField(label='Version', read_only=True, required=False)
 
 	# GET
 	def to_representation(self, instance):
@@ -36,18 +38,10 @@ class TemplateSerializer(serializers.Serializer):
 		data['definition'] = template_utils.get_ordered_definition(definition, clean_fields=True)
 		return data
 
-	# PUT / POST
+	# POST / PUT
 	def create(self, validated_data):
-		return Template.objects.create(**validated_data)
-
-	def update(self, instance, validated_data):
-		definition = validated_data.get('definition', instance.definition)
-
-		order = []
-		for field in definition['fields']:
-			definition['fields'][field]['order'] = len(order)
-			order.append(field)
-		definition['layout_order'] = order
+		user = self._get_user()
+		current_brand = self._get_brand()
 
 		brands = validated_data.get('brands')
 		if isinstance(brands, Brand):
@@ -57,13 +51,51 @@ class TemplateSerializer(serializers.Serializer):
 
 		if isinstance(brands, list):
 			brands = [x.id if isinstance(x, Brand) else x for x in brands if isinstance(x, (Brand, int))]
-			brands = list(set(brands + instance.brands if isinstance(instance.brands, list) else brands))
+			if current_brand and not current_brand.id in brands:
+				brands.append(current_brand.id)
+		elif current_brand:
+				brands = [current_brand.id]
 		else:
-			brands = instance.brands
+			brands = None
+
+		definition = self.__apply_def_ordering(validated_data.get('definition'))
+		validated_data.update({
+			'definition': definition,
+			'brands': brands,
+			'created_by': user,
+			'updated_by': user,
+		})
+
+		return Template.objects.create(**validated_data)
+
+	def update(self, instance, validated_data):
+		current_brand = self._get_brand()
+
+		brands = validated_data.get('brands')
+		if isinstance(brands, Brand):
+			brands = [brands]
+		elif isinstance(brands, int):
+			brands = [brands]
+
+		if isinstance(brands, list):
+			brands = [x.id if isinstance(x, Brand) else x for x in brands if isinstance(x, (Brand, int))]
+			if current_brand and not current_brand.id in brands:
+				brands.append(current_brand.id)
+
+			brands = list(set(brands + instance.brands if isinstance(instance.brands, list) else brands))
+		elif current_brand:
+				brands = [current_brand.id]
+		else:
+			brands = None
+
+		if instance is not None:
+			definition = validated_data.get('definition', instance.definition)
+		else:
+			definition = validated_data.get('definition')
 
 		instance.brands = brands
-		instance.definition = definition
-		instance.updated_by = self.__user()
+		instance.definition = self.__apply_def_ordering(definition)
+		instance.updated_by = self._get_user()
 		instance.modified = make_aware(datetime.datetime.now())
 		instance.save()
 		return instance
@@ -97,73 +129,47 @@ class TemplateSerializer(serializers.Serializer):
 		return data
 
 	# Private utility methods
-	def __user(self, obj):
-		request = self.context.get('request', None)
-		if request:
-			return request.user
-		return None
+	def __apply_def_ordering(self, definition):
+		order = []
+		for field in definition['fields']:
+			definition['fields'][field]['order'] = len(order)
+			order.append(field)
+
+		definition['layout_order'] = order
+		return definition
 
 
-class TemplateEndpoint(
-	generics.GenericAPIView,
-	mixins.RetrieveModelMixin,
-	mixins.UpdateModelMixin,
-	mixins.ListModelMixin,
-	mixins.CreateModelMixin
-):
-	""""""
+class TemplateEndpoint(BaseEndpoint):
+	"""Responsible for API views relating to `Template` model accessed via Brand dashboard"""
 
 	# Metadata
 	model = Template
 	fields = []
 	queryset = Template.objects.all()
-	lookup_field = 'id'
 	serializer_class = TemplateSerializer
 
 	# View behaviour
-	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsBrandAdmin]
 	reverse_name_default = 'brand_template_target'
 	reverse_name_retrieve = 'brand_template_target_with_id'
 
-	# Exclude endpoint(s) from swagger
-	swagger_schema = None
-
 	# Endpoint methods
 	def get(self, request, *args, **kwargs):
-		inst_id = gen_utils.try_value_as_type(kwargs.get('pk', None), 'int')
-		if inst_id is not None:
+		inst_id = kwargs.get('pk', None)
+		if inst_id:
+			inst_id = gen_utils.try_value_as_type(inst_id, 'int')
+			if inst_id is None:
+				return Response(
+					data={ 'detail': 'Expected int-like `pk` parameter' },
+					status=status.HTTP_400_BAD_REQUEST
+        )
+
 			kwargs.update(pk=inst_id)
 			return self.retrieve(request, *args, **kwargs)
-		return Response({ 'list': True })
+
+		return self.list(request, *args, **kwargs)
 
 	def put(self, request, *args, **kwargs):
 		return self.update(request, *args, **kwargs)
 
 	def post(self, request, *args, **kwargs):
 		return self.create(request, *args, **kwargs)
-
-	# Mixin views
-	def retrieve(self, request, *args, **kwargs):
-		instance = self.get_object(*args, *kwargs)
-		serializer = self.get_serializer(instance)
-		return Response(serializer.data)
-
-	def list(self, request, *args, **kwargs):
-		return Response({ })
-
-	# Mixin methods
-	def get_queryset(self, *args, **kwargs):
-		user = self.request.user
-		return self.queryset
-
-	def get_object(self, *args, **kwargs):
-		pk = kwargs.get('pk', self.kwargs.get('pk'))
-		pk = gen_utils.try_value_as_type(pk, 'int')
-		if pk is None:
-			raise BadRequest('Expected int-like `pk` parameter')
-
-		inst = self.get_queryset().filter(pk=pk)
-		if not inst.exists():
-			raise Http404(f'Template of ID `{pk}` does not exist')
-
-		return inst.first()

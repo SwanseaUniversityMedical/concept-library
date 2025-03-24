@@ -803,8 +803,7 @@ def admin_upload_hdrn_assets(request):
         brand = brand.first()
     else:
         brand = Brand.objects.create(
-            name='HDRN',
-
+                name='HDRN',
                 description='Health Data Research Network Canada (HDRN Canada) is a pan-Canadian network of member '
                             'organizations that either hold linkable health and health-related data for entire populations '
                             'and/or have mandates and roles relating directly to access or use of those data. ',
@@ -818,9 +817,8 @@ def admin_upload_hdrn_assets(request):
                      "image_src": "img/Footer_logos/concept_library_on_white.png"},
                     {"url": "http://saildatabank.com", "brand": "SAIL Databank ",
                      "image_src": "img/Footer_logos/SAIL_alt_logo_on_white.png"}
-                ]
-
-
+                ],
+                overrides={"stats_context": "^/HDRN.*$"}
         )
 
     models = {}

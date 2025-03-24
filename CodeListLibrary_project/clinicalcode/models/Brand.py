@@ -92,6 +92,7 @@ class Brand(TimeStampedModel):
     def all_asset_rules(cached=True):
         '''
         '''
+        # TODO
         pass
 
     @staticmethod
@@ -137,49 +138,44 @@ class Brand(TimeStampedModel):
         asset_rules = getattr(self, 'overrides')
         asset_rules = asset_rules.get('assets') if isinstance(asset_rules, dict) else None
         if asset_rules is not None:
+            # TODO
             '''
             [
                 {
                     "name": "Template"
                     "plural": "Templates",
                     "model": "Template",
-                    "table": "clinicalcode_template"
+                    "target": "TemplateTarget"
                 },
                 {
                     "name": "Tag",
                     "plural": "Tags",
                     "model": "Tag",
-                    "table": "clinicalcode_tag",
-                    "filter": {
-                        "tag_type": 1
-                    }
+                    "target": "TagTarget"
                 },
                 {
                     "name": "Collection",
                     "plural": "Collections",
                     "model": "Tag",
-                    "table": "clinicalcode_tag",
-                    "filter": {
-                        "tag_type": 2
-                    }
+                    "target": "CollectionTarget"
                 },
                 {
                     "name": "HDRN Data Asset"
                     "plural": "HDRN Data Assets",
                     "model": "HDRNDataAsset",
-                    "table": "clinicalcode_hdrn_data_asset"
+                    "target": "HDRNDataAssetTarget"
                 },
                 {
                     "name": "HDRN Data Category"
                     "plural": "HDRN Data Categories",
                     "model": "HDRNDataCategory",
-                    "table": "clinicalcode_hdrn_data_category"
+                    "target": "HDRNDataCategoryTarget"
                 },
                 {
                     "name": "HDRN Site"
                     "plural": "HDRN Sites",
                     "model": "HDRNSite",
-                    "table": "clinicalcode_hdrn_site"
+                    "target": "HDRNDataCategoryTarget"
                 }
             ]
             '''
