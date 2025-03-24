@@ -133,7 +133,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
     if not entity_has_data and entity_class == "Workingset":
         allow_to_publish = False
     
-    organisation_checks = check_organisation_authorities(request)
+    organisation_checks = check_organisation_authorities(request,entity)
 
     
     checks = {
@@ -159,13 +159,11 @@ def check_entity_to_publish(request, pk, entity_history_id):
     print(checks)
     return checks
 
-def check_organisation_authorities(request):
+def check_organisation_authorities(request,entity):
     organisation_checks = {}
 
-    organisation = permission_utils.get_organisation(request)
-    permission_utils.has_brand_other_org(request)
-    
-    
+    organisation = entity.organisation
+
     if organisation:
         organisation_permissions = permission_utils.has_org_authority(request,organisation)
         organisation_user_role = permission_utils.get_organisation_role(request.user,organisation)
