@@ -8,6 +8,10 @@ import { managePopoverMenu } from './popoverMenu.js';
  * Todo:
  *  1. Page state
  * 
+ *  2. Renderables
+ *    -> Views: collect from Model method?
+ *    -> Forms: use admin forms, e.g. TemplateForm
+ * 
  *  2. Overview
  *    -> Activity: render API data
  *    -> Quick Access: Collect known editable data assets editable per brand
@@ -69,10 +73,33 @@ export class DashboardService {
       return;
     }
 
-    state.page = target;
-    state.initialised = true;
+    let view;
+    switch (target) {
+      case 'overview':
+        view = this.#renderOverview;
+        break;
 
-    console.log('open', '->', target);
+      case 'people':
+        break;
+
+      case 'organisations':
+        break;
+
+      case 'inventory':
+        break;
+
+      case 'brand-config':
+        break;
+      
+      default:
+        break;
+    }
+
+    if (view) {
+      state.page = target;
+      state.initialised = true;
+      view.apply(this);
+    }
   }
 
   dispose() {
@@ -102,6 +129,16 @@ export class DashboardService {
     }
   }
 
+  #clearContent() {
+    this.#layout.content.replaceChildren();
+  }
+
+  #renderOverview() {
+    const state = this.#state;
+    this.#clearContent();
+
+  }
+
 
   /*************************************
    *                                   *
@@ -119,7 +156,6 @@ export class DashboardService {
 
   #handlePopoverMenu(e, _group, _closeHnd) {
     const btn = e.target;
-
     const link = btn.getAttribute('data-link');
     if (typeof link === 'string') {
       tryNavigateLink(btn, { relatedEvent: e });
@@ -169,7 +205,7 @@ export class DashboardService {
 
     /* TEMP */
     const token = getCookie('csrftoken');
-    fetch('/dashboard/stats-summary', {
+    fetch(`${getBrandedHost()}/dashboard/stats-summary`, {
       method: 'GET',
       credentials: 'same-origin',
       withCredentials: true,

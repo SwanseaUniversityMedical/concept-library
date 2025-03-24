@@ -1,11 +1,11 @@
 """Brand Administration View(s) & Request Handling."""
 from django.db import connection
 from django.conf import settings
-from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 from django.core.cache import cache
 from rest_framework.views import APIView
 from django.views.generic import TemplateView
+from django.core.exceptions import BadRequest, PermissionDenied
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import schema
@@ -16,8 +16,10 @@ import os
 import logging
 import psycopg2
 
-from clinicalcode.models import Brand
+from clinicalcode.models import Brand, Tag, Template
 from clinicalcode.entity_utils import gen_utils, model_utils, permission_utils
+
+from .targets import TemplateTarget
 
 
 logger = logging.getLogger(__name__)
@@ -70,7 +72,7 @@ class BrandDashboardView(TemplateView):
 		Request-Response Middleman.
 
 		.. Note::
-		Dispatches if:
+		Decporated such that it only dispatches when:
 			- The app isn't in a read-only state;
 			- The Brand context is administrable;
 			- And either (a) the user is a superuser, or (b) the user is authenticated & is a brand administrator of the current Brand.
@@ -92,14 +94,12 @@ class BrandDashboardView(TemplateView):
 			The resulting Template context (`Dict[str, Any]` _OR_ :py:class:`Context`) 
 			
 		Raises:
-			HttpResponseBadRequest (400 error)
+			BadRequest (400 error)
 		"""
 		brand = kwargs.get('brand')
-		if brand is None:
-			raise HttpResponseBadRequest('Invalid Brand')
-
 		context = super().get_context_data(*args, **kwargs)
 		return context | {
+			'brand': brand,
 			'logo_path': self.__get_admin_logo_target(brand),
 		}
 
@@ -111,6 +111,9 @@ class BrandDashboardView(TemplateView):
 
 		``logo_path``
 			A (str) specifying the static path to the branded logo
+
+		``brand``
+			A (Brand|None) specifying the current Brand instance
 
 		.. Template::
 
@@ -171,6 +174,10 @@ class BrandStatsSummaryView(APIView):
 		"""GET request handler for BrandStatsSummaryView"""
 		brand = model_utils.try_get_brand(request)
 		summary = self.__get_or_compute_summary(brand)
+
+		# TODO: TEMP
+		print(list(Template.get_brand_records_by_request(request).object_list))
+
 		return Response(summary)
 
 	def __get_or_compute_summary(self, brand=None):

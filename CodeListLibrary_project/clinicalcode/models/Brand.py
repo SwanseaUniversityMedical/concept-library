@@ -125,7 +125,71 @@ class Brand(TimeStampedModel):
     def get_asset_rules(self, cached=False, default=None):
         '''
         '''
-        pass
+        # Handle case where instance has yet to be saved
+        if self.id is None:
+            return default
+
+        cache_key = f'brands_assets__{self.name}__cache' if cached else None
+        asset_rules = cache.get(cache_key) if cached else None
+        if asset_rules is not None:
+            return asset_rules.get('value')
+
+        asset_rules = getattr(self, 'overrides')
+        asset_rules = asset_rules.get('assets') if isinstance(asset_rules, dict) else None
+        if asset_rules is not None:
+            '''
+            [
+                {
+                    "name": "Template"
+                    "plural": "Templates",
+                    "model": "Template",
+                    "table": "clinicalcode_template"
+                },
+                {
+                    "name": "Tag",
+                    "plural": "Tags",
+                    "model": "Tag",
+                    "table": "clinicalcode_tag",
+                    "filter": {
+                        "tag_type": 1
+                    }
+                },
+                {
+                    "name": "Collection",
+                    "plural": "Collections",
+                    "model": "Tag",
+                    "table": "clinicalcode_tag",
+                    "filter": {
+                        "tag_type": 2
+                    }
+                },
+                {
+                    "name": "HDRN Data Asset"
+                    "plural": "HDRN Data Assets",
+                    "model": "HDRNDataAsset",
+                    "table": "clinicalcode_hdrn_data_asset"
+                },
+                {
+                    "name": "HDRN Data Category"
+                    "plural": "HDRN Data Categories",
+                    "model": "HDRNDataCategory",
+                    "table": "clinicalcode_hdrn_data_category"
+                },
+                {
+                    "name": "HDRN Site"
+                    "plural": "HDRN Sites",
+                    "model": "HDRNSite",
+                    "table": "clinicalcode_hdrn_site"
+                }
+            ]
+            '''
+        else:
+            asset_rules = default
+
+        if cached:
+            cache.set(cache_key, { 'value': asset_rules }, 3600)
+
+        return asset_rules
 
     def get_vis_rules(self, cached=False, default=None):
         """

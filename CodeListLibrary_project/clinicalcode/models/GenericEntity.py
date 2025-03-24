@@ -8,9 +8,9 @@ from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
 from simple_history.models import HistoricalRecords
 
-from .Organisation import Organisation
 from .Template import Template
 from .EntityClass import EntityClass
+from .Organisation import Organisation
 from ..entity_utils import gen_utils, constants
 
 class GenericEntityManager(models.Manager):

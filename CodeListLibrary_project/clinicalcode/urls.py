@@ -8,9 +8,14 @@ from django.conf import settings
 from django.urls import re_path as url
 from django.views.generic.base import RedirectView
 
+from clinicalcode.views.dashboard import BrandAdmin
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
-from clinicalcode.views import (View, Admin, adminTemp, BrandAdmin, GenericEntity,
-                                Profile, Moderation, Publish, Decline, site, Organisation)
+from clinicalcode.views import (
+    site, View, Admin, adminTemp, GenericEntity,
+    Publish, Decline, Moderation, Profile, Organisation
+)
+
+from clinicalcode.views.dashboard.targets import TemplateTarget
 
 # Main
 urlpatterns = [
@@ -52,11 +57,15 @@ urlpatterns = [
 
     # Brand
     ## Brand Administration
+    ### Endpoints: dashboard view controllers
     url(r'^dashboard/$', BrandAdmin.BrandDashboardView.as_view(), name=BrandAdmin.BrandDashboardView.reverse_name),
     url(r'^dashboard/brand/$', BrandAdmin.BrandConfigurationView.as_view(), name=BrandAdmin.BrandConfigurationView.reverse_name),
     url(r'^dashboard/people/$', BrandAdmin.BrandPeopleView.as_view(), name=BrandAdmin.BrandPeopleView.reverse_name),
     url(r'^dashboard/inventory/$', BrandAdmin.BrandInventoryView.as_view(), name=BrandAdmin.BrandInventoryView.reverse_name),
     url(r'^dashboard/stats-summary/$', BrandAdmin.BrandStatsSummaryView.as_view(), name=BrandAdmin.BrandStatsSummaryView.reverse_name),
+    ### Endpoints: dashboard model administration
+    url(r'^dashboard/target/template/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_default),
+    url(r'^dashboard/target/template/(?P<pk>\w+)/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_retrieve),
 
     # GenericEnities (Phenotypes)
     ## Search
