@@ -93,10 +93,10 @@ def brand_admin_required(fn):
 		user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
 		brand = request.BRAND_OBJECT if hasattr(request, 'BRAND_OBJECT') else None
 
-		if not user or not isinstance(brand, Brand) or brand.id is None:
-			raise PermissionDenied
+		if not user or not user.is_superuser:
+			if not isinstance(brand, Brand) or brand.id is None:
+				raise PermissionDenied
 
-		if not user.is_superuser:
 			administrable = user.administeredbrands_set \
 				.filter(id=brand.id, is_administrable=True) \
 				.exists()
