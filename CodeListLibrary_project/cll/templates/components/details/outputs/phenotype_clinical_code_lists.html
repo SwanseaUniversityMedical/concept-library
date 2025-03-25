@@ -104,6 +104,23 @@
                 </li>
               </ul>
             </section>
+            {% if c.attributes %}
+            <section class="concept-group-content__details">
+              <h4>
+                CONCEPT ATTRIBUTE:
+                <br>
+                {% for attribute in c.attributes %}
+                <br>
+                  {% if not attribute.value.strip %}
+                    <li> TYPE: {{ attribute.type}} - NAME: {{ attribute.name }} </li>
+                  {% else %}
+                  <li> TYPE: {{ attribute.type}}  - NAME: {{ attribute.name }} -  VALUE: {{ attribute.value}} </li>
+                {% endif %}
+                {% endfor %}
+
+              </h4>
+            </section>
+            {% endif %}
           </section>
 
           <div class="detailed-input-group fill">
