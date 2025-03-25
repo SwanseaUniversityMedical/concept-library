@@ -176,7 +176,7 @@ class BrandStatsSummaryView(APIView):
 		summary = self.__get_or_compute_summary(brand)
 
 		# TODO: TEMP
-		print(list(Template.get_brand_records_by_request(request).object_list))
+		# print(list(Template.get_brand_records_by_request(request).object_list))
 
 		return Response(summary)
 

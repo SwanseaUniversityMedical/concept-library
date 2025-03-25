@@ -1,13 +1,15 @@
 from django.db import models
-from django.db.models import Model
+from django.http import HttpRequest
 from simple_history.models import HistoricalRecords
-from django.core.paginator import EmptyPage, Paginator
+from django.core.paginator import EmptyPage, Paginator, Page
+from rest_framework.request import Request
+from django.db.models.query import QuerySet
 from django.contrib.auth.models import User
 
 import inspect
 
 from clinicalcode.models.Brand import Brand
-from clinicalcode.entity_utils import constants, gen_utils, filter_utils
+from clinicalcode.entity_utils import constants, gen_utils, filter_utils, model_utils
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
 
 class Tag(TimeStampedModel):
@@ -47,17 +49,16 @@ class Tag(TimeStampedModel):
     history = HistoricalRecords()
 
     @staticmethod
-    def get_brand_records_by_request(request, params=None, default=None):
-        brand = request.BRAND_OBJECT
-        if not inspect.isclass(brand) or not issubclass(brand, Model):
-            brand = request.CURRENT_BRAND
-            if not gen_utils.is_empty_string(brand) and brand.lower() != 'ALL':
-                brand = Brand.objects.filter(name__iexact=brand)
-                if brand.exists():
-                    brand = brand.first()
+    def get_brand_records_by_request(request, params=None):
+        brand = model_utils.try_get_brand(request)
 
         if not isinstance(params, dict):
             params = { }
+
+        if isinstance(request, Request) and hasattr(request, 'query_params'):
+            params = { key: value for key, value in request.query_params.items() } | params
+        elif isinstance(request, HttpRequest) and hasattr(request, 'GET'):
+            params = { key: value for key, value in request.GET.dict().items() } | params
 
         tag_type = params.pop('tag_type', 1)
         tag_name = 'tags'
@@ -89,6 +90,9 @@ class Tag(TimeStampedModel):
         else:
             records = Tag.objects.filter(tag_type=tag_type)
 
+        if records is None:
+            return QuerySet()
+
         search = params.pop('search', None)
         query = gen_utils.parse_model_field_query(Tag, params, ignored_fields=['description'])
         if query is not None:
@@ -98,11 +102,26 @@ class Tag(TimeStampedModel):
             records = records.filter(description__icontains=search)
 
         records = records.order_by('id')
+        return records
 
-        page = gen_utils.try_get_param(request, 'page', params.get('page', 1))
+    @staticmethod
+    def get_brand_paginated_records_by_request(request, params=None):
+        if not isinstance(params, dict):
+            params = { }
+
+        if isinstance(request, Request) and hasattr(request, 'query_params'):
+            params = { key: value for key, value in request.query_params.items() } | params
+        elif isinstance(request, HttpRequest) and hasattr(request, 'GET'):
+            params = { key: value for key, value in request.GET.dict().items() } | params
+
+        records = Tag.get_brand_records_by_request(request, params)
+        if records is None:
+            return Page(QuerySet(), 0, Paginator([], page_size, allow_empty_first_page=True))
+
+        page = params.get('page', 1)
         page = max(page, 1)
 
-        page_size = gen_utils.try_get_param(request, 'page_size', params.get('page_size', '1'))
+        page_size = params.get('page_size', '1')
         if page_size not in constants.PAGE_RESULTS_SIZE:
             page_size = constants.PAGE_RESULTS_SIZE.get('1')
         else:
