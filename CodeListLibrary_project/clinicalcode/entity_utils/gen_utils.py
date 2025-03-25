@@ -716,7 +716,7 @@ def try_value_as_type(
             if not valid and strict_elements:
                 break
             elif valid:
-                cleaned.append(result)
+                cleaned.append(value)
 
         if not strict_elements:
             return cleaned
