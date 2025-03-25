@@ -327,8 +327,8 @@ def has_org_member(user, organisation):
 
 def has_org_authority(request,organisation):
     if has_org_member(request.user,organisation):
-        brand = model_utils.try_get_brand(request)
-        authority = model_utils.try_get_instance(OrganisationAuthority, organisation_id=organisation.id,brand_id=brand.id)
+        authority = model_utils.try_get_instance(OrganisationAuthority, organisation_id=organisation.id)
+        brand = model_utils.try_get_instance(Brand,id=authority.brand_id)
         org_user_managed = brand.org_user_managed if brand else None
         return {"can_moderate":authority.can_moderate, "can_post": authority.can_post, "org_user_managed": org_user_managed }
     else:
@@ -353,7 +353,7 @@ def has_brand_other_org(request):
 
 
 
-def get_organisation(request):
+def get_organisation(request,entity_id=None):
     brand = model_utils.try_get_brand(request)
     if brand:
         organisation = model_utils.try_get_instance(Organisation,slug=brand.name.lower())
@@ -361,9 +361,18 @@ def get_organisation(request):
             return organisation
         else:
             return None
+    else:
+        entity = model_utils.try_get_instance(GenericEntity,id=entity_id)
+        if entity:
+            return entity.organisation
         
-def is_org_managed(request):
+def is_org_managed(request,brand_id=None):
+    
     brand = model_utils.try_get_brand(request)
+    
+    if brand_id:
+        brand = model_utils.try_get_instance(Brand,id=brand_id)
+
     if brand:
         return brand.org_user_managed
     else:
@@ -1517,6 +1526,7 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     organisation = get_organisation(request)
     if organisation:
         organisation_permissions = has_org_authority(request, organisation)
+        
         if isinstance(organisation_permissions, dict) and organisation_permissions.get('org_user_managed'):
             if get_organisation_role(user, organisation) != ORGANISATION_ROLES.MEMBER:
                 is_allowed_to_edit = True
@@ -1689,7 +1699,7 @@ def is_brand_accessible(request, entity_id, entity_history_id=None):
       Returns:
         A (boolean) that reflects its accessibility to the request context
     """
-    entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
+    entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if entity is None:
         return False
 
