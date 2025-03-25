@@ -335,9 +335,9 @@ def get_emails_by_groupname(groupname):
     user_list = User.objects.filter(groups__name=groupname)
     return [i.email for i in user_list]
 
-def get_emails_by_organization(request):
-    organisation = permission_utils.get_organisation(request)
-
+def get_emails_by_organization(request,entity_id=None):
+    organisation = permission_utils.get_organisation(request,entity_id=entity_id)
+    
     if organisation:
         user_list = OrganisationMembership.objects.filter(organisation_id=organisation.id)
         email_list = []
@@ -360,17 +360,16 @@ def send_email_decision_entity(request, entity, entity_history_id, checks,data):
     """
     url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
 
-    requested_userid = entity.owner_id
-    if checks['org_user_managed']:
-        requested_userid = request.user.id #will take the editor user id to send email
-    
+    requested_userid = entity.created_by.id
+
+  
     context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user_id":requested_userid,"url_redirect":url_redirect}
     if data['approval_status'].value == constants.APPROVAL_STATUS.PENDING:
         context["status"] = "Pending"
         context["message"] = "Phenotype has been submitted and is under review"
         context["staff_emails"] = get_emails_by_groupname("Moderators")
-        if checks['org_user_managed']:
-            context['staff_emails'] = get_emails_by_organization(request)
+        if checks.get('org_user_managed',False):
+            context['staff_emails'] = get_emails_by_organization(request,entity.entity_id)
         
         send_review_email(request, context)
     elif data['approval_status'].value == constants.APPROVAL_STATUS.APPROVED:
