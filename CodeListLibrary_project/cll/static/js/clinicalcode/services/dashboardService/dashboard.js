@@ -7,6 +7,9 @@ import { managePopoverMenu } from './popoverMenu.js';
 /**
  * Todo:
  *  1. Page state
+ *    -> TODO:
+ *      -> Finalise `get_asset_rules()` implementation
+ *      -> Attempt `Overview`, then move to other Targets/Pages
  * 
  *  2. Renderables
  *    -> Views: collect from Model method?
