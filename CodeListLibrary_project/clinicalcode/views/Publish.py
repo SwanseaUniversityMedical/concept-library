@@ -164,7 +164,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
             data['form_is_valid'] = True
             data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
-            data = publish_utils.form_validation(request, data, history_id, pk, entity, conditions)
+            data = publish_utils.form_validation(request, data, history_id, pk, published_entity, conditions)
 
         elif conditions['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
             #filter by declined ws
@@ -190,7 +190,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             data['form_is_valid'] = True
             data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
             #send message to the client
-            data = publish_utils.form_validation(request, data, history_id, pk, entity, conditions)
+            data = publish_utils.form_validation(request, data, history_id, pk, published_entity, conditions)
 
         else:
             published_entity = PublishedGenericEntity(entity=entity,entity_history_id=history_id, moderator_id=request.user.id,
@@ -265,7 +265,7 @@ class RequestPublish(LoginRequiredMixin, permission_utils.HasAccessToViewGeneric
                     data['form_is_valid'] = True
                     data['approval_status'] = constants.APPROVAL_STATUS.PENDING
                     data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
-                    data = publish_utils.form_validation(self.request, data, history_id, pk, entity, checks)
+                    data = publish_utils.form_validation(self.request, data, history_id, pk, published_entity, checks)
         except Exception as e:
             logger.warning('Failed <PublishRequest> POST with error: %s' % (str(e),))
 
