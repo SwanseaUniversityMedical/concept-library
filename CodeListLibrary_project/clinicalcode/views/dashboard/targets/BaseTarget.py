@@ -1,29 +1,53 @@
 """Brand Dashboard: Base extensible/abstract classes"""
 from django.http import Http404
-from rest_framework import status, generics, mixins, serializers
+from rest_framework import status, generics, mixins, serializers, fields
+from django.db.models import Model
 from django.core.exceptions import BadRequest
 from rest_framework.response import Response
+from django.utils.functional import classproperty, cached_property
+from django.core.serializers.json import DjangoJSONEncoder
 
-from clinicalcode.entity_utils import permission_utils, model_utils
+import json
+import inspect
+import builtins
+
+from clinicalcode.entity_utils import permission_utils, model_utils, gen_utils
+
+
+""""""
+DEFAULT_LOOKUP_FIELD = 'pk'
 
 
 class BaseSerializer(serializers.Serializer):
 	"""Extensible serializer class for Target(s)"""
 
-	# Public methods
-	def get_form_data(self):
-		return {
-			k: {
-				'field': v.field_name,
-				'initial': v.initial,
-				'required': v.required,
-				'allow_null': v.allow_null,
-				'read_only': v.read_only,
-				'label': v.label,
-				'help_text': v.help_text,
-				'style': v.style,
-			} for k, v in self.fields.items()
-		}
+	# Getters
+	@property
+	def form_fields(self):
+		instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
+
+		form = {}
+		for name, field in self.fields.items():
+			group = None
+			for k, v in vars(field).items():
+				if k.startswith('_'):
+					continue
+
+				value = v
+				if v == fields.empty or isinstance(v, fields.empty):
+					value = None
+				elif v is not None and (type(v).__name__ == 'type' or ((hasattr(v, '__name__') or hasattr(v, '__class__') or inspect.isclass(v)) and not type(v).__name__ in dir(builtins))):
+					value = type(v).__name__
+
+				if group is None:
+					group = {}
+				group.update({ k: value })
+
+			src = group.get('source')
+			if instance is not None and isinstance(src, str) and hasattr(instance, src):
+				group.update({ 'value': getattr(instance, src) })
+			form.update({ name: group })
+		return form
 
 	# Private utility methods
 	def _get_user(self):
@@ -48,19 +72,29 @@ class BaseEndpoint(
 ):
 	"""Extensible endpoint class for TargetEndpoint(s)"""
 
-	# Metadata
-	lookup_field = 'id'
-
 	# View behaviour
 	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsBrandAdmin]
 
 	# Exclude endpoint(s) from swagger
 	swagger_schema = None
 
+	# Properties
+	@classproperty
+	def lookup_field(cls):
+		if hasattr(cls, '_lookup_field'):
+			lookup = getattr(cls, '_lookup_field')
+			if isinstance(lookup, str) and not gen_utils.is_empty_string(lookup):
+				return lookup
+		elif hasattr(cls, 'model'):
+			model = getattr(cls, 'model', None)
+			if inspect.isclass(model) or not issubclass(model, Model):
+				return model._meta.pk.name
+		return DEFAULT_LOOKUP_FIELD
+
 	# Mixin views
 	def retrieve(self, request, *args, **kwargs):
 		try:
-			instance = self.get_object(*args, *kwargs)
+			instance = self.get_object(*args, **kwargs)
 		except Exception as e:
 			return Response(
 				data={ 'detail': str(e) },
@@ -92,12 +126,10 @@ class BaseEndpoint(
 		return self.model.get_brand_records_by_request(self.request, params=kwargs)
 
 	def get_object(self, *args, **kwargs):
-		pk = kwargs.get('pk', self.kwargs.get('pk'))
-		if pk is None:
-			raise BadRequest('Expected `pk` parameter')
+		kwargs |= (self.kwargs if isinstance(self.kwargs, dict) else {})
 
-		inst = self.get_queryset().filter(pk=pk)
+		inst = self.get_queryset().filter(*args, **kwargs)
 		if not inst.exists():
-			raise Http404(f'{self.model._meta.model_name} of PK `{pk}` does not exist')
+			raise Http404(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
 
 		return inst.first()

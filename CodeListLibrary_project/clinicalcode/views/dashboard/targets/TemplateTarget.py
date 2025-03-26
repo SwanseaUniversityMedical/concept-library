@@ -15,6 +15,9 @@ from clinicalcode.models.Template import Template
 class TemplateSerializer(BaseSerializer):
 	"""Responsible for serialising the `Template` model and to handle PUT/POST validation"""
 
+	# Metadata
+	model = Template
+
 	# Fields
 	id = serializers.IntegerField(label='Id', read_only=True, required=False)
 	name = serializers.CharField(label='Name', read_only=True, required=False)
@@ -27,7 +30,7 @@ class TemplateSerializer(BaseSerializer):
 	def to_representation(self, instance):
 		data = super(TemplateSerializer, self).to_representation(instance)
 		definition = data.get('definition')
-		if not instance or not instance.pk or not isinstance(definition, dict):
+		if not instance or not hasattr(instance, 'pk') or not isinstance(definition, dict):
 			return data
 
 		details = definition.get('template_details')
