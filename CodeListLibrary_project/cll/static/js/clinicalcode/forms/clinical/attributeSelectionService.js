@@ -341,7 +341,7 @@ export class AttributeSelectionService {
     },true);
 
     let doc = parseHTMLFromString(html,true);
-    let modal = document.body.appendChild(doc.body.children[0]);
+    let modal = document.body.appendChild(doc[0]);
 
     // create footer
     let footer = createElement("div", {
@@ -355,11 +355,11 @@ export class AttributeSelectionService {
     // create buttons
     const buttons = {};
     let confirmBtn = parseHTMLFromString(CSEL_BUTTONS.CONFIRM,true);
-    confirmBtn = footer.appendChild(confirmBtn.body.children[0]);
+    confirmBtn = footer.appendChild(confirmBtn[0]);
     confirmBtn.innerText = this.options.promptConfirm;
 
     let cancelBtn = parseHTMLFromString(CSEL_BUTTONS.CANCEL,true);
-    cancelBtn = footer.appendChild(cancelBtn.body.children[0]);
+    cancelBtn = footer.appendChild(cancelBtn[0]);
     cancelBtn.innerText = this.options.promptCancel;
 
     buttons["confirm"] = confirmBtn;
@@ -380,7 +380,7 @@ export class AttributeSelectionService {
     if (this.options.allowMultiple) {
       html = CSEL_INTERFACE.TAB_VIEW;
       doc = parseHTMLFromString(html,true);
-      contentContainer = body.appendChild(doc.body.children[0]);
+      contentContainer = body.appendChild(doc[0]);
 
       const tabs = contentContainer.querySelectorAll("button.tab-view__tab");
       for (let i = 0; i < tabs.length; ++i) {
@@ -663,7 +663,7 @@ export class AttributeSelectionService {
     },true);
 
     let doc = parseHTMLFromString(html,true);
-    let page = this.dialogue.content.appendChild(doc.body.children[0]);
+    let page = this.dialogue.content.appendChild(doc[0]);
     this.dialogue.page = page;
 
     this.#paintSelectionAttributes();
@@ -826,7 +826,7 @@ export class AttributeSelectionService {
       },true);
       let doc = parseHTMLFromString(attributerow);
       noneAvailable.classList.remove("show");
-      page.appendChild(doc.body.children[0]);
+      page.appendChild(doc[0]);
     } else {
       let attributerow = interpolateString(CSEL_INTERFACE.ATTRIBUTE_ACCORDION, {
         id: uniqueId,
@@ -834,7 +834,7 @@ export class AttributeSelectionService {
         content: attribute_progress,
       },true);
       let doc = parseHTMLFromString(attributerow);
-      page.appendChild(doc.body.children[0]);
+      page.appendChild(doc[0]);
     }
 
     let attribute = {
@@ -1145,8 +1145,7 @@ export class AttributeSelectionService {
         id: attribute.id,
       }
     );
-    const deleteButtonElement = parseHTMLFromString(accordionDeleteButton).body
-      .children[0];
+    const deleteButtonElement = parseHTMLFromString(accordionDeleteButton)[0];
     accordionLabel.textContent = "";
     accordionLabel.insertBefore(deleteButtonElement, accordionLabel.firstChild);
     accordionLabel.appendChild(
@@ -1281,15 +1280,10 @@ export class AttributeSelectionService {
           id: attribute.id,
         });
 
-        attribute_progress = parseHTMLFromString(attribute_progress,true);
+        attribute_progress = parseHTMLFromString(attribute_progress,true)[0];
 
-        attribute_progress
-          .querySelector("#attribute-name-input-" + attribute.id)
-          .setAttribute("value", attribute.name);
-        attribute_progress
-          .querySelector("#attribute-type-" + attribute.id)
-          .querySelector(`option[value="${attribute.type}"]`)
-          .setAttribute("selected", true);
+        attribute_progress.querySelector("#attribute-name-input-" + attribute.id).setAttribute("value", attribute.name);
+        attribute_progress.querySelector("#attribute-type-" + attribute.id).querySelector(`option[value="${attribute.type}"]`).setAttribute("selected", true);
 
         let attributerow = interpolateString(
           CSEL_INTERFACE.ATTRIBUTE_ACCORDION,
@@ -1298,11 +1292,11 @@ export class AttributeSelectionService {
             title: `${attribute.name} - ${this.#typeConversion(
               attribute.type
             )}`,
-            content: attribute_progress.body.outerHTML,
+            content: attribute_progress.outerHTML,
           }
         );
 
-        let doc = parseHTMLFromString(attributerow);
+        let doc = parseHTMLFromString(attributerow)[0];
 
         const accordionLabel = doc.querySelector(
           "#children-label-" + attribute.id
@@ -1313,8 +1307,7 @@ export class AttributeSelectionService {
             id: attribute.id,
           }
         );
-        const deleteButtonElement = parseHTMLFromString(accordionDeleteButton)
-          .body.children[0];
+        const deleteButtonElement = parseHTMLFromString(accordionDeleteButton)[0];
         accordionLabel.textContent = "";
         accordionLabel.insertBefore(
           deleteButtonElement,
@@ -1326,7 +1319,7 @@ export class AttributeSelectionService {
           )
         );
 
-        page.appendChild(doc.body.children[0]);
+        page.appendChild(doc);
 
         attribute = this.#invokeAttributeInputs(attribute, page);
         this.#invokeAttributeButtons(attribute, page);
