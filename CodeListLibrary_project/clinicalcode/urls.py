@@ -120,4 +120,5 @@ if not settings.CLL_READ_ONLY:
         url(r'^adminTemp/admin_fix_concept_linkage/$', adminTemp.admin_fix_concept_linkage, name='admin_fix_concept_linkage'),
         url(r'^adminTemp/admin_force_brand_links/$', adminTemp.admin_force_brand_links, name='admin_force_brand_links'),
         url(r'^adminTemp/admin_update_phenoflowids/$', adminTemp.admin_update_phenoflowids, name='admin_update_phenoflowids'),
+        url(r'adminTemp/admin_add_attribute_ws/$', adminTemp.admin_add_attribute_ws, name='admin_add_attribute_ws'),
     ]
