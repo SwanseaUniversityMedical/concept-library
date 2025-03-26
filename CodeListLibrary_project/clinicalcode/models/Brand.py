@@ -90,8 +90,19 @@ class Brand(TimeStampedModel):
 
     @staticmethod
     def all_asset_rules(cached=True):
-        '''
-        '''
+        """
+            Resolves all Brand asset rules
+
+            Note:
+                - Beware that not all Brands are _assoc._ with asset rules rules;
+                - Brands that do not specify asset rules will not be present in the resulting dict.
+
+            Args:
+                cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `True`
+
+            Returns:
+                A (dict) containing key-value pairs in which the key describes the Brand name, and the value describes the asset rules _assoc._ with that Brand - _i.e._ a (list) of (Dict[str, str]).
+        """
         asset_rules = cache.get('brands_asset-rules__cache') if cached else None
         if asset_rules is None:
             brands = Brand.all_instances(cached=cached)
@@ -105,17 +116,19 @@ class Brand(TimeStampedModel):
     @staticmethod
     def all_vis_rules(cached=True):
         """
-            Resolves all Brand asset rules
+            Resolves all Brand content visibility rules
 
             Note:
+                - Beware that not all Brands are _assoc._ with content visibility rules;
                 - Beware that not all Brands are _assoc._ with asset rules rules;
+                - Brands that do not specify content visibility rules will not be present in the resulting dict.
                 - Brands that do not specify asset rules will not be present in the resulting dict.
 
             Args:
                 cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `True`
 
             Returns:
-                A (dict) containing key-value pairs in which the key describes the Brand name, and the value describes the asset rules _assoc._ with that Brand - _i.e._ a (list) of (Dict[str, str]).
+                A (dict) containing key-value pairs in which the key describes the Brand name, and the value describes the content visibility rules _assoc._ with that Brand.
         """
         vis_rules = cache.get('brands_vis-rules__cache') if cached else None
         if vis_rules is None:
@@ -134,10 +147,11 @@ class Brand(TimeStampedModel):
             Attempts to resolve this Brand's `asset_rules` override attribute
 
             Note:
-                A Brand's `asset_rules` should define a (list) describing a set of (Dict[str, str]) which specify:
+                A Brand's `asset_rules` should define a (list) describing a set of (Dict[str, str]) which specifies:
 
-                - `` → 
-                - `` → 
+                - `name` → the name of the asset
+                - `model` → the `apps.model` reference of the asset
+                - `target` → the name of the `TargetEndpoint` resolver
 
             Args:
                 cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `False`

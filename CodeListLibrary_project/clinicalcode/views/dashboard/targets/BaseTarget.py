@@ -94,7 +94,7 @@ class BaseEndpoint(
 	# Mixin views
 	def retrieve(self, request, *args, **kwargs):
 		try:
-			instance = self.get_object(*args, *kwargs)
+			instance = self.get_object(*args, **kwargs)
 		except Exception as e:
 			return Response(
 				data={ 'detail': str(e) },
@@ -126,12 +126,10 @@ class BaseEndpoint(
 		return self.model.get_brand_records_by_request(self.request, params=kwargs)
 
 	def get_object(self, *args, **kwargs):
-		pk = kwargs.get('pk', self.kwargs.get('pk'))
-		if pk is None:
-			raise BadRequest('Expected `pk` parameter')
+		kwargs |= (self.kwargs if isinstance(self.kwargs, dict) else {})
 
-		inst = self.get_queryset().filter(pk=pk)
+		inst = self.get_queryset().filter(*args, **kwargs)
 		if not inst.exists():
-			raise Http404(f'{self.model._meta.model_name} of PK `{pk}` does not exist')
+			raise Http404(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
 
 		return inst.first()

@@ -818,7 +818,7 @@ def admin_upload_hdrn_assets(request):
                     {"url": "http://saildatabank.com", "brand": "SAIL Databank ",
                      "image_src": "img/Footer_logos/SAIL_alt_logo_on_white.png"}
                 ],
-                overrides={"stats_context": "^/HDRN.*$"}
+                overrides={"stats_context": "^(?!/HDRN)", "content_visibility": {"allow_null": True, "allowed_brands": [1, 2, 3]}}
         )
 
     models = {}
