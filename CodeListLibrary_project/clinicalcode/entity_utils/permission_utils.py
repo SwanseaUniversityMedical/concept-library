@@ -327,44 +327,38 @@ def has_org_member(user, organisation):
 
 def has_org_authority(request,organisation):
     if has_org_member(request.user,organisation):
-        authority = model_utils.try_get_instance(OrganisationAuthority, organisation_id=organisation.id)
-        brand = model_utils.try_get_instance(Brand,id=authority.brand_id)
-        org_user_managed = brand.org_user_managed if brand else None
-        return {"can_moderate":authority.can_moderate, "can_post": authority.can_post, "org_user_managed": org_user_managed }
+        authorities = list(OrganisationAuthority.objects.filter(organisation_id=organisation.id).values('can_post','can_moderate','brand_id'))
+        brand = model_utils.try_get_brand(request)
+        
+        requested_authority = {}
+        if brand:
+          requested_authority = next(({**authority,'org_user_managed': brand.org_user_managed} 
+                                      for authority in authorities if brand.id == authority['brand_id']),{'org_user_managed': False, 'can_moderate': False, 'can_post': False})
+        else:
+            requested_authority['org_user_managed'] = False
+            requested_authority['can_moderate'] = False
+            requested_authority['can_post'] = False
+            
+        return requested_authority
     else:
         return False
-
-def has_brand_other_org(request):
-    brand = model_utils.try_get_brand(request)
-
-    if brand:
-        brand_org_filter = OrganisationAuthority.objects.filter(brand_id=brand.id)
-        user_org_existence = OrganisationMembership.objects.filter(user_id=request.user.id)
-
-        print(brand_org_filter)
-        print(user_org_existence)
-        list_of_orgs = []
-        for organisation in user_org_existence:
-            request_organisation = model_utils.try_get_instance(OrganisationAuthority,organisation_id=organisation.id,brand_id=brand.id)
-            if request_organisation:
-                list_of_orgs.append(request_organisation)
-                
-        print(list_of_orgs)
-
 
 
 def get_organisation(request,entity_id=None):
     brand = model_utils.try_get_brand(request)
-    if brand:
-        organisation = model_utils.try_get_instance(Organisation,slug=brand.name.lower())
-        if organisation:
-            return organisation
-        else:
-            return None
+
+    entity = model_utils.try_get_instance(GenericEntity,id=entity_id)
+    if entity:
+        return entity.organisation
     else:
-        entity = model_utils.try_get_instance(GenericEntity,id=entity_id)
-        if entity:
-            return entity.organisation
+        if brand:
+          organisation = model_utils.try_get_instance(Organisation,slug=brand.name.lower())
+          if organisation:
+              return organisation
+          else:
+              return None
+    
+     
         
 def is_org_managed(request,brand_id=None):
     
