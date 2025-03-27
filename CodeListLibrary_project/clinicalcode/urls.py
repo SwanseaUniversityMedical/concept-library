@@ -15,7 +15,7 @@ from clinicalcode.views import (
     Publish, Decline, Moderation, Profile, Organisation
 )
 
-from clinicalcode.views.dashboard.targets import TemplateTarget
+from clinicalcode.views.dashboard.targets import TemplateTarget, TagTarget
 
 # Main
 urlpatterns = [
@@ -66,7 +66,8 @@ urlpatterns = [
     ### Endpoints: dashboard model administration
     url(r'^dashboard/target/template/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_default),
     url(r'^dashboard/target/template/(?P<pk>\w+)/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_retrieve),
-
+    url(r'^dashboard/target/tag/$', TagTarget.TagEndpoint.as_view(), name=TagTarget.TagEndpoint.reverse_name_default),
+    url(r'^dashboard/target/tag/(?P<pk>\w+)/$', TagTarget.TagEndpoint.as_view(), name=TagTarget.TagEndpoint.reverse_name_retrieve),
     # GenericEnities (Phenotypes)
     ## Search
     url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
