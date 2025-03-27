@@ -55,7 +55,7 @@ class TagSerializer(BaseSerializer):
         if isinstance(data_brand, Brand):
             if data_brand.id != current_brand.id:
                 raise serializers.ValidationError("Invalid Brand")
-        elif data_brand != current_brand:
+        elif data_brand != current_brand.id:
             raise serializers.ValidationError("Invalid Brand")
 
         if display not in dict(self.model.DISPLAY_CHOICES).keys():
