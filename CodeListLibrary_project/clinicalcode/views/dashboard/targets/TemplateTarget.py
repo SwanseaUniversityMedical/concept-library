@@ -1,15 +1,15 @@
 """Brand Dashboard: API endpoints relating to Template model"""
-from rest_framework import status, serializers
+import datetime
+import json
+
 from django.utils.timezone import make_aware
+from rest_framework import status, serializers
 from rest_framework.response import Response
 
-import json
-import datetime
-
-from .BaseTarget import BaseSerializer, BaseEndpoint
 from clinicalcode.entity_utils import gen_utils, template_utils
 from clinicalcode.models.Brand import Brand
 from clinicalcode.models.Template import Template
+from .BaseTarget import BaseSerializer, BaseEndpoint
 
 
 class TemplateSerializer(BaseSerializer):

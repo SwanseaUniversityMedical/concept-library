@@ -18,9 +18,9 @@ class TagSerializer(BaseSerializer):
 
     # Fields
     id = serializers.IntegerField(label='Id', read_only=True, required=False)
-    description = serializers.CharField(label='Description', read_only=True, required=False)
+    description = serializers.CharField(label='Description',  required=True, max_length=50)
     display = serializers.IntegerField(label='Display', read_only=True, required=False)
-    tag_type = serializers.IntegerField(label='Tag Type', read_only=True, required=False)
+    tag_type = serializers.IntegerField(label='Tag Type', required=True)
     collection_brand_id = serializers.IntegerField(label='Brand', read_only=True, required=False)
 
 
@@ -39,7 +39,9 @@ class TagSerializer(BaseSerializer):
         })
         return self.model.objects.create(**validated_data)
     # POST / PUTx
-    def update(self, instance):
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.updated_by = self._get_user()
         instance.modified = make_aware(datetime.datetime.now())
         instance.save()
@@ -51,7 +53,7 @@ class TagSerializer(BaseSerializer):
         data_brand = data.get('collection_brand_id')
         tag_type = data.get('tag_type')
         display = data.get('display')
-        description = data.get('description')
+
         if isinstance(data_brand, Brand):
             if data_brand.id != current_brand.id:
                 raise serializers.ValidationError("Invalid Brand")
@@ -62,12 +64,6 @@ class TagSerializer(BaseSerializer):
             raise serializers.ValidationError("Invalid display choice.")
         if tag_type not in dict(self.model.TAG_TYPES).keys():
             raise serializers.ValidationError("Invalid Tag Type")
-        if gen_utils.is_empty_string(description):
-            raise serializers.ValidationError("Description cannot be empty.")
-        if len(description) > 50:
-            raise serializers.ValidationError("Description too long.")
-
-
         return data
 
 

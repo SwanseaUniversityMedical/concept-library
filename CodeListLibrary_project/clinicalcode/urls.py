@@ -68,6 +68,8 @@ urlpatterns = [
     url(r'^dashboard/target/template/(?P<pk>\w+)/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_retrieve),
     url(r'^dashboard/target/tag/$', TagTarget.TagEndpoint.as_view(), name=TagTarget.TagEndpoint.reverse_name_default),
     url(r'^dashboard/target/tag/(?P<pk>\w+)/$', TagTarget.TagEndpoint.as_view(), name=TagTarget.TagEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/site/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_default),
+    url(r'^dashboard/target/site/(?P<pk>\w+)/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_retrieve),
     # GenericEnities (Phenotypes)
     ## Search
     url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
