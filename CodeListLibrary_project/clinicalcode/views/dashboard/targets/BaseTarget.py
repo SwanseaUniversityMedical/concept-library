@@ -18,7 +18,7 @@ from clinicalcode.entity_utils import permission_utils, model_utils, gen_utils
 DEFAULT_LOOKUP_FIELD = 'pk'
 
 
-class BaseSerializer(serializers.Serializer):
+class BaseSerializer(serializers.ModelSerializer):
 	"""Extensible serializer class for Target(s)"""
 
 	# Getters

@@ -13,16 +13,15 @@ from .BaseTarget import BaseSerializer, BaseEndpoint
 
 class TagSerializer(BaseSerializer):
     """Responsible for serialising the `Brand` model and to handle PUT/POST validation"""
-    # Metadata
-    model = Tag
-
-    # Fields
-    id = serializers.IntegerField(label='Id', read_only=True, required=False)
-    description = serializers.CharField(label='Description',  required=True, max_length=50)
-    display = serializers.IntegerField(label='Display', read_only=True, required=False)
-    tag_type = serializers.IntegerField(label='Tag Type', required=True)
-    collection_brand_id = serializers.IntegerField(label='Brand', read_only=True, required=False)
-
+    class Meta:
+        model = Tag
+        fields = [
+            'id',
+            'description',
+            'display',
+            'tag_type',
+            'collection_brand_id',
+        ]
 
     # GET
     def to_representation(self, instance):
@@ -37,7 +36,7 @@ class TagSerializer(BaseSerializer):
             'created_by': user,
             'updated_by': user,
         })
-        return self.model.objects.create(**validated_data)
+        return self.Meta.model.objects.create(**validated_data)
     # POST / PUTx
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():

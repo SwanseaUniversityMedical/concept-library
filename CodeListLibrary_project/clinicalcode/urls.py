@@ -59,7 +59,7 @@ urlpatterns = [
     ## Brand Administration
     ### Endpoints: dashboard view controllers
     url(r'^dashboard/$', BrandAdmin.BrandDashboardView.as_view(), name=BrandAdmin.BrandDashboardView.reverse_name),
-    url(r'^dashboard/brand/$', BrandAdmin.BrandConfigurationView.as_view(), name=BrandAdmin.BrandConfigurationView.reverse_name),
+    url(r'^dashboard/target/brand/$', BrandTarget.BrandEndpoint.as_view(), name=BrandTarget.BrandEndpoint.reverse_name_default),
     url(r'^dashboard/people/$', BrandAdmin.BrandPeopleView.as_view(), name=BrandAdmin.BrandPeopleView.reverse_name),
     url(r'^dashboard/inventory/$', BrandAdmin.BrandInventoryView.as_view(), name=BrandAdmin.BrandInventoryView.reverse_name),
     url(r'^dashboard/stats-summary/$', BrandAdmin.BrandStatsSummaryView.as_view(), name=BrandAdmin.BrandStatsSummaryView.reverse_name),

@@ -15,17 +15,10 @@ from .BaseTarget import BaseSerializer, BaseEndpoint
 class TemplateSerializer(BaseSerializer):
 	"""Responsible for serialising the `Template` model and to handle PUT/POST validation"""
 
-	# Metadata
-	model = Template
-
-	# Fields
-	id = serializers.IntegerField(label='Id', read_only=True, required=False)
-	name = serializers.CharField(label='Name', read_only=True, required=False)
-	description = serializers.CharField(label='Description', read_only=True, required=False)
-	brands = serializers.ListField(label='Brands', child=serializers.IntegerField(), required=False, allow_null=True, read_only=True)
-	definition = serializers.JSONField(label='Definition', binary=False, encoder=gen_utils.PrettyPrintOrderedDefinition, required=True, read_only=False)
-	template_version = serializers.IntegerField(label='Version', read_only=True, required=False)
-
+	class Meta:
+		# Metadata
+		model = Template
+		fields = ['id', 'name', 'description', 'brands', 'definition', 'template_version']
 	# GET
 	def to_representation(self, instance):
 		data = super(TemplateSerializer, self).to_representation(instance)
@@ -69,7 +62,7 @@ class TemplateSerializer(BaseSerializer):
 			'updated_by': user,
 		})
 
-		return Template.objects.create(**validated_data)
+		return self.Meta.model.objects.create(**validated_data)
 
 	def update(self, instance, validated_data):
 		current_brand = self._get_brand()
