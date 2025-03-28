@@ -18,7 +18,7 @@ from clinicalcode.entity_utils import permission_utils, model_utils, gen_utils
 DEFAULT_LOOKUP_FIELD = 'pk'
 
 
-class BaseSerializer(serializers.Serializer):
+class BaseSerializer(serializers.ModelSerializer):
 	"""Extensible serializer class for Target(s)"""
 
 	# Getters
@@ -68,6 +68,62 @@ class BaseSerializer(serializers.Serializer):
 			return model_utils.try_get_brand(request)
 		return None
 
+	@staticmethod
+	def _update( instance, validated_data):
+		"""
+		Dynamically updates a model instance, setting Many-to-Many fields first if present.
+		@param instance:
+		@param validated_data:
+		@return:
+		"""
+
+		# Handle ManyToMany fields
+		# Loop through fields and set values dynamically
+		for field in instance._meta.get_fields():
+			field_name = field.name
+
+			# Skip fields not in validated_data
+			if field_name not in validated_data:
+				continue
+
+			value = validated_data.pop(field_name)
+
+			# Handle ManyToMany relationships dynamically
+			if field.many_to_many:
+				getattr(instance, field_name).set(value)
+			else:
+				setattr(instance, field_name, value)
+		return instance
+
+	@staticmethod
+	def _create(model_class, validated_data):
+		"""
+        Dynamically create a new model instance, setting Many-to-Many fields first if present.
+
+        Args:
+            model_class (Model): The Django model class to create an instance for.
+            validated_data (dict): The validated data for creation.
+
+        Returns:
+            Model: The newly created instance.
+		"""
+		# Step 1: Extract Many-to-Many fields
+		m2m_data = {
+			field.name: validated_data.pop(field.name)
+			for field in model_class._meta.get_fields()
+			if field.many_to_many and field.name in validated_data
+		}
+
+		# Step 2: Create the instance with remaining fields
+		instance = model_class.objects.create(**validated_data)
+
+		# Step 3: Set Many-to-Many fields
+		for field_name, value in m2m_data.items():
+			getattr(instance, field_name).set(value)
+
+		return instance
+
+
 
 class BaseEndpoint(
 	generics.GenericAPIView,
@@ -79,7 +135,7 @@ class BaseEndpoint(
 	"""Extensible endpoint class for TargetEndpoint(s)"""
 
 	# View behaviour
-	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsBrandAdmin]
+	permission_classes = [permission_utils.IsBrandAdmin]
 
 	# Exclude endpoint(s) from swagger
 	swagger_schema = None
@@ -143,6 +199,15 @@ class BaseEndpoint(
 			raise Http404(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
 
 		return inst.first()
+
+	def update(self, request, *args, **kwargs):
+		"""Overrides the update mixin"""
+		partial = kwargs.pop('partial', False)
+		instance = self.get_object(*args, **kwargs)  # Now uses kwargs dynamically
+		serializer = self.get_serializer(instance, data=request.data, partial=partial)
+		serializer.is_valid(raise_exception=True)
+		self.perform_update(serializer)
+		return Response(serializer.data)
 
 	# Private methods
 	def __format_item_data(self, response, serializer=None):

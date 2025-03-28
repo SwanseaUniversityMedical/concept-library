@@ -10,12 +10,16 @@ from django.views.generic.base import RedirectView
 
 from clinicalcode.views.dashboard import BrandAdmin
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
+
 from clinicalcode.views import (
     site, View, Admin, adminTemp, GenericEntity,
     Publish, Decline, Moderation, Profile, Organisation
 )
 
-from clinicalcode.views.dashboard.targets import TemplateTarget
+from clinicalcode.views.dashboard.targets import (
+  TemplateTarget, TagTarget, BrandTarget,
+  HDRNSiteTarget, HDRNCategoryTarget, InventoryTarget
+)
 
 # Main
 urlpatterns = [
@@ -59,14 +63,20 @@ urlpatterns = [
     ## Brand Administration
     ### Endpoints: dashboard view controllers
     url(r'^dashboard/$', BrandAdmin.BrandDashboardView.as_view(), name=BrandAdmin.BrandDashboardView.reverse_name),
-    url(r'^dashboard/brand/$', BrandAdmin.BrandConfigurationView.as_view(), name=BrandAdmin.BrandConfigurationView.reverse_name),
+    url(r'^dashboard/target/brand/$', BrandTarget.BrandEndpoint.as_view(), name=BrandTarget.BrandEndpoint.reverse_name_default),
     url(r'^dashboard/people/$', BrandAdmin.BrandPeopleView.as_view(), name=BrandAdmin.BrandPeopleView.reverse_name),
-    url(r'^dashboard/inventory/$', BrandAdmin.BrandInventoryView.as_view(), name=BrandAdmin.BrandInventoryView.reverse_name),
+    url(r'^dashboard/target/inventory/$', InventoryTarget.HDRNDataAssetEndpoint.as_view(), name=InventoryTarget.HDRNDataAssetEndpoint.reverse_name_default),
+    url(r'^dashboard/target/inventory/(?P<pk>\w+)/$', InventoryTarget.HDRNDataAssetEndpoint.as_view(), name=InventoryTarget.HDRNDataAssetEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/category/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_default),
+    url(r'^dashboard/target/category/(?P<pk>\w+)/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_retrieve),
     url(r'^dashboard/stats-summary/$', BrandAdmin.BrandStatsSummaryView.as_view(), name=BrandAdmin.BrandStatsSummaryView.reverse_name),
     ### Endpoints: dashboard model administration
     url(r'^dashboard/target/template/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_default),
     url(r'^dashboard/target/template/(?P<pk>\w+)/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_retrieve),
-
+    url(r'^dashboard/target/tag/$', TagTarget.TagEndpoint.as_view(), name=TagTarget.TagEndpoint.reverse_name_default),
+    url(r'^dashboard/target/tag/(?P<pk>\w+)/$', TagTarget.TagEndpoint.as_view(), name=TagTarget.TagEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/site/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_default),
+    url(r'^dashboard/target/site/(?P<pk>\w+)/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_retrieve),
     # GenericEnities (Phenotypes)
     ## Search
     url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
