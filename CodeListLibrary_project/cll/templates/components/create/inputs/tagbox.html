@@ -22,6 +22,10 @@
     <script type="application/json" desc-type="value" for="{{ component.field_name }}"></script>
   {% endif %}
 
-  <input class="text-input" aria-label="{{ component.field_data.title }}" type="text" id="entity-{{ component.field_name }}"
-    name="entity-{{ component.field_name }}" placeholder="" data-class="tagify" data-field="{{ component.field_name }}">
+  <input
+    id="entity-{{ component.field_name }}" type="text"
+    class="text-input" aria-label="{{ component.field_data.title }}" 
+    name="entity-{{ component.field_name }}" placeholder=""
+    data-class="tagify" data-field="{{ component.field_name }}"
+    data-vis="{% if component.vis_vary_on_opts %}1{% else %}0{% endif %}">
 </div>

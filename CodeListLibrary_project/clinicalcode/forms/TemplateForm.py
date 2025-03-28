@@ -1,17 +1,7 @@
 from django import forms
 
-import json
-
+from ..entity_utils import gen_utils, template_utils
 from ..models.Template import Template
-from ..entity_utils import template_utils
-
-class PrettyPrintOrderedDefinition(json.JSONEncoder):
-    """
-        Indents and prettyprints the definition field so that it's readable
-        Preserves order that was given by template_utils.get_ordered_definition
-    """
-    def __init__(self, *args, indent, sort_keys, **kwargs):
-        super().__init__(*args, indent=2, sort_keys=False, **kwargs)
 
 class TemplateAdminForm(forms.ModelForm):
     """
@@ -23,7 +13,7 @@ class TemplateAdminForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={'readonly': 'readonly'}), required=False)
     description = forms.CharField(widget=forms.Textarea(attrs={'readonly': 'readonly'}), required=False)
     template_version = forms.IntegerField(widget=forms.NumberInput(attrs={'readonly':'readonly'}))
-    definition = forms.JSONField(encoder=PrettyPrintOrderedDefinition)
+    definition = forms.JSONField(encoder=gen_utils.PrettyPrintOrderedDefinition)
 
     def __init__(self, *args, **kwargs):
         super(TemplateAdminForm, self).__init__(*args, **kwargs)
@@ -51,7 +41,6 @@ class TemplateAdminForm(forms.ModelForm):
                 data['description'] = details.get('description', '')
         
         return data
-
 
     class Meta:
         model = Template

@@ -654,9 +654,10 @@ class FilterService {
    * @param {string} html the html to render to the page
    */
   #renderResponse(html) {
-    const parser = new DOMParser();
-    const response = parser.parseFromString(html, 'text/html');
+    const template = document.createElement('template');
+    template.innerHTML = html;
 
+    const response = template.content;
     const resultsHeader = response.querySelector(FILTER_RESPONSE_CONTENT_IDS.HEADER);
     if (!isNullOrUndefined(resultsHeader)) {
       const header = document.querySelector(FILTER_RESPONSE_CONTENT_IDS.HEADER);

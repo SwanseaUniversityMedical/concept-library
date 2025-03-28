@@ -47,7 +47,7 @@
     @include box-shadow(0, 5px 10px, -2.5px, rgba(0, 0, 0, 0.5));
     content: '';
     border: 5px solid transparent;
-    z-index: 9999999;
+    z-index: 9999998;
   }
 
   &:after {
@@ -64,7 +64,7 @@
     white-space: normal;
     text-align: left;
     text-overflow: ellipsis;
-    z-index: 9999998;
+    z-index: 9999999;
   }
 
   &:hover:before,

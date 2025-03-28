@@ -1,14 +1,17 @@
 {% extends "base.html" %}
+
 {% load static %}
+{% load entity_renderer %}
 
 {% block title %}| Page unavailable{% endblock title %}
 
 {% block container %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header search-banner">
     <div
       class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
       <div class="search-banner__header search-banner__header--pad-bottom-2">
-        <h2 class="search-banner__title">Concept Library</h2>
+        <h2 class="search-banner__title">{{ base_page_title }}</h2>
       </div>
     </div>
   </header>

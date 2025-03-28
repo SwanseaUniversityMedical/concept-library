@@ -34,6 +34,27 @@ class IterableMeta(enum.EnumMeta):
             return True
 
 
+class ORGANISATION_ROLES(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Defines organisation roles
+    """
+    MEMBER = 0
+    EDITOR = 1
+    MODERATOR = 2
+    ADMIN = 3
+
+
+class ORGANISATION_INVITE_STATUS(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Defines organisation invite status
+    """
+    EXPIRED = 0
+    ACTIVE = 1
+    SEEN = 2
+    ACCEPTED = 3
+    REJECTED = 4
+
+
 class TAG_TYPE(int, enum.Enum):
     """
         Tag types used for differentiate Collections & Tags
@@ -148,6 +169,11 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     CLINICAL_FUNCTIONAL_ANATOMY = 2
 
 """
+    Number of days before organisation invite expires
+"""
+INVITE_TIMEOUT = 30
+
+"""
     Used to define the labels for each
     known ontology type
 
@@ -252,7 +278,7 @@ DETAIL_WIZARD_OUTPUT_DIR = 'components/details/outputs'
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
 """
-USERDATA_MODELS = [str(User), str(Group)]
+USERDATA_MODELS = [str(User), str(Group), "<class 'clinicalcode.models.Organisation.Organisation'>"]
 STRIPPED_FIELDS = ['SearchVectorField']
 
 """
@@ -347,7 +373,7 @@ APPENDED_SECTIONS = [
     {
         'title': 'Permissions',
         'description': 'Settings for sharing and collaboration.',
-        'fields': ['group', 'group_access', 'world_access']
+        'fields': ['organisation']
     }
 ]
 
@@ -571,7 +597,15 @@ metadata = {
                     'tag_type': 2,
 
                     ## Can be added once we det. what we're doing with brands
-                    # 'source_by_brand': None
+                    'source_by_brand': {
+                        'ADP': {
+                            'allowed_brands': [3],
+                            'allow_null': True,
+                        },
+                        'HDRUK': 'allow_null',
+                        'HDRN': True,
+                        'SAIL': False,
+                    },
                 }
             }
         },
@@ -599,7 +633,12 @@ metadata = {
                     'tag_type': 1,
 
                     ## Can be added once we det. what we're doing with brands
-                    # 'source_by_brand': None
+                    'source_by_brand': {
+                        'ADP': 'allow_null',
+                        'HDRUK': 'allow_null',
+                        'HDRN': False,
+                        'SAIL': False,
+                    },
                 }
             }
         },
@@ -609,13 +648,25 @@ metadata = {
         },
         'is_base_field': True
     },
+    'organisation': {
+        'title': 'Organisation',
+        'description': "The organisation that owns this Phenotype for permissions purposes (optional).",
+        'field_type': 'group_field',
+        'active': True,
+        'validation': {
+            'type': 'organisation',
+            'mandatory': False,
+            'computed': True
+        },
+        'is_base_field': True
+    },
     'group': {
         'title': 'Group',
         'description': "The group that owns this Phenotype for permissions purposes (optional).",
         'field_type': 'group_field',
-        'active': True,
+        'active': False,
         'validation': {
-            'type': 'int',
+            'type': 'group',
             'mandatory': False,
             'computed': True
         },
@@ -625,7 +676,19 @@ metadata = {
         'title': 'Group Access',
         'description': 'Optionally enable this Phenotype to be viewed or edited by the group.',
         'field_type': 'access_field_editable',
-        'active': True,
+        'active': False,
+        'validation': {
+            'type': 'int',
+            'mandatory': True,
+            'range': [1, 3]
+        },
+        'is_base_field': True
+    },
+    'owner_access': {
+        'title': 'Owner Access',
+        'description': 'Owner permissions',
+        'field_type': 'access_field_editable',
+        'active': False,
         'validation': {
             'type': 'int',
             'mandatory': True,
@@ -637,7 +700,7 @@ metadata = {
         'title': 'All authenticated users',
         'description': "Enables this Phenotype to be viewed by all logged-in users of the Library (does not make it public on the web -- use the Publish action for that).",
         'field_type': 'access_field',
-        'active': True,
+        'active': False,
         'validation': {
             'type': 'int',
             'mandatory': True,
@@ -810,13 +873,15 @@ FIELD_TYPES = {
         'system_defined': True,
         'description': 'list of tags ids (managed by code snippet)',
         'input_type': 'tagbox',
-        'output_type': 'tagbox'
+        'output_type': 'tagbox',
+        'vis_vary_on_opts': True,
     },
     'collections': {
         'system_defined': True,
         'description': 'list of collections ids (managed by code snippet)',
         'input_type': 'tagbox',
-        'output_type': 'tagbox'
+        'output_type': 'tagbox',
+        'vis_vary_on_opts': True,
     },
     'data_sources': {
         'system_defined': True,

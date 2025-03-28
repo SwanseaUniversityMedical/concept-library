@@ -1266,7 +1266,7 @@ export default class ConceptCreator {
 
     const containerList = this.element.querySelector('#concept-content-list');
     const doc = parseHTMLFromString(html, true);
-    const conceptItem = containerList.appendChild(doc.body.children[0]);
+    const conceptItem = containerList.appendChild(doc[0]);
     conceptItem.setAttribute('live', true);
 
     const headerButtons = conceptItem.querySelectorAll('#concept-accordion-header span[role="button"]');
@@ -1538,7 +1538,7 @@ export default class ConceptCreator {
     });
 
     const doc = parseHTMLFromString(html, true);
-    const item = ruleList.appendChild(doc.body.children[0]);
+    const item = ruleList.appendChild(doc[0]);
     const input = item.querySelector('input[data-item="rule"]');
 
     // Add handler for each rule type, otherwise disable element
@@ -1772,7 +1772,7 @@ export default class ConceptCreator {
     });
 
     const doc = parseHTMLFromString(html, true);
-    const editor = conceptGroup.appendChild(doc.body.children[0]);
+    const editor = conceptGroup.appendChild(doc[0]);
     this.state.data = dataset;
     this.state.editor = editor;
     this.state.element = conceptGroup;
@@ -1961,6 +1961,8 @@ export default class ConceptCreator {
       e.stopPropagation();
 
       const value = strictSanitiseString(input.value);
+      input.value = value;
+
       if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
         input.classList.add('fill-accordion__name-input--invalid');
         return;
@@ -2243,6 +2245,8 @@ export default class ConceptCreator {
   #handleConceptNameChange(e) {
     const input = e.target;
     const value = strictSanitiseString(input.value);
+    input.value = value;
+
     if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
       return;
     }

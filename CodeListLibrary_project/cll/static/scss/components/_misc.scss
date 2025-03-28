@@ -21,6 +21,10 @@
   }
 }
 
+*:has(> .loading-spinner) {
+  min-height: 100px !important;
+}
+
 .loading-spinner {
   display: block;
   position: fixed;
@@ -28,6 +32,11 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 9999999999;
+
+  &--absolute {
+    position: absolute;
+    z-index: 99;
+  }
 
   &__icon {
     display: block;
@@ -50,7 +59,7 @@
     display: block;
     position: absolute;
     top: calc(50% + 25px);
-    right: calc(50% - 3.5ch - 11px);
+    right: calc(50% - 3em);
     letter-spacing: 3px;
     color: var(--loading-spinner-text-color);
   }

@@ -1175,6 +1175,10 @@
   max-width: calc(100% - 1rem);
   transition: border-color 250ms ease;
 
+  &--bbox-size {
+    box-sizing: border-box;
+  }
+
   &:focus {
     outline: none;
     border-color: col(accent-dark);

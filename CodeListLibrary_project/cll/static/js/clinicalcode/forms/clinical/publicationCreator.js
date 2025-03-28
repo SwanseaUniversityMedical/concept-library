@@ -258,14 +258,23 @@ export default class PublicationCreator {
     e.preventDefault();
     e.stopPropagation();
 
-    const publication = strictSanitiseString(this.publicationInput.value);
     const doi = strictSanitiseString(this.doiInput.value);
-    const primary= Number(this.primaryPubCheckbox.checked ? this.primaryPubCheckbox.dataset.value: '0');
+    const publication = strictSanitiseString(this.publicationInput.value);
 
     if (!this.publicationInput.checkValidity() || isNullOrUndefined(publication) || isStringEmpty(publication)) {
+      window.ToastFactory.push({
+        type: 'danger',
+        message: 'Incorrect endorsement details provided',
+        duration: this.options.notificationDuration,
+      });
+
+      this.doiInput.value = doi;
+      this.publicationInput.value = publication;
+
       return;
     }
 
+    const primary = Number(this.primaryPubCheckbox.checked ? this.primaryPubCheckbox.dataset.value: '0');
     const matches = parseString(doi, CLU_DOI_PATTERN);
     if (!matches?.[0]) {
       window.ToastFactory.push({
@@ -283,8 +292,8 @@ export default class PublicationCreator {
       doi: matches?.[0],
       primary: primary
     });
+
     this.makeDirty();
-    
     this.#redrawPublications();
   }
 

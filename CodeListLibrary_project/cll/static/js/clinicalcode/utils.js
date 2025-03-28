@@ -30,8 +30,7 @@ const
    * @desc Regex pattern to match `[object (.*)]` classname
    * 
    */
-  CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/;
-
+  CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/,
   /**
    * CLU_TRIAL_LINK_PATTERN
    * @desc Regex pattern to match urls
@@ -39,17 +38,36 @@ const
    */
   CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm,
   /**
-   * ES_REGEX_URL
+   * CLU_URL_PATTERN
    * @desc Regex pattern matching URLs
    * @type {RegExp}
    */
   CLU_URL_PATTERN = new RegExp(
     /((https?|ftps?):\/\/[^"<\s]+)(?![^<>]*>|[^"]*?<\/a)/,
     'gm'
-  );
+  ),
+  /**
+   * CLU_CSS_IMPORTANT
+   * @desc important suffix for DOM styling
+   * @type {string}
+   */
+  CLU_CSS_IMPORTANT = 'important!',
+  /**
+   * CLU_ORIGIN_TYPE
+   * @desc URL origin descriptor enum
+   * @readonly
+   * @enum {string}
+   */
+  CLU_ORIGIN_TYPE = {
+    Unknown   : 'Unknown',
+    Malformed : 'Malformed',
+    Empty     : 'Empty',
+    Internal  : 'Internal',
+    External  : 'External',
+  };
 
 
-/* METHODS */
+/* UTILITIES */
 
 /**
  * getObjectClassName
@@ -92,6 +110,18 @@ const isObjectType = (val) => {
 }
 
 /**
+ * isRecordType
+ * @desc Record (Object) type guard
+ * 
+ * @param {*} obj some object to evaluate
+ * 
+ * @returns {boolean} flagging whether this object is Record-like
+ */
+const isRecordType = (obj) => {
+  return typeof obj === 'object' && obj instanceof Object && obj.constructor === Object;
+}
+
+/**
  * isCloneableType
  * @desc determines whether a value is a structured-cloneable type
  *       as described by its specification, reference to the supported
@@ -126,13 +156,13 @@ const isCloneableType = (val) => {
     case 'Map': {
       return [...val.entries()]
         .every(element => isCloneableType(element[0]) && isCloneableType(element[1]));
-    };
+    }
 
     case 'Array':
     case 'Object': {
       return Object.keys(val)
         .every(key => isCloneableType(val[key]))
-    };
+    }
   }
 
   return false;
@@ -141,16 +171,50 @@ const isCloneableType = (val) => {
 /**
  * cloneObject
  * @desc Simplistic clone of an object/array
+ * 
  * @param {object|array} obj the object to clone
+ * 
  * @returns {array|object} the cloned object
  */
 const cloneObject = (obj) => {
-  let result = { };
-  Object.keys(obj).forEach(key => {
-    result[key] = cloneObject(obj[key]);
-  });
+  const className = getObjectClassName(obj);
+  switch (className) {
+    case 'Set': {
+      if ([...obj].every(isCloneableType)) {
+        return structuredClone(obj);
+      }
 
-  return result;
+    } break;
+
+    case 'Map': {
+      const cloneable =- [...obj.entries()].every(x => isCloneableType(x[0]) && isCloneableType(x[1]));
+      if (cloneable) {
+        return structuredClone(obj);
+      }
+
+    } break;
+
+    case 'Array': {
+      const result = [];
+      Object.keys(obj).forEach(key => {
+        result[key] = cloneObject(obj[key]);
+      });
+
+      return result;
+    }
+
+    case 'Object': {
+      const result = {};
+      Object.keys(obj).forEach(key => {
+        result[key] = cloneObject(obj[key]);
+      });
+
+      return result;
+    }
+
+    default:
+      return obj;
+  }
 }
 
 /**
@@ -161,7 +225,7 @@ const cloneObject = (obj) => {
   */
 const deepCopy = (obj) => {
   let className = getObjectClassName(obj);
-  if (isCloneableType(obj) && typeof structuredClone === 'function') {
+  if (isCloneableType(obj) && window.structuredClone && typeof structuredClone === 'function') {
     let result;
     try {
       result = structuredClone(obj);
@@ -212,11 +276,6 @@ const mergeObjects = (a, b, copy = false) => {
 
       let value = b[key];
       if (copy) {
-        if (!isCloneableType(value)) {
-          a[key] = value;
-          return;
-        }
-  
         a[key] = deepCopy(value);
       } else {
         a[key] = value;
@@ -259,21 +318,332 @@ const getTransitionMethod = () => {
 }
 
 /**
+ * @desc attempts to parse the global listener key
+ * 
+ * @param {string} key the desired global listener key name
+ * 
+ * @returns {object|null} specifying the namespace, name, and type of listener; will return `null` if invalid
+ */
+const parseListenerKey = (key) => {
+  if (typeof key !== 'string' || !stringHasChars(key)) {
+    return null;
+  }
+
+  let target = key.trim().split(':');
+  if (target.length === 2) {
+    key = target[1];
+    target = target[0].split('.');
+    return {
+      name: target?.[1] ?? key,
+      type: key,
+      namespace: target[0],
+    };
+  }
+
+  return {
+    name: target[0],
+    type: target[0],
+    namespace: '__base',
+  };
+}
+
+/**
+ * @param {string|null} namespace optionally specify the global namespace listener key
+ * 
+ * @returns {object} specifying the global listener event(s)
+ */
+const getGlobalListeners = (namespace = null) => {
+  let listeners = window.hasOwnProperty('__globalListeners') ? window.__globalListeners : null;
+  if (!isRecordType(listeners)) {
+    listeners = { };
+    window.__globalListeners = listeners;
+  }
+
+  if (typeof namespace === 'string' && stringHasChars(namespace)) {
+    let group = listeners?.[namespace];
+    if (!group) {
+      group = { };
+      listeners[namespace] = group;
+    }
+
+    return group;
+  }
+
+  return listeners;
+}
+
+/** 
+ * @param {string|object} key either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * 
+ * @returns {boolean} specifying whether a listener exists at the given key
+ */
+const hasGlobalListener = (key) => {
+  let listeners = window.hasOwnProperty('__globalListeners') ? window.__globalListeners : null;
+  if (!isRecordType(listeners)) {
+    return false;
+  }
+
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return false;
+  }
+
+  return !!(listeners?.[key.namespace]?.[key.name]);
+}
+
+/**
+ * @desc utility method to listen to an event relating to a set of elements matched by the given CSS selector
+ * 
+ * @param {string|object}    key      either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * @param {string}           selector a CSS selector to compare against the event target
+ * @param {Function}         callback a callback function to call against each related event target
+ * @param {object}           opts     optionally specify the event listener options; defaults to `undefined`
+ * @param {HTMLElement|null} parent   optionally specify the parent element context; defaults to `document` otherwise
+ * 
+ * @returns {Function} a disposable to cleanup this listener
+ */
+const createGlobalListener = (key, selector, callback, opts = undefined, parent = document) => {
+  if (!stringHasChars(selector) || !isHtmlObject(parent)) {
+    return null;
+  }
+
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return null;
+  }
+
+  let hnd;
+  const listeners = getGlobalListeners(key.namespace);
+
+  const handler = (e) => {
+    const target = e.target;
+    if (!target || !target.matches(selector)) {
+      return;
+    }
+
+    callback(e);
+  };
+
+  const dispose = () => {
+    const prev = listeners?.[key.name];
+    if (!!hnd && prev === hnd) {
+      delete listeners[key.name];
+    }
+
+    parent.removeEventListener(key.type, handler, opts);
+  };
+
+  hnd = { ...key, dispose };
+  listeners[key.name] = hnd;
+
+  parent.addEventListener(key.type, handler, opts);
+  return dispose;
+}
+
+/**
+ * @param {string|object} key either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * 
+ * @returns {boolean} specifying whether a listener was disposed at the given key 
+ */
+const removeGlobalListener = (key) => {
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return false;
+  }
+
+  const listeners = getGlobalListeners(key.namespace);
+  const listenerHnd = listeners?.[key.name];
+  if (!listenerHnd) {
+    return false;
+  }
+
+  listenerHnd.dispose();
+  return true;
+}
+
+/**
   * createElement
-  * @desc Creates an element
-  * @param {string} tag The node tag e.g. div
-  * @param {object} attributes The object's attributes
+  * @desc Creates a DOM element
+  * 
+  * @note
+  * If the `behaviour` property is specified as sanitisation behaviour you should note that it expects _three_ key-value pairs, such that:
+  *   1. `key`   - sanitisation behaviour opts for the key component
+  *   2. `value` - sanitisation behaviour opts for the attribute value component
+  *   3. `html`  - specifies how to sanitise HTML string children
+  * 
+  * @param {string}                 tag The node tag e.g. div
+  * @param {object}          attributes The object's attributes
+  * @param {object|boolean}   behaviour Optionally specify the sanitisation behaviour of attributes; supplying a `true` boolean will enable strict sanitisation
+  * @param {...*}              children Optionally specify the children to be appended to this element
+  * 
   * @returns {node} The created element
   */
-const createElement = (tag, attributes) => {
-  let element = document.createElement(tag);
-  if (attributes !== null) {
-    for (var name in attributes) {
-      if (element[name] !== undefined) {
-        element[name] = attributes[name];
-      } else {
-        element.setAttribute(name, attributes[name]);
+const createElement = (tag, attributes = null, behaviour = null, ...children) => {
+  if (!!behaviour && typeof behaviour === 'boolean') {
+    behaviour = { key: { }, value: { }, html: { USE_PROFILES: { html: true, mathMl: false, svg: true, svgFilters: false } } };
+  }
+
+  let udfSanHtml, ustrSanitise;
+  if (!isRecordType(behaviour)) {
+    behaviour = null;
+    udfSanHtml = { USE_PROFILES: { html: true, mathMl: false, svg: true, svgFilters: false } };
+    ustrSanitise = (_type, value) => value;
+  } else {
+    udfSanHtml = isRecordType(behaviour.udfSanHtml) ? behaviour.udfSanHtml : null;
+    ustrSanitise = (type, value) => {
+      const opts = behaviour?.[type];
+      if (opts) {
+        return strictSanitiseString(value, opts);
       }
+
+      return value;
+    };
+  }
+
+  let element = document.createElement(tag);
+  if (isRecordType(attributes)) {
+    let attr;
+    for (let name in attributes) {
+      name = ustrSanitise('key', name);
+      attr = attributes[name];
+      switch (name) {
+        case 'class': {
+          element.classList.add(ustrSanitise('value', attr));
+        } break;
+
+        case 'className': {
+          element.className = ustrSanitise('value', attr);
+        } break;
+
+        case 'classList': {
+          if (Array.isArray(attr)) {
+            for (let i = 0; i < attr.length; ++i) {
+              element.classList.add(ustrSanitise('value', attr[i]));
+            }
+          } else {
+            element.classList.add(ustrSanitise('value', attr));
+          }
+        } break;
+
+        case 'dataset': {
+          for (let key in attr) {
+            element.dataset[key] = ustrSanitise('value', attr[key]);
+          }
+        } break;
+
+        case 'attributes': {
+          for (let key in attr) {
+            element.setAttribute(key, ustrSanitise('value', attr[key]));
+          }
+        } break;
+
+        case 'text':
+        case 'innerText': {
+          element.textContent = attr;
+        } break;
+
+        case 'html':
+        case 'innerHTML': {
+          let res;
+          if (typeof attr === 'string') {
+            res = parseHTMLFromString(attr.trim(), !udfSanHtml, udfSanHtml);
+          } else if (isRecordType(attr)) {
+            const src = attr.src;
+            if (typeof src !== 'string') {
+              break;
+            }
+
+            const ignore = !!attr.noSanitise;
+            const params = Array.isArray(attr.sanitiseArgs) ? attr.sanitiseArgs : [];
+            res = parseHTMLFromString.apply(null, [src.trim(), ignore, ...params]);
+          }
+
+          if (Array.isArray(res)) {
+            for (let i = 0; i < res.length; ++i) {
+              if (!isHtmlObject(res[i])) {
+                continue;
+              }
+
+              element.appendChild(res[i]);
+            }
+          }
+        } break;
+
+        case 'style': {
+          let value, priority;
+          if (isRecordType(attr)) {
+            for (let key in attr) {
+              value = ustrSanitise('value', attr[key]);
+              priority = value.indexOf(CLU_CSS_IMPORTANT);
+              if (priority > 0) {
+                value = value.substring(priority, priority + CLU_CSS_IMPORTANT.length - 1);
+                priority = 'important';
+              } else {
+                priority = value?.[3];
+              }
+              element.style.setProperty(key, value, priority);
+            }
+          } else if (Array.isArray(attr) && attr.length >= 2) {
+            value = ustrSanitise('value', attr[0]);
+            priority = value.indexOf(CLU_CSS_IMPORTANT);
+            if (priority > 0) {
+              attr = value.substring(priority, priority + CLU_CSS_IMPORTANT.length - 1);
+              priority = 'important';
+            } else {
+              priority = attr?.[3];
+            }
+
+            element.style.setProperty(value, attr[1], priority);
+          } else if (typeof attr === 'string') {
+            element.style.cssText = ustrSanitise('value', attr);
+          }
+        } break;
+
+        case 'childNodes': {
+          if (Array.isArray(attr)) {
+            for (let i = 0; i < attr.length; ++i) {
+              element.appendChild(attr[i])
+            }
+          } else {
+            element.appendChild(attr);
+          }
+        } break;
+
+        case 'parent': {
+          attr.appendChild(element);
+        } break;
+
+        default: {
+          if (name.startsWith('on') && typeof attr === 'function') {
+            element.addEventListener(name.substring(2), attr);
+          } else if (!element.hasOwnProperty(name) || name.startsWith('data-')) {
+            element.setAttribute(name, ustrSanitise('value', attr));
+          } else {
+            element[name] = ustrSanitise('value', attr);
+          }
+        } break;
+      }
+    }
+  }
+
+  let child;
+  for (let i = 0; i < children.length; ++i) {
+    child = children[i];
+    if (typeof child === 'string' || typeof child === 'number') {
+      child = document.createTextNode(child);
+    }
+
+    if (isHtmlObject(child)) {
+      element.appendChild(child);
     }
   }
 
@@ -337,7 +707,7 @@ const getCookie = (name) => {
   }
 
   return cookieValue;
-};
+}
 
 /**
   * getCurrentHost
@@ -397,7 +767,7 @@ const getBrandedHost = () => {
 }
 
 /**
- * getBrandUrlTarget
+ * getBrandTargetURL
  * @desc Returns the brand URL target for management redirect buttons (used in navigation menu)
  * @param {string[]} brandTargets an array of strings containing the brand target names
  * @param {boolean} productionTarget a boolean flag specifying whether this is a production target
@@ -406,7 +776,7 @@ const getBrandedHost = () => {
  * @param {string} path the window's location href
  * @returns {string} the target URL
  */
-const getBrandUrlTarget = (brandTargets, productionTarget, element, oldRoot, path) =>{
+const getBrandTargetURL = (brandTargets, productionTarget, element, oldRoot, path) =>{
   const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
   const pathTarget = path.split('/').slice(pathIndex).join('/');
 
@@ -482,7 +852,7 @@ const isNullOrUndefined = (value) => typeof value === 'undefined' || value === n
  * @returns {boolean} determines whether the value is (a) undefined; or (b) empty
  * 
  */
-const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
+const isStringEmpty = (value) => typeof value !== 'string' || !value.length;
 
 /**
  * isStringWhitespace
@@ -491,7 +861,15 @@ const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
  * @returns {boolean} reflecting whether the string contains only whitespace
  * 
  */
-const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;
+const isStringWhitespace = (value) => typeof value !== 'string' || !value.replace(/\s/g, '').length;
+
+/**
+ * stringHasChars
+ * @desc checks if a `string` has any number of characters aside from whitespace chars
+ * @param {string} value the value to consider
+ * @returns {boolean} specifying whether the `string` has chars
+ */
+const stringHasChars = (value) => typeof value === 'string' && value.length && value.replace(/\s/g, '').length;
 
 /**
  * clearAllChildren
@@ -518,7 +896,7 @@ const redirectToTarget = (elem) => {
   if (!target) {
     return;
   }
-  
+
   window.location.href = strictSanitiseString(target);
 }
 
@@ -655,7 +1033,7 @@ const getDeltaDiff = (lhs, rhs) => {
       if (diff.length > 0) {
         filtered.push(...diff.map(([i, ...val]) => [`${key} ${i}`, ...val]));
       }
-      
+
       return filtered;
     }
 
@@ -663,7 +1041,7 @@ const getDeltaDiff = (lhs, rhs) => {
       filtered.push([key, 'created', rhs[key]]);
       return filtered;
     }
-    
+
     if (key in lhs && !(key in rhs)) {
       filtered.push([key, 'deleted', lhs[key]]);
       return filtered;
@@ -723,7 +1101,6 @@ const waitForElement = (selector) => {
     observer.observe(document.body, { childList: true, subtree: true });
   });
 }
-
 
 /**
  * onElementRemoved
@@ -811,23 +1188,32 @@ const hideLoader = () => {
 /**
  * startLoadingSpinner
  * @desc instantiate a loading spinner, either within an element or at the root <body/>
- * @param {node|null} container the container - if null, uses the <body/>
+ * 
+ * @param {node|null} container   optionally specify the container - if null, uses the <body/>
+ * @param {boolean}   fillContent optionally specify whether to apply the absolute fill style; defaults to `false`
+ * 
  * @returns {node} the spinner element or its container - whichever is topmost
  */
-const startLoadingSpinner = (container) => {
-
+const startLoadingSpinner = (container, fillContent = false) => {
   let spinner;
   if (isNullOrUndefined(container)) {
     container = document.body;
 
     spinner = createElement('div', {
       className: 'loading-spinner',
-      innerHTML: '<div class="loading-spinner__icon"></div>'
+      childNodes: [
+        createElement('div', { className: 'loading-spinner__icon' })
+      ],
+    });
+  } else if (fillContent) {
+    spinner = createElement('div', {
+      className: 'loading-spinner loading-spinner--absolute',
+      childNodes: [
+        createElement('div', { className: 'loading-spinner__icon' })
+      ],
     });
   } else {
-    spinner = createElement('div', {
-      className: 'loading-spinner__icon',
-    });
+    spinner = createElement('div', { className: 'loading-spinner__icon' });
   }
   container.appendChild(spinner)
 
@@ -897,7 +1283,6 @@ const hasFixedElementSize = (element, axes = undefined) => {
 
   return results;
 }
-
 
 /**
  * isElementSizeExplicit
@@ -1102,4 +1487,272 @@ const linkifyText = (
   }
 
   return source;
-};
+}
+
+/**
+ * @desc determines whether the specified URL is malformed or not
+ * 
+ * @param {string|any} url some URL to evaluate
+ * 
+ * @returns {boolean} specifying whether this URL is valid
+ */
+const isValidURL = (url) => {
+  if (!stringHasChars(url)) {
+    return false;
+  }
+
+  try {
+    url = new URL(url);
+  } catch {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @desc determines the origin of the URL, i.e. whether it's external or internal
+ * @note this function may resolve a `CLU_ORIGIN_TYPE.Empty` or `CLU_ORIGIN_TYPE.Malformed` value if the URL is empty/malformed
+ * 
+ * @param {string|any} url some URL to evaluate
+ * 
+ * @returns {enum<string>} a `CLU_ORIGIN_TYPE` descriptor
+ */
+const getOriginTypeURL = (url, forceBrand = true) => {
+  if (!stringHasChars(url)) {
+    return CLU_ORIGIN_TYPE.Empty;
+  }
+
+  let target, malformed;
+  try {
+    target = new URL(url);
+    return target.origin !== window.location.origin ? CLU_ORIGIN_TYPE.External : CLU_ORIGIN_TYPE.Internal;
+  } catch {
+    malformed = true;
+  }
+
+  if (malformed) {
+    try {
+      if (forceBrand) {
+        target = new URL(url, getBrandedHost());
+      } else {
+        target = new URL(url, getCurrentURL())
+      }
+
+      return target.origin !== window.location.origin ? CLU_ORIGIN_TYPE.External : CLU_ORIGIN_TYPE.Internal;
+    }
+    catch {
+      return CLU_ORIGIN_TYPE.Malformed;
+    }
+  }
+
+  return CLU_ORIGIN_TYPE.Internal;
+}
+
+/**
+ * @desc determines whether the given URL is absolute/relative
+ * @note where:
+ *  - relative → _e.g._ `/some/path/` or `some/path`;
+ *  - absolute → _e.g._ `https://some.website/some/path` _etc_.
+ * 
+ * @param {string} url some URL to evaluate
+ * 
+ * @returns {boolean} specifying whether the given URL is absolute
+ */
+const isAbsoluteURL = (url) => {
+  return /^(?:[a-z]+:)?\/\//i.test(url);
+}
+
+/**
+ * @desc opens the specified link on the client
+ * @note attempts to replicate client content navigation via `<a/>` tags
+ * 
+ * @param {HTMLElement|string} link                either (a) some node specifying a `[href] | [data-link]` or (b) a `string` URL
+ * @param {object}             param1              navigation optuions
+ * @param {string|null}        param1.rel          optionally specify the `[rel]` attribute assoc. with this link; defaults to `null`
+ * @param {string|null}        param1.target       optionally specify the `[target]` attribute assoc. with this link; defaults to `null`
+ * @param {boolean}            param1.forceBrand   optionally specify whether to ensure that the Brand target is applied to the final URL; defaults to `true`
+ * @param {boolean}            param1.followEmpty  optionally specify whether empty links (i.e. towards index page) can be followed; defaults to `true`
+ * @param {boolean}            param1.allowNewTab  optionally specify whether `target=__blank` behaviour is allowed; defaults to `true`
+ * @param {boolean}            param1.metaKeyDown  optionally specify whether to navigate as if the meta key is held (_i.e._ ctrl + click); defaults to `false`
+ * @param {Event|null}         param1.relatedEvent optionally specify some DOM `Event` relating to this method (used to derive `ctrlKey` | `metaKey`); defaults to `null`
+ * 
+ * @returns 
+ */
+const tryNavigateLink = (link, {
+  rel = null,
+  target = null,
+  forceBrand = true,
+  followEmpty = true,
+  allowNewTab = true,
+  metaKeyDown = false,
+  relatedEvent = null,
+} = {}) => {
+  let url;
+  if (isHtmlObject(link)) {
+    url = link.getAttribute('href');
+    if (typeof url === 'string') {
+      rel = rel ?? link.getAttribute('rel');
+      target = target ?? link.getAttribute('target');
+    } else {
+      url = link.getAttribute('data-link');
+      if (url) {
+        rel = rel ?? link.getAttribute('data-linkrel');
+        target = target ?? link.getAttribute('data-linktarget');
+      }
+    }
+  } else if (typeof link === 'string') {
+    url = link;
+  }
+
+  if (typeof url !== 'string') {
+    return false;
+  }
+
+  const originType = getOriginTypeURL(url, forceBrand);
+  if (originType === 'Malformed' || (originType === 'Empty' && !followEmpty)) {
+    return false;
+  }
+
+  if (forceBrand && (originType === 'Internal' || originType === 'Empty')) {
+    let brandedHost = getBrandedHost();
+    brandedHost = new URL(brandedHost);
+
+    const absolute = isAbsoluteURL(url);
+    if (!absolute) {
+      const hasSlash = url.startsWith('/');
+      url = new URL(url, brandedHost.origin);
+
+      if (hasSlash || originType === 'Empty') {
+        const prefix = getCurrentBrandPrefix();
+        if (!url.pathname.startsWith(prefix)) {
+          url = new URL(prefix + url.pathname + url.search + url.hash, brandedHost.origin);
+        }
+      } else {
+        let path = getCurrentURL();
+        if (!path.endsWith('/')) {
+          path += '/';
+        }
+
+        url = new URL(path + url.pathname.substring(1) + url.search + url.hash);
+      }
+    } else {
+      url = new URL(url, brandedHost.origin);
+      if (url.origin === CLU_DOMAINS.HDRUK && url.origin !== brandedHost.origin) {
+        url = new URL(url.pathname + url.search + url.hash, brandedHost.origin);
+      }
+    }
+  } else if (originType === 'Internal' || originType === 'Empty') {
+    const absolute = isAbsoluteURL(url);
+    if (!absolute) {
+      if (!url.startsWith('/')) {
+        let path = getCurrentURL();
+        if (!path.endsWith('/')) {
+          path += '/';
+        }
+  
+        url = new URL(url, getCurrentHost());
+        url = new URL(path + url.pathname.substring(1) + url.search + url.hash);
+      } else {
+        url = new URL(url, getCurrentHost());
+      }
+    } else {
+      url = new URL(url);
+    }
+  } else {
+    url = new URL(url);
+  }
+
+  const metaActive = metaKeyDown || (!!relatedEvent && (relatedEvent.ctrlKey || relatedEvent.metaKey));
+  if (allowNewTab && (target === '__blank' || metaActive)) {
+    window.open(url.href, '_blank', rel);
+    return true;
+  }
+
+  window.location = url.href;
+  return true;
+}
+
+/**
+ * @desc a type-guard for `HTMLElement` | `HTMLNode` objects
+ * 
+ * @param {*}      obj         some DOM element to consider
+ * @param {string} desiredType optionally specify the type, expects one of `element` | `node` | `any`; defaults to `Any`
+ * 
+ * @returns {boolean} specifies whether the given obj is a `HTMLElement` | `HTMLNode` as specified by the `desiredType` param
+ */
+const isHtmlObject = (obj, desiredType = 'Any') => {
+  if (isNullOrUndefined(obj)) {
+    return false;
+  }
+
+  if (typeof desiredType !== 'string') {
+    desiredType = 'Any';
+  }
+
+  desiredType = desiredType.toLowerCase();
+  if (desiredType.startsWith('html')) {
+    desiredType = desiredType.substring(4);
+  }
+
+  let condition;
+  switch (desiredType) {
+    case 'node': {
+      condition = typeof Node === 'object'
+        ? obj instanceof Node
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string';
+    } break;
+
+    case 'element': {
+      condition = typeof HTMLElement === 'object'
+        ? obj instanceof HTMLElement
+        : typeof obj === 'object' && obj.nodeType === 1 && typeof obj.nodeName === 'string';
+    } break;
+
+    case 'any':
+    default: {
+      condition = (typeof Node === 'object' && typeof HTMLElement === 'object')
+        ? (obj instanceof Node || obj instanceof HTMLElement)
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string';
+    } break;
+  }
+
+  return !!condition;
+}
+
+/**
+ * @desc determines element visibility
+ * @note does not check client window intersection
+ * 
+ * @param {HTMLElement} elem some DOM element to evaluate
+ * 
+ * @returns {boolean} specifies whether the elem is currently rendered
+ */
+const isVisibleObj = (elem) => {
+  if (!isHtmlObject(elem, 'element')) {
+    return false;
+  }
+
+  try {
+    if (window.checkVisibility) {
+      return elem.checkVisibility({
+        opacityProperty: true,
+        visibilityProperty: true,
+        contentVisibilityAuto: true,
+      });
+    }
+
+    const style = document.defaultView.getComputedStyle(elem);
+    return (
+      style.width !== '0' &&
+      style.height !== '0' &&
+      style.display != 'none' &&
+      style.visibility !== 'hidden' &&
+      Number(style.opacity) > 0
+    );
+  }
+  catch {
+    // Default true on failure
+    return true;
+  }
+}

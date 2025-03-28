@@ -1,4 +1,6 @@
 {% load entity_renderer %}
+
+{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 <header class="main-header search-banner">
 	<div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
     <div class="search-banner__header">
@@ -37,7 +39,7 @@
             <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype <span class="referral-card__title-icon"></span></a>
           </div>
           <div class="referral-card__body">
-            <p>Start here to contribute to the Library.</p>
+            <p>Start here to contribute to the {{ base_page_title }}.</p>
           </div>
         </article>
 

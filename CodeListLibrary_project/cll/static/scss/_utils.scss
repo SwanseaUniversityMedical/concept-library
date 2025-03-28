@@ -12,10 +12,15 @@
 /// Mixin to apply a columnn wise flex-box with wrapping
 ///   @param {Number} $gap - To apply a flexbox gap
 ///   Ref @ https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
-@mixin flex-col($gap: false) {
+@mixin flex-col($gap: false, $nowrap: false) {
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
+
+  @if not $nowrap {
+    flex-wrap: wrap;
+  } @else {
+    flex-wrap: nowrap;
+  }
 
   @if $gap {
     gap: $gap;
@@ -25,17 +30,22 @@
 /// Mixin to apply a row wise flex-box with wrapping
 ///   @param {Number} $gap - To apply a flexbox gap
 ///   Ref @ https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
-@mixin flex-row($gap: false) {
+@mixin flex-row($gap: false, $nowrap: false) {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+
+  @if not $nowrap {
+    flex-wrap: wrap;
+  } @else {
+    flex-wrap: nowrap;
+  }
 
   @if $gap {
     gap: $gap;
   }
 }
 
-@mixin grid-template($gap: false,$col: 2, $fr: 1fr) {
+@mixin grid-template($gap: false, $col: 2, $fr: 1fr) {
   display: grid;
   grid-template-columns: repeat($col, $fr);
   flex-wrap: wrap;
@@ -70,7 +80,7 @@
 
 /// Mixin to stop users from being able to highlight or drag an element
 @mixin ignore-user {
-  -webkit-user-select: none;     
+  -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
@@ -93,23 +103,46 @@
   cursor: pointer;
   text-decoration: inherit;
   color: inherit;
+  font-size: inherit;
 }
 
 /// Mixin to create a bottom divider on an element
-@mixin bottom-divider($size_pad: false, $border_col: false) {
+@mixin bottom-divider($size_pad: false, $border_col: false, $offset: false) {
   @if not $border_col {
     $border_col: black;
   }
 
-  background-image: linear-gradient(90deg, $border_col 0%, $border_col 100%);
-  background-image: -webkit-linear-gradient(90deg, $border_col 0%, $border_col 100%);
-  background-repeat: no-repeat;
-  background-position: 50% 100%;
+  @if not $offset {
+    background-image: linear-gradient(90deg, $border_col 0%, $border_col 100%);
+    background-image: -webkit-linear-gradient(90deg, $border_col 0%, $border_col 100%);
+    background-repeat: no-repeat;
+    background-position: 50% 100%;
 
-  @if $size_pad {
-    background-size: calc(100% - #{$size_pad}) 1px, auto;
+    @if $size_pad {
+      background-size: calc(100% - #{$size_pad}) 1px, auto;
+    } @else {
+      background-size: 100% 1px, auto;
+    }
   } @else {
-    background-size: 100% 1px, auto;
+    @at-root {
+      &:after {
+        position: absolute;
+        content: '';
+        bottom: $offset;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(90deg, $border_col 0%, $border_col 100%);
+        background-image: -webkit-linear-gradient(90deg, $border_col 0%, $border_col 100%);
+        background-repeat: no-repeat;
+        background-position: 50% 100%;
+
+        @if $size_pad {
+          background-size: calc(100% - #{$size_pad}) 1px, auto;
+        } @else {
+          background-size: 100% 1px, auto;
+        }
+      }
+    }
   }
 }
 
@@ -129,4 +162,11 @@
   -webkit-hyphens: auto;
   -moz-hyphens: auto;
   hyphens: auto;
+}
+
+/// Mixin to apply box-sizing `border-box`
+@mixin apply-bbox() {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }

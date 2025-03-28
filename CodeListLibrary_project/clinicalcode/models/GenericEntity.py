@@ -10,6 +10,7 @@ from simple_history.models import HistoricalRecords
 
 from .Template import Template
 from .EntityClass import EntityClass
+from .Organisation import Organisation
 from ..entity_utils import gen_utils, constants
 
 class GenericEntityManager(models.Manager):
@@ -66,12 +67,15 @@ class GenericEntity(models.Model):
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="entity_deleted")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="entity_owned")
-    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
+    organisation = models.ForeignKey(Organisation, on_delete=models.SET_NULL, null=True, related_name="entities")
 
+    # TODO: WILL BE DEPRECATED
+    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
     owner_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.OWNER_PERMISSIONS], default=constants.OWNER_PERMISSIONS.EDIT)
     group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
     world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.WORLD_ACCESS_PERMISSIONS], default=constants.WORLD_ACCESS_PERMISSIONS.NONE)
     
+
     ''' Publish status '''
     publish_status = models.IntegerField(null=True, choices=[(e.name, e.value) for e in constants.APPROVAL_STATUS], default=constants.APPROVAL_STATUS.ANY)
 
