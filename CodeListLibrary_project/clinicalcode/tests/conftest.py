@@ -6,11 +6,12 @@ import pytest
 from datetime import datetime
 from django.db import connection
 from django.utils.timezone import make_aware
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from selenium import webdriver
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
+from django.contrib.auth import get_user_model
 
 from clinicalcode.models import Brand
 from clinicalcode.models import Concept
@@ -23,6 +24,9 @@ from clinicalcode.entity_utils.constants import OWNER_PERMISSIONS, APPROVAL_STAT
 from clinicalcode.tests.constants.constants import ENTITY_CLASS_FIELDS, TEMPLATE_DATA_V2, TEMPLATE_JSON_V1_PATH, TEMPLATE_FIELDS, \
     TEMPLATE_DATA, TEMPLATE_JSON_V2_PATH
 from cll.test_settings import REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
+
+
+User = get_user_model()
 
 
 @pytest.fixture

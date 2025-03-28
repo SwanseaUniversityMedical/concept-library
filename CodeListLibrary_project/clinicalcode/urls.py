@@ -10,13 +10,16 @@ from django.views.generic.base import RedirectView
 
 from clinicalcode.views.dashboard import BrandAdmin
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
+
 from clinicalcode.views import (
     site, View, Admin, adminTemp, GenericEntity,
     Publish, Decline, Moderation, Profile, Organisation
 )
 
-from clinicalcode.views.dashboard.targets import TemplateTarget, TagTarget, BrandTarget, HDRNSiteTarget, \
-    HDRNCategoryTarget, InventoryTarget
+from clinicalcode.views.dashboard.targets import (
+  TemplateTarget, TagTarget, BrandTarget,
+  HDRNSiteTarget, HDRNCategoryTarget, InventoryTarget
+)
 
 # Main
 urlpatterns = [

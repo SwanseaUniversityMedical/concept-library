@@ -271,24 +271,27 @@ if SHOWADMIN:
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
+    # Base
     'django.contrib.postgres',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Apps
     'clinicalcode',
     'cll',
+    # Extensions
     'simple_history',
-    'rest_framework',
-    # 'mod_wsgi.server',
     'markdownify.apps.MarkdownifyConfig',
     'cookielaw',
+    # API
+    'drf_yasg', # 'rest_framework_swagger',
+    'rest_framework',
+    # Site
     'django_celery_results',
     'django_celery_beat',
-    # 'rest_framework_swagger',
-    'drf_yasg',
-    'django.contrib.sitemaps',
+    'django.contrib.sitemaps', # 'mod_wsgi.server',
     # SCSS
     'sass_processor',
     # Compressor
@@ -304,7 +307,6 @@ if not CLL_READ_ONLY and not IS_GATEWAY_PC:
     ]
 
 # ==============================================================================#
-
 
 ''' Middleware '''
 
@@ -586,7 +588,7 @@ OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
         # Ignore non-consumer usage
         r'^/admin/',
         r'^/adminTemp/',
-        r'^/moderation/',
+        r'^/dashboard/',
 
         # Ignore healthchecks
         r'^/api/v1/health'

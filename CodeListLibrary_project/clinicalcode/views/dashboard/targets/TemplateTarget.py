@@ -15,10 +15,14 @@ from .BaseTarget import BaseSerializer, BaseEndpoint
 class TemplateSerializer(BaseSerializer):
 	"""Responsible for serialising the `Template` model and to handle PUT/POST validation"""
 
+	# Appearance
+	_list_fields = ['id', 'name', 'template_version']
+
 	class Meta:
 		# Metadata
 		model = Template
 		fields = ['id', 'name', 'description', 'brands', 'definition', 'template_version']
+
 	# GET
 	def to_representation(self, instance):
 		data = super(TemplateSerializer, self).to_representation(instance)
@@ -50,7 +54,7 @@ class TemplateSerializer(BaseSerializer):
 			if current_brand and not current_brand.id in brands:
 				brands.append(current_brand.id)
 		elif current_brand:
-				brands = [current_brand.id]
+			brands = [current_brand.id]
 		else:
 			brands = None
 
@@ -80,7 +84,7 @@ class TemplateSerializer(BaseSerializer):
 
 			brands = list(set(brands + instance.brands if isinstance(instance.brands, list) else brands))
 		elif current_brand:
-				brands = [current_brand.id]
+			brands = [current_brand.id]
 		else:
 			brands = None
 

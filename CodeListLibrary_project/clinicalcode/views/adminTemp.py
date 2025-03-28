@@ -802,6 +802,22 @@ def admin_upload_hdrn_assets(request):
     if brand.exists():
         brand = brand.first()
     else:
+        overrides = {
+            # Dashboard statistics retrieval
+            "stats_context": "^/HDRN.*$",
+            # Dashboard renderable / manageable assets
+            "asset_rules": {
+                # Global assets
+                "template": { "model": "Template", "target": "TemplateTarget", "endpoint": "TemplateEndpoint" },
+                "tags": { "model": "Tag", "target": "TagTarget", "endpoint": "TagEndpoint" },
+                "collections": { "model": "Tag", "target": "CollectionTarget", "endpoint": "CollectionEndpoint" },
+                # HDRN specific assets
+                "sites": { "model": "HDRNSite", "target": "HDRNSiteTarget", "endpoint": "HDRNSiteEndpoint" },
+                "category": { "model": "HDRNDataCategory", "target": "HDRNDataCategoryTarget", "endpoint": "HDRNDataCategoryEndpoint" },
+                "data_sources": { "model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint" }
+            }
+        }
+
         brand = Brand.objects.create(
                 name='HDRN',
                 description='Health Data Research Network Canada (HDRN Canada) is a pan-Canadian network of member '
@@ -818,7 +834,7 @@ def admin_upload_hdrn_assets(request):
                     {"url": "http://saildatabank.com", "brand": "SAIL Databank ",
                      "image_src": "img/Footer_logos/SAIL_alt_logo_on_white.png"}
                 ],
-                overrides={"stats_context": "^(?!/HDRN)", "content_visibility": {"allow_null": True, "allowed_brands": [1, 2, 3]}}
+                overrides=overrides
         )
 
     models = {}

@@ -1,5 +1,7 @@
 """Brand Administration View(s) & Request Handling."""
+from datetime import datetime
 from django.db import connection
+from django.apps import apps
 from django.conf import settings
 from django.shortcuts import render
 from django.core.cache import cache
@@ -173,12 +175,13 @@ class BrandStatsSummaryView(APIView):
 	def get(self, request):
 		"""GET request handler for BrandStatsSummaryView"""
 		brand = model_utils.try_get_brand(request)
+		assets = self.__get_or_resolve_assets(brand)
 		summary = self.__get_or_compute_summary(brand)
 
-		# TODO: TEMP
-		# print(list(Template.get_brand_records_by_request(request).object_list))
-
-		return Response(summary)
+		return Response({
+			'assets': assets,
+			'summary': summary,
+		})
 
 	def __get_or_compute_summary(self, brand=None):
 		"""
@@ -201,10 +204,61 @@ class BrandStatsSummaryView(APIView):
 		cache.set(cache_key, { 'value': summary }, self.CACHE_TIMEOUT)
 		return summary
 
-	def __resolve_assets(self, brand):
-		'''
-		'''
-		pass
+	def __get_or_resolve_assets(self, brand=None):
+		"""
+		Attempts to resolve the known quick access assets available for the specified Brand, either by retrieving it from the cache store or, if not found, by computing it.
+
+		Args:
+			brand (:model:`Brand`|None): the Request-specified Brand context
+
+		Returns:
+			A (dict) describing the quick access items
+		"""
+		cache_key = brand.name if isinstance(brand, Brand) else 'all'
+		cache_key = f'dashboard-asset-summary__{cache_key}__cache'
+
+		assets = cache.get(cache_key)
+		if assets is not None:
+			return assets.get('value')
+
+		if brand is not None:
+			assets = brand.get_asset_rules(default={})
+		else:
+			assets = {}
+
+		for key, asset in assets.items():
+			model = asset.get('model')
+			if model is None:
+				assets.pop(key, None)
+				continue
+
+			details = None
+			try:
+				model = apps.get_model(app_label='clinicalcode', model_name=model)
+				if hasattr(model, 'get_verbose_names'):
+					details = model.get_verbose_names(subtype=key)
+				elif hasattr(model, '_meta') and getattr(model, '_meta', None) is not None:
+					meta = getattr(model, '_meta')
+					verbose_name = meta.verbose_name if hasattr(meta, 'verbose_name') else None
+					verbose_name_plural = meta.verbose_name_plural if hasattr(meta, 'verbose_name_plural') else None
+					details = {
+						'verbose_name': verbose_name if isinstance(verbose_name, str) else model.__name__,
+						'verbose_name_plural': verbose_name_plural if isinstance(verbose_name_plural, str) else (f'{model.__name__}s'),
+					}
+				else:
+					details = {
+						'verbose_name': model.__name__,
+						'verbose_name_plural': f'{model.__name__}s',
+					}
+			except:
+				assets.pop(key, None)
+				continue
+			else:
+				if details is not None:
+					asset.update({ 'details': details })
+
+		cache.set(cache_key, { 'value': assets }, self.CACHE_TIMEOUT)
+		return assets
 
 	def __compute_summary(self, brand):
 		"""
@@ -360,4 +414,5 @@ class BrandStatsSummaryView(APIView):
 			cursor.execute(sql, params=query_params)
 			columns = [col[0] for col in cursor.description]
 
-			return { 'data': dict(zip(columns, row)) for row in cursor.fetchall() }
+			result = { 'data': dict(zip(columns, row)) for row in cursor.fetchall() }
+			return result | { 'timestamp': datetime.now().isoformat() }

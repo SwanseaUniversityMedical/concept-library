@@ -4,13 +4,14 @@ from simple_history.models import HistoricalRecords
 from django.core.paginator import EmptyPage, Paginator, Page
 from rest_framework.request import Request
 from django.db.models.query import QuerySet
-from django.contrib.auth.models import User
-
-import inspect
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 
 from clinicalcode.models.Brand import Brand
 from clinicalcode.entity_utils import constants, gen_utils, filter_utils, model_utils
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
+
+User = get_user_model()
 
 class Tag(TimeStampedModel):
     default = 1
@@ -47,6 +48,31 @@ class Tag(TimeStampedModel):
                                          related_name="tags_collection_brand")
 
     history = HistoricalRecords()
+
+    @staticmethod
+    def get_verbose_names(subtype=None, *args, **kwargs):
+        is_str = isinstance(subtype, str)
+        type_id = gen_utils.parse_int(subtype) if is_str else subtype
+
+        is_valid = isinstance(type_id, int)
+        if not is_valid and is_str:
+            subtype = subtype.lower()
+            if subtype.startswith('tag'):
+                type_id = 1
+            elif subtype.startswith('collection'):
+                type_id = 2
+            else:
+                type_id = 1
+        elif not is_valid:
+            type_id = 1
+
+        if type_id == 1 or not (1 <= type_id <= 2):
+            verbose_name = _('Tag')
+            verbose_name_plural = _('Tags')
+        elif type_id == 2:
+            verbose_name = _('Collection')
+            verbose_name_plural = _('Collections')
+        return { 'verbose_name': verbose_name, 'verbose_name_plural': verbose_name_plural }
 
     @staticmethod
     def get_brand_records_by_request(request, params=None):
@@ -136,6 +162,8 @@ class Tag(TimeStampedModel):
 
     class Meta:
         ordering = ('description', )
+        verbose_name = _('Tag')
+        verbose_name_plural = _('Tags')
 
     def __str__(self):
         return self.description

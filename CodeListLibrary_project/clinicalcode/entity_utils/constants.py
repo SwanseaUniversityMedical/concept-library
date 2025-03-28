@@ -1,7 +1,10 @@
 from django.http.request import HttpRequest
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
 
 import enum
+
+User = get_user_model()
 
 
 class TypeStatus:

@@ -1,14 +1,16 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.text import slugify
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 
 import uuid
 import datetime
 
 from .Brand import Brand
 from ..entity_utils import constants
+
+User = get_user_model()
 
 class Organisation(models.Model):
   """

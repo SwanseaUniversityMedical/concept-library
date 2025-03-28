@@ -1,8 +1,10 @@
-from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
+from django.contrib.auth import get_user_model
 
 from .PhenotypeWorkingset import PhenotypeWorkingset
+
+User = get_user_model()
 
 class PublishedWorkingset(models.Model):
     workingset = models.ForeignKey(PhenotypeWorkingset, on_delete=models.CASCADE)

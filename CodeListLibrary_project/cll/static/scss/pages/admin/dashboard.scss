@@ -91,6 +91,67 @@ body {
   visibility: hidden;
 }
 
+.outline-btn {
+  @include app-font-style();
+
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  border: none;
+  color: $mostly_black;
+	border-radius: 0.25rem;
+  border-width: 1px;
+  border-style: solid;
+  background-color: transparent;
+  margin: 0;
+  padding: 1rem 2rem;
+  font-weight: bold;
+
+  &:after {
+    font-weight: bold;
+  }
+
+  @include media('<tablet', 'screen') {
+    padding: 0.5rem 1rem;
+  }
+  
+  &:not(:disabled):active {
+    transition: all 250ms ease;
+    @include prefix(transform, translateY(0.2rem), webkit moz o);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 1px solid $mostly_black;
+    border-radius: 2pt;
+  }
+
+  &--edit-icon {
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    text-align: left;
+
+    &:after {
+      content: '\f044';
+      cursor: pointer;
+      pointer-events: auto;
+      position: absolute;
+      right: 0;
+      height: 100%;
+      top: 25%;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      text-align: center;
+    }
+  }
+}
+
 .as-icon {
   display: inline-block;
   text-align: center;
@@ -352,7 +413,7 @@ body {
   }
 
   &__footer {
-    display: flex;
+    @include flex-col(false, true);
     width: 100%;
     max-width: 100%;
     overflow: clip;
@@ -364,6 +425,13 @@ body {
 
     svg {
       margin-right: 5px;
+    }
+
+    &--action {
+      @include flex-row(0.5rem, false);
+      align-items: center;
+      justify-content: flex-end;
+      padding: 5px 2px;
     }
   }
 }
@@ -670,7 +738,7 @@ body {
       margin: 1rem 0;
     }
 
-    &-stats {
+    &-grid {
       @include apply-bbox();
       // @include flex-row(1rem, true);
       display: grid;
@@ -700,27 +768,28 @@ body {
       }
     }
 
-    &-grid {
-      @include apply-bbox();
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-
-      width: 100%;
-      height: fit-content;
-      max-width: 100%;
-      align-items: stretch;
-      justify-items: space-evenly;
-      overflow-y: clip;
-      overflow-x: auto;
-
-      &:has(> :last-child:nth-child(1)) {
-        justify-items: flex-start;
-      }
-    }
-
     &--fill-w {
       width: 100%;
       max-width: 100%;
+    }
+
+    &-table {
+      @include flex-col();
+      height: auto;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      max-width: calc(100% - 1rem);
+
+      & > tbody > tr {
+        border-bottom: 1px solid col(accent-washed);
+      }
+
+      & .overflow-table-constraint {
+        padding: 0.5rem;
+        position: relative;
+        width: calc(100% - 1rem);
+        max-width: 100%;
+      }
     }
   }
 }

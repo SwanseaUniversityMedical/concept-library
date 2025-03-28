@@ -174,7 +174,7 @@ export const managePopoverMenu = ({
         const removed = muts[i].removedNodes;
         for (let j = 0; j < added.length; ++j) {
           const node = added[j]
-          if (!node.matches('[data-controlledby="popover-menu"]')) {
+          if (!isHtmlObject(node) || !node.matches('[data-controlledby="popover-menu"]')) {
             continue;
           }
 

@@ -156,8 +156,8 @@ export const managePlugins = ({
       for (let i = 0; i < muts.length; ++i) {
         const added = muts[i].addedNodes;
         for (let j = 0; j < added.length; ++j) {
-          const node = added[j]
-          if (!node.matches('[data-plugins]')) {
+          const node = added[j];
+          if (!isHtmlObject(node) || !node.matches('[data-plugins]')) {
             continue;
           }
 
