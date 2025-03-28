@@ -61,10 +61,9 @@ class BrandSerializer(BaseSerializer):
         Returns:
             Brand: The newly created Brand instance.
         """
-        return self.Meta.model.objects.create(**validated_data)
+        return self._create(self.Meta.model, validated_data)
 
-    @staticmethod
-    def update(instance, validated_data):
+    def update(self, instance, validated_data):
         """
         Update an existing Brand instance with the validated data.
 
@@ -78,8 +77,7 @@ class BrandSerializer(BaseSerializer):
         Returns:
             Brand: The updated Brand instance.
         """
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+        instance = self._update(instance, validated_data)
         instance.modified = make_aware(datetime.datetime.now())  # Set `modified` timestamp
         instance.save()
         return instance
@@ -127,8 +125,6 @@ class BrandEndpoint(BaseEndpoint):
         """
         Override the `get_queryset` method to return the queryset for the `Brand` model.
 
-        This method allows for more control over the query set if needed.
-
         Args:
             *args: Positional arguments passed to the method.
             **kwargs: Keyword arguments passed to the method.
@@ -172,7 +168,7 @@ class BrandEndpoint(BaseEndpoint):
         """
         current_brand = model_utils.try_get_brand(request)
         kwargs.update(pk=current_brand.id)
-        return self.update(request, *args, **kwargs)
+        return self.update(request, partial= True, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)

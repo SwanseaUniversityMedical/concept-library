@@ -12,19 +12,19 @@ from .BaseTarget import BaseSerializer, BaseEndpoint
 
 
 class HDRNSiteSerializer(BaseSerializer):
-    model = HDRNSite
 
-    id = serializers.IntegerField(label='Id', read_only=True)
-    name = serializers.CharField(label='Name', required=True, max_length=512)
-    description = serializers.CharField(label='Description', required=False, allow_blank=True)
-    metadata = serializers.JSONField(label='Metadata', required=False, allow_null=True)
+
+
+    class Meta:
+        model = HDRNSite
+        fields =  ['id', 'title', 'description', 'metadata']
 
     def to_representation(self, instance):
         data = super(HDRNSiteSerializer, self).to_representation(instance)
         return data
 
     def create(self, validated_data):
-        return self.model.objects.create(**validated_data)
+        return self.Meta.model.objects.create(**validated_data)
 
     @staticmethod
     def update(instance, validated_data):
@@ -36,12 +36,12 @@ class HDRNSiteSerializer(BaseSerializer):
 
     @staticmethod
     def validate(data):
-        definition = data.get('definition')
-        if not isinstance(definition, dict):
+        metadata = data.get('metadata')
+        if not isinstance(metadata, dict):
             raise serializers.ValidationError('Required JSONField `definition` is missing')
 
         try:
-            json.dumps(definition)
+            json.dumps(metadata)
         except:
             raise serializers.ValidationError('Template definition is not valid JSON')
         return data
@@ -55,8 +55,8 @@ class HDRNSiteEndpoint(BaseEndpoint):
     queryset = HDRNSite.objects.all()
     serializer_class = HDRNSiteSerializer
 
-    reverse_name_default = 'hdrn_site'
-    reverse_name_retrieve = 'hdrn_site_with_id'
+    reverse_name_default = 'hdrn_site_target'
+    reverse_name_retrieve = 'hdrn_site_target_with_id'
 
     # Endpoint methods
     def get(self, request, *args, **kwargs):
