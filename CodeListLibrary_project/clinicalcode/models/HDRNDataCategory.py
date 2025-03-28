@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.core.paginator import EmptyPage, Paginator, Page
 from rest_framework.request import Request
 from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.indexes import GinIndex
 
 from clinicalcode.entity_utils import gen_utils, model_utils, constants
@@ -17,6 +18,10 @@ class HDRNDataCategory(TimeStampedModel):
 	name = models.CharField(max_length=512, unique=False, null=False, blank=False)
 	description = models.TextField(null=True, blank=True)
 	metadata = models.JSONField(blank=True, null=True)
+
+	@staticmethod
+	def get_verbose_names(*args, **kwargs):
+		return { 'verbose_name': HDRNDataCategory._meta.verbose_name, 'verbose_name_plural': HDRNDataCategory._meta.verbose_name_plural }
 
 	@staticmethod
 	def get_brand_records_by_request(request, params=None):
@@ -81,6 +86,8 @@ class HDRNDataCategory(TimeStampedModel):
 		indexes = [
 			GinIndex(name='hdrn_dcnm_trgm_idx', fields=['name'], opclasses=['gin_trgm_ops']),
 		]
+		verbose_name = _('HDRN Data Category')
+		verbose_name_plural = _('HDRN Data Categories')
 
 	def __str__(self):
 		return self.name

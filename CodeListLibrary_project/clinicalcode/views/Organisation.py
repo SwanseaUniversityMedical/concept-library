@@ -5,18 +5,21 @@ from django.shortcuts import render
 from django.conf import settings
 from django.db.models import F, When, Case, Value
 from django.db import transaction
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http.response import JsonResponse, Http404
 from django.urls import reverse_lazy
 from django.db import models
+from django.contrib.auth import get_user_model
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Brand import Brand
 from ..models.Organisation import Organisation, OrganisationAuthority
 from ..forms.OrganisationForms import OrganisationCreateForm, OrganisationManageForm
 from ..entity_utils import permission_utils, model_utils, gen_utils, constants
+
+User = get_user_model()
 
 class OrganisationCreateView(CreateView):
   model = Organisation

@@ -259,6 +259,7 @@ const CSEL_INTERFACE = {
     <input class="fill-accordion__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
     <label class="fill-accordion__label" id="children-${id}" for="children-${id}" role="button" tabindex="0"> \
       <span>${title}</span> \
+      <span class="fill-accordion__label-icon"></span> \
     </label> \
     <article class="fill-accordion__container" id="data" style="padding: 0.5rem;"> \
       ${content} \

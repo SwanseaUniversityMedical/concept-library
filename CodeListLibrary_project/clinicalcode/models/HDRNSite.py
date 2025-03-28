@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.core.paginator import EmptyPage, Paginator, Page
 from rest_framework.request import Request
 from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 
 from clinicalcode.entity_utils import gen_utils, model_utils, constants
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
@@ -16,6 +17,10 @@ class HDRNSite(TimeStampedModel):
 	name = models.CharField(max_length=512, unique=True, null=False, blank=False)
 	description = models.TextField(null=True, blank=True)
 	metadata = models.JSONField(blank=True, null=True)
+
+	@staticmethod
+	def get_verbose_names(*args, **kwargs):
+		return { 'verbose_name': HDRNSite._meta.verbose_name, 'verbose_name_plural': HDRNSite._meta.verbose_name_plural }
 
 	@staticmethod
 	def get_brand_records_by_request(request, params=None):
@@ -75,6 +80,10 @@ class HDRNSite(TimeStampedModel):
 		except EmptyPage:
 			page_obj = pagination.page(pagination.num_pages)
 		return page_obj
+
+	class Meta:
+		verbose_name = _('HDRN Site')
+		verbose_name_plural = _('HDRN Sites')
 
 	def __str__(self):
 		return self.name

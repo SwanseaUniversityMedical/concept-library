@@ -3,8 +3,8 @@ from django.db.models import Model
 from email.mime.image import MIMEImage
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
+from django.contrib.auth import get_user_model
 
 import os
 import logging
@@ -15,6 +15,8 @@ from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 
 logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 
 def send_review_email_generic(request,data,message_from_reviewer=None):

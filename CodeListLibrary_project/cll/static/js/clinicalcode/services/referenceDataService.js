@@ -268,7 +268,7 @@ const renderReferenceComponent = (key, container, data) => {
   const datatable = new window.simpleDatatables.DataTable(table, {
     perPage: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE,
     perPageSelect: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE_SELECT,
-    fixedColumns: false,
+    fixedColumns: true,
     classes: {
       wrapper: 'overflow-table-constraint',
     },

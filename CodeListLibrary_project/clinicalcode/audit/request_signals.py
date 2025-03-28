@@ -156,7 +156,7 @@ def get_brand_from_request_info(info):
 			return 'HDRUK'
 
 	url = info.get('path')
-	root = url.lstrip('/').split('/')[0].upper()
+	root = url.lstrip('/').split('/')[0].upper().rstrip('/')
 	if root in Brand.all_names():
 		return root
 
@@ -214,6 +214,12 @@ def should_log_url(url, brand_name=None):
 		return False
 
 	# Only include registered URLs if defined
+	if brand_name is not None:
+		url = url.lstrip('/' + brand_name)
+
+	if not url.startswith('/'):
+		url = '/' + url
+
 	if isinstance(EasySettings.REGISTERED_URLS, list) and len(EasySettings.REGISTERED_URLS) > 0:
 		for registered_url in EasySettings.REGISTERED_URLS:
 			pattern = re.compile(registered_url)

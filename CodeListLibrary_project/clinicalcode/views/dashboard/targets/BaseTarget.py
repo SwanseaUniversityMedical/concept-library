@@ -46,6 +46,12 @@ class BaseSerializer(serializers.Serializer):
 			src = group.get('source')
 			if instance is not None and isinstance(src, str) and hasattr(instance, src):
 				group.update({ 'value': getattr(instance, src) })
+
+			if isinstance(field, serializers.ListField):
+				group.update({ 'type': type(field).__qualname__, 'subtype': type(field.child).__qualname__ })
+			else:
+				group.update({ 'type': type(field).__qualname__, 'subtype': None })
+
 			form.update({ name: group })
 		return form
 
@@ -102,14 +108,15 @@ class BaseEndpoint(
 			)
 		else:
 			serializer = self.get_serializer(instance)
-			return Response(serializer.data)
+			response = { 'data': serializer.data }
+			self.__format_item_data(response, serializer=serializer)
+			return Response(response)
 
 	def list(self, request, *args, **kwargs):
 		page_obj = self.model.get_brand_paginated_records_by_request(request)
 
 		results = self.serializer_class(page_obj.object_list, many=True)
-		results = results.data
-		return Response({
+		response = {
 			'detail': {
 				'page': min(page_obj.number, page_obj.paginator.num_pages),
 				'total_pages': page_obj.paginator.num_pages,
@@ -118,8 +125,11 @@ class BaseEndpoint(
 				'has_next': page_obj.has_next(),
 				'max_results': page_obj.paginator.count,
 			},
-			'results': results,
-		})
+			'results': results.data,
+		}
+
+		self.__format_list_data(response)
+		return Response(response)
 
 	# Mixin methods
 	def get_queryset(self, *args, **kwargs):
@@ -133,3 +143,32 @@ class BaseEndpoint(
 			raise Http404(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
 
 		return inst.first()
+
+	# Private methods
+	def __format_item_data(self, response, serializer=None):
+		if serializer is None:
+			serializer = self.get_serializer()
+
+		renderable = { 'form': serializer.form_fields }
+		show_fields = getattr(serializer, '_item_fields', None) if hasattr(serializer, '_item_fields') else None
+		if not isinstance(show_fields, list):
+			show_fields = [
+				k
+				for k, v in renderable.get('form').items()
+				if isinstance(v.get('style'), dict) and v.get('style').get('data-itemdisplay', True)
+			]
+
+		response.update(renderable=renderable | { 'fields': show_fields })
+		return response
+
+	def __format_list_data(self, response, serializer=None):
+		if serializer is None:
+			serializer = self.get_serializer()
+
+		renderable = { 'form': serializer.form_fields }
+		show_fields = getattr(serializer, '_list_fields', None) if hasattr(serializer, '_list_fields') else None
+		if not isinstance(show_fields, list):
+			show_fields = [self.model._meta.pk.name]
+
+		response.update(renderable=renderable | { 'fields': show_fields })
+		return response

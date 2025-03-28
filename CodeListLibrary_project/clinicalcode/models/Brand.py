@@ -2,10 +2,13 @@
 
 from django.db import models
 from django.core.cache import cache
-from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth import get_user_model
 
 from .TimeStampedModel import TimeStampedModel
+
+User = get_user_model()
 
 class Brand(TimeStampedModel):
     """Domain Brand specifying site appearance and behaviour variation."""
@@ -30,7 +33,8 @@ class Brand(TimeStampedModel):
     index_path = models.CharField(max_length=250, blank=True, null=True)
 
     # Brand administration
-    admins = models.ManyToManyField(User, related_name='administered_brands')
+    admins = models.ManyToManyField(User, related_name='administered_brands', blank=True)
+    users = models.ManyToManyField(User, related_name='accessible_brands', blank=True)
 
     # Brand overrides
     #   - e.g. entity name override ('Concept' instead of 'Phenotype' _etc_ for HDRN brand)
@@ -48,6 +52,10 @@ class Brand(TimeStampedModel):
 
 
     '''Static methods'''
+    @staticmethod
+    def get_verbose_names(*args, **kwargs):
+        return { 'verbose_name': Brand._meta.verbose_name, 'verbose_name_plural': Brand._meta.verbose_name_plural }
+
     @staticmethod
     def all_instances(cached=True):
         """
@@ -170,7 +178,7 @@ class Brand(TimeStampedModel):
             return asset_rules.get('value')
 
         asset_rules = getattr(self, 'overrides')
-        asset_rules = asset_rules.get('assets') if isinstance(asset_rules, dict) else None
+        asset_rules = asset_rules.get('asset_rules') if isinstance(asset_rules, dict) else None
         if asset_rules is None:
             asset_rules = default
 
@@ -263,6 +271,8 @@ class Brand(TimeStampedModel):
     '''Metadata'''
     class Meta:
         ordering = ('name', )
+        verbose_name = _('Brand')
+        verbose_name_plural = _('Brands')
 
 
     '''Dunder methods'''

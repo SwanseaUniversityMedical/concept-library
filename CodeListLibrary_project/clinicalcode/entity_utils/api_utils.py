@@ -1,10 +1,10 @@
 from django.db import connection
-from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.functions import JSONObject
 from django.db.models import ForeignKey, F
 from rest_framework.renderers import JSONRenderer
+from django.contrib.auth import get_user_model
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Organisation import Organisation
@@ -18,6 +18,8 @@ from . import search_utils
 from . import create_utils
 from . import gen_utils
 from . import constants
+
+User = get_user_model()
 
 """ REST renderer """
 class PrettyJsonRenderer(JSONRenderer):

@@ -18,11 +18,14 @@ class TemplateSerializer(BaseSerializer):
 	# Metadata
 	model = Template
 
+	# Appearance
+	_list_fields = ['id', 'name', 'template_version']
+
 	# Fields
 	id = serializers.IntegerField(label='Id', read_only=True, required=False)
 	name = serializers.CharField(label='Name', read_only=True, required=False)
 	description = serializers.CharField(label='Description', read_only=True, required=False)
-	brands = serializers.ListField(label='Brands', child=serializers.IntegerField(), required=False, allow_null=True, read_only=True)
+	brands = serializers.ListField(label='Brands', child=serializers.IntegerField(), required=False, allow_null=True, read_only=False)
 	definition = serializers.JSONField(label='Definition', binary=False, encoder=gen_utils.PrettyPrintOrderedDefinition, required=True, read_only=False)
 	template_version = serializers.IntegerField(label='Version', read_only=True, required=False)
 
@@ -57,7 +60,7 @@ class TemplateSerializer(BaseSerializer):
 			if current_brand and not current_brand.id in brands:
 				brands.append(current_brand.id)
 		elif current_brand:
-				brands = [current_brand.id]
+			brands = [current_brand.id]
 		else:
 			brands = None
 
@@ -87,7 +90,7 @@ class TemplateSerializer(BaseSerializer):
 
 			brands = list(set(brands + instance.brands if isinstance(instance.brands, list) else brands))
 		elif current_brand:
-				brands = [current_brand.id]
+			brands = [current_brand.id]
 		else:
 			brands = None
 

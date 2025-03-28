@@ -216,6 +216,8 @@
   width: fit-content;
   outline: none;
   border: 0px;
+  margin: 0;
+  padding: 0;
 
   &__label {
     cursor: pointer;
@@ -223,7 +225,7 @@
     vertical-align: middle;
     display: inline-block;
     border: 1px solid col(accent-washed);
-    margin: 0 0.5rem 0 0;
+    margin: 0 0 0 0;
     border-radius: 4px;
     padding: 0.5rem 1rem;
     background-color: col(bg);
@@ -269,7 +271,7 @@
     border: 1px solid col(accent-washed);
     border-radius: 2px;
     padding: 0;
-    margin: 2px 0 0 0;
+    margin: 2px 4px 0 0;
     box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
     background-color: col(bg);
     list-style-type: none;

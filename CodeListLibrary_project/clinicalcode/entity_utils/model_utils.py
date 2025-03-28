@@ -2,7 +2,8 @@ from django.apps import apps
 from django.db.models import Model, ForeignKey
 from django.core.cache import cache
 from django.forms.models import model_to_dict
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
 
 import re
 import json
@@ -10,6 +11,8 @@ import inspect
 import simple_history
 
 from . import gen_utils, filter_utils, constants
+
+User = get_user_model()
 
 def try_get_instance(model, **kwargs):
     """Safely attempts to get an instance"""
