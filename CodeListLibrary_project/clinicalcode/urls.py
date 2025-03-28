@@ -15,7 +15,8 @@ from clinicalcode.views import (
     Publish, Decline, Moderation, Profile, Organisation
 )
 
-from clinicalcode.views.dashboard.targets import TemplateTarget, TagTarget
+from clinicalcode.views.dashboard.targets import TemplateTarget, TagTarget, BrandTarget, HDRNSiteTarget, \
+    HDRNCategoryTarget, InventoryTarget
 
 # Main
 urlpatterns = [
@@ -61,7 +62,10 @@ urlpatterns = [
     url(r'^dashboard/$', BrandAdmin.BrandDashboardView.as_view(), name=BrandAdmin.BrandDashboardView.reverse_name),
     url(r'^dashboard/target/brand/$', BrandTarget.BrandEndpoint.as_view(), name=BrandTarget.BrandEndpoint.reverse_name_default),
     url(r'^dashboard/people/$', BrandAdmin.BrandPeopleView.as_view(), name=BrandAdmin.BrandPeopleView.reverse_name),
-    url(r'^dashboard/inventory/$', BrandAdmin.BrandInventoryView.as_view(), name=BrandAdmin.BrandInventoryView.reverse_name),
+    url(r'^dashboard/target/inventory/$', InventoryTarget.HDRNDataAssetEndpoint.as_view(), name=InventoryTarget.HDRNDataAssetEndpoint.reverse_name_default),
+    url(r'^dashboard/target/inventory/(?P<pk>\w+)/$', InventoryTarget.HDRNDataAssetEndpoint.as_view(), name=InventoryTarget.HDRNDataAssetEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/category/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_default),
+    url(r'^dashboard/target/category/(?P<pk>\w+)/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_retrieve),
     url(r'^dashboard/stats-summary/$', BrandAdmin.BrandStatsSummaryView.as_view(), name=BrandAdmin.BrandStatsSummaryView.reverse_name),
     ### Endpoints: dashboard model administration
     url(r'^dashboard/target/template/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_default),

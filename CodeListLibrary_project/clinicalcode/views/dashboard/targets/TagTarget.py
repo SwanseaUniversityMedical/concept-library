@@ -36,13 +36,12 @@ class TagSerializer(BaseSerializer):
             'created_by': user,
             'updated_by': user,
         })
-        return self.Meta.model.objects.create(**validated_data)
+        return self._create(self.Meta.model, validated_data)
     # POST / PUTx
     def update(self, instance, validated_data):
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+        instance = self._update(instance, validated_data)
+        instance.modified = make_aware(datetime.datetime.now())  # Set `modified` timestamp
         instance.updated_by = self._get_user()
-        instance.modified = make_aware(datetime.datetime.now())
         instance.save()
         return instance
 
@@ -97,7 +96,7 @@ class TagEndpoint(BaseEndpoint):
         return self.list(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        return self.update(request, partial=True, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)

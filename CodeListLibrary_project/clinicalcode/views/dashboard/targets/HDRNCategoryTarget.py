@@ -7,20 +7,18 @@ from rest_framework import status, serializers
 from rest_framework.response import Response
 
 from clinicalcode.entity_utils import gen_utils
-from clinicalcode.models.HDRNSite import HDRNSite
+from clinicalcode.models.HDRNDataCategory import HDRNDataCategory
 from .BaseTarget import BaseSerializer, BaseEndpoint
 
 
-class HDRNSiteSerializer(BaseSerializer):
-
-
+class HDRNCategorySerializer(BaseSerializer):
 
     class Meta:
-        model = HDRNSite
+        model = HDRNDataCategory
         fields =  ['id', 'title', 'description', 'metadata']
 
     def to_representation(self, instance):
-        data = super(HDRNSiteSerializer, self).to_representation(instance)
+        data = super(HDRNCategorySerializer, self).to_representation(instance)
         return data
 
     def create(self, validated_data):
@@ -34,27 +32,27 @@ class HDRNSiteSerializer(BaseSerializer):
 
     @staticmethod
     def validate(data):
-        metadata = data.get('metadata')
-        if not isinstance(metadata, dict):
+        definition = data.get('definition')
+        if not isinstance(definition, dict):
             raise serializers.ValidationError('Required JSONField `definition` is missing')
 
         try:
-            json.dumps(metadata)
+            json.dumps(definition)
         except:
             raise serializers.ValidationError('Template definition is not valid JSON')
         return data
 
 
 
-class HDRNSiteEndpoint(BaseEndpoint):
+class HDRNCategoryEndpoint(BaseEndpoint):
     """API views for the `HDRNSite` model"""
-    model = HDRNSite
+    model = HDRNDataCategory
     fields = []
-    queryset = HDRNSite.objects.all()
-    serializer_class = HDRNSiteSerializer
+    queryset = HDRNDataCategory.objects.all()
+    serializer_class = HDRNCategorySerializer
 
-    reverse_name_default = 'hdrn_site_target'
-    reverse_name_retrieve = 'hdrn_site_target_with_id'
+    reverse_name_default = 'hdrn_category_target'
+    reverse_name_retrieve = 'hdrn_category_target_with_id'
 
     # Endpoint methods
     def get(self, request, *args, **kwargs):
