@@ -18,7 +18,8 @@ from clinicalcode.views import (
 
 from clinicalcode.views.dashboard.targets import (
   TemplateTarget, TagTarget, BrandTarget,
-  HDRNSiteTarget, HDRNCategoryTarget, InventoryTarget
+  HDRNSiteTarget, HDRNCategoryTarget, InventoryTarget,
+  PeopleTarget
 )
 
 # Main
@@ -64,7 +65,8 @@ urlpatterns = [
     ### Endpoints: dashboard view controllers
     url(r'^dashboard/$', BrandAdmin.BrandDashboardView.as_view(), name=BrandAdmin.BrandDashboardView.reverse_name),
     url(r'^dashboard/target/brand/$', BrandTarget.BrandEndpoint.as_view(), name=BrandTarget.BrandEndpoint.reverse_name_default),
-    url(r'^dashboard/people/$', BrandAdmin.BrandPeopleView.as_view(), name=BrandAdmin.BrandPeopleView.reverse_name),
+    url(r'^dashboard/target/people/$', PeopleTarget.PeopleEndpoint.as_view(), name=PeopleTarget.PeopleEndpoint.reverse_name_default),
+    url(r'^dashboard/target/people/(?P<pk>\w+)/$', PeopleTarget.PeopleEndpoint.as_view(), name=PeopleTarget.PeopleEndpoint.reverse_name_retrieve),
     url(r'^dashboard/target/inventory/$', InventoryTarget.HDRNDataAssetEndpoint.as_view(), name=InventoryTarget.HDRNDataAssetEndpoint.reverse_name_default),
     url(r'^dashboard/target/inventory/(?P<pk>\w+)/$', InventoryTarget.HDRNDataAssetEndpoint.as_view(), name=InventoryTarget.HDRNDataAssetEndpoint.reverse_name_retrieve),
     url(r'^dashboard/target/category/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_default),
