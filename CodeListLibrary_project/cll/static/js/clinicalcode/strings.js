@@ -89,7 +89,7 @@ window.composeTemplate = (template, options) => {
   options = mergeObjects(options, { sanitiseParams: false, sanitiseTemplate: true }, true);
 
   if (typeof template !== 'string') {
-    template = template.innerHTML;
+    template = template.innerHTML.trim();
   }
 
   const params = options.params;
@@ -122,6 +122,14 @@ window.composeTemplate = (template, options) => {
     }
   }
 
+  const render = options.render;
+  if (typeof render === 'function') {
+    const res = render(result);
+    if (Array.isArray(res)) {
+      result = res;
+    }
+  }
+
   const mods = options.modify;
   if (!Array.isArray(mods)) {
     return result;
@@ -145,16 +153,16 @@ window.composeTemplate = (template, options) => {
 
       if (parent) {
         obj = parent.appendChild(obj);
+        result[j] = obj;
       }
 
       if (apply) {
         const res = apply(obj, mod);
-        if (isHtmlObject(res)) {
+        if (!!res && isHtmlObject(res)) {
           obj = res;
+          result[j] = obj;
         }
       }
-
-      result[j] = obj;
     }
   }
 

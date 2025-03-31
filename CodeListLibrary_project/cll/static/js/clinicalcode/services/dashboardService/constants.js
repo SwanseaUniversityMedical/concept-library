@@ -1,8 +1,26 @@
 export const
   /**
-   * @desc render information relating to activity statistics card(s)
+   * CLU_DASH_TARGETS
+   * @desc Describes `data-value` modifier(s)
+   * 
    */
-  ACTIVITY_CARDS = [
+  CLU_LABELS = {
+    pages: {
+      // Views
+      'inventory': 'Inventory',
+      'brand-config': 'Brand Config',
+
+      // Models
+      'users': 'Users',
+      'organisations': 'Organisations',
+    }
+  },
+  /**
+   * CLU_ACTIVITY_CARDS
+   * @desc render information relating to activity statistics card(s)
+   * 
+   */
+  CLU_ACTIVITY_CARDS = [
     {
       key: 'dau',
       name: 'DAU',
@@ -45,4 +63,21 @@ export const
       icon: '&#xf02d;',
       iconCls: 'as-icon--warning',
     },
-  ];
+  ],
+  /**
+   * CLU_DASH_KEYCODES
+   * @desc Describes keycodes for dashboard related events
+   * 
+   */
+  CLU_DASH_KEYCODES = {
+    ENTER: 13,
+  },
+  /**
+   * CLU_DASH_TARGETS
+   * @desc Describes `data-value` modifier(s)
+   * 
+   */
+  CLU_DASH_TARGETS = {
+    NEXT: 'next',
+    PREVIOUS: 'previous',
+  };

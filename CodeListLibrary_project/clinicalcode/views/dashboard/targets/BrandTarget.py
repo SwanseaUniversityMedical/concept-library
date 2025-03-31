@@ -1,13 +1,18 @@
 """Brand Dashboard: API endpoints relating to Template model"""
 import datetime
-import json
 
-from django.utils.timezone import make_aware
 from rest_framework import status, serializers
+from django.contrib.auth import get_user_model
+from django.utils.timezone import make_aware
+from rest_framework.response import Response
 
-from clinicalcode.entity_utils import model_utils
-from clinicalcode.models.Brand import Brand
+from .UserTarget import UserSerializer
 from .BaseTarget import BaseSerializer, BaseEndpoint
+from clinicalcode.models.Brand import Brand
+from clinicalcode.entity_utils import model_utils
+
+
+User = get_user_model()
 
 
 class BrandSerializer(BaseSerializer):
@@ -17,17 +22,42 @@ class BrandSerializer(BaseSerializer):
     requests (GET, PUT).
     """
 
+    # Fields
+    users = UserSerializer(many=True)
+    admins = UserSerializer(many=True)
+
+    # Appearance
+    _str_display = 'name'
+    _list_fields = ['id', 'name']
+    _item_fields = ['id', 'name', 'description', 'website', 'site_title', 'site_description']
+
+    # Metadata
     class Meta:
         model = Brand
         # Fields that should be included in the serialized output
-        fields = [
-            'id', 'name', 'description', 'website', 'site_title', 'site_description',
-            'admins', 'overrides', 'logo_path', 'index_path', 'is_administrable',
-            'org_user_managed', 'about_menu', 'allowed_tabs',
-            'footer_images',
-            'collections_excluded_from_filters'
+        exclude = [
+            'logo_path', 'index_path', 'about_menu', 'allowed_tabs', 'footer_images', 
+            'is_administrable', 'collections_excluded_from_filters', 'created', 'modified'
         ]
+        extra_kwargs = {
+            # RO
+            'id': { 'read_only': True, 'required': False },
+            'name': { 'read_only': True, 'required': False },
+            'logo_path': { 'read_only': True, 'required': False },
+            'index_path': { 'read_only': True, 'required': False },
+            'about_menu': { 'read_only': True, 'required': False },
+            'allowed_tabs': { 'read_only': True, 'required': False },
+            'footer_images': { 'read_only': True, 'required': False },
+            'is_administrable': { 'read_only': True, 'required': False },
+            'collections_excluded_from_filters': { 'read_only': True, 'required': False },
+            # WO
+			'created': { 'write_only': True, 'read_only': False, 'required': False },
+			'modified': { 'write_only': True, 'read_only': False, 'required': False },
+			'created_by': { 'write_only': True, 'read_only': False, 'required': False },
+			'updated_by': { 'write_only': True, 'read_only': False, 'required': False },
+        }
 
+	# GET
     def to_representation(self, instance):
         """
         Convert a Brand instance into a JSON-serializable dictionary.
@@ -41,16 +71,25 @@ class BrandSerializer(BaseSerializer):
         Returns:
             dict: The serialized Brand data.
         """
-        data = super(BrandSerializer, self).to_representation(instance)
+        if isinstance(instance, list):
+            instance = self.Meta.model.objects.filter(pk__in=instance)
+            instance = instance if instance.exists() else None
+        elif isinstance(instance, int):
+            instance = self.Meta.model.objects.filter(pk=instance)
+            if instance.exists():
+                instance = instance.first()
+            else:
+                instance = None
 
-        if instance is None:
+        if instance is not None:
+            data = super(BrandSerializer, self).to_representation(instance)
             return data
+        return None
 
-        # Ensure collections_excluded_from_filters is always a list
-        data["collections_excluded_from_filters"] = data.get("collections_excluded_from_filters") or []
+    def resolve_options(self):
+        return list(self.Meta.model.objects.all().values('name', 'pk'))
 
-        return data
-
+	# POST / PUT
     def create(self, validated_data):
         """
         Create and save a new Brand instance using the validated data.
@@ -82,25 +121,37 @@ class BrandSerializer(BaseSerializer):
         instance.save()
         return instance
 
+	# Instance & Field validation
     def validate(self, data):
         """
         Validate the provided data before creating or updating a Brand.
 
-        Ensures that the provided `id` matches the current brand. If the `id` is
-        provided and does not match the current brand, a validation error is raised.
-
         Args:
             data (dict): The data to validate.
-
-        Raises:
-            serializers.ValidationError: If the `id` in the data does not match the current brand.
 
         Returns:
             dict: The validated data.
         """
-        current_brand = self._get_brand()
-        if data.get('id') and data['id'] != current_brand.id:
-            raise serializers.ValidationError("Invalid Brand ID")
+        user = self._get_user()
+        instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
+
+        prev_users = instance.users if instance is not None else []
+        prev_admins = instance.admins if instance is not None else []
+
+        users = data.get('users') if isinstance(data.get('users'), list) else prev_users
+        users = list(User.objects.filter(id__in=users).values_list('id', flat=True))
+        if user is not None and user.id not in users:
+            users.append(user.id)
+
+        admins = data.get('admins') if isinstance(data.get('admins'), list) else prev_admins
+        admins = list(User.objects.filter(id__in=admins).values_list('id', flat=True))
+        if user is not None and user.id not in admins:
+            admins.append(user.id)
+
+        data.update({
+            'users': users,
+            'admins': admins,
+        })
 
         return data
 
@@ -148,6 +199,11 @@ class BrandEndpoint(BaseEndpoint):
             Response: The serialized data of the current brand.
         """
         current_brand = model_utils.try_get_brand(request)
+        if current_brand is None:
+            return Response(
+                data={ 'detail': 'Unknown Brand context' },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         kwargs.update(pk=current_brand.id)
         return self.retrieve(request, *args, **kwargs)
 
@@ -167,6 +223,11 @@ class BrandEndpoint(BaseEndpoint):
             Response: The response containing the updated brand data.
         """
         current_brand = model_utils.try_get_brand(request)
+        if current_brand is None:
+            return Response(
+                data={ 'detail': 'Unknown Brand context' },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         kwargs.update(pk=current_brand.id)
         return self.update(request, partial= True, *args, **kwargs)
 

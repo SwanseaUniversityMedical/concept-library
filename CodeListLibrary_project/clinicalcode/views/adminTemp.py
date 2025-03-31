@@ -810,16 +810,16 @@ def admin_upload_hdrn_assets(request):
                 # Global assets
                 "template": { "model": "Template", "target": "TemplateTarget", "endpoint": "TemplateEndpoint" },
                 "tags": { "model": "Tag", "target": "TagTarget", "endpoint": "TagEndpoint" },
-                "collections": { "model": "Tag", "target": "CollectionTarget", "endpoint": "CollectionEndpoint" },
                 # HDRN specific assets
                 "sites": { "model": "HDRNSite", "target": "HDRNSiteTarget", "endpoint": "HDRNSiteEndpoint" },
                 "category": { "model": "HDRNDataCategory", "target": "HDRNDataCategoryTarget", "endpoint": "HDRNDataCategoryEndpoint" },
-                "data_sources": { "model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint" }
+                "data_assets": { "model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint" }
             }
         }
 
         brand = Brand.objects.create(
                 name='HDRN',
+                site_title='Concept Dictionary',
                 description='Health Data Research Network Canada (HDRN Canada) is a pan-Canadian network of member '
                             'organizations that either hold linkable health and health-related data for entire populations '
                             'and/or have mandates and roles relating directly to access or use of those data. ',
@@ -834,7 +834,9 @@ def admin_upload_hdrn_assets(request):
                     {"url": "http://saildatabank.com", "brand": "SAIL Databank ",
                      "image_src": "img/Footer_logos/SAIL_alt_logo_on_white.png"}
                 ],
-                overrides=overrides
+                overrides=overrides,
+                org_user_managed=True,
+                is_administrable=True,
         )
 
     models = {}
@@ -866,7 +868,7 @@ def admin_upload_hdrn_assets(request):
         cats = data.get('data_categories')
 
         if isinstance(cats, list):
-            cats = [models.get('data_categories')[v - 1].id for v in cats if models.get('data_categories')[v - 1] is not None]
+            cats = [models.get('categories')[v - 1].id for v in cats if models.get('categories')[v - 1] is not None]
 
         site = next((x for x in models.get('site') if x.id == site), None) if isinstance(site, int) else None
         created_date = try_parse_hdrn_datetime(data.get('created_date', None), default=now)

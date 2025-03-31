@@ -12,17 +12,34 @@ from .BaseTarget import BaseSerializer, BaseEndpoint
 
 
 class HDRNSiteSerializer(BaseSerializer):
+    """"""
 
+    # Appearance
+    _str_display = 'name'
+    _list_fields = ['id', 'name']
+    _item_fields = ['id', 'name', 'description']
 
-
+	# Metadata
     class Meta:
         model = HDRNSite
-        fields =  ['id', 'title', 'description', 'metadata']
+        exclude = ['created', 'modified']
+        extra_kwargs = {
+            # RO
+            'id': { 'read_only': True, 'required': False },
+            # WO
+			'created': { 'write_only': True, 'read_only': False, 'required': False },
+			'modified': { 'write_only': True, 'read_only': False, 'required': False },
+        }
 
+	# GET
     def to_representation(self, instance):
         data = super(HDRNSiteSerializer, self).to_representation(instance)
         return data
 
+    def resolve_options(self):
+        return list(self.Meta.model.objects.all().values('name', 'pk'))
+
+	# POST / PUT
     def create(self, validated_data):
         return self._create(self.Meta.model, validated_data)
 
@@ -32,6 +49,7 @@ class HDRNSiteSerializer(BaseSerializer):
         instance.save()
         return instance
 
+	# Instance & Field validation
     @staticmethod
     def validate(data):
         metadata = data.get('metadata')
@@ -43,7 +61,6 @@ class HDRNSiteSerializer(BaseSerializer):
         except:
             raise serializers.ValidationError('Template definition is not valid JSON')
         return data
-
 
 
 class HDRNSiteEndpoint(BaseEndpoint):
@@ -77,7 +94,3 @@ class HDRNSiteEndpoint(BaseEndpoint):
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
-
-
-
-

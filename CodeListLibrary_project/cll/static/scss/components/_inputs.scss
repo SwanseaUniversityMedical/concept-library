@@ -713,6 +713,10 @@
     float: right;
     color: col(text-danger);
     font-weight: bold;
+
+    &.hidden {
+      display: none;
+    }
   }
 
   &__title {

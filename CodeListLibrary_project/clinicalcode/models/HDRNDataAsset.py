@@ -3,7 +3,6 @@ from django.http import HttpRequest
 from django.db.models import Q
 from django.core.paginator import EmptyPage, Paginator, Page
 from rest_framework.request import Request
-from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex
@@ -49,7 +48,7 @@ class HDRNDataAsset(TimeStampedModel):
 			records = HDRNDataAsset.objects.all()
 
 		if records is None:
-			return QuerySet()
+			return HDRNDataAsset.objects.none()
 
 		if not isinstance(params, dict):
 				params = { }
@@ -82,7 +81,7 @@ class HDRNDataAsset(TimeStampedModel):
 
 		records = HDRNDataAsset.get_brand_records_by_request(request, params)
 
-		page = params.get('page', 1)
+		page = gen_utils.try_value_as_type(params.get('page'), 'int', default=1)
 		page = max(page, 1)
 
 		page_size = params.get('page_size', '1')
@@ -92,7 +91,7 @@ class HDRNDataAsset(TimeStampedModel):
 			page_size = constants.PAGE_RESULTS_SIZE.get(page_size)
 
 		if records is None:
-			return Page(QuerySet(), 0, Paginator([], page_size, allow_empty_first_page=True))
+			return Page(HDRNDataAsset.objects.none(), 0, Paginator([], page_size, allow_empty_first_page=True))
 
 		pagination = Paginator(records, page_size, allow_empty_first_page=True)
 		try:
