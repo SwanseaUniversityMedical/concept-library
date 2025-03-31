@@ -979,6 +979,16 @@ const transformTitleCase = (str) => {
 }
 
 /**
+ * transformCamelCase
+ * @desc transforms a string to camelCase
+ * @param {string} str the string to transform
+ * @returns {string} the resultant, transformed string
+ */
+const transformCamelCase = (str) => {
+  return str.toLowerCase().replace(/([-_][a-z])/g, group => group.toUpperCase().replace('-', '').replace('_', ''));
+}
+
+/**
  * tryGetRootElement
  * @desc Iterates through the parent of an element until it either
  *      (a) lapses by not finding an element that matches the class

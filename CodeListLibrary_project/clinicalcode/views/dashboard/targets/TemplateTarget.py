@@ -2,26 +2,79 @@
 import datetime
 import json
 
-from django.utils.timezone import make_aware
 from rest_framework import status, serializers
+from django.contrib.auth import get_user_model
+from django.utils.timezone import make_aware
 from rest_framework.response import Response
 
+from .BaseTarget import BaseSerializer, BaseEndpoint
+from .BrandTarget import BrandSerializer
 from clinicalcode.entity_utils import gen_utils, template_utils
 from clinicalcode.models.Brand import Brand
 from clinicalcode.models.Template import Template
-from .BaseTarget import BaseSerializer, BaseEndpoint
+from clinicalcode.models.EntityClass import EntityClass
+
+
+User = get_user_model()
+
+
+class EntityClassSerializer(BaseSerializer):
+	""""""
+
+	# Appearance
+	_str_display = 'name'
+	_list_fields = ['id', 'name']
+	_item_fields = ['id', 'name', 'description']
+
+	# Metadata
+	class Meta:
+		model = EntityClass
+		exclude = ['created_by', 'modified_by', 'created', 'modified', 'entity_count']
+		extra_kwargs = {
+			# RO
+			'id': { 'read_only': True, 'required': False },
+			'entity_prefix': { 'read_only': True, 'required': False },
+			# WO
+			'created': { 'write_only': True, 'read_only': False, 'required': False },
+			'modified': { 'write_only': True, 'read_only': False, 'required': False },
+			'created_by': { 'write_only': True, 'read_only': False, 'required': False },
+			'modified_by': { 'write_only': True, 'read_only': False, 'required': False },
+		}
+
+	# GET
+	def resolve_options(self):
+		return list(self.Meta.model.objects.all().values('name', 'pk'))
 
 
 class TemplateSerializer(BaseSerializer):
 	"""Responsible for serialising the `Template` model and to handle PUT/POST validation"""
 
-	# Appearance
-	_list_fields = ['id', 'name', 'template_version']
+	# Fields
+	brands = BrandSerializer(many=True)
+	entity_class = EntityClassSerializer()
 
+	# Appearance
+	_str_display = 'name'
+	_list_fields = ['id', 'name', 'template_version']
+	_item_fields = ['id', 'name', 'template_version', 'description', 'brands']
+
+	# Metadata
 	class Meta:
-		# Metadata
 		model = Template
-		fields = ['id', 'name', 'description', 'brands', 'definition', 'template_version']
+		exclude = ['created_by', 'updated_by', 'created', 'modified']
+		extra_kwargs = {
+			# RO
+			'id': { 'read_only': True, 'required': False },
+			'name': { 'read_only': True, 'required': False },
+			'description': { 'read_only': True, 'required': False },
+			# WO
+			'created': { 'write_only': True, 'read_only': False, 'required': False },
+			'modified': { 'write_only': True, 'read_only': False, 'required': False },
+			'created_by': { 'write_only': True, 'read_only': False, 'required': False },
+			'updated_by': { 'write_only': True, 'read_only': False, 'required': False },
+			'entity_class': { 'write_only': True, 'read_only': False, 'required': False },
+			'hide_on_create': { 'write_only': True, 'read_only': False, 'required': False },
+		}
 
 	# GET
 	def to_representation(self, instance):
@@ -60,8 +113,8 @@ class TemplateSerializer(BaseSerializer):
 
 		definition = self.__apply_def_ordering(validated_data.get('definition'))
 		validated_data.update({
-			'definition': definition,
 			'brands': brands,
+			'definition': definition,
 			'created_by': user,
 			'updated_by': user,
 		})
@@ -73,7 +126,7 @@ class TemplateSerializer(BaseSerializer):
 
 		brands = validated_data.get('brands')
 		if isinstance(brands, Brand):
-			brands = [brands]
+			brands = [brands.id]
 		elif isinstance(brands, int):
 			brands = [brands]
 
@@ -81,12 +134,12 @@ class TemplateSerializer(BaseSerializer):
 			brands = [x.id if isinstance(x, Brand) else x for x in brands if isinstance(x, (Brand, int))]
 			if current_brand and not current_brand.id in brands:
 				brands.append(current_brand.id)
-
-			brands = list(set(brands + instance.brands if isinstance(instance.brands, list) else brands))
 		elif current_brand:
-			brands = [current_brand.id]
+			brands = instance.brands if isinstance(instance.brands, list) else []
+			if current_brand and not current_brand.id in brands:
+				brands.append(current_brand.id)
 		else:
-			brands = None
+			brands = instance.brands
 
 		if instance is not None:
 			definition = validated_data.get('definition', instance.definition)
@@ -102,6 +155,12 @@ class TemplateSerializer(BaseSerializer):
 
 	# Instance & Field validation
 	def validate(self, data):
+		instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
+
+		entity_class = data.get('entity_class')
+		if instance is None and not isinstance(entity_class, int):
+			raise serializers.ValidationError('Required `entity_class` field of `pk` type is missing')
+
 		definition = data.get('definition')
 		if not isinstance(definition, dict):
 			raise serializers.ValidationError('Required JSONField `definition` is missing')

@@ -1,20 +1,19 @@
 """Brand Dashboard: Base extensible/abstract classes"""
 from django.http import Http404
+from django.http import HttpRequest
 from rest_framework import status, generics, mixins, serializers, fields
 from django.db.models import Model
-from django.core.exceptions import BadRequest
+from rest_framework.request import Request
 from rest_framework.response import Response
-from django.utils.functional import classproperty, cached_property
-from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.functional import classproperty
 
-import json
 import inspect
 import builtins
 
 from clinicalcode.entity_utils import permission_utils, model_utils, gen_utils
 
 
-""""""
+"""Default Model `pk` field filter, _e.g._ the `ID` integer primary key"""
 DEFAULT_LOOKUP_FIELD = 'pk'
 
 
@@ -36,18 +35,54 @@ class BaseSerializer(serializers.ModelSerializer):
 				value = v
 				if v == fields.empty or isinstance(v, fields.empty):
 					value = None
-				elif v is not None and (type(v).__name__ == 'type' or ((hasattr(v, '__name__') or hasattr(v, '__class__') or inspect.isclass(v)) and not type(v).__name__ in dir(builtins))):
+				elif v is not None and type(v).__name__ != '__proxy__' and (type(v).__name__ == 'type' or ((hasattr(v, '__name__') or hasattr(v, '__class__') or inspect.isclass(v)) and not type(v).__name__ in dir(builtins))):
 					value = type(v).__name__
-
+				if k == 'label':
+					print(name, '->', k, '|', value)
 				if group is None:
 					group = {}
 				group.update({ k: value })
 
 			src = group.get('source')
-			if instance is not None and isinstance(src, str) and hasattr(instance, src):
-				group.update({ 'value': getattr(instance, src) })
+			if not field.write_only and instance is not None and isinstance(src, str) and hasattr(instance, src):
+				current_value = getattr(instance, src)
+				if isinstance(field, (serializers.Serializer, serializers.ModelSerializer)):
+					group.update({ 'value': field.to_representation(current_value) })
+				else:
+					cls_name = current_value.__class__.__name__
+					match cls_name:
+						case 'RelatedManager':
+							if current_value is not None and current_value.instance is not None:
+								group.update({ 'value': current_value.instance.pk })
+							else:
+								group.update({ 'value': None })
 
-			if isinstance(field, serializers.ListField):
+						case 'ManyRelatedManager':
+							if current_value is not None:
+								group.update({ 'value': list(current_value.all().values_list('pk', flat=True)) })
+							else:
+								group.update({ 'value': None })#
+
+						case _:
+							group.update({ 'value': current_value })
+
+			trg = field
+			if isinstance(trg, serializers.ListSerializer):
+				trg = trg.child
+
+			disp = getattr(trg, '_str_display') if hasattr(trg, '_str_display') else None
+			if isinstance(disp, str) and not gen_utils.is_empty_string(disp):
+				group.update({ 'str_display': disp })
+
+			if hasattr(trg, 'resolve_options') and callable(getattr(trg, 'resolve_options', None)):
+				group.update({ 'value_options': trg.resolve_options() })
+			elif hasattr(trg, 'get_choices') and callable(getattr(trg, 'get_choices', None)):
+				group.update({ 'value_options': trg.get_choices() })
+
+			if hasattr(trg, 'resolve_format') and callable(getattr(trg, 'resolve_format', None)):
+				group.update({ 'value_format': trg.resolve_format() })
+
+			if isinstance(field, (serializers.ListField, serializers.ListSerializer)):
 				group.update({ 'type': type(field).__qualname__, 'subtype': type(field.child).__qualname__ })
 			else:
 				group.update({ 'type': type(field).__qualname__, 'subtype': None })
@@ -69,7 +104,7 @@ class BaseSerializer(serializers.ModelSerializer):
 		return None
 
 	@staticmethod
-	def _update( instance, validated_data):
+	def _update(instance, validated_data):
 		"""
 		Dynamically updates a model instance, setting Many-to-Many fields first if present.
 		@param instance:
@@ -79,7 +114,7 @@ class BaseSerializer(serializers.ModelSerializer):
 
 		# Handle ManyToMany fields
 		# Loop through fields and set values dynamically
-		for field in instance._meta.get_fields():
+		for field in instance._meta.get_fields(include_parents=True):
 			field_name = field.name
 
 			# Skip fields not in validated_data
@@ -110,7 +145,7 @@ class BaseSerializer(serializers.ModelSerializer):
 		# Step 1: Extract Many-to-Many fields
 		m2m_data = {
 			field.name: validated_data.pop(field.name)
-			for field in model_class._meta.get_fields()
+			for field in model_class._meta.get_fields(include_parents=True)
 			if field.many_to_many and field.name in validated_data
 		}
 
@@ -124,7 +159,6 @@ class BaseSerializer(serializers.ModelSerializer):
 		return instance
 
 
-
 class BaseEndpoint(
 	generics.GenericAPIView,
 	mixins.RetrieveModelMixin,
@@ -133,6 +167,9 @@ class BaseEndpoint(
 	mixins.CreateModelMixin
 ):
 	"""Extensible endpoint class for TargetEndpoint(s)"""
+
+	# QuerySet kwargs
+	filter = None
 
 	# View behaviour
 	permission_classes = [permission_utils.IsBrandAdmin]
@@ -157,43 +194,42 @@ class BaseEndpoint(
 	def retrieve(self, request, *args, **kwargs):
 		try:
 			instance = self.get_object(*args, **kwargs)
+			serializer = self.get_serializer(instance)
+			response = { 'data': serializer.data }
+			self._format_item_data(response, serializer=serializer)
 		except Exception as e:
 			return Response(
 				data={ 'detail': str(e) },
 				status=status.HTTP_400_BAD_REQUEST
 			)
 		else:
-			serializer = self.get_serializer(instance)
-			response = { 'data': serializer.data }
-			self.__format_item_data(response, serializer=serializer)
 			return Response(response)
 
 	def list(self, request, *args, **kwargs):
-		page_obj = self.model.get_brand_paginated_records_by_request(request)
+		params = getattr(self, 'filter', None)
+		params = params if isinstance(params, dict) else None
+
+		page_obj = self.model.get_brand_paginated_records_by_request(request, params=params)
 
 		results = self.serializer_class(page_obj.object_list, many=True)
-		response = {
-			'detail': {
-				'page': min(page_obj.number, page_obj.paginator.num_pages),
-				'total_pages': page_obj.paginator.num_pages,
-				'page_size': page_obj.paginator.per_page,
-				'has_previous': page_obj.has_previous(),
-				'has_next': page_obj.has_next(),
-				'max_results': page_obj.paginator.count,
-			},
+		response = self._format_list_data({
+			'detail': self._format_page_details(page_obj),
 			'results': results.data,
-		}
+		})
 
-		self.__format_list_data(response)
 		return Response(response)
 
 	# Mixin methods
 	def get_queryset(self, *args, **kwargs):
-		return self.model.get_brand_records_by_request(self.request, params=kwargs)
+		params = getattr(self, 'filter', None)
+		if isinstance(params, dict):
+			params = kwargs | params
+		else:
+			params = kwargs
+
+		return self.model.get_brand_records_by_request(self.request, params=params)
 
 	def get_object(self, *args, **kwargs):
-		kwargs |= (self.kwargs if isinstance(self.kwargs, dict) else {})
-
 		inst = self.get_queryset().filter(*args, **kwargs)
 		if not inst.exists():
 			raise Http404(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
@@ -210,7 +246,20 @@ class BaseEndpoint(
 		return Response(serializer.data)
 
 	# Private methods
-	def __format_item_data(self, response, serializer=None):
+	def _get_query_params(self, request, kwargs=None):
+		params = getattr(self, 'filter', None)
+		params = params if isinstance(params, dict) else { }
+		if not isinstance(kwargs, dict):
+			kwargs = { }
+
+		if isinstance(request, Request) and hasattr(request, 'query_params'):
+			params = { key: value for key, value in request.query_params.items() } | kwargs | params
+		elif isinstance(request, HttpRequest) and hasattr(request, 'GET'):
+			params = { key: value for key, value in request.GET.dict().items() } | kwargs | params
+
+		return params
+
+	def _format_item_data(self, response, serializer=None):
 		if serializer is None:
 			serializer = self.get_serializer()
 
@@ -226,14 +275,51 @@ class BaseEndpoint(
 		response.update(renderable=renderable | { 'fields': show_fields })
 		return response
 
-	def __format_list_data(self, response, serializer=None):
+	def _format_list_data(self, response, serializer=None):
 		if serializer is None:
 			serializer = self.get_serializer()
 
 		renderable = { 'form': serializer.form_fields }
 		show_fields = getattr(serializer, '_list_fields', None) if hasattr(serializer, '_list_fields') else None
+		show_fields = show_fields if isinstance(show_fields, list) else None
 		if not isinstance(show_fields, list):
 			show_fields = [self.model._meta.pk.name]
 
 		response.update(renderable=renderable | { 'fields': show_fields })
 		return response
+
+	def _format_page_details(self, page_obj):
+		num_pages = page_obj.paginator.num_pages
+		page = min(page_obj.number, num_pages)
+
+		detail = {
+			'page': page,
+			'total_pages': num_pages,
+			'page_size': page_obj.paginator.per_page,
+			'has_previous': page_obj.has_previous(),
+			'has_next': page_obj.has_next(),
+			'max_results': page_obj.paginator.count,
+		}
+
+		if num_pages <= 9:
+			detail.update(pages=set(range(1, num_pages + 1)))
+		else:
+			page_items = []
+			min_page = page - 1
+			max_page = page + 1
+			if min_page <= 1:
+				min_page = 1
+				max_page = min(page + 2, num_pages)
+			else:
+				page_items += [1, 'divider']
+
+			if max_page > num_pages:
+				min_page = max(page - 2, 1)
+				max_page = min(page, num_pages)
+
+			page_items += list(range(min_page, max_page + 1))
+			if num_pages not in page_items:
+				page_items += ['divider', num_pages]
+			detail.update(pages=page_items)
+
+		return detail

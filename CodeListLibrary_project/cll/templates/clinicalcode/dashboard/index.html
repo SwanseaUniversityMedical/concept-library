@@ -142,7 +142,7 @@
             </span>
           </a>
           <a
-            class="dashboard-nav__targets-list-item"
+            class="dashboard-nav__targets-list-item visibility-hidden"
             title="Manage Brand Configuration"
             aria-label="Manage Brand Configuration"
             tabindex="0"
@@ -237,74 +237,38 @@
       <!-- Renderable Content -->
       <section id="app-content" class="dashboard-view__content slim-scrollbar">
 
-        <!-- Activity -->
-        <article class="dashboard-view__content-group dashboard-view__content--fill-w">
-          <h2 id="activity" class="dashboard-view__content-title" role="heading" aria-level="1">
-            Activity
-          </h2>
-          <section class="dashboard-view__content-grid slim-scrollbar">
-            <article class="card">
-              <header class="card__header">
-                <h3>Phenotypes Created</h3>
-                <span class="as-icon as-icon--warning" data-icon="&#xf234;" aria-hidden="true"></span>
-              </header>
-              <p class="card__desc">
-                No. of Phenotypes created in the last 7 days.
-              </p>
-              <figure class="card__data">
-                19
-              </figure>
-              <footer class="card__footer">
-                <time datetime="2021-11-24T20:00:00">
-                  <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
-                  20/12/2012, 03:00:00
-                </time>
-              </footer>
-            </article>
-            <article class="card">
-              <header class="card__header">
-                <h3>Phenotypes Edited</h3>
-                <span class="as-icon as-icon--warning" data-icon="&#xf4ff;" aria-hidden="true"></span>
-              </header>
-              <p class="card__desc">
-                No. of times Phenotypes were edited in the last 7 days.
-              </p>
-              <figure class="card__data">
-                19
-              </figure>
-              <footer class="card__footer">
-                <time datetime="2021-11-24T20:00:00">
-                  <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
-                  20/12/2012, 03:00:00
-                </time>
-              </footer>
-            </article>
-            <article class="card">
-              <header class="card__header">
-                <h3>Phenotypes Published</h3>
-                <span class="as-icon as-icon--warning" data-icon="&#xf02d;" aria-hidden="true"></span>
-              </header>
-              <p class="card__desc">
-                No. of Phenotypes Published in the last 7 days.
-              </p>
-              <figure class="card__data">
-                <div class="loading-cover loading-cover--min-htext"></div>
-              </figure>
-              <footer class="card__footer">
-                <div class="loading-cover loading-cover--min-htext"></div>
-              </footer>
-            </article>
-          </section>
-        </article>
-
       </section>
 
     </section>
   </main>
 
+  <template data-name="model" data-for="dashboard">
+    <article class="dashboard-view__content-group ${articleCls}">
+      <header class="dashboard-view__content-header ${headerCls}">
+        <h2 id="${id}" class="dashboard-view__content-title" role="heading" aria-level="${level}">
+          ${title}
+        </h2>
+        <button
+          class="outline-btn outline-btn--icon outline-btn--icon-add"
+          title="Add New ${title}"
+          aria-label="Add New ${title}"
+          role="button"
+          tabindex="0"
+          data-ref="${id}"
+          data-role="create-btn"
+        >
+          Add New
+        </button>
+      </header>
+      <section class="${sectionCls}">
+        ${content}
+      </section>
+    </article>
+  </template>
+
   <template data-name="group" data-for="dashboard">
     <article class="dashboard-view__content-group ${articleCls}">
-      <h2 id="${id}" class="dashboard-view__content-title" role="heading" aria-level="${level}">
+      <h2 id="${id}" class="dashboard-view__content-heading" role="heading" aria-level="${level}">
        ${title}
       </h2>
       <section class="${sectionCls}">
@@ -340,9 +304,10 @@
       </p>
       <footer class="card__footer card__footer--action">
         <button
-          class="outline-btn outline-btn--edit-icon"
+          class="outline-btn outline-btn--icon outline-btn--icon-edit"
           title="Manage ${name}"
           aria-label="Manage ${name}"
+          data-ref="${ref}"
           data-role="action-btn"
         >
           ${action}
@@ -360,6 +325,216 @@
       <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
       ${datefmt}
     </time>
+  </template>
+
+  <template data-name="table" data-for="dashboard">
+    <fieldset class="dash-search search-container" data-controller="filter" data-class="searchbar" data-field="search">
+      <input
+        id="searchbar"
+        class="search-container__field washed-outline"
+        type="text"
+        value="${query}"
+        placeholder="Search..."
+        data-class="searchbar" data-field="search"
+        aria-label="Search Phenotypes..."
+      />
+      <button
+        id="searchbar-icon-btn"
+        class="search-container__icon"
+        tabindex="0"
+        aria-label="Search Phenotypes">
+      </button>
+    </fieldset>
+    <article class="dash-list">
+      <section class="dash-list__container slim-scrollbar">
+        <table class="dash-list__table">
+          <thead>
+
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </section>
+      <footer class="dash-list__footer">
+
+      </footer>
+    </article>
+  </template>
+
+  <template data-name="empty" data-view="pages" data-for="dashboard">
+    <li class="is-active">
+      <a class="no-select" data-value="ignore" target="_blank" disabled>
+        1
+      </a>
+    </li>
+  </template>
+
+  <template data-name="divider" data-view="pages" data-for="dashboard">
+    <li class="divider">
+      <a class="no-select" data-value="ignore" target="_blank" disabled>
+      </a>
+    </li>
+  </template>
+
+  <template data-name="button" data-view="pages" data-for="dashboard">
+    <li class="${cls}">
+      <a
+        class="no-select"
+        aria-label="Go Page ${page}"
+        target="_blank"
+        tabindex="0"
+        data-value="${page}"
+        data-field="page"
+        role="button"
+      >${page}</a>
+    </li>
+  </template>
+
+  <template data-name="controls" data-view="pages" data-for="dashboard">
+    <p class="dash-list__footer-desc">
+      Showing ${startIdx} to ${endIdx} of ${rowCount} entries
+    </p>
+    <section
+      class="pagination-container"
+      data-field="page"
+      data-value="${page}"
+      data-class="pagination"
+      data-controller="filter"
+    >
+      <div class="pagination-container__details">
+        <p class="pagination-container__details-number">
+          Page 
+          <span id="page-number">
+            ${page}
+          </span>
+          of 
+          <span id="page-total">
+            ${totalPages}
+          </span>
+        </p>
+      </div>
+      <ul class="pagination-container__previous">
+        <li class="${ !hasPrevious ? 'disabled' : ''}">
+          <a
+            class="no-select"
+            role="button"
+            target="_blank"
+            tabindex="0"
+            aria-label="Go Previous Page"
+            data-value="previous"
+            data-field="page"
+          >
+            Previous
+          </a>
+        </li>
+      </ul>
+      <ul class="pagination-container__pages" id="page-items">
+        ${content}
+      </ul>
+      <ul class="pagination-container__next">
+        <li class="${ !hasNext ? 'disabled' : ''}">
+          <a
+            class="no-select"
+            role="button"
+            target="_blank"
+            tabindex="0"
+            aria-label="Go Next Page"
+            data-value="next"
+            data-field="page"
+          >
+            Next
+          </a>
+        </li>
+      </ul>
+    </section>
+  </template>
+
+  <template data-name="button" data-view="form" data-for="dashboard">
+      <button
+        class="outline-btn outline-btn--icon outline-btn--icon-${cls} ${style}"
+        title="${title}"
+        aria-label="${title}"
+        role="button"
+        tabindex="0"
+        data-ref="${id}"
+        data-role="${role}"
+      >
+        ${title}
+      </button>
+  </template>
+
+  <template data-name="CharField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? 'hidden' : ''}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+      <input
+        id="field-${key}"
+        class="text-input"
+        placeholder=""
+        type="text"
+        value="${value}"
+        aria-label="${title}" 
+        minlength="${minLength}"
+        maxlength="${maxLength}"
+        data-class="inputbox"
+        data-field="${key}"
+        autocomplete="${autocomplete}"
+        required="${required ? 'true' : 'false'}"
+      />
+    </div>
+  </template>
+
+  <template data-name="EmailField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? 'hidden' : ''}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+      <input
+        id="field-${key}"
+        class="text-input"
+        placeholder=""
+        type="email"
+        value="${value}"
+        aria-label="${title}" 
+        minlength="${minLength}"
+        maxlength="${maxLength}"
+        data-class="inputbox"
+        data-field="${key}" 
+        autocomplete="email"
+        required="${required ? 'true' : 'false'}"
+      />
+    </div>
+  </template>
+
+  <template data-name="BooleanField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? 'hidden' : ''}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+      <div class="checkbox-item-container">
+        <input
+          id="field-${key}"
+          class="checkbox-item"
+          type="checkbox" 
+          value="${value}" 
+          aria-label="${title}" 
+          data-class="checkbox"
+          data-field="${key}"
+          required="${required ? 'true' : 'false'}"
+        />
+        <label class="constrained-filter-item" for="login-remember">
+          ${title}
+        </label>
+      </div>
+    </div>
   </template>
 {% endblock container %}
 

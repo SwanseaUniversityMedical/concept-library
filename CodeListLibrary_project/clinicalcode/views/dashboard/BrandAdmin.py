@@ -7,7 +7,6 @@ from django.shortcuts import render
 from django.core.cache import cache
 from rest_framework.views import APIView
 from django.views.generic import TemplateView
-from django.core.exceptions import BadRequest, PermissionDenied
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import schema
@@ -15,16 +14,80 @@ from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.storage import staticfiles_storage
 
 import os
+import math
 import logging
 import psycopg2
 
-from clinicalcode.models import Brand, Tag, Template
+from clinicalcode.views import View
+from clinicalcode.models import Brand
 from clinicalcode.entity_utils import gen_utils, model_utils, permission_utils
-
-from .targets import TemplateTarget
 
 
 logger = logging.getLogger(__name__)
+
+
+def get_or_resolve_assets(brand=None, cache_timeout=3600):
+	"""
+	Attempts to resolve the known quick access assets available for the specified Brand, either by retrieving it from the cache store or, if not found, by computing it.
+
+	Args:
+		brand         (:model:`Brand`|None): the Request-specified Brand context
+		cache_timeout            (int|None): optionally specify the cache timeout; defaults to 3600
+
+	Returns:
+		A (dict) describing the quick access items
+	"""
+	cache_key = brand.name if isinstance(brand, Brand) else 'all'
+	cache_key = f'dashboard-asset-summary__{cache_key}__cache'
+
+	if not isinstance(cache_timeout, int) or not math.isfinite(cache_timeout) or math.isnan(cache_timeout):
+		cache_timeout = 0
+	else:
+		cache_timeout = max(cache_timeout, 0)
+
+	assets = cache.get(cache_key)
+	if assets is not None:
+		return assets.get('value')
+
+	if brand is not None:
+		assets = brand.get_asset_rules(default={})
+	else:
+		assets = {}
+
+	for key, asset in assets.items():
+		model = asset.get('model')
+		if model is None:
+			assets.pop(key, None)
+			continue
+
+		details = None
+		try:
+			model = apps.get_model(app_label='clinicalcode', model_name=model)
+			if hasattr(model, 'get_verbose_names'):
+				details = model.get_verbose_names(subtype=asset.get('subtype', key))
+			elif hasattr(model, '_meta') and getattr(model, '_meta', None) is not None:
+				meta = getattr(model, '_meta')
+				verbose_name = meta.verbose_name if hasattr(meta, 'verbose_name') else None
+				verbose_name_plural = meta.verbose_name_plural if hasattr(meta, 'verbose_name_plural') else None
+				details = {
+					'verbose_name': verbose_name if isinstance(verbose_name, str) else model.__name__,
+					'verbose_name_plural': verbose_name_plural if isinstance(verbose_name_plural, str) else (f'{model.__name__}s'),
+				}
+			else:
+				details = {
+					'verbose_name': model.__name__,
+					'verbose_name_plural': f'{model.__name__}s',
+				}
+		except:
+			assets.pop(key, None)
+			continue
+		else:
+			if details is not None:
+				asset.update({ 'details': details })
+
+	if cache_timeout > 0:
+		cache.set(cache_key, { 'value': assets }, cache_timeout)
+	return assets
 
 
 class BrandDashboardView(TemplateView):
@@ -93,10 +156,7 @@ class BrandDashboardView(TemplateView):
 			brand (:model:`Brand`): the current HttpRequest's :model:`Brand` context
 
 		Returns:
-			The resulting Template context (`Dict[str, Any]` _OR_ :py:class:`Context`) 
-			
-		Raises:
-			BadRequest (400 error)
+			The resulting Template context (`Dict[str, Any]` _OR_ :py:class:`Context`)
 		"""
 		brand = kwargs.get('brand')
 		context = super().get_context_data(*args, **kwargs)
@@ -125,61 +185,53 @@ class BrandDashboardView(TemplateView):
 		`brand_dashboard`
 		"""
 		brand = model_utils.try_get_brand(request)
+		if brand is None:
+			return View.notify_err(
+				request,
+				title='Bad Request - Invalid Brand',
+				status_code=400,
+				details=['You cannot administrate a Brand on an unknown domain.']
+			)
+
 		context = self.get_context_data(*args, **kwargs, brand=brand)
 		return render(request, self.template_name, context)
 
 
 @schema(None)
-class BrandPeopleView(APIView):
-	"""Brand People APIView for the Brand Dashboard"""
-	reverse_name = 'brand_people_summary'
-	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsBrandAdmin]
-
-	def get(self, request):
-		"""GET request handler for BrandPeopleView"""
-		return Response({ })
-
-
-@schema(None)
 class BrandInventoryView(APIView):
-	"""Brand Inventory APIView for the Brand Dashboard"""
-	reverse_name = 'brand_inventory_summary'
-	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsBrandAdmin]
-
-	def get(self, request):
-		"""GET request handler for BrandInventoryView"""
-		return Response({ })
-
-
-@schema(None)
-class BrandConfigurationView(APIView):
-	"""Brand Configuration APIView for the Brand Dashboard"""
-	reverse_name = 'brand_config_summary'
-	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsBrandAdmin]
-
-	def get(self, request):
-		"""GET request handler for BrandConfigurationView"""
-		return Response({ })
-
-
-@schema(None)
-class BrandStatsSummaryView(APIView):
-	"""Statistical Summary APIView, used to retrieve the interaction data for the Brand Dashboard"""
-	# View behaviour
-	reverse_name = 'brand_stats_summary'
+	"""Brand Inventory APIView for the Brand Dashboard, used to retrieve administrable Data Models"""
+	reverse_name = 'brand_dashboard_inventory'
 	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsBrandAdmin]
 
 	# Statistics summary cache duration (in seconds)
 	CACHE_TIMEOUT = 3600
 
 	def get(self, request):
-		"""GET request handler for BrandStatsSummaryView"""
+		"""GET request handler for BrandInventoryView"""
 		brand = model_utils.try_get_brand(request)
-		assets = self.__get_or_resolve_assets(brand)
+
+		return Response({
+			'assets': get_or_resolve_assets(brand),
+		})
+
+
+@schema(None)
+class BrandOverviewView(APIView):
+	"""Dashboard Landing Overview APIView, used to retrieve the interaction & accessible data for the Brand Dashboard"""
+	# View behaviour
+	reverse_name = 'brand_dashboard_overview'
+	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsBrandAdmin]
+
+	# Statistics summary cache duration (in seconds)
+	CACHE_TIMEOUT = 3600
+
+	def get(self, request):
+		"""GET request handler for BrandOverviewView"""
+		brand = model_utils.try_get_brand(request)
 		summary = self.__get_or_compute_summary(brand)
 
 		return Response({
-			'assets': assets,
+			'assets': get_or_resolve_assets(brand),
 			'summary': summary,
 		})
 
@@ -203,62 +255,6 @@ class BrandStatsSummaryView(APIView):
 		summary = self.__compute_summary(brand)
 		cache.set(cache_key, { 'value': summary }, self.CACHE_TIMEOUT)
 		return summary
-
-	def __get_or_resolve_assets(self, brand=None):
-		"""
-		Attempts to resolve the known quick access assets available for the specified Brand, either by retrieving it from the cache store or, if not found, by computing it.
-
-		Args:
-			brand (:model:`Brand`|None): the Request-specified Brand context
-
-		Returns:
-			A (dict) describing the quick access items
-		"""
-		cache_key = brand.name if isinstance(brand, Brand) else 'all'
-		cache_key = f'dashboard-asset-summary__{cache_key}__cache'
-
-		assets = cache.get(cache_key)
-		if assets is not None:
-			return assets.get('value')
-
-		if brand is not None:
-			assets = brand.get_asset_rules(default={})
-		else:
-			assets = {}
-
-		for key, asset in assets.items():
-			model = asset.get('model')
-			if model is None:
-				assets.pop(key, None)
-				continue
-
-			details = None
-			try:
-				model = apps.get_model(app_label='clinicalcode', model_name=model)
-				if hasattr(model, 'get_verbose_names'):
-					details = model.get_verbose_names(subtype=key)
-				elif hasattr(model, '_meta') and getattr(model, '_meta', None) is not None:
-					meta = getattr(model, '_meta')
-					verbose_name = meta.verbose_name if hasattr(meta, 'verbose_name') else None
-					verbose_name_plural = meta.verbose_name_plural if hasattr(meta, 'verbose_name_plural') else None
-					details = {
-						'verbose_name': verbose_name if isinstance(verbose_name, str) else model.__name__,
-						'verbose_name_plural': verbose_name_plural if isinstance(verbose_name_plural, str) else (f'{model.__name__}s'),
-					}
-				else:
-					details = {
-						'verbose_name': model.__name__,
-						'verbose_name_plural': f'{model.__name__}s',
-					}
-			except:
-				assets.pop(key, None)
-				continue
-			else:
-				if details is not None:
-					asset.update({ 'details': details })
-
-		cache.set(cache_key, { 'value': assets }, self.CACHE_TIMEOUT)
-		return assets
 
 	def __compute_summary(self, brand):
 		"""

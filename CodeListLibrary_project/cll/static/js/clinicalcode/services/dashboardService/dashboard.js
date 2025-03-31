@@ -4,37 +4,8 @@ import { managePlugins } from './plugins.js';
 import { manageNavigation } from './navigation.js';
 import { managePopoverMenu } from './popoverMenu.js';
 
-/**
- * Todo:
- *  1. Page state
- *    -> TODO:
- *      -> Finalise `get_asset_rules()` implementation
- *      -> Attempt `Overview`, then move to other Targets/Pages
- * 
- *  2. Renderables
- *    -> Views: collect from Model method?
- *    -> Forms: use admin forms, e.g. TemplateForm?
- * 
- *  2. Overview
- *    -> Activity: render API data
- *    -> Quick Access: Collect known editable data assets editable per brand
- * 
- *  3. People
- *    -> People API fetch & render
- *    -> Ability to create / edit user(s)
- * 
- *  4. Organisations
- *    -> Organisation API fetch & render
- *    -> Ability to create / modify organisation(s)
- * 
- *  5. Brand
- *    -> Brand API fetch & render
- *    -> Modify Brand data
- * 
- *  6. Inventory
- *    -> Allow creation + editing of assets per `Quick Access` view
- *
- */
+import { FormView } from './controllers/formView.js';
+import { TableView } from './controllers/tableView.js';
 
 /**
  * Class to serve & manage Dashboard page content
@@ -59,31 +30,33 @@ export class DashboardService {
    * 
    * @property {string}             [page='overview'] Page to open on initialisation
    * @property {string}             [view]            View to open on initialisation
+   * @property {string}             [token=*]         CSRF cookie (auto-filled)
    * @property {*}                  [target]          Entity to target on initialisation
    * @property {string|HTMLElement} [element='#app']  The root app element in which to render the service
    */
   static #DefaultOpts = {
     page: 'overview',
     view: null,
+    token: null,
     target: null,
     element: '#app',
-    token: null,
   };
 
   /**
    * @desc
+   * @type {HTMLElement}
    * @public
    */
   element = null;
 
   /**
    * @desc
+   * @type {object}
    * @private
    */
   #state = {
     initialised: false,
   };
-
 
   /**
    * @desc
@@ -133,14 +106,6 @@ export class DashboardService {
         hnd = this.#renderOverview;
         break;
 
-      case 'users':
-        hnd = this.#renderUsers;
-        break;
-
-      case 'organisations':
-        hnd = this.#renderOrganisations;
-        break;
-
       case 'inventory':
         hnd = this.#renderInventory;
         break;
@@ -150,6 +115,7 @@ export class DashboardService {
         break;
       
       default:
+        hnd = this.#renderModelView;
         break;
     }
 
@@ -164,6 +130,13 @@ export class DashboardService {
   }
 
   dispose() {
+    const state = this.#state;
+    const controller = state?.controller;
+    if (controller) {
+      controller.dispose();
+      delete state.controller;
+    }
+
     let disposable;
     for (let i = this.#disposables.length; i > 0; i--) {
       disposable = this.#disposables.pop();
@@ -204,12 +177,15 @@ export class DashboardService {
     const root = host + '/' + DashboardService.#UrlPath;
     switch (view) {
       case 'view':
-        return `${root}/${target}/` + parameters;
+        return `${root}/view/${target}/` + parameters;
 
       case 'list':
         return `${root}/target/${target}/` + parameters;
 
-      case 'display':
+      case 'create':
+        return `${root}/target/${target}/` + parameters;
+
+      case 'update':
         return `${root}/target/${target}/${kwargs}/` + parameters;
 
       default:
@@ -255,7 +231,64 @@ export class DashboardService {
   }
 
   #clearContent() {
+    const state = this.#state;
+    const controller = state.controller;
+    if (controller) {
+      controller.dispose();
+      delete state.controller;
+    }
+
     this.#layout.content.replaceChildren();
+  }
+
+  #displayAssets({
+    container,
+    assets,
+    spinner = null,
+    callback = null,
+  } = {}) {
+    if (!isHtmlObject(container) || !isObjectType(assets)) {
+      console.warn('Failed to render Asset cards');
+      return;
+    }
+
+    const keys = Object.keys(assets).sort((a, b) => {
+      const v0 = assets[a]?.details?.verbose_name ?? '';
+      const v1 = assets[b]?.details?.verbose_name ?? '';
+      return v0 < v1 ? -1 : (v0 > v1 ? 1 : 0);
+    });
+
+    for (let i = 0; i < keys.length; ++i) {
+      const key = keys[i];
+      const asset = assets[key];
+      const details = isObjectType(asset) ? asset?.details : null
+      if (!details) {
+        continue;
+      }
+
+      const [card] = composeTemplate(this.#templates.base.action_card, {
+        params: {
+          ref: key,
+          name: details.verbose_name,
+          desc: `Manage ${details.verbose_name_plural}`,
+          icon: '&#xf1c0;',
+          iconCls: 'as-icon--primary',
+          action: 'Manage',
+        },
+        parent: container,
+      });
+
+      const button = card.querySelector('[data-role="action-btn"]');
+      button.addEventListener('click', () => {
+        if (typeof callback === 'function') {
+          callback(key);
+        }
+      });
+    }
+
+    if (isRecordType(spinner) && typeof spinner.remove === 'function') {
+      spinner.remove();
+    }
   }
 
   #renderOverview() {
@@ -294,7 +327,7 @@ export class DashboardService {
       };
     }, 200);
 
-    const url = this.#getTargetUrl('stats-summary');
+    const url = this.#getTargetUrl('overview');
     this.#fetch(url, { method: 'GET' })
       .then(res => {
         if (!spinners) {
@@ -316,7 +349,7 @@ export class DashboardService {
 
         const activityContent = activity.querySelector('section');
         for (let key in stats) {
-          const details = Const.ACTIVITY_CARDS.find(x => x.key === key);
+          const details = Const.CLU_ACTIVITY_CARDS.find(x => x.key === key);
           if (!details) {
             continue;
           }
@@ -337,38 +370,14 @@ export class DashboardService {
 
         const assets = res.assets;
         const quickAccessContent = quickAccess.querySelector('section');
-        if (isObjectType(assets)) {
-          const keys = Object.keys(assets).sort((a, b) => {
-            const v0 = assets[a]?.details?.verbose_name ?? '';
-            const v1 = assets[b]?.details?.verbose_name ?? '';
-            return v0 < v1 ? -1 : (v0 > v1 ? 1 : 0);
-          });
-
-          for (let i = 0; i < keys.length; ++i) {
-            const key = keys[i];
-            const asset = assets[key];
-            const details = isObjectType(asset) ? asset?.details : null
-            if (!details) {
-              continue;
-            }
-
-            const [card] = composeTemplate(this.#templates.base.action_card, {
-              params: {
-                name: details.verbose_name,
-                desc: `Manage ${details.verbose_name_plural}`,
-                icon: '&#xf1c0;',
-                iconCls: 'as-icon--primary',
-                action: 'Manage',
-              },
-              parent: quickAccessContent,
-            });
-
-            const button = card.querySelector('[data-role="action-btn"]');
-            button.addEventListener('click', (e) => {
-              this.openPage('inventory', null, { type: key });
-            });
+        this.#displayAssets({
+          assets: assets,
+          container: quickAccessContent,
+          spinner: spinners?.quickAccess ?? null,
+          callback: (key) => {
+            this.openPage('inventory', null, { type: key, labels: assets?.[key]?.details });
           }
-        }
+        })
         spinners?.quickAccess?.remove?.();
 
         if (quickAccessContent.childElementCount < 1) {
@@ -378,280 +387,87 @@ export class DashboardService {
       .catch(console.error);
   }
 
-  #renderUsers() {
+  #renderModelView() {
     const state = this.#state;
+
+    const type = state.page;
     const view = state.view ?? 'list';
-    const target = state.target;
+    state.view = view;
+
+    const label = transformTitleCase(state.page.replace('_', ' '));
     this.#clearContent();
 
-    const pageCls = view === 'list' ? 'dashboard-view__content--fill-w' : '';
-    const viewCls = view === 'list' ? 'dashboard-view__content-table' : '';
-
-    const [pageArticle] = composeTemplate(this.#templates.base.group, {
+    let article, container, header, createBtn;
+    composeTemplate(this.#templates.base.model, {
       params: {
-        id: 'users',
-        title: 'Users',
+        id: type,
+        title: `${transformTitleCase(view)} ${label}`,
         level: '1',
-        articleCls: pageCls,
-        sectionCls: viewCls,
         content: '',
+        headerCls: '',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: view === 'list' ? 'dashboard-view__content-display' : 'dashboard-view__content-form',
       },
       parent: this.#layout.content,
+      render: (elem) => {
+        article = elem[0];
+
+        header = article.querySelector('header');
+        createBtn = header.querySelector('[data-role="create-btn"]');
+        container = article.querySelector('section');
+      }
     });
 
+    let url;
     switch (view) {
       case 'list': {
-        const url = this.#getTargetUrl('template', { view: 'list' });
+        url = this.#getTargetUrl(type, { view: 'list' });
+        header.classList.add('dashboard-view__content-header--constrain');
 
-        this.#fetch(url)
-          .then(res => res.json())
-          .then(res => console.log(res));
-
-        const data = [
-          {
-            "name": "Unity Pugh",
-            "extension": "9958",
-            "city": "Curicó",
-            "start_date": "2005/02/11"
-          },
-          {
-            "name": "Theodore Duran",
-            "extension": "8971",
-            "city": "Dhanbad",
-            "start_date": "1999/04/07"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Unity Pugh",
-            "extension": "9958",
-            "city": "Curicó",
-            "start_date": "2005/02/11"
-          },
-          {
-            "name": "Theodore Duran",
-            "extension": "8971",
-            "city": "Dhanbad",
-            "start_date": "1999/04/07"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Unity Pugh",
-            "extension": "9958",
-            "city": "Curicó",
-            "start_date": "2005/02/11"
-          },
-          {
-            "name": "Theodore Duran",
-            "extension": "8971",
-            "city": "Dhanbad",
-            "start_date": "1999/04/07"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Unity Pugh",
-            "extension": "9958",
-            "city": "Curicó",
-            "start_date": "2005/02/11"
-          },
-          {
-            "name": "Theodore Duran",
-            "extension": "8971",
-            "city": "Dhanbad",
-            "start_date": "1999/04/07"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Unity Pugh",
-            "extension": "9958",
-            "city": "Curicó",
-            "start_date": "2005/02/11"
-          },
-          {
-            "name": "Theodore Duran",
-            "extension": "8971",
-            "city": "Dhanbad",
-            "start_date": "1999/04/07"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-          {
-            "name": "Kylie Bishop",
-            "extension": "3147",
-            "city": "Norman",
-            "start_date": "2005/09/08"
-          },
-        ];
-
-        const headings = [
-          {
-            text: "Name",
-            data: "name"
-          },
-          {
-            text: "Ext.",
-            data: "extension"
-          },
-          {
-            text: "City",
-            data: "city"
-          },
-          {
-            text: "Start date",
-            data: "start_date"
-          }
-        ];
-
-        const container = pageArticle.querySelector('section');
-        const datatable = new window.simpleDatatables.DataTable(container, {
-          perPage: 10,
-          perPageSelect: false,
-          fixedColumns: true,
-          sortable: false,
-          labels: {
-            perPage: '',
-          },
-          classes: {
-            wrapper: 'overflow-table-constraint',
-          },
-          columns: [
-            { select: 0, type: 'string' },
-            { select: 1, type: 'string' },
-            { select: 2, type: 'string' },
-            { select: 3, type: 'string' },
-          ],
-          template: (options, dom) => `<div class='${options.classes.top}'>
-            <div class='${options.classes.dropdown}'>
-              <label>
-                <select class='${options.classes.selector}'></select> ${options.labels.perPage}
-              </label>
-            </div>
-            <div class='${options.classes.search}'>
-              <input
-                id="column-searchbar"
-                class='${options.classes.input}'
-                type='search'
-                placeholder='${options.labels.placeholder}'
-                title='${options.labels.searchTitle}'
-                ${dom.id ? `aria-controls="${dom.id}"` : ""}>
-            </div>
-            </div>
-            <div class='${options.classes.container}'${options.scrollY.length ? ` style='height: ${options.scrollY}; overflow-Y: auto;'` : ""}></div>
-            <div class='${options.classes.bottom}'>
-          </div>`,
-          data: { headings, data },
-          pagerRender: (data, ul) => {
-            console.log(data, ul);
-            return ul;
+        const ctrl = new TableView({
+          url: url,
+          state: state,
+          element: container,
+          displayCallback: (_ref, trg) => {
+            state.label = label;
+            this.openPage(type, 'update', trg);
           }
         });
+        state.controller = ctrl;
 
-        datatable.on('datatable.init', function () {
-          setTimeout(() => console.log(this.pagers), 1000);
-          console.log(datatable)
+        createBtn.addEventListener('click', (e) => {
+          this.openPage(type, 'create', null);
         });
-        datatable.on('datatable.page', function (page) {
-          console.log(page);
-        });
-      
       } break;
 
-      case 'display':
-        break;
+      case 'create': {
+        url = this.#getTargetUrl(type, { view: 'create' });
+        header.classList.add('dashboard-view__content-header--constrain-sm');
+        createBtn.remove();
 
-      case 'create':
-        break;
+        const ctrl = new FormView({
+          url: url,
+          type: 'create',
+          state: state,
+          element: container,
+        })
+        state.controller = ctrl;
+
+      } break;
 
       case 'update':
+        url = this.#getTargetUrl(type, { view: 'update', kwargs: state.target });
+        header.classList.add('dashboard-view__content-header--constrain-sm');
+        createBtn.remove();
+
+        const ctrl = new FormView({
+          url: url,
+          type: 'update',
+          state: state,
+          element: container,
+        })
+        state.controller = ctrl;
+
         break;
 
       default:
@@ -659,28 +475,149 @@ export class DashboardService {
     }
   }
 
-  #renderOrganisations() {
+  #renderBrand() {
     const state = this.#state;
-    const view = state.view ?? 'list';
-    const target = state.target;
+    const view = 'update';
+    state.view = view;
     this.#clearContent();
+
 
   }
 
   #renderInventory() {
     const state = this.#state;
-    const view = state.view ?? 'list';
-    const target = state.target;
     this.#clearContent();
 
+    let view, url, target;
+    view = state.view;
+    target = state.target;
+    if (!isRecordType(target)) {
+      url = this.#getTargetUrl('inventory');
 
-  }
+      let spinner;
+      let spinnerTimeout = setTimeout(() => {
+        spinner = startLoadingSpinner(activity, true);
+      }, 200);
 
-  #renderBrand() {
-    const state = this.#state;
-    const view = state.view;
-    this.#clearContent();
+      const [assetList] = composeTemplate(this.#templates.base.group, {
+        params: {
+          id: 'asset-list',
+          title: 'Inventory',
+          level: '2',
+          articleCls: 'dashboard-view__content--fill-w',
+          sectionCls: 'dashboard-view__content-grid slim-scrollbar',
+          content: '',
+        },
+        parent: this.#layout.content,
+      });
 
+      this.#fetch(url, { method: 'GET' })
+        .then(res => {
+          if (!spinner) {
+            clearTimeout(spinnerTimeout);
+          }
+
+          return res.json();
+        })
+        .then(res => {
+          const assets = res.assets;
+          const content = assetList.querySelector('section');
+          this.#displayAssets({
+            assets: assets,
+            container: content,
+            spinner: spinner ?? null,
+            callback: (key) => {
+              this.openPage('inventory', null, { type: key, labels: assets?.[key]?.details });
+            }
+          })
+          spinner?.remove?.();
+  
+          if (content.childElementCount < 1) {
+            assetList.remove();
+          }
+        })
+        .catch(console.error);
+    } else {
+      view = view ?? 'list';
+      state.view = view;
+
+      url = this.#getTargetUrl(target.type, { view: view, kwargs: target.kwargs });
+
+      const type = target.type;
+      const label = target?.labels?.verbose_name ?? transformTitleCase((target.type ?? 'Model').replace('_', ' '));;
+
+      let article, container, header, createBtn;
+      composeTemplate(this.#templates.base.model, {
+        params: {
+          id: type,
+          title: `${transformTitleCase(view)} ${label}`,
+          level: '1',
+          content: '',
+          headerCls: '',
+          articleCls: 'dashboard-view__content--fill-w',
+          sectionCls: view === 'list' ? 'dashboard-view__content-display' : 'dashboard-view__content-form',
+        },
+        parent: this.#layout.content,
+        render: (elem) => {
+          article = elem[0];
+  
+          header = article.querySelector('header');
+          createBtn = header.querySelector('[data-role="create-btn"]');
+          container = article.querySelector('section');
+        }
+      });
+  
+      switch (view) {
+        case 'list': {
+          header.classList.add('dashboard-view__content-header--constrain');
+  
+          const ctrl = new TableView({
+            url: url,
+            state: state,
+            element: container,
+            displayCallback: (_ref, trg) => {
+              this.openPage('inventory', 'update', { type: type, labels: target?.labels, kwargs: trg });
+            }
+          });
+          state.controller = ctrl;
+
+          createBtn.addEventListener('click', (e) => {
+            this.openPage('inventory', 'create', { type: type, labels: target?.labels });
+          });
+        } break;
+  
+        case 'create': {
+          header.classList.add('dashboard-view__content-header--constrain-sm');
+          createBtn.remove();
+  
+          const ctrl = new FormView({
+            url: url,
+            type: 'create',
+            state: state,
+            element: container,
+          })
+          state.controller = ctrl;
+  
+        } break;
+  
+        case 'update':
+          header.classList.add('dashboard-view__content-header--constrain-sm');
+          createBtn.remove();
+  
+          const ctrl = new FormView({
+            url: url,
+            type: 'update',
+            state: state,
+            element: container,
+          })
+          state.controller = ctrl;
+  
+          break;
+  
+        default:
+          break;
+      }
+    }
   }
 
 
@@ -690,7 +627,7 @@ export class DashboardService {
    *                                   *
    *************************************/
   #eventHandler(e) {
-    console.log(e);
+
   }
 
   #handleNavigation(e, targetName) {
