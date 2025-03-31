@@ -3,9 +3,9 @@ from django.db.models import Model
 from email.mime.image import MIMEImage
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
 from django.db.models import F, When, Case, Value, Subquery, OuterRef
+from django.contrib.auth import get_user_model
 
 import os
 import logging
@@ -17,6 +17,8 @@ from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 from ..models.Organisation import Organisation
 
 logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 def send_invite_email(request, invite):
     brand_title = model_utils.try_get_brand_string(request.BRAND_OBJECT, 'site_title', default='Concept Library')

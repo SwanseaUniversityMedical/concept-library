@@ -13,7 +13,7 @@ import { managePopoverMenu } from './popoverMenu.js';
  * 
  *  2. Renderables
  *    -> Views: collect from Model method?
- *    -> Forms: use admin forms, e.g. TemplateForm
+ *    -> Forms: use admin forms, e.g. TemplateForm?
  * 
  *  2. Overview
  *    -> Activity: render API data
@@ -43,22 +43,73 @@ import { managePopoverMenu } from './popoverMenu.js';
  * @constructor
  */
 export class DashboardService {
+  /**
+   * @desc
+   * @type {string}
+   * @static
+   * @constant
+   */
+  static #UrlPath = 'dashboard';
+
+  /**
+   * @desc default constructor props
+   * @type {Record<string, any>}
+   * @static
+   * @constant
+   * 
+   * @property {string}             [page='overview'] Page to open on initialisation
+   * @property {string}             [view]            View to open on initialisation
+   * @property {*}                  [target]          Entity to target on initialisation
+   * @property {string|HTMLElement} [element='#app']  The root app element in which to render the service
+   */
   static #DefaultOpts = {
     page: 'overview',
+    view: null,
+    target: null,
     element: '#app',
+    token: null,
   };
 
+  /**
+   * @desc
+   * @public
+   */
   element = null;
 
+  /**
+   * @desc
+   * @private
+   */
   #state = {
     initialised: false,
   };
 
+
+  /**
+   * @desc
+   * @type {Record<string, HTMLElement>}
+   * @private
+   */
   #layout = {};
+
+  /**
+   * @desc
+   * @type {Record<string, Record<string, HTMLElement>}
+   * @private
+   */
   #templates = {};
+
+  /**
+   * @desc
+   * @type {Array<Function>}
+   * @private
+   */
   #disposables = [];
 
-  constructor(opts) {
+  /**
+   * @param {Record<string, any>} [opts] constructor arguments; see {@link DashboardService.#DefaultOpts}
+   */
+  constructor(opts = null) {
     opts = isRecordType(opts) ? opts : { };
     opts = mergeObjects(opts, DashboardService.#DefaultOpts, true);
 
@@ -70,38 +121,45 @@ export class DashboardService {
    *              Public               *
    *                                   *
    *************************************/
-  openPage(target) {
+  openPage(page, view = null, target = null) {
     const state = this.#state;
-    if (state.page === target && state.initialised) {
+    if (state.page === page && state.view === view && state.target === target && state.initialised) {
       return;
     }
 
-    let view;
-    switch (target) {
+    let hnd;
+    switch (page) {
       case 'overview':
-        view = this.#renderOverview;
+        hnd = this.#renderOverview;
         break;
 
-      case 'people':
+      case 'users':
+        hnd = this.#renderUsers;
         break;
 
       case 'organisations':
+        hnd = this.#renderOrganisations;
         break;
 
       case 'inventory':
+        hnd = this.#renderInventory;
         break;
 
       case 'brand-config':
+        hnd = this.#renderBrand;
         break;
       
       default:
         break;
     }
 
-    if (view) {
-      state.page = target;
+    if (hnd) {
+      state.page = page;
+      state.view = view;
+      state.target = target;
       state.initialised = true;
-      view.apply(this);
+      this.#toggleNavElement(page);
+      hnd.apply(this);
     }
   }
 
@@ -123,6 +181,70 @@ export class DashboardService {
    *              Private              *
    *                                   *
    *************************************/
+  #getTargetUrl(
+    target,
+    {
+      view = 'view',
+      kwargs = null,
+      parameters = null,
+      useBranded = true,
+    } = {}
+  ) {
+    view = view.toLowerCase();
+
+    if (parameters instanceof URLSearchParams) {
+      parameters = '?' + parameters;
+    } else if (isObjectType(parameters)) {
+      parameters = '?' + new URLSearchParams(parameters);
+    } else if (typeof parameters !== 'string') {
+      parameters = '';
+    }
+
+    const host = useBranded ? getBrandedHost() : getCurrentHost();
+    const root = host + '/' + DashboardService.#UrlPath;
+    switch (view) {
+      case 'view':
+        return `${root}/${target}/` + parameters;
+
+      case 'list':
+        return `${root}/target/${target}/` + parameters;
+
+      case 'display':
+        return `${root}/target/${target}/${kwargs}/` + parameters;
+
+      default:
+        return null
+    }
+  }
+
+  #fetch(url, opts = {}) {
+    const token = this.#state.token;
+    opts = mergeObjects(
+      {
+        method: 'GET',
+        credentials: 'same-origin',
+        withCredentials: true,
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRFToken': token,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      },
+      isObjectType(opts) ? opts : {},
+      false,
+      true
+    );
+
+    return fetch(url, opts);
+  }
+
+
+  /*************************************
+   *                                   *
+   *            Renderables            *
+   *                                   *
+   *************************************/
   #toggleNavElement(target) {
     const items = this.#layout.nav.querySelectorAll('[data-controlledby="navigation"]');
     for (let i = 0; i < items.length; ++i) {
@@ -140,6 +262,425 @@ export class DashboardService {
     const state = this.#state;
     this.#clearContent();
 
+    const [activity] = composeTemplate(this.#templates.base.group, {
+      params: {
+        id: 'activity',
+        title: 'Activity',
+        level: '1',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: 'dashboard-view__content-grid slim-scrollbar',
+        content: '',
+      },
+      parent: this.#layout.content,
+    });
+
+    const [quickAccess] = composeTemplate(this.#templates.base.group, {
+      params: {
+        id: 'quick-access',
+        title: 'Quick Access',
+        level: '2',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: 'dashboard-view__content-grid slim-scrollbar',
+        content: '',
+      },
+      parent: this.#layout.content,
+    });
+
+    let spinners;
+    let spinnerTimeout = setTimeout(() => {
+      spinners = {
+        activity: startLoadingSpinner(activity, true),
+        quickAccess: startLoadingSpinner(quickAccess, true),
+      };
+    }, 200);
+
+    const url = this.#getTargetUrl('stats-summary');
+    this.#fetch(url, { method: 'GET' })
+      .then(res => {
+        if (!spinners) {
+          clearTimeout(spinnerTimeout);
+        }
+
+        return res.json();
+      })
+      .then(res => {
+        const stats = res.summary.data;
+        const statsTimestamp = new Date(Date.parse(res.summary.timestamp));
+
+        const [statsDatetime] = composeTemplate(this.#templates.base.time, {
+          params: {
+            datefmt: statsTimestamp.toLocaleString(),
+            timestamp: statsTimestamp.toISOString(),
+          }
+        });
+
+        const activityContent = activity.querySelector('section');
+        for (let key in stats) {
+          const details = Const.ACTIVITY_CARDS.find(x => x.key === key);
+          if (!details) {
+            continue;
+          }
+
+          composeTemplate(this.#templates.base.display_card, {
+            params: {
+              name: details.name,
+              desc: details.desc,
+              icon: details.icon,
+              iconCls: details.iconCls,
+              content: `<figure class="card__data">${stats[key].toLocaleString()}</figure>`,
+              footer: statsDatetime.outerHTML,
+            },
+            parent: activityContent,
+          });
+        }
+        spinners?.activity?.remove?.();
+
+        const assets = res.assets;
+        const quickAccessContent = quickAccess.querySelector('section');
+        if (isObjectType(assets)) {
+          const keys = Object.keys(assets).sort((a, b) => {
+            const v0 = assets[a]?.details?.verbose_name ?? '';
+            const v1 = assets[b]?.details?.verbose_name ?? '';
+            return v0 < v1 ? -1 : (v0 > v1 ? 1 : 0);
+          });
+
+          for (let i = 0; i < keys.length; ++i) {
+            const key = keys[i];
+            const asset = assets[key];
+            const details = isObjectType(asset) ? asset?.details : null
+            if (!details) {
+              continue;
+            }
+
+            const [card] = composeTemplate(this.#templates.base.action_card, {
+              params: {
+                name: details.verbose_name,
+                desc: `Manage ${details.verbose_name_plural}`,
+                icon: '&#xf1c0;',
+                iconCls: 'as-icon--primary',
+                action: 'Manage',
+              },
+              parent: quickAccessContent,
+            });
+
+            const button = card.querySelector('[data-role="action-btn"]');
+            button.addEventListener('click', (e) => {
+              this.openPage('inventory', null, { type: key });
+            });
+          }
+        }
+        spinners?.quickAccess?.remove?.();
+
+        if (quickAccessContent.childElementCount < 1) {
+          quickAccess.remove();
+        }
+      })
+      .catch(console.error);
+  }
+
+  #renderUsers() {
+    const state = this.#state;
+    const view = state.view ?? 'list';
+    const target = state.target;
+    this.#clearContent();
+
+    const pageCls = view === 'list' ? 'dashboard-view__content--fill-w' : '';
+    const viewCls = view === 'list' ? 'dashboard-view__content-table' : '';
+
+    const [pageArticle] = composeTemplate(this.#templates.base.group, {
+      params: {
+        id: 'users',
+        title: 'Users',
+        level: '1',
+        articleCls: pageCls,
+        sectionCls: viewCls,
+        content: '',
+      },
+      parent: this.#layout.content,
+    });
+
+    switch (view) {
+      case 'list': {
+        const url = this.#getTargetUrl('template', { view: 'list' });
+
+        this.#fetch(url)
+          .then(res => res.json())
+          .then(res => console.log(res));
+
+        const data = [
+          {
+            "name": "Unity Pugh",
+            "extension": "9958",
+            "city": "Curicó",
+            "start_date": "2005/02/11"
+          },
+          {
+            "name": "Theodore Duran",
+            "extension": "8971",
+            "city": "Dhanbad",
+            "start_date": "1999/04/07"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Unity Pugh",
+            "extension": "9958",
+            "city": "Curicó",
+            "start_date": "2005/02/11"
+          },
+          {
+            "name": "Theodore Duran",
+            "extension": "8971",
+            "city": "Dhanbad",
+            "start_date": "1999/04/07"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Unity Pugh",
+            "extension": "9958",
+            "city": "Curicó",
+            "start_date": "2005/02/11"
+          },
+          {
+            "name": "Theodore Duran",
+            "extension": "8971",
+            "city": "Dhanbad",
+            "start_date": "1999/04/07"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Unity Pugh",
+            "extension": "9958",
+            "city": "Curicó",
+            "start_date": "2005/02/11"
+          },
+          {
+            "name": "Theodore Duran",
+            "extension": "8971",
+            "city": "Dhanbad",
+            "start_date": "1999/04/07"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Unity Pugh",
+            "extension": "9958",
+            "city": "Curicó",
+            "start_date": "2005/02/11"
+          },
+          {
+            "name": "Theodore Duran",
+            "extension": "8971",
+            "city": "Dhanbad",
+            "start_date": "1999/04/07"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+          {
+            "name": "Kylie Bishop",
+            "extension": "3147",
+            "city": "Norman",
+            "start_date": "2005/09/08"
+          },
+        ];
+
+        const headings = [
+          {
+            text: "Name",
+            data: "name"
+          },
+          {
+            text: "Ext.",
+            data: "extension"
+          },
+          {
+            text: "City",
+            data: "city"
+          },
+          {
+            text: "Start date",
+            data: "start_date"
+          }
+        ];
+
+        const container = pageArticle.querySelector('section');
+        const datatable = new window.simpleDatatables.DataTable(container, {
+          perPage: 10,
+          perPageSelect: false,
+          fixedColumns: true,
+          sortable: false,
+          labels: {
+            perPage: '',
+          },
+          classes: {
+            wrapper: 'overflow-table-constraint',
+          },
+          columns: [
+            { select: 0, type: 'string' },
+            { select: 1, type: 'string' },
+            { select: 2, type: 'string' },
+            { select: 3, type: 'string' },
+          ],
+          template: (options, dom) => `<div class='${options.classes.top}'>
+            <div class='${options.classes.dropdown}'>
+              <label>
+                <select class='${options.classes.selector}'></select> ${options.labels.perPage}
+              </label>
+            </div>
+            <div class='${options.classes.search}'>
+              <input
+                id="column-searchbar"
+                class='${options.classes.input}'
+                type='search'
+                placeholder='${options.labels.placeholder}'
+                title='${options.labels.searchTitle}'
+                ${dom.id ? `aria-controls="${dom.id}"` : ""}>
+            </div>
+            </div>
+            <div class='${options.classes.container}'${options.scrollY.length ? ` style='height: ${options.scrollY}; overflow-Y: auto;'` : ""}></div>
+            <div class='${options.classes.bottom}'>
+          </div>`,
+          data: { headings, data },
+          pagerRender: (data, ul) => {
+            console.log(data, ul);
+            return ul;
+          }
+        });
+
+        datatable.on('datatable.init', function () {
+          setTimeout(() => console.log(this.pagers), 1000);
+          console.log(datatable)
+        });
+        datatable.on('datatable.page', function (page) {
+          console.log(page);
+        });
+      
+      } break;
+
+      case 'display':
+        break;
+
+      case 'create':
+        break;
+
+      case 'update':
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  #renderOrganisations() {
+    const state = this.#state;
+    const view = state.view ?? 'list';
+    const target = state.target;
+    this.#clearContent();
+
+  }
+
+  #renderInventory() {
+    const state = this.#state;
+    const view = state.view ?? 'list';
+    const target = state.target;
+    this.#clearContent();
+
+
+  }
+
+  #renderBrand() {
+    const state = this.#state;
+    const view = state.view;
+    this.#clearContent();
+
   }
 
 
@@ -153,7 +694,6 @@ export class DashboardService {
   }
 
   #handleNavigation(e, targetName) {
-    this.#toggleNavElement(targetName);
     this.openPage(targetName);
   }
 
@@ -181,7 +721,12 @@ export class DashboardService {
       throw new Exception('InitError: Failed to resolve DashboardService element');
     }
 
-    this.#state = mergeObjects(this.#state, { page: opts.page }, false);
+    let token = opts.token;
+    if (typeof token !== 'string' || !stringHasChars(token)) {
+      token = getCookie('csrftoken');
+    }
+
+    this.#state = mergeObjects(this.#state, { page: opts.page, token: token }, false);
     this.element = element;
     this.#collectPage();
 
@@ -206,53 +751,8 @@ export class DashboardService {
       }),
     );
 
-    /* TEMP */
-    const token = getCookie('csrftoken');
-    fetch(`${getBrandedHost()}/dashboard/stats-summary`, {
-      method: 'GET',
-      credentials: 'same-origin',
-      withCredentials: true,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': token,
-        'Authorization': `Bearer ${token}`
-      },
-    })
-      .then(res => res.json())
-      .then(console.log)
-      .catch(console.error);
-
-    /* TEMP */
-    const icon = composeTemplate(this.#templates.base.icon, {
-      params: {
-        cls: 'as-icon--warning',
-        icon: Const.ACTIVITY_CARDS[0].icon,
-      }
-    })
-
-    const article = composeTemplate(this.#templates.base.group, {
-      params: {
-        id: 'quick-access',
-        title: 'Quick Access',
-        level: '2',
-        articleCls: 'dashboard-view__content--fill-w',
-        sectionCls: 'dashboard-view__content-grid slim-scrollbar',
-        content: '',
-      },
-      modify: [
-        {
-          select: 'article',
-          apply: (elem) => {
-            const header = elem.querySelector('h2');
-            header.insertAdjacentElement('beforeend', icon[0]);
-
-            startLoadingSpinner(elem, true);
-          },
-          parent: this.#layout.content,
-        },
-      ]
-    });
+    // Init render
+    this.openPage(this.#state.page);
   }
 
   #collectPage() {

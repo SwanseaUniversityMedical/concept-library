@@ -3,14 +3,17 @@
 
     A working set is a list of columns from a number of Concepts and Phenotypes
 '''
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.contrib.postgres.fields import  ArrayField
 from django.db.models import JSONField
 from django.db import models
 from simple_history.models import HistoricalRecords
+from django.contrib.auth import get_user_model
 
 from .TimeStampedModel import TimeStampedModel
 from ..entity_utils import constants
+
+User = get_user_model()
 
 class PhenotypeWorkingset(TimeStampedModel):
     id = models.CharField(primary_key=True, editable=False, default=None,max_length=50)

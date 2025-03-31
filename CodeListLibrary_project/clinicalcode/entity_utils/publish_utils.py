@@ -1,15 +1,17 @@
-from django.urls import reverse
-
-import re
-from django.contrib.auth.models import  User
 from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
+from django.contrib.auth import get_user_model
+
+import re
+
 from clinicalcode.tasks import send_review_email
 from clinicalcode.entity_utils import constants, permission_utils, entity_db_utils
 
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
+
+User = get_user_model()
 
 def form_validation(request, data, entity_history_id, pk, entity,checks):
     """

@@ -5,13 +5,14 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.db.models import F, When, Case, Value, Subquery, OuterRef
 from django.db import transaction
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http.response import JsonResponse, Http404
 from django.urls import reverse_lazy
 from django.db import models, connection
 from django.core.exceptions import BadRequest, PermissionDenied
+from django.contrib.auth import get_user_model
 
 import logging
 
@@ -24,6 +25,8 @@ from ..entity_utils import permission_utils, model_utils, gen_utils, constants, 
 logger = logging.getLogger(__name__)
 
 ''' Create Organisation '''
+
+User = get_user_model()
 
 class OrganisationCreateView(CreateView):
   model = Organisation

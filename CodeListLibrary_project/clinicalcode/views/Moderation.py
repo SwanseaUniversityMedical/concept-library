@@ -1,13 +1,16 @@
 from django.views.generic import TemplateView
 from django.shortcuts import render
 from django.db.models import Subquery, OuterRef
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth import get_user_model
 
 from ..models.Organisation import Organisation
 from ..entity_utils import permission_utils, constants
+
+User = get_user_model()
 
 class EntityModeration(TemplateView):
   template_name = 'clinicalcode/moderation/index.html'

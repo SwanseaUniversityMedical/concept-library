@@ -114,9 +114,15 @@ window.composeTemplate = (template, options) => {
   let result = document.createElement('template');
   result.innerHTML = template.trim();
 
-  const mods = options.modify;
+  const parent = options.parent;
   result = [...result.content.childNodes].filter(x => isHtmlObject(x));
+  if (isHtmlObject(parent)) {
+    for (let i = 0; i < result.length; ++i) {
+      result[i] = parent.appendChild(result[i]);
+    }
+  }
 
+  const mods = options.modify;
   if (!Array.isArray(mods)) {
     return result;
   }
@@ -151,6 +157,6 @@ window.composeTemplate = (template, options) => {
       result[j] = obj;
     }
   }
-  
+
   return result;
 }
