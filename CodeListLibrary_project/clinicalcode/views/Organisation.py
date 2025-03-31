@@ -461,9 +461,13 @@ class OrganisationView(TemplateView):
         ),
         published as (
           select id, history_id, name, updated, publish_status
-          from entities
-          where publish_status = {constants.APPROVAL_STATUS.APPROVED}
-            and rn = 1
+          from (
+            select *,
+                   min(rn) over (partition by entities.id) as min_rn
+            from entities
+            where publish_status = {constants.APPROVAL_STATUS.APPROVED}
+          )
+          where rn = min_rn
         ),
         draft as (
           select id, history_id, name, updated, publish_status

@@ -5,6 +5,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework.request import Request
+from django.contrib.auth import get_user_model
+
+import uuid
+import datetime
 
 from .Brand import Brand
 from ..entity_utils import constants, model_utils, gen_utils
