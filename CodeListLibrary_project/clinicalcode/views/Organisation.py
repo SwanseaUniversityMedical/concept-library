@@ -466,7 +466,7 @@ class OrganisationView(TemplateView):
                    min(rn) over (partition by entities.id) as min_rn
             from entities
             where publish_status = {constants.APPROVAL_STATUS.APPROVED}
-          )
+          ) as sq
           where rn = min_rn
         ),
         draft as (
@@ -482,7 +482,7 @@ class OrganisationView(TemplateView):
              and published.history_id > entities.history_id
             where entities.publish_status != {constants.APPROVAL_STATUS.APPROVED}
               and published.id is null
-          )
+          ) as sq
           where rn = min_rn
         ),
         moderated as (
