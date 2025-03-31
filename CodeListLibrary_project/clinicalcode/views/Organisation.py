@@ -400,7 +400,6 @@ class OrganisationView(TemplateView):
             )
           ) \
           .distinct('user_id')
-        print(members)
         
         is_owner = False
         is_member = False
