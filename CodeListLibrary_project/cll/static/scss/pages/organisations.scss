@@ -22,8 +22,22 @@
   }
 
   &__section {
+    &__invite {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    
     &__title {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0 0.5rem 0;
 
+      &__buttons {
+        display: flex;
+        max-height: 35px;
+      }
     }
 
     &__body {
@@ -39,6 +53,22 @@
         width: fit-content;
         border-radius: 1rem;
         background-color: col(accent-washed);
+      }
+
+      &__none-available {
+        display: block;
+        padding: 1rem;
+        border-radius: 0.1rem;
+        background-color: col(accent-semi-transparent);
+        margin-bottom: 0.5rem;
+    
+        &-message {
+          text-align: center;
+        }
+    
+        &:not(.show) {
+          display: none;
+        }
       }
     }
   }
@@ -56,6 +86,23 @@
     position: relative;
     width: 100%;
     max-width: 100%;
+
+    &__invites {
+      @include flex-col();
+      width: 100%;
+
+      &>h3 {
+        padding: 0.5rem 0 0.5rem 0.5rem;
+      }
+    }
+
+    &__actions {
+      @include flex-col();
+      
+      width: 100%;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
   
     &__header {
       display: flex;
@@ -113,15 +160,18 @@
       flex-wrap: nowrap;
       overflow-y: auto;
       max-height: 150px;
-  
+
       &-item {
         @include flex-row();
-        
         position: relative;
         color: col(text-darkest);
-        padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+        padding: 0.5rem 0.5rem 0.5rem 1rem;
         max-width: 100%;
-  
+
+        -webkit-box-shadow: inset 0px -1px 0px 0px rgba(0,0,0,0.75);
+        -moz-box-shadow: inset 0px -1px 0px 0px rgba(0,0,0,0.75);
+        box-shadow: inset 0px -1px 0px 0px rgba(0,0,0,0.75);
+
         .edit-icon:after {
           @include fontawesome-icon();
           content: '\f304';
@@ -136,7 +186,6 @@
   
         .member-name {
           @include wrap-words();
-          cursor: pointer;
           pointer-events: auto;
           font-weight: normal;
           text-overflow: ellipsis;
@@ -151,6 +200,9 @@
         .action-buttons {
           @include flex-row($gap: 1rem);
           margin-left: auto;
+          flex-direction: row-reverse;
+          align-items: center;
+          justify-content: space-between;
           
           @include media("<tablet", "screen") {
             &__text {
@@ -159,6 +211,98 @@
           }
         }
       }
+    }
+  }
+}
+
+.organisation-collection {
+  @include flex-col();
+  align-self: center;
+  width: var(--phenotype-article-lg-size);
+  max-width: var(--phenotype-article-lg-size);
+
+  @include media(">desktop", "screen") {
+    width: var(--phenotype-article-sm-size);
+    max-width: var(--phenotype-article-sm-size);
+  }
+
+  @include media("<desktop", "screen") {
+    width: var(--phenotype-article-lg-size);
+    max-width: var(--phenotype-article-lg-size);
+  }
+
+  &__edit-icon:after {
+    @include fontawesome-icon();
+    content: '\f304';
+    color: col(accent-primary);
+    margin: 0 0 0 0.25rem;
+  }
+
+  &__delete-icon:after {
+    @include fontawesome-icon();
+    content: '\f1f8';
+    color: col(accent-danger);
+    margin: 0 0 0 0.25rem;
+  }
+
+  &__restore-icon:after {
+    @include fontawesome-icon();
+    content: '\f0e2';
+    color: col(accent-warning);
+    margin: 0 0 0 0.25rem;
+  }
+
+  &__inner-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  &__none-available {
+    display: block;
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+    margin-bottom: 0.5rem;
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__table-container {
+    @include flex-col();
+    position: relative;
+    height: auto;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
+  &__tag {
+    padding: 0.2rem 1rem;
+    border-radius: 0.2rem;
+
+    &.REQUESTED { background-color: var(--publication-requested-bg-color); };
+    &.PENDING   { background-color: var(--publication-pending-bg-color);   };
+    &.APPROVED  { background-color: var(--publication-approved-bg-color);  };
+    &.REJECTED  { background-color: var(--publication-rejected-bg-color);  };
+    &.NaN       { background-color: var(--publication-undefined-bg-color); };
+  }
+
+  .overflow-table-constraint {
+    padding: 0.5rem;
+    position: relative;
+    width: calc(100% - 1rem);
+    max-width: 100%;
+  }
+
+  &-table{
+    &__wrapper > tbody > tr {
+      border-bottom: 1px solid col(accent-washed);
     }
   }
 }

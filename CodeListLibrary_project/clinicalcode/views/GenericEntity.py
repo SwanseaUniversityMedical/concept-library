@@ -188,6 +188,12 @@ class CreateEntityView(TemplateView):
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
         """Dispatch view"""
+        current_brand = model_utils.try_get_brand(request)
+        if current_brand and current_brand.org_user_managed:
+            user_orgs = permission_utils.get_user_organisations(request)
+            if len(user_orgs) < 1:
+                raise PermissionDenied
+
         return super(CreateEntityView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):

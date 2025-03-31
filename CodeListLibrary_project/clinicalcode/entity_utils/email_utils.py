@@ -4,6 +4,7 @@ from email.mime.image import MIMEImage
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.contrib.staticfiles import finders
+from django.db.models import F, When, Case, Value, Subquery, OuterRef
 from django.contrib.auth import get_user_model
 
 import os
@@ -13,10 +14,56 @@ import datetime
 from clinicalcode.entity_utils import model_utils, gen_utils
 from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
+from ..models.Organisation import Organisation
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+def send_invite_email(request, invite):
+    brand_title = model_utils.try_get_brand_string(request.BRAND_OBJECT, 'site_title', default='Concept Library')
+
+    owner_email = User.objects.filter(id=invite.user_id)
+    if not owner_email.exists():
+        return
+    owner_email = owner_email.first().email
+
+    if not owner_email or len(owner_email.strip()) < 1:
+        return
+
+    email_subject = f'{brand_title} - Organisation Invite'
+    email_content = render_to_string(
+        'clinicalcode/email/invite_email.html',
+        { 
+            'invite': {
+                'uuid': invite.id
+            } 
+        }
+    )
+
+    if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE: 
+        try:
+            branded_imgs = get_branded_email_images(request.BRAND_OBJECT)
+
+            msg = EmailMultiAlternatives(
+                email_subject,
+                email_content,
+                settings.DEFAULT_FROM_EMAIL,
+                to=[owner_email]
+            )
+            msg.content_subtype = 'related'
+            msg.attach_alternative(email_content, "text/html")
+
+            msg.attach(attach_image_to_email(branded_imgs.get('apple', 'img/email_images/apple-touch-icon.jpg'), 'mainlogo'))
+            msg.attach(attach_image_to_email(branded_imgs.get('logo', 'img/email_images/combine.jpg'), 'sponsors'))
+            msg.send()
+            return True
+        except BadHeaderError as error:
+            logging.error(f'Failed to send emails to:\n- Targets: {owner_email}\n-Error: {str(error)}')
+            return False
+    else:
+        logging.info(f'Scheduled emails sent:\n- Targets: {owner_email}')
+        return True
 
 
 def send_review_email_generic(request,data,message_from_reviewer=None):

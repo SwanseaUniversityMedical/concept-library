@@ -21,6 +21,7 @@ from clinicalcode.views.dashboard.targets import (
   TagTarget, HDRNSiteTarget, HDRNCategoryTarget, InventoryTarget
 )
 
+
 # Main
 urlpatterns = [
     # Base
@@ -53,11 +54,13 @@ urlpatterns = [
     ## Profile
     url(r'^profile/$', Profile.MyCollection.as_view(), name='my_profile'),
     url(r'^profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
+    url(r'^profile/organisations/$', Profile.MyOrganisations.as_view(), name='my_organisations'),
 
     ## Organisation
     url(r'^org/view/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationView.as_view(), name='view_organisation'),
     url(r'^org/create/?$', Organisation.OrganisationCreateView.as_view(), name='create_organisation'),
     url(r'^org/manage/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationManageView.as_view(), name='manage_organisation'),
+    url(r'^org/invite/(?P<uuid>([\w\d\-\_]+))/?$', Organisation.OrganisationInviteView.as_view(), name='view_invite_organisation'),
 
     # Brand
     ## Brand Administration
@@ -156,4 +159,5 @@ if not settings.CLL_READ_ONLY:
         url(r'^adminTemp/admin_force_brand_links/$', adminTemp.admin_force_brand_links, name='admin_force_brand_links'),
         url(r'^adminTemp/admin_update_phenoflow_targets/$', adminTemp.admin_update_phenoflow_targets, name='admin_update_phenoflow_targets'),
         url(r'^adminTemp/admin_upload_hdrn_assets/$', adminTemp.admin_upload_hdrn_assets, name='admin_upload_hdrn_assets'),
+        url(r'^adminTemp/admin_convert_entity_groups/$', adminTemp.admin_convert_entity_groups, name='admin_convert_entity_groups'),
     ]
