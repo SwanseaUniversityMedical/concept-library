@@ -48,7 +48,7 @@ def get_createable_entities(request):
         be created and their associated templates
     """
     entities = EntityClass.objects.all().values('id', 'name', 'description', 'entity_prefix')
-    templates = Template.objects.filter(
+    templates = Template.get_brand_records_by_request(request).filter(
         entity_class__id__in=entities.values_list('id', flat=True)
     ) \
     .exclude(hide_on_create=True) \
@@ -839,7 +839,20 @@ def validate_entity_form(request, content, errors=[], method=None):
 
     if len(errors) > 0:
         return
-    
+
+    current_brand = model_utils.try_get_brand(request)
+    current_brand = current_brand if current_brand and current_brand.org_user_managed else None
+    if current_brand is not None:
+        organisation = form_data.get('organisation')
+        if organisation is None:
+            errors.append('Phenotypes must be associated with an organisation')
+            return
+
+        valid_user_orgs = permission_utils.get_user_organisations(request)
+        if organisation in [org.get('id') for org in valid_user_orgs]:
+            errors.append('Your organisation doesn\'t have authorisation to post this phenotype')
+            return
+
     # Validate & Clean the form data
     top_level_data = { }
     template_data = { }

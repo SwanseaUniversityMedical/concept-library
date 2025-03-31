@@ -525,3 +525,55 @@
     }
   }
 }
+
+.autocomplete {
+  position: relative;
+  padding: 1rem;
+
+  &-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  &-input {
+    width: calc(100% - 2rem);
+    padding: 1rem;
+    line-height: 1.5;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  &-controls {
+    display: block;
+    min-width: 100px;
+    max-width: 100%;
+    max-height: 100%;
+    flex-grow: 1;
+  }
+
+  &-result {
+    cursor: default;
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+  }
+
+  &-results {
+    position: absolute;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    top: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    list-style: none;
+    transition: none;
+    max-height: 100px;
+    overflow-y: scroll;
+    z-index: 1;
+
+    &.hidden {
+      display: none !important;
+    }
+  }
+}

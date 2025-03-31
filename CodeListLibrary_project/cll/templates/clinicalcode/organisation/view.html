@@ -10,8 +10,13 @@
 {% block title %}| {{instance.name}} {% endblock title %}
 
 {% block container %}
+  <!-- Vendor -->
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+
   <!-- Dependencies -->
   {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/services/organisationService/view.js' %}"></script>
     <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
   {% endcompress %}
 
@@ -63,6 +68,27 @@
         <section class="organisation-page__section">
           <article class="organisation-page__section__title">
             <h3>Members</h3>
+            <div class="organisation-page__section__title__buttons">
+              {% if is_owner or is_admin %}
+                {% url 'manage_organisation' instance.slug as manage_url %}
+                <button role="link" 
+                        class="primary-btn bold dropdown-btn__label" 
+                        aria-label="Manage Organisation" 
+                        id="manage-btn"
+                        onClick="window.location.href='{{ manage_url }}';">
+                  Manage
+                </button>
+              {% endif %}
+              {% if is_member %}
+                <button role="link" 
+                        class="primary-btn bold dropdown-btn__label text-danger" 
+                        aria-label="Leave Organisation" 
+                        id="leave-btn"
+                        onClick="">
+                  Leave
+                </button>
+              {% endif %}
+            </div>
           </article>
           <article class="organisation-page__section__body row">
             <div class="organisation-page__section__body__collaborator">
@@ -77,14 +103,46 @@
         </section>
         <section class="organisation-page__section">
           <article class="organisation-page__section__title">
-            <h3>Collection</h3>
+            <h3>Published Phenotypes</h3>
           </article>
           <article class="organisation-page__section__body">
-            {% for entity in entities %}
-              <div>{{entity.name}}</div>
-            {% endfor %}
+            {% to_json_script published data-owner="organisation-service" page-type="PUBLISHED_COLLECTIONS" name="published" desc-type="text/json" %}
+            <section class="organisation-collection__none-available show" id="empty-collection">
+              <p class="organisation-collection__none-available-message">
+                This organisation hasn't published anything yet.
+              </p>
+            </section>
+            <div class="organisation-collection__table-container" id="published-area">
+  
+            </div>
           </article>
         </section>
+        {% if draft is not None %}
+          <section class="organisation-page__section">
+            <article class="organisation-page__section__title">
+              <h3>Draft Phenotypes</h3>
+            </article>
+            <article class="organisation-page__section__body">
+              {% to_json_script draft data-owner="organisation-service" page-type="DRAFT_COLLECTIONS" name="draft" desc-type="text/json" %}
+              <div class="organisation-collection__table-container" id="draft-area">
+  
+              </div>
+            </article>
+          </section>
+        {% endif %}
+        {% if moderated is not None %}
+          <section class="organisation-page__section">
+            <article class="organisation-page__section__title">
+              <h3>Phenotypes Awaiting Review</h3>
+            </article>
+            <article class="organisation-page__section__body">
+              {% to_json_script moderated data-owner="organisation-service" page-type="MODERATION_COLLECTIONS" name="moderated" desc-type="text/json" %}
+              <div class="organisation-collection__table-container" id="moderated-area">
+  
+              </div>
+            </article>
+          </section>
+        {% endif %}
       </article>
     </div>
   </main>

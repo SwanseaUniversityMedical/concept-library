@@ -212,22 +212,11 @@ class OrganisationInvite(models.Model):
   created = models.DateTimeField(default=timezone.now, editable=False)
 
   def is_expired(self):
-    if not self.sent:
-      return False
-
     date_expired = self.created + datetime.timedelta(days=constants.INVITE_TIMEOUT)    
     return date_expired <= timezone.now()
 
   def is_sent(self):
     return self.sent
-
-  def send(self):
-    """
-    TODO
-    """
-    if self.sent:
-      return False
-    pass
 
   def __str__(self):
     return f'user={self.user}, org={self.organisation}'
