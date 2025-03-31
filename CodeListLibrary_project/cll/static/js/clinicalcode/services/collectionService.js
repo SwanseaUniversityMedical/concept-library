@@ -193,10 +193,10 @@ const renderNameAnchor = (pageType, key, entity) => {
                   data-id="${id}"></span>
           </span>
         `;
+      }
     
       return target;
     }
-  }
 
     case 'archived': {
       return `

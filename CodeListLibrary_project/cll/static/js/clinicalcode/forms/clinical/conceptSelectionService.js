@@ -1050,7 +1050,6 @@ export class ConceptSelectionService {
   #paintSelectionList() {
     const page = this.dialogue.page;
     const selectedData = this.dialogue?.data;
-    console.log(selectedData)
     if (!this.dialogue?.view == CSEL_VIEWS.SELECTION || isNullOrUndefined(page)) {
       return;
     }

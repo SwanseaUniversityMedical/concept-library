@@ -25,14 +25,12 @@
 
 {% block container %}
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
-  <script src="{% static 'js/lib/gridjs/gridjs.production.min.js'  %}"></script>
   <script src="{% static 'js/lib/easymde/easymde.min.js' %}"></script>
   <script src="{% static 'js/lib/moment.min.js' %}"></script>
   <script src="{% static 'js/lib/xlsx.mini.min.js' %}"></script>
 
   {% compress js %}
     <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/lib/gridjs/gridjs.production.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
     <script type="module" src="{% static 'js/clinicalcode/components/entityCreator.js' %}"></script>
