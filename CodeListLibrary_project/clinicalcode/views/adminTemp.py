@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.utils.timezone import make_aware
 from rest_framework.reverse import reverse
 from django.core.exceptions import BadRequest, PermissionDenied
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required
 
 import re
@@ -26,6 +26,7 @@ from clinicalcode.models.Template import Template
 from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
+from clinicalcode.models.Organisation import Organisation, OrganisationMembership
 
 from clinicalcode.models.HDRNSite import HDRNSite
 from clinicalcode.models.HDRNDataAsset import HDRNDataAsset
@@ -1560,6 +1561,95 @@ def admin_fix_breathe_dt(request):
                 'action_title': 'Fix Breathe',
             }
         )
+
+@login_required
+def admin_convert_entity_groups(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_convert_entity_groups'),
+                'action_title': 'Convert groups to organisations',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    GROUP_LOOKUP = {
+        2: 32,
+        6: 60,
+        7: 9,
+        12: 197
+    }
+
+    entities = GenericEntity.objects \
+        .filter(group_id__isnull=False)
+
+    entity_groups = entities \
+        .order_by('group_id') \
+        .distinct('group_id') \
+        .values_list('group_id', flat=True)
+
+    groups = Group.objects \
+        .filter(id__in=list(entity_groups))
+
+    for entity_group in entity_groups:
+        owner_id = GROUP_LOOKUP.get(entity_group)
+        if not owner_id:
+            continue
+
+        current_owner = User.objects.filter(id=owner_id)
+        if not current_owner.exists():
+            continue
+        current_owner = current_owner.first()
+
+        current_group = Group.objects.filter(id=entity_group)
+        if not current_group.exists():
+            continue
+        current_group = current_group.first()
+
+        current_members = User.objects.filter(groups=current_group) \
+            .exclude(id=owner_id)
+
+        org = Organisation.objects.create(
+            name=current_group.name,
+            owner=current_owner
+        )
+        for current_member in current_members:
+            member = OrganisationMembership.objects.create(
+                user_id=current_member.id,
+                organisation_id=org.id
+            )
+
+        current_entities = entities.filter(group_id=entity_group)
+        for entity in current_entities:
+            entity.organisation = org
+            entity.save()
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Convert groups to organisations',
+            'hide_phenotype_options': True,
+        }
+    )
 
 def get_serial_id():
     count_all = GenericEntity.objects.count()

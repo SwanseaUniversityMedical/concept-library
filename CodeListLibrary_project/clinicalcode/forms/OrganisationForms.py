@@ -254,12 +254,10 @@ class OrganisationManageForm(forms.ModelForm):
   def __init__(self, *args, **kwargs):
     super(OrganisationManageForm, self).__init__(*args, **kwargs)
 
-    print(args, kwargs)
-
   class Meta:
     model = Organisation
     fields = '__all__'
-    exclude = ['slug', 'created', 'owner', 'brands']
+    exclude = ['slug', 'created', 'owner', 'brands', 'members']
 
   def clean(self):
     """

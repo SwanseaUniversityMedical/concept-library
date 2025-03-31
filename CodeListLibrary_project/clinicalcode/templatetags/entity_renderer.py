@@ -1232,7 +1232,7 @@ class EntityDetailWizardSections(template.Node):
 
         flat_ctx = context.flatten()
         is_prod_env = not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC
-        is_unauthenticated = not request.user or not request.user.is_authenticated
+        is_unauthenticated = not request.user or request.user.is_anonymous
 
         merged_definition = template_utils.get_merged_definition(template, default={})
         template_fields = template_utils.try_get_content(merged_definition, 'fields')

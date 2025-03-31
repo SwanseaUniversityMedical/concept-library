@@ -411,7 +411,8 @@ DETAIL_PAGE_APPENDED_FIELDS = {
         'title': 'Permissions',
         'field_type': 'permissions_section',
         'active': True,
-        'hide_on_create': True
+        'hide_on_create': True,
+        'requires_auth': True
     },
     'api': {
         'title': 'API',
