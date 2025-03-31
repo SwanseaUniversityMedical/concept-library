@@ -5,15 +5,16 @@ from simple_history.models import HistoricalRecords
 from django.core.paginator import EmptyPage, Paginator, Page
 from rest_framework.request import Request
 from django.db.models.query import QuerySet
-from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
-
-import inspect
+from django.contrib.auth import get_user_model
 
 from .Brand import Brand
 from .EntityClass import EntityClass
 from .TimeStampedModel import TimeStampedModel
 from clinicalcode.entity_utils import constants, gen_utils, model_utils
+
+User = get_user_model()
 
 class Template(TimeStampedModel):
     """
@@ -44,6 +45,11 @@ class Template(TimeStampedModel):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='template_created')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='template_updated')
     history = HistoricalRecords()
+
+    ''' Static methods '''
+    @staticmethod
+    def get_verbose_names(*args, **kwargs):
+        return { 'verbose_name': Template._meta.verbose_name, 'verbose_name_plural': Template._meta.verbose_name_plural }
 
     @staticmethod
     def get_brand_records_by_request(request, params=None):
@@ -120,6 +126,8 @@ class Template(TimeStampedModel):
             page_obj = pagination.page(pagination.num_pages)
         return page_obj
 
+
+    ''' Public methods '''
     def save(self,  *args, **kwargs):
         """
             [!] Note:
@@ -141,8 +149,14 @@ class Template(TimeStampedModel):
             del self.skip_history_when_saving
         return ret
 
+
+    ''' Meta '''
     class Meta:
         ordering = ('name', )
+        verbose_name = _('Template')
+        verbose_name_plural = _('Templates')
 
+
+    ''' Dunder methods '''
     def __str__(self):
         return self.name

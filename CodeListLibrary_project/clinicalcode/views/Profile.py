@@ -4,15 +4,18 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 from django.conf import settings
 from django.db.models import Q, Subquery, OuterRef
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http.response import JsonResponse
+from django.contrib.auth import get_user_model
 
 from ..forms.ArchiveForm import ArchiveForm
 from ..models.GenericEntity import GenericEntity
 from ..models.Organisation import Organisation
 from ..entity_utils import permission_utils, model_utils, gen_utils
+
+User = get_user_model()
 
 class MyProfile(TemplateView):
   template_name = 'clinicalcode/profile/index.html'

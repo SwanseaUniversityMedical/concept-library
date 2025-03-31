@@ -90,11 +90,11 @@ class AccountResetConfirmView(PasswordContextMixin, FormView):
 			token = kwargs['token']
 			if token == self.reset_url_token:
 				session_token = self.request.session.get(INTERNAL_RESET_SESSION_TOKEN)
-				if True: #self.token_generator.check_token(self.user, session_token):
+				if self.token_generator.check_token(self.user, session_token):
 					self.validlink = True
 					return super().dispatch(*args, **kwargs)
 			else:
-				if True: #self.token_generator.check_token(self.user, token):
+				if self.token_generator.check_token(self.user, token):
 					self.request.session[INTERNAL_RESET_SESSION_TOKEN] = token
 					redirect_url = self.request.path.replace(
 						token, self.reset_url_token

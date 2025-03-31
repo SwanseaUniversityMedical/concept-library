@@ -261,24 +261,40 @@ const deepCopy = (obj) => {
   * @param {object} a An object to clone that takes precedence
   * @param {object} b The object to clone and merge into the first object
   * @param {boolean} copy Whether to copy the object(s)
+  * @param {boolean} deepMerge Whether to deep merge objects
   * @returns {object} The merged object
   */
-const mergeObjects = (a, b, copy = false) => {
+const mergeObjects = (a, b, copy = false, deepMerge = false) => {
   if (copy) {
     a = deepCopy(a);
   }
 
   Object.keys(b)
     .forEach(key => {
-      if (key in a) {
-        return;
-      }
-
-      let value = b[key];
-      if (copy) {
-        a[key] = deepCopy(value);
+      if (!deepMerge) {
+        if (key in a) {
+          return;
+        }
+  
+        const value = b[key];
+        if (copy) {
+          a[key] = deepCopy(value);
+        } else {
+          a[key] = value;
+        }
       } else {
-        a[key] = value;
+        const hk = key in a;
+        const v0 = b[key];
+        const v1 = hk ? a[key] : null;
+        if (isObjectType(v0) && isObjectType(v1)) {
+          a[key] = mergeObjects(v0, v1, copy, deepMerge);
+        } else if (!hk) {
+          if (copy) {
+            a[key] = deepCopy(v0);
+          } else {
+            a[key] = v0;
+          }
+        }
       }
     });
 
@@ -1700,7 +1716,7 @@ const isHtmlObject = (obj, desiredType = 'Any') => {
     case 'node': {
       condition = typeof Node === 'object'
         ? obj instanceof Node
-        : typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string';
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && obj.nodeType !== 3 && typeof obj.nodeName === 'string';
     } break;
 
     case 'element': {
@@ -1713,7 +1729,7 @@ const isHtmlObject = (obj, desiredType = 'Any') => {
     default: {
       condition = (typeof Node === 'object' && typeof HTMLElement === 'object')
         ? (obj instanceof Node || obj instanceof HTMLElement)
-        : typeof obj === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string';
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && obj.nodeType !== 3 && typeof obj.nodeName === 'string';
     } break;
   }
 

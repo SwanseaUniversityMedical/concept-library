@@ -9,6 +9,8 @@
 
 {% block indexing_robots %}{% endblock indexing_robots %}
 
+{% block htmltag %}class="slim-scrollbar slim-scrollbar--thick"{% endblock htmltag %}
+
 {% block head %}
   {% compress css %}
     <link rel="stylesheet" href="{% sass_src 'scss/pages/admin/dashboard.scss' %}" type="text/css" />
@@ -21,6 +23,8 @@
 {% block navigation_wrapper %}{% endblock navigation_wrapper %}
 
 {% block container %}
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+
   {% compress js %}
     <script type="module" src="{% static 'js/clinicalcode/services/dashboardService/index.js' %}"></script>
   {% endcompress js %}
@@ -70,11 +74,11 @@
           </a>
           <a
             class="dashboard-nav__targets-list-item"
-            title="Manage People"
-            aria-label="Manage People"
+            title="Manage Users"
+            aria-label="Manage Users"
             tabindex="0"
             role="button"
-            data-ref="people"
+            data-ref="users"
             data-controlledby="navigation"
           >
             <span
@@ -82,13 +86,13 @@
               data-icon="&#xf007;"
               data-role="icon"
               data-plugins="tooltip"
-              data-tipcontent="Manage People"
+              data-tipcontent="Manage Users"
               data-tipdirection="right"
               data-tiptarget="parent"
             ></span>
             <span data-role="label">
               <span class="as-icon" data-icon="&#xf007;" aria-hidden="true"></span>
-              People
+              Users
             </span>
           </a>
           <a
@@ -231,14 +235,14 @@
       </header>
 
       <!-- Renderable Content -->
-      <section id="app-content" class="dashboard-view__content">
+      <section id="app-content" class="dashboard-view__content slim-scrollbar">
 
         <!-- Activity -->
         <article class="dashboard-view__content-group dashboard-view__content--fill-w">
           <h2 id="activity" class="dashboard-view__content-title" role="heading" aria-level="1">
             Activity
           </h2>
-          <section class="dashboard-view__content-stats slim-scrollbar">
+          <section class="dashboard-view__content-grid slim-scrollbar">
             <article class="card">
               <header class="card__header">
                 <h3>Phenotypes Created</h3>
@@ -309,7 +313,7 @@
     </article>
   </template>
 
-  <template data-name="card" data-for="dashboard">
+  <template data-name="display_card" data-for="dashboard">
     <article class="card">
       <header class="card__header">
         <h3>${name}</h3>
@@ -318,11 +322,31 @@
       <p class="card__desc">
         ${desc}
       </p>
-      <figure class="card__data">
-        ${content}
-      </figure>
+      ${content}
       <footer class="card__footer">
         ${footer}
+      </footer>
+    </article>
+  </template>
+
+  <template data-name="action_card" data-for="dashboard">
+    <article class="card">
+      <header class="card__header">
+        <h3>${name}</h3>
+        <span class="as-icon ${iconCls}" data-icon="${icon}" aria-hidden="true"></span>
+      </header>
+      <p class="card__desc">
+        ${desc}
+      </p>
+      <footer class="card__footer card__footer--action">
+        <button
+          class="outline-btn outline-btn--edit-icon"
+          title="Manage ${name}"
+          aria-label="Manage ${name}"
+          data-role="action-btn"
+        >
+          ${action}
+        </button>
       </footer>
     </article>
   </template>
@@ -332,7 +356,7 @@
   </template>
 
   <template data-name="time" data-for="dashboard">
-    <time datetime="${datetime}">
+    <time datetime="${timestamp}">
       <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
       ${datefmt}
     </time>

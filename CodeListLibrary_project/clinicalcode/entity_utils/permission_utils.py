@@ -97,7 +97,7 @@ def brand_admin_required(fn):
 			if not isinstance(brand, Brand) or brand.id is None:
 				raise PermissionDenied
 
-			administrable = user.administeredbrands_set \
+			administrable = user.administered_brands \
 				.filter(id=brand.id, is_administrable=True) \
 				.exists()
 
@@ -237,7 +237,7 @@ class IsBrandAdmin(BasePermission):
 		if not isinstance(brand, Brand) or brand.id is None:
 			raise APIException(detail='Could not resolve Brand context', code=RestHttpStatus.HTTP_406_NOT_ACCEPTABLE)
 
-		administrable = user.administeredbrands_set \
+		administrable = user.administered_brands \
 			.filter(id=brand.id, is_administrable=True) \
 			.exists()
 
