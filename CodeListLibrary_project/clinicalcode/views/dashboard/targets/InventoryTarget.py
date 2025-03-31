@@ -4,31 +4,46 @@ from django.utils.timezone import make_aware
 from rest_framework import status, serializers
 from rest_framework.response import Response
 
+from .BaseTarget import BaseEndpoint, BaseSerializer
+from .HDRNSiteTarget import HDRNSiteSerializer
+from .HDRNCategoryTarget import HDRNCategorySerializer
 from clinicalcode.entity_utils import gen_utils
 from clinicalcode.models.HDRNDataAsset import HDRNDataAsset
-from clinicalcode.models.HDRNSite import HDRNSite
-from .BaseTarget import BaseEndpoint
 
 
-class HDRNDataAssetSerializer(serializers.ModelSerializer):
+class HDRNDataAssetSerializer(BaseSerializer):
     """
     Serializer for HDRN Data Asset.
     """
 
+    # Fields
+    site = HDRNSiteSerializer(many=False)
+    data_categories = HDRNCategorySerializer(many=True)
+
+    # Appearance
+    _str_display = 'name'
+    _list_fields = ['id', 'name']
+
+    # Metadata
     class Meta:
         model = HDRNDataAsset
-        fields = ['id', 'name', 'description', 'hdrn_id', 'hdrn_uuid', 'link', 'site', 'years', 'scope',
-                  'region', 'purpose', 'collection_period', 'data_level', 'data_categories']
+        exclude = ['created', 'modified']
+        extra_kwargs = {
+            # RO
+            'id': { 'read_only': True, 'required': False },
+            # WO
+			'created': { 'write_only': True, 'read_only': False, 'required': False },
+			'modified': { 'write_only': True, 'read_only': False, 'required': False },
+            # RO | WO
+            'site': { 'required': False },
+            'data_categories': { 'required': False },
+        }
 
-    def to_representation(self, instance):
-        """
-        Custom method to convert model instance into JSON representation.
-        """
-        data = super().to_representation(instance)
-        # Ensure collections_excluded_from_filters is always a list
-        data["data_categories"] = data.get("data_categories") or []
-        return data
+    # GET
+    def resolve_options(self):
+        return list(self.Meta.model.objects.all().values('name', 'pk'))
 
+    # POST / PUT
     def create(self, validated_data):
         """
         Method to create a new HDRNDataAsset instance.
@@ -44,6 +59,7 @@ class HDRNDataAssetSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    # Instance & Field validation
     @staticmethod
     def validate(data):
         """
@@ -55,7 +71,12 @@ class HDRNDataAssetSerializer(serializers.ModelSerializer):
         if not all(isinstance(i, int) for i in data_categories):
             raise serializers.ValidationError('data_categories must be a list of integers.')
 
+        site = data.get('site', None)
+        if site is not None and not isinstance(site, int):
+            raise serializers.ValidationError('site must be a `pk` value.')
+
         return data
+
 
 class HDRNDataAssetEndpoint(BaseEndpoint):
     """API views for the HDRN Data Asset model."""

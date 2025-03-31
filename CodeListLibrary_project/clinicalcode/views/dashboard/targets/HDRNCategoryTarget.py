@@ -2,25 +2,57 @@
 import datetime
 import json
 
-from django.utils.timezone import make_aware
+from django.http import Http404
 from rest_framework import status, serializers
+from django.utils.timezone import make_aware
 from rest_framework.response import Response
 
+from .BaseTarget import BaseSerializer, BaseEndpoint
 from clinicalcode.entity_utils import gen_utils
 from clinicalcode.models.HDRNDataCategory import HDRNDataCategory
-from .BaseTarget import BaseSerializer, BaseEndpoint
 
 
 class HDRNCategorySerializer(BaseSerializer):
+    """"""
 
+    # Appearance
+    _str_display = 'name'
+    _list_fields = ['id', 'name']
+    _item_fields = ['id', 'name', 'description']
+
+	# Metadata
     class Meta:
         model = HDRNDataCategory
-        fields =  ['id', 'title', 'description', 'metadata']
+        exclude = ['created', 'modified']
+        extra_kwargs = {
+            # RO
+            'id': { 'read_only': True, 'required': False },
+            # WO
+			'created': { 'write_only': True, 'read_only': False, 'required': False },
+			'modified': { 'write_only': True, 'read_only': False, 'required': False },
+        }
 
+	# GET
     def to_representation(self, instance):
-        data = super(HDRNCategorySerializer, self).to_representation(instance)
-        return data
+        if isinstance(instance, list):
+            instance = self.Meta.model.objects.filter(pk__in=instance)
+            instance = instance if instance.exists() else None
+        elif isinstance(instance, int):
+            instance = self.Meta.model.objects.filter(pk=instance)
+            if instance.exists():
+                instance = instance.first()
+            else:
+                instance = None
 
+        if instance is not None:
+            data = super(HDRNCategorySerializer, self).to_representation(instance)
+            return data
+        return None
+
+    def resolve_options(self):
+        return list(self.Meta.model.objects.all().values('name', 'pk'))
+
+	# POST / PUT
     def create(self, validated_data):
         return self._create(self.Meta.model, validated_data)
 
@@ -30,6 +62,7 @@ class HDRNCategorySerializer(BaseSerializer):
         instance.save()
         return instance
 
+	# Instance & Field validation
     @staticmethod
     def validate(data):
         definition = data.get('definition')
@@ -41,7 +74,6 @@ class HDRNCategorySerializer(BaseSerializer):
         except:
             raise serializers.ValidationError('Template definition is not valid JSON')
         return data
-
 
 
 class HDRNCategoryEndpoint(BaseEndpoint):
@@ -75,7 +107,3 @@ class HDRNCategoryEndpoint(BaseEndpoint):
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
-
-
-
-
