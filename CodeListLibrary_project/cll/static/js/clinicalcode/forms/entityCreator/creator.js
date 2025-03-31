@@ -329,16 +329,31 @@ export default class EntityCreator {
         const message = e?.message;
         if (!message) {
           this.#handleServerError(e);
+          return;
         }
 
         const { type: errorType, errors } = message;
         console.error(`API Error<${errorType}> occurred:`, errors);
 
-        window.ToastFactory.push({
-          type: 'danger',
-          message: ENTITY_TEXT_PROMPTS.API_ERROR_INFORM,
-          duration: ENTITY_TOAST_MIN_DURATION,
-        });
+        if (Array.isArray(errors) && errors.length > 0) {
+          for (let i = 0; i < errors.length; i++) {
+            if (!stringHasChars(errors[i])) {
+              continue;
+            }
+
+            window.ToastFactory.push({
+              type: 'danger',
+              message: errors[i],
+              duration: ENTITY_TOAST_MIN_DURATION,
+            });
+          }
+        } else {
+          window.ToastFactory.push({
+            type: 'danger',
+            message: stringHasChars(message) ? message : ENTITY_TEXT_PROMPTS.API_ERROR_INFORM,
+            duration: ENTITY_TOAST_MIN_DURATION,
+          });
+        }
       })
       .catch(e => this.#handleServerError);
   }
@@ -349,15 +364,18 @@ export default class EntityCreator {
    * @param {*} error the server error response
    */
   #handleServerError(error) {
-    if (error?.statusText) {
+    let message;
+    if (stringHasChars(error.statusText)) {
       console.error(error.statusText);
+      message = error.statusText;
     } else {
       console.error(error);
+      message = ENTITY_TEXT_PROMPTS.SERVER_ERROR_MESSAGE;
     }
     
     window.ToastFactory.push({
       type: 'danger',
-      message: ENTITY_TEXT_PROMPTS.SERVER_ERROR_MESSAGE,
+      message: message,
       duration: ENTITY_TOAST_MIN_DURATION,
     });
   }

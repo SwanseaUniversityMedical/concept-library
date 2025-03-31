@@ -2,7 +2,8 @@ from django.apps import apps
 from django.db.models import Model, ForeignKey
 from django.core.cache import cache
 from django.forms.models import model_to_dict
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
 
 import re
 import json
@@ -10,10 +11,8 @@ import inspect
 import simple_history
 
 from . import gen_utils, filter_utils, constants
-from ..models.Tag import Tag
-from ..models.Brand import Brand
-from ..models.CodingSystem import CodingSystem
-from ..models.GenericEntity import GenericEntity
+
+User = get_user_model()
 
 def try_get_instance(model, **kwargs):
     """Safely attempts to get an instance"""
@@ -45,7 +44,7 @@ def try_get_brand(request, default=None):
     current_brand = request.CURRENT_BRAND
     if gen_utils.is_empty_string(current_brand) or current_brand.lower() == 'ALL':
         return default
-    return try_get_instance(Brand, name=current_brand)
+    return try_get_instance(apps.get_model(app_label='clinicalcode', model_name='Brand'), name=current_brand)
 
 def try_get_brand_string(brand, field_name, default=None):
     """
@@ -83,25 +82,34 @@ def get_entity_id(primary_key):
         return entity_id[:2]
     return False
 
-def get_brand_tag_ids(brand_name):
+def get_brand_tag_ids(brand):
     """
       Resolves a list of tags (tags with tag_type=1) ids associated with the brand
 
       Args:
-        brand_name (str): the name of the brand to query
+        brand (Brand|str): the Brand instance or name of the brand to query
 
       Returns:
         A (list) of tags assoc. with this brand
     """
+    src_tag = apps.get_model(app_label='clinicalcode', model_name='Tag')
+    src_brand = apps.get_model(app_label='clinicalcode', model_name='Brand')
+    if isinstance(brand, str):
+        brand = src_brand.objects.filter(name__iexact=brand)
+        if brand.exists():
+            brand = brand.first()
+
+    if not isinstance(brand, src_brand):
+        brand = None
+        brand_name = 'ALL'
+    else:
+        brand_name = brand.name
+
     cache_key = f'tag_brands__{brand_name}__cache'
 
     resultset = cache.get(cache_key)
     if resultset is None:
-        brand = Brand.objects.all().filter(name__iexact=brand_name)
-        if not brand.exists():
-            resultset =  list(Tag.objects.filter(tag_type=1).values_list('id', flat=True))
-        else:
-            brand = brand.first()
+        if brand:
             source = constants.metadata.get('tags', {}) \
                 .get('validation', {}) \
                 .get('source', {}) \
@@ -118,33 +126,43 @@ def get_brand_tag_ids(brand_name):
                 )
 
                 if isinstance(result, list) and len(result) > 0:
-                    resultset = list(Tag.objects.filter(*result).values_list('id', flat=True))
+                    resultset = list(src_tag.objects.filter(*result).values_list('id', flat=True))
 
             if resultset is None:
-                resultset = list(Tag.objects.filter(collection_brand=brand.id, tag_type=1).values_list('id', flat=True))
+                resultset = list(src_tag.objects.filter(collection_brand=brand.id, tag_type=1).values_list('id', flat=True))
+        else:
+            resultset = list(src_tag.objects.filter(tag_type=1).values_list('id', flat=True))
         cache.set(cache_key, resultset, 3600)
 
     return resultset
 
-def get_brand_collection_ids(brand_name):
+def get_brand_collection_ids(brand):
     """
       Resolves a list of collections (tags with tag_type=2) ids associated with the brand
 
       Args:
-        brand_name (str): the name of the brand to query
+        brand (Brand|str): the Brand instance or name of the brand to query
 
       Returns:
         A (list) of collections assoc. with this brand
     """
+    src_tag = apps.get_model(app_label='clinicalcode', model_name='Tag')
+    src_brand = apps.get_model(app_label='clinicalcode', model_name='Brand')
+    if isinstance(brand, str):
+        brand = src_brand.objects.filter(name__iexact=brand)
+        if brand.exists():
+            brand = brand.first()
+
+    if not isinstance(brand, src_brand):
+        brand_name = 'ALL'
+    else:
+        brand_name = brand.name
+
     cache_key = f'collections_brands__{brand_name}__cache'
 
     resultset = cache.get(cache_key)
     if resultset is None:
-        brand = Brand.objects.all().filter(name__iexact=brand_name)
-        if not brand.exists():
-            resultset = list(Tag.objects.filter(tag_type=2).values_list('id', flat=True))
-        else:
-            brand = brand.first()
+        if brand:
             source = constants.metadata.get('tags', {}) \
                 .get('validation', {}) \
                 .get('source', {}) \
@@ -161,10 +179,12 @@ def get_brand_collection_ids(brand_name):
                 )
 
                 if isinstance(result, list):
-                    resultset = list(Tag.objects.filter(*result).values_list('id', flat=True))
+                    resultset = list(src_tag.objects.filter(*result).values_list('id', flat=True))
 
             if resultset is None:
-                resultset = list(Tag.objects.filter(collection_brand=brand.id, tag_type=2).values_list('id', flat=True))
+                resultset = list(src_tag.objects.filter(collection_brand=brand.id, tag_type=2).values_list('id', flat=True))
+        else:
+            resultset = list(src_tag.objects.filter(tag_type=2).values_list('id', flat=True))
         cache.set(cache_key, resultset, 3600)
 
     return resultset
@@ -173,7 +193,7 @@ def get_entity_approval_status(entity_id, historical_id):
     """
       Gets the entity's approval status, given an entity id and historical id
     """
-    entity = GenericEntity.history.filter(id=entity_id, history_id=historical_id)
+    entity = apps.get_model(app_label='clinicalcode', model_name='GenericEntity').history.filter(id=entity_id, history_id=historical_id)
     if entity.exists():
         return entity.first().publish_status
 
@@ -183,7 +203,7 @@ def is_legacy_entity(entity_id, entity_history_id):
       Checks whether this entity_id and entity_history_id match the latest record
       to determine whether a historical entity is legacy or not
     """
-    latest_entity = GenericEntity.history.filter(id=entity_id)
+    latest_entity = apps.get_model(app_label='clinicalcode', model_name='GenericEntity').history.filter(id=entity_id)
     if not latest_entity.exists():
         return False
 
@@ -231,7 +251,7 @@ def get_tag_attribute(tag_id, tag_type):
     """
       Returns a dict that describes a tag given its id and type
     """
-    tag = Tag.objects.filter(id=tag_id, tag_type=tag_type)
+    tag = apps.get_model(app_label='clinicalcode', model_name='Tag').objects.filter(id=tag_id, tag_type=tag_type)
     if tag.exists():
         tag = tag.first()
         return {
@@ -248,13 +268,14 @@ def get_coding_system_details(coding_system):
       the coding_system parameter passed is either an obj or an int
       that references a coding_system by its codingsystem_id
     """
+    src = apps.get_model(app_label='clinicalcode', model_name='CodingSystem')
     if isinstance(coding_system, int):
-        coding_system = CodingSystem.objects.filter(codingsystem_id=coding_system)
+        coding_system = src.objects.filter(codingsystem_id=coding_system)
         if not coding_system.exists():
             return None
         coding_system = coding_system.first()
 
-    if not isinstance(coding_system, CodingSystem):
+    if not isinstance(coding_system, src):
         return None
 
     return {
@@ -299,9 +320,10 @@ def append_coding_system_data(systems):
         A list of dicts that has the number of codes/searchable status appended,
         as defined by their code reference tables
     """
+    src = apps.get_model(app_label='clinicalcode', model_name='CodingSystem')
     for i, system in enumerate(systems):
         try:
-            coding_system = CodingSystem.objects.get(codingsystem_id=system.get('value'))
+            coding_system = src.objects.get(codingsystem_id=system.get('value'))
             table = coding_system.table_name.replace('clinicalcode_', '')
             codes = apps.get_model(app_label='clinicalcode', model_name=table)
             count = codes.objects.count() > 0

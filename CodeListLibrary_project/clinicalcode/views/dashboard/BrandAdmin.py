@@ -1,11 +1,13 @@
 """Brand Administration View(s) & Request Handling."""
+from datetime import datetime
 from django.db import connection
+from django.apps import apps
 from django.conf import settings
-from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 from django.core.cache import cache
 from rest_framework.views import APIView
 from django.views.generic import TemplateView
+from django.core.exceptions import BadRequest, PermissionDenied
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import schema
@@ -16,8 +18,10 @@ import os
 import logging
 import psycopg2
 
-from clinicalcode.models import Brand
+from clinicalcode.models import Brand, Tag, Template
 from clinicalcode.entity_utils import gen_utils, model_utils, permission_utils
+
+from .targets import TemplateTarget
 
 
 logger = logging.getLogger(__name__)
@@ -70,7 +74,7 @@ class BrandDashboardView(TemplateView):
 		Request-Response Middleman.
 
 		.. Note::
-		Dispatches if:
+		Decporated such that it only dispatches when:
 			- The app isn't in a read-only state;
 			- The Brand context is administrable;
 			- And either (a) the user is a superuser, or (b) the user is authenticated & is a brand administrator of the current Brand.
@@ -92,14 +96,12 @@ class BrandDashboardView(TemplateView):
 			The resulting Template context (`Dict[str, Any]` _OR_ :py:class:`Context`) 
 			
 		Raises:
-			HttpResponseBadRequest (400 error)
+			BadRequest (400 error)
 		"""
 		brand = kwargs.get('brand')
-		if brand is None:
-			raise HttpResponseBadRequest('Invalid Brand')
-
 		context = super().get_context_data(*args, **kwargs)
 		return context | {
+			'brand': brand,
 			'logo_path': self.__get_admin_logo_target(brand),
 		}
 
@@ -111,6 +113,9 @@ class BrandDashboardView(TemplateView):
 
 		``logo_path``
 			A (str) specifying the static path to the branded logo
+
+		``brand``
+			A (Brand|None) specifying the current Brand instance
 
 		.. Template::
 
@@ -170,8 +175,13 @@ class BrandStatsSummaryView(APIView):
 	def get(self, request):
 		"""GET request handler for BrandStatsSummaryView"""
 		brand = model_utils.try_get_brand(request)
+		assets = self.__get_or_resolve_assets(brand)
 		summary = self.__get_or_compute_summary(brand)
-		return Response(summary)
+
+		return Response({
+			'assets': assets,
+			'summary': summary,
+		})
 
 	def __get_or_compute_summary(self, brand=None):
 		"""
@@ -194,10 +204,61 @@ class BrandStatsSummaryView(APIView):
 		cache.set(cache_key, { 'value': summary }, self.CACHE_TIMEOUT)
 		return summary
 
-	def __resolve_assets(self, brand):
-		'''
-		'''
-		pass
+	def __get_or_resolve_assets(self, brand=None):
+		"""
+		Attempts to resolve the known quick access assets available for the specified Brand, either by retrieving it from the cache store or, if not found, by computing it.
+
+		Args:
+			brand (:model:`Brand`|None): the Request-specified Brand context
+
+		Returns:
+			A (dict) describing the quick access items
+		"""
+		cache_key = brand.name if isinstance(brand, Brand) else 'all'
+		cache_key = f'dashboard-asset-summary__{cache_key}__cache'
+
+		assets = cache.get(cache_key)
+		if assets is not None:
+			return assets.get('value')
+
+		if brand is not None:
+			assets = brand.get_asset_rules(default={})
+		else:
+			assets = {}
+
+		for key, asset in assets.items():
+			model = asset.get('model')
+			if model is None:
+				assets.pop(key, None)
+				continue
+
+			details = None
+			try:
+				model = apps.get_model(app_label='clinicalcode', model_name=model)
+				if hasattr(model, 'get_verbose_names'):
+					details = model.get_verbose_names(subtype=key)
+				elif hasattr(model, '_meta') and getattr(model, '_meta', None) is not None:
+					meta = getattr(model, '_meta')
+					verbose_name = meta.verbose_name if hasattr(meta, 'verbose_name') else None
+					verbose_name_plural = meta.verbose_name_plural if hasattr(meta, 'verbose_name_plural') else None
+					details = {
+						'verbose_name': verbose_name if isinstance(verbose_name, str) else model.__name__,
+						'verbose_name_plural': verbose_name_plural if isinstance(verbose_name_plural, str) else (f'{model.__name__}s'),
+					}
+				else:
+					details = {
+						'verbose_name': model.__name__,
+						'verbose_name_plural': f'{model.__name__}s',
+					}
+			except:
+				assets.pop(key, None)
+				continue
+			else:
+				if details is not None:
+					asset.update({ 'details': details })
+
+		cache.set(cache_key, { 'value': assets }, self.CACHE_TIMEOUT)
+		return assets
 
 	def __compute_summary(self, brand):
 		"""
@@ -353,4 +414,5 @@ class BrandStatsSummaryView(APIView):
 			cursor.execute(sql, params=query_params)
 			columns = [col[0] for col in cursor.description]
 
-			return { 'data': dict(zip(columns, row)) for row in cursor.fetchall() }
+			result = { 'data': dict(zip(columns, row)) for row in cursor.fetchall() }
+			return result | { 'timestamp': datetime.now().isoformat() }

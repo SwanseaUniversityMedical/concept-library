@@ -2,10 +2,13 @@
 
 from django.db import models
 from django.core.cache import cache
-from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth import get_user_model
 
 from .TimeStampedModel import TimeStampedModel
+
+User = get_user_model()
 
 class Brand(TimeStampedModel):
     """Domain Brand specifying site appearance and behaviour variation."""
@@ -30,7 +33,8 @@ class Brand(TimeStampedModel):
     index_path = models.CharField(max_length=250, blank=True, null=True)
 
     # Brand administration
-    admins = models.ManyToManyField(User, related_name='administered_brands')
+    admins = models.ManyToManyField(User, related_name='administered_brands', blank=True)
+    users = models.ManyToManyField(User, related_name='accessible_brands', blank=True)
 
     # Brand overrides
     #   - e.g. entity name override ('Concept' instead of 'Phenotype' _etc_ for HDRN brand)
@@ -48,6 +52,10 @@ class Brand(TimeStampedModel):
 
 
     '''Static methods'''
+    @staticmethod
+    def get_verbose_names(*args, **kwargs):
+        return { 'verbose_name': Brand._meta.verbose_name, 'verbose_name_plural': Brand._meta.verbose_name_plural }
+
     @staticmethod
     def all_instances(cached=True):
         """
@@ -90,9 +98,28 @@ class Brand(TimeStampedModel):
 
     @staticmethod
     def all_asset_rules(cached=True):
-        '''
-        '''
-        pass
+        """
+            Resolves all Brand asset rules
+
+            Note:
+                - Beware that not all Brands are _assoc._ with asset rules rules;
+                - Brands that do not specify asset rules will not be present in the resulting dict.
+
+            Args:
+                cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `True`
+
+            Returns:
+                A (dict) containing key-value pairs in which the key describes the Brand name, and the value describes the asset rules _assoc._ with that Brand - _i.e._ a (list) of (Dict[str, str]).
+        """
+        asset_rules = cache.get('brands_asset-rules__cache') if cached else None
+        if asset_rules is None:
+            brands = Brand.all_instances(cached=cached)
+            asset_rules = [ x.get_asset_rules() for x in brands ]
+            asset_rules = { brand.name: rule for brand, rule in zip(dict(brands, asset_rules)).items() }
+
+            if cached:
+                cache.set('brands_asset-rules__cache', asset_rules, 3600)
+        return asset_rules
 
     @staticmethod
     def all_vis_rules(cached=True):
@@ -101,7 +128,9 @@ class Brand(TimeStampedModel):
 
             Note:
                 - Beware that not all Brands are _assoc._ with content visibility rules;
+                - Beware that not all Brands are _assoc._ with asset rules rules;
                 - Brands that do not specify content visibility rules will not be present in the resulting dict.
+                - Brands that do not specify asset rules will not be present in the resulting dict.
 
             Args:
                 cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `True`
@@ -117,15 +146,46 @@ class Brand(TimeStampedModel):
 
             if cached:
                 cache.set('brands_vis-rules__cache', vis_rules, 3600)
-
         return vis_rules
 
 
     '''Instance methods'''
     def get_asset_rules(self, cached=False, default=None):
         '''
+            Attempts to resolve this Brand's `asset_rules` override attribute
+
+            Note:
+                A Brand's `asset_rules` should define a (list) describing a set of (Dict[str, str]) which specifies:
+
+                - `name` → the name of the asset
+                - `model` → the `apps.model` reference of the asset
+                - `target` → the name of the `TargetEndpoint` resolver
+
+            Args:
+                cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `False`
+                default (Any): optionally specify the default return value if the `content_visibility` attr is undefined; defaults to `None`
+
+            Returns:
+                This Brand's `asset_rules` (list) rule if applicable, otherwise returns the specified `default` value
         '''
-        pass
+        # Handle case where instance has yet to be saved
+        if self.id is None:
+            return default
+
+        cache_key = f'brands_assets__{self.name}__cache' if cached else None
+        asset_rules = cache.get(cache_key) if cached else None
+        if asset_rules is not None:
+            return asset_rules.get('value')
+
+        asset_rules = getattr(self, 'overrides')
+        asset_rules = asset_rules.get('asset_rules') if isinstance(asset_rules, dict) else None
+        if asset_rules is None:
+            asset_rules = default
+
+        if cached:
+            cache.set(cache_key, { 'value': asset_rules }, 3600)
+
+        return asset_rules
 
     def get_vis_rules(self, cached=False, default=None):
         """
@@ -153,7 +213,7 @@ class Brand(TimeStampedModel):
                 default (Any): optionally specify the default return value if the `content_visibility` attr is undefined; defaults to `None`
 
             Returns:
-                This Brand's `content_visibility` rule if applicable, otherwise returns the specified `default` value
+                This Brand's `content_visibility` (dict) rule if applicable, otherwise returns the specified `default` value
         """
         # Handle case where instance has yet to be saved
         if self.id is None:
@@ -211,6 +271,8 @@ class Brand(TimeStampedModel):
     '''Metadata'''
     class Meta:
         ordering = ('name', )
+        verbose_name = _('Brand')
+        verbose_name_plural = _('Brands')
 
 
     '''Dunder methods'''

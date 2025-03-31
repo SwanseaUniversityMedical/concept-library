@@ -216,6 +216,8 @@
   width: fit-content;
   outline: none;
   border: 0px;
+  margin: 0;
+  padding: 0;
 
   &__label {
     cursor: pointer;
@@ -223,7 +225,7 @@
     vertical-align: middle;
     display: inline-block;
     border: 1px solid col(accent-washed);
-    margin: 0 0.5rem 0 0;
+    margin: 0 0 0 0;
     border-radius: 4px;
     padding: 0.5rem 1rem;
     background-color: col(bg);
@@ -269,7 +271,7 @@
     border: 1px solid col(accent-washed);
     border-radius: 2px;
     padding: 0;
-    margin: 2px 0 0 0;
+    margin: 2px 4px 0 0;
     box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
     background-color: col(bg);
     list-style-type: none;
@@ -520,6 +522,58 @@
         padding: 0;
         border-bottom: 1px solid col(accent-washed);
       }
+    }
+  }
+}
+
+.autocomplete {
+  position: relative;
+  padding: 1rem;
+
+  &-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  &-input {
+    width: calc(100% - 2rem);
+    padding: 1rem;
+    line-height: 1.5;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  &-controls {
+    display: block;
+    min-width: 100px;
+    max-width: 100%;
+    max-height: 100%;
+    flex-grow: 1;
+  }
+
+  &-result {
+    cursor: default;
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+  }
+
+  &-results {
+    position: absolute;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    top: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    list-style: none;
+    transition: none;
+    max-height: 100px;
+    overflow-y: scroll;
+    z-index: 1;
+
+    &.hidden {
+      display: none !important;
     }
   }
 }

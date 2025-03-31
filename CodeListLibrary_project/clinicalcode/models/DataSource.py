@@ -1,8 +1,10 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
+
+User = get_user_model()
 
 class DataSource(TimeStampedModel):
     """

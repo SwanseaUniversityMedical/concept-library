@@ -2,14 +2,16 @@ from django import forms
 from django.forms.models import modelformset_factory
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
 from django.contrib import admin
 from django.utils.text import slugify
+from django.contrib.auth import get_user_model
 
 from ..models.Organisation import Organisation, OrganisationMembership, OrganisationAuthority
 from ..entity_utils import gen_utils, permission_utils, model_utils
 
 from django.utils import timezone
+
+User = get_user_model()
 
 """ Admin """
 
@@ -254,12 +256,10 @@ class OrganisationManageForm(forms.ModelForm):
   def __init__(self, *args, **kwargs):
     super(OrganisationManageForm, self).__init__(*args, **kwargs)
 
-    print(args, kwargs)
-
   class Meta:
     model = Organisation
     fields = '__all__'
-    exclude = ['slug', 'created', 'owner', 'brands']
+    exclude = ['slug', 'created', 'owner', 'brands', 'members']
 
   def clean(self):
     """

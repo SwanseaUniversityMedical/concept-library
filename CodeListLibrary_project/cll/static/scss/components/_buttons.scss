@@ -62,8 +62,7 @@
 
   &:not(:disabled):active {
     transition: all 250ms ease;
-    transform: translateY(0.2rem);
-    -webkit-transform: translateY(0.2rem);
+    @include prefix(transform, translateY(0.2rem), webkit moz o);
   }
 
   &:disabled {

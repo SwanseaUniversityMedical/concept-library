@@ -339,7 +339,7 @@
     &-metadata {
       @include flex-row();
       margin: 0.5rem 0 0 0;
-     
+
       &-divider:after {
         content: '•';
         margin: 0 0.5rem;
@@ -373,7 +373,9 @@
       @include flex-col();
       flex-wrap: nowrap;
       width: 100%;
+      max-width: calc(100% - 8px);
       gap: 0.25rem;
+      margin-left: 2px;
     }
   }
 }

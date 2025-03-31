@@ -7,11 +7,13 @@
 '''
 
 from django.db import models
-from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
+from django.contrib.auth import get_user_model
 
 from .Concept import Concept, HistoricalConcept
 from .TimeStampedModel import TimeStampedModel
+
+User = get_user_model()
 
 class Component(TimeStampedModel):
     '''

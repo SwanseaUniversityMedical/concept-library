@@ -1,7 +1,10 @@
 from django.http.request import HttpRequest
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
 
 import enum
+
+User = get_user_model()
 
 
 class TypeStatus:
@@ -411,7 +414,8 @@ DETAIL_PAGE_APPENDED_FIELDS = {
         'title': 'Permissions',
         'field_type': 'permissions_section',
         'active': True,
-        'hide_on_create': True
+        'hide_on_create': True,
+        'requires_auth': True
     },
     'api': {
         'title': 'API',

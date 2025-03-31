@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import JSONField
 from django.db import models
@@ -6,12 +6,15 @@ from django.db import transaction
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 from simple_history.models import HistoricalRecords
 
-from .Organisation import Organisation
 from .Template import Template
 from .EntityClass import EntityClass
+from .Organisation import Organisation
 from ..entity_utils import gen_utils, constants
+
+User = get_user_model()
 
 class GenericEntityManager(models.Manager):
     """

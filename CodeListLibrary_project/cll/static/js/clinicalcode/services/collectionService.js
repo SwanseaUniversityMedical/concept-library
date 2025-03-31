@@ -173,7 +173,7 @@ const renderNameAnchor = (pageType, key, entity) => {
     
       let target =  `
         <a href='${url}'>${text}</a>
-        <span tooltip="Edit Phenotype" direction="left">
+        <span tooltip="Edit Phenotype" direction="right">
           <span class="profile-collection__edit-icon"
                 tabindex="0"
                 aria-label="Edit Phenotype"
@@ -185,7 +185,7 @@ const renderNameAnchor = (pageType, key, entity) => {
     
       if (publish_status != 2) {
         target += `
-          <span tooltip="Archive Phenotype" direction="left">
+          <span tooltip="Archive Phenotype" direction="right">
             <span class="profile-collection__delete-icon"
                   tabindex="0" aria-label="Archive Phenotype"
                   role="button"
@@ -201,7 +201,7 @@ const renderNameAnchor = (pageType, key, entity) => {
     case 'archived': {
       return `
         <a href='${url}'>${text}</a>
-        <span tooltip="Restore Phenotype" direction="left">
+        <span tooltip="Restore Phenotype" direction="right">
           <span class="profile-collection__restore-icon"
                 tabindex="0" aria-label="Restore Phenotype"
                 role="button"
@@ -374,7 +374,7 @@ const renderCollectionComponent = (pageType, key, container, data) => {
     let columnIndex = head.getAttribute('column-index');
     columnIndex = parseInt(columnIndex);
 
-    let uniqueValues = [...new Set(datatable.data.data.map(tr => tr[columnIndex].data))];
+    let uniqueValues = [...new Set(datatable.data.data.map(tr => tr.cells[columnIndex].data))];
     let option = document.createElement('option');
     option.value = '-1';
     option.selected = true;

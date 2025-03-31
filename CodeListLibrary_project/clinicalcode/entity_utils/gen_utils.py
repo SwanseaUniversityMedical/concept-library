@@ -25,7 +25,9 @@ import datetime
 from cll.settings import Symbol
 from . import constants, sanitise_utils
 
+
 logger = logging.getLogger(__name__)
+
 
 def is_datetime(x):
     """
@@ -181,8 +183,11 @@ def parse_model_field_query(model, params, ignored_fields=None, default=None):
 
         query = None
         match typed:
-            case 'AutoField' | 'IntegerField' | 'BigAutoField' | 'BigIntegerField':
-                if not is_empty_string(value):
+            case 'AutoField' | 'SmallAutoField' | 'BigAutoField':
+                if isinstance(value, str):
+                    if is_empty_string(value):
+                        continue
+
                     value = parse_as_int_list(value, default=None)
                     length = len(value) if isinstance(value, list) else 0
                     if length == 1:
@@ -193,17 +198,166 @@ def parse_model_field_query(model, params, ignored_fields=None, default=None):
                         query = f'{field_name}__in'
                     else:
                         value = None
-            case 'CharField' | 'TextField':
-                if not is_empty_string(value):
-                    if is_fk:
-                        values = value.split(',')
-                        if len(values) > 1:
-                            value = values
-                            query = f'{field_name}__contained_by'
+                elif isinstance(value, (int, float, complex)) and not isinstance(value, bool):
+                    try:
+                        value = int(value)
+                        query = f'{field_name}__eq'
+                    except:
+                        pass
+                elif isinstance(value, list):
+                    arr = [int(x) for x in value if is_int(x, default=None)]
+                    if isinstance(arr, list) and len(arr) > 1:
+                        value = arr
+                        query = f'{field_name}__in'
+
+            case 'BooleanField':
+                if isinstance(value, str):
+                    if is_empty_string(value):
+                        continue
+                    value = value.lower() in ('y', 'yes', 't', 'true', 'on', '1')
+
+                if isinstance(value, bool):
+                    value = value
+                    query = f'{field_name}'
+
+            case 'SmallIntegerField' | 'PositiveSmallIntegerField' | \
+                 'IntegerField'      | 'PositiveIntegerField'      | \
+                 'BigIntegerField'   | 'PositiveBigIntegerField':
+                if isinstance(value, str):
+                    if is_empty_string(value):
+                        continue
+
+                    if value.find(','):
+                        arr = [int(x) for x in value.split(',') if parse_int(x, default=None) is not None]
+                        if isinstance(arr, list) and len(arr) > 1:
+                            value = arr
+                            query = f'{field_name}__in'
+                    elif value.find(':'):
+                        bounds = [int(x) for x in value.split(':') if is_int(x)]
+                        if isinstance(bounds, list) and len(bounds) >= 2:
+                            value = [min(bounds), max(bounds)]
+                            query = f'{field_name}__range'
 
                     if query is None:
-                        value = str(value)
-                        query = f'{field_name}__icontains'
+                        value = try_value_as_type(value, 'int')
+                        query = f'{field_name}__eq'
+                elif isinstance(value, (int, float, complex)) and not isinstance(value, bool):
+                    try:
+                        value = int(value)
+                        query = f'{field_name}__eq'
+                    except:
+                        pass
+                elif isinstance(value, list):
+                    arr = [int(x) for x in value if is_int(x, default=None)]
+                    if isinstance(arr, list) and len(arr) > 1:
+                        value = arr
+                        query = f'{field_name}__in'
+
+            case 'FloatField' | 'DecimalField':
+                if isinstance(value, str):
+                    if is_empty_string(value):
+                        continue
+
+                    if value.find(','):
+                        arr = [float(x) for x in value.split(',') if is_float(x, default=None)]
+                        if isinstance(arr, list) and len(arr) > 1:
+                            value = arr
+                            query = f'{field_name}__in'
+                    elif value.find(':'):
+                        bounds = [float(x) for x in value.split(':') if is_float(x)]
+                        if isinstance(bounds, list) and len(bounds) >= 2:
+                            value = [min(bounds), max(bounds)]
+                            query = f'{field_name}__range'
+
+                    if query is None:
+                        value = float(value) if is_float(value) else None
+                        query = f'{field_name}__eq'
+                elif isinstance(value, (int, float, complex)) and not isinstance(value, bool):
+                    try:
+                        value = float(value)
+                        query = f'{field_name}__eq'
+                    except:
+                        pass
+                elif isinstance(value, list):
+                    arr = [float(x) for x in value if is_float(x, default=None)]
+                    if isinstance(arr, list) and len(arr) > 1:
+                        value = arr
+                        query = f'{field_name}__in'
+
+            case 'SlugField' | 'CharField' | 'TextField':
+                value = str(value)
+                if is_fk:
+                    values = value.split(',')
+                    if len(values) > 1:
+                        value = values
+                        query = f'{field_name}__contained_by'
+
+                if query is None:
+                    value = str(value)
+                    query = f'{field_name}__icontains'
+
+            case 'UUIDField' | 'EmailField' | 'URLField':
+                value = str(value)
+                if value.find(','):
+                    values = value.split(',')
+                    if len(values) > 1:
+                        value = values
+                        query = f'{field_name}__contained_by'
+
+                if query is None:
+                    value = value
+                    query = f'{field_name}__exact'
+
+            case 'DateField':
+                if is_empty_string(value):
+                    continue
+
+                try:
+                    bounds = [dateparser.parse(x).date() for x in value.split(':')] if value.find(':') else None
+                    if bounds and len(bounds) >= 2:
+                        value = [min(value), max(value)]
+                        query = f'{field_name}__range'
+
+                    if query is None:
+                        value = dateparser.parse(value).date()
+                        query = f'{field_name}'
+                except:
+                    value = None
+
+            case 'DateTimeField':
+                if is_empty_string(value):
+                    continue
+
+                try:
+                    bounds = [dateparser.parse(x) for x in value.split(':')] if value.find(':') else None
+                    if bounds and len(bounds) >= 2:
+                        value = [datetime.datetime.combine(x, datetime.time(23, 59, 59, 999)) if not x.time() else x for x in bounds]
+                        value = [min(value), max(value)]
+                        query = f'{field_name}__range'
+
+                    if query is None:
+                        value = dateparser.parse(value)
+                        value = datetime.datetime.combine(value, datetime.time(23, 59, 59, 999)) if not value.time() else value
+                        query = f'{field_name}'
+                except:
+                    value = None
+
+            case 'TimeField':
+                if is_empty_string(value):
+                    continue
+
+                try:
+                    bounds = [dateparser.parse(x).time() for x in value.split(':') if dateparser.parse(x).time()] if value.find(':') else None
+                    if bounds and len(bounds) >= 2:
+                        value = [min(bounds), max(bounds)]
+                        query = f'{field_name}__range'
+
+                    if query is None:
+                        value = dateparser.parse(value).time()
+                        query = f'{field_name}'
+                except:
+                    value = None
+
             case _:
                 pass
 
@@ -955,3 +1109,12 @@ class ModelEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (datetime.date, datetime.datetime)):
             return obj.isoformat()
+
+
+class PrettyPrintOrderedDefinition(json.JSONEncoder):
+    """
+        Indents and prettyprints the definition field so that it's readable
+        Preserves order that was given by `template_utils.get_ordered_definition`
+    """
+    def __init__(self, *args, indent, sort_keys, **kwargs):
+        super().__init__(*args, indent=2, sort_keys=False, **kwargs)

@@ -11,11 +11,7 @@
 
 <!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
-{% if request.CURRENT_BRAND|length %}
-  <html data-brand="{{ request.CURRENT_BRAND }}" lang="{{ LANGUAGE_CODE }}">
-{% else %}
-  <html data-brand="none" lang="{{ LANGUAGE_CODE }}">
-{% endif %}
+<html data-brand="{% if request.CURRENT_BRAND|length %}{{ request.CURRENT_BRAND }}{% else %}none{% endif %}" lang="{{ LANGUAGE_CODE }}" {% block htmltag %}{% endblock htmltag %}>
   <head>
     <!-- Metadata incl. robots -->
     {% get_brand_base_desc request.BRAND_OBJECT as base_desc %}

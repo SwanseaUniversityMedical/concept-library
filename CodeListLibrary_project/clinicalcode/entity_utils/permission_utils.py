@@ -16,11 +16,10 @@ from . import model_utils, gen_utils
 from ..models.Brand import Brand
 from ..models.Concept import Concept
 from ..models.Template import Template
-from ..models.Organisation import Organisation
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedGenericEntity import PublishedGenericEntity
-from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS, ORGANISATION_ROLES
+from ..models.Organisation import Organisation, OrganisationAuthority
 
 from .constants import (
     ORGANISATION_ROLES, APPROVAL_STATUS,
@@ -95,11 +94,11 @@ def brand_admin_required(fn):
 		user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
 		brand = request.BRAND_OBJECT if hasattr(request, 'BRAND_OBJECT') else None
 
-		if not user or not isinstance(brand, Brand) or brand.id is None:
-			raise PermissionDenied
+		if not user or not user.is_superuser:
+			if not isinstance(brand, Brand) or brand.id is None:
+				raise PermissionDenied
 
-		if not user.is_superuser:
-			administrable = user.administeredbrands_set \
+			administrable = user.administered_brands \
 				.filter(id=brand.id, is_administrable=True) \
 				.exists()
 
@@ -239,7 +238,7 @@ class IsBrandAdmin(BasePermission):
 		if not isinstance(brand, Brand) or brand.id is None:
 			raise APIException(detail='Could not resolve Brand context', code=RestHttpStatus.HTTP_406_NOT_ACCEPTABLE)
 
-		administrable = user.administeredbrands_set \
+		administrable = user.administered_brands \
 			.filter(id=brand.id, is_administrable=True) \
 			.exists()
 
@@ -284,6 +283,28 @@ def is_member(user, group_name):
       Checks if a User instance is a member of a group
     """
     return user.groups.filter(name__iexact=group_name).exists()
+
+def has_member_org_access(user, slug, min_permission):
+    """
+      Checks if a user has access to an organisation. 
+        Min_permissions relates to the organisation role, e.g.
+        min_permission=1 means the user has to be an editor or above.
+    """
+    if user:
+      if not gen_utils.is_empty_string(slug):
+        organisation = Organisation.objects.filter(slug=slug)
+        if organisation.exists():
+          organisation = organisation.first()
+
+          if organisation.owner == user:
+            return True
+          
+          membership = user.organisationmembership_set \
+            .filter(organisation__id=organisation.id)
+          if membership.exists():
+            return membership.first().role >= min_permission
+
+    return False
 
 def has_member_access(user, entity, min_permission):
     """
@@ -436,21 +457,46 @@ def get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.EDITO
 
     if user.is_superuser:
         return list(Organisation.objects.all().values('id', 'name'))
-    
-    sql = '''
-    select org.id, org.slug, org.name
-      from public.clinicalcode_organisation org
-      join public.clinicalcode_organisationmembership mem
-        on org.id = mem.organisation_id
-     where mem.user_id = %(user_id)s
-       and mem.role >= %(role_enum)s
-    ''' # [!] TODO: BrandAuthority
+
+    current_brand = model_utils.try_get_brand(request)
+    current_brand = current_brand if current_brand and current_brand.org_user_managed else None
 
     with connection.cursor() as cursor:
-      cursor.execute(sql, params={
-        'user_id': user.id,
-        'role_enum': min_role_permission
-      })
+      if current_brand is None:
+        cursor.execute(
+          '''
+            select org.id, org.slug, org.name
+              from public.clinicalcode_organisation org
+              join public.clinicalcode_organisationmembership mem
+                on org.id = mem.organisation_id
+            where mem.user_id = %(user_id)s
+              and mem.role >= %(role_enum)s
+          ''', 
+          params={
+            'user_id': user.id,
+            'role_enum': min_role_permission
+          }
+        )
+      else:
+        cursor.execute(
+          '''
+            select org.id, org.slug, org.name
+              from public.clinicalcode_organisation org
+              join public.clinicalcode_organisationmembership mem
+                on org.id = mem.organisation_id
+              join public.clinicalcode_organisationauthority aut
+                on org.id = aut.organisation_id
+              and aut.brand_id = %(brand)s
+            where mem.user_id = %(user_id)s
+              and mem.role >= %(role_enum)s
+              and aut.can_post = true
+          ''', 
+          params={
+            'user_id': user.id,
+            'role_enum': min_role_permission,
+            'brand': current_brand.id
+          }
+        )
 
       columns = [col[0] for col in cursor.description]
       results = [dict(zip(columns, row)) for row in cursor.fetchall()]
@@ -473,8 +519,16 @@ def get_moderation_entities(
     entities = GenericEntity.history.all() \
         .order_by('id', '-history_id') \
         .distinct('id')
+    entities = entities.filter(Q(publish_status__in=status))
 
-    return entities.filter(Q(publish_status__in=status))
+    current_brand = model_utils.try_get_brand(request)
+    current_brand = current_brand if current_brand and current_brand.org_user_managed else None
+    if current_brand is not None:
+      entities = entities.filter(
+        Q(brands__overlap=[current_brand.id])
+      )
+
+    return entities
 
 def get_editable_entities(
     request,
@@ -512,7 +566,11 @@ def get_editable_entities(
             from public.clinicalcode_historicalgenericentity entity
             order by id, history_id desc
         )
-        select entity.*, 
+        select entity.id,
+               entity.name,
+               entity.history_id,
+               entity.updated,
+               entity.publish_status, 
                live.is_deleted as was_deleted,
                organisation.name as group_name,
                uac.username as owner_name
@@ -530,6 +588,9 @@ def get_editable_entities(
            or (membership.user_id = %(user_id)s AND membership.role >= %(role_enum)s))
           {brand}
           {delete}
+        group by entity.id, entity.name, entity.history_id, 
+                 entity.updated, entity.publish_status, 
+                 live.is_deleted, organisation.name, uac.username
     '''.format(
         brand=brand_sql,
         delete=delete_sql
@@ -1273,10 +1334,12 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
         brand_id = gen_utils.parse_int(brand_id, default=None)
 
     brand_accessible = False
+    brand_org_managed = False
     if brand_id is not None:
         related_brands = live_entity.brands
         if isinstance(related_brands, list):
             brand_accessible = brand_id in related_brands
+        brand_org_managed = brand.org_user_managed
     else:
         brand_accessible = True
 
@@ -1302,17 +1365,29 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
             if live_entity.owner == user or live_entity.created_by == user:
                 is_editable = True
 
-            entity_org = live_entity.organisation \
-                if inspect.isclass(live_entity.organisation) and issubclass(live_entity.organisation, Model) \
-                else None
-
+            entity_org = live_entity.organisation
             if entity_org is not None:
                 if entity_org.owner_id == user.id:
                     is_org_member = True
                 else:
                     membership = user.organisationmembership_set \
                         .filter(organisation__id=entity_org.id)
-                    is_org_member = membership.exists()
+
+                    if membership.exists():
+                      membership = membership.first()
+
+                      is_org_member = True
+                      is_editable = membership.role >= ORGANISATION_ROLES.EDITOR
+
+                      if brand_org_managed:
+                        brand_authority = OrganisationAuthority.objects \
+                          .filter(organisation_id=entity_org.id, brand_id=brand.id)
+                        
+                        if brand_authority.exists():
+                          brand_authority = brand_authority.first()
+
+                          if brand_authority.can_moderate:
+                            user_is_moderator = user_is_moderator or membership.role >= ORGANISATION_ROLES.MODERATOR
 
             if user_is_moderator and historical_entity.publish_status is not None:
                 is_moderatable = historical_entity.publish_status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
