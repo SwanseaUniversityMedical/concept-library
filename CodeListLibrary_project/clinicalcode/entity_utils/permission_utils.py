@@ -11,6 +11,7 @@ from django.contrib.auth.models import Group
 
 import inspect
 
+from ..models.Organisation import Organisation, OrganisationAuthority, OrganisationMembership
 from . import model_utils, gen_utils
 from ..models.Brand import Brand
 from ..models.Concept import Concept
@@ -322,6 +323,79 @@ def has_member_access(user, entity, min_permission):
             return membership.first().role >= min_permission
 
     return False
+
+def get_organisation_role(user, organisation):
+    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
+
+    if org_membership is None:
+        return None
+
+    match org_membership.role:
+        case ORGANISATION_ROLES.ADMIN:
+            return ORGANISATION_ROLES.ADMIN
+        case ORGANISATION_ROLES.MODERATOR:
+            return ORGANISATION_ROLES.MODERATOR
+        case ORGANISATION_ROLES.EDITOR:
+            return ORGANISATION_ROLES.EDITOR
+        case ORGANISATION_ROLES.MEMBER:
+            return ORGANISATION_ROLES.MEMBER
+        case _:
+            return -1
+
+def has_org_member(user, organisation):
+    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
+    return org_membership is not None and org_membership.role in ORGANISATION_ROLES
+
+def has_org_authority(request,organisation):
+    if has_org_member(request.user,organisation):
+        authorities = list(OrganisationAuthority.objects.filter(organisation_id=organisation.id).values('can_post','can_moderate','brand_id'))
+        brand = model_utils.try_get_brand(request)
+        
+        requested_authority = {}
+        if brand:
+          requested_authority = next(({**authority,'org_user_managed': brand.org_user_managed} 
+                                      for authority in authorities if brand.id == authority['brand_id']),{'org_user_managed': False, 'can_moderate': False, 'can_post': False})
+        else:
+            requested_authority['org_user_managed'] = False
+            requested_authority['can_moderate'] = False
+            requested_authority['can_post'] = False
+            
+        return requested_authority
+    else:
+        return False
+
+
+def get_organisation(request,entity_id=None):
+    brand = model_utils.try_get_brand(request)
+
+    entity = model_utils.try_get_instance(GenericEntity,id=entity_id)
+    if entity:
+        return entity.organisation
+    else:
+        if brand:
+          organisation = model_utils.try_get_instance(Organisation,slug=brand.name.lower())
+          if organisation:
+              return organisation
+          else:
+              return None
+    
+     
+        
+def is_org_managed(request,brand_id=None):
+    
+    brand = model_utils.try_get_brand(request)
+    
+    if brand_id:
+        brand = model_utils.try_get_instance(Brand,id=brand_id)
+
+    if brand:
+        return brand.org_user_managed
+    else:
+        return False
+
+
+
+          
 
 def is_publish_status(entity, status):
     """
@@ -1518,6 +1592,17 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
         if not is_brand_accessible(request, entity_id):
             is_allowed_to_edit = False
 
+    organisation = get_organisation(request)
+    if organisation:
+        organisation_permissions = has_org_authority(request, organisation)
+        
+        if isinstance(organisation_permissions, dict) and organisation_permissions.get('org_user_managed'):
+            if get_organisation_role(user, organisation) != ORGANISATION_ROLES.MEMBER:
+                is_allowed_to_edit = True
+            else:
+                is_allowed_to_edit = False
+
+
     return is_allowed_to_edit
 
 def has_derived_edit_access(request, entity_id, entity_history_id=None):
@@ -1683,7 +1768,7 @@ def is_brand_accessible(request, entity_id, entity_history_id=None):
       Returns:
         A (boolean) that reflects its accessibility to the request context
     """
-    entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
+    entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if entity is None:
         return False
 

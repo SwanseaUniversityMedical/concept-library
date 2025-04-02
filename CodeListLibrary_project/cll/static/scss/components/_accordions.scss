@@ -212,6 +212,18 @@
       }
     }
 
+
+    &__delete-icon {
+      background: transparent;
+      border: none;
+    
+    &:after {
+      @include fontawesome-icon();
+      content: '\f1f8';
+      color: col(accent-danger);
+    }
+  }
+
     & .fill-accordion__label-icon {
       display: block;
       position: relative;
