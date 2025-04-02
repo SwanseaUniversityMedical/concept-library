@@ -1,4 +1,4 @@
-name: Run Sonarqube scan
+name: Sonar Scan
 
 on:
   workflow_dispatch:
