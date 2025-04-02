@@ -2,6 +2,14 @@ name: Run Sonarqube scan
 
 on:
   workflow_dispatch:
+  pull_request:
+    # Only consider PRs that change files for this asset, including ci scripts
+    paths:
+      - '.github/workflows/sonarqube.yaml'
+      - 'CodeListLibrary_project/**'
+      - 'docker/**'
+      - 'docs/**'
+      - 'engagelens/**'
   push:
     branches:
       # We're using the free version of Sonarqube so we can only scan a single branch and not PRs
@@ -17,7 +25,7 @@ on:
 jobs:
   scan-code:
     name: Scan repo
-    runs-on: [self-hosted, linux, x64]
+    runs-on: [self-hosted, linux, x64, heavy]
     steps:
       - name: clone repo
         uses: actions/checkout@v4
