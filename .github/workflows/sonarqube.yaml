@@ -25,12 +25,12 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: scan the code
-        uses: sonarsource/sonarqube-scan-action@v4.2.1
+        uses: sonarsource/sonarqube-scan-action@aa494459d7c39c106cc77b166de8b4250a32bb97 # v5.1.0
         with:
 #          projectBaseDir: CodeListLibrary_project
           args: >
             -Dsonar.projectKey=concept-library
-            -Dsonar.python.version=3.9.0
+            -Dsonar.python.version=3.10.16
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
