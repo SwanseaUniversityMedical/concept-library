@@ -2,6 +2,7 @@ import base64
 import json
 import re
 import zlib
+from datetime import datetime
 
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -12,15 +13,18 @@ from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from constants import BRAND_LOGO_PATHS, GRANULARITY_OPTIONS, GRANULARITY_SETTINGS, USER_TYPE_LABELS, BRAND_LABELS
-from utils import read_request_df, read_phenotype_df, get_filtered_phenotype_dfs, \
-    get_filtered_users_df, get_conn, get_date_range
+from utils import get_filtered_phenotype_dfs, \
+    get_filtered_users_df, get_conn, get_date_range, read_data_df
 
+# app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app = Dash(__name__, requests_pathname_prefix='/dash/', external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 
 # Create a session factory
-conn = get_conn(use_engine=True)
+conn = get_conn()
+phenotype_df, request_df = read_data_df(conn)
+
 SessionLocal = sessionmaker(bind=conn)
 
 def validate_django_session():
@@ -64,7 +68,7 @@ def validate_django_session():
             # Query to check if the session exists and has not expired
             result = db_session.execute(
                 text("""
-                    SELECT session_data 
+                    SELECT session_data
                     FROM django_session
                     WHERE session_key = :session_key AND expire_date > NOW()
                 """),
@@ -107,7 +111,9 @@ def restrict_access():
 app.layout = dbc.Container(
         [
                 dbc.Row(children=[
-                        dcc.Store(id='data-store', storage_type="local"), # persists data across sessions
+                        # dcc.Store(id='data-store', storage_type="local"), # persists data across session_st
+                        # Hidden div to store the fetched data
+                        html.Div(id='hidden-div', style={'display': 'none'}),
                         dcc.Interval(id="interval", interval=24 * 60 * 60 * 1000, n_intervals=0),
                         dbc.Col(
                                 id='branding',
@@ -279,25 +285,16 @@ app.layout = dbc.Container(
 )
 
 @callback(
-Output("data-store", "data"),
+Output("hidden-div", "children"),
  Input("interval", "n_intervals")
 )
 def fetch_data(n):
     # PostgresSQL connection
-    conn, cursor = get_conn()
 
     # Data read here as it does not change much
     # TODO: consider caching as the data doesn't change much, and use celery to schedule periodic refresh
-    phenotype_dict = read_phenotype_df(cursor)
-    request_dict = read_request_df(cursor)
-
-    cursor.close()
-    conn.close()
-
-    return {
-        "phenotype_df": phenotype_dict,
-        "requests_df": request_dict
-    }
+    read_data_df(conn)
+    return None
 
 @callback(Output("start-date-filter", "min_date_allowed"),
     Output("start-date-filter", "max_date_allowed"),
@@ -305,16 +302,18 @@ def fetch_data(n):
     Output("end-date-filter", "min_date_allowed"),
     Output("end-date-filter", "max_date_allowed"),
     Output("end-date-filter", "date"),
-Input("data-store", "data")
+    Input("interval", "n_intervals")
 )
-def render_filters(data):
+def render_filters(n):
     """Render filter components for the dashboard.
             conn: SQLAlchemy connection object.
         Returns:
             Row: A Dash Row component containing filter components.
     """
-    phenotype_df = pd.DataFrame(data['phenotype_df'])
-    request_df = pd.DataFrame(data['requests_df'])
+    # phenotype_df = pd.DataFrame(data['phenotype_df'])
+    # request_df = pd.DataFrame(data['requests_df'])
+    global phenotype_df
+    global request_df
 
     min_date = phenotype_df['date'].min()
     max_date = request_df['date'].max()
@@ -356,10 +355,9 @@ def render_header_logo(brand):
         Input('start-date-filter', 'date'),
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
-        Input('usertype-dropdown', 'value'),
-        Input("data-store", "data")
+        Input('usertype-dropdown', 'value')
 )
-def render_user_kpi(start_date, end_date, brand, user_type, data):
+def render_user_kpi(start_date, end_date, brand, user_type):
     """Render the total user KPI.
 
         Args:
@@ -373,7 +371,7 @@ def render_user_kpi(start_date, end_date, brand, user_type, data):
         Returns:
             int: The total number of users.
     """
-    request_df = pd.DataFrame(data['requests_df'])
+    global request_df
 
     tot_users_df = get_filtered_users_df(request_df, start_date, end_date, brand)
 
@@ -394,10 +392,9 @@ def render_user_kpi(start_date, end_date, brand, user_type, data):
         Input('start-date-filter', 'date'),
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
-        Input('usertype-dropdown', 'value'),
-        Input("data-store", "data")
+        Input('usertype-dropdown', 'value')
 )
-def render_phenotype_kpis(start_date, end_date, brand, user_type, data):
+def render_phenotype_kpis(start_date, end_date, brand, user_type):
     """Render the phenotypes KPI.
 
         Args:
@@ -409,7 +406,8 @@ def render_phenotype_kpis(start_date, end_date, brand, user_type, data):
         Returns:
             int: The total number of new phenotypes.
     """
-    phenotype_df = pd.DataFrame(data['phenotype_df'])
+    global phenotype_df
+
     if not user_type:
         return ["N/A", "N/A", "N/A"]
 
@@ -430,10 +428,9 @@ def render_phenotype_kpis(start_date, end_date, brand, user_type, data):
         Input('start-date-filter', 'date'),
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
-        Input('usertype-dropdown', 'value'),
-        Input("data-store", "data")
+        Input('usertype-dropdown', 'value')
 )
-def render_tree_map(start_date, end_date, brand, user_type, data):
+def render_tree_map(start_date, end_date, brand, user_type):
     """Render the tree map.
 
         Args:
@@ -451,8 +448,10 @@ def render_tree_map(start_date, end_date, brand, user_type, data):
             return match.group(1).replace('+', ' ')
         else:
             return None
+    global request_df
 
-    request_df = pd.DataFrame(data['requests_df'])
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
     search_term_df = request_df[['date', 'user_id', 'query_string', 'brand']]
     search_term_df = search_term_df[(search_term_df.brand == brand) & (search_term_df.date >= start_date) &
@@ -485,10 +484,9 @@ def render_tree_map(start_date, end_date, brand, user_type, data):
         Input('end-date-filter', 'date'),
         Input('brand-dropdown', 'value'),
         Input('usertype-dropdown', 'value'),
-        Input('granularity_radio', 'value'),
-        Input("data-store", "data")
+        Input('granularity_radio', 'value')
 )
-def render_time_series(start_date, end_date, brand, user_type, granularity, data):
+def render_time_series(start_date, end_date, brand, user_type, granularity):
     """Render the time series graph.
 
         Args:
@@ -500,9 +498,8 @@ def render_time_series(start_date, end_date, brand, user_type, granularity, data
         Returns:
             Figure: A Plotly figure for the time series graph.
     """
-    request_df = pd.DataFrame(data['requests_df'])
-    phenotype_df = pd.DataFrame(data['phenotype_df'])
-
+    global phenotype_df
+    global request_df
 
     granularity = GRANULARITY_SETTINGS.get(granularity, GRANULARITY_SETTINGS)
     # Extract frequency and date format from the dictionary
