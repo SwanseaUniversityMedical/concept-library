@@ -1,23 +1,34 @@
 """Views relating to Django User account management."""
 
+from django.conf import settings
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, JsonResponse
+from django.core.mail import EmailMultiAlternatives
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured, ValidationError
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.forms import SetPasswordForm, PasswordResetForm
 from django.views.generic.edit import FormView
 from django.views.generic.base import TemplateView
 from django.contrib.auth.views import PasswordContextMixin
 from django.contrib.auth.tokens import default_token_generator
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
+from django.contrib.auth.decorators import login_not_required
+
+import logging
+
+from clinicalcode.entity_utils import email_utils, model_utils
 
 
 # State
+logger = logging.getLogger(__name__)
 UserModel = get_user_model()
 
 
@@ -25,7 +36,70 @@ UserModel = get_user_model()
 INTERNAL_RESET_SESSION_TOKEN = '_password_reset_token'
 
 
+# Forms
+class AccountPasswordResetForm(PasswordResetForm):
+	"""See Django :form:`PasswordResetForm` base"""
+	def __init__(self,  *args, **kwargs):
+		if not hasattr(self, 'request'):
+			self.request = kwargs.pop('request', None) if 'request' in kwargs else None
+
+		super(AccountPasswordResetForm, self).__init__(*args, **kwargs)
+
+	def send_mail(
+		self,
+		subject_template_name,
+		email_template_name,
+		context,
+		from_email,
+		to_email,
+		html_email_template_name=None,
+	):
+		"""Sends the password reset e-mail"""
+		request = getattr(self, 'request', None) if hasattr(self, 'request') else None
+
+		brand = model_utils.try_get_brand(request)
+		brand_title = model_utils.try_get_brand_string(brand, 'site_title', default='Concept Library')
+
+		email_subject = f'{brand_title} - Password Reset'
+		email_content = render_to_string(
+			'clinicalcode/email/password_reset_email.html',
+			context,
+			request=request
+		)
+
+		if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE: 
+			try:
+				branded_imgs = email_utils.get_branded_email_images(brand)
+
+				msg = EmailMultiAlternatives(email_subject, email_content, settings.DEFAULT_FROM_EMAIL, [to_email])
+				msg.content_subtype = 'related'
+				msg.attach_alternative(email_content, 'text/html')
+
+				msg.attach(email_utils.attach_image_to_email(branded_imgs.get('apple', 'img/email_images/apple-touch-icon.jpg'), 'mainlogo'))
+				msg.attach(email_utils.attach_image_to_email(branded_imgs.get('logo', 'img/email_images/combine.jpg'), 'sponsors'))
+				msg.send()
+			except Exception:
+				logger.exception(
+					'Failed to send password reset email to %s', context['user'].pk
+				)
+
+
 # Views
+@method_decorator(login_not_required, name='dispatch')
+class AccountPasswordResetView(PasswordResetView):
+	"""See Django :form:`PasswordResetView` base"""
+	form_class = AccountPasswordResetForm
+
+	def get_form_kwargs(self):
+		kwargs = super(AccountPasswordResetView, self).get_form_kwargs()
+		kwargs['request'] = self.request
+		return kwargs
+
+	@method_decorator(csrf_protect)
+	def dispatch(self, *args, **kwargs):
+		return super().dispatch(*args, **kwargs)
+
+
 class AccountManagementResultView(TemplateView):
 	"""
 		Simple account management result page.

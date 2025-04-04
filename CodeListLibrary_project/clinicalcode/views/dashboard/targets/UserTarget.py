@@ -118,7 +118,7 @@ class UserSerializer(BaseSerializer):
 		user_pk_bytes = force_bytes(User._meta.pk.value_to_string(user))
 		brand_title = model_utils.try_get_brand_string(brand, 'site_title', default='Concept Library')
 
-		email_subject = f'{brand_title} - Organisation Invite'
+		email_subject = f'{brand_title} - Account Invite'
 		email_content = render_to_string(
 			'clinicalcode/email/account_inv_email.html',
 			{
@@ -148,8 +148,6 @@ class UserSerializer(BaseSerializer):
 				return True
 			except BadHeaderError as error:
 				raise exceptions.APIException(f'Failed to send emails to:\n- Targets: {email}\n-Error: {str(error)}')
-		# else:
-		# 	print(email, '->', email_content)
 
 	# POST / PUT
 	def create(self, validated_data):
@@ -197,6 +195,24 @@ class UserSerializer(BaseSerializer):
 				user.groups.remove(self.MODERATOR_GROUP)
 
 		return user
+
+	# Instance & Field validation
+	def validate(self, data):
+		instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
+
+		email = data.get('email', instance.email if instance is not None else None)
+		if not isinstance(email, str):
+			raise exceptions.ValidationError({
+				'email': f'Failed to match e-mail pattern for User\'s known e-mail: {email}'
+			})
+
+		if gen_utils.is_empty_string(email) or not self.EMAIL_PATTERN.match(email):
+			raise exceptions.ValidationError({
+				'email': f'Failed to match e-mail regex pattern for User\'s known e-mail'
+			})
+
+		data.update(email=email)
+		return data
 
 
 class UserEndpoint(BaseEndpoint):

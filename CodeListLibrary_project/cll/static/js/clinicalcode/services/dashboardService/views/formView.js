@@ -1077,31 +1077,28 @@ export class FormView {
       }
 
       let validation = component.querySelector(`[data-ref="validation"]`);
-      if (isNullOrUndefined(validation)) {
-        validation = createElement('div', {
-          data: { ref: 'validation' },
-          childNodes: [
-            createElement('div', {
-              className: 'validation__title',
-              childNodes: [
-                '<span class="as-icon" data-icon="&#xf06a;" aria-hidden="true"></span>',
-                createElement('p', { innerText: 'Error:' }),
-              ],
-            }),
-            ...elements
-          ],
-        });
+      if (!isNullOrUndefined(validation)) {
+        validation.remove();
+      }
 
-        if (!isNullOrUndefined(descriptor)) {
-          descriptor.after(validation);
-        } else {
-          descriptor.after(component.firstChild);
-        }
+      validation = createElement('div', {
+        data: { ref: 'validation' },
+        childNodes: [
+          createElement('div', {
+            className: 'validation__title',
+            childNodes: [
+              '<span class="as-icon" data-icon="&#xf06a;" aria-hidden="true"></span>',
+              createElement('p', { innerText: 'Error:' }),
+            ],
+          }),
+          ...elements
+        ],
+      });
+
+      if (!isNullOrUndefined(descriptor)) {
+        descriptor.after(validation);
       } else {
-        clearAllChildren(validation);
-        for (let j = 0; j < elements.length; ++j) {
-          validation.appendChild(elements[j]);
-        }
+        descriptor.after(component.firstChild);
       }
       allowed.push(validation);
     }

@@ -3,7 +3,7 @@
 from django.urls import re_path as url
 from django.contrib.auth import views as auth_views
 
-from clinicalcode.views.Account import AccountResetConfirmView, AccountManagementResultView
+from clinicalcode.views.Account import AccountPasswordResetView, AccountResetConfirmView, AccountManagementResultView, AccountPasswordResetForm
 
 # Account interface
 urlpatterns = [
@@ -14,7 +14,7 @@ urlpatterns = [
     ## Reset password request
     url(
         route=r'^password_reset/$',
-        view=auth_views.PasswordResetView.as_view(template_name='registration/request_reset.html'),
+        view=AccountPasswordResetView.as_view(template_name='registration/request_reset.html'),
         name='password_reset',
     ),
     url(
