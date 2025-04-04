@@ -2,7 +2,7 @@
 from django.conf import settings
 from rest_framework import status, serializers, exceptions
 from django.db.models import Q, F
-from django.core.mail import BadHeaderError, EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives
 from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_bytes
@@ -157,8 +157,8 @@ class UserSerializer(BaseSerializer):
 				logger.info(f'Successfully sent DashPWD email with target: User<name: {username}, email: {email}, sub: {email_subject}>')
 				return True
 		else:
-				logger.info(f'[DEMO] Successfully sent DashPWD email with target: User<name: {username}, email: {email}, sub: {email_subject}>')
-				return True
+			logger.info(f'[DEMO] Successfully sent DashPWD email with target: User<name: {username}, email: {email}, sub: {email_subject}>')
+			return True
 
 	# POST / PUT
 	def create(self, validated_data):
