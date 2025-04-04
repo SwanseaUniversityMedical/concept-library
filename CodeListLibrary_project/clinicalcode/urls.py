@@ -8,6 +8,7 @@ from django.conf import settings
 from django.urls import re_path as url
 from django.views.generic.base import RedirectView
 
+from CodeListLibrary_project.clinicalcode.views.dashboard.targets import HDRNDataAssetTarget
 from clinicalcode.views.dashboard import BrandAdmin
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
 
@@ -18,7 +19,7 @@ from clinicalcode.views import (
 
 from clinicalcode.views.dashboard.targets import (
   BrandTarget, UserTarget, OrganisationTarget, TemplateTarget,
-  TagTarget, HDRNSiteTarget, HDRNCategoryTarget, InventoryTarget
+  TagTarget, HDRNSiteTarget, HDRNCategoryTarget
 )
 
 
@@ -88,8 +89,8 @@ urlpatterns = [
     url(r'^dashboard/target/sites/(?P<pk>\w+)/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_retrieve),
     url(r'^dashboard/target/category/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_default),
     url(r'^dashboard/target/category/(?P<pk>\w+)/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_retrieve),
-    url(r'^dashboard/target/data_assets/$', InventoryTarget.HDRNDataAssetEndpoint.as_view(), name=InventoryTarget.HDRNDataAssetEndpoint.reverse_name_default),
-    url(r'^dashboard/target/data_assets/(?P<pk>\w+)/$', InventoryTarget.HDRNDataAssetEndpoint.as_view(), name=InventoryTarget.HDRNDataAssetEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/data_assets/$', HDRNDataAssetTarget.HDRNDataAssetEndpoint.as_view(), name=HDRNDataAssetTarget.HDRNDataAssetEndpoint.reverse_name_default),
+    url(r'^dashboard/target/data_assets/(?P<pk>\w+)/$', HDRNDataAssetTarget.HDRNDataAssetEndpoint.as_view(), name=HDRNDataAssetTarget.HDRNDataAssetEndpoint.reverse_name_retrieve),
 
     # GenericEnities (Phenotypes)
     ## Search
