@@ -1,11 +1,11 @@
 """Brand Dashboard: API endpoints relating to Template model"""
-import datetime
-import json
-
 from rest_framework import status, serializers
 from django.contrib.auth import get_user_model
 from django.utils.timezone import make_aware
 from rest_framework.response import Response
+
+import json
+import datetime
 
 from .BaseTarget import BaseSerializer, BaseEndpoint
 from .BrandTarget import BrandSerializer
@@ -16,6 +16,14 @@ from clinicalcode.models.EntityClass import EntityClass
 
 
 User = get_user_model()
+
+
+# Const
+TEMPLATE_NOTE_DESC = (
+	'Please note that a Template\'s name, description, version and other metadata are defined by a Template\'s definition.'
+	' These attributes can be specified within a Template\'s definition field, specifically its `template_details` property'
+	' - please see the Template documentation for more information.'
+)
 
 
 class EntityClassSerializer(BaseSerializer):
@@ -42,6 +50,9 @@ class EntityClassSerializer(BaseSerializer):
 		}
 
 	# GET
+	def resolve_format(self):
+		return { 'type': 'ForeignKey' }
+
 	def resolve_options(self):
 		return list(self.Meta.model.objects.all().values('name', 'pk'))
 
@@ -50,13 +61,21 @@ class TemplateSerializer(BaseSerializer):
 	"""Responsible for serialising the `Template` model and to handle PUT/POST validation"""
 
 	# Fields
-	brands = BrandSerializer(many=True)
-	entity_class = EntityClassSerializer()
+	brands = BrandSerializer(many=True, help_text='Specifies which Brands can use & interact with this Template and its descendants.')
+	entity_class = EntityClassSerializer(help_text='Specifies how to categorise this Template & determines entity behaviour.')
 
 	# Appearance
 	_str_display = 'name'
 	_list_fields = ['id', 'name', 'template_version']
-	_item_fields = ['id', 'name', 'template_version', 'description', 'brands']
+	_item_fields = ['id', 'definition', 'entity_class', 'brands']
+	_features = {
+		'create': {
+			'note': TEMPLATE_NOTE_DESC
+		},
+		'update': {
+			'note': TEMPLATE_NOTE_DESC
+		},
+	}
 
 	# Metadata
 	class Meta:
@@ -73,7 +92,9 @@ class TemplateSerializer(BaseSerializer):
 			'created_by': { 'write_only': True, 'read_only': False, 'required': False },
 			'updated_by': { 'write_only': True, 'read_only': False, 'required': False },
 			'entity_class': { 'write_only': True, 'read_only': False, 'required': False },
-			'hide_on_create': { 'write_only': True, 'read_only': False, 'required': False },
+			# WO | RO
+			'definition': { 'required': True, 'help_text': 'Specifies the fields, datatypes, and features associated with this Template.' },
+			'hide_on_create': { 'required': False, 'help_text': 'Specifies whether to hide this Template from the Create interface.' },
 		}
 
 	# GET
@@ -91,40 +112,79 @@ class TemplateSerializer(BaseSerializer):
 		data['definition'] = template_utils.get_ordered_definition(definition, clean_fields=True)
 		return data
 
-	# POST / PUT
-	def create(self, validated_data):
+	# Instance & Field validation
+	def validate(self, data):
 		user = self._get_user()
+		instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
 		current_brand = self._get_brand()
 
-		brands = validated_data.get('brands')
-		if isinstance(brands, Brand):
-			brands = [brands]
-		elif isinstance(brands, int):
-			brands = [brands]
+		entity_class = data.get('entity_class', instance.entity_class if instance else None)
+		if entity_class is not None:
+			if isinstance(entity_class, int):
+				entity_class = EntityClass.objects.filter(pk=entity_class)
+				if entity_class is None or not entity_class.exists():
+					raise serializers.ValidationError({
+						'entity_class': 'Found no existing object at specified `entity_class` pk.'
+					})
+				entity_class = entity_class.first()
+			elif not isinstance(entity_class, EntityClass):
+				entity_class = None
 
-		if isinstance(brands, list):
-			brands = [x.id if isinstance(x, Brand) else x for x in brands if isinstance(x, (Brand, int))]
-			if current_brand and not current_brand.id in brands:
-				brands.append(current_brand.id)
-		elif current_brand:
-			brands = [current_brand.id]
+		if entity_class is None:
+			raise serializers.ValidationError({
+				'entity_class': 'Required `entity_class` field of `pk` type is invalid JSON, or is missing.'
+			})
+
+		if instance is not None:
+			definition = data.get('definition', instance.definition)
 		else:
-			brands = None
+			definition = data.get('definition')
 
-		definition = self.__apply_def_ordering(validated_data.get('definition'))
-		validated_data.update({
-			'brands': brands,
-			'definition': definition,
-			'created_by': user,
-			'updated_by': user,
-		})
+		if isinstance(definition, str):
+			try:
+				definition = json.loads(definition)
+			except:
+				raise serializers.ValidationError({
+					'definition': 'Required JSONField `definition` is invalid'
+				})
 
-		return self.Meta.model.objects.create(**validated_data)
+		if not isinstance(definition, dict):
+			raise serializers.ValidationError({
+				'definition': 'Required JSONField `definition` is missing'
+			})
 
-	def update(self, instance, validated_data):
-		current_brand = self._get_brand()
+		try:
+			json.dumps(definition)
+		except:
+			raise serializers.ValidationError({
+				'definition': 'Template definition is not valid JSON'
+			})
 
-		brands = validated_data.get('brands')
+		definition = template_utils.get_ordered_definition(definition, clean_fields=True)
+
+		template_fields = definition.get('fields')
+		template_details = definition.get('template_details')
+		template_sections = definition.get('sections')
+		if not isinstance(template_fields, dict):
+			raise serializers.ValidationError({
+				'definition': 'Template `definition` field requires a `fields` key-value pair of type `dict`'
+			})
+		elif not isinstance(template_details, dict):
+			raise serializers.ValidationError({
+				'definition': 'Template `definition` field requires a `template_details` key-value pair of type `dict`'
+			})
+		elif not isinstance(template_sections, list):
+			raise serializers.ValidationError({
+				'definition': 'Template `definition` field requires a `sections` key-value pair of type `list`'
+			})
+
+		name = template_details.get('name')
+		if not isinstance(name, str) or gen_utils.is_empty_string(name):
+			raise serializers.ValidationError({
+				'definition': 'Template requires that the `definition->template_details.name` field be a non-empty string'
+			})
+
+		brands = data.get('brands')
 		if isinstance(brands, Brand):
 			brands = [brands.id]
 		elif isinstance(brands, int):
@@ -135,56 +195,25 @@ class TemplateSerializer(BaseSerializer):
 			if current_brand and not current_brand.id in brands:
 				brands.append(current_brand.id)
 		elif current_brand:
-			brands = instance.brands if isinstance(instance.brands, list) else []
+			brands = instance.brands if instance is not None and isinstance(instance.brands, list) else []
 			if current_brand and not current_brand.id in brands:
 				brands.append(current_brand.id)
-		else:
+		elif instance:
 			brands = instance.brands
 
-		if instance is not None:
-			definition = validated_data.get('definition', instance.definition)
-		else:
-			definition = validated_data.get('definition')
+		data.update({
+			'name': template_details.get('name', instance.name if instance else ''),
+			'description': template_details.get('description', instance.name if instance else ''),
+			'template_version': template_details.get('version', instance.template_version if instance else 1),
+			'brands': brands,
+			'definition': self.__apply_def_ordering(definition),
+			'description': template_details.get('description', ''),
+			'created_by': instance.user if instance is not None else user,
+			'updated_by': user,
+			'entity_class': entity_class,
+			'modified': make_aware(datetime.datetime.now()),
+		})
 
-		instance.brands = brands
-		instance.definition = self.__apply_def_ordering(definition)
-		instance.updated_by = self._get_user()
-		instance.modified = make_aware(datetime.datetime.now())
-		instance.save()
-		return instance
-
-	# Instance & Field validation
-	def validate(self, data):
-		instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
-
-		entity_class = data.get('entity_class')
-		if instance is None and not isinstance(entity_class, int):
-			raise serializers.ValidationError('Required `entity_class` field of `pk` type is missing')
-
-		definition = data.get('definition')
-		if not isinstance(definition, dict):
-			raise serializers.ValidationError('Required JSONField `definition` is missing')
-
-		try:
-			json.dumps(definition)
-		except:
-			raise serializers.ValidationError('Template definition is not valid JSON')
-
-		template_fields = definition.get('fields')
-		template_details = definition.get('template_details')
-		template_sections = definition.get('sections')
-		if not isinstance(template_fields, dict):
-			raise serializers.ValidationError('Template `definition` field requires a `fields` key-value pair of type `dict`')
-		elif not isinstance(template_details, dict):
-			raise serializers.ValidationError('Template `definition` field requires a `template_details` key-value pair of type `dict`')
-		elif not isinstance(template_sections, list):
-			raise serializers.ValidationError('Template `definition` field requires a `sections` key-value pair of type `list`')
-
-		name = template_details.get('name')
-		if not isinstance(name, str) or gen_utils.is_empty_string(name):
-			raise serializers.ValidationError('Template requires that the `definition->template_details.name` field be a non-empty string')
-
-		template_details.update(description=template_details.get('description', ''))
 		return data
 
 	# Private utility methods
@@ -228,7 +257,47 @@ class TemplateEndpoint(BaseEndpoint):
 		return self.list(request, *args, **kwargs)
 
 	def put(self, request, *args, **kwargs):
-		return self.update(request, *args, **kwargs)
+		"""
+		Handle PUT requests to update a Template instance.
+		"""
+		partial = kwargs.pop('partial', False)
+		instance = self.get_object(*args, **kwargs)
+
+		serializer = self.get_serializer(instance, data=request.data, partial=partial)
+		try:
+			serializer.is_valid(raise_exception=True)
+		except serializers.ValidationError as e:
+			if isinstance(e.detail, dict):
+				detail = {k: v for k, v in e.detail.items() if k not in ('brands', 'entity_class')}
+				if len(detail) > 0:
+					raise serializers.ValidationError(detail=detail)
+		except Exception as e:
+			raise e
+
+		data = serializer.data
+		data = self.get_serializer().validate(data)
+		instance.__dict__.update(**data)
+		instance.save()
+
+		return Response(self.get_serializer(instance).data)
 
 	def post(self, request, *args, **kwargs):
-		return self.create(request, *args, **kwargs)
+		"""
+		Handle POST requests to create a new Template instance.
+		"""
+		serializer = self.get_serializer(data=request.data)
+		try:
+			serializer.is_valid(raise_exception=True)
+		except serializers.ValidationError as e:
+			if isinstance(e.detail, dict):
+				detail = {k: v for k, v in e.detail.items() if k not in ('brands', 'entity_class')}
+				if len(detail) > 0:
+					raise serializers.ValidationError(detail=detail)
+		except Exception as e:
+			raise e
+
+		data = serializer.data
+		data = self.get_serializer().validate(data)
+
+		instance, _ = self.model.objects.get_or_create(**data)
+		return Response(self.get_serializer(instance).data)

@@ -1,11 +1,10 @@
 import * as Const from './constants.js';
 
-import { managePlugins } from './plugins.js';
-import { manageNavigation } from './navigation.js';
-import { managePopoverMenu } from './popoverMenu.js';
-
-import { FormView } from './controllers/formView.js';
-import { TableView } from './controllers/tableView.js';
+import { FormView } from './views/formView.js';
+import { TableView } from './views/tableView.js';
+import { managePlugins } from './managers/plugins.js';
+import { manageNavigation } from './managers/navigation.js';
+import { managePopoverMenu } from '../../components/popoverMenu.js';
 
 /**
  * Class to serve & manage Dashboard page content
@@ -60,6 +59,13 @@ export class DashboardService {
 
   /**
    * @desc
+   * @type {Nullable<object>}
+   * @private
+   */
+  #controller = null;
+
+  /**
+   * @desc
    * @type {Record<string, HTMLElement>}
    * @private
    */
@@ -94,7 +100,7 @@ export class DashboardService {
    *              Public               *
    *                                   *
    *************************************/
-  openPage(page, view = null, target = null) {
+  openPage(page, view = null, target = null, pushState = true) {
     const state = this.#state;
     if (state.page === page && state.view === view && state.target === target && state.initialised) {
       return;
@@ -104,18 +110,22 @@ export class DashboardService {
     switch (page) {
       case 'overview':
         hnd = this.#renderOverview;
+        view = view ?? 'view';
         break;
 
       case 'inventory':
         hnd = this.#renderInventory;
+        view = view ?? 'view';
         break;
 
       case 'brand-config':
         hnd = this.#renderBrand;
+        view = view ?? 'update';
         break;
-      
+
       default:
         hnd = this.#renderModelView;
+        view = view ?? 'list';
         break;
     }
 
@@ -125,16 +135,18 @@ export class DashboardService {
       state.target = target;
       state.initialised = true;
       this.#toggleNavElement(page);
+      if (pushState) {
+        this.#pushDashboardState();
+      }
       hnd.apply(this);
     }
   }
 
   dispose() {
-    const state = this.#state;
-    const controller = state?.controller;
+    const controller = this.#controller;
     if (controller) {
+      this.#controller = null;
       controller.dispose();
-      delete state.controller;
     }
 
     let disposable;
@@ -186,7 +198,10 @@ export class DashboardService {
         return `${root}/target/${target}/` + parameters;
 
       case 'update':
-        return `${root}/target/${target}/${kwargs}/` + parameters;
+        if (!isNullOrUndefined(kwargs)) {
+          return `${root}/target/${target}/${kwargs}/` + parameters;
+        }
+        return `${root}/target/${target}/` + parameters;
 
       default:
         return null
@@ -196,8 +211,10 @@ export class DashboardService {
   #fetch(url, opts = {}) {
     const token = this.#state.token;
     opts = mergeObjects(
+      isObjectType(opts) ? opts : {},
       {
         method: 'GET',
+        cache: 'no-cache',
         credentials: 'same-origin',
         withCredentials: true,
         headers: {
@@ -207,12 +224,73 @@ export class DashboardService {
           'Authorization': `Bearer ${token}`
         },
       },
-      isObjectType(opts) ? opts : {},
       false,
       true
     );
 
     return fetch(url, opts);
+  }
+
+  #pushDashboardState(parameters = null, useBranded = true) {
+    const state = this.#state;
+    state.view = state.view ?? 'view';
+
+    let { page, view, target } = state;
+    if (parameters instanceof URLSearchParams) {
+      parameters = '?' + parameters;
+    } else if (isObjectType(parameters)) {
+      parameters = '?' + new URLSearchParams(parameters);
+    } else {
+      parameters = '';
+    }
+
+    const host = useBranded ? getBrandedHost() : getCurrentHost();
+    const root = host + '/' + DashboardService.#UrlPath;
+
+    let url;
+    switch (view) {
+      case 'view':
+        url = `${root}/${parameters}#view~${page}`;
+        break;
+
+      case 'list':
+        if (!isRecordType(target)) {
+          url = `${root}/${parameters}#list~${page}`;
+        } else {
+          url = `${root}/${parameters}#list~${page}~${target.type}`;
+        }
+        break;
+
+      case 'create':
+        if (!isRecordType(target)) {
+          url = `${root}/${parameters}#create~${page}`;
+        } else {
+          url = `${root}/${parameters}#create~${page}~${target.type}`;
+        }
+        break;
+
+      case 'update':
+        let kwargs, type;
+        if (isRecordType(target)) {
+          type = !isNullOrUndefined(target.type) ? `~${target.type}` : '';
+          kwargs = !isNullOrUndefined(target.kwargs) ? `@${target.kwargs}` : '';
+        } else {
+          type = '';
+          kwargs = '';
+        }
+
+        if (isNullOrUndefined(kwargs)) {
+          url = `${root}/${parameters}#update~${page}${type}`;
+        } else {
+          url = `${root}/${parameters}#update~${page}${type}${kwargs}`;
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    window.history.pushState({ dashboardRef: state }, null, url);
   }
 
 
@@ -231,11 +309,10 @@ export class DashboardService {
   }
 
   #clearContent() {
-    const state = this.#state;
-    const controller = state.controller;
+    const controller = this.#controller;
     if (controller) {
+      this.#controller = null;
       controller.dispose();
-      delete state.controller;
     }
 
     this.#layout.content.replaceChildren();
@@ -248,7 +325,7 @@ export class DashboardService {
     callback = null,
   } = {}) {
     if (!isHtmlObject(container) || !isObjectType(assets)) {
-      console.warn('Failed to render Asset cards');
+      console.warn('[Dashboard]: Failed to render Asset cards');
       return;
     }
 
@@ -375,16 +452,24 @@ export class DashboardService {
           container: quickAccessContent,
           spinner: spinners?.quickAccess ?? null,
           callback: (key) => {
-            this.openPage('inventory', null, { type: key, labels: assets?.[key]?.details });
+            this.openPage('inventory', 'list', { type: key, labels: assets?.[key]?.details });
           }
-        })
+        });
         spinners?.quickAccess?.remove?.();
 
         if (quickAccessContent.childElementCount < 1) {
           quickAccess.remove();
         }
       })
-      .catch(console.error);
+      .catch(e => {
+        console.error(`[Dashboard] Failed to load view:\n\n- State: ${this.#state}- with err: ${e}\n`);
+
+        window.ToastFactory.push({
+          type: 'warning',
+          message: 'Failed to load view, please try again.',
+          duration: 4000,
+        });
+      });
   }
 
   #renderModelView() {
@@ -433,7 +518,7 @@ export class DashboardService {
             this.openPage(type, 'update', trg);
           }
         });
-        state.controller = ctrl;
+        this.#controller = ctrl;
 
         createBtn.addEventListener('click', (e) => {
           this.openPage(type, 'create', null);
@@ -450,8 +535,10 @@ export class DashboardService {
           type: 'create',
           state: state,
           element: container,
-        })
-        state.controller = ctrl;
+          actionCallback: this.#actionCallback.bind(this),
+          completeCallback: this.#completeCallback.bind(this),
+        });
+        this.#controller = ctrl;
 
       } break;
 
@@ -465,8 +552,10 @@ export class DashboardService {
           type: 'update',
           state: state,
           element: container,
-        })
-        state.controller = ctrl;
+          actionCallback: this.#actionCallback.bind(this),
+          completeCallback: this.#completeCallback.bind(this),
+        });
+        this.#controller = ctrl;
 
         break;
 
@@ -477,11 +566,48 @@ export class DashboardService {
 
   #renderBrand() {
     const state = this.#state;
+    const type = state.page;
     const view = 'update';
     state.view = view;
+    state.target = null;
+
+    const label = transformTitleCase(type.replace('_', ' '));
     this.#clearContent();
 
+    let article, container, header, createBtn;
+    composeTemplate(this.#templates.base.model, {
+      params: {
+        id: 'brand',
+        title: `${transformTitleCase(view)} ${label}`,
+        level: '1',
+        content: '',
+        headerCls: '',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: view === 'list' ? 'dashboard-view__content-display' : 'dashboard-view__content-form',
+      },
+      parent: this.#layout.content,
+      render: (elem) => {
+        article = elem[0];
 
+        header = article.querySelector('header');
+        createBtn = header.querySelector('[data-role="create-btn"]');
+        container = article.querySelector('section');
+      }
+    });
+
+    const url = this.#getTargetUrl('brand', { view: 'update', kwargs: null });
+    header.classList.add('dashboard-view__content-header--constrain-sm');
+    createBtn.remove();
+
+    const ctrl = new FormView({
+      url: url,
+      type: 'update',
+      state: state,
+      element: container,
+      actionCallback: this.#actionCallback.bind(this),
+      completeCallback: this.#completeCallback.bind(this),
+    });
+    this.#controller = ctrl;
   }
 
   #renderInventory() {
@@ -527,16 +653,24 @@ export class DashboardService {
             container: content,
             spinner: spinner ?? null,
             callback: (key) => {
-              this.openPage('inventory', null, { type: key, labels: assets?.[key]?.details });
+              this.openPage('inventory', 'list', { type: key, labels: assets?.[key]?.details });
             }
-          })
+          });
           spinner?.remove?.();
   
           if (content.childElementCount < 1) {
             assetList.remove();
           }
         })
-        .catch(console.error);
+        .catch(e => {
+          console.error(`[Dashboard] Failed to load view:\n\n- State: ${this.#state}- with err: ${e}\n`);
+  
+          window.ToastFactory.push({
+            type: 'warning',
+            message: 'Failed to load view, please try again.',
+            duration: 4000,
+          });
+        });
     } else {
       view = view ?? 'list';
       state.view = view;
@@ -579,7 +713,7 @@ export class DashboardService {
               this.openPage('inventory', 'update', { type: type, labels: target?.labels, kwargs: trg });
             }
           });
-          state.controller = ctrl;
+          this.#controller = ctrl;
 
           createBtn.addEventListener('click', (e) => {
             this.openPage('inventory', 'create', { type: type, labels: target?.labels });
@@ -595,8 +729,10 @@ export class DashboardService {
             type: 'create',
             state: state,
             element: container,
-          })
-          state.controller = ctrl;
+            actionCallback: this.#actionCallback.bind(this),
+            completeCallback: this.#completeCallback.bind(this),
+          });
+          this.#controller = ctrl;
   
         } break;
   
@@ -609,8 +745,10 @@ export class DashboardService {
             type: 'update',
             state: state,
             element: container,
-          })
-          state.controller = ctrl;
+            actionCallback: this.#actionCallback.bind(this),
+            completeCallback: this.#completeCallback.bind(this),
+          });
+          this.#controller = ctrl;
   
           break;
   
@@ -630,6 +768,16 @@ export class DashboardService {
 
   }
 
+  #handleHistory(e) {
+    const ref = !isNullOrUndefined(e.state) ? e.state.dashboardRef : null;
+    if (isNullOrUndefined(ref)) {
+      return;
+    }
+
+    const { page, view, target } = ref;
+    this.openPage(page, view, target, false);
+  }
+
   #handleNavigation(e, targetName) {
     this.openPage(targetName);
   }
@@ -639,6 +787,123 @@ export class DashboardService {
     const link = btn.getAttribute('data-link');
     if (typeof link === 'string') {
       tryNavigateLink(btn, { relatedEvent: e });
+    }
+  }
+
+  #completeCallback(eventType, data) {
+    switch (eventType) {
+      case 'submitForm': {
+        const state = data.ok ? data.form.state : null;
+        if (!isRecordType(state)) {
+          break;
+        }
+
+        let actionType;
+        const method = state.view;
+        if (method === 'create') {
+          const entityId = isRecordType(data.result) && !isNullOrUndefined(data.result.id)
+            ? data.result.id
+            : null;
+
+          if (isRecordType(state.target)) {
+            state.target.kwargs = entityId;
+          } else {
+            state.target = entityId;
+          }
+
+          state.view = 'update';
+          actionType = 'created';
+        } else {
+          actionType = 'updated';
+        }
+
+        window.ToastFactory.push({
+          type: 'success',
+          message: `Entity successfully ${actionType}.`,
+          duration: 4000,
+        });
+
+        this.openPage(state.page, state.view, state.target);
+      } break;
+
+      default:
+        console.warn(`[Dashboard] Failed to process completion callback signal of type '${eventType}'`);
+        break;
+    }
+  }
+
+  #actionCallback(action, e, props, _formView, _btn) {
+    e.preventDefault();
+
+    const { type, url } = props;
+    if (type !== 'update' || !stringHasChars(url)) {
+      return;
+    }
+
+    switch (action) {
+      case 'reset_pwd': {
+        let spinner;
+        ModalFactory.create({
+          title: 'Are you sure?',
+          content: 'This will immediately send a password reset e-mail to the user.',
+          beforeAccept: () => {
+            spinner = startLoadingSpinner();
+            return this.#fetch(url, { method: 'PUT', headers: { 'X-Target': action } })
+              .then(async response => {
+                if (!response.ok) {
+                  const headers = response.headers;
+
+                  let msg;
+                  if (headers.get('content-type').search('json')) {
+                    try {
+                      let packet = await response.json();
+                      packet = JSON.stringify(packet);
+                      msg = packet;
+                    } catch (e) {
+                      console.warn(`[Dashboard::${action}] Failed to parse reset json error with err:\n\n${e}\n`);
+                    }
+                  }
+
+                  if (!isNullOrUndefined(msg)) {
+                    msg = `[Dashboard::${action}::${response.status}] Failed to send reset e-mail with err:\n\n${msg}\n`;
+                  } else {
+                    msg = `[Dashboard::${action}::${response.status}] ${response.statusText}`;
+                  }
+
+                  throw new Error(msg);
+                }
+
+                return response.json();
+              });
+          }
+        })
+          .then(async result => {
+            await result.data; // SINK
+
+            window.ToastFactory.push({
+              type: 'success',
+              message: 'Password reset e-mail successfully sent.',
+              duration: 4000,
+            });
+          })
+          .catch((e) => {
+            if (!(e instanceof ModalFactory.ModalResults)) {
+              window.ToastFactory.push({
+                type: 'error',
+                message: 'Failed to send reset e-mail, please check their e-mail and try again.',
+                duration: 4000,
+              });
+
+              return console.error(e);
+            }
+          })
+          .finally(() => {
+            spinner?.remove?.();
+          });
+      } break;
+
+      default:
+        break;
     }
   }
 
@@ -655,7 +920,7 @@ export class DashboardService {
     }
 
     if (!isHtmlObject(element)) {
-      throw new Exception('InitError: Failed to resolve DashboardService element');
+      throw new Error('InitError: Failed to resolve DashboardService element');
     }
 
     let token = opts.token;
@@ -670,6 +935,10 @@ export class DashboardService {
     // Init event listeners
     const eventHandler = this.#eventHandler.bind(this);
     element.addEventListener('dashboard', eventHandler, false);
+
+    // Observe hx
+    const hxHnd = this.#handleHistory.bind(this);
+    window.addEventListener('popstate', hxHnd);
 
     // Initialise managers
     this.#disposables.push(
@@ -689,7 +958,7 @@ export class DashboardService {
     );
 
     // Init render
-    this.openPage(this.#state.page);
+    this.openPage(this.#state.page, 'view');
   }
 
   #collectPage() {

@@ -1,3 +1,18 @@
+/// @desc applies a focus style to the element
+/// @example see `dashboard.scss`
+@mixin apply-focusable-item($style: '0 0 2px 2px #51a7e8') {
+  outline: none;
+  @include prefix(box-shadow, safely-unquote($style), webkit moz o);
+}
+
+/// @desc Applies a border style to the element
+/// @example see `dashboard.scss`
+@mixin apply-border($style: solid, $col: $lightest_grey, $w: 1px) {
+  border-style: $style;
+  border-width: $w;
+  border-color: $col;
+}
+
 /// Mixin to apply the application's main font style
 ///   @param {Number} $sz - To apply an alternative font size
 @mixin app-font-style($sz: false) {

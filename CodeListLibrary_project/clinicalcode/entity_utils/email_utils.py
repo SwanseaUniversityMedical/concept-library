@@ -2,10 +2,10 @@ from django.conf import settings
 from django.db.models import Model
 from email.mime.image import MIMEImage
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.contrib.staticfiles import finders
 from django.db.models import F, When, Case, Value, Subquery, OuterRef
 from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
+from django.contrib.staticfiles import finders
 
 import os
 import logging
@@ -16,9 +16,10 @@ from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 from ..models.Organisation import Organisation
 
-logger = logging.getLogger(__name__)
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
 
 def send_invite_email(request, invite):
     brand_title = model_utils.try_get_brand_string(request.BRAND_OBJECT, 'site_title', default='Concept Library')
@@ -38,7 +39,8 @@ def send_invite_email(request, invite):
             'invite': {
                 'uuid': invite.id
             } 
-        }
+        },
+        request=request
     )
 
     if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE: 

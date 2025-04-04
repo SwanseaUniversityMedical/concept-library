@@ -147,13 +147,14 @@ export default class FuzzyQuery {
     let results = [];
     for (let i = 0; i < haystack.length; i++) {
       let item = String(haystack[i]);
+      let comp = item;
       if (typeof transformer === 'function') {
-        item = transformer(item);
+        comp = transformer(comp);
       }
-      
-      if (FuzzyQuery.Match(item, query)) {
+
+      if (FuzzyQuery.Match(comp, query)) {
         if (sort) {
-          results.push({ item: item, score: FuzzyQuery.Distance(item, query) });
+          results.push({ item: item, score: FuzzyQuery.Distance(comp, query) });
         } else {
           results.push({ item: item });
         }

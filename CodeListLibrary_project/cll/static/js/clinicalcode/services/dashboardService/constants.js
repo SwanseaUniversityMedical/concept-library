@@ -80,4 +80,33 @@ export const
   CLU_DASH_TARGETS = {
     NEXT: 'next',
     PREVIOUS: 'previous',
+  },
+  /**
+   * CLU_DASH_ATTRS
+   * @desc Field attr lookup
+   * 
+   */
+  CLU_DASH_ATTRS = {
+    username: {
+      inputType: 'text',
+      autocomplete: 'username',
+    },
+    first_name: {
+      inputType: 'text',
+      autocomplete: 'given-name',
+    },
+    last_name: {
+      inputType: 'text',
+      autocomplete: 'family-name',
+    },
+  },
+  /**
+   * CLU_DATATYPE_ATTR
+   * @desc Field data attr lookup
+   * 
+   */
+  CLU_DATATYPE_ATTR = {
+    TimeField: 'time',
+    DateField: 'date',
+    DateTimeField: 'datetime-local',
   };

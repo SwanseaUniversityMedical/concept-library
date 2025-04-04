@@ -7,14 +7,13 @@ import TouchHandler from './touchHandler.js';
  * 
  *       The factory is accessible through the window object via window.ToastFactory
  * 
- * e.g.
-  ```js
-    window.ToastFactory.push({
-      type: 'warning',
-      message: 'Some warning message',
-      duration: 2000, // 2s
-    });
-  ```
+ * @example
+ *  window.ToastFactory.push({
+ *    type: 'warning',
+ *    message: 'Some warning message',
+ *    duration: 2000, // 2s
+ *  });
+ * 
  */
 class ToastNotificationFactory {
   constructor() {

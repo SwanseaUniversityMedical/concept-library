@@ -1,9 +1,8 @@
 """Brand Dashboard: API endpoints relating to Template model"""
 import datetime
-import json
 
 from django.utils.timezone import make_aware
-from rest_framework import status, serializers
+from rest_framework import status
 from rest_framework.response import Response
 
 from clinicalcode.entity_utils import gen_utils
@@ -29,12 +28,14 @@ class HDRNSiteSerializer(BaseSerializer):
             # WO
 			'created': { 'write_only': True, 'read_only': False, 'required': False },
 			'modified': { 'write_only': True, 'read_only': False, 'required': False },
+            # WO | RO
+            'description': { 'style': { 'as_type': 'TextField' } },
+            'metadata': { 'help_text': 'Optionally specify a JSON object describing metadata related to this entity.' },
         }
 
 	# GET
-    def to_representation(self, instance):
-        data = super(HDRNSiteSerializer, self).to_representation(instance)
-        return data
+    def resolve_format(self):
+        return { 'type': 'ForeignKey' }
 
     def resolve_options(self):
         return list(self.Meta.model.objects.all().values('name', 'pk'))
@@ -48,19 +49,6 @@ class HDRNSiteSerializer(BaseSerializer):
         instance.modified = make_aware(datetime.datetime.now())  # Set `modified` timestamp
         instance.save()
         return instance
-
-	# Instance & Field validation
-    @staticmethod
-    def validate(data):
-        metadata = data.get('metadata')
-        if not isinstance(metadata, dict):
-            raise serializers.ValidationError('Required JSONField `definition` is missing')
-
-        try:
-            json.dumps(metadata)
-        except:
-            raise serializers.ValidationError('Template definition is not valid JSON')
-        return data
 
 
 class HDRNSiteEndpoint(BaseEndpoint):

@@ -550,6 +550,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
           }
         } break;
 
+        case 'data':
         case 'dataset': {
           for (let key in attr) {
             element.dataset[key] = ustrSanitise('value', attr[key]);
@@ -563,7 +564,8 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
         } break;
 
         case 'text':
-        case 'innerText': {
+        case 'innerText':
+        case 'textContent': {
           element.textContent = attr;
         } break;
 
@@ -624,10 +626,21 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
           }
         } break;
 
+        case 'children': 
         case 'childNodes': {
           if (Array.isArray(attr)) {
             for (let i = 0; i < attr.length; ++i) {
-              element.appendChild(attr[i])
+              let res = attr[i];
+              if (typeof res === 'string') {
+                res = parseHTMLFromString(res.trim(), !udfSanHtml, udfSanHtml);
+                res.forEach(x => {
+                  if (isHtmlObject(x)) {
+                    element.appendChild(x);
+                  }
+                });
+              } else {
+                element.appendChild(res);
+              }
             }
           } else {
             element.appendChild(attr);
@@ -1781,4 +1794,81 @@ const isVisibleObj = (elem) => {
     // Default true on failure
     return true;
   }
+}
+
+/**
+ * @desc attempts to find any missing components within a `Object|Array`
+ * 
+ * @example 
+ *  const missing = findMissingComponents(
+ *    {
+ *      str: '<p>Hello</p>',
+ *      arr: {
+ *        str: '<p>Hello</p>',
+ *        str1: '<p>Hello</p>',
+ *      },
+ *      obj: {
+ *        str2: '<p>Hello</p>',
+ *        str3: '<p>Hello</p>',
+ *      }
+ *    },
+ *    {
+ *      // ensure that a key with a `string|HTMLElement` exists at this key-value pair
+ *      str: true,
+ *      // ensure that an Object exists at this key-value pair specifying a set of keys to exist
+ *      arr: ['str0', 'str1'],  // Note: former is missing
+ *      // ensure an object exists with the follow key-value pair(s)
+ *      obj: {
+ *        str2: true,
+ *        str4: true, // Note: latter is missing
+ *      }
+ *    }
+ *  );
+ *  console.log('Missing items:', missing); // --> [stdout] Missing items: [ 'str0', 'str4 ] 
+ * 
+ * @param {Record<string, Record<string, string|HTMLElement}      templates    a set of components to evaluate
+ * @param {string|Array<string>|Record<string, any|Record|Array>} expected     the components expected to be present within the object
+ * @param {Array<string>}                                         [missing=[]] a list of missing components (filled by the fn)
+ * 
+ * @returns {Array<string>} an array of missing components (length 0 if none are missing)
+ */
+const findMissingComponents = (templates, expected, missing = []) => {
+  if (isRecordType(expected)) {
+    for (const key in expected) {
+      const desired = expected[key];
+      if (isRecordType(desired) || Array.isArray(desired)) {
+        const relative = templates[key];
+        if (!isRecordType(relative)) {
+          if (Array.isArray(desired)) {
+            missing.push(...desired.filter(x => typeof x === 'string'));
+          } else {
+            missing.push(key);
+          }
+
+          continue;
+        }
+
+        findMissingComponents(relative, desired, missing);
+        continue;
+      }
+
+      findMissingComponents(templates, key, missing);
+    }
+  } else if (Array.isArray(expected)) {
+    for (let i = 0; i < expected.length; ++i) {
+      const desired = expected[i];
+      if (typeof desired !== 'string' || !stringHasChars(desired)) {
+        continue;
+      }
+
+      findMissingComponents(templates, desired, missing);
+    }
+  } else if (typeof expected === 'string') {
+    const obj = templates[expected];
+    if (!isHtmlObject(obj) && (typeof obj !== 'string' || !stringHasChars(obj))) {
+      missing.push(expected);
+    }
+  }
+
+  return missing;
 }

@@ -799,46 +799,52 @@ def admin_upload_hdrn_assets(request):
             }
         )
 
+    overrides = {
+        # Dashboard statistics retrieval
+        "stats_context": "^/HDRN.*$",
+        # Dashboard renderable / manageable assets
+        "asset_rules": {
+            # Global assets
+            "template": {"model": "Template", "target": "TemplateTarget", "endpoint": "TemplateEndpoint"},
+            "tags": {"model": "Tag", "target": "TagTarget", "subtype": "all", "endpoint": "TagEndpoint"},
+            # HDRN specific assets
+            "sites": {"model": "HDRNSite", "target": "HDRNSiteTarget", "endpoint": "HDRNSiteEndpoint"},
+            "category": {"model": "HDRNDataCategory", "target": "HDRNDataCategoryTarget", "endpoint": "HDRNDataCategoryEndpoint"},
+            "data_assets": {"model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint"}
+        },
+    }
+
+    brand_data = {
+        'name': 'HDRN',
+        'site_title': 'Concept Dictionary',
+        'description': (
+            'Health Data Research Network Canada (HDRN Canada) is a pan-Canadian network of member '
+            'organizations that either hold linkable health and health-related data for entire populations '
+            'and/or have mandates and roles relating directly to access or use of those data. '
+        ),
+        'website': 'https://www.hdrn.ca',
+        'logo_path': 'img/brands/HDRN/',
+        'index_path': 'clinicalcode/index.html',
+        'footer_images': [
+            {"url": "https://www.hdrn.ca", "brand": "HDRN",
+                "image_src": "img/Footer_logos/HDRN_logo.png"},
+            {"url": "https://conceptlibrary.saildatabank.com/", "brand": "Concept Library",
+                "image_src": "img/Footer_logos/concept_library_on_white.png"},
+            {"url": "http://saildatabank.com", "brand": "SAIL Databank ",
+                "image_src": "img/Footer_logos/SAIL_alt_logo_on_white.png"}
+        ],
+        'overrides': overrides,
+        'org_user_managed': True,
+        'is_administrable': True,
+    }
+
     brand = Brand.objects.filter(name__iexact='HDRN')
     if brand.exists():
         brand = brand.first()
+        brand.__dict__.update(**brand_data)
+        brand.save()
     else:
-        overrides = {
-            # Dashboard statistics retrieval
-            "stats_context": "^/HDRN.*$",
-            # Dashboard renderable / manageable assets
-            "asset_rules": {
-                # Global assets
-                "template": { "model": "Template", "target": "TemplateTarget", "endpoint": "TemplateEndpoint" },
-                "tags": { "model": "Tag", "target": "TagTarget", "endpoint": "TagEndpoint" },
-                # HDRN specific assets
-                "sites": { "model": "HDRNSite", "target": "HDRNSiteTarget", "endpoint": "HDRNSiteEndpoint" },
-                "category": { "model": "HDRNDataCategory", "target": "HDRNDataCategoryTarget", "endpoint": "HDRNDataCategoryEndpoint" },
-                "data_assets": { "model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint" }
-            }
-        }
-
-        brand = Brand.objects.create(
-                name='HDRN',
-                site_title='Concept Dictionary',
-                description='Health Data Research Network Canada (HDRN Canada) is a pan-Canadian network of member '
-                            'organizations that either hold linkable health and health-related data for entire populations '
-                            'and/or have mandates and roles relating directly to access or use of those data. ',
-                website='https://www.hdrn.ca',
-                logo_path='img/brands/HDRN/',
-                index_path='clinicalcode/index.html',
-                footer_images=[
-                    {"url": "https://www.hdrn.ca", "brand": "HDRN",
-                     "image_src": "img/Footer_logos/HDRN_logo.png"},
-                    {"url": "https://conceptlibrary.saildatabank.com/", "brand": "Concept Library",
-                     "image_src": "img/Footer_logos/concept_library_on_white.png"},
-                    {"url": "http://saildatabank.com", "brand": "SAIL Databank ",
-                     "image_src": "img/Footer_logos/SAIL_alt_logo_on_white.png"}
-                ],
-                overrides=overrides,
-                org_user_managed=True,
-                is_administrable=True,
-        )
+        brand = Brand.objects.create(**brand_data)
 
     models = {}
     metadata = input_data.get('metadata')

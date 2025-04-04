@@ -1,7 +1,6 @@
 """Brand Dashboard: Base extensible/abstract classes"""
-from django.http import Http404
 from django.http import HttpRequest
-from rest_framework import status, generics, mixins, serializers, fields
+from rest_framework import status, generics, mixins, serializers, exceptions, fields
 from django.db.models import Model
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -37,34 +36,10 @@ class BaseSerializer(serializers.ModelSerializer):
 					value = None
 				elif v is not None and type(v).__name__ != '__proxy__' and (type(v).__name__ == 'type' or ((hasattr(v, '__name__') or hasattr(v, '__class__') or inspect.isclass(v)) and not type(v).__name__ in dir(builtins))):
 					value = type(v).__name__
-				if k == 'label':
-					print(name, '->', k, '|', value)
+
 				if group is None:
 					group = {}
 				group.update({ k: value })
-
-			src = group.get('source')
-			if not field.write_only and instance is not None and isinstance(src, str) and hasattr(instance, src):
-				current_value = getattr(instance, src)
-				if isinstance(field, (serializers.Serializer, serializers.ModelSerializer)):
-					group.update({ 'value': field.to_representation(current_value) })
-				else:
-					cls_name = current_value.__class__.__name__
-					match cls_name:
-						case 'RelatedManager':
-							if current_value is not None and current_value.instance is not None:
-								group.update({ 'value': current_value.instance.pk })
-							else:
-								group.update({ 'value': None })
-
-						case 'ManyRelatedManager':
-							if current_value is not None:
-								group.update({ 'value': list(current_value.all().values_list('pk', flat=True)) })
-							else:
-								group.update({ 'value': None })#
-
-						case _:
-							group.update({ 'value': current_value })
 
 			trg = field
 			if isinstance(trg, serializers.ListSerializer):
@@ -83,7 +58,7 @@ class BaseSerializer(serializers.ModelSerializer):
 				group.update({ 'value_format': trg.resolve_format() })
 
 			if isinstance(field, (serializers.ListField, serializers.ListSerializer)):
-				group.update({ 'type': type(field).__qualname__, 'subtype': type(field.child).__qualname__ })
+				group.update({ 'type': type(field.child).__qualname__, 'subtype': type(field).__qualname__ })
 			else:
 				group.update({ 'type': type(field).__qualname__, 'subtype': None })
 
@@ -196,7 +171,7 @@ class BaseEndpoint(
 			instance = self.get_object(*args, **kwargs)
 			serializer = self.get_serializer(instance)
 			response = { 'data': serializer.data }
-			self._format_item_data(response, serializer=serializer)
+			self._format_list_data(response, serializer=serializer)
 		except Exception as e:
 			return Response(
 				data={ 'detail': str(e) },
@@ -232,7 +207,7 @@ class BaseEndpoint(
 	def get_object(self, *args, **kwargs):
 		inst = self.get_queryset().filter(*args, **kwargs)
 		if not inst.exists():
-			raise Http404(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
+			raise exceptions.NotFound(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
 
 		return inst.first()
 
@@ -259,22 +234,6 @@ class BaseEndpoint(
 
 		return params
 
-	def _format_item_data(self, response, serializer=None):
-		if serializer is None:
-			serializer = self.get_serializer()
-
-		renderable = { 'form': serializer.form_fields }
-		show_fields = getattr(serializer, '_item_fields', None) if hasattr(serializer, '_item_fields') else None
-		if not isinstance(show_fields, list):
-			show_fields = [
-				k
-				for k, v in renderable.get('form').items()
-				if isinstance(v.get('style'), dict) and v.get('style').get('data-itemdisplay', True)
-			]
-
-		response.update(renderable=renderable | { 'fields': show_fields })
-		return response
-
 	def _format_list_data(self, response, serializer=None):
 		if serializer is None:
 			serializer = self.get_serializer()
@@ -285,7 +244,19 @@ class BaseEndpoint(
 		if not isinstance(show_fields, list):
 			show_fields = [self.model._meta.pk.name]
 
-		response.update(renderable=renderable | { 'fields': show_fields })
+		item_fields = getattr(serializer, '_item_fields', None) if hasattr(serializer, '_item_fields') else None
+		if not isinstance(item_fields, list):
+			item_fields = [
+				k
+				for k, v in renderable.get('form').items()
+				if isinstance(v.get('style'), dict) and v.get('style').get('data-itemdisplay', True)
+			]
+
+		features = getattr(serializer, '_features', None) if hasattr(serializer, '_features') else None
+		if not isinstance(features, dict):
+			features = None
+
+		response.update(renderable=renderable | { 'fields': show_fields, 'order': item_fields, 'features': features })
 		return response
 
 	def _format_page_details(self, page_obj):

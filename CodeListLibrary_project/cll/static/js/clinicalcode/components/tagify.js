@@ -84,6 +84,13 @@ const TAGIFY__TAG_OPTIONS = {
   * 
   */
 export default class Tagify {
+  /**
+   * @desc
+   * @type {Array<Function>}
+   * @private
+   */
+  #disposables = [];
+
   constructor(obj, options, phenotype) {
     this.uuid = generateUUID();
 
@@ -117,11 +124,21 @@ export default class Tagify {
   /**
    * getActiveTags
    * @desc method to retrieve current tag data
-   * @returns {list} a list of objects describing active tags
+   * @returns {Array<Object>} a list of objects describing active tags
    */
   getActiveTags() {
     return this.tags;
   }
+
+  /**
+   * getDataValue
+   * @desc method to retrieve current tag data array
+   * @returns {Array} a list of data value(s)
+   */
+  getDataValue() {
+    return this.tags.map(x => x.value).filter(x => !isNullOrUndefined(x));
+  }
+
 
   /*************************************
    *                                   *
@@ -219,6 +236,24 @@ export default class Tagify {
   }
 
   /**
+   * dispose
+   * @desc disposes events & objs assoc. with this cls
+   */
+  dispose() {
+    let disposable;
+    for (let i = this.#disposables.length; i > 0; i--) {
+      disposable = this.#disposables.pop();
+      if (typeof disposable !== 'function') {
+        continue;
+      }
+
+      disposable();
+    }
+
+    this.destroy();
+  }
+
+  /**
    * getElement
    * @desc returns this instance's target element, which can be used to determine whether a tag
    *       has been removed/added at runtime through the 'TagChanged' hook
@@ -239,12 +274,16 @@ export default class Tagify {
    * @param {event} e the associated event
    */
   #onClick(e) {
-    e.preventDefault();
-
-    if (e.target.className == 'tag__remove') {
-      this.removeTag(tryGetRootElement(e.target, 'tag'));
+    const trg = document.activeElement;
+    if (isNullOrUndefined(this.container) || isNullOrUndefined(trg) || !this.container.contains(trg)) {
+      return;
     }
 
+    e.preventDefault();
+
+    if (trg.className == 'tag__remove') {
+      this.removeTag(tryGetRootElement(trg, 'tag'));
+    }
     this.field.focus();
   }
 
@@ -435,10 +474,16 @@ export default class Tagify {
    * @desc binds the associated events to the rendered components
    */
   #bindEvents() {
-    this.container.addEventListener('click', this.#onClick.bind(this), false);
     this.tagbox.addEventListener('focusout', this.#onFocusLost.bind(this), false);
     this.tagbox.addEventListener('keydown', this.#onKeyDown.bind(this), false);
     this.tagbox.addEventListener('keyup', this.#onKeyUp.bind(this), false);
+
+    const clickHnd = this.#onClick.bind(this);
+    document.addEventListener('click', clickHnd);
+
+    this.#disposables.push(() => {
+      document.removeEventListener('click', clickHnd)
+    });
   }
 
   /**

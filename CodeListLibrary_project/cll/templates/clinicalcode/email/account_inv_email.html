@@ -138,12 +138,13 @@
 				<img class="mail-title__icon" src="cid:mainlogo" alt="{{ base_page_title }}" height="60" valign="middle" />
 				Notification from {{ base_page_title }}
 			</h2>
-      
-      <p>You've been invited to join an organisation.</p>
+
+      <p>You've been invited to join the {{ base_page_title }}.</p>
+      <p>Your username has been set to: {{ username }}</p>
       <p>
         Please click 
-        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'view_invite_organisation' uuid=invite.uuid %}">here</a> 
-        if you would like to view the invitation.
+        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'password_reset_confirm' uidb64=uid token=token %}">here</a> 
+        to set up your password.
       </p>
 
 			<div class="mail-footer">

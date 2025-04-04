@@ -22,10 +22,19 @@
               </div>
               <div class="item-dropdown__title">Admin</div> 
             </a>
-            <!--Dash-->
+            <!--Analytics Dash-->
             <a href="/dash" target=_blank class="item-dropdown">
               <div class="item-dropdown__icon profile-row--stylised-icon" id="admin_icon">
                 {% svg "bar_chart_icon" %}
+              </div>
+              <div class="item-dropdown__title">Analytics</div> 
+            </a>
+          {% endif %}
+          {% if IS_BRAND_ADMIN %}
+            <!--Dashboard-->
+            <a href="{% url 'brand_dashboard' %}" target=_blank class="item-dropdown">
+              <div class="item-dropdown__icon profile-row--stylised-icon" id="admin_icon">
+                {% svg "technical_icon" %}
               </div>
               <div class="item-dropdown__title">Dashboard</div> 
             </a>

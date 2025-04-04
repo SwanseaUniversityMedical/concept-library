@@ -1,9 +1,9 @@
 """Brand Dashboard: API endpoints relating to Template model"""
-import datetime
-
-from django.utils.timezone import make_aware
 from rest_framework import status, serializers
+from django.utils.timezone import make_aware
 from rest_framework.response import Response
+
+import datetime
 
 from .BaseTarget import BaseSerializer, BaseEndpoint
 from clinicalcode.models.Tag import Tag
@@ -15,15 +15,16 @@ class TagSerializer(BaseSerializer):
     """Responsible for serialising the `Brand` model and to handle PUT/POST validation"""
 
     # Fields
-    display = serializers.ChoiceField(choices=[*Tag.DISPLAY_CHOICES])
-    tag_type = serializers.ChoiceField(choices=[*Tag.TAG_TYPES])
+    description = serializers.CharField(max_length=50, label='Name')
+    display = serializers.ChoiceField(choices=Tag.DISPLAY_CHOICES, help_text='This descriptor hints the colour temperature used to display the tag (e.g. via search page).')
+    tag_type = serializers.ChoiceField(choices=Tag.TAG_TYPES, help_text='This field determines whether this item is to be considered a \'Collection\' or a \'Tag\'.')
 
     # Appearance
     _str_display = 'name'
     _list_fields = ['id', 'description', 'tag_type']
     _item_fields = ['id', 'description', 'tag_type', 'display']
 
-	# Metadata
+    # Metadata
     class Meta:
         model = Tag
         exclude = ['collection_brand', 'created_by', 'updated_by', 'created', 'modified']
@@ -71,23 +72,32 @@ class TagSerializer(BaseSerializer):
         display = data.get('display')
 
         if current_brand is not None:
-            if isinstance(data_brand, Brand) and data_brand.id != current_brand.id:
-                raise serializers.ValidationError("Invalid Brand")
-            elif isinstance(data_brand, int) and data_brand != current_brand.id:
-                raise serializers.ValidationError("Invalid Brand")
-            elif instance is not None:
-                data_brand = instance.brand if instance.brand is not None else current_brand.id
+            if instance is not None:
+                data_brand = instance.collection_brand if instance.collection_brand is not None else current_brand.id
             else:
                 data_brand = current_brand.id
         elif not isinstance(data_brand, (Brand, int)):
-            data_brand = instance.brand if instance.brand is not None else None
+            data_brand = instance.collection_brand
+
+        if isinstance(data_brand, int):
+            data_brand = Brand.objects.filter(pk=data_brand)
+            if data_brand is None or not data_brand.exists():
+                raise serializers.ValidationError({
+                    'collection_brand': 'Invalid Brand'
+                })
+            data_brand = data_brand.first()
 
         data.update(collection_brand=data_brand)
 
-        if display is not None and display not in dict(self.model.DISPLAY_CHOICES).keys():
-            raise serializers.ValidationError("Invalid display choice.")
-        if tag_type not in dict(self.model.TAG_TYPES).keys():
-            raise serializers.ValidationError("Invalid Tag Type")
+        if display is not None and display not in dict(self.Meta.model.DISPLAY_CHOICES).keys():
+            raise serializers.ValidationError({
+                'display': 'Invalid display choice.'
+            })
+        if tag_type not in dict(self.Meta.model.TAG_TYPES).keys():
+            raise serializers.ValidationError({
+                'tag_type': 'Invalid Tag Type'
+            })
+
         return data
 
 
