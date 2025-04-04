@@ -271,24 +271,27 @@ if SHOWADMIN:
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
+    # Base
     'django.contrib.postgres',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Apps
     'clinicalcode',
     'cll',
+    # Extensions
     'simple_history',
-    'rest_framework',
-    # 'mod_wsgi.server',
     'markdownify.apps.MarkdownifyConfig',
     'cookielaw',
+    # API
+    'drf_yasg', # 'rest_framework_swagger',
+    'rest_framework',
+    # Site
     'django_celery_results',
     'django_celery_beat',
-    # 'rest_framework_swagger',
-    'drf_yasg',
-    'django.contrib.sitemaps',
+    'django.contrib.sitemaps', # 'mod_wsgi.server',
     # SCSS
     'sass_processor',
     # Compressor
@@ -304,7 +307,6 @@ if not CLL_READ_ONLY and not IS_GATEWAY_PC:
     ]
 
 # ==============================================================================#
-
 
 ''' Middleware '''
 
@@ -425,7 +427,6 @@ TEMPLATES = [
                 'svg': 'clinicalcode.templatetags.svg',
                 'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
                 'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
-                'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
             }
         },
     },
@@ -521,9 +522,13 @@ if IS_LINUX or IS_DEVELOPMENT_PC:
             },
         },
         'loggers': {
+            '': {
+                'level': 'INFO',
+                'handlers': ['console'],
+            },
             'django': {
                 'handlers': ['console'],
-                'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+                'level': 'INFO',
             },
         },
     }
@@ -564,6 +569,40 @@ else:
             },
         },
     }
+
+# ==============================================================================#
+
+''' Easyaudit settings '''
+
+# Ignores `Request` event signals in favour of custom implementation
+#
+#   Note:
+#     - See custom override setting(s) below, prefixed `OVERIDE_EASY_AUDIT_*``
+#
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+# Overrides `Request` event signal URL registration
+OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
+    # The following URL patterns will be ignored for all branded sites
+    'all_brands': [
+        # Ignore non-consumer usage
+        r'^/admin/',
+        r'^/adminTemp/',
+        r'^/dashboard/',
+
+        # Ignore healthchecks
+        r'^/api/v1/health'
+
+        # Ignore bots & crawlers 
+        r'^/sitemap.xml',
+        r'^/robots.txt',
+
+        # Ignore static file requests
+        r'^/media/',
+        r'^/static/',
+        r'^/favicon.ico',
+    ],
+}
 
 # ==============================================================================#
 

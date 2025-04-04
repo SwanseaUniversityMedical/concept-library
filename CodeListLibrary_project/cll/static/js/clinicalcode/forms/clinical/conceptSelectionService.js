@@ -259,6 +259,7 @@ const CSEL_INTERFACE = {
     <input class="fill-accordion__input" id="children-${id}" name="children-${id}" type="checkbox" /> \
     <label class="fill-accordion__label" id="children-${id}" for="children-${id}" role="button" tabindex="0"> \
       <span>${title}</span> \
+      <span class="fill-accordion__label-icon"></span> \
     </label> \
     <article class="fill-accordion__container" id="data" style="padding: 0.5rem;"> \
       ${content} \
@@ -408,7 +409,7 @@ const CSEL_FILTER_GENERATORS = {
     });
 
     let doc = parseHTMLFromString(html, true);
-    let group = container.appendChild(doc.body.children[0]);
+    let group = container.appendChild(doc[0]);
     let descendants = group.querySelector('.filter-group');
     for (let i = 0; i < data.options.length; ++i) {
       let option = data.options[i];
@@ -419,7 +420,7 @@ const CSEL_FILTER_GENERATORS = {
         value: option.value,
       });
       doc = parseHTMLFromString(html, true);
-      descendants.appendChild(doc.body.children[0]);
+      descendants.appendChild(doc[0]);
     }
 
     return group;
@@ -434,14 +435,14 @@ const CSEL_FILTER_GENERATORS = {
     });
 
     let doc = parseHTMLFromString(html, true);
-    return container.appendChild(doc.body.children[0]);
+    return container.appendChild(doc[0]);
   },
 
   // creates a searchbar filter group
   SEARCHBAR: (container, data) => {
     let html = CSEL_FILTER_COMPONENTS.SEARCHBAR_GROUP;
     let doc = parseHTMLFromString(html, true)
-    return container.appendChild(doc.body.children[0]);
+    return container.appendChild(doc[0]);
   },
 }
 
@@ -850,7 +851,7 @@ export class ConceptSelectionService {
     });
   
     let doc = parseHTMLFromString(html, true);
-    let modal = document.body.appendChild(doc.body.children[0]);
+    let modal = document.body.appendChild(doc[0]);
     
     // create footer
     let footer = createElement('div', {
@@ -864,11 +865,11 @@ export class ConceptSelectionService {
     // create buttons
     const buttons = { };
     let confirmBtn = parseHTMLFromString(CSEL_BUTTONS.CONFIRM, true);
-    confirmBtn = footer.appendChild(confirmBtn.body.children[0]);
+    confirmBtn = footer.appendChild(confirmBtn[0]);
     confirmBtn.innerText = this.options.promptConfirm;
 
     let cancelBtn = parseHTMLFromString(CSEL_BUTTONS.CANCEL, true);
-    cancelBtn = footer.appendChild(cancelBtn.body.children[0]);
+    cancelBtn = footer.appendChild(cancelBtn[0]);
     cancelBtn.innerText = this.options.promptCancel;
 
     buttons['confirm'] = confirmBtn;
@@ -889,7 +890,7 @@ export class ConceptSelectionService {
     if (this.options.allowMultiple) {
       html = CSEL_INTERFACE.TAB_VIEW;
       doc = parseHTMLFromString(html, true);
-      contentContainer = body.appendChild(doc.body.children[0]);
+      contentContainer = body.appendChild(doc[0]);
       
       const tabs = contentContainer.querySelectorAll('button.tab-view__tab');
       for (let i = 0; i < tabs.length; ++i) {
@@ -982,7 +983,7 @@ export class ConceptSelectionService {
     // Draw page
     let html = CSEL_INTERFACE.SEARCH_VIEW;
     let doc = parseHTMLFromString(html, true);
-    let page = this.dialogue.content.appendChild(doc.body.children[0]);
+    let page = this.dialogue.content.appendChild(doc[0]);
     this.dialogue.page = page;
     
     // Draw content
@@ -1012,7 +1013,7 @@ export class ConceptSelectionService {
     });
   
     let doc = parseHTMLFromString(html, true);
-    let page = this.dialogue.content.appendChild(doc.body.children[0]);
+    let page = this.dialogue.content.appendChild(doc[0]);
     this.dialogue.page = page;
 
     // Draw content
@@ -1049,7 +1050,6 @@ export class ConceptSelectionService {
   #paintSelectionList() {
     const page = this.dialogue.page;
     const selectedData = this.dialogue?.data;
-    console.log(selectedData)
     if (!this.dialogue?.view == CSEL_VIEWS.SELECTION || isNullOrUndefined(page)) {
       return;
     }
@@ -1085,7 +1085,7 @@ export class ConceptSelectionService {
       });
 
       let doc = parseHTMLFromString(html, true);
-      let checkbox = content.appendChild(doc.body.children[0]);
+      let checkbox = content.appendChild(doc[0]);
       checkbox.addEventListener('change', this.#handleSelectedItem.bind(this));
     }
   }
@@ -1199,7 +1199,7 @@ export class ConceptSelectionService {
     });
 
     let doc = parseHTMLFromString(html, true);
-    let pagination = pageContainer.appendChild(doc.body.children[0]);
+    let pagination = pageContainer.appendChild(doc[0]);
 
     this.filters['page'] = {
       name: 'page',
@@ -1253,7 +1253,7 @@ export class ConceptSelectionService {
       });
       
       let doc = parseHTMLFromString(html, true);
-      let card = resultContainer.appendChild(doc.body.children[0]);
+      let card = resultContainer.appendChild(doc[0]);
       let datagroup = card.querySelector('#datagroup');
 
       let childContents = '';
@@ -1279,7 +1279,7 @@ export class ConceptSelectionService {
       });
       doc = parseHTMLFromString(html, true);
 
-      let accordion = datagroup.appendChild(doc.body.children[0]);
+      let accordion = datagroup.appendChild(doc[0]);
       let checkboxes = accordion.querySelectorAll('#child-selector > input[type="checkbox"]');
       for (let j = 0; j < checkboxes.length; j++) {
         let checkbox = checkboxes[j];

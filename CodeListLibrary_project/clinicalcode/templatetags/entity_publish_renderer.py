@@ -2,7 +2,9 @@ from django import template
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
-from ..entity_utils import permission_utils, constants
+
+
+from ..entity_utils import permission_utils, publish_utils, constants
 
 register = template.Library()
 
@@ -39,10 +41,12 @@ def render_errors_approval(context, *args, **kwargs):
 
 @register.inclusion_tag('components/publish_request/publish_button.html', takes_context=True, name='render_publish_button')
 def render_publish_button(context, *args, **kwargs):
-    user_is_moderator = permission_utils.is_member(context['request'].user, "Moderators")
+    publish_checks = publish_utils.check_entity_to_publish(context['request'], context['entity'].id, context['entity'].history_id)
+    user_is_moderator = publish_checks['is_moderator']
+    user_is_publisher = publish_checks['is_publisher']
+    user_allowed_publish = publish_checks['allowed_to_publish']
     user_entity_access = permission_utils.can_user_edit_entity(context['request'], context['entity'].id) #context['entity'].owner == context['request'].user
-    user_is_publisher = user_entity_access and permission_utils.is_member(context['request'].user, "publishers")
-
+    
     button_context = {
         'url_decline': reverse('generic_entity_decline', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
         'url_redirect': reverse('entity_history_detail', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
@@ -82,8 +86,8 @@ def render_publish_button(context, *args, **kwargs):
                                  'title':  "Deleted Phenotypes cannot be published!"
                                })
         return button_context
-    elif user_entity_access:
-        if not context["is_lastapproved"] and (context["approval_status"] is None or context["approval_status"] == constants.APPROVAL_STATUS.ANY) and user_entity_access and not context["live_ver_is_deleted"]:
+    elif user_allowed_publish:
+        if not publish_checks["is_lastapproved"] and (publish_checks["approval_status"] is None or publish_checks["approval_status"] == constants.APPROVAL_STATUS.ANY) and user_entity_access and not context["live_ver_is_deleted"]:
             if user_is_publisher:
                 button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
                             'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
@@ -96,7 +100,7 @@ def render_publish_button(context, *args, **kwargs):
                                 'url': reverse('generic_entity_request_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                 'title': "Needs to be approved"
                                 })
-        elif context["is_lastapproved"] and not context["live_ver_is_deleted"] and context["approval_status"] != constants.APPROVAL_STATUS.REJECTED:
+        elif publish_checks["is_lastapproved"] and not context["live_ver_is_deleted"] and context["approval_status"] != constants.APPROVAL_STATUS.REJECTED:
              button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
                               'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                               'Button_type': "Publish",	
@@ -131,5 +135,8 @@ def render_publish_button(context, *args, **kwargs):
                                 })
             else:
                 button_context.update({ 'pub_btn_hidden': True })
+    
+    else:
+        button_context.update({ 'pub_btn_hidden': True })
 
-        return button_context
+    return button_context

@@ -41,7 +41,7 @@ const createGroup = (container, template, id, title, description) => {
   });
 
   const doc = parseHTMLFromString(html, true);
-  return container.appendChild(doc.body.children[0]);
+  return container.appendChild(doc[0]);
 }
 
 /**
@@ -67,7 +67,7 @@ const createCard = (container, template, id, type, hint, title, description) => 
   });
   
   const doc = parseHTMLFromString(html, true);
-  return container.appendChild(doc.body.children[0]);
+  return container.appendChild(doc[0]);
 }
 
 /**

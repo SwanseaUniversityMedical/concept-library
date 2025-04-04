@@ -713,6 +713,10 @@
     float: right;
     color: col(text-danger);
     font-weight: bold;
+
+    &.hidden {
+      display: none;
+    }
   }
 
   &__title {
@@ -1174,6 +1178,10 @@
   width: auto;
   max-width: calc(100% - 1rem);
   transition: border-color 250ms ease;
+
+  &--bbox-size {
+    box-sizing: border-box;
+  }
 
   &:focus {
     outline: none;

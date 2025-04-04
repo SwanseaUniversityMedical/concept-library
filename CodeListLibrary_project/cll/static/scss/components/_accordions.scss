@@ -75,7 +75,7 @@
 ///   @desc A filled, toggleable accordion with stylistic state. 
 ///         Used to control visibility of content in the phenotype/create page
 .fill-accordion {
-  @include flex-col();
+  @include flex-col(false, true);
   position: relative;
   width: 100%;
   max-width: 100%;
@@ -89,8 +89,15 @@
   }
 
   &__input:checked + &__label {
-    background-color: col(accent-darkish);
     outline: 0;
+
+    &:not(:hover) {
+      background-color: col(accent-darkish);
+
+      .fill-accordion__label-icon {
+        background-color: col(accent-darkish);
+      }
+    }
 
     .fill-accordion__name-input {
       --bg-color: var(--color-accent-darkish);
@@ -100,23 +107,15 @@
     .fill-accordion__input-title {
       display: flex;
     }
-  }
 
-  &__input:checked + &__label:after {
-    content: '\f077';
+    .fill-accordion__label-icon:after {
+      content: '\f077';
+    }
   }
 
   &__input:checked ~ &__container {
     opacity: 1;
     height: auto;
-  }
-
-  &__label:hover {
-    background-color: col(accent-darkish);
-
-    .fill-accordion__name-input {
-      --bg-color: var(--color-accent-darkish);
-    }
   }
 
   // Used to define an input field within the accordion, used exclusively for create page
@@ -133,6 +132,18 @@
     text-overflow: initial;
     word-break: break-word;
     max-width: calc(100% - 2.5rem);
+  }
+
+  &__label:hover {
+    background-color: col(accent-washed);
+
+    .fill-accordion__name-input {
+      --bg-color: var(--color-accent-darkish);
+    }
+
+    & .fill-accordion__label-icon {
+      background-color: col(accent-washed);
+    }
   }
 
   &__name-input {
@@ -180,12 +191,13 @@
     flex-flow: row nowrap;
     align-items: center;
     position: relative;
-    padding: 0.5rem 1rem;
+    padding: 0;
     background-color: col(accent-lightest);
     max-width: 100%;
     outline: 1px solid col(accent-washed);
 
-    span {
+    span:not(.fill-accordion__label-icon) {
+      padding: 1rem 0.5rem;
       position: relative;
       white-space: nowrap;
       overflow: hidden;
@@ -200,6 +212,7 @@
       }
     }
 
+
     &__delete-icon {
       background: transparent;
       border: none;
@@ -211,21 +224,35 @@
     }
   }
 
-    &:after {
-      @include prefix(transition, background-color 250ms ease-in-out, webkit moz o);
-      content: '\f107';
+    & .fill-accordion__label-icon {
       display: block;
-      position: absolute;
-      font-family: var(--icons-name);
-      font-style: var(--icons-style);
-      font-size: var(--icons-size);
-      right: 0;
-      top: 0;
-      width: 2em;
+      position: relative;
+      width: 3em;
       height: 100%;
-      line-height: 2.25em;
-      text-align: center;
+      padding: 1rem 0;
+      margin-left: auto;
       background-color: col(accent-lightest);
+      @include prefix(transition, 'background-color 250ms ease-in-out, border-color 250ms ease-in-out', webkit moz o);
+
+      &:after {
+        content: '\f107';
+        display: block;
+        position: relative;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--icons-size);
+        top: calc(50% - 1em);
+        width: 100%;
+        height: 100%;
+        line-height: 2em;
+        text-align: center;
+        color: transparent;
+        background: inherit;
+        background-clip: text;
+        -webkit-background-clip: text;
+        filter: invert(1) contrast(200%);
+        -webkit-filter: invert(1) contrast(200%);
+      }
     }
   }
 

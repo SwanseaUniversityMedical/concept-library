@@ -43,7 +43,10 @@ const renderTemplateDetail = (parent, data) => {
 
     const container = createElement('div', {
       'className': 'template-detail__container',
-      'innerHTML': templateDetail
+      'innerHTML': {
+        src: templateDetail,
+        noSanitise: true,
+      }
     });
 
     parent.appendChild(container);

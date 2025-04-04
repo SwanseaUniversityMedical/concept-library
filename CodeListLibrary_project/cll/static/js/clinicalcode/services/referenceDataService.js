@@ -26,7 +26,7 @@ const
 const RDS_REFERENCE_MAP = (item, index) => {
   return [
     index,
-    item.id,
+    item?.id ?? item?.value,
     item.name
   ];
 }
@@ -228,7 +228,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
       </button>
     `, true);
 
-    const elem = tabItems.appendChild(doc.body.children[0]);
+    const elem = tabItems.appendChild(doc[0]);
     elem.addEventListener('click', () => {
       createViewer(sourceId);
     });
@@ -268,7 +268,7 @@ const renderReferenceComponent = (key, container, data) => {
   const datatable = new window.simpleDatatables.DataTable(table, {
     perPage: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE,
     perPageSelect: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE_SELECT,
-    fixedColumns: false,
+    fixedColumns: true,
     classes: {
       wrapper: 'overflow-table-constraint',
     },

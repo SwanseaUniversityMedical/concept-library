@@ -172,12 +172,12 @@ def get_conn(use_engine=False):
         'host': os.getenv('POSTGRES_HOST'),
         'dbname': os.getenv('POSTGRES_DB'),
         'user': os.getenv('POSTGRES_USER'),
-        'password': quote(os.getenv('POSTGRES_PASSWORD')),
+        'password': os.getenv('POSTGRES_PASSWORD'),
         'port': os.getenv('POSTGRES_PORT')
     }
 
     if use_engine:
-        db_url = f"postgresql://{config_params['user']}:{config_params['password']}@{config_params['host']}:{config_params['port']}/{config_params['dbname']}"
+        db_url = f"postgresql://{config_params['user']}:{quote(config_params['password'])}@{config_params['host']}:{config_params['port']}/{config_params['dbname']}"
         engine = create_engine(db_url)
         return engine
 

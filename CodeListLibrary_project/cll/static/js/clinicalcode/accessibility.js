@@ -28,7 +28,7 @@ domReady.finally(() => {
 
   document.addEventListener('keydown', e => {
     const elem = document.activeElement;
-    const code = e.keyIdentifier || e.which || e.keyCode;    
+    const code = e.keyIdentifier || e.which || e.keyCode;
     if (code !== CL_ACCESSIBILITY_KEYS.ENTER) {
       return;
     }

@@ -53,7 +53,7 @@ class EntityDecline(LoginRequiredMixin, permission_utils.HasAccessToViewGenericE
                     data['form_is_valid'] = True
                     data['approval_status'] = constants.APPROVAL_STATUS.REJECTED
                     data['entity_name_requested'] = GenericEntity.history.get(id=pk, history_id=history_id).name
-                    data = publish_utils.form_validation(request, data, history_id, pk, entity, checks)
+                    data = publish_utils.form_validation(request, data, history_id, pk, published_entity, checks)
         except Exception as e:
             #print(e)
             data['form_is_valid'] = False

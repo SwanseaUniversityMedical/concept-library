@@ -1,7 +1,6 @@
 from django.apps import apps
 from django.db import models, transaction, connection
-from django.db.models import F, Count, Max, Case, When, Exists, OuterRef
-from django.db.models.query import QuerySet
+from django.db.models import F, Count, Case, When, Exists, OuterRef
 from django.db.models.functions import JSONObject
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex

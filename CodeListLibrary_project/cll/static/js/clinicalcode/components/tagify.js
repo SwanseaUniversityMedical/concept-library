@@ -84,6 +84,13 @@ const TAGIFY__TAG_OPTIONS = {
   * 
   */
 export default class Tagify {
+  /**
+   * @desc
+   * @type {Array<Function>}
+   * @private
+   */
+  #disposables = [];
+
   constructor(obj, options, phenotype) {
     this.uuid = generateUUID();
 
@@ -117,11 +124,21 @@ export default class Tagify {
   /**
    * getActiveTags
    * @desc method to retrieve current tag data
-   * @returns {list} a list of objects describing active tags
+   * @returns {Array<Object>} a list of objects describing active tags
    */
   getActiveTags() {
     return this.tags;
   }
+
+  /**
+   * getDataValue
+   * @desc method to retrieve current tag data array
+   * @returns {Array} a list of data value(s)
+   */
+  getDataValue() {
+    return this.tags.map(x => x.value).filter(x => !isNullOrUndefined(x));
+  }
+
 
   /*************************************
    *                                   *
@@ -136,6 +153,13 @@ export default class Tagify {
    * @return {object} Returns a tag object
    */
   addTag(name, value) {
+    if (!stringHasChars(name)) {
+      return false;
+    }
+
+    name = strictSanitiseString(name);
+    value = typeof value === 'string' ? strictSanitiseString(value) : value;
+
     if (this.options.restricted) {
       const index = this.options.items.map(e => e.name.toLocaleLowerCase()).indexOf(name.toLocaleLowerCase());
       if (index < 0) {
@@ -212,6 +236,24 @@ export default class Tagify {
   }
 
   /**
+   * dispose
+   * @desc disposes events & objs assoc. with this cls
+   */
+  dispose() {
+    let disposable;
+    for (let i = this.#disposables.length; i > 0; i--) {
+      disposable = this.#disposables.pop();
+      if (typeof disposable !== 'function') {
+        continue;
+      }
+
+      disposable();
+    }
+
+    this.destroy();
+  }
+
+  /**
    * getElement
    * @desc returns this instance's target element, which can be used to determine whether a tag
    *       has been removed/added at runtime through the 'TagChanged' hook
@@ -232,12 +274,16 @@ export default class Tagify {
    * @param {event} e the associated event
    */
   #onClick(e) {
-    e.preventDefault();
-
-    if (e.target.className == 'tag__remove') {
-      this.removeTag(tryGetRootElement(e.target, 'tag'));
+    const trg = document.activeElement;
+    if (isNullOrUndefined(this.container) || isNullOrUndefined(trg) || !this.container.contains(trg)) {
+      return;
     }
 
+    e.preventDefault();
+
+    if (trg.className == 'tag__remove') {
+      this.removeTag(tryGetRootElement(trg, 'tag'));
+    }
     this.field.focus();
   }
 
@@ -248,7 +294,7 @@ export default class Tagify {
    */
   #onFocusLost(e) {
     this.#deselectHighlighted();
-    
+
     const target = e.relatedTarget;
     if (target && target.classList.contains('autocomplete-item')) {
       const name = target.getAttribute('data-name');
@@ -386,11 +432,16 @@ export default class Tagify {
     this.#buildOptions(options || { }, phenotype)
       .catch(e => console.error(e))
       .finally(() => {
+        let callback;
         if (this.options?.onLoad && this.options.onLoad instanceof Function) {
-          this.options.onLoad(this);
+          callback = this.options.onLoad(this);
         }
 
         this.#bindEvents();
+
+        if (typeof callback === 'function') {
+          callback(this);
+        }
       });
   }
 
@@ -423,10 +474,16 @@ export default class Tagify {
    * @desc binds the associated events to the rendered components
    */
   #bindEvents() {
-    this.container.addEventListener('click', this.#onClick.bind(this), false);
     this.tagbox.addEventListener('focusout', this.#onFocusLost.bind(this), false);
     this.tagbox.addEventListener('keydown', this.#onKeyDown.bind(this), false);
     this.tagbox.addEventListener('keyup', this.#onKeyUp.bind(this), false);
+
+    const clickHnd = this.#onClick.bind(this);
+    document.addEventListener('click', clickHnd);
+
+    this.#disposables.push(() => {
+      document.removeEventListener('click', clickHnd)
+    });
   }
 
   /**
@@ -513,7 +570,10 @@ export default class Tagify {
     const tag = createElement('div', {
       'className': 'tag',
       'data-value': value,
-      'innerHTML': `<span class="tag__name">${name}</span><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button>`
+      'innerHTML': {
+        src: `<span class="tag__name">${name}</span><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button>`,
+        noSanitise: true,
+      }
     });
 
     this.tagbox.insertBefore(tag, this.field);
@@ -524,7 +584,7 @@ export default class Tagify {
     });
 
     if (this.options.showTooltips) {
-      window.TooltipFactory.addTooltip(tag.querySelector('button'), 'Remove Tag', 'left');
+      window.TooltipFactory.addElement(tag.querySelector('button'), 'Remove Tag', 'up');
     }
 
     this.#updateElement();
@@ -624,7 +684,7 @@ export default class Tagify {
 
       const text = createElement('span', {
         'className': 'autocomplete-item__title',
-        'innerHTML': data.name,
+        'innerText': data.name,
       });
 
       item.appendChild(text);

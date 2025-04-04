@@ -4,6 +4,7 @@
 {% load compress %}
 {% load sass_tags %}
 {% load breadcrumbs %}
+{% load entity_renderer %}
 
 {% block title %}| Technical Details {% endblock title %}
 
@@ -35,6 +36,7 @@
 </script>
 
 <!-- Main -->
+{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 <main class="main-content">
   <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
     <article class="about-container">
@@ -43,11 +45,11 @@
           <aside class="scrollspy">
             <div class="scrollspy__container">
               <button class="scrollspy__container__item scrollspy__container__item--tertiary active"
-                aria-label="Go to Phenotype Library Inclusion Criteria" data-target="#home">
-                <a href="#home">Phenotype Library Inclusion Criteria</a>
+                aria-label="Go to {{ base_page_title }} Inclusion Criteria" data-target="#home">
+                <a href="#home">{{ base_page_title }} Inclusion Criteria</a>
               </button>
               <button class="scrollspy__container__item scrollspy__container__item--tertiary"
-                aria-label="Go to Phenotype Library Inclusion Criteria" data-target="#specification">
+                aria-label="Go to {{ base_page_title }} Inclusion Criteria" data-target="#specification">
                 <a href="#specification">Specification</a>
               </button>
               <button class="scrollspy__container__item scrollspy__container__item--tertiary"
@@ -73,7 +75,7 @@
             <section class="about-container__section__text">
               <h3 class="subheader">
                 <span class="scrollspy-target" id="home"></span>
-                Phenotype Library Inclusion Criteria
+                {{ base_page_title }} Inclusion Criteria
               </h3>
               <ul>
                 <li>
@@ -100,7 +102,7 @@
                 Specification
               </h3>
               <p>
-                Phenotyping algorithms are stored in the Phenotype Library usign a combination 
+                Phenotyping algorithms are stored in the {{ base_page_title }} usign a combination 
                 of YAML and CSV files. There are two main components to each algorithm:
               </p>
               <ul class="decimal">
@@ -146,11 +148,11 @@
                   <p><strong>type: </strong>existing_concept<p>
                   <p>
                     <strong>concept_id: </strong>
-                    The concept ID as displayed on the Phenotype Library
+                    The concept ID as displayed on the {{ base_page_title }}
                   <p>
                   <p>
                     <strong>concept_version_id: </strong>
-                    The concent version ID as displayed on the Phenotype Library
+                    The concent version ID as displayed on the {{ base_page_title }}
                   </p>
                 </div>
                 <div class="template-detail__container">
