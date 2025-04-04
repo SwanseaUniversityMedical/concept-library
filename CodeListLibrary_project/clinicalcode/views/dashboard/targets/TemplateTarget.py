@@ -173,7 +173,6 @@ class TemplateSerializer(BaseSerializer):
 			raise serializers.ValidationError({
 				'definition': 'Template `definition` field requires a `template_details` key-value pair of type `dict`'
 			})
-			raise serializers.ValidationError()
 		elif not isinstance(template_sections, list):
 			raise serializers.ValidationError({
 				'definition': 'Template `definition` field requires a `sections` key-value pair of type `list`'
@@ -196,10 +195,10 @@ class TemplateSerializer(BaseSerializer):
 			if current_brand and not current_brand.id in brands:
 				brands.append(current_brand.id)
 		elif current_brand:
-			brands = instance.brands if isinstance(instance.brands, list) else []
+			brands = instance.brands if instance is not None and isinstance(instance.brands, list) else []
 			if current_brand and not current_brand.id in brands:
 				brands.append(current_brand.id)
-		else:
+		elif instance:
 			brands = instance.brands
 
 		data.update({

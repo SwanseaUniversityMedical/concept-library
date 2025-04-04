@@ -111,13 +111,13 @@ export class FormView {
    * @static
    * @constant
    * 
-   * @property {string}                                     url                    Table query URL
-   * @property {object}                                     [state={}]             Current table state; defaults to empty state; defaults to an empty object
-   * @property {object}                                     [type='create']        Optionally specify the form method type; defaults to `create` object
-   * @property {string|HTMLElement}                         [element='#tbl']       The table view root element container; defaults to `#tbl`
-   * @property {Record<string, Record<string, HTMLElement>} [templates=null]       Optionally specify the templates to be rendered (will collect from page otherwise); defaults to `null`
-   * @property {(...args) => void}                          [actionCallback=null]  Optionally specify the actionbar callback (used to respond to action events, e.g. reset pwd); defaults to `null`
-   * @property {(...args) => void}                          [finishCallback=null]  Optionally specify the completion callback (used to open view panel); defaults to `null`
+   * @property {string}                                     url                     Table query URL
+   * @property {object}                                     [state={}]              Current table state; defaults to empty state; defaults to an empty object
+   * @property {object}                                     [type='create']         Optionally specify the form method type; defaults to `create` object
+   * @property {string|HTMLElement}                         [element='#tbl']        The table view root element container; defaults to `#tbl`
+   * @property {Record<string, Record<string, HTMLElement>} [templates=null]        Optionally specify the templates to be rendered (will collect from page otherwise); defaults to `null`
+   * @property {(...args) => void}                          [actionCallback=null]   Optionally specify the actionbar callback (used to respond to action events, e.g. reset pwd); defaults to `null`
+   * @property {(...args) => void}                          [completeCallback=null] Optionally specify the completion callback (i.e. submission event, can be success/fail); defaults to `null`
    */
   static #DefaultOpts = {
     url: null,
@@ -126,7 +126,7 @@ export class FormView {
     element: null,
     templates: null,
     actionCallback: null,
-    finishCallback: null,
+    completeCallback: null,
   };
 
   /**
@@ -292,6 +292,15 @@ export class FormView {
 
         props.formData = formData;
         this.#renderForm();
+      })
+      .catch(e => {
+        console.error(`[FormView] Failed to load form:\n\n- Props: ${this.#props}- with err: ${e}\n`);
+
+        window.ToastFactory.push({
+          type: 'warning',
+          message: 'Failed to load view, please try again.',
+          duration: 4000,
+        });
       })
       .finally(() => {
         if (!spinners) {
@@ -766,7 +775,7 @@ export class FormView {
                   sel = JSON.parse(sel);
                 }
               } catch (e) {
-                console.error(`[FormView] Failed to parse JSONField, invalid data:\n\n${e}`);
+                console.warn(`[FormView] Failed to parse JSONField, invalid data:\n\n${e}`);
                 sel = null;
               }
 
@@ -869,7 +878,7 @@ export class FormView {
         //   break;
 
         default:
-          console.error(`[Dash::FormView] Failed to render form field for '${key}' as '${fieldType}'`);
+          console.warn(`[FormView] Failed to render form field for '${key}' as '${fieldType}'`);
           break;
       }
 
@@ -897,8 +906,16 @@ export class FormView {
       parent: element,
     });
 
+    let spinner, isLocked;
     const submitHnd = (e) => {
       e.preventDefault();
+
+      if (isLocked) {
+        return;
+      }
+
+      isLocked = true;
+      spinner = startLoadingSpinner();
 
       let success = true;
       let submissionData = { };
@@ -919,12 +936,17 @@ export class FormView {
       }
 
       if (!success) {
+        isLocked = false;
         return;
       }
 
+      const completeCallback = typeof this.#props.completeCallback === 'function'
+        ? this.#props.completeCallback
+        : null;
+
       this.#submitForm(submissionData)
         .then(async response => {
-          let message;
+          let message, result;
           if (response.ok) {
             return await response.json();
           }
@@ -932,7 +954,7 @@ export class FormView {
           const headers = response.headers;
           if (headers.get('content-type').search('json')) {
             try {
-              const result = await response.json();
+              result = await response.json();
               if (!isRecordType(result)) {
                 throw new Error(`Not parseable, expected Record-like response on Res<code: ${response.status}> but got '${typeof result}'`);
               }
@@ -960,15 +982,28 @@ export class FormView {
           }
 
           const err = new Error(message);
-          // err callback?
+          if (completeCallback) {
+            completeCallback('submitForm', {
+              ok: false,
+              form: this.#props,
+              error: err,
+              result: result,
+            });
+          }
 
           throw err;
         })
-        .then(res => {
+        .then(result => {
           this.#renderValidationErrors();
 
-          // succ callback?
-
+          if (completeCallback) {
+            completeCallback('submitForm', {
+              ok: true,
+              form: this.#props,
+              error: null,
+              result: result,
+            });
+          }
         })
         .catch(e => {
           console.error('[ERROR]', e);
@@ -978,6 +1013,10 @@ export class FormView {
             message: e instanceof Error ? e.message : String(e),
             duration: 4000,
           });
+        })
+        .finally(() => {
+          isLocked = false;
+          spinner?.remove?.();
         });
     };
 

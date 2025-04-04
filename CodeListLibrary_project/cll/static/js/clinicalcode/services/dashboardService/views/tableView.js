@@ -233,6 +233,15 @@ export class TableView {
           parent: layout.footer,
         });
       })
+      .catch(e => {
+        console.error(`[TableView] Failed to load form:\n\n- Props: ${this.#props}- with err: ${e}\n`);
+
+        window.ToastFactory.push({
+          type: 'warning',
+          message: 'Failed to load view, please try again.',
+          duration: 4000,
+        });
+      })
       .finally(() => {
         if (!spinners) {
           clearTimeout(spinnerTimeout);

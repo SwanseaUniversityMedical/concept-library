@@ -112,7 +112,7 @@ export class DashboardService {
       case 'brand-config':
         hnd = this.#renderBrand;
         break;
-      
+
       default:
         hnd = this.#renderModelView;
         break;
@@ -251,7 +251,7 @@ export class DashboardService {
     callback = null,
   } = {}) {
     if (!isHtmlObject(container) || !isObjectType(assets)) {
-      console.warn('Failed to render Asset cards');
+      console.warn('[Dashboard]: Failed to render Asset cards');
       return;
     }
 
@@ -387,7 +387,15 @@ export class DashboardService {
           quickAccess.remove();
         }
       })
-      .catch(console.error);
+      .catch(e => {
+        console.error(`[Dashboard] Failed to load view:\n\n- State: ${this.#state}- with err: ${e}\n`);
+
+        window.ToastFactory.push({
+          type: 'warning',
+          message: 'Failed to load view, please try again.',
+          duration: 4000,
+        });
+      });
   }
 
   #renderModelView() {
@@ -454,6 +462,7 @@ export class DashboardService {
           state: state,
           element: container,
           actionCallback: this.#actionCallback.bind(this),
+          completeCallback: this.#completeCallback.bind(this),
         });
         state.controller = ctrl;
 
@@ -470,6 +479,7 @@ export class DashboardService {
           state: state,
           element: container,
           actionCallback: this.#actionCallback.bind(this),
+          completeCallback: this.#completeCallback.bind(this),
         });
         state.controller = ctrl;
 
@@ -520,6 +530,8 @@ export class DashboardService {
       type: 'update',
       state: state,
       element: container,
+      actionCallback: this.#actionCallback.bind(this),
+      completeCallback: this.#completeCallback.bind(this),
     });
     state.controller = ctrl;
   }
@@ -576,7 +588,15 @@ export class DashboardService {
             assetList.remove();
           }
         })
-        .catch(console.error);
+        .catch(e => {
+          console.error(`[Dashboard] Failed to load view:\n\n- State: ${this.#state}- with err: ${e}\n`);
+  
+          window.ToastFactory.push({
+            type: 'warning',
+            message: 'Failed to load view, please try again.',
+            duration: 4000,
+          });
+        });
     } else {
       view = view ?? 'list';
       state.view = view;
@@ -636,6 +656,7 @@ export class DashboardService {
             state: state,
             element: container,
             actionCallback: this.#actionCallback.bind(this),
+            completeCallback: this.#completeCallback.bind(this),
           });
           state.controller = ctrl;
   
@@ -651,6 +672,7 @@ export class DashboardService {
             state: state,
             element: container,
             actionCallback: this.#actionCallback.bind(this),
+            completeCallback: this.#completeCallback.bind(this),
           });
           state.controller = ctrl;
   
@@ -684,6 +706,48 @@ export class DashboardService {
     }
   }
 
+  #completeCallback(eventType, data) {
+    switch (eventType) {
+      case 'submitForm': {
+        const state = data.ok ? data.form.state : null;
+        if (!isRecordType(state)) {
+          break;
+        }
+
+        let actionType;
+        const method = state.view;
+        if (method === 'create') {
+          const entityId = isRecordType(data.result) && !isNullOrUndefined(data.result.id)
+            ? data.result.id
+            : null;
+
+          if (isRecordType(state.target)) {
+            state.target.kwargs = entityId;
+          } else {
+            state.target = entityId;
+          }
+
+          state.view = 'update';
+          actionType = 'created';
+        } else {
+          actionType = 'updated';
+        }
+
+        window.ToastFactory.push({
+          type: 'success',
+          message: `Entity successfully ${actionType}.`,
+          duration: 4000,
+        });
+
+        this.openPage(state.page, state.view, state.target);
+      } break;
+
+      default:
+        console.warn(`[Dashboard] Failed to process completion callback signal of type '${eventType}'`);
+        break;
+    }
+  }
+
   #actionCallback(action, e, props, _formView, _btn) {
     e.preventDefault();
 
@@ -694,17 +758,38 @@ export class DashboardService {
 
     switch (action) {
       case 'reset_pwd': {
+        let spinner;
         ModalFactory.create({
           title: 'Are you sure?',
           content: 'This will immediately send a password reset e-mail to the user.',
           beforeAccept: () => {
+            spinner = startLoadingSpinner();
             return this.#fetch(url, { method: 'PUT', headers: { 'X-Target': action } })
-              .then(result => {
-                if (!result.ok) {
-                  throw new Error('[ErrStatus] Failed to send reset e-mail.')
+              .then(async response => {
+                if (!response.ok) {
+                  const headers = response.headers;
+
+                  let msg;
+                  if (headers.get('content-type').search('json')) {
+                    try {
+                      let packet = await response.json();
+                      packet = JSON.stringify(packet);
+                      msg = packet;
+                    } catch (e) {
+                      console.warn(`[Dashboard::${action}] Failed to parse reset json error with err:\n\n${e}\n`);
+                    }
+                  }
+
+                  if (!isNullOrUndefined(msg)) {
+                    msg = `[Dashboard::${action}::${response.status}] Failed to send reset e-mail with err:\n\n${msg}\n`;
+                  } else {
+                    msg = `[Dashboard::${action}::${response.status}] ${response.statusText}`;
+                  }
+
+                  throw new Error(msg);
                 }
 
-                return result.json();
+                return response.json();
               });
           }
         })
@@ -719,21 +804,17 @@ export class DashboardService {
           })
           .catch((e) => {
             if (!(e instanceof ModalFactory.ModalResults)) {
-              if (typeof onError === 'function') {
-                return onError();
-              }
-
               window.ToastFactory.push({
                 type: 'error',
-                message: 'Failed to send reset e-mail.',
+                message: 'Failed to send reset e-mail, please check their e-mail and try again.',
                 duration: 4000,
               });
+
               return console.error(e);
             }
-
-            if (e.name === ModalFactory.ButtonTypes.REJECT) {
-
-            }
+          })
+          .finally(() => {
+            spinner?.remove?.();
           });
       } break;
 
