@@ -1,11 +1,10 @@
 import * as Const from './constants.js';
 
-import { managePlugins } from './plugins.js';
-import { manageNavigation } from './navigation.js';
-import { managePopoverMenu } from './popoverMenu.js';
-
-import { FormView } from './controllers/formView.js';
-import { TableView } from './controllers/tableView.js';
+import { FormView } from './views/formView.js';
+import { TableView } from './views/tableView.js';
+import { managePlugins } from './managers/plugins.js';
+import { manageNavigation } from './managers/navigation.js';
+import { managePopoverMenu } from '../../components/popoverMenu.js';
 
 /**
  * Class to serve & manage Dashboard page content
@@ -186,7 +185,10 @@ export class DashboardService {
         return `${root}/target/${target}/` + parameters;
 
       case 'update':
-        return `${root}/target/${target}/${kwargs}/` + parameters;
+        if (!isNullOrUndefined(kwargs)) {
+          return `${root}/target/${target}/${kwargs}/` + parameters;
+        }
+        return `${root}/target/${target}/` + parameters;
 
       default:
         return null
@@ -196,8 +198,10 @@ export class DashboardService {
   #fetch(url, opts = {}) {
     const token = this.#state.token;
     opts = mergeObjects(
+      isObjectType(opts) ? opts : {},
       {
         method: 'GET',
+        cache: 'no-cache',
         credentials: 'same-origin',
         withCredentials: true,
         headers: {
@@ -207,7 +211,6 @@ export class DashboardService {
           'Authorization': `Bearer ${token}`
         },
       },
-      isObjectType(opts) ? opts : {},
       false,
       true
     );
@@ -377,7 +380,7 @@ export class DashboardService {
           callback: (key) => {
             this.openPage('inventory', null, { type: key, labels: assets?.[key]?.details });
           }
-        })
+        });
         spinners?.quickAccess?.remove?.();
 
         if (quickAccessContent.childElementCount < 1) {
@@ -450,7 +453,8 @@ export class DashboardService {
           type: 'create',
           state: state,
           element: container,
-        })
+          actionCallback: this.#actionCallback.bind(this),
+        });
         state.controller = ctrl;
 
       } break;
@@ -465,7 +469,8 @@ export class DashboardService {
           type: 'update',
           state: state,
           element: container,
-        })
+          actionCallback: this.#actionCallback.bind(this),
+        });
         state.controller = ctrl;
 
         break;
@@ -477,11 +482,46 @@ export class DashboardService {
 
   #renderBrand() {
     const state = this.#state;
+    const type = state.page;
     const view = 'update';
     state.view = view;
+    state.target = null;
+
+    const label = transformTitleCase(type.replace('_', ' '));
     this.#clearContent();
 
+    let article, container, header, createBtn;
+    composeTemplate(this.#templates.base.model, {
+      params: {
+        id: 'brand',
+        title: `${transformTitleCase(view)} ${label}`,
+        level: '1',
+        content: '',
+        headerCls: '',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: view === 'list' ? 'dashboard-view__content-display' : 'dashboard-view__content-form',
+      },
+      parent: this.#layout.content,
+      render: (elem) => {
+        article = elem[0];
 
+        header = article.querySelector('header');
+        createBtn = header.querySelector('[data-role="create-btn"]');
+        container = article.querySelector('section');
+      }
+    });
+
+    const url = this.#getTargetUrl('brand', { view: 'update', kwargs: null });
+    header.classList.add('dashboard-view__content-header--constrain-sm');
+    createBtn.remove();
+
+    const ctrl = new FormView({
+      url: url,
+      type: 'update',
+      state: state,
+      element: container,
+    });
+    state.controller = ctrl;
   }
 
   #renderInventory() {
@@ -529,7 +569,7 @@ export class DashboardService {
             callback: (key) => {
               this.openPage('inventory', null, { type: key, labels: assets?.[key]?.details });
             }
-          })
+          });
           spinner?.remove?.();
   
           if (content.childElementCount < 1) {
@@ -595,7 +635,8 @@ export class DashboardService {
             type: 'create',
             state: state,
             element: container,
-          })
+            actionCallback: this.#actionCallback.bind(this),
+          });
           state.controller = ctrl;
   
         } break;
@@ -609,7 +650,8 @@ export class DashboardService {
             type: 'update',
             state: state,
             element: container,
-          })
+            actionCallback: this.#actionCallback.bind(this),
+          });
           state.controller = ctrl;
   
           break;
@@ -642,6 +684,66 @@ export class DashboardService {
     }
   }
 
+  #actionCallback(action, e, props, _formView, _btn) {
+    e.preventDefault();
+
+    const { type, url } = props;
+    if (type !== 'update' || !stringHasChars(url)) {
+      return;
+    }
+
+    switch (action) {
+      case 'reset_pwd': {
+        ModalFactory.create({
+          title: 'Are you sure?',
+          content: 'This will immediately send a password reset e-mail to the user.',
+          beforeAccept: () => {
+            return this.#fetch(url, { method: 'PUT', headers: { 'X-Target': action } })
+              .then(result => {
+                if (!result.ok) {
+                  throw new Error('[ErrStatus] Failed to send reset e-mail.')
+                }
+
+                return result.json();
+              });
+          }
+        })
+          .then(async result => {
+            await result.data; // SINK
+
+            window.ToastFactory.push({
+              type: 'success',
+              message: 'Password reset e-mail successfully sent.',
+              duration: 4000,
+            });
+          })
+          .catch((e) => {
+            if (!(e instanceof ModalFactory.ModalResults)) {
+              if (typeof onError === 'function') {
+                return onError();
+              }
+
+              window.ToastFactory.push({
+                type: 'error',
+                message: 'Failed to send reset e-mail.',
+                duration: 4000,
+              });
+              return console.error(e);
+            }
+
+            if (modal.name === ModalFactory.ButtonTypes.REJECT) {
+              if (typeof onReject === 'function') {
+                return;
+              }
+            }
+          });
+      } break;
+
+      default:
+        break;
+    }
+  }
+
 
   /*************************************
    *                                   *
@@ -655,7 +757,7 @@ export class DashboardService {
     }
 
     if (!isHtmlObject(element)) {
-      throw new Exception('InitError: Failed to resolve DashboardService element');
+      throw new Error('InitError: Failed to resolve DashboardService element');
     }
 
     let token = opts.token;

@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{% sass_src 'scss/pages/admin/dashboard.scss' %}" type="text/css" />
   {% endcompress %}
   {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
   {% endcompress js %}
 {% endblock head %}
@@ -23,8 +24,6 @@
 {% block navigation_wrapper %}{% endblock navigation_wrapper %}
 
 {% block container %}
-  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
-
   {% compress js %}
     <script type="module" src="{% static 'js/clinicalcode/services/dashboardService/index.js' %}"></script>
   {% endcompress js %}
@@ -142,7 +141,7 @@
             </span>
           </a>
           <a
-            class="dashboard-nav__targets-list-item visibility-hidden"
+            class="dashboard-nav__targets-list-item"
             title="Manage Brand Configuration"
             aria-label="Manage Brand Configuration"
             tabindex="0"
@@ -450,37 +449,43 @@
     </section>
   </template>
 
-  <template data-name="button" data-view="form" data-for="dashboard">
-      <button
-        class="outline-btn outline-btn--icon outline-btn--icon-${cls} ${style}"
-        title="${title}"
-        aria-label="${title}"
-        role="button"
-        tabindex="0"
-        data-ref="${id}"
-        data-role="${role}"
-      >
-        ${title}
-      </button>
+  <template data-name="entity_form" data-view="form" data-for="dashboard">
+    <form method="${method}" action="${action}" class="dashboard-entity-form">
+    </form>
   </template>
 
-  <template data-name="CharField" data-view="form" data-for="dashboard">
+  <template data-name="button" data-view="form" data-for="dashboard">
+    <button
+      class="outline-btn outline-btn--icon outline-btn--icon-${icon} ${style}"
+      title="${title}"
+      aria-label="${title}"
+      role="button"
+      tabindex="0"
+      data-ref="${id}"
+      data-role="${role}"
+    >
+      ${title}
+    </button>
+  </template>
+
+  <template data-name="TextField" data-view="form" data-for="dashboard">
     <div class="detailed-input-group fill">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? 'hidden' : ''}">*</span>
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description">${help}</p>
       <input
         id="field-${key}"
-        class="text-input"
-        placeholder=""
-        type="text"
+        class="text-input ${cls}"
+        placeholder="${placeholder}"
+        type="${inputtype}"
         value="${value}"
-        aria-label="${title}" 
         minlength="${minLength}"
         maxlength="${maxLength}"
+        aria-label="${title}"
         data-class="inputbox"
+        data-type="string"
         data-field="${key}"
         autocomplete="${autocomplete}"
         required="${required ? 'true' : 'false'}"
@@ -488,25 +493,56 @@
     </div>
   </template>
 
-  <template data-name="EmailField" data-view="form" data-for="dashboard">
+  <template data-name="TextAreaField" data-view="form" data-for="dashboard">
     <div class="detailed-input-group fill">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? 'hidden' : ''}">*</span>
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+
+      <textarea
+        id="field-${key}"
+        class="${cls}"
+        value="${value}"
+        placeholder="${placeholder}"
+        minlength="${minLength}"
+        maxlength="${maxLength}"
+        required="${required ? 'true' : 'false'}"
+        autocorrect="${spellcheck ? 'true' : 'false'}"
+        autocomplete="on"
+        spellcheck="default"
+        wrap="soft"
+        data-class="${useMarkdown ? 'md-editor' : 'textarea'}"
+        data-type="string"
+        data-field="${key}"
+      ></textarea>
+    </div>
+  </template>
+
+  <template data-name="NumericField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description">${help}</p>
       <input
         id="field-${key}"
-        class="text-input"
-        placeholder=""
-        type="email"
+        class="text-input ${cls}"
+        placeholder="${placeholder}"
+        type="number"
+        inputmode="${inputmode}"
         value="${value}"
-        aria-label="${title}" 
-        minlength="${minLength}"
-        maxlength="${maxLength}"
+        min="${minValue}"
+        max="${maxValue}"
+        aria-label="${title}"
         data-class="inputbox"
-        data-field="${key}" 
-        autocomplete="email"
+        data-type="number"
+        data-field="${key}"
+        data-rounding="${rounding}"
+        data-decimals="${decimalPlaces}"
+        data-maxdigits="${maxDigits}"
         required="${required ? 'true' : 'false'}"
       />
     </div>
@@ -516,26 +552,279 @@
     <div class="detailed-input-group fill">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? 'hidden' : ''}">*</span>
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description">${help}</p>
       <div class="checkbox-item-container">
         <input
           id="field-${key}"
-          class="checkbox-item"
-          type="checkbox" 
-          value="${value}" 
+          class="checkbox-item ${cls}"
+          type="checkbox"
           aria-label="${title}" 
           data-class="checkbox"
+          data-type="boolean"
           data-field="${key}"
           required="${required ? 'true' : 'false'}"
         />
-        <label class="constrained-filter-item" for="login-remember">
+        <label class="constrained-filter-item" for="field-${key}">
           ${title}
         </label>
       </div>
     </div>
   </template>
+
+  <template data-name="ChoiceField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+      <select
+        id="field-${key}"
+        class="selection-input ${cls}"
+        aria-label="${title}"
+        data-class="dropdown"
+        data-type="choice"
+        data-field="${key}"
+        required="${required ? 'true' : 'false'}"
+      >
+      </select>
+    </div>
+  </template>
+
+  <template data-name="DateTimeLikeField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+      <fieldset class="date-range-field date-range-field--wrapped date-range-field--padding0_5 ${cls}">
+        <input
+          id="field-${key}"
+          type="${datatype}"
+          value="${value}"
+          aria-label="${title}"
+          data-class="datetime"
+          data-type="${datatype}"
+          data-field="${key}"
+          required="${required ? 'true' : 'false'}"
+        />
+      </fieldset>
+    </div>
+  </template>
+
+  <template data-name="ForeignKeyField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+      <select
+        id="field-${key}"
+        class="selection-input ${cls}"
+        aria-label="${title}"
+        data-class="dropdown"
+        data-type="foreign-key"
+        data-field="${key}"
+        required="${required ? 'true' : 'false'}"
+      >
+      </select>
+    </div>
+  </template>
+
+  <template data-name="MultiForeignKeyField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+      <input
+        id="field-${key}"
+        class="text-input ${cls}"
+        type="text"
+        placeholder=""
+        aria-label="${title}" 
+        data-class="tagify"
+        data-type="multi-foreign-key"
+        data-field="${key}"
+      />
+    </div>
+  </template>
+
+  <template data-name="autocomplete" data-view="form" data-for="dashboard">
+    <div
+        id="${id}"
+        class="autocomplete-container"
+        role="combobox"
+        data-role="autocomplete-container"
+        aria-owns="autocomplete-results"
+        aria-expanded="false"
+        aria-haspopup="listbox"
+    >
+      <div class="autocomplete-controls" data-role="autocomplete-controls">
+        <input
+            class="autocomplete-input"
+            value="${searchValue}"
+            placeholder="${searchPlaceholder}"
+            data-role="autocomplete-input"
+            aria-label="${searchLabel}"
+            aria-controls="autocomplete-results"
+            aria-autocomplete="both"
+        />
+        <ul
+            class="autocomplete-results"
+            role="listbox"
+            data-role="autocomplete-results"
+            aria-label="${searchLabel} results">
+        </ul>
+      </div>
+      <button
+          class="outline-btn outline-btn--icon outline-btn--icon-${btnIcon}"
+          type="button"
+          title="${btnTitle}"
+          aria-label="${btnTitle}"
+          role="button"
+          tabindex="0"
+          data-ref="${btnId}"
+          data-role="autocomplete-button"
+      >
+        ${btnContent}
+      </button>
+    </div>
+  </template>
+
+  <template data-name="selector" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description">${help}</p>
+      <section class="selector-component" data-owner="${owner}">
+        <header class="selector-component__header" data-identifier="header">
+
+        </header>
+        <div class="selector-component__none-available" data-visible="true" data-identifier="empty">
+          <p>${emptyMessage}</p>
+        </div>
+        <div class="selector-component__content" data-visible="false" data-identifier="content">
+          <table class="selector-component__table" data-identifier="table">
+
+          </table>
+        </div>
+      </section>
+    </div>
+  </template>
+
+  <template data-name="table" data-view="OrgMember" data-for="dashboard">
+    <thead>
+      <tr>
+        <td>User</td>
+        <td>Role</td>
+        <td>Actions</td>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </template>
+
+  <template data-name="row" data-view="OrgMember" data-for="dashboard">
+    <tr data-ref="${userPk}">
+      <td>${username}</td>
+      <td>
+        <select
+            class="selection-input"
+            aria-label="Select User Role"
+            data-ref="${userPk}"
+            data-role="user-role-select"
+            data-column="role"
+        >
+        </select>
+      </td>
+      <td>
+        <button
+            class="outline-btn outline-btn--icon outline-btn--icon-user-delete"
+            title="Remove User"
+            aria-label="Remove User"
+            role="button"
+            tabindex="0"
+            data-ref="${userPk}"
+            data-role="user-delete-btn"
+            data-column="action"
+        >
+          Remove
+        </button>
+      </td>
+    </tr>
+  </template>
+
+  <template data-name="table" data-view="OrgAuthority" data-for="dashboard">
+    <thead>
+      <tr>
+        <td>Brand</td>
+        <td>Can Post</td>
+        <td>Can Moderate</td>
+        <td>Actions</td>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </template>
+
+  <template data-name="row" data-view="OrgAuthority" data-for="dashboard">
+    <tr>
+      <td>${brand}</td>
+      <td>
+        <div class="checkbox-item-container">
+          <input
+            id="${brand}-can-post"
+            class="checkbox-item"
+            type="checkbox"
+            title="Can Post"
+            aria-label="Can Post"
+            data-ref="${brandPk}"
+            data-role="brand-post-checkbox"
+            data-column="can_post"
+          />
+        </div>
+      </td>
+      <td>
+        <div class="checkbox-item-container">
+          <input
+            id="${brand}-can-moderate"
+            class="checkbox-item"
+            type="checkbox"
+            title="Can Moderate"
+            aria-label="Can Moderate"
+            data-ref="${brandPk}"
+            data-role="brand-moderate-checkbox"
+            data-column="can_moderate"
+          />
+        </div>
+      </td>
+      <td>
+        <button
+            class="outline-btn outline-btn--icon outline-btn--icon-delete"
+            title="Remove Brand"
+            aria-label="Remove Brand"
+            role="button"
+            tabindex="0"
+            data-ref="${brandPk}"
+            data-role="brand-delete-btn"
+            data-column="action"
+        >
+          Remove
+        </button>
+      </td>
+    </tr>
+  </template>
+
 {% endblock container %}
 
 {% block footer_wrapper %}

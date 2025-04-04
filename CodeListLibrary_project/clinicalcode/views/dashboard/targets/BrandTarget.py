@@ -23,21 +23,22 @@ class BrandSerializer(BaseSerializer):
     """
 
     # Fields
-    users = UserSerializer(many=True)
     admins = UserSerializer(many=True)
 
     # Appearance
     _str_display = 'name'
     _list_fields = ['id', 'name']
-    _item_fields = ['id', 'name', 'description', 'website', 'site_title', 'site_description']
+    _item_fields = ['id', 'name', 'website', 'description', 'site_title', 'site_description', 'admins']
 
     # Metadata
     class Meta:
         model = Brand
         # Fields that should be included in the serialized output
         exclude = [
-            'logo_path', 'index_path', 'about_menu', 'allowed_tabs', 'footer_images', 
-            'is_administrable', 'collections_excluded_from_filters', 'created', 'modified'
+            'logo_path', 'index_path', 'about_menu',
+            'allowed_tabs', 'footer_images', 'is_administrable',
+            'collections_excluded_from_filters', 'created', 'modified',
+            'org_user_managed', 'users',
         ]
         extra_kwargs = {
             # RO
@@ -51,13 +52,19 @@ class BrandSerializer(BaseSerializer):
             'is_administrable': { 'read_only': True, 'required': False },
             'collections_excluded_from_filters': { 'read_only': True, 'required': False },
             # WO
-			'created': { 'write_only': True, 'read_only': False, 'required': False },
-			'modified': { 'write_only': True, 'read_only': False, 'required': False },
-			'created_by': { 'write_only': True, 'read_only': False, 'required': False },
-			'updated_by': { 'write_only': True, 'read_only': False, 'required': False },
+            'created': { 'write_only': True, 'read_only': False, 'required': False },
+            'modified': { 'write_only': True, 'read_only': False, 'required': False },
+            'created_by': { 'write_only': True, 'read_only': False, 'required': False },
+            'updated_by': { 'write_only': True, 'read_only': False, 'required': False },
+            # WO | RO
+            'overrides': { 'help_text': 'Overrides website behaviour for this specific Brand, please seek Administrator advice before modifying.' },
+            'description': { 'style': { 'as_type': 'TextField' }, 'help_text': 'Human-friendly description of the Brand (appears on the home page)' },
+            'website': { 'help_text': 'Specifies the Brand\'s website (used for back-linking)' },
+            'site_title': { 'help_text': 'Specifies the title of the website, e.g. as it appears within the browser tab' },
+            'site_description': { 'help_text': 'Optionally specify the site description metadata tag, e.g. as it appears on search engines' },
         }
 
-	# GET
+    # GET
     def to_representation(self, instance):
         """
         Convert a Brand instance into a JSON-serializable dictionary.
@@ -86,10 +93,13 @@ class BrandSerializer(BaseSerializer):
             return data
         return None
 
+    def resolve_format(self):
+        return { 'type': 'ForeignKey' }
+
     def resolve_options(self):
         return list(self.Meta.model.objects.all().values('name', 'pk'))
 
-	# POST / PUT
+    # POST / PUT
     def create(self, validated_data):
         """
         Create and save a new Brand instance using the validated data.
@@ -121,7 +131,7 @@ class BrandSerializer(BaseSerializer):
         instance.save()
         return instance
 
-	# Instance & Field validation
+    # Instance & Field validation
     def validate(self, data):
         """
         Validate the provided data before creating or updating a Brand.
@@ -135,18 +145,18 @@ class BrandSerializer(BaseSerializer):
         user = self._get_user()
         instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
 
-        prev_users = instance.users if instance is not None else []
-        prev_admins = instance.admins if instance is not None else []
+        prev_users = instance.users.all() if instance is not None else User.objects.none()
+        prev_admins = instance.admins.all() if instance is not None else User.objects.none()
 
         users = data.get('users') if isinstance(data.get('users'), list) else prev_users
-        users = list(User.objects.filter(id__in=users).values_list('id', flat=True))
-        if user is not None and user.id not in users:
-            users.append(user.id)
+        users = list(User.objects.filter(id__in=users))
+        if user is not None and not next((x for x in users if x.id != user.id), None):
+            users.append(user)
 
         admins = data.get('admins') if isinstance(data.get('admins'), list) else prev_admins
-        admins = list(User.objects.filter(id__in=admins).values_list('id', flat=True))
-        if user is not None and user.id not in admins:
-            admins.append(user.id)
+        admins = list(User.objects.filter(id__in=admins))
+        if user is not None and not next((x for x in admins if x.id != user.id), None):
+            admins.append(user)
 
         data.update({
             'users': users,
@@ -222,15 +232,36 @@ class BrandEndpoint(BaseEndpoint):
         Returns:
             Response: The response containing the updated brand data.
         """
-        current_brand = model_utils.try_get_brand(request)
-        if current_brand is None:
-            return Response(
-                data={ 'detail': 'Unknown Brand context' },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        kwargs.update(pk=current_brand.id)
-        return self.update(request, partial= True, *args, **kwargs)
+        partial = kwargs.pop('partial', False)
+        instance = model_utils.try_get_brand(request)
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError as e:
+            if isinstance(e.detail, dict):
+                detail = {k: v for k, v in e.detail.items() if k not in ('users', 'admins')}
+                if len(detail) > 0:
+                    raise serializers.ValidationError(detail=detail)
+        except Exception as e:
+            raise e
+
+        data = serializer.data
+        data = self.get_serializer(instance).validate(data)
+
+        admins = data.pop('admins', [])
+        users = data.pop('users', [])
+
+        instance.__dict__.update(**data)
+        instance.save()
+
+        instance.admins.set(admins)
+        instance.users.set(users)
+
+        return Response(self.get_serializer(instance).data)
 
     def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
+        """
+        Handle POST requests to create a new Brand instance.
+        """
+        raise Response(status=status.HTTP_403_PERMISSION_DENIED)

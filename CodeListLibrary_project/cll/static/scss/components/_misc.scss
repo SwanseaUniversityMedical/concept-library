@@ -3,24 +3,9 @@
 @import '../_media';
 @import '../_utils';
 
-@keyframes loading-rotation {
-  from {
-    transform: rotate(0deg)
-  }
-  to {
-    transform: rotate(360deg)
-  }
-}
-
-@-webkit-keyframes loading-rotation {
-  from {
-    -webkit-transform: rotate(0deg)
-  }
-  to {
-    -webkit-transform: rotate(360deg)
-  }
-}
-
+/// Loading spinner
+/// @desc instantiates a `LOADING` element above the content contained by its parent
+/// 
 *:has(> .loading-spinner) {
   min-height: 100px !important;
 }
@@ -65,6 +50,24 @@
   }
 }
 
+@keyframes loading-rotation {
+  from {
+    transform: rotate(0deg)
+  }
+  to {
+    transform: rotate(360deg)
+  }
+}
+
+@-webkit-keyframes loading-rotation {
+  from {
+    -webkit-transform: rotate(0deg)
+  }
+  to {
+    -webkit-transform: rotate(360deg)
+  }
+}
+
 // Ontology node reference
 ///   @desc used to define a the reference ontology node item
 ///         within the reference data page
@@ -88,5 +91,66 @@
     & > b:last-child {
       text-align: right;
     }
+  }
+}
+
+/// Icon span
+/// @desc displays the icon specified by a `<span/>`'s `data-icon` attribute
+/// @example see `dashboard/index.html`
+.as-icon {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+
+  &:before {
+    content: attr(data-icon);
+    font-size: var(--icons-size);
+    font-style: var(--icons-style);
+    font-family: var(--icons-name);
+    color: inherit;
+  }
+
+  &--black {
+    color: $mostly_black;
+  }
+
+  &--white {
+    color: $white;
+  }
+
+  &--primary {
+    color: col(accent-primary);
+  }
+
+  &--secondary {
+    color: col(accent-secondary);
+  }
+
+  &--tertiary {
+    color: col(accent-tertiary);
+  }
+
+  &--washed {
+    color: col(accent-washed);
+  }
+
+  &--bubble {
+    color: col(accent-bubble);
+  }
+
+  &--highlight {
+    color: col(accent-highlight);
+  }
+
+  &--success {
+    color: col(accent-success);
+  }
+
+  &--danger {
+    color: col(accent-danger);
+  }
+
+  &--warning {
+    color: col(accent-warning);
   }
 }

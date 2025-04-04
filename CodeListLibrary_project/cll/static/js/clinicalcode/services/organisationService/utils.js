@@ -15,12 +15,12 @@ export const confirmationPrompt = ({
   })
     .then((result) => onAccept(result))
     .catch((e) => {
-      if (!(result instanceof ModalFactory.ModalResults)) {
+      if (!(e instanceof ModalFactory.ModalResults)) {
         if (typeof onError === 'function') {
           return onError();
         }
 
-        return console.error(result);
+        return console.error(e);
       }
   
       if (modal.name === ModalFactory.ButtonTypes.REJECT) {

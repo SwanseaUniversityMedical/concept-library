@@ -38,6 +38,7 @@ class OrganisationAuthoritySerializer(BaseSerializer):
 	def resolve_format(self):
 		return {
 			'type': 'through',
+			'component': 'OrgAuthoritySelector',
 			'fields': {
 				'brand': 'ForeignKey',
 				'can_post': 'BooleanField',
@@ -46,7 +47,9 @@ class OrganisationAuthoritySerializer(BaseSerializer):
 		}
 
 	def resolve_options(self):
-		return list(Brand.objects.all().values('name', 'pk'))
+		return {
+			'brand': list(Brand.objects.all().values('name', 'pk')),
+		}
 
 
 class OrganisationMembershipSerializer(BaseSerializer):
@@ -67,12 +70,15 @@ class OrganisationMembershipSerializer(BaseSerializer):
 			# RO
 			'id': { 'read_only': True, 'required': False },
 			'joined': { 'read_only': True, 'required': False },
+			# WO | RO
+			'description': { 'style': { 'as_type': 'TextField' } },
 		}
 
 	# GET
 	def resolve_format(self):
 		return {
 			'type': 'through',
+			'component': 'OrgMemberSelector',
 			'fields': {
 				'user': 'ForeignKey',
 				'role': 'ChoiceField',
@@ -100,14 +106,10 @@ class OrganisationMembershipSerializer(BaseSerializer):
 		else:
 			records = User.objects.all()
 
-		res = {
+		return {
 			'role': [{ 'name': e.name, 'pk': e.value } for e in constants.ORGANISATION_ROLES],
+			'user': list(records.annotate(name=F('username')).values('name', 'pk')) if records is not None else [],
 		}
-
-		if records is not None:
-			res.update(user=list(records.annotate(name=F('username')).values('name', 'pk')))
-		
-		return res
 
 
 class OrganisationSerializer(BaseSerializer):
@@ -121,7 +123,11 @@ class OrganisationSerializer(BaseSerializer):
 	# Appearance
 	_str_display = 'name'
 	_list_fields = ['id', 'name', 'owner']
-	_item_fields = ['id', 'slug', 'name', 'website', 'email', 'description']
+	_item_fields = [
+		'id', 'slug', 'name',
+		'description', 'website', 'email',
+		'owner', 'members', 'brands',
+	]
 
 	# Metadata
 	class Meta:
@@ -135,6 +141,78 @@ class OrganisationSerializer(BaseSerializer):
 			'created': { 'write_only': True, 'required': False },
 		}
 
+	# Instance & Field validation
+	def validate(self, data):
+		"""
+		Validate the provided data before creating or updating a Brand.
+
+		Args:
+				data (dict): The data to validate.
+
+		Returns:
+				dict: The validated data.
+		"""
+		current_user = self._get_user()
+		current_brand = self._get_brand()
+		instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
+
+		prev_brands = instance.admins.all() if instance is not None else OrganisationAuthority.objects.none()
+		prev_members = instance.members.all() if instance is not None else OrganisationMembership.objects.none()
+
+		data_brands = data.get('brands') if isinstance(data.get('brands'), list) else None
+		if isinstance(data_brands, list):
+			brands = []
+			for x in data_brands:
+				brand = Brand.objects.filter(id=x.get('brand_id', -1))
+				if not brand.exists():
+					continue
+
+				brands.append({
+					'brand': brand.first(),
+					'can_post': not not x.get('can_post', False),
+					'can_moderate': not not x.get('can_moderate', False),
+				})
+
+			if current_brand and not next((x for x in brands if x.get('brand').id == current_brand.id), None):
+				brands.append({
+					'brand': current_brand,
+					'can_post': False,
+					'can_moderate': False,
+				})
+		else:
+			brands = prev_brands
+
+		data_members = data.get('members') if isinstance(data.get('members'), list) else None
+		if isinstance(data_members, list):
+			members = []
+			for x in data_members:
+				user = User.objects.filter(id=x.get('user_id', -1))
+				if not user.exists():
+					continue
+
+				members.append({
+					'user': user.first(),
+					'role': x.get('role', 0),
+				})
+		else:
+			members = prev_members
+
+		owner = data.get('owner', instance.owner if instance is not None else None)
+		if isinstance(owner, int):
+			owner = User.objects.filter(id=owner)
+			if owner is not None or owner.exists():
+				owner = owner.first()
+
+		if not isinstance(owner, User):
+			raise serializers.ValidationError('The `owner` field is non-nullable')
+
+		data.update({
+			'owner': owner,
+			'brands': brands,
+			'members': members,
+		})
+
+		return data
 
 class OrganisationEndpoint(BaseEndpoint):
 	"""Responsible for API views relating to `Organisation` model accessed via Brand dashboard"""
@@ -166,10 +244,102 @@ class OrganisationEndpoint(BaseEndpoint):
 		return self.list(request, *args, **kwargs)
 
 	def put(self, request, *args, **kwargs):
-		return self.update(request, *args, **kwargs)
+		"""
+		Handle PUT requests to update an Organisation instance.
+		"""
+		partial = kwargs.pop('partial', False)
+		instance = self.get_object(*args, **kwargs)
+
+		serializer = self.get_serializer(instance, data=request.data, partial=partial)
+		try:
+			serializer.is_valid(raise_exception=True)
+		except serializers.ValidationError as e:
+			if isinstance(e.detail, dict):
+				detail = {k: v for k, v in e.detail.items() if k not in ('owner', 'brands', 'members')}
+				if len(detail) > 0:
+					raise serializers.ValidationError(detail=detail)
+		except Exception as e:
+			raise e
+
+		data = serializer.data
+		data = self.get_serializer().validate(data)
+
+		brands = data.pop('brands', None)
+		members = data.pop('members', None)
+
+		instance.__dict__.update(**data)
+		instance.save()
+
+		if isinstance(brands, list):
+			instance.brands.clear()
+
+			brands = Organisation.brands.through.objects.bulk_create([
+				Organisation.brands.through(**({ 'organisation': instance } | obj)) for obj in brands
+			])
+		elif not brands is None:
+			instance.brands.set(brands)
+		else:
+			instance.brands.set([])
+
+		if isinstance(members, list):
+			instance.members.clear()
+
+			members = Organisation.members.through.objects.bulk_create([
+				Organisation.members.through(**({ 'organisation': instance } | obj)) for obj in members
+			])
+		elif not members is None:
+			instance.members.set(members)
+		else:
+			instance.members.set([])
+
+		return Response(self.get_serializer(instance).data)
 
 	def post(self, request, *args, **kwargs):
-		return self.create(request, *args, **kwargs)
+		"""
+		Handle POST requests to create a new Organisation instance.
+		"""
+		serializer = self.get_serializer(data=request.data)
+		try:
+			serializer.is_valid(raise_exception=True)
+		except serializers.ValidationError as e:
+			if isinstance(e.detail, dict):
+				detail = {k: v for k, v in e.detail.items() if k not in ('owner', 'brands', 'members')}
+				if len(detail) > 0:
+					raise serializers.ValidationError(detail=detail)
+		except Exception as e:
+			raise e
+
+		data = serializer.data
+		data = self.get_serializer().validate(data)
+
+		brands = data.pop('brands', None)
+		members = data.pop('members', None)
+
+		instance, created = self.model.objects.get_or_create(**data)
+		if created:
+			if isinstance(brands, list):
+				instance.brands.clear()
+
+				brands = Organisation.brands.through.objects.bulk_create([
+					Organisation.brands.through(**({ 'organisation': instance } | obj)) for obj in brands
+				])
+			elif not brands is None:
+				instance.brands.set(brands)
+			else:
+				instance.brands.set([])
+
+		if isinstance(members, list):
+			instance.members.clear()
+
+			members = Organisation.members.through.objects.bulk_create([
+				Organisation.members.through(**({ 'organisation': instance } | obj)) for obj in members
+			])
+		elif not members is None:
+			instance.members.set(members)
+		else:
+			instance.members.set([])
+
+		return Response(self.get_serializer(instance).data)
 
 	# Override queryset
 	def list(self, request, *args, **kwargs):

@@ -270,11 +270,11 @@ def is_valid_uuid(value):
 
     typed = 'int' if isinstance(value, int) else 'hex'
     try:
-        uuid = uuid.UUID(**{typed: value})
+        uid = uuid.UUID(**{typed: value})
     except ValueError:
         return False
 
-    return getattr(uuid, typed, None) == value
+    return getattr(uid, typed, None) == value
 
 
 def parse_uuid(value, default=None):
@@ -295,11 +295,11 @@ def parse_uuid(value, default=None):
 
     typed = 'int' if isinstance(value, int) else 'hex'
     try:
-        uuid = uuid.UUID(**{typed: value})
+        uid = uuid.UUID(**{typed: value})
     except ValueError:
         return default
 
-    return value if getattr(uuid, typed, None) == value else default
+    return value if getattr(uid, typed, None) == value else default
 
 
 def parse_int(value, default=None):

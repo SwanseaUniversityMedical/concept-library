@@ -347,6 +347,7 @@ export class TableView {
   #fetch(url, opts = {}) {
     const token = this.#props.state.token;
     opts = mergeObjects(
+      isObjectType(opts) ? opts : {},
       {
         method: 'GET',
         credentials: 'same-origin',
@@ -358,7 +359,6 @@ export class TableView {
           'Authorization': `Bearer ${token}`
         },
       },
-      isObjectType(opts) ? opts : {},
       false,
       true
     );
@@ -374,7 +374,7 @@ export class TableView {
    *************************************/
   #initialise(opts) {
     if (!stringHasChars(opts.url)) {
-      throw new Exception('InitError: Failed to resolve TableView target URL');
+      throw new Error('InitError: Failed to resolve TableView target URL');
     }
 
     let element = opts.element;
@@ -385,7 +385,7 @@ export class TableView {
     }
 
     if (!isHtmlObject(element)) {
-      throw new Exception('InitError: Failed to resolve TableView element');
+      throw new Error('InitError: Failed to resolve TableView element');
     }
 
     let templates = opts.templates;

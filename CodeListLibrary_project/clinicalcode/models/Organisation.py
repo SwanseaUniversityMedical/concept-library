@@ -27,7 +27,7 @@ class Organisation(models.Model):
   website = models.URLField(blank=True, null=True)
 
   owner = models.ForeignKey(
-    User, 
+    User,
     on_delete=models.SET_NULL, 
     null=True, 
     default=None, 

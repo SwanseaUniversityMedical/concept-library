@@ -30,6 +30,9 @@ class HDRNCategorySerializer(BaseSerializer):
             # WO
 			'created': { 'write_only': True, 'read_only': False, 'required': False },
 			'modified': { 'write_only': True, 'read_only': False, 'required': False },
+            # WO | RO
+            'description': { 'style': { 'as_type': 'TextField' } },
+            'metadata': { 'help_text': 'Optionally specify a JSON object describing metadata related to this entity.' },
         }
 
 	# GET
@@ -49,6 +52,9 @@ class HDRNCategorySerializer(BaseSerializer):
             return data
         return None
 
+    def resolve_format(self):
+        return { 'type': 'ForeignKey' }
+
     def resolve_options(self):
         return list(self.Meta.model.objects.all().values('name', 'pk'))
 
@@ -61,19 +67,6 @@ class HDRNCategorySerializer(BaseSerializer):
         instance.modified = make_aware(datetime.datetime.now())  # Set `modified` timestamp
         instance.save()
         return instance
-
-	# Instance & Field validation
-    @staticmethod
-    def validate(data):
-        definition = data.get('definition')
-        if not isinstance(definition, dict):
-            raise serializers.ValidationError('Required JSONField `definition` is missing')
-
-        try:
-            json.dumps(definition)
-        except:
-            raise serializers.ValidationError('Template definition is not valid JSON')
-        return data
 
 
 class HDRNCategoryEndpoint(BaseEndpoint):

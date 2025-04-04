@@ -3,19 +3,37 @@
 @import '../../_media';
 @import '../../_utils';
 
-@mixin focusable-item {
-  outline: none;
-  @include prefix(box-shadow, 0 0 2px 2px #51a7e8, webkit moz o);
-}
-
-@mixin dash-border {
-  border-style: solid;
-  border-width: 1px;
-  border-color: $lightest_grey;
-}
+/*************************************
+ *                                   *
+ *               Root                *
+ *                                   *
+ *************************************/
 
 body {
   align-items: center;
+}
+
+
+/*************************************
+ *                                   *
+ *        Components & Utils         *
+ *                                   *
+ *************************************/
+
+.no-select {
+  @include ignore-user();
+}
+
+.visibility-hidden {
+  visibility: hidden;
+}
+
+.fit-w {
+  width: fit-content;
+}
+
+.margin-left-auto {
+  margin-left: auto !important;
 }
 
 %load-skeleton {
@@ -57,6 +75,35 @@ body {
   }
 }
 
+.note-block {
+  display: block;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  border-left: 0.25em solid transparent;
+  border-left-color: $light_mod_lime_green;
+  color: $mostly_black;
+  width: 100%;
+  max-width: 100%;
+
+  &__title {
+    @include flex-row(0.5rem, false);
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    line-height: 1;
+    color: $dark_mod_lime_green;
+  }
+
+  &__message {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0;
+    margin-bottom: 0;
+    text-wrap: wrap;
+  }
+}
+
 [tooltip] {
   --bd-col: rgba(27, 31, 35, 0.15);
 
@@ -85,22 +132,6 @@ body {
   &[direction^="left"]:before {
     border-left-color: var(--bd-col) !important;
   }
-}
-
-.no-select {
-  @include ignore-user();
-}
-
-.visibility-hidden {
-  visibility: hidden;
-}
-
-.fit-w {
-  width: fit-content;
-}
-
-.margin-left-auto {
-  margin-left: auto !important;
 }
 
 .outline-btn {
@@ -169,6 +200,18 @@ body {
       content: '\f15b';
     }
 
+    &-plus:after {
+      content: '\2b';
+    }
+
+    &-folder-plus:after {
+      content: '\f65e'
+    }
+
+    &-user-plus:after {
+      content: '\f234';
+    }
+
     &-save:after {
       content: '\f574';
     }
@@ -176,217 +219,218 @@ body {
     &-cancel:after {
       content: '\f00d';
     }
+
+    &-delete:after {
+      content: '\f1f8';
+    }
+
+    &-user-delete:after {
+      content: '\f235';
+    }
+
+    &-padlock-unlock:after {
+      content: '\f13e';
+    }
   }
 }
 
-.as-icon {
-  display: inline-block;
-  text-align: center;
-  vertical-align: middle;
+.card {
+  @include flex-col(false, true);
+  width: 100%;
+  flex: 1;
+  padding: 20px 20px;
+  overflow: hidden;
+  color: $mostly_black;
+  background-color: $white;
 
-  &:before {
-    content: attr(data-icon);
-    font-size: var(--icons-size);
-    font-style: var(--icons-style);
-    font-family: var(--icons-name);
-    color: inherit;
+  @include apply-border;
+  @include prefix(box-shadow, rgba(99, 99, 99, 0.3) 0px 2px 8px 0px, webkit moz o);
+
+  &--flex-1 {
+    flex: 1;
   }
 
-  &--dark {
-    color: $mostly_black;
+  &__desc {
+    color: $lightblack-grey;
+    margin: 0.25rem 0 1rem 0;
   }
 
-  &--bright {
-    color: $white;
+  &__header { 
+    @include flex-row(false, true);
+    width: 100%;
+    max-width: 100%;
+    align-items: flex-start;
+    justify-content: space-between;
+    vertical-align: middle;
+
+    &:has(> :last-child:nth-child(1)) {
+      justify-content: flex-start;
+    }
+
+    & > h3 {
+      color: $blackish-grey;
+      font-size: 1.2em;
+      margin: 0 0 0.5rem 0
+    }
   }
 
-  &--primary {
-    color: col(accent-primary);
+  &__data {
+    display: flex;
+    flex: 1;
+    width: auto;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 2em;
   }
 
-  &--secondary {
-    color: col(accent-secondary);
-  }
+  &__footer {
+    @include flex-col(false, true);
+    width: 100%;
+    max-width: 100%;
+    overflow: clip;
+    color: $lightblack-grey;
 
-  &--tertiary {
-    color: col(accent-tertiary);
-  }
+    span:not(:last-of-type){
+      margin-right: 1rem;
+    }
 
-  &--washed {
-    color: col(accent-washed);
-  }
+    svg {
+      margin-right: 5px;
+    }
 
-  &--bubble {
-    color: col(accent-bubble);
-  }
-
-  &--highlight {
-    color: col(accent-highlight);
-  }
-
-  &--success {
-    color: col(accent-success);
-  }
-
-  &--danger {
-    color: col(accent-danger);
-  }
-
-  &--warning {
-    color: col(accent-warning);
+    &--action {
+      @include flex-row(0.5rem, false);
+      align-items: center;
+      justify-content: flex-end;
+      padding: 5px 2px;
+    }
   }
 }
 
-.popover-menu {
-  width: fit-content;
-  height: 50px;
-  max-height: 50px;
-  padding: 0 0.5rem;
-  border-radius: 5px;
-  background-color: transparent;
 
-  @include prefix(transition, box-shadow 250ms ease-in-out, webkit moz);
+/*************************************
+ *                                   *
+ *         Field Components          *
+ *                                   *
+ *************************************/
 
-  &:focus-visible {
-    outline: none;
+.selector-component {
+  @include flex-col(0.5rem, true);
+
+  &__header {
+    @include flex-row(0.5rem, false);
+    align-items: center;
+    justify-content: space-between;
+
+    &:has(> :last-child:nth-child(1)) {
+      justify-content: flex-end;
+    }
   }
 
-  & a, button {
-    @include remove-appearance;
-    @include clear-anchor();
-  }
-
-  & a, button {
+  &__content {
     display: block;
-    cursor: pointer;
+    position: relative;
+		width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-height: fit-content;
+    max-height: calc(100% - 100px);
+    overflow: auto;
+    color: inherit;
+    border: 1px solid $dark_grey;
+    border-width: 1px;
+  }
+
+  &__table {
+    display: block;
+    box-sizing: border-box;
+    position: relative;
+    color: inherit;
     width: 100%;
     height: 100%;
-    color: $mostly_black;
-    line-height: 50px;
-    text-align: center;
-    text-decoration: none;
-    background: none;
-    background-color: transparent;
-    border: none;
-    font-size: inherit;
+    min-width: fit-content;
+    min-height: fit-content;
 
-    &:disabled,
-    &[disabled] {
-      cursor: pointer;
-      pointer-events: none;
-      color: $light_grey;
+    tr {
+      display: flex;
+      flex-flow: row nowrap;
+      width: 100%;
+      min-height: max-content;
+      align-items: center;
+      background-color: transparent;
+      overflow: visible;
     }
 
-    &:not(:disabled):not([disabled]):hover,
-    &:not(:disabled):not([disabled]):focus-visible {
-      outline: none;
-      color: $dark_grey;
-
-      & .as-icon {
-        color: $dark_grey;
-      }
-    }
-  }
-
-  &:has(.popover-menu__controls:not(:disabled):not([disabled]):not(:focus-visible):hover) {
-    @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px', webkit moz o);
-  }
-
-  &:has(.popover-menu__controls:not(:disabled):not([disabled]):focus-visible) {
-    @include focusable-item;
-  }
-
-  &__popover {
-    display: block;
-    visibility: hidden;
-    position: absolute;
-    right: 0px;
-    width: fit-content;
-    height: 0px;
-    margin-top: 5px;
-    opacity: 0;
-    z-index: 100;
-
-    @include prefix(transition, all 150ms ease-out, webkit moz);
-
-    &:before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 20px;
-      width: 8px;
-      height: 8px;
-      margin: -4px 0 0 -4px;
-      background-color: $white;
-      transform: rotate(45deg);
-
-      @include prefix(transform, rotate(45deg), webkit moz o);
-      @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.35) 0px 0px 0px 1px', webkit moz o);
-    }
-
-    &-content {
-      @include flex-col(false, true);
-      width: max-content;
-      height: fit-content;
-      max-height: 25vh;
-      padding: 0.5rem 1rem;
-      z-index: 101;
-      overflow-y: auto;
-      background-color: $white;
-
-      @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px', webkit moz o);
-    }
-
-    & a, button {
-      @include ignore-user();
-      pointer-events: none;
+    td {
+      display: block;
+      padding: 5px 10px;
+      min-width: 80px;
       width: fit-content;
-
-      & .as-icon {
-        margin-right: 1rem;
-      }
-  
-      &:not(:disabled):not([disabled]):active {
-        @include prefix(transform, scale(0.95), webkit moz o);
-      }
-    }
-
-    &[aria-hidden="false"],
-    &:not([hidden])[aria-hidden=""] {
-      visibility: visible;
-      height: fit-content;
-      opacity: 1;
-
-      & a, button {
-        pointer-events: auto;
-
-        &:focus-visible {
-          @include focusable-item;
-        }
-      }
-    }
-  }
-
-  &__controls {
-    display: flex !important;
-    flex-flow: row nowrap !important;
-    gap: 0.25rem;
-    align-content: center;
-    justify-content: flex-end;
-
-    & > span {
-      pointer-events: none;
-    }
-
-    &-user {
-      display: inline-block;
+      background-color: transparent;
+      text-wrap: pretty;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 100px;
+      flex: 1;
+    }
+
+    thead {
+      display: block;
+      position: sticky;
+      min-width: fit-content;
+      min-height: max-content;
+      top: 0;
+      z-index: 1;
+      font-weight: 500;
+      text-transform: uppercase;
+      border: 1px solid $dark_grey;
+      border-width: 0 0 1px 0;
+      line-height: 1.2;
+      background-color: $white;
+      overflow: visible;
+
+      tr {
+        top: 0;
+        padding: 10px 0px;
+      }
+    }
+
+    tbody {
+      display: block;
+      min-width: fit-content;
+      min-height: max-content;
+
+      tr:nth-child(even) {
+        background-color: $lightest_grey;
+      }
     }
   }
+
+  &__none-available {
+    display: block;
+    padding: 1rem;
+    border-radius: 0.1rem;
+    margin-bottom: 0.5rem;
+    background-color: col(accent-semi-transparent);
+
+    & > p {
+      text-align: center;
+    }
+  }
+
+  & [data-visible="false"] {
+    display: none;
+  }
 }
+
+
+/*************************************
+ *                                   *
+ *        Dashboard Elements         *
+ *                                   *
+ *************************************/
 
 .dash-search {
   width: 100%;
@@ -524,80 +568,12 @@ body {
   }
 }
 
-.card {
-  @include flex-col(false, true);
-  width: 100%;
-  flex: 1;
-  padding: 20px 20px;
-  overflow: hidden;
-  color: $mostly_black;
-  background-color: $white;
 
-  @include dash-border;
-  @include prefix(box-shadow, rgba(99, 99, 99, 0.3) 0px 2px 8px 0px, webkit moz o);
-
-  &--flex-1 {
-    flex: 1;
-  }
-
-  &__desc {
-    color: $lightblack-grey;
-    margin: 0.25rem 0 1rem 0;
-  }
-
-  &__header { 
-    @include flex-row(false, true);
-    width: 100%;
-    max-width: 100%;
-    align-items: flex-start;
-    justify-content: space-between;
-    vertical-align: middle;
-
-    &:has(> :last-child:nth-child(1)) {
-      justify-content: flex-start;
-    }
-
-    & > h3 {
-      color: $blackish-grey;
-      font-size: 1.2em;
-      margin: 0 0 0.5rem 0
-    }
-  }
-
-  &__data {
-    display: flex;
-    flex: 1;
-    width: auto;
-    height: auto;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-size: 2em;
-  }
-
-  &__footer {
-    @include flex-col(false, true);
-    width: 100%;
-    max-width: 100%;
-    overflow: clip;
-    color: $lightblack-grey;
-
-    span:not(:last-of-type){
-      margin-right: 1rem;
-    }
-
-    svg {
-      margin-right: 5px;
-    }
-
-    &--action {
-      @include flex-row(0.5rem, false);
-      align-items: center;
-      justify-content: flex-end;
-      padding: 5px 2px;
-    }
-  }
-}
+/*************************************
+ *                                   *
+ *          Dashboard Page           *
+ *                                   *
+ *************************************/
 
 .dashboard-layout {
   @include apply-bbox();
@@ -625,7 +601,7 @@ body {
   color: $mostly_black;
   background-color: $white;
 
-  @include dash-border;
+  @include apply-border;
 
   &__header {
     @include flex-row(0.5rem, true);
@@ -750,7 +726,7 @@ body {
 
         &:not(:disabled):not([disabled]):focus-visible {
           color: $near-black;
-          @include focusable-item;
+          @include apply-focusable-item;
         }
       }
     }
@@ -841,9 +817,16 @@ body {
 
     &:not(:disabled):not([disabled]):focus-visible {
       color: $dark_grey;
-      @include focusable-item;
+      @include apply-focusable-item;
     }
   }
+}
+
+.dashboard-entity-form {
+  @include flex-col(0.5rem, true);
+  width: 100%;
+  height: fit-content;
+  max-width: 100%;
 }
 
 .dashboard-view {
@@ -988,7 +971,7 @@ body {
     }
 
     &-form {
-      @include flex-col(0.5rem, true);
+      @include flex-col(1rem, true);
       padding: 0.5rem;
       margin-bottom: 0.5rem;
       max-width: 100%;
