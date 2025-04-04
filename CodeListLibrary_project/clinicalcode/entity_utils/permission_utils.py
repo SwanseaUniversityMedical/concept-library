@@ -1,9 +1,11 @@
 """Permission-related utilities; defines functions to vary content access & render behaviour."""
 from functools import wraps
 from django.db import connection
+from django.http import HttpRequest
 from django.conf import settings
 from rest_framework import status as RestHttpStatus
 from django.db.models import Q, Model
+from rest_framework.request import Request
 from django.core.exceptions import PermissionDenied
 from rest_framework.exceptions import APIException, MethodNotAllowed, NotAuthenticated
 from rest_framework.permissions import BasePermission, SAFE_METHODS
@@ -283,6 +285,28 @@ def is_member(user, group_name):
       Checks if a User instance is a member of a group
     """
     return user.groups.filter(name__iexact=group_name).exists()
+
+def is_requestor_brand_admin(request=None):
+	"""Evaluates a request, the brand context, and the assoc. user (if any) to determine whether the user can access the Brand Administration panel"""
+	if not isinstance(request, (Request, HttpRequest)):
+		return False
+
+	user = request.user if hasattr(request, 'user') and not request.user.is_anonymous else None
+	if user is None:
+		return False
+
+	brand = request.BRAND_OBJECT if hasattr(request, 'BRAND_OBJECT') else None
+	if not isinstance(brand, Brand) or brand.id is None or not brand.is_administrable:
+		return False
+
+	if user.is_superuser:
+		return True
+
+	administrable = user.administered_brands \
+		.filter(id=brand.id, is_administrable=True) \
+		.exists()
+
+	return administrable
 
 def has_member_org_access(user, slug, min_permission):
     """
