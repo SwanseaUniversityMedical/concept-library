@@ -29,6 +29,7 @@ from clinicalcode.entity_utils import email_utils, model_utils
 
 # State
 logger = logging.getLogger(__name__)
+
 UserModel = get_user_model()
 
 
@@ -67,21 +68,32 @@ class AccountPasswordResetForm(PasswordResetForm):
 			request=request
 		)
 
+		user = context.get('user')
+		uname = user.username if user else None
+		logger.info(f'Sending AccPWD Reset, with target: User<name: {uname}, email: {to_email}, req: {request}>')
+
 		if not settings.IS_DEVELOPMENT_PC or settings.HAS_MAILHOG_SERVICE: 
 			try:
 				branded_imgs = email_utils.get_branded_email_images(brand)
 
-				msg = EmailMultiAlternatives(email_subject, email_content, settings.DEFAULT_FROM_EMAIL, [to_email])
+				msg = EmailMultiAlternatives(email_subject, email_content, settings.DEFAULT_FROM_EMAIL, to=[to_email])
 				msg.content_subtype = 'related'
 				msg.attach_alternative(email_content, 'text/html')
 
 				msg.attach(email_utils.attach_image_to_email(branded_imgs.get('apple', 'img/email_images/apple-touch-icon.jpg'), 'mainlogo'))
 				msg.attach(email_utils.attach_image_to_email(branded_imgs.get('logo', 'img/email_images/combine.jpg'), 'sponsors'))
 				msg.send()
-			except Exception:
+			except Exception as e:
+				logger.error(f'AccPWD exception {e}')
 				logger.exception(
 					'Failed to send password reset email to %s', context['user'].pk
 				)
+			else:
+				logger.info(f'Successfully sent AccPWD email with target: User<name: {uname}, email: {to_email}, sub: {email_subject}>')
+				return True
+		else:
+			logger.info(f'[DEMO] Successfully sent AccPWD email with target: User<name: {uname}, email: {to_email}, sub: {email_subject}>')
+			return True
 
 
 # Views

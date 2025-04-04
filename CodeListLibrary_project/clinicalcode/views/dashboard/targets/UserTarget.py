@@ -15,9 +15,13 @@ from django.contrib.auth.tokens import default_token_generator
 
 import re
 import uuid
+import logging
 
 from .BaseTarget import BaseSerializer, BaseEndpoint
 from clinicalcode.entity_utils import constants, gen_utils, model_utils, email_utils, permission_utils
+
+
+logger = logging.getLogger(__name__)
 
 
 User = get_user_model()
@@ -112,6 +116,8 @@ class UserSerializer(BaseSerializer):
 		brand = self._get_brand()
 		email = getattr(user, 'email')
 		username = getattr(user, 'username')
+		logger.info(f'Sending DashPWD Reset, with target: User<name: {username}, email: {email}, req: {request}>')
+
 		if not isinstance(email, str) or gen_utils.is_empty_string(email) or not self.EMAIL_PATTERN.match(email):
 			raise exceptions.APIException(f'Failed to match e-mail pattern for User\'s known e-mail: {email}')
 
@@ -145,9 +151,14 @@ class UserSerializer(BaseSerializer):
 				msg.attach(email_utils.attach_image_to_email(branded_imgs.get('apple', 'img/email_images/apple-touch-icon.jpg'), 'mainlogo'))
 				msg.attach(email_utils.attach_image_to_email(branded_imgs.get('logo', 'img/email_images/combine.jpg'), 'sponsors'))
 				msg.send()
+			except Exception as e:
+				raise exceptions.APIException(f'Failed to send emails to:\n- Targets: {email}\n-Error: {str(e)}')
+			else:
+				logger.info(f'Successfully sent DashPWD email with target: User<name: {username}, email: {email}, sub: {email_subject}>')
 				return True
-			except BadHeaderError as error:
-				raise exceptions.APIException(f'Failed to send emails to:\n- Targets: {email}\n-Error: {str(error)}')
+		else:
+				logger.info(f'[DEMO] Successfully sent DashPWD email with target: User<name: {username}, email: {email}, sub: {email_subject}>')
+				return True
 
 	# POST / PUT
 	def create(self, validated_data):
