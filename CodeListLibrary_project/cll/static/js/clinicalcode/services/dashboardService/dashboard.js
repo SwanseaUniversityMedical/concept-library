@@ -59,6 +59,13 @@ export class DashboardService {
 
   /**
    * @desc
+   * @type {Nullable<object>}
+   * @private
+   */
+  #controller = null;
+
+  /**
+   * @desc
    * @type {Record<string, HTMLElement>}
    * @private
    */
@@ -93,7 +100,7 @@ export class DashboardService {
    *              Public               *
    *                                   *
    *************************************/
-  openPage(page, view = null, target = null) {
+  openPage(page, view = null, target = null, pushState = true) {
     const state = this.#state;
     if (state.page === page && state.view === view && state.target === target && state.initialised) {
       return;
@@ -103,18 +110,22 @@ export class DashboardService {
     switch (page) {
       case 'overview':
         hnd = this.#renderOverview;
+        view = view ?? 'view';
         break;
 
       case 'inventory':
         hnd = this.#renderInventory;
+        view = view ?? 'view';
         break;
 
       case 'brand-config':
         hnd = this.#renderBrand;
+        view = view ?? 'update';
         break;
 
       default:
         hnd = this.#renderModelView;
+        view = view ?? 'list';
         break;
     }
 
@@ -124,16 +135,18 @@ export class DashboardService {
       state.target = target;
       state.initialised = true;
       this.#toggleNavElement(page);
+      if (pushState) {
+        this.#pushDashboardState();
+      }
       hnd.apply(this);
     }
   }
 
   dispose() {
-    const state = this.#state;
-    const controller = state?.controller;
+    const controller = this.#controller;
     if (controller) {
+      this.#controller = null;
       controller.dispose();
-      delete state.controller;
     }
 
     let disposable;
@@ -218,6 +231,68 @@ export class DashboardService {
     return fetch(url, opts);
   }
 
+  #pushDashboardState(parameters = null, useBranded = true) {
+    const state = this.#state;
+    state.view = state.view ?? 'view';
+
+    let { page, view, target } = state;
+    if (parameters instanceof URLSearchParams) {
+      parameters = '?' + parameters;
+    } else if (isObjectType(parameters)) {
+      parameters = '?' + new URLSearchParams(parameters);
+    } else {
+      parameters = '';
+    }
+
+    const host = useBranded ? getBrandedHost() : getCurrentHost();
+    const root = host + '/' + DashboardService.#UrlPath;
+
+    let url;
+    switch (view) {
+      case 'view':
+        url = `${root}/${parameters}#view~${page}`;
+        break;
+
+      case 'list':
+        if (!isRecordType(target)) {
+          url = `${root}/${parameters}#list~${page}`;
+        } else {
+          url = `${root}/${parameters}#list~${page}~${target.type}`;
+        }
+        break;
+
+      case 'create':
+        if (!isRecordType(target)) {
+          url = `${root}/${parameters}#create~${page}`;
+        } else {
+          url = `${root}/${parameters}#create~${page}~${target.type}`;
+        }
+        break;
+
+      case 'update':
+        let kwargs, type;
+        if (isRecordType(target)) {
+          type = !isNullOrUndefined(target.type) ? `~${target.type}` : '';
+          kwargs = !isNullOrUndefined(target.kwargs) ? `@${target.kwargs}` : '';
+        } else {
+          type = '';
+          kwargs = '';
+        }
+
+        if (isNullOrUndefined(kwargs)) {
+          url = `${root}/${parameters}#update~${page}${type}`;
+        } else {
+          url = `${root}/${parameters}#update~${page}${type}${kwargs}`;
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    window.history.pushState({ dashboardRef: state }, null, url);
+  }
+
 
   /*************************************
    *                                   *
@@ -234,11 +309,10 @@ export class DashboardService {
   }
 
   #clearContent() {
-    const state = this.#state;
-    const controller = state.controller;
+    const controller = this.#controller;
     if (controller) {
+      this.#controller = null;
       controller.dispose();
-      delete state.controller;
     }
 
     this.#layout.content.replaceChildren();
@@ -378,7 +452,7 @@ export class DashboardService {
           container: quickAccessContent,
           spinner: spinners?.quickAccess ?? null,
           callback: (key) => {
-            this.openPage('inventory', null, { type: key, labels: assets?.[key]?.details });
+            this.openPage('inventory', 'list', { type: key, labels: assets?.[key]?.details });
           }
         });
         spinners?.quickAccess?.remove?.();
@@ -444,7 +518,7 @@ export class DashboardService {
             this.openPage(type, 'update', trg);
           }
         });
-        state.controller = ctrl;
+        this.#controller = ctrl;
 
         createBtn.addEventListener('click', (e) => {
           this.openPage(type, 'create', null);
@@ -464,7 +538,7 @@ export class DashboardService {
           actionCallback: this.#actionCallback.bind(this),
           completeCallback: this.#completeCallback.bind(this),
         });
-        state.controller = ctrl;
+        this.#controller = ctrl;
 
       } break;
 
@@ -481,7 +555,7 @@ export class DashboardService {
           actionCallback: this.#actionCallback.bind(this),
           completeCallback: this.#completeCallback.bind(this),
         });
-        state.controller = ctrl;
+        this.#controller = ctrl;
 
         break;
 
@@ -533,7 +607,7 @@ export class DashboardService {
       actionCallback: this.#actionCallback.bind(this),
       completeCallback: this.#completeCallback.bind(this),
     });
-    state.controller = ctrl;
+    this.#controller = ctrl;
   }
 
   #renderInventory() {
@@ -579,7 +653,7 @@ export class DashboardService {
             container: content,
             spinner: spinner ?? null,
             callback: (key) => {
-              this.openPage('inventory', null, { type: key, labels: assets?.[key]?.details });
+              this.openPage('inventory', 'list', { type: key, labels: assets?.[key]?.details });
             }
           });
           spinner?.remove?.();
@@ -639,7 +713,7 @@ export class DashboardService {
               this.openPage('inventory', 'update', { type: type, labels: target?.labels, kwargs: trg });
             }
           });
-          state.controller = ctrl;
+          this.#controller = ctrl;
 
           createBtn.addEventListener('click', (e) => {
             this.openPage('inventory', 'create', { type: type, labels: target?.labels });
@@ -658,7 +732,7 @@ export class DashboardService {
             actionCallback: this.#actionCallback.bind(this),
             completeCallback: this.#completeCallback.bind(this),
           });
-          state.controller = ctrl;
+          this.#controller = ctrl;
   
         } break;
   
@@ -674,7 +748,7 @@ export class DashboardService {
             actionCallback: this.#actionCallback.bind(this),
             completeCallback: this.#completeCallback.bind(this),
           });
-          state.controller = ctrl;
+          this.#controller = ctrl;
   
           break;
   
@@ -692,6 +766,16 @@ export class DashboardService {
    *************************************/
   #eventHandler(e) {
 
+  }
+
+  #handleHistory(e) {
+    const ref = !isNullOrUndefined(e.state) ? e.state.dashboardRef : null;
+    if (isNullOrUndefined(ref)) {
+      return;
+    }
+
+    const { page, view, target } = ref;
+    this.openPage(page, view, target, false);
   }
 
   #handleNavigation(e, targetName) {
@@ -852,6 +936,10 @@ export class DashboardService {
     const eventHandler = this.#eventHandler.bind(this);
     element.addEventListener('dashboard', eventHandler, false);
 
+    // Observe hx
+    const hxHnd = this.#handleHistory.bind(this);
+    window.addEventListener('popstate', hxHnd);
+
     // Initialise managers
     this.#disposables.push(
       manageNavigation({
@@ -870,7 +958,7 @@ export class DashboardService {
     );
 
     // Init render
-    this.openPage(this.#state.page);
+    this.openPage(this.#state.page, 'view');
   }
 
   #collectPage() {
