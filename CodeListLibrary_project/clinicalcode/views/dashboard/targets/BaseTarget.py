@@ -1,7 +1,6 @@
 """Brand Dashboard: Base extensible/abstract classes"""
-from django.http import Http404
 from django.http import HttpRequest
-from rest_framework import status, generics, mixins, serializers, fields
+from rest_framework import status, generics, mixins, serializers, exceptions, fields
 from django.db.models import Model
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -208,7 +207,7 @@ class BaseEndpoint(
 	def get_object(self, *args, **kwargs):
 		inst = self.get_queryset().filter(*args, **kwargs)
 		if not inst.exists():
-			raise Http404(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
+			raise exceptions.NotFound(f'A {self.model._meta.model_name} matching the given parameters does not exist.')
 
 		return inst.first()
 

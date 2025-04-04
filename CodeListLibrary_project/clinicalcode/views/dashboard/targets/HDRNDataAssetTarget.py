@@ -3,7 +3,6 @@ import datetime
 from django.utils.timezone import make_aware
 from rest_framework import status, serializers
 from rest_framework.response import Response
-from rest_framework.exceptions import ErrorDetail
 
 from .BaseTarget import BaseEndpoint, BaseSerializer
 from .HDRNSiteTarget import HDRNSiteSerializer
@@ -76,22 +75,30 @@ class HDRNDataAssetSerializer(BaseSerializer):
         # Validate `data_categories` field (should be a list of integers)
         data_categories = data.get('data_categories', [])
         if isinstance(data_categories, list) and not all(isinstance(i, int) for i in data_categories):
-            raise serializers.ValidationError('data_categories must be a list of integers.')
+            raise serializers.ValidationError({
+                'data_categories': 'Data Categories, if provided, must be a list of pk.'
+            })
         elif isinstance(data_categories, list):
             data_categories = HDRNDataCategory.objects.filter(pk__in=data_categories)
             if data_categories is None or not data_categories.exists():
-                raise serializers.ValidationError('Failed to find specified `data_categories`')
+                raise serializers.ValidationError({
+                    'data_categories': 'Failed to find specified `data_categories`'
+                })
             data_categories = list(data_categories.values_list('id', flat=True))
         else:
             data_categories = None
 
         site = data.get('site', None)
         if site is not None and not isinstance(site, int):
-            raise serializers.ValidationError('site must be a `pk` value.')
+            raise serializers.ValidationError({
+                'site': 'Site, if provided, must be a valid `pk` value'
+            })
         elif isinstance(site, int):
             site = HDRNSite.objects.filter(pk=site)
             if site is None or not site.exists():
-                raise serializers.ValidationError('Found no existing object at specified `site` pk.')
+                raise serializers.ValidationError({
+                    'site': 'Found no existing object at specified `site` pk'
+                })
             site = site.first()
         else:
             site = None
@@ -177,5 +184,5 @@ class HDRNDataAssetEndpoint(BaseEndpoint):
         data = serializer.data
         data = self.get_serializer().validate(data)
 
-        instance = self.model.objects.create(**data)
+        instance, _ = self.model.objects.get_or_create(**data)
         return Response(self.get_serializer(instance).data)

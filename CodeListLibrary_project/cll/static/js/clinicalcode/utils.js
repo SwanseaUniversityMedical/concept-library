@@ -550,6 +550,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
           }
         } break;
 
+        case 'data':
         case 'dataset': {
           for (let key in attr) {
             element.dataset[key] = ustrSanitise('value', attr[key]);
@@ -563,7 +564,8 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
         } break;
 
         case 'text':
-        case 'innerText': {
+        case 'innerText':
+        case 'textContent': {
           element.textContent = attr;
         } break;
 
@@ -624,6 +626,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
           }
         } break;
 
+        case 'children': 
         case 'childNodes': {
           if (Array.isArray(attr)) {
             for (let i = 0; i < attr.length; ++i) {

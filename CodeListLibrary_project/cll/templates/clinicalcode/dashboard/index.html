@@ -469,12 +469,14 @@
   </template>
 
   <template data-name="TextField" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <input
         id="field-${key}"
         class="text-input ${cls}"
@@ -494,13 +496,14 @@
   </template>
 
   <template data-name="TextAreaField" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
-
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <textarea
         id="field-${key}"
         class="${cls}"
@@ -521,12 +524,14 @@
   </template>
 
   <template data-name="NumericField" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <input
         id="field-${key}"
         class="text-input ${cls}"
@@ -549,12 +554,14 @@
   </template>
 
   <template data-name="BooleanField" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <div class="checkbox-item-container">
         <input
           id="field-${key}"
@@ -574,12 +581,14 @@
   </template>
 
   <template data-name="ChoiceField" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <select
         id="field-${key}"
         class="selection-input ${cls}"
@@ -594,12 +603,14 @@
   </template>
 
   <template data-name="DateTimeLikeField" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <fieldset class="date-range-field date-range-field--wrapped date-range-field--padding0_5 ${cls}">
         <input
           id="field-${key}"
@@ -616,12 +627,14 @@
   </template>
 
   <template data-name="ForeignKeyField" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <select
         id="field-${key}"
         class="selection-input ${cls}"
@@ -636,12 +649,14 @@
   </template>
 
   <template data-name="MultiForeignKeyField" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <input
         id="field-${key}"
         class="text-input ${cls}"
@@ -698,12 +713,14 @@
   </template>
 
   <template data-name="selector" data-view="form" data-for="dashboard">
-    <div class="detailed-input-group fill">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
         <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
       </h3>
-      <p class="detailed-input-group__description">${help}</p>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
       <section class="selector-component" data-owner="${owner}">
         <header class="selector-component__header" data-identifier="header">
 
@@ -711,7 +728,7 @@
         <div class="selector-component__none-available" data-visible="true" data-identifier="empty">
           <p>${emptyMessage}</p>
         </div>
-        <div class="selector-component__content" data-visible="false" data-identifier="content">
+        <div class="selector-component__content slim-scrollbar" data-visible="false" data-identifier="content">
           <table class="selector-component__table" data-identifier="table">
 
           </table>

@@ -731,10 +731,8 @@ export class DashboardService {
               return console.error(e);
             }
 
-            if (modal.name === ModalFactory.ButtonTypes.REJECT) {
-              if (typeof onReject === 'function') {
-                return;
-              }
+            if (e.name === ModalFactory.ButtonTypes.REJECT) {
+
             }
           });
       } break;

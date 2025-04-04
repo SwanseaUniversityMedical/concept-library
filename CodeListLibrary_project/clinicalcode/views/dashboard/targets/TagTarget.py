@@ -1,9 +1,9 @@
 """Brand Dashboard: API endpoints relating to Template model"""
-import datetime
-
 from rest_framework import status, serializers
 from django.utils.timezone import make_aware
 from rest_framework.response import Response
+
+import datetime
 
 from .BaseTarget import BaseSerializer, BaseEndpoint
 from clinicalcode.models.Tag import Tag
@@ -82,15 +82,21 @@ class TagSerializer(BaseSerializer):
         if isinstance(data_brand, int):
             data_brand = Brand.objects.filter(pk=data_brand)
             if data_brand is None or not data_brand.exists():
-                raise serializers.ValidationError('Invalid Brand')
+                raise serializers.ValidationError({
+                    'collection_brand': 'Invalid Brand'
+                })
             data_brand = data_brand.first()
 
         data.update(collection_brand=data_brand)
 
         if display is not None and display not in dict(self.Meta.model.DISPLAY_CHOICES).keys():
-            raise serializers.ValidationError('Invalid display choice.')
+            raise serializers.ValidationError({
+                'display': 'Invalid display choice.'
+            })
         if tag_type not in dict(self.Meta.model.TAG_TYPES).keys():
-            raise serializers.ValidationError('Invalid Tag Type')
+            raise serializers.ValidationError({
+                'tag_type': 'Invalid Tag Type'
+            })
 
         return data
 

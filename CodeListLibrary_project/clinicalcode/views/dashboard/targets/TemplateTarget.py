@@ -1,11 +1,11 @@
 """Brand Dashboard: API endpoints relating to Template model"""
-import datetime
-import json
-
 from rest_framework import status, serializers
 from django.contrib.auth import get_user_model
 from django.utils.timezone import make_aware
 from rest_framework.response import Response
+
+import json
+import datetime
 
 from .BaseTarget import BaseSerializer, BaseEndpoint
 from .BrandTarget import BrandSerializer
@@ -16,6 +16,14 @@ from clinicalcode.models.EntityClass import EntityClass
 
 
 User = get_user_model()
+
+
+# Const
+TEMPLATE_NOTE_DESC = (
+	'Please note that a Template\'s name, description, version and other metadata are defined by a Template\'s definition.'
+	' These attributes can be specified within a Template\'s definition field, specifically its `template_details` property'
+	' - please see the Template documentation for more information.'
+)
 
 
 class EntityClassSerializer(BaseSerializer):
@@ -53,13 +61,21 @@ class TemplateSerializer(BaseSerializer):
 	"""Responsible for serialising the `Template` model and to handle PUT/POST validation"""
 
 	# Fields
-	brands = BrandSerializer(many=True)
-	entity_class = EntityClassSerializer()
+	brands = BrandSerializer(many=True, help_text='Specifies which Brands can use & interact with this Template and its descendants.')
+	entity_class = EntityClassSerializer(help_text='Specifies how to categorise this Template & determines entity behaviour.')
 
 	# Appearance
 	_str_display = 'name'
 	_list_fields = ['id', 'name', 'template_version']
-	_item_fields = ['id', 'name', 'template_version', 'description', 'brands']
+	_item_fields = ['id', 'definition', 'entity_class', 'brands']
+	_features = {
+		'create': {
+			'note': TEMPLATE_NOTE_DESC
+		},
+		'update': {
+			'note': TEMPLATE_NOTE_DESC
+		},
+	}
 
 	# Metadata
 	class Meta:
@@ -70,13 +86,15 @@ class TemplateSerializer(BaseSerializer):
 			'id': { 'read_only': True, 'required': False },
 			'name': { 'read_only': True, 'required': False },
 			'description': { 'read_only': True, 'required': False },
-			'hide_on_create': { 'write_only': False, 'read_only': True, 'required': False },
 			# WO
 			'created': { 'write_only': True, 'read_only': False, 'required': False },
 			'modified': { 'write_only': True, 'read_only': False, 'required': False },
 			'created_by': { 'write_only': True, 'read_only': False, 'required': False },
 			'updated_by': { 'write_only': True, 'read_only': False, 'required': False },
 			'entity_class': { 'write_only': True, 'read_only': False, 'required': False },
+			# WO | RO
+			'definition': { 'required': True, 'help_text': 'Specifies the fields, datatypes, and features associated with this Template.' },
+			'hide_on_create': { 'required': False, 'help_text': 'Specifies whether to hide this Template from the Create interface.' },
 		}
 
 	# GET
@@ -105,13 +123,17 @@ class TemplateSerializer(BaseSerializer):
 			if isinstance(entity_class, int):
 				entity_class = EntityClass.objects.filter(pk=entity_class)
 				if entity_class is None or not entity_class.exists():
-					raise serializers.ValidationError('Found no existing object at specified `entity_class` pk.')
+					raise serializers.ValidationError({
+						'entity_class': 'Found no existing object at specified `entity_class` pk.'
+					})
 				entity_class = entity_class.first()
 			elif not isinstance(entity_class, EntityClass):
 				entity_class = None
 
 		if entity_class is None:
-				raise serializers.ValidationError('Required `entity_class` field of `pk` type is missing')
+			raise serializers.ValidationError({
+				'entity_class': 'Required `entity_class` field of `pk` type is invalid JSON, or is missing.'
+			})
 
 		if instance is not None:
 			definition = data.get('definition', instance.definition)
@@ -122,15 +144,21 @@ class TemplateSerializer(BaseSerializer):
 			try:
 				definition = json.loads(definition)
 			except:
-				raise serializers.ValidationError('Required JSONField `definition` is invalid')
+				raise serializers.ValidationError({
+					'definition': 'Required JSONField `definition` is invalid'
+				})
 
 		if not isinstance(definition, dict):
-			raise serializers.ValidationError('Required JSONField `definition` is missing')
+			raise serializers.ValidationError({
+				'definition': 'Required JSONField `definition` is missing'
+			})
 
 		try:
 			json.dumps(definition)
 		except:
-			raise serializers.ValidationError('Template definition is not valid JSON')
+			raise serializers.ValidationError({
+				'definition': 'Template definition is not valid JSON'
+			})
 
 		definition = template_utils.get_ordered_definition(definition, clean_fields=True)
 
@@ -138,15 +166,24 @@ class TemplateSerializer(BaseSerializer):
 		template_details = definition.get('template_details')
 		template_sections = definition.get('sections')
 		if not isinstance(template_fields, dict):
-			raise serializers.ValidationError('Template `definition` field requires a `fields` key-value pair of type `dict`')
+			raise serializers.ValidationError({
+				'definition': 'Template `definition` field requires a `fields` key-value pair of type `dict`'
+			})
 		elif not isinstance(template_details, dict):
-			raise serializers.ValidationError('Template `definition` field requires a `template_details` key-value pair of type `dict`')
+			raise serializers.ValidationError({
+				'definition': 'Template `definition` field requires a `template_details` key-value pair of type `dict`'
+			})
+			raise serializers.ValidationError()
 		elif not isinstance(template_sections, list):
-			raise serializers.ValidationError('Template `definition` field requires a `sections` key-value pair of type `list`')
+			raise serializers.ValidationError({
+				'definition': 'Template `definition` field requires a `sections` key-value pair of type `list`'
+			})
 
 		name = template_details.get('name')
 		if not isinstance(name, str) or gen_utils.is_empty_string(name):
-			raise serializers.ValidationError('Template requires that the `definition->template_details.name` field be a non-empty string')
+			raise serializers.ValidationError({
+				'definition': 'Template requires that the `definition->template_details.name` field be a non-empty string'
+			})
 
 		brands = data.get('brands')
 		if isinstance(brands, Brand):
@@ -263,5 +300,5 @@ class TemplateEndpoint(BaseEndpoint):
 		data = serializer.data
 		data = self.get_serializer().validate(data)
 
-		instance = self.model.objects.create(**data)
+		instance, _ = self.model.objects.get_or_create(**data)
 		return Response(self.get_serializer(instance).data)

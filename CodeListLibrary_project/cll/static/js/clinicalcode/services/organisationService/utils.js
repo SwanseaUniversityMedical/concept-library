@@ -23,7 +23,7 @@ export const confirmationPrompt = ({
         return console.error(e);
       }
   
-      if (modal.name === ModalFactory.ButtonTypes.REJECT) {
+      if (e.name === ModalFactory.ButtonTypes.REJECT) {
         if (typeof onReject === 'function') {
           return onReject();
         }

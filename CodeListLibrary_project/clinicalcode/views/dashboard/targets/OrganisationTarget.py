@@ -1,4 +1,5 @@
 """Brand Dashboard: API endpoints relating to Organisation model"""
+from django.db import transaction
 from rest_framework import status, serializers
 from django.db.models import Q, F
 from django.contrib.auth import get_user_model
@@ -116,9 +117,30 @@ class OrganisationSerializer(BaseSerializer):
 	"""Responsible for serialising the `Organisation` model and to handle PUT/POST validation"""
 
 	# Fields
-	owner = UserSerializer(many=False)
-	brands = OrganisationAuthoritySerializer(source='organisationauthority_set', many=True)
-	members = OrganisationMembershipSerializer(source='organisationmembership_set', many=True)
+	owner = UserSerializer(
+		required=True,
+		many=False,
+		help_text=(
+			'The owner of an organisation is automatically given administrative privileges '
+			'within an Organisation and does not need to be included as a Member.'
+		)
+	)
+	brands = OrganisationAuthoritySerializer(
+		source='organisationauthority_set',
+		many=True,
+		help_text=(
+			'Specifies the visibility & the control this Organisation has on different Brands.'
+		)
+	)
+	members = OrganisationMembershipSerializer(
+		source='organisationmembership_set',
+		many=True,
+		help_text=(
+			'Describes a set of users associated with this Organisation and the role they play within it. '
+			'Note that the owner of an Organisation does not need to be included as a member of an Organisation, '
+			'they are automatically assigned an Administrative role.'
+		)
+	)
 
 	# Appearance
 	_str_display = 'name'
@@ -139,6 +161,9 @@ class OrganisationSerializer(BaseSerializer):
 			'slug': { 'read_only': True, 'required': False },
 			# WO
 			'created': { 'write_only': True, 'required': False },
+			# WO | RO
+			'email': { 'help_text': 'Specifies this Organisation\'s e-mail address (optional).'},
+			'website': { 'help_text': 'Specifies this Organisation\'s website (optional).'},
 		}
 
 	# Instance & Field validation
@@ -152,9 +177,8 @@ class OrganisationSerializer(BaseSerializer):
 		Returns:
 				dict: The validated data.
 		"""
-		current_user = self._get_user()
-		current_brand = self._get_brand()
 		instance = getattr(self, 'instance') if hasattr(self, 'instance') else None
+		current_brand = self._get_brand()
 
 		prev_brands = instance.admins.all() if instance is not None else OrganisationAuthority.objects.none()
 		prev_members = instance.members.all() if instance is not None else OrganisationMembership.objects.none()
@@ -204,7 +228,9 @@ class OrganisationSerializer(BaseSerializer):
 				owner = owner.first()
 
 		if not isinstance(owner, User):
-			raise serializers.ValidationError('The `owner` field is non-nullable')
+			raise serializers.ValidationError({
+					'owner': 'The `owner` field must be supplied.'
+			})
 
 		data.update({
 			'owner': owner,
@@ -261,38 +287,42 @@ class OrganisationEndpoint(BaseEndpoint):
 		except Exception as e:
 			raise e
 
-		data = serializer.data
-		data = self.get_serializer().validate(data)
+		try:
+			data = serializer.data
+			data = self.get_serializer().validate(data)
 
-		brands = data.pop('brands', None)
-		members = data.pop('members', None)
+			brands = data.pop('brands', None)
+			members = data.pop('members', None)
 
-		instance.__dict__.update(**data)
-		instance.save()
+			with transaction.atomic():
+				instance.__dict__.update(**data)
+				instance.save()
 
-		if isinstance(brands, list):
-			instance.brands.clear()
+				if isinstance(brands, list):
+					instance.brands.clear()
 
-			brands = Organisation.brands.through.objects.bulk_create([
-				Organisation.brands.through(**({ 'organisation': instance } | obj)) for obj in brands
-			])
-		elif not brands is None:
-			instance.brands.set(brands)
+					brands = Organisation.brands.through.objects.bulk_create([
+						Organisation.brands.through(**({ 'organisation': instance } | obj)) for obj in brands
+					])
+				elif not brands is None:
+					instance.brands.set(brands)
+				else:
+					instance.brands.set([])
+
+				if isinstance(members, list):
+					instance.members.clear()
+
+					members = Organisation.members.through.objects.bulk_create([
+						Organisation.members.through(**({ 'organisation': instance } | obj)) for obj in members
+					])
+				elif not members is None:
+					instance.members.set(members)
+				else:
+					instance.members.set([])
+		except Exception as e:
+			raise e
 		else:
-			instance.brands.set([])
-
-		if isinstance(members, list):
-			instance.members.clear()
-
-			members = Organisation.members.through.objects.bulk_create([
-				Organisation.members.through(**({ 'organisation': instance } | obj)) for obj in members
-			])
-		elif not members is None:
-			instance.members.set(members)
-		else:
-			instance.members.set([])
-
-		return Response(self.get_serializer(instance).data)
+			return Response(self.get_serializer(instance).data)
 
 	def post(self, request, *args, **kwargs):
 		"""
@@ -309,37 +339,41 @@ class OrganisationEndpoint(BaseEndpoint):
 		except Exception as e:
 			raise e
 
-		data = serializer.data
-		data = self.get_serializer().validate(data)
+		try:
+			data = serializer.data
+			data = self.get_serializer().validate(data)
 
-		brands = data.pop('brands', None)
-		members = data.pop('members', None)
+			brands = data.pop('brands', None)
+			members = data.pop('members', None)
 
-		instance, created = self.model.objects.get_or_create(**data)
-		if created:
-			if isinstance(brands, list):
-				instance.brands.clear()
+			with transaction.atomic():
+				instance, created = self.model.objects.get_or_create(**data)
+				if created:
+					if isinstance(brands, list):
+						instance.brands.clear()
 
-				brands = Organisation.brands.through.objects.bulk_create([
-					Organisation.brands.through(**({ 'organisation': instance } | obj)) for obj in brands
-				])
-			elif not brands is None:
-				instance.brands.set(brands)
-			else:
-				instance.brands.set([])
+						brands = Organisation.brands.through.objects.bulk_create([
+							Organisation.brands.through(**({ 'organisation': instance } | obj)) for obj in brands
+						])
+					elif not brands is None:
+						instance.brands.set(brands)
+					else:
+						instance.brands.set([])
 
-		if isinstance(members, list):
-			instance.members.clear()
+				if isinstance(members, list):
+					instance.members.clear()
 
-			members = Organisation.members.through.objects.bulk_create([
-				Organisation.members.through(**({ 'organisation': instance } | obj)) for obj in members
-			])
-		elif not members is None:
-			instance.members.set(members)
+					members = Organisation.members.through.objects.bulk_create([
+						Organisation.members.through(**({ 'organisation': instance } | obj)) for obj in members
+					])
+				elif not members is None:
+					instance.members.set(members)
+				else:
+					instance.members.set([])
+		except Exception as e:
+			raise e
 		else:
-			instance.members.set([])
-
-		return Response(self.get_serializer(instance).data)
+			return Response(self.get_serializer(instance).data)
 
 	# Override queryset
 	def list(self, request, *args, **kwargs):

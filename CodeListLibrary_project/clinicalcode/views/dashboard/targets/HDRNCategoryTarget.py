@@ -1,9 +1,7 @@
 """Brand Dashboard: API endpoints relating to Template model"""
 import datetime
-import json
 
-from django.http import Http404
-from rest_framework import status, serializers
+from rest_framework import status
 from django.utils.timezone import make_aware
 from rest_framework.response import Response
 

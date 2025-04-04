@@ -113,7 +113,7 @@ class UserSerializer(BaseSerializer):
 		email = getattr(user, 'email')
 		username = getattr(user, 'username')
 		if not isinstance(email, str) or gen_utils.is_empty_string(email) or not self.EMAIL_PATTERN.match(email):
-			raise serializers.ValidationError(f'Failed to match e-mail pattern for User\'s known e-mail: {email}')
+			raise exceptions.APIException(f'Failed to match e-mail pattern for User\'s known e-mail: {email}')
 
 		user_pk_bytes = force_bytes(User._meta.pk.value_to_string(user))
 		brand_title = model_utils.try_get_brand_string(brand, 'site_title', default='Concept Library')

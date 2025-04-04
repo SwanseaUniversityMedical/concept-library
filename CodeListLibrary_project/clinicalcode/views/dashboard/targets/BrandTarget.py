@@ -1,10 +1,10 @@
 """Brand Dashboard: API endpoints relating to Template model"""
-import datetime
-
 from rest_framework import status, serializers
 from django.contrib.auth import get_user_model
 from django.utils.timezone import make_aware
 from rest_framework.response import Response
+
+import datetime
 
 from .UserTarget import UserSerializer
 from .BaseTarget import BaseSerializer, BaseEndpoint
@@ -23,7 +23,13 @@ class BrandSerializer(BaseSerializer):
     """
 
     # Fields
-    admins = UserSerializer(many=True)
+    admins = UserSerializer(
+        many=True,
+        help_text=(
+            'Specifies a set of Users to be designated as administrators, this grants each '
+            'of them access to this dashboard.'
+        )
+    )
 
     # Appearance
     _str_display = 'name'

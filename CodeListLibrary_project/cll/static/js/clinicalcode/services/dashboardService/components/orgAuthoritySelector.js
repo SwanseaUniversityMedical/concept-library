@@ -401,6 +401,7 @@ export class OrgAuthoritySelector {
     const layout = this.#layout;
     composeTemplate(templates.form.selector, {
       params: {
+        key: field.key,
         cls: '',
         help: field.help ?? '',
         title: field.label ?? 'Brand Authority',

@@ -1,14 +1,13 @@
-'''
+"""
     URL Configuration for the Clinical-Code application.
 
     Pages appear as Working-sets, Concepts and Components within a Concept.
-'''
+"""
 
 from django.conf import settings
 from django.urls import re_path as url
 from django.views.generic.base import RedirectView
 
-from CodeListLibrary_project.clinicalcode.views.dashboard.targets import HDRNDataAssetTarget
 from clinicalcode.views.dashboard import BrandAdmin
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
 
@@ -19,7 +18,7 @@ from clinicalcode.views import (
 
 from clinicalcode.views.dashboard.targets import (
   BrandTarget, UserTarget, OrganisationTarget, TemplateTarget,
-  TagTarget, HDRNSiteTarget, HDRNCategoryTarget
+  TagTarget, HDRNSiteTarget, HDRNCategoryTarget, HDRNDataAssetTarget
 )
 
 

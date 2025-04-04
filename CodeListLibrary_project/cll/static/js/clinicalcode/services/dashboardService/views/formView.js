@@ -309,13 +309,13 @@ export class FormView {
     for (const key in features) {
       switch (key) {
         case 'note': {
-          const elem = createElement('div', {
+          createElement('div', {
             className: 'note-block',
             childNodes: [
               createElement('div', {
                 className: 'note-block__title',
                 childNodes: [
-                  '<span class="as-icon" data-icon="&#xf06a;" aria-hidden="true"></span>',
+                  '<span class="as-icon" data-icon="&#xf0eb;" aria-hidden="true"></span>',
                   createElement('p', { innerText: 'Note' }),
                 ],
               }),
@@ -923,18 +923,156 @@ export class FormView {
       }
 
       this.#submitForm(submissionData)
-        .then(r => r.json())
-        .then(r => {
-          // callback?
-          console.log(r);
+        .then(async response => {
+          let message;
+          if (response.ok) {
+            return await response.json();
+          }
+
+          const headers = response.headers;
+          if (headers.get('content-type').search('json')) {
+            try {
+              const result = await response.json();
+              if (!isRecordType(result)) {
+                throw new Error(`Not parseable, expected Record-like response on Res<code: ${response.status}> but got '${typeof result}'`);
+              }
+
+              if (response.status === 400) {
+                this.#renderValidationErrors(result);
+                message = `[${response.status}]: Please fix the errors on the form.`;
+              } else if (!isNullOrUndefined(result.detail)) {
+                if (typeof result.detail === 'string' && stringHasChars(result.detail)) {
+                  message = `[${response.status}]: ${result.detail}`;
+                } else if (Array.isArray(result.detail)) {
+                  message = result.detail.filter(x => stringHasChars(x)).join(', ');
+                  message = `[${response.status}]: ${message}`;
+                }
+              } else {
+                throw new Error(`Not parseable, expected 'detail' element on Res<code: ${response.status}>`);
+              }
+            } catch (e) {
+              console.warn(`[FormView] Failed to resolve response\'s json with err:\n\t-${e}\n`);
+            }
+          }
+
+          if (isNullOrUndefined(message)) {
+            message = `[${response.status}] ${response.statusText}`;
+          }
+
+          const err = new Error(message);
+          // err callback?
+
+          throw err;
+        })
+        .then(res => {
+          this.#renderValidationErrors();
+
+          // succ callback?
+
         })
         .catch(e => {
-          // callback?
-          console.error(e)
+          console.error('[ERROR]', e);
+
+          window.ToastFactory.push({
+            type: 'error',
+            message: e instanceof Error ? e.message : String(e),
+            duration: 4000,
+          });
         });
     };
 
     btn.addEventListener('click', submitHnd);
+  }
+
+  #renderValidationErrors(errors) {
+    const dashForm = this.#layout.dashForm;
+    if (!dashForm) {
+      return;
+    }
+
+    const keys = isRecordType(errors) ? [...Object.keys(errors)] : [];
+    if (keys.length < 1) {
+      const errs = dashForm.querySelectorAll('[data-ref="validation"]');
+      for (let i = 0; i < errs.length; ++i) {
+        errs[i].remove();
+      }
+
+      return;
+    }
+
+    const allowed = [];
+    for (let i = 0; i < keys.length; ++i) {
+      const key = keys[i];
+
+      const component = dashForm.querySelector(`[data-fieldset="${key}"]`);
+      const descriptor = dashForm.querySelector(`[data-fieldset="${key}"] p[data-ref="help"]`);
+      if (isNullOrUndefined(component)) {
+        continue;
+      }
+
+      let errorMessages = errors[key];
+      if (typeof errorMessages === 'string' && stringHasChars(errorMessages)) {
+        errorMessages = [errorMessages];
+      }
+
+      if (!Array.isArray(errorMessages) || errorMessages.length < 1) {
+        continue;
+      }
+
+      let elements;
+      for (let j = 0; j < errorMessages.length; ++j) {
+        const msg = errorMessages[j];
+        if (typeof msg !== 'string' || !stringHasChars(msg)) {
+          continue;
+        }
+
+        if (!elements) {
+          elements = [];
+        }
+
+        elements.push(createElement('p', { innerText: msg }));
+      }
+
+      if (!Array.isArray(elements) || elements.length < 1) {
+        continue;
+      }
+
+      let validation = component.querySelector(`[data-ref="validation"]`);
+      if (isNullOrUndefined(validation)) {
+        validation = createElement('div', {
+          data: { ref: 'validation' },
+          childNodes: [
+            createElement('div', {
+              className: 'validation__title',
+              childNodes: [
+                '<span class="as-icon" data-icon="&#xf06a;" aria-hidden="true"></span>',
+                createElement('p', { innerText: 'Error:' }),
+              ],
+            }),
+            ...elements
+          ],
+        });
+
+        if (!isNullOrUndefined(descriptor)) {
+          descriptor.after(validation);
+        } else {
+          descriptor.after(component.firstChild);
+        }
+      } else {
+        clearAllChildren(validation);
+        for (let j = 0; j < elements.length; ++j) {
+          validation.appendChild(elements[j]);
+        }
+      }
+      allowed.push(validation);
+    }
+
+    dashForm.querySelectorAll(`[data-ref="validation"]`)
+      .forEach(x => {
+        if (!allowed.includes(x)) {
+          x.remove();
+        }
+      });
   }
 
   #renderComponent(field) {
