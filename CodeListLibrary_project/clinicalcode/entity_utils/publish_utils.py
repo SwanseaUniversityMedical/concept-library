@@ -135,7 +135,6 @@ def check_entity_to_publish(request, pk, entity_history_id):
     
     organisation_checks = check_organisation_authorities(request,entity)
 
-    
     checks = {
         'entity_type': entity_class,
         'name': entity_ver.name,
@@ -156,20 +155,26 @@ def check_entity_to_publish(request, pk, entity_history_id):
     } 
 
     checks |= organisation_checks
-    print(checks)
     return checks
 
-def check_organisation_authorities(request,entity):
+def check_organisation_authorities(request, entity):
     organisation_checks = {}
 
-    organisation = entity.organisation
+    try:
+        organisation = entity.organisation
+    except Organisation.DoesNotExist:
+        organisation = None
 
     if organisation:
         organisation_permissions = permission_utils.has_org_authority(request,organisation)
         organisation_user_role = permission_utils.get_organisation_role(request.user,organisation)
     else:
+        brand = model_utils.try_get_brand(request)
+        if brand is not None:
+            organisation_checks['org_user_managed'] = brand.org_user_managed
+            organisation_checks['allowed_to_publish'] = not brand.org_user_managed
         return organisation_checks
-     
+
     if isinstance(organisation_permissions,dict) and organisation_user_role is not None:
         if organisation_permissions['org_user_managed']:
              #Todo Fix the bug if moderator has 2 groups unless has to organisations and check if it from the same org 

@@ -339,7 +339,11 @@ def has_member_access(user, entity, min_permission):
         membership. Min_permissions relates to the organisation role, e.g.
         min_permission=1 means the user has to be an editor or above.
     """
-    org = entity.organisation
+    try:
+        org = entity.organisation
+    except Organisation.DoesNotExist:
+        org = None
+
     if org:
         if org.owner == user:
             return True
@@ -352,77 +356,58 @@ def has_member_access(user, entity, min_permission):
     return False
 
 def get_organisation_role(user, organisation):
-    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
+    if organisation.owner == user:
+        return ORGANISATION_ROLES.ADMIN
 
+    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
     if org_membership is None:
         return None
 
-    match org_membership.role:
-        case ORGANISATION_ROLES.ADMIN:
-            return ORGANISATION_ROLES.ADMIN
-        case ORGANISATION_ROLES.MODERATOR:
-            return ORGANISATION_ROLES.MODERATOR
-        case ORGANISATION_ROLES.EDITOR:
-            return ORGANISATION_ROLES.EDITOR
-        case ORGANISATION_ROLES.MEMBER:
-            return ORGANISATION_ROLES.MEMBER
-        case _:
-            return -1
+    if org_membership.role in ORGANISATION_ROLES:
+        return ORGANISATION_ROLES(org_membership.role)
+    return -1
 
 def has_org_member(user, organisation):
+    if organisation.owner == user:
+        return True
+
     org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
     return org_membership is not None and org_membership.role in ORGANISATION_ROLES
 
-def has_org_authority(request,organisation):
-    if has_org_member(request.user,organisation):
-        authorities = list(OrganisationAuthority.objects.filter(organisation_id=organisation.id).values('can_post','can_moderate','brand_id'))
+def has_org_authority(request, organisation):
+    if not has_org_member(request.user, organisation):
+        return False
+
+    brand = model_utils.try_get_brand(request)
+    authorities = list(OrganisationAuthority.objects.filter(organisation_id=organisation.id).values('can_post','can_moderate','brand_id'))
+    requested_authority = None
+    if brand is not None:
+        requested_authority = next(
+            ({**authority, 'org_user_managed': brand.org_user_managed} for authority in authorities if brand.id == authority['brand_id']),
+            None
+        )
+
+    if requested_authority is None:
+        return {'org_user_managed': False, 'can_moderate': False, 'can_post': False}
+    return requested_authority
+
+def get_organisation(request, entity_id=None, default=None):
+    if entity_id is None:
+        return None
+
+    entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
+    try:
+        org = entity.organisation
+    except Organisation.DoesNotExist:
+        org = default
+    return org
+
+def is_org_managed(request, brand_id=None):
+    if brand_id is not None:
+        brand = model_utils.try_get_instance(Brand, id=brand_id)
+    else:
         brand = model_utils.try_get_brand(request)
-        
-        requested_authority = {}
-        if brand:
-          requested_authority = next(({**authority,'org_user_managed': brand.org_user_managed} 
-                                      for authority in authorities if brand.id == authority['brand_id']),{'org_user_managed': False, 'can_moderate': False, 'can_post': False})
-        else:
-            requested_authority['org_user_managed'] = False
-            requested_authority['can_moderate'] = False
-            requested_authority['can_post'] = False
-            
-        return requested_authority
-    else:
-        return False
-
-
-def get_organisation(request,entity_id=None):
-    brand = model_utils.try_get_brand(request)
-
-    entity = model_utils.try_get_instance(GenericEntity,id=entity_id)
-    if entity:
-        return entity.organisation
-    else:
-        if brand:
-          organisation = model_utils.try_get_instance(Organisation,slug=brand.name.lower())
-          if organisation:
-              return organisation
-          else:
-              return None
-    
-     
-        
-def is_org_managed(request,brand_id=None):
-    
-    brand = model_utils.try_get_brand(request)
-    
-    if brand_id:
-        brand = model_utils.try_get_instance(Brand,id=brand_id)
-
-    if brand:
-        return brand.org_user_managed
-    else:
-        return False
-
-
-
-          
+    return brand.org_user_managed if brand is not None else False
 
 def is_publish_status(entity, status):
     """
@@ -1579,6 +1564,25 @@ def check_brand_access(request, is_published, entity_id, entity_history_id=None)
         return is_brand_accessible(request, entity_id, entity_history_id)
     return True
 
+def can_user_create_entities(request):
+    """
+      Checks whether a user can create entities with its request's Brand context
+
+      Args:
+        request (RequestContext): the HTTPRequest
+
+      Returns:
+        A boolean value reflecting whether the user is able to create entities
+    """
+    current_brand = model_utils.try_get_brand(request)
+    if current_brand is None or not current_brand.org_user_managed:
+        return True
+
+    user_orgs = get_user_organisations(request)
+    if len(user_orgs) < 1:
+        return False
+    return True
+
 def can_user_edit_entity(request, entity_id, entity_history_id=None):
     """
       Checks whether a user has the permissions to modify an entity
@@ -1618,17 +1622,6 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     if is_allowed_to_edit:
         if not is_brand_accessible(request, entity_id):
             is_allowed_to_edit = False
-
-    organisation = get_organisation(request)
-    if organisation:
-        organisation_permissions = has_org_authority(request, organisation)
-        
-        if isinstance(organisation_permissions, dict) and organisation_permissions.get('org_user_managed'):
-            if get_organisation_role(user, organisation) != ORGANISATION_ROLES.MEMBER:
-                is_allowed_to_edit = True
-            else:
-                is_allowed_to_edit = False
-
 
     return is_allowed_to_edit
 

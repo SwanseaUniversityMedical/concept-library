@@ -17,6 +17,7 @@ from ..models.Template import Template
 from ..models.Component import Component
 from ..models.EntityClass import EntityClass
 from ..models.CodingSystem import CodingSystem
+from ..models.Organisation import Organisation
 from ..models.GenericEntity import GenericEntity
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 
@@ -1338,7 +1339,10 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
 
                 org = metadata.get('organisation')
                 if not org and permission_utils.has_derived_edit_access(request, entity.id):
-                    org = entity.organisation
+                    try:
+                        org = entity.organisation
+                    except Organisation.DoesNotExist:
+                        org = None
 
                 entity.name = metadata.get('name')
                 entity.status = constants.ENTITY_STATUS.DRAFT

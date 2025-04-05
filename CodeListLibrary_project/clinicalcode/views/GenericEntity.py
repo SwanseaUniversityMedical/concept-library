@@ -188,12 +188,6 @@ class CreateEntityView(TemplateView):
     @method_decorator([login_required, permission_utils.redirect_readonly])
     def dispatch(self, request, *args, **kwargs):
         """Dispatch view"""
-        current_brand = model_utils.try_get_brand(request)
-        if current_brand and current_brand.org_user_managed:
-            user_orgs = permission_utils.get_user_organisations(request)
-            if len(user_orgs) < 1:
-                raise PermissionDenied
-
         return super(CreateEntityView, self).dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
@@ -273,6 +267,9 @@ class CreateEntityView(TemplateView):
         template_id = kwargs.get('template_id')
         entity_id = kwargs.get('entity_id')
         if template_id is None and entity_id is None:
+            if not permission_utils.can_user_create_entities(request):
+                raise PermissionDenied
+
             return self.select_form(request, context)
 
         # Send to create form if template_id is selected
@@ -281,6 +278,10 @@ class CreateEntityView(TemplateView):
             template = model_utils.try_get_instance(Template, pk=template_id)
             if template is None or template.hide_on_create:
                 raise Http404
+
+            if not permission_utils.can_user_create_entities(request):
+                raise PermissionDenied
+
             return self.create_form(request, context, template)
 
         # Send to update form if entity_id is selected
@@ -289,11 +290,11 @@ class CreateEntityView(TemplateView):
             entity = create_utils.try_validate_entity(request, entity_id, entity_history_id)
             if not entity:
                 raise Http404
-            
+
             template = entity.template
             if template is None:
                 raise Http404
-            
+
             return self.update_form(request, context, template, entity)
         
         # Raise 400 if no param matches views
