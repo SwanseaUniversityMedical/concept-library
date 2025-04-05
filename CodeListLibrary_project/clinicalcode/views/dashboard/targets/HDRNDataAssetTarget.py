@@ -162,6 +162,7 @@ class HDRNDataAssetEndpoint(BaseEndpoint):
         data = serializer.data
         data = self.get_serializer().validate(data)
         instance.__dict__.update(**data)
+        instance.site = data.get('site')
         instance.save()
 
         return Response(self.get_serializer(instance).data)

@@ -229,6 +229,7 @@ export class OrgMemberSelector {
       rootNode: layout.autocomplete.container,
       inputNode: layout.autocomplete.input,
       resultsNode: layout.autocomplete.results,
+      shouldAutoSelect: false,
       searchFn: (input) => {
         if (input.length < 1) {
           return [];
@@ -251,7 +252,6 @@ export class OrgMemberSelector {
           })
           .map(x => x.item);
       },
-      shouldAutoSelect: true,
     });
 
     this.#disposables.push(() => autocomplete.dispose());

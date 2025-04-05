@@ -277,6 +277,7 @@ class TemplateEndpoint(BaseEndpoint):
 		data = serializer.data
 		data = self.get_serializer().validate(data)
 		instance.__dict__.update(**data)
+		instance.entity_class = data.get('entity_class')
 		instance.save()
 
 		return Response(self.get_serializer(instance).data)
