@@ -336,7 +336,7 @@ def request_started_watchdog(sender, *args, **kwargs):
 		'url': path,
 		'method': info.get('method'),
 		'query_string': info.get('query_string'),
-		'user_id': getattr(user, 'id', None),
+		'user_id': getattr(user, 'id', None) if user is not None else None,
 		'remote_ip': info.get('remote_ip'),
 		'datetime': timezone.now(),
 	})
