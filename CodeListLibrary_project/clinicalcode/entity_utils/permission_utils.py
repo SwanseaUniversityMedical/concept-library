@@ -201,6 +201,50 @@ class IsReadOnlyOrNotGateway(BasePermission):
 
 		return True
 
+class IsNotGateway(BasePermission):
+	"""
+		Ensures that a request is either not being made from a TRE read-only site.
+
+		.. Note::
+			- TRE read-only sites are declared as such by the deployment environment variables.
+
+		Raises:
+			MethodNotAllowed (405)
+
+		Example:
+			```py
+			from rest_framework.views import APIView
+			from rest_framework.response import Response
+			from rest_framework.decorators import decorators
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@schema(None)
+			class SomeEndpoint(APIView):
+				permission_classes = [permission_utils.IsNotGateway]
+
+				def get(self, request):
+					return Response({ 'message': 'Hello, world!' })
+			```
+	"""
+	ERR_STATUS_CODE = RestHttpStatus.HTTP_405_METHOD_NOT_ALLOWED
+	ERR_REQUEST_MSG = (
+		'Method Not Allowed: ' + \
+		'Not accessible from the TRE ReadOnly site, ' + \
+        'request of type `%s` is not allowed.'
+	)
+
+	def has_permission(self, request, view):
+		method = request.method
+		if settings.CLL_READ_ONLY:
+			raise MethodNotAllowed(
+				method=method,
+				detail=self.ERR_REQUEST_MSG % method,
+				code=self.ERR_STATUS_CODE
+			)
+
+		return True
+
 class IsBrandAdmin(BasePermission):
 	"""
 		Ensures that the request user is authorised as a Brand Administrator for the request's Brand context.

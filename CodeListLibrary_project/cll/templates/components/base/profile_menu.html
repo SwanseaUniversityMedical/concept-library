@@ -30,7 +30,7 @@
               <div class="item-dropdown__title">Analytics</div> 
             </a>
           {% endif %}
-          {% if IS_BRAND_ADMIN %}
+          {% if IS_BRAND_ADMIN and not CLL_READ_ONLY %}
             <!--Dashboard-->
             <a href="{% url 'brand_dashboard' %}" target=_blank class="item-dropdown">
               <div class="item-dropdown__icon profile-row--stylised-icon" id="admin_icon">

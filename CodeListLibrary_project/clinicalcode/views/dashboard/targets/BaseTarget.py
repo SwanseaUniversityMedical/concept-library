@@ -147,7 +147,7 @@ class BaseEndpoint(
 	filter = None
 
 	# View behaviour
-	permission_classes = [permission_utils.IsBrandAdmin]
+	permission_classes = [permission_utils.IsBrandAdmin & permission_utils.IsNotGateway]
 
 	# Exclude endpoint(s) from swagger
 	swagger_schema = None
