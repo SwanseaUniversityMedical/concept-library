@@ -29,7 +29,7 @@ domReady.finally(() => {
   document.addEventListener('keydown', e => {
     const elem = document.activeElement;
     const code = e.keyIdentifier || e.which || e.keyCode;
-    if (code !== CL_ACCESSIBILITY_KEYS.ENTER) {
+    if (code !== CL_ACCESSIBILITY_KEYS.ENTER || elem.disabled) {
       return;
     }
 
@@ -37,14 +37,14 @@ domReady.finally(() => {
       elem.click();
     } else if (elem.matches('[role="dropdown"]')) {
       const radio = elem.querySelector('input[type="radio"]');
-      if (radio) {
+      if (radio && !radio.disabled) {
         radio.checked = !radio.checked;
       }
     } else if (elem.matches('[type="checkbox"]')) {
       elem.checked = !elem.checked;
     } else if (elem.matches('[role="collapsible"]')) {
       const collapsible = elem.querySelector('input[type="checkbox"]');
-      if (collapsible) {
+      if (collapsible && !collapsible.disabled) {
         collapsible.checked = !collapsible.checked;
       }
     }
