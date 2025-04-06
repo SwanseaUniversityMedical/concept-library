@@ -60,19 +60,20 @@ def render_publish_button(context, *args, **kwargs):
                                   'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
                                   'title': "Requires approval"
                                   })            
+            elif context['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
+                button_context.update({'class_modal':"primary-btn text-danger bold dropdown-btn__label",
+                                'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                                'Button_type':"Publish",
+                                'title': "Approve declined entity"
+                                })
+            elif user_allowed_publish:
+                button_context.update({'class_modal':"primary-btn bold dropdown-btn__label ",
+                                'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
+                                'Button_type':"Publish",
+                                'title': "Publish immediately"
+                                })
             else:
-                if context['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
-                     button_context.update({'class_modal':"primary-btn text-danger bold dropdown-btn__label",
-                                      'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
-                                      'Button_type':"Publish",
-                                      'title': "Approve declined entity"
-                                      })
-                else:
-                     button_context.update({'class_modal':"primary-btn bold dropdown-btn__label ",
-                                      'url': reverse('generic_entity_publish', kwargs={'pk': context['entity'].id, 'history_id': context['entity'].history_id}),
-                                      'Button_type':"Publish",
-                                      'title': "Publish immediately"
-                                      })
+                button_context.update({ 'pub_btn_hidden': True })
         else:
             if context["is_published"] and context["approval_status"] == constants.APPROVAL_STATUS.APPROVED:
                  button_context.update({'class_modal':"primary-btn__text-success bold dropdown-btn__label",

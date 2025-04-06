@@ -941,4 +941,8 @@ FIELD_TYPES = {
         'input_type': 'inputbox',
         'output_type': 'source_reference'
     },
+    'model_relations': {
+        'input_type': 'tagbox',
+        'output_type': 'tagbox',
+    },
 }

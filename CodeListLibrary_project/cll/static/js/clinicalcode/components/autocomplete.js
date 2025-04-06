@@ -24,21 +24,31 @@
  */
 export class Autocomplete {
   /**
-   * @desc
+   * @desc a set of `aria-autocomplete` values specifying inline autocomplete behaviour
+   * @see {@link https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-autocomplete|aria-autocomplete}
+   * @type {Array<string>}
+   * @static
+   * @private
+   */
+  static #AriaAutocompleteInline = ['both', 'inline'];
+
+  /**
+   * @desc a set of disposable functions to clean up this class, executed on class disposal
    * @type {Array<Function>}
    * @private
    */
   #disposables = [];
 
   /**
-   * @param {object}      param0                          constructor args
-   * @param {HTMLElement} param0.rootNode                 the autocomplete component container element
-   * @param {HTMLElement} param0.inputNode                the autocomplete text input element
-   * @param {HTMLElement} param0.resultsNode              the autocomplete results dropdown container element
-   * @param {Function}    param0.searchFn                 a function to evaluate the search term, returning an array matching the specified input query
-   * @param {boolean}     [param0.shouldAutoSelect=false] optionally specify whether to automatically select the element; defaults to `false`
-   * @param {Function}    [param0.onShow=Function]        optionally specify a function to be called when the results are shown; defaults to a nullable callable
-   * @param {Function}    [param0.onHide=Function]        optionally specify a function to be called when the results are hidden; defaults to a nullable callable
+   * @param {object}       param0                          constructor args
+   * @param {HTMLElement}  param0.rootNode                 the autocomplete component container element
+   * @param {HTMLElement}  param0.inputNode                the autocomplete text input element
+   * @param {HTMLElement}  param0.resultsNode              the autocomplete results dropdown container element
+   * @param {Function}     param0.searchFn                 a function to evaluate the search term, returning an array matching the specified input query
+   * @param {boolean}      [param0.shouldAutoSelect=false] optionally specify whether to automatically select the element; defaults to `false`
+   * @param {boolean|null} [param0.shouldAutoInline=null]  optionally specify whether to provide inline autocomplete, this _will_ be derived from the element `aria-autocomplete` tag if not specified; defaults to `null` (i.e. false unless element is tagged as such)
+   * @param {Function}     [param0.onShow=Function]        optionally specify a function to be called when the results are shown; defaults to a nullable callable
+   * @param {Function}     [param0.onHide=Function]        optionally specify a function to be called when the results are hidden; defaults to a nullable callable
    */
   constructor({
     rootNode,
@@ -46,6 +56,7 @@ export class Autocomplete {
     resultsNode,
     searchFn,
     shouldAutoSelect = false,
+    shouldAutoInline = null,
     onShow = () => {},
     onHide = () => {},
   }) {
@@ -59,7 +70,16 @@ export class Autocomplete {
     this.activeIndex = -1;
     this.resultsCount = 0;
     this.showResults = false;
-    this.hasInlineAutocomplete = this.inputNode.getAttribute('aria-autocomplete') === 'both';
+
+    if (typeof shouldAutoInline !== 'boolean') {
+      const ariaAutocomplete = this.inputNode.getAttribute('aria-autocomplete');
+      this.hasInlineAutocomplete = stringHasChars(ariaAutocomplete)
+        ? Autocomplete.#AriaAutocompleteInline.includes(ariaAutocomplete.toLowerCase())
+        : false;
+    } else {
+      this.hasInlineAutocomplete = shouldAutoInline;
+    }
+    this.inputNode.setAttribute('aria-autocomplete', shouldAutoInline ? 'both' : 'list');
 
     // Setup events
     const focusHnd = this.#handleFocus.bind(this);

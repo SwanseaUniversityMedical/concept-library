@@ -812,6 +812,10 @@ def admin_upload_hdrn_assets(request):
             "category": {"model": "HDRNDataCategory", "target": "HDRNDataCategoryTarget", "endpoint": "HDRNDataCategoryEndpoint"},
             "data_assets": {"model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint"}
         },
+        # Controls how Brand ctx is computed for entities on creation
+        "ignore_collection_ctx": True,
+        # Controls the visibility of Templates and related content (e.g. Collections, Tags, etc)
+        "content_visibility": None,
     }
 
     brand_data = {

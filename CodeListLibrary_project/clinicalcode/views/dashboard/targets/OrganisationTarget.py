@@ -296,6 +296,7 @@ class OrganisationEndpoint(BaseEndpoint):
 
 			with transaction.atomic():
 				instance.__dict__.update(**data)
+				instance.owner = data.get('owner')
 				instance.save()
 
 				if isinstance(brands, list):
