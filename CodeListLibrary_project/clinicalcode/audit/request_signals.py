@@ -1,22 +1,80 @@
 """Custom EasyAudit request handling."""
 from importlib import import_module
+from ipaddress import ip_address as validate_ip
 from easyaudit import settings as EasySettings
 from django.conf import settings as AppSettings
 from django.utils import timezone
 from django.http.cookie import SimpleCookie
-from django.http.request import split_domain_port, validate_host
 from django.contrib.auth import get_user_model, SESSION_KEY
+from django.http.request import HttpRequest, split_domain_port, validate_host
+from django.core.handlers.wsgi import WSGIHandler
 from django.utils.regex_helper import _lazy_re_compile
 from django.utils.module_loading import import_string
 from django.contrib.sessions.models import Session
 
 import re
+import inspect
 
 from clinicalcode.models import Brand
 
 
 audit_logger = import_string(EasySettings.LOGGING_BACKEND)()
 session_engine = import_module(AppSettings.SESSION_ENGINE)
+
+
+def validate_ip_addr(addr):
+	"""
+	Attempts to validate the given IP address
+
+	Args:
+		default (str): the IP address to evaluate
+
+	Returns:
+		A (bool) reflecting the validity of the specified IP address
+
+	"""
+	try:
+		validate_ip(addr)
+	except ValueError:
+		return False
+	else:
+		return True
+
+
+def resolve_ip_addr(request, validate_ip=False, default='10.0.0.1'):
+	"""
+	Resolves the IP address assoc. with some request / the sender's _environ_
+
+	Args:
+		request (HttpRequest|Dict[string, Any]): either (a) a :class:`HttpRequest` assoc. with the signal or (b) a `Dict[str, Any]` describing its _environ_
+		validate_ip                      (bool): optionally specify whether to validate the IP address; defaults to `False`
+		default                           (Any): optionally specify the return value; defaults to `10.0.0.1` to represent an empty IP, likely from a proxy hiding the client
+
+	Returns:
+		A (str) specifying the IP if applicable; otherwise returns the given `default` parameter
+
+	"""
+	addr = None
+	if isinstance(request, HttpRequest):
+		if isinstance(request.headers.get('X-Forwarded-For'), str):
+			addr = request.headers.get('X-Forwarded-For')
+
+		if addr is None:
+			request = request.META
+
+	if isinstance(request, dict):
+		for x in ['HTTP_X_FORWARDED_FOR', EasySettings.REMOTE_ADDR_HEADER, 'REMOTE_ADDR']:
+			var = request.get(x)
+			if isinstance(var, str):
+				addr = var
+				break
+
+	if validate_ip and addr is not None and not validate_ip_addr(addr):
+		addr = default
+	elif addr is None:
+		addr = default
+
+	return addr
 
 
 def match_url_patterns(url, patterns, flags=re.MULTILINE | re.IGNORECASE):
@@ -43,12 +101,13 @@ def match_url_patterns(url, patterns, flags=re.MULTILINE | re.IGNORECASE):
 	return False
 
 
-def get_request_info(params):
+def get_request_info(sender, params):
 	"""
 	Attempts to resolve to resolve RequestContext data from the given WSGIRequest event kwargs.
 
 	Args:
-		params (Dict[str, Any]): the kwargs associated with a request event
+		sender (WSGIHandler|Any): the sender assoc. with this request
+		params  (Dict[str, Any]): the kwargs associated with a request event
 
 	Returns:
 		A (Dict[str, Any]) specifying the request information if resolved; otherwise returns a (None) value
@@ -63,9 +122,19 @@ def get_request_info(params):
 		info = environ
 		path = environ['PATH_INFO']
 		cookie_string = environ.get('HTTP_COOKIE')
-		remote_ip = environ.get('X-Forwarded-For', environ.get(EasySettings.REMOTE_ADDR_HEADER, None))
 		method = environ['REQUEST_METHOD']
 		query_string = environ['QUERY_STRING']
+
+		remote_ip = None
+		if isinstance(sender, WSGIHandler) or (inspect.isclass(sender) and issubclass(sender, WSGIHandler)):
+			try:
+				request = sender.request_class(environ)
+				remote_ip = resolve_ip_addr(request, validate_ip=True, default=None)
+			except:
+				pass
+
+		if remote_ip is None:
+			remote_ip = resolve_ip_addr(environ)
 	else:
 		info = scope
 		path = scope.get('path')
@@ -234,7 +303,7 @@ def should_log_url(url, brand_name=None):
 def request_started_watchdog(sender, *args, **kwargs):
 	"""A signal handler to observe Django `request_started <https://docs.djangoproject.com/en/5.1/topics/signals/>`__ events"""
 	# Reconcile request context
-	info = get_request_info(kwargs)
+	info = get_request_info(sender, kwargs)
 	path = info.get('path')
 	brand_name = get_brand_from_request_info(info)
 	if not should_log_url(path, brand_name):

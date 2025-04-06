@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.utils.timezone import make_aware
 
 import logging
+import inspect
 import psycopg2
 
 from ..models.Tag import Tag
@@ -1207,38 +1208,50 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
 
     return False, None
 
-def compute_brand_context(request, form_data):
+def compute_brand_context(request, form_data, form_entity=None):
     """
-        Computes the brand context given the metadata of an entity,
-        where brand is computed by the RequestContext's brand and its
-        given collections
-    """
-    # related_brands = set([])
+        Computes the brand context given the metadata of an entity, where brand is computed by the RequestContext's brand and its given collections
 
-    # brand = model_utils.try_get_brand(request)
-    # if brand:
-    #     related_brands.add(brand.id)
-    
-    # metadata = form_data.get('metadata')
-    # if not metadata:
-    #     return list(related_brands)
-    
-    # collections = metadata.get('collections')
-    # if isinstance(collections, list):
-    #     for collection_id in collections:
-    #         collection = Tag.objects.filter(id=collection_id)
-    #         if not collection.exists():
-    #             continue
-            
-    #         brand = collection.first().collection_brand
-    #         if brand is None:
-    #             continue
-    #         related_brands.add(brand.id)
-    # return list(related_brands)
+        Args:
+            request         (RequestContext): the HTTP request ctx
+            form_data                 (dict): the form data assoc. with this request
+            form_entity (GenericEntity|None): the entity assoc. with this request, if applicable
+
+        Returns:
+            A (list) specifying a unique set of brands assoc. with this entity
+    """
     brand = model_utils.try_get_brand(request)
-    if brand:
-        return [brand.id]
-    return None
+    metadata = form_data.get('metadata') if isinstance(form_data.get('metadata'), dict) else {}
+    compute_collections = True
+
+    # Derive current brand ctx from the entity
+    if isinstance(form_entity, GenericEntity) or (inspect.isclass(form_entity) and issubclass(form_entity, GenericEntity)):
+        related_brands = getattr(form_entity, 'brands') if isinstance(getattr(form_entity, 'brands'), list) else []
+        related_brands = set(related_brands)
+    else:
+        related_brands = set([])
+
+    # Compute request brand context
+    if brand is not None:
+        # Add current brand ctx
+        related_brands.add(brand.id)
+
+        # Det. whether to compute brands from collection(s)
+        ctx = getattr(brand, 'overrides').get('ignore_collection_ctx') if isinstance(getattr(brand, 'overrides'), dict) else None
+        if isinstance(ctx, bool) and ctx:
+            compute_collections = False
+
+    # Compute brand collection ctx if applicable for this request's Brand context
+    if compute_collections:
+        collections = metadata.get('collections')
+        if isinstance(collections, list):
+            collections = gen_utils.parse_as_int_list(collections, default=[])
+            collections = Tag.objects.filter(Q(id__in=collections) & Q(collection_brand__isnull=False))
+            collections = list(collections.values_list('collection_brand_id', flat=True))
+            if len(collections > 0):
+                related_brands.update(collections)
+
+    return related_brands
 
 @transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
@@ -1292,9 +1305,11 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             errors.append('You do not have permissions to modify this entity')
             return
         form_entity = entity
-    
+    else:
+        form_entity = None
+
     # Build related brand instances
-    related_brands = compute_brand_context(request, form_data)
+    related_brands = compute_brand_context(request, form_data, form_entity)
 
     # Atomically create the instance and its children
     entity = None

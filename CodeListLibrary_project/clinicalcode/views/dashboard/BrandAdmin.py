@@ -374,7 +374,7 @@ class BrandOverviewView(APIView):
 				# Count DAU
 				psycopg2.sql.SQL('''
 					unq_dau as (
-					  select count(distinct coalesce(req.remote_ip, req.uid, '')) as cnt
+					  select count(distinct coalesce(req.uid, req.remote_ip, '')) as cnt
 							from request_vis as req
 						 where req.datetime >= date_trunc('day', now())
 					),
@@ -382,7 +382,7 @@ class BrandOverviewView(APIView):
 				# Count MAU
 				psycopg2.sql.SQL('''
 					unq_mau as (
-					  select count(distinct coalesce(req.remote_ip, req.uid, '')) as cnt
+					  select count(distinct coalesce(req.uid, req.remote_ip, '')) as cnt
 							from request_vis as req
 						 where req.datetime >= date_trunc('month', now())
 					),
