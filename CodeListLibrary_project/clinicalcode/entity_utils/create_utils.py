@@ -1248,10 +1248,10 @@ def compute_brand_context(request, form_data, form_entity=None):
             collections = gen_utils.parse_as_int_list(collections, default=[])
             collections = Tag.objects.filter(Q(id__in=collections) & Q(collection_brand__isnull=False))
             collections = list(collections.values_list('collection_brand_id', flat=True))
-            if len(collections > 0):
+            if len(collections) > 0:
                 related_brands.update(collections)
 
-    return related_brands
+    return list(related_brands)
 
 @transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
