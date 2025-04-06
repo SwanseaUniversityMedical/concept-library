@@ -1280,7 +1280,7 @@ class EntityDetailWizardSections(template.Node):
                     continue
 
                 if template_field.get('is_base_field', False):
-                    template_field = constants.metadata.get(field) | template_field
+                    template_field = constants.metadata.get(field, {}) | template_field
 
                 if template_utils.is_metadata(GenericEntity, field):
                     field_data = template_utils.try_get_content(constants.metadata, field)

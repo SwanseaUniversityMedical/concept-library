@@ -693,6 +693,7 @@
 .detailed-input-group {
   @include flex-col();
 
+  max-width: 100%;
   font-family: inherit;
   margin: 1rem 0 0 0;
 
@@ -720,6 +721,7 @@
   }
 
   &__title {
+    max-width: 100%;
     padding: 0;
     margin: 0 0 0.5rem 0;
     font-size: 18px;
@@ -733,8 +735,10 @@
   }
 
   &__description {
+    max-width: 100%;
     margin: 0 0 0.5rem 0;
     font-size: 14px;
+    text-wrap: wrap;
   }
 
   &__error {
@@ -745,8 +749,9 @@
 
   &__header {
     @include flex-row();
-    justify-content: space-between;
+    max-width: 100%;
     align-items: center;
+    justify-content: space-between;
 
     &--nowrap {
       flex-wrap: nowrap;
@@ -755,10 +760,12 @@
 
   &__header-item {
     @include flex-col();
+    max-width: 100%;
   }
 
   &__none-available {
     display: block;
+    max-width: calc(100% - 1rem);
     padding: 1rem;
     border-radius: 0.1rem;
     background-color: col(accent-semi-transparent);

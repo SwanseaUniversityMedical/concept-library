@@ -730,10 +730,16 @@ def get_concept_ids_versions_of_historical_phenotype(phenotype_id, phenotype_his
 
     '''
     concept_id_version = []
-    concept_information = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data['concept_information']
+    concept_information = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data
+    concept_information = concept_information.get('concept_information') if isinstance(concept_information, dict) else None
     if concept_information:
-        for c in concept_information:
-            concept_id_version.append((c['concept_id'], c['concept_version_id']))
+        concept_id_version = [
+            (c['concept_id'], c['concept_version_id'])
+            for c in concept_information
+            if isinstance(c.get('concept_id'), int) and isinstance(c.get('concept_version_id'), int)
+        ]
+    else:
+        concept_id_version = []
 
     return concept_id_version
 
