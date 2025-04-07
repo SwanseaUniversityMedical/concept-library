@@ -41,7 +41,7 @@ domReady.finally(() => {
         radio.checked = !radio.checked;
       }
     } else if (elem.matches('[type="checkbox"]')) {
-      elem.checked = !elem.checked;
+      elem.click();
     } else if (elem.matches('[role="collapsible"]')) {
       const collapsible = elem.querySelector('input[type="checkbox"]');
       if (collapsible) {

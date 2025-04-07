@@ -104,7 +104,7 @@ def get_env_value(env_variable, cast=None, default=Symbol('None')):
 ''' Application base '''
 
 APP_TITLE = 'Concept Library'
-APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
+APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical codelists in health research.'
 APP_LOGO_PATH = 'img/'
 APP_EMBED_ICON = '{logo_path}embed_img.png'
 INDEX_PATH = 'clinicalcode/index.html'
@@ -286,7 +286,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'markdownify.apps.MarkdownifyConfig',
     'cookielaw',
     # API
-    'drf_yasg', # 'rest_framework_swagger',
+    'drf_yasg',
     'rest_framework',
     # Site
     'django_celery_results',

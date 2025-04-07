@@ -22,16 +22,16 @@
 
         <label class="dropdown-group">
           <div class="dropdown-group__button">
-            Export Code List
+            Export Codelist
           </div>
           <input type="checkbox" class="dropdown-group__input"  id="dd_2">
-          <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export Code List">
-            <li aria-label="Export code list as CSV" role="button" tabindex="0">
+          <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export Codelists">
+            <li aria-label="Export codelist as CSV" role="button" tabindex="0">
               <a href="{% url 'export_entity_version_codes_to_csv' pk=entity.id history_id=entity.history_id %}">
                 CSV
               </a>
             </li>
-            <li aria-label="Export code list as Json" role="button" tabindex="0">
+            <li aria-label="Export codelist as JSON" role="button" tabindex="0">
               <a href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=json" target="_blank">
                 JSON
               </a>
@@ -116,7 +116,7 @@
       </div>
     {% endfor %}
   {% else %}
-    <span class="card-no-data">No Clinical Code Lists</span>
+    <span class="card-no-data">No Clinical Codelists</span>
   {% endif %}
 </div>
 

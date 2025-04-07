@@ -447,9 +447,10 @@ def renderable_field_values(entity, layout, field):
         Returns:
             The resolved (Any)-typed value from the entity's field
     """
-    if template_utils.is_metadata(entity, field):
+    info = template_utils.get_template_field_info(layout, field)
+    if info.get('is_metadata'):
         # handle metadata e.g. collections, tags etc
-        return template_utils.get_metadata_value_from_source(entity, field, default=[])
+        return template_utils.get_metadata_value_from_source(entity, field, field_info=info, layout=layout, default=[])
     
     return template_utils.get_template_data_values(entity, layout, field, default=[])
 
@@ -685,7 +686,7 @@ class EntityFiltersNode(template.Node):
         else:
             modifier = None
 
-        return search_utils.get_source_references(structure, default=[], modifier=modifier)
+        return search_utils.get_source_references(structure, default=[], modifier=modifier, request=self.request)
     
     def __check_excluded_brand_collections(self, context, field, current_brand, options):
         """Checks and removes Collections excluded from filters"""
@@ -707,7 +708,6 @@ class EntityFiltersNode(template.Node):
 
     def __render_metadata_component(self, context, field, structure):
         """Renders a metadata field, as defined by constants.py"""
-        request = self.request.resolve(context)
         filter_info = search_utils.get_filter_info(field, structure)
         if not filter_info:
             return ''
@@ -718,7 +718,7 @@ class EntityFiltersNode(template.Node):
 
         options = None
         if 'compute_statistics' in structure:
-            current_brand = request.CURRENT_BRAND or 'ALL'
+            current_brand = self.request.CURRENT_BRAND or 'ALL'
             options = search_utils.get_metadata_stats_by_field(field, brand=current_brand)
             # options = self.__check_excluded_brand_collections(context, field, current_brand, options)
 
@@ -734,7 +734,6 @@ class EntityFiltersNode(template.Node):
 
     def __render_template_component(self, context, field, structure, layout):
         """Renders a component for a template field after computing its reference data as defined by its validation & field type"""
-        request = self.request.resolve(context)
         filter_info = search_utils.get_filter_info(field, structure)
         if not filter_info:
             return ''
@@ -743,7 +742,7 @@ class EntityFiltersNode(template.Node):
         if component is None:
             return ''
         
-        current_brand = request.CURRENT_BRAND or 'ALL'
+        current_brand = self.request.CURRENT_BRAND or 'ALL'
         statistics = search_utils.try_get_template_statistics(filter_info.get('field'), brand=current_brand)
         if statistics is None or len(statistics) < 1:
             return ''
@@ -795,6 +794,9 @@ class EntityFiltersNode(template.Node):
 
     def render(self, context):
         """Inherited method to render the nodes"""
+        if isinstance(self.request, template.Variable):
+            self.request = self.request.resolve(context)
+
         entity_type = context.get('entity_type', None)
         layouts = context.get('layouts', None)
         if layouts is None:
@@ -962,9 +964,9 @@ class EntityCreateWizardSections(template.Node):
         self.params = params
         self.nodelist = nodelist
     
-    def __try_get_entity_value(self, request, template, entity, field):
+    def __try_get_entity_value(self, request, template, entity, field, info=None):
         """Attempts to safely generate the creation data for field within a template"""
-        value = create_utils.get_template_creation_data(request, entity, template, field, default=None)
+        value = create_utils.get_template_creation_data(request, entity, template, field, default=None, info=info)
 
         if value is None:
             return template_utils.get_entity_field(entity, field)
@@ -982,9 +984,11 @@ class EntityCreateWizardSections(template.Node):
         else:
             return html
     
-    def __try_get_props(self, template, field):
+    def __try_get_props(self, template, field, struct=None):
         """Attempts to safely get the properties of a validation field, if present"""
-        struct = template_utils.get_layout_field(template, field)
+        if struct is None:
+            struct = template_utils.get_layout_field(template, field)
+
         if not isinstance(struct, dict):
             return
         
@@ -993,9 +997,11 @@ class EntityCreateWizardSections(template.Node):
             return
         return validation.get('properties')
     
-    def __try_get_computed(self, request, field):
+    def __try_get_computed(self, request, field, struct=None):
         """Attempts to safely parse computed fields"""
-        struct = template_utils.get_layout_field(constants.metadata, field)
+        if struct is None:
+            struct = template_utils.get_layout_field(constants.metadata, field)
+
         if struct is None:
             return
 
@@ -1051,11 +1057,8 @@ class EntityCreateWizardSections(template.Node):
             section_content = self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
 
             for field in section.get('fields'):
-                if template_utils.is_metadata(GenericEntity, field):
-                    template_field = constants.metadata.get(field)
-                else:
-                    template_field = template_utils.get_field_item(template.definition, 'fields', field)
-
+                field_info = template_utils.get_template_field_info(template, field)
+                template_field = field_info.get('field')
                 if not template_field:
                     continue
 
@@ -1071,15 +1074,8 @@ class EntityCreateWizardSections(template.Node):
                     continue
 
                 component = deepcopy(component)
-                if template_utils.is_metadata(GenericEntity, field):
-                    field_data = template_utils.try_get_content(constants.metadata, field)
-                else:
-                    field_data = template_utils.get_layout_field(template, field)
-                
-                if field_data is None:
-                    continue
                 component['field_name'] = field
-                component['field_data'] = field_data
+                component['field_data'] = template_field
                 
                 desc = template_utils.try_get_content(template_field, 'description')
                 if desc is not None:
@@ -1088,29 +1084,28 @@ class EntityCreateWizardSections(template.Node):
                 else:
                     component['hide_input_details'] = True
 
-                is_metadata = template_utils.is_metadata(GenericEntity, field)
-                field_struct = template_utils.get_layout_field(constants.metadata if is_metadata else template, field)
-                will_hydrate = field_struct is not None and field_struct.get('hydrated', False)
+                is_metadata = field_info.get('is_metadata')
+                will_hydrate = template_field.get('hydrated', False)
 
                 options = None
                 if not will_hydrate:
                     if is_metadata:
-                        options = template_utils.get_template_sourced_values(constants.metadata, field, request=request)
+                        options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, struct=template_field)
 
                         if options is None:
-                            options = self.__try_get_computed(request, field)
+                            options = self.__try_get_computed(request, field, struct=template_field)
                     else:
-                        options = template_utils.get_template_sourced_values(template, field, request=request)
+                        options = template_utils.get_template_sourced_values(template, field, request=request, struct=template_field)
 
                 if options is not None:
                     component['options'] = options
 
-                field_properties = self.__try_get_props(template, field)
+                field_properties = self.__try_get_props(template, field, struct=template_field)
                 if field_properties is not None:
                     component['properties'] = field_properties
-                
+
                 if entity:
-                    component['value'] = self.__try_get_entity_value(request, template, entity, field)
+                    component['value'] = self.__try_get_entity_value(request, template, entity, field, info=field_info)
                 else:
                     component['value'] = ''
 
@@ -1129,7 +1124,7 @@ class EntityCreateWizardSections(template.Node):
 
 
 ## NOTE:
-##  - Need to ask ME to document the following at some point
+##  - Need to ask M.E. to document the following at some point
 ##
 
 def get_data_sources(ds_ids, info, default=None):
@@ -1151,17 +1146,17 @@ def get_data_sources(ds_ids, info, default=None):
         return default
 
 
-def get_template_creation_data(entity, layout, field, request=None, default=None):
+def get_template_creation_data(entity, layout, field, request=None, default=None, info=None):
     """Used to retrieve assoc. data values for specific keys, e.g. concepts, in its expanded format for use with create/update pages"""
+    if info is None:
+        info = template_utils.get_template_field_info(layout, field)
+
     data = template_utils.get_entity_field(entity, field)
-    info = template_utils.get_layout_field(layout, field)
     if not info or not data:
         return default
 
-    if info.get('is_base_field'):
-        info = template_utils.try_get_content(constants.metadata, field)
-
-    validation = template_utils.try_get_content(info, 'validation')
+    field_info = info.get('field')
+    validation = template_utils.try_get_content(field_info, 'validation')
     if validation is None:
         return default
 
@@ -1185,11 +1180,11 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
                 # Logging
                 return default
 
-    if info.get('field_type') == 'data_sources':
+    if field_info.get('field_type') == 'data_sources':
         return get_data_sources(data, info, default=default)
 
-    if template_utils.is_metadata(entity, field):
-        return template_utils.get_metadata_value_from_source(entity, field, default=default)
+    if info.get('is_metadata'):
+        return template_utils.get_metadata_value_from_source(entity, field, field_info=info, layout=layout, default=default)
 
     return template_utils.get_template_data_values(entity, layout, field, default=default)
 
@@ -1203,8 +1198,8 @@ class EntityDetailWizardSections(template.Node):
         self.params = params
         self.nodelist = nodelist
 
-    def __try_get_entity_value(self, template, entity, field):
-        value = get_template_creation_data(entity, template, field, request=self.request, default=None)
+    def __try_get_entity_value(self, template, entity, field, info=None):
+        value = get_template_creation_data(entity, template, field, request=self.request, default=None, info=info)
         if value is None:
             return template_utils.get_entity_field(entity, field)
 
@@ -1260,9 +1255,10 @@ class EntityDetailWizardSections(template.Node):
 
             field_count = 0
             for field in section.get('fields'):
-                template_field = template_utils.get_field_item(template.definition, 'fields', field)
+                field_info = template_utils.get_template_field_info(template, field)
+                template_field = field_info.get('field')
                 if not template_field:
-                    template_field = template_utils.try_get_content(constants.metadata, field)
+                    continue
 
                 component = template_utils.try_get_content(field_types, template_field.get('field_type')) if template_field else None
                 if component is None:
@@ -1279,16 +1275,8 @@ class EntityDetailWizardSections(template.Node):
                 if is_hidden:
                     continue
 
-                if template_field.get('is_base_field', False):
-                    template_field = constants.metadata.get(field, {}) | template_field
-
-                if template_utils.is_metadata(GenericEntity, field):
-                    field_data = template_utils.try_get_content(constants.metadata, field)
-                else:
-                    field_data = template_utils.get_layout_field(template, field)
-
                 component['field_name'] = field
-                component['field_data'] = '' if field_data is None else field_data
+                component['field_data'] = '' if template_field is None else template_field
 
                 desc = template_utils.try_get_content(template_field, 'description')
                 if desc is not None:
@@ -1306,7 +1294,7 @@ class EntityDetailWizardSections(template.Node):
                     component['hide_input_title'] = True
 
                 if entity:
-                    component['value'] = self.__try_get_entity_value(template, entity, field)
+                    component['value'] = self.__try_get_entity_value(template, entity, field, info=field_info)
                 else:
                     component['value'] = ''
 

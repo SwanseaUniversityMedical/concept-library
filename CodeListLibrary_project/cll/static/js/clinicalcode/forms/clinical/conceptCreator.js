@@ -1708,11 +1708,12 @@ export default class ConceptCreator {
   /**
    * tryRenderEditor [async]
    * @desc async method to render the editor when a user enters the editor state
-   * @param {node} conceptGroup the concept group node related to the Concept being edited
-   * @param {object} dataset the concept dataset
+   * @param {node}   conceptGroup  the concept group node related to the Concept being edited
+   * @param {object} dataset       the concept dataset
+   * @param {object} codingSystems a set of available coding systems (selected by the concept)
    * @returns {node} the editor element
    */
-  async #tryRenderEditor(conceptGroup, dataset) {
+  async #tryRenderEditor(conceptGroup, dataset, codingSystems) {
     const conceptId = conceptGroup.getAttribute('data-concept-id');
     const historyId = conceptGroup.getAttribute('data-concept-history-id');
     
@@ -1727,12 +1728,11 @@ export default class ConceptCreator {
     accordion.classList.add('is-open');
     conceptGroup.setAttribute('editing', true);
 
-    const systemOptions = await this.#fetchCodingOptions(dataset);
     const template = this.templates['concept-editor'];
     const html = interpolateString(template, {
       'concept_name': strictSanitiseString(dataset?.details?.name),
       'coding_system_id': dataset?.coding_system?.id,
-      'coding_system_options': systemOptions,
+      'coding_system_options': codingSystems,
       'has_inclusions': false,
       'has_exclusions': false,
     });
@@ -2346,7 +2346,7 @@ export default class ConceptCreator {
    */
   #handleConceptCreation(e) {
     this.tryCloseEditor()
-      .then(() => {
+      .then(async () => {
         const conceptIncrement = this.#getNextConceptCount();
         const concept = {
           is_new: true,
@@ -2354,13 +2354,14 @@ export default class ConceptCreator {
           concept_version_id: generateUUID(),
           components: [ ],
           details: {
-            name: `Concept ${conceptIncrement}`,
+            name: `Codelist ${conceptIncrement}`,
             has_edit_access: true,
           },
-        }
+        };
 
+        const codingSystems = await this.#fetchCodingOptions(concept);
         const conceptGroup = this.#tryRenderConceptComponent(concept);
-        this.#tryRenderEditor(conceptGroup, concept);
+        this.#tryRenderEditor(conceptGroup, concept, codingSystems);
         this.#toggleNoConceptBox(true);
       })
       .catch(() => { /* User does not want to lose progress, sink edit request */ })
@@ -2373,9 +2374,11 @@ export default class ConceptCreator {
    */
   #handleEditing(target) {
     // If editing, prompt before continuing
+    let spinner;
     return this.tryCloseEditor()
-      .then((res) => {
-        const spinner = startLoadingSpinner();
+      .then(async (res) => {
+        spinner = startLoadingSpinner();
+
         const [id, history_id] = res || [ ];
         const conceptGroup = tryGetRootElement(target, 'concept-list__group');
         const conceptId = conceptGroup.getAttribute('data-concept-id');
@@ -2391,10 +2394,16 @@ export default class ConceptCreator {
         let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
         dataset = deepCopy(dataset.shift());
 
-        this.#tryRenderEditor(conceptGroup, dataset);
+        const codingSystems = await this.#fetchCodingOptions(dataset);
+        this.#tryRenderEditor(conceptGroup, dataset, codingSystems);
         spinner.remove();
       })
-      .catch(() => { /* User does not want to lose progress, sink edit request */ })
+      .catch(() => {
+        /* User does not want to lose progress, sink edit request */
+        if (spinner) {
+          spinner.remove();
+        }
+      });
   }
 
   /**

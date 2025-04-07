@@ -101,7 +101,7 @@ def get_metadata_filters(request):
             options = get_metadata_stats_by_field(field, brand=current_brand)
 
         if options is None and 'source' in validation:
-            options = get_source_references(packet, default=[])
+            options = get_source_references(packet, default=[], request=request)
         
         filters.append({
             'details': details,
@@ -942,7 +942,7 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
         page_obj = pagination.page(pagination.num_pages)
     return page_obj
 
-def get_source_references(struct, default=None, modifier=None):
+def get_source_references(struct, default=None, modifier=None, request=None):
     """
         Retrieves the refence values from source fields e.g. tags, collections, entity type
     """
@@ -962,7 +962,14 @@ def get_source_references(struct, default=None, modifier=None):
 
     try:
         model = apps.get_model(app_label='clinicalcode', model_name=source)
-        objs = model.objects.all()
+        objs = None
+        if request is not None:
+            recfn = getattr(model, 'get_brand_records_by_request') if hasattr(model, 'get_brand_records_by_request') else None
+            if callable(recfn):
+                objs = model.get_brand_records_by_request(request)
+
+        if objs is None:
+            objs = model.objects.all()
 
         if isinstance(modifier, dict):
             objs = objs.filter(**modifier)

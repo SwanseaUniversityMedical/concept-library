@@ -61,27 +61,27 @@ def get_createable_entities(request):
         'templates': list(templates)
     }
 
-def get_template_creation_data(request, entity, layout, field, default=None):
+def get_template_creation_data(request, entity, layout, field, default=None, info=None):
     """
         Used to retrieve assoc. data values for specific keys, e.g.
         concepts, in its expanded format for use with create/update pages
     """
-    data = template_utils.get_entity_field(entity, field)
-    info = template_utils.get_layout_field(layout, field)
-    if not info and template_utils.is_metadata(entity, field):
-        info = template_utils.try_get_content(constants.metadata, field)
+    if info is None:
+        info = template_utils.get_template_field_info(layout, field)
 
+    data = template_utils.get_entity_field(entity, field)
     if not info or not data:
         return default
 
-    validation = template_utils.try_get_content(info, 'validation')
+    field_info = info.get('field')
+    validation = template_utils.try_get_content(field_info, 'validation')
     if validation is None:
         return default
 
     field_type = template_utils.try_get_content(validation, 'type')
     if field_type is None:
         return default
-    
+
     if field_type == 'concept':
         values = []
         for item in data:
@@ -111,17 +111,19 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 logger.warning(f'Failed to retrieve template "{field}" property from Entity<{entity}> with err: {e}')
                 return default
 
-    if template_utils.is_metadata(entity, field):
-        return template_utils.get_metadata_value_from_source(entity, field, default=default)
+    if info.get('is_metadata'):
+        return template_utils.get_metadata_value_from_source(entity, field, field_info=info, layout=layout, default=default)
     
     return template_utils.get_template_data_values(entity, layout, field, default=default)
 
-def try_add_computed_fields(field, form_data, form_template, data):
+def try_add_computed_fields(field, form_data, form_template, data, field_data=None):
     """
         Checks to see if any of our fields have any computed data
         that we need to collect from a child or related field
     """
-    field_data = template_utils.get_layout_field(form_template, field)
+    if field_data is None:
+        field_data = template_utils.get_layout_field(form_template, field)
+
     if field_data is None:
         return
     
@@ -708,11 +710,13 @@ def validate_related_entities(field, field_data, value, errors):
     
     return value
 
-def validate_metadata_value(request, field, value, errors=[]):
+def validate_metadata_value(request, field, value, errors=[], field_data=None):
     """
         Validates the form's field value against the metadata fields
     """
-    field_data = template_utils.try_get_content(constants.metadata, field)
+    if field_data is None:
+        field_data = template_utils.try_get_content(constants.metadata, field)
+
     if field_data is None:
         return None, True
     
@@ -746,11 +750,13 @@ def validate_metadata_value(request, field, value, errors=[]):
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
     return field_value, True
 
-def is_computed_template_field(field, form_template):
+def is_computed_template_field(field, form_template, field_data=None):
     """
         Checks whether a field is considered a computed field within its template
     """
-    field_data = template_utils.get_layout_field(form_template, field)
+    if field_data is None:
+        field_data = template_utils.get_layout_field(form_template, field)
+
     if field_data is None:
         return False
 
@@ -764,11 +770,13 @@ def is_computed_template_field(field, form_template):
 
     return False
 
-def validate_template_value(request, field, form_template, value, errors=[]):
+def validate_template_value(request, field, form_template, value, errors=[], field_data=None):
     """
         Validates the form's field value against the entity template
     """
-    field_data = template_utils.get_layout_field(form_template, field)
+    if field_data is None:
+        field_data = template_utils.get_layout_field(form_template, field)
+
     if field_data is None:
         return None, True
     
@@ -859,21 +867,23 @@ def validate_entity_form(request, content, errors=[], method=None):
     top_level_data = { }
     template_data = { }
     for field, value in form_data.items():
-        if template_utils.is_metadata(GenericEntity, field):
-            field_value, validated = validate_metadata_value(request, field, value, errors)
+        info = template_utils.get_template_field_info(form_template, field)
+        struct = info.get('field')
+        if info.get('is_metadata'):
+            field_value, validated = validate_metadata_value(request, field, value, errors, field_data=struct)
             if not validated or field_value is None:
                 continue
             top_level_data[field] = field_value
-        elif validate_template_field(form_template, field):
+        elif struct:
             if is_computed_template_field(field, form_template):
                 continue
 
-            field_value, validated = validate_template_value(request, field, form_template, value, errors)
+            field_value, validated = validate_template_value(request, field, form_template, value, errors, field_data=struct)
             if not validated or field_value is None:
                 continue
 
             template_data[field] = field_value
-            try_add_computed_fields(field, form_data, form_template, template_data)
+            try_add_computed_fields(field, form_data, form_template, template_data, field_data=struct)
 
     if len(errors) > 0:
         return

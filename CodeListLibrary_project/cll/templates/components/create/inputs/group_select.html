@@ -6,9 +6,7 @@
         <span class="detailed-input-group__mandatory">*</span>
       {% endif %}
     </h3>
-    <p class="detailed-input-group__description">
-      {{ component.description }}
-    </p>
+    <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
 
   {% if component.options and component.options|length > 0 %}

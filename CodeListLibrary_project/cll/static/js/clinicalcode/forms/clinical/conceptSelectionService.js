@@ -154,7 +154,7 @@ const CSEL_INTERFACE = {
   <div class="detailed-input-group fill no-margin"> \
     <div class="detailed-input-group__header"> \
       <div class="detailed-input-group__header-item"> \
-        <p class="detailed-input-group__description">Your currently selected items:</p> \
+        <pre class="detailed-input-group__description">Your currently selected items:</pre> \
       </div> \
     </div> \
     <section class="detailed-input-group__none-available" id="no-items-selected"> \

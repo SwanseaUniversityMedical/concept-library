@@ -339,7 +339,7 @@
       "do_not_show_in_production": true
     },
     {
-      "title": "Clinical Code List",
+      "title": "Clinical Codelist",
       "fields": [
         "concept_information"
       ],

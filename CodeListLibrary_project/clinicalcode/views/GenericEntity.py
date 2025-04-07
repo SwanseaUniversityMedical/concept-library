@@ -35,7 +35,9 @@ from clinicalcode.models.CodingSystem import CodingSystem
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 
+
 logger = logging.getLogger(__name__)
+
 
 class EntitySearchView(TemplateView):
     """
@@ -106,6 +108,7 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
+
 @schema(None)
 class EntityDescendantSelection(APIView):
     """
@@ -167,6 +170,7 @@ class EntityDescendantSelection(APIView):
         template_id = context.get('template_id')
         result = search_utils.get_template_entities(request, template_id)
         return JsonResponse(result)
+
 
 class CreateEntityView(TemplateView):
     """
@@ -460,19 +464,20 @@ class CreateEntityView(TemplateView):
         if field is None or gen_utils.is_empty_string(field):
             return gen_utils.jsonify_response(message='Invalid field parameter', code=400, status='false')
 
-        if template_utils.is_metadata(GenericEntity, field):
+        info = template_utils.get_template_field_info(template, field)
+        struct = info.get('field')
+        if info.get('is_metadata'):
             default_value = None
 
-            struct = template_utils.get_layout_field(constants.metadata, field)
             if struct is not None:
                 struct = template_utils.try_get_content(struct, 'validation')
                 if struct is not None:
                     default_value = [] if struct.get('type') == 'int_array' else default_value
 
-            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, default=default_value)
+            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, default=default_value, struct=struct)
         else:
-            options = template_utils.get_template_sourced_values(template, field, request=request)
-        
+            options = template_utils.get_template_sourced_values(template, field, request=request, struct=struct)
+
         if options is None:
             return gen_utils.jsonify_response(message='Invalid field parameter, does not exist or is not an optional parameter', code=400, status='false')
 
@@ -520,6 +525,7 @@ class CreateEntityView(TemplateView):
             'result': codelist
         })
 
+
 class RedirectConceptView(TemplateView):
     """
         Redirects requests to the phenotype page, assuming a phenotype owner can be resolved from the child Concept
@@ -566,6 +572,7 @@ class RedirectConceptView(TemplateView):
             )
 
         return redirect(reverse(self.ENTITY_DETAIL_VIEW, kwargs={ 'pk': entity_owner.id }))
+
 
 def generic_entity_detail(request, pk, history_id=None):
     """Display the detail of a generic entity at a point in time."""
@@ -703,8 +710,8 @@ def get_history_table_data(request, pk):
                 historical_versions.append(ver)
                 
     return historical_versions
-   
-   
+
+
 def export_entity_codes_to_csv(request, pk, history_id=None):
     """Returns a csv file of codes for a clinical-coded phenotype for a specific historical version."""
 

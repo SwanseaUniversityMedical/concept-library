@@ -3,13 +3,16 @@ from functools import reduce
 from django.apps import apps
 from django.db.models import Q, ForeignKey
 
+import copy
 import logging
 
 from . import concept_utils
 from . import filter_utils
 from . import constants
 
+
 logger = logging.getLogger(__name__)
+
 
 def try_get_content(body, key, default=None):
     """
@@ -99,6 +102,31 @@ def get_layout_field(layout, field, default=None):
     return try_get_content(layout, field, default)
 
 
+def get_template_field_info(layout, field_name, copy_field=True):
+    """"""
+    fields = get_layout_fields(layout)
+    if fields:
+        field = fields.get(field_name)
+        if isinstance(field, dict):
+            result = { 'key': field_name, 'field': field, 'is_metadata': False }
+            if not field.get('is_base_field'):
+                return result
+
+            merged = copy.deepcopy(constants.metadata.get(field_name)) if copy_field else {}
+            merged = merged | field
+
+            result |= {
+                'field': merged,
+                'shunt': field.get('shunt') if isinstance(fields.get('shunt'), str) else None,
+                'is_metadata': True,
+            }
+
+            return result
+
+    field = constants.metadata.get(field_name, None)
+    return { 'key': field_name, 'field': field, 'is_metadata': True }
+
+
 def get_merged_definition(template, default=None):
     """
         Used to merge the metadata into a template such that interfaces, e.g. API/create,
@@ -110,7 +138,9 @@ def get_merged_definition(template, default=None):
         return default
 
     fields = {field: packet for field, packet in constants.metadata.items() if not packet.get('ignore')}
-    fields.update(definition.get('fields') or {})
+    for k, v in definition.get('fields', {}).items():
+        fields.update({ k: fields.get(k, {}) | v })
+
     fields = {
             field: packet
             for field, packet in fields.items()
@@ -291,9 +321,13 @@ def is_valid_field(entity, field):
     if is_metadata(entity, field):
         return True
 
-    template = entity.template
-    if template is None:
+    try:
+        template = entity.template
+    except:
         return False
+    else:
+        if template is None:
+            return False
 
     if get_layout_field(template, field):
         return True
@@ -419,7 +453,7 @@ def try_get_filter_query(field_name, source, request=None):
     return output
 
 
-def get_metadata_value_from_source(entity, field, default=None, request=None):
+def get_metadata_value_from_source(entity, field, field_info=None, layout=None, default=None, request=None):
     """
         [!] Note: RequestContext is an optional parameter that can be provided to further filter
             the results based on the request's Brand    
@@ -429,9 +463,24 @@ def get_metadata_value_from_source(entity, field, default=None, request=None):
             to another table
     """
     try:
-        data = getattr(entity, field)
-        if field in constants.metadata:
-            validation = get_field_item(constants.metadata, field, 'validation', {})
+        info = None
+        if field_info is not None:
+            info = field_info
+        elif layout is not None:
+            info = get_template_field_info(layout, field)
+
+        if info:
+            if not info.get('is_metadata'):
+                return default
+            else:
+                info = info.get('field')
+
+        if info is None:
+            info = constants.metadata.get(field)
+
+        if info is not None:
+            data = get_entity_field(entity, field)
+            validation = info.get('validation')
             if not validation:
                 return default
 
@@ -476,14 +525,16 @@ def get_metadata_value_from_source(entity, field, default=None, request=None):
     return default
 
 
-def get_template_sourced_values(template, field, default=None, request=None):
+def get_template_sourced_values(template, field, default=None, request=None, struct=None):
     """
         [!] Note: RequestContext is an optional parameter that can be provided to further filter
             the results based on the request's Brand    
         
         Returns the complete option list of an enum or a sourced field
     """
-    struct = get_layout_field(template, field)
+    if struct is None:
+        struct = get_layout_field(template, field)
+
     if struct is None:
         return default
 
