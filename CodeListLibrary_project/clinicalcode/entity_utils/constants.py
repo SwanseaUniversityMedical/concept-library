@@ -867,6 +867,10 @@ FIELD_TYPES = {
         'input_type': 'clinical/trial',
         'output_type': 'clinical/trial',
     },
+    'references': {
+        'input_type': 'clinical/references',
+        'output_type': 'clinical/references',
+    },
     'coding_system': {
         'system_defined': True,
         'description': 'list of coding system ids (calculated from Phenotype concepts) (managed by code snippet)',

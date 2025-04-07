@@ -4,6 +4,7 @@ import GroupedEnum from '../../components/groupedEnumSelector.js';
 import PublicationCreator from '../clinical/publicationCreator.js';
 import TrialCreator from '../clinical/trialCreator.js';
 import EndorsementCreator from '../clinical/endorsementCreator.js';
+import ReferenceCreator from '../clinical/referenceCreator.js';
 import StringInputListCreator from '../stringInputListCreator.js';
 import UrlReferenceListCreator from '../generic/urlReferenceListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
@@ -308,6 +309,21 @@ export const ENTITY_HANDLERS = {
     }
 
     return new EndorsementCreator(element, parsed)
+
+  },
+
+  'clinical-references':(element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new ReferenceCreator(element, parsed)
 
   },
 
@@ -808,6 +824,35 @@ export const ENTITY_FIELD_COLLECTOR = {
   },
 
   'clinical-endorsement': (field, packet) => {
+    const handler = packet.handler;
+    const endorsements = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(endorsements) || endorsements.length < 1) {
+        return {
+          valid: false,
+          value: endorsements,
+          message: (isNullOrUndefined(endorsements) || endorsements.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, endorsements);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: endorsements,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  'clinical-references': (field, packet) => {
     const handler = packet.handler;
     const endorsements = handler.getData();
 
