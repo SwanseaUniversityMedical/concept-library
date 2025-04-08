@@ -514,7 +514,7 @@ def validate_concept_form(form, errors):
         concept = model_utils.try_get_instance(Concept, id=concept_id)
         concept = model_utils.try_get_entity_history(concept, history_id=concept_history_id)
         if concept is None:
-            errors.append(f'Child Concept entity with ID {concept_id} and history ID {concept_history_id} does not exist.')
+            errors.append(f'Child entity with ID {concept_id} and history ID {concept_history_id} does not exist.')
             return None
         field_value['concept']['id'] = concept_id
         field_value['concept']['history_id'] = concept_history_id
@@ -526,19 +526,19 @@ def validate_concept_form(form, errors):
     
     concept_details = form.get('details')
     if is_new_concept and (concept_details is None or not isinstance(concept_details, dict)):
-        errors.append(f'Invalid concept with ID {concept_id} - details is a non-nullable dict field.')
+        errors.append(f'Invalid child entity with ID {concept_id} - details is a non-nullable dict field.')
         return None
 
     if isinstance(concept_details, dict):
         concept_name = gen_utils.try_value_as_type(concept_details.get('name'), 'string', { 'sanitise': 'strict' })
         if is_new_concept and concept_name is None:
-            errors.append(f'Invalid concept with ID {concept_id} - name is non-nullable, string field.')
+            errors.append(f'Invalid child entity with ID {concept_id} - name is non-nullable, string field.')
             return None
 
         concept_coding = gen_utils.parse_int(concept_details.get('coding_system'), None)
         concept_coding = model_utils.try_get_instance(CodingSystem, pk=concept_coding)
         if is_new_concept and concept_coding is None:
-            errors.append(f'Invalid concept with ID {concept_id} - coding_system is non-nullable int field.')
+            errors.append(f'Invalid child entity with ID {concept_id} - coding_system is non-nullable int field.')
             return None
 
         attribute_headers = gen_utils.try_value_as_type(
@@ -549,7 +549,7 @@ def validate_concept_form(form, errors):
 
     concept_components = form.get('components')
     if is_new_concept and (concept_components is None or not isinstance(concept_components, list)):
-        errors.append(f'Invalid concept with ID {concept_id} - components is a non-nullable list field.')
+        errors.append(f'Invalid child entity with ID {concept_id} - components is a non-nullable list field.')
         return None
 
     components = [ ]
@@ -562,7 +562,7 @@ def validate_concept_form(form, errors):
         if not is_new_component and component_id is not None:
             historical_component = Component.history.filter(id=component_id)
             if not historical_component.exists():
-                errors.append(f'Invalid concept with ID {concept_id} - component is not valid')
+                errors.append(f'Invalid child entity with ID {concept_id} - component is not valid')
                 return None
             component['id'] = component_id
         else:
@@ -570,37 +570,37 @@ def validate_concept_form(form, errors):
         
         component_name = gen_utils.try_value_as_type(concept_component.get('name'), 'string', { 'sanitise': 'strict' })
         if component_name is None or gen_utils.is_empty_string(component_name):
-            errors.append(f'Invalid concept with ID {concept_id} - Component names are non-nullable, string fields.')
+            errors.append(f'Invalid child entity with ID {concept_id} - Component names are non-nullable, string fields.')
             return None
         
         component_logical_type = concept_component.get('logical_type')
         if component_logical_type is None or component_logical_type not in constants.CLINICAL_RULE_TYPE:
-            errors.append(f'Invalid concept with ID {concept_id} - Component logical types are non-nullable, string fields.')
+            errors.append(f'Invalid child entity with ID {concept_id} - Component logical types are non-nullable, string fields.')
             return None
         component_logical_type = constants.CLINICAL_RULE_TYPE.from_name(component_logical_type)
         
         component_source_type = concept_component.get('source_type')
         if component_source_type is None or component_source_type not in constants.CLINICAL_CODE_SOURCE:
-            errors.append(f'Invalid concept with ID {concept_id} - Component source types are non-nullable, string fields.')
+            errors.append(f'Invalid child entity with ID {concept_id} - Component source types are non-nullable, string fields.')
             return None
         component_source_type = constants.CLINICAL_CODE_SOURCE.from_name(component_source_type)
         
         component_source = concept_component.get('source')
         if component_source_type == constants.CLINICAL_CODE_SOURCE.SEARCH_TERM and (component_source is None or gen_utils.is_empty_string(component_source)):
-            errors.append(f'Invalid concept with ID {concept_id} - Component sources are non-nullable, string fields for search terms.')
+            errors.append(f'Invalid child entity with ID {concept_id} - Component sources are non-nullable, string fields for search terms.')
             return None
 
         component_codes = concept_component.get('codes')
         component_codes = list() if not isinstance(component_codes, list) else component_codes
         # if len(component_codes) < 1:
-        #     errors.append(f'Invalid concept with ID {concept_id} - Component codes is a non-nullable, list field')
+        #     errors.append(f'Invalid child entity with ID {concept_id} - Component codes is a non-nullable, list field')
         #     return None
         
         codes = { }
         for component_code in component_codes:
             code = { }
             if not isinstance(component_code, dict):
-                errors.append(f'Invalid concept with ID {concept_id} - Component code items are non-nullable, dict field')
+                errors.append(f'Invalid child entity with ID {concept_id} - Component code items are non-nullable, dict field')
                 return None
 
             is_new_code = is_new_component or component_code.get('is_new')
@@ -608,7 +608,7 @@ def validate_concept_form(form, errors):
             if not is_new_code and code_id is not None:
                 historical_code = Code.history.filter(id=code_id)
                 if not historical_code.exists():
-                    errors.append(f'Invalid concept with ID {concept_id} - Code is not valid')
+                    errors.append(f'Invalid child entity with ID {concept_id} - Code is not valid')
                     return None
                 code['id'] = code_id
             else:
@@ -616,7 +616,7 @@ def validate_concept_form(form, errors):
 
             code_name = gen_utils.try_value_as_type(component_code.get('code'), 'code', { 'sanitise': 'strict' })
             if gen_utils.is_empty_string(code_name):
-                errors.append(f'Invalid concept with ID {concept_id} - A code\'s code is a non-nullable, string field')
+                errors.append(f'Invalid child entity with ID {concept_id} - A code\'s code is a non-nullable, string field')
                 return None
             
             if code_name in codes:
@@ -633,7 +633,7 @@ def validate_concept_form(form, errors):
 
                 if isinstance(code_attributes, list):
                     if len(set(attribute_headers)) != len(code_attributes):
-                        errors.append(f'Invalid concept with ID {concept_id} - attribute headers must be unique.')
+                        errors.append(f'Invalid child entity with ID {concept_id} - attribute headers must be unique.')
                         return None
 
                     code_attributes = code_attributes[:len(attribute_headers)]
@@ -855,12 +855,12 @@ def validate_entity_form(request, content, errors=[], method=None):
     if current_brand is not None:
         organisation = form_data.get('organisation')
         if organisation is None:
-            errors.append('Phenotypes must be associated with an organisation')
+            errors.append('Your work must be associated with an organisation')
             return
 
         valid_user_orgs = permission_utils.get_user_organisations(request)
         if organisation in [org.get('id') for org in valid_user_orgs]:
-            errors.append('Your organisation doesn\'t have authorisation to post this phenotype')
+            errors.append('Your organisation doesn\'t have authorisation to post this work')
             return
 
     # Validate & Clean the form data

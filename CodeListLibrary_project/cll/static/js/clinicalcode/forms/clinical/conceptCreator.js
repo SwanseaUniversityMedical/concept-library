@@ -306,17 +306,17 @@ const CONCEPT_CREATOR_TEXT = {
   // Rule deletion prompt
   RULE_DELETION: {
     title: 'Are you sure?',
-    content: '<p>Are you sure you want to delete this Ruleset from your Concept?</p>',
+    content: '<p>Are you sure you want to delete this Ruleset from your ${brandMapping.concept}?</p>',
   },
   // Concept deletion prompt
   CONCEPT_DELETION: {
     title: 'Are you sure?',
-    content: '<p>Are you sure you want to delete this Concept from your Phenotype?</p>',
+    content: '<p>Are you sure you want to delete this ${brandMapping.concept} from your ${brandMapping.phenotype}?</p>',
   },
   // Toast to inform user to close editor
-  REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a Concept.',
+  REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a ${brandMapping.concept}.',
   // Toast for Concept name validation
-  REQUIRE_CONCEPT_NAME: 'You need to name your Concept before saving',
+  REQUIRE_CONCEPT_NAME: 'You need to name your ${brandMapping.concept} before saving',
   // Toast for Concept CodingSystem validation
   REQUIRE_CODING_SYSTEM: 'You need to select a coding system before saving!',
   // Toast to inform the user that no exclusionary codes were addded since they aren't present in an inclusionary rule
@@ -334,17 +334,17 @@ const CONCEPT_CREATOR_TEXT = {
   // Toast to inform the user there was an error when trying to upload their code file
   NO_CODE_FILE_MATCH: 'Unable to parse uploaded file. Please try again.',
   // Toast to inform the user that the codes from the imported concept(s) were added
-  ADDED_CONCEPT_CODES: 'Added ${code_len} codes via Concept Import',
+  ADDED_CONCEPT_CODES: 'Added ${code_len} codes via ${brandMapping.concept} Import',
   // Toast to inform the user there was an error when trying to upload their code file
-  NO_CONCEPT_MATCH: 'We were unable to add this Concept. Please try again.',
+  NO_CONCEPT_MATCH: 'We were unable to add this ${brandMapping.concept}. Please try again.',
   // Toast to inform the user they tried to import non-distinct top-level concepts
   CONCEPT_IMPORTS_ARE_PRESENT: 'Already imported ${failed}',
   // Toast to inform the user they tried to import non-distinct rule-level concepts
-  CONCEPT_RULE_IS_PRESENT: 'You have already imported this Concept as a rule',
+  CONCEPT_RULE_IS_PRESENT: 'You have already imported this ${brandMapping.concept} as a rule',
   // Toast to inform successful update to new concept version
-  CONCEPT_UPDATE_SUCCESS: 'Updated Concept to Version ${version}',
+  CONCEPT_UPDATE_SUCCESS: 'Updated ${brandMapping.concept} to Version ${version}',
   // Toast to inform failed update to new concept version
-  CONCEPT_UPDATE_FAILED: 'Failed to update Concept, please try again.',
+  CONCEPT_UPDATE_FAILED: 'Failed to update ${brandMapping.concept}, please try again.',
 }
 
 /**
@@ -516,12 +516,15 @@ export default class ConceptCreator {
    * @returns {promise} that can be used as a Thenable if required
    */
   tryImportConcepts() {
+    const brandMapping = this.parent.mapping;
     const prompt = new ConceptSelectionService({
-      promptTitle: 'Import Concepts',
+      promptTitle: `Import ${brandMapping.concept}`,
+      mapping: brandMapping,
       template: this.template?.id,
       entity_id: this.entity?.id,
       entity_history_id: this.entity?.history_id,
       allowMultiple: true,
+      noneSelectedMessage: `You haven't selected any ${brandMapping.concept}s yet`,
     });
 
     return prompt.show()
@@ -549,8 +552,9 @@ export default class ConceptCreator {
       return Promise.reject();
     }
 
+    const brandMapping = this.parent.mapping;
     const prompt = new ConceptSelectionService({
-      promptTitle: `Import Concept as Rule (${codingSystemName})`,
+      promptTitle: `Import ${brandMapping.concept} as Rule (${codingSystemName})`,
       template: this.template?.id,
       allowMultiple: false,
       entity_id: this.entity?.id,
@@ -1873,7 +1877,13 @@ export default class ConceptCreator {
       }
 
       new Promise((resolve, reject) => {
-        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.RULE_DELETION)
+        window.ModalFactory.create({
+          title: CONCEPT_CREATOR_TEXT.RULE_DELETION.title,
+          content: interpolateString(
+            CONCEPT_CREATOR_TEXT.RULE_DELETION.content,
+            { brandMapping: this.parent.mapping }
+          )
+        })
         .then(resolve)
         .catch(reject);
       })
@@ -2156,7 +2166,13 @@ export default class ConceptCreator {
           .then(result => {
             spinner = startLoadingSpinner();
             if (!this.#isConceptRuleImportDistinct(result, logicalType)) {
-              this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT});
+              this.#pushToast({
+                type: 'danger',
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT,
+                  { brandMapping: this.parent.mapping }
+                )
+              });
               return;
             }
 
@@ -2167,9 +2183,10 @@ export default class ConceptCreator {
               this.#tryAddNewRule(logicalType, sourceType, result);
               this.#pushToast({
                 type: 'success',
-                message: interpolateString(CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES, {
-                  code_len: result?.codelist.length.toLocaleString(),
-                })
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES,
+                  { brandMapping: this.parent.mapping, code_len: result?.codelist.length.toLocaleString() }
+                )
               });
 
               return;
@@ -2182,7 +2199,13 @@ export default class ConceptCreator {
           })
           .catch(e => {
             if (!isNullOrUndefined(e)) {
-              this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.NO_CONCEPT_MATCH});
+              this.#pushToast({
+                type: 'danger',
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.NO_CONCEPT_MATCH,
+                  { brandMapping: this.parent.mapping }
+                )
+              });
               console.error(e);
               return;
             }
@@ -2251,12 +2274,24 @@ export default class ConceptCreator {
 
     // Validate the concept data
     if (isNullOrUndefined(data?.details?.name) || isStringEmpty(data?.details?.name)) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CONCEPT_NAME });
+      this.#pushToast({
+        type: 'danger',
+        message: interpolateString(
+          CONCEPT_CREATOR_TEXT.REQUIRE_CONCEPT_NAME,
+          { brandMapping: this.parent.mapping }
+        ),
+      });
       return;
     }
 
     if (isNullOrUndefined(data?.coding_system)) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM});
+      this.#pushToast({
+        type: 'danger',
+        message: interpolateString(
+          CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM,
+          { brandMapping: this.parent.mapping }
+        ),
+      });
       return;
     }
     
@@ -2414,12 +2449,21 @@ export default class ConceptCreator {
    */
   #handleDeletion(target) {
     if (this.state.editing) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_EDIT_CLOSURE });
+      this.#pushToast({ type: 'danger', message: interpolateString(
+        CONCEPT_CREATOR_TEXT.REQUIRE_EDIT_CLOSURE,
+        { brandMapping: this.parent.mapping }
+      ) });
       return;
     }
 
     return new Promise((resolve, reject) => {
-        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
+        window.ModalFactory.create({
+          title: CONCEPT_CREATOR_TEXT.CONCEPT_DELETION.title,
+          content: interpolateString(
+            CONCEPT_CREATOR_TEXT.CONCEPT_DELETION.content,
+            { brandMapping: this.parent.mapping }
+          )
+        }).then(resolve).catch(reject);
       })
       .then(() => {
         const conceptGroup = tryGetRootElement(target, 'concept-list__group');
@@ -2500,9 +2544,10 @@ export default class ConceptCreator {
         this.#tryUpdateRenderConceptComponents(updatedConcept.concept_id, updatedConcept.concept_version_id, true);
         this.#pushToast({
           type: 'success',
-          message: interpolateString(CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_SUCCESS, {
-            version: updatedConcept.concept_version_id.toString(),
-          })
+          message: interpolateString(
+            CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT,
+            { brandMapping: this.parent.mapping, version: updatedConcept.concept_version_id.toString() }
+          )
         });
       })
       .catch((e) => {
@@ -2512,7 +2557,10 @@ export default class ConceptCreator {
 
         this.#pushToast({
           type: 'danger',
-          message: CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED
+          message: interpolateString(
+            CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED,
+            { brandMapping: this.parent.mapping }
+          )
         });
       });
   }

@@ -150,11 +150,52 @@
 
 	margin: 0;
 	padding: 0;
+  max-width: 100%;
 	list-style-type: none;
 
+  &--dense {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20ch, 1fr));
+    grid-auto-flow: row dense;
+    max-width: 100%;
+    gap: 1ch;
+    justify-items: flex-start;
+
+    & > .chip {
+      display: flex;
+      height: calc(100% - 0.5rem);
+      align-items: center;
+
+      & > a,
+      & > p {
+        display: -webkit-box;
+        width: max-content;
+        max-width: 17ch;
+        margin-top: auto;
+        margin-bottom: auto;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -moz-box-orient: vertical;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    @include media('<=phone', 'screen') {
+      grid-template-columns: 1fr;
+
+      & > .chip a,
+      & > .chip p {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  }
+
   &--presentation {
-    overflow-y: auto;
     overflow-x: hide;
+    overflow-y: auto;
     max-height: 100px;
     padding: 0.5rem 0.5rem calc(0.5rem + 12px) 0.2rem;
   }

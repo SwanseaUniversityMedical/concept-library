@@ -105,6 +105,7 @@ def get_env_value(env_variable, cast=None, default=Symbol('None')):
 
 APP_TITLE = 'Concept Library'
 APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical codelists in health research.'
+APP_CITATION = 'Users should cite the {app_title} in all publications, presentations and reports as follows: “<em>{brand_name} {app_title}, website: <a href="{brand_website}" target=_blank>{brand_website}</a>.</em>”'
 APP_LOGO_PATH = 'img/'
 APP_EMBED_ICON = '{logo_path}embed_img.png'
 INDEX_PATH = 'clinicalcode/index.html'

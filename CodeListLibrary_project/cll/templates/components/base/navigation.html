@@ -2,6 +2,7 @@
 {% load cache %}
 {% load static %}
 {% load compress %}
+{% load cl_extras %}
 
 {% block content %}
 {% compress js %}
@@ -32,8 +33,16 @@
             <a href="{{ home_url }}" id="Home">Home</a>
           {% endif %}
 
-          {% url 'search_phenotypes' as entity_url %}
-          <a href="{{ entity_url }}" id="Phenotypes" data-root="search,update,create">Phenotypes</a>
+          {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}
+            {% url 'search_phenotypes' as entity_url %}
+            {% if request.BRAND_OBJECT.allowed_tabs.phenotypes|get_type == 'dict' %}
+              <a href="{{ entity_url }}" id="{{ request.BRAND_OBJECT.allowed_tabs.phenotypes.id|default:'Phenotypes' }}" data-root="search,update,create">
+                {{ request.BRAND_OBJECT.allowed_tabs.phenotypes.title|default:'Phenotypes' }}
+              </a>
+            {% else %}
+              <a href="{{ entity_url }}" id="Phenotypes" data-root="search,update,create">Phenotypes</a>
+            {% endif %}
+          {% endif %}
 
           {% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}
             {% url 'api:root' as api_url %}

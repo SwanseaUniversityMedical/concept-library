@@ -7,7 +7,9 @@ import os
 from ..entity_utils import gen_utils
 from ..entity_utils.constants import TypeStatus
 
+
 register = template.Library()
+
 
 @register.simple_tag(takes_context=True)
 def render_og_tags(context, *args, **kwargs):
@@ -57,6 +59,11 @@ def render_og_tags(context, *args, **kwargs):
         )
     )
 
+@register.filter
+def get_type(value):
+    """Resolves the type of the specified value"""
+    return type(value).__name__
+
 @register.filter(name='from_phenotype')
 def from_phenotype(value, index, default=''):
     if index in value:
@@ -89,46 +96,42 @@ def has_group(user, group_name):
     return user.groups.filter(name=group_name).exists()
 
 @register.filter
-def islist(value):
+def is_list(value):
     """Check if value is of type list"""
-    return type(value) == list
+    return isinstance(value, list)
 
 @register.filter
-def tolist(value, arg):
+def to_list(value, arg):
     """Convert comma separated value to a list of type arg"""
-
     if arg == "int":
         return [int(t) for t in value.split(',')]
-    else:
-        return [str(t) for t in value.split(',')]
+    return [str(t) for t in value.split(',')]
 
 @register.filter
-def toString(value):
+def to_string(value):
     """Convert value to string"""
     return str(value)
 
 @register.filter
-def addStr(value, arg):
+def add_str(value, arg):
     """concatenate value & arg"""
     return str(value) + str(arg)
 
 @register.filter
-def getBrandLogo(value):
+def get_brand_logo(value):
     """get brand logos"""
     return f'/static/img/brands/{value}/apple-touch-icon.png'
 
 @register.filter   
 def get_ws_type_name(type_int):
-    '''
-        get working set type name
-    '''
+    """get working set type name"""
     return str([t[1] for t in TypeStatus.Type_status if t[0]==type_int][0])
     
 @register.filter   
 def get_title(txt, makeCapital=''):
-    '''
+    """
         get title case
-    '''
+    """
     txt = txt.replace('_', ' ')
     txt = txt.title()
     if makeCapital.strip() != '':
@@ -137,16 +140,12 @@ def get_title(txt, makeCapital=''):
     
 @register.filter   
 def is_in_list(txt, list_values):
-    '''
-        check is value is in list
-    '''
+    """check is value is in list"""
     return (txt in [i.strip() for i in list_values.split(',')])
 
 @register.filter   
 def concat_str(txt0, txt1):
-    '''
-        Safely concatenate the given string(s)
-    '''
+    """Safely concatenate the given string(s)"""
     if txt0 is not None and txt1 is not None:
         return '%s %s' % (str(txt0), str(txt1),) 
     elif txt0 is not None:
@@ -157,9 +156,7 @@ def concat_str(txt0, txt1):
 
 @register.filter   
 def concat_doi(details, doi):
-    '''
-        concat publications details + doi
-    '''
+    """concat publications details + doi"""
     details = str(details)
     if doi is None or (isinstance(doi, str) and (len(doi.strip()) < 1 or doi.isspace())):
         return details

@@ -111,6 +111,12 @@ const CSEL_OPTIONS = {
   // Whether to cache the resulting queries for quicker,
   // albeit possibly out of date, Phenotypes and their assoc. Concepts
   useCachedResults: false,
+
+  // Brand text mapping
+  mapping: {
+    phenotype: 'Phenotype',
+    concept: 'Concept',
+  },
 };
 
 /**
@@ -143,8 +149,8 @@ const CSEL_INTERFACE = {
   TAB_VIEW: ' \
   <div class="tab-view" id="tab-view"> \
     <div class="tab-view__tabs tab-view__tabs-z-buffer"> \
-      <button aria-label="tab" id="SEARCH" class="tab-view__tab active">Search Concepts</button> \
-      <button aria-label="tab" id="SELECTION" class="tab-view__tab">Selected Concepts</button> \
+      <button aria-label="tab" id="SEARCH" class="tab-view__tab active">Search ${brandMapping.concept}</button> \
+      <button aria-label="tab" id="SELECTION" class="tab-view__tab">Selected ${brandMapping.concept}</button> \
     </div> \
     <div class="tab-view__content" id="tab-content"> \
     </div> \
@@ -876,8 +882,28 @@ export class ConceptSelectionService {
     buttons['cancel'] = cancelBtn;
 
     // initiate main event handling
-    buttons?.confirm.addEventListener('click', this.#handleConfirm.bind(this));
-    buttons?.cancel.addEventListener('click', this.#handleCancel.bind(this));
+    let cancelHnd, escapeHnd;
+    cancelHnd = (e) => {
+      const willClose = this.#handleCancel(e);
+      if (willClose) {
+        document.removeEventListener('keyup', escapeHnd);
+      }
+    };
+
+    escapeHnd = (e) => {
+      const activeFocusElem = document.activeElement;
+      if (!!activeFocusElem && activeFocusElem.matches('input, textarea, button, select')) {
+        return;
+      }
+
+      if (e.code === 'Escape') {
+        cancelHnd(e);
+      }
+    };
+
+    document.addEventListener('keyup', escapeHnd);
+    buttons?.cancel?.addEventListener?.('click', cancelHnd);
+    buttons?.confirm?.addEventListener?.('click', this.#handleConfirm.bind(this));
 
     // create content handler
     const body = container.querySelector('#target-modal-content');
@@ -888,7 +914,7 @@ export class ConceptSelectionService {
 
     let contentContainer = body;
     if (this.options.allowMultiple) {
-      html = CSEL_INTERFACE.TAB_VIEW;
+      html = interpolateString(CSEL_INTERFACE.TAB_VIEW, { brandMapping: this.options.mapping }, false);
       doc = parseHTMLFromString(html, true);
       contentContainer = body.appendChild(doc[0]);
       
@@ -1274,7 +1300,7 @@ export class ConceptSelectionService {
 
       html = interpolateString(CSEL_INTERFACE.CARD_ACCORDION, {
         id: result?.id,
-        title: `Available Concepts (${children.length})`,
+        title: `Available ${this.options.mapping.concept} (${children.length})`,
         content: childContents,
       });
       doc = parseHTMLFromString(html, true);

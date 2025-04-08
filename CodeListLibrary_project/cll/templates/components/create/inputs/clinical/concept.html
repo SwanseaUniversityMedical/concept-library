@@ -11,24 +11,30 @@
   {% else %}
     <script type="application/json" desc-type="value" for="{{ component.field_name }}"></script>
   {% endif %}
-  
+
+  {% get_brand_map_rules as brand_mapping %}
   <section class="concepts-view__header">
     <div class="concepts-view__container">
-      <p class="concepts-view__title">Your Concepts {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
-      <p class="concepts-view__description">The Concepts that relate to this Phenotype:</p>
+      <p class="concepts-view__title">
+        Your {{ brand_mapping.concept }}s
+        {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}
+      </h3>
+      <p class="concepts-view__description">
+        The {{ brand_mapping.concept }}s that relate to this {{ brand_mapping.phenotype }}:
+      </p>
     </div>
     <div class="concepts-view__container as-row">
-      <button class="secondary-btn text-accent-darkest bold icon create-icon secondary-accent" aria-label="Create new Concept" id="create-concept-btn">
-        New Concept
+      <button class="secondary-btn text-accent-darkest bold icon icon-create secondary-accent" aria-label="Create new {{ brand_mapping.concept }}" id="create-concept-btn">
+        New {{ brand_mapping.concept }}
       </button>
-      <button class="secondary-btn text-accent-darkest bold icon import-icon secondary-accent" aria-label="Import Concepts" id="import-concept-btn">
-        Import Concepts
+      <button class="secondary-btn text-accent-darkest bold icon icon-import secondary-accent" aria-label="Import {{ brand_mapping.concept }}s" id="import-concept-btn">
+        Import {{ brand_mapping.concept }}s
       </button>
     </div>
   </section>
 
   <section class="concept-list__none-available" id="no-available-concepts">
-    <p class="concept-list__none-available-message">You haven't added any concepts yet.</p>
+    <p class="concept-list__none-available-message">You haven't added any {{ brand_mapping.concept }}s yet.</p>
   </section>
   
   <section class="concept-list" id="concept-content-list">
@@ -38,8 +44,8 @@
   <template id="concept-item">
     <section class="concept-list__group" data-concept-id="${concept_id}" data-concept-history-id="${concept_version_id}">
       <span class="concept-list__group-item" id="concept-accordion-header">
-        <span class="contextual-icon" tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open"></span>
-        <span class="concept-name"  tabindex="0" aria-label="Expand Concept" role="button" data-target="is-open">
+        <span class="contextual-icon" tabindex="0" aria-label="Expand {{ brand_mapping.concept }}" role="button" data-target="is-open"></span>
+        <span class="concept-name"  tabindex="0" aria-label="Expand {{ brand_mapping.concept }}" role="button" data-target="is-open">
           ${is_imported_item
             ? `<a href="${phenotype_owner_version_url}" target="_blank">${phenotype_owner} / ${phenotype_owner_history_id} / ${concept_name}</a>`
             : (phenotype_owner ? `${phenotype_owner} / ${phenotype_owner_history_id} / ${concept_name}` : (concept_name || '')) }
@@ -49,14 +55,14 @@
         <span class="concept-buttons">
           ${can_edit
             ? `
-            <span tooltip="Edit Concept" direction="left">
-              <span class="edit-icon" tabindex="0" aria-label="Edit Concept" role="button" data-target="edit"></span>
+            <span tooltip="Edit {{ brand_mapping.concept }}" direction="left">
+              <span class="edit-icon" tabindex="0" aria-label="Edit {{ brand_mapping.concept }}" role="button" data-target="edit"></span>
             </span>
             `
             : ``
           }
-          <span tooltip="Delete Concept" direction="left">
-            <span class="delete-icon" tabindex="0" aria-label="Delete Concept" role="button" data-target="delete"></span>
+          <span tooltip="Delete {{ brand_mapping.concept }}" direction="left">
+            <span class="delete-icon" tabindex="0" aria-label="Delete {{ brand_mapping.concept }}" role="button" data-target="delete"></span>
           </span>
         </span>
       </span>
@@ -95,7 +101,7 @@
       <div class="detailed-input-group fill">
         <h3 class="detailed-input-group__title">Name</h3>
         <pre class="detailed-input-group__description">The name of this codelist.</pre>
-        <input class="text-input" aria-label="Concept Name" type="text" id="concept-name" name="concept-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${concept_name}" aria-required="true">
+        <input class="text-input" aria-label="{{ brand_mapping.concept }} Name" type="text" id="concept-name" name="concept-name" placeholder="" minlength="3" pattern="^[a-zA-Z]{1,}.*?" value="${concept_name}" aria-required="true">
       </div>
       <div class="detailed-input-group fill">
         <h3 class="detailed-input-group__title">Coding System</h3>
@@ -118,9 +124,15 @@
               <input type="radio" class="dropdown-btn__close" id="close-incl-ruleset" name="incl-ruleset-btn">
               <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-incl-ruleset"></label>
               <ul class="dropdown-btn__menu fall-right">
-                <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
-                <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">Import from File</li>
-                <li aria-label="Add Concept Import Rule" role="button" tabindex="0" data-source="CONCEPT_IMPORT">Import from Concept</li>
+                <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">
+                  Add Searchterm
+                </li>
+                <li aria-label="Add Import File Rule" role="button" tabindex="0" data-source="FILE_IMPORT">
+                  Import from File
+                </li>
+                <li aria-label="Add {{ brand_mapping.concept }} Import Rule" role="button" tabindex="0" data-source="CONCEPT_IMPORT">
+                  Import from {{ brand_mapping.concept }}
+                </li>
               </ul>
             </label>
           </fieldset>
@@ -149,8 +161,12 @@
               <input type="radio" class="dropdown-btn__close" id="close-excl-ruleset" name="excl-ruleset-btn" checked>
               <label aria-label="Close Ruleset Selection" role="button" tabindex="0" id="close-ruleset-selection" class="dropdown-btn__close-label" for="close-excl-ruleset"></label>
               <ul class="dropdown-btn__menu fall-right">
-                <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">Add Searchterm</li>
-                <li aria-label="Add Concept Import Rule" role="button" tabindex="0" data-source="CONCEPT_IMPORT">Import from Concept</li>
+                <li aria-label="Add Searchterm Rule" role="button" tabindex="0" data-source="SEARCH_TERM">
+                  Add Searchterm
+                </li>
+                <li aria-label="Add {{ brand_mapping.concept }} Import Rule" role="button" tabindex="0" data-source="CONCEPT_IMPORT">
+                  Import from {{ brand_mapping.concept }}
+                </li>
               </ul>
             </label>
           </fieldset>
@@ -168,7 +184,7 @@
 
       <section class="concept-group-content__details">
         <div class="concept-group-content__details-explanation">
-          <h3>Codelist</h3>
+          <h3>Final Codelist</h3>
           <p class="concept-group-content__details-explanation-description">The computed codelist having evaluated the rulesets.</p>
         </div>
       </section>
@@ -292,7 +308,7 @@
         <div class="detailed-input-group fill">
           <div class="detailed-input-group__header">
             <div class="detailed-input-group__header-item">
-              <h3 class="detailed-input-group__title sm">Concept Import Rule</h3>
+              <h3 class="detailed-input-group__title sm">{{ brand_mapping.concept }} Import Rule</h3>
               <pre class="detailed-input-group__description">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</pre>
             </div>
             <div class="detailed-input-group__header-item">
@@ -304,7 +320,7 @@
               </span>
             </div>
           </div>
-          <input class="text-input" aria-label="Imported Concept"
+          <input class="text-input" aria-label="Imported {{ brand_mapping.concept }}"
               type="text" value="${source}" data-item="rule" disabled>
         </div>
       </article>

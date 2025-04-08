@@ -229,7 +229,7 @@
     }
 
     &-container {
-      @include flex-col();
+      @include flex-col(false, true);
       position: relative;
       width: 100%;
       max-width: 100%;

@@ -1,8 +1,9 @@
 from django.http.request import HttpRequest
-from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 
 import enum
+
 
 User = get_user_model()
 
@@ -437,6 +438,12 @@ DETAIL_PAGE_APPENDED_FIELDS = {
     }
 }
 
+"""Default brand ctx content name mapping"""
+DEFAULT_CONTENT_MAPPING = {
+    'phenotype': 'Phenotype',
+    'concept': 'Concept',
+}
+
 """
     [!] Note: Will be moved to a table once tooling is finished, accessible through the 'base_template_version'
 
@@ -467,7 +474,7 @@ metadata = {
     },
     'brands': {
         'title': 'Brand',
-        'description': 'The brand that this Phenotype is related to.',
+        'description': 'The brand that this entity is related to.',
         'field_type': '???',
         'active': True,
         'validation': {
@@ -640,7 +647,7 @@ metadata = {
                     'source_by_brand': {
                         'ADP': 'allow_null',
                         'HDRUK': 'allow_null',
-                        'HDRN': False,
+                        'HDRN': True,
                         'SAIL': False,
                     },
                 }
@@ -654,7 +661,7 @@ metadata = {
     },
     'organisation': {
         'title': 'Organisation',
-        'description': "The organisation that owns this Phenotype for permissions purposes (optional).",
+        'description': "The organisation that owns this entity for permissions purposes (optional).",
         'field_type': 'group_field',
         'active': True,
         'validation': {
@@ -666,7 +673,7 @@ metadata = {
     },
     'group': {
         'title': 'Group',
-        'description': "The group that owns this Phenotype for permissions purposes (optional).",
+        'description': "The group that owns this entity for permissions purposes (optional).",
         'field_type': 'group_field',
         'active': False,
         'validation': {
@@ -678,7 +685,7 @@ metadata = {
     },
     'group_access': {
         'title': 'Group Access',
-        'description': 'Optionally enable this Phenotype to be viewed or edited by the group.',
+        'description': 'Optionally enable this entity to be viewed or edited by the group.',
         'field_type': 'access_field_editable',
         'active': False,
         'validation': {
@@ -702,7 +709,7 @@ metadata = {
     },
     'world_access': {
         'title': 'All authenticated users',
-        'description': "Enables this Phenotype to be viewed by all logged-in users of the Library (does not make it public on the web -- use the Publish action for that).",
+        'description': "Enables this entity to be viewed by all logged-in users of the Library (does not make it public on the web -- use the Publish action for that).",
         'field_type': 'access_field',
         'active': False,
         'validation': {

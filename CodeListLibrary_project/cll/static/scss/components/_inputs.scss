@@ -32,22 +32,32 @@
       display: flex;
       flex-flow: row wrap;
       align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+
+      &--right {
+        justify-content: flex-end;
+      }
 
       input {
         flex: 1;
-        margin-right: 1rem;
       }
+
       input:first-child {
         flex: 2;
-        margin-right: 0.25rem;
       }
+
       button {
+        margin-bottom: 0.25rem;
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
         font-weight: normal;
-        margin-bottom: 0.25rem;
       }
-    
+
+      & > input.date-range-picker {
+        min-width: 10ch;
+      }
+
       &--references {
         & > button {
           margin-top: 2rem;
@@ -77,6 +87,10 @@
         display: flex;
         flex-flow: row wrap;
         align-items: center;
+
+        &--right {
+          justify-content: flex-end;
+        }
 
         input {
           flex: 1;
@@ -153,15 +167,43 @@
     }
 
     &-item {
-      @include flex-row();
+      @include flex-row(0.5rem, false);
+      max-width: calc(100% - 0.5rem);
       align-items: center;
       justify-content: space-between;
       padding: 0.5rem 0;
 
+      & p {
+        margin: 0;
+      }
+
+      &--is-primary {
+        display: inline-block;
+        width: var(--icons-size);
+        height: var(--icons-size);
+        margin-right: 1ch;
+
+        &:before {
+          content: '\f005';
+          cursor: inherit;
+          pointer-events: inherit;
+          position: absolute;
+          height: 100%;
+          aspect-ratio: 1 / 1;
+          font-family: var(--icons-name);
+          font-style: var(--icons-style);
+          font-size: var(--icons-size);
+          text-align: center;
+          color: col(accent-tertiary);
+        }
+      }
+
+      &-id,
       &-url {
         display: flex;
         vertical-align: middle;
-        max-width: 60%;
+        flex: 1;
+        max-width: 100%;
 
         @include media("<desktop", "screen") {
           max-width: 175px;
@@ -174,14 +216,121 @@
         @include media("<=phone", "screen") {
           max-width: 100px;
         }
-        
-        p {
+
+        & p {
+          text-wrap: wrap;
           word-wrap: break-word;
+          max-width: 100%;
         }
-        
-        a {
-          text-align: right;
+
+        & a {
+          text-wrap: wrap;
+          word-wrap: break-word;
+          max-width: 100%;
+
+          &[data-shrinkcontent="true"] {
+            display: block;
+            max-width: 10em;
+
+            &::after {
+              --shrink-replacement: "Link";
+
+              display: -webkit-box;
+              content: attr(href);
+              max-width: 10em;
+              line-clamp: 2;
+              -webkit-line-clamp: 2;
+              -moz-box-orient: vertical;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              text-overflow: ellipsis;
+
+              @include media("<tablet", "screen") {
+                content: var(--shrink-replacement);
+              }
+            }
+
+            &:not([data-shrinkreplace=""])::after {
+              --shrink-replacement: attr(data-shrinkreplace);
+            }
+          }
         }
+      }
+
+      &-primary {
+        flex: 1;
+        max-width: 100%;
+
+        &:empty {
+          flex: 0;
+        }
+      }
+
+      &-names {
+        flex: 1;
+        max-width: 100%;
+
+        & p {
+          text-wrap: wrap;
+          word-wrap: break-word;
+          max-width: 100%;
+        }
+
+        & a {
+          text-wrap: wrap;
+          word-wrap: break-word;
+          max-width: 100%;
+        }
+      }
+
+      &-bhfdate {
+        display: block;
+        flex: 0.5;
+        min-width: fit-content;
+        max-width: 100%;
+
+        & > p {
+          display: block;
+          width: fit-content;
+          max-width: calc(100% - 0.5em);
+          margin: 0;
+          margin-left: auto;
+          margin-right: auto;
+          padding: 0 0.5em;
+          border-bottom: 5px dotted col(accent-tertiary);
+        }
+
+        @include media("<tablet", "screen") {
+          flex: 1;
+          min-width: 100%;
+          text-align: left;
+
+          & > p {
+            width: fit-content;
+            margin: 0;
+          }
+        }
+      }
+
+      &-id,
+      &-url,
+      &-names {
+        @include media("<tablet", "screen") {
+          flex: 1;
+          min-width: 100%;
+
+          & p {
+            width: fit-content;
+          }
+
+          & a:not([data-shrinkcontent]) {
+            width: fit-content;
+          }
+        }
+      }
+
+      &-id {
+        word-break: break-all;
       }
 
       &-btn {
@@ -202,6 +351,10 @@
         border-radius: 0.25rem;
         border: none;
         outline: none;
+
+        @include media("<tablet", "screen") {
+          margin-left: auto;
+        }
 
         & > span {
           font-weight: bold;
@@ -550,21 +703,43 @@
 
   &__header {
     display: flex;
-    flex-flow: row nowrap;
+    flex-flow: row wrap;
+    width: 100%;
     height: min-content;
+    max-width: 100%;
     justify-content: space-between;
     align-items: flex-end;
 
+    & > p {
+      display: block;
+      flex: 1;
+      max-width: 100%;
+    }
+
     &-actions {
       display: flex;
-      flex-flow: row wrap;
+      flex: 1;
+      flex-flow: row nowrap;
       justify-content: flex-end;
 
       button {
+        font-weight: normal;
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
-        font-weight: normal;
         margin-bottom: 0.25rem;
+        margin-left: auto;
+      }
+    }
+
+    @include media('<tablet', 'screen') {
+      & > p {
+        width: 100%;
+        flex: unset;
+      }
+  
+      &-actions {
+        width: 100%;
+        flex: unset;
       }
     }
   }
@@ -795,6 +970,17 @@
   &--wrapped {
     flex-wrap: wrap;
     max-width: 100%;
+
+    @include media('<tablet', 'screen') {display: grid;
+      grid: 1fr 1fr / 1fr 1fr;
+      gap: 0.5rem 0.25rem;
+      justify-items: safe;
+
+      & > .date-range-field__label {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+    }
   }
 
   &--padding0_5 {

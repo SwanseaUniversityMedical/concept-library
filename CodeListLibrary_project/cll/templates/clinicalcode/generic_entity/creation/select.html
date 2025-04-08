@@ -7,7 +7,7 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| Create a Phenotype {% endblock title %}
+{% block title %}| Create a {% get_brand_mapped_string target="phenotype" default="Phenotype" %}{% endblock title %}
 
 {% block embedding_wrapper %}
   {% render_og_tags header='Create your Phenotype' %}
@@ -27,17 +27,21 @@
 
   <!-- Dependencies -->
   {% compress js %}
-  <script type="module" src="{% static 'js/clinicalcode/components/entitySelector.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/entitySelector.js' %}"></script>
   {% endcompress %}
+
+  {% get_brand_map_rules as brand_mapping %}
 
   <!-- Main -->
   {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container">
-        <h2 class="banner__title">Create a Phenotype</h2>
+        <h2 class="banner__title">
+          Create a {{ brand_mapping.phenotype }}
+        </h2>
         <p class="banner__description">
-          Select the type of Phenotype you want to create to start contributing to the {{ base_page_title }}.
+          Select the type of {{ brand_mapping.phenotype }} you want to create to start contributing to the {{ base_page_title }}.
         </p>
         <div class="banner__cards"></div>
       </div>
@@ -56,7 +60,7 @@
     <article class="entity-panel">
       <section class="entity-panel__group">
         <h3 class="entity-panel__title">${title}</h3>
-        <p class="entity-panel__description">${description}</p>
+        <p class="entity-panel__description ${descCls}">${description}</p>
         <div class="entity-panel__container slim-scrollbar" id="entity-options"></div>
       </section>
     </article>

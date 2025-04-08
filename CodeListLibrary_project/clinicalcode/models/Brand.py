@@ -7,6 +7,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
 
 from .TimeStampedModel import TimeStampedModel
+from clinicalcode.entity_utils import constants
 
 User = get_user_model()
 
@@ -96,6 +97,30 @@ class Brand(TimeStampedModel):
             cache.set('brands_names__cache', named_brands, 3600)
         return named_brands
 
+    def all_map_rules(cached=True):
+        """
+            Resolves all Brand content mapping rules
+
+            Note:
+                - Brands that do not specify mapping rules will resolve those specified in `constants.py`;
+                - Please beware that mapping rules are merged with those defined by `constants.py`
+
+            Args:
+                cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `True`
+
+            Returns:
+                A (dict) containing key-value pairs in which the key describes the Brand name, and the value describes the content mapping rules _assoc._ with that Brand - _i.e._ a (Dict[str, str]).
+        """
+        mapping_rules = cache.get('brands_mapping-rules__cache') if cached else None
+        if mapping_rules is None:
+            brands = Brand.all_instances(cached=cached)
+            mapping_rules = [ x.get_map_rules(cached=False) for x in brands ]
+            mapping_rules = { brand.name: rule for brand, rule in zip(dict(brands, mapping_rules)).items() }
+
+            if cached:
+                cache.set('brands_mapping-rules__cache', mapping_rules, 3600)
+        return mapping_rules
+
     @staticmethod
     def all_asset_rules(cached=True):
         """
@@ -150,6 +175,41 @@ class Brand(TimeStampedModel):
 
 
     '''Instance methods'''
+    def get_map_rules(self, cached=True, default=constants.DEFAULT_CONTENT_MAPPING):
+        '''
+            Attempts to resolve this Brand's `content_mapping` override attribute
+
+            Note:
+                A Brand's `content_mapping` should define a (Dict[str, str]) which specifies a key-value translation pair
+
+            Args:
+                cached (bool): optionally specify whether to retrieve the cached resultset; defaults to `False`
+                default (Any): optionally specify the default return value if the `content_visibility` attr is undefined; defaults to `constants.DEFAULT_CONTENT_MAPPING`
+
+            Returns:
+                This Brand's `content_mapping` (Dict[str, str]) rule if applicable, otherwise returns the specified `default` value
+        '''
+        # Handle case where instance has yet to be saved
+        if self.id is None:
+            return {} | default if isinstance(default, dict) else None
+
+        cache_key = f'brands_mappings__{self.name}__cache' if cached else None
+        mapping_rules = cache.get(cache_key) if cached else None
+        if mapping_rules is not None:
+            return mapping_rules.get('value')
+
+        mapping_rules = getattr(self, 'overrides')
+        mapping_rules = mapping_rules.get('content_mapping') if isinstance(mapping_rules, dict) else None
+        if isinstance(mapping_rules, dict):
+            mapping_rules = {} | constants.DEFAULT_CONTENT_MAPPING | mapping_rules
+        else:
+            mapping_rules = {} | default if isinstance(default, dict) else None
+
+        if cached:
+            cache.set(cache_key, { 'value': mapping_rules }, 3600)
+
+        return mapping_rules
+
     def get_asset_rules(self, cached=False, default=None):
         '''
             Attempts to resolve this Brand's `asset_rules` override attribute

@@ -52,8 +52,8 @@ export const
       content: `
         <p>
           <strong>
-            You are saving a legacy Phenotype.
-            Updating this Phenotype will overwrite the most recent version.
+            You are saving a legacy entity.
+            Updating this entity will overwrite the most recent version.
           </strong>
         </p>
         <p>Are you sure you want to do this?</p>

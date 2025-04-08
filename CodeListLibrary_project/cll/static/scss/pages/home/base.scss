@@ -868,10 +868,13 @@
     }
     
     &-text {
+      max-width: 100%;
+      font-family: inherit;
       font-size: 1rem;
       text-align: left;
       color: col(text-darker);
-      word-wrap: anywhere;
+      text-wrap: wrap;
+      word-wrap: break-word;
     }
   }
 }

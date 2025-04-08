@@ -47,6 +47,7 @@ export const ENTITY_HANDLERS = {
   'tagify': (element, dataset) => {
     const parent = element.parentElement;
     const data = parent.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    console.log(parent, data);
 
     let varyDataVis = parseInt(element.getAttribute('data-vis') ?? '0');
     varyDataVis = !Number.isNaN(varyDataVis) && Boolean(varyDataVis);
@@ -76,6 +77,8 @@ export const ENTITY_HANDLERS = {
       }
     }
 
+    console.log(element, varyDataVis);
+
     const tagbox = new Tagify(element, {
       'autocomplete': true,
       'useValue': true,
@@ -83,6 +86,7 @@ export const ENTITY_HANDLERS = {
       'restricted': true,
       'items': options,
       'onLoad': (box) => {
+        console.log(box);
         for (let i = 0; i < value.length; ++i) {
           const item = value[i];
           if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
@@ -198,8 +202,8 @@ export const ENTITY_HANDLERS = {
     const mde = new EasyMDE({
       // Elem
       element: element,
-      maxHeight: '500px',
-      minHeight: '300px',
+      maxHeight: '300px',
+      minHeight: '200px',
 
       // Behaviour
       autofocus: false,
