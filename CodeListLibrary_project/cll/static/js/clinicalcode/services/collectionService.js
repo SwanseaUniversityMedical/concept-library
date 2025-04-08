@@ -144,7 +144,7 @@ const getCollectionData = () => {
  * @returns {string} returns the formatted render html target
  * 
  */
-const renderNameAnchor = (pageType, key, entity) => {
+const renderNameAnchor = (pageType, key, entity, mapping) => {
   const { id, history_id, name, publish_status } = entity;
 
   let text = `${id} - ${strictSanitiseString(name)}`;
@@ -173,10 +173,10 @@ const renderNameAnchor = (pageType, key, entity) => {
     
       let target =  `
         <a href='${url}'>${text}</a>
-        <span tooltip="Edit Phenotype" direction="right">
+        <span tooltip="Edit ${mapping.phenotype}" direction="right">
           <span class="profile-collection__edit-icon"
                 tabindex="0"
-                aria-label="Edit Phenotype"
+                aria-label="Edit ${mapping.phenotype}"
                 role="button"
                 data-target="edit"
                 data-href="${update}"></span>
@@ -185,9 +185,9 @@ const renderNameAnchor = (pageType, key, entity) => {
     
       if (publish_status != 2) {
         target += `
-          <span tooltip="Archive Phenotype" direction="right">
+          <span tooltip="Archive ${mapping.phenotype}" direction="right">
             <span class="profile-collection__delete-icon"
-                  tabindex="0" aria-label="Archive Phenotype"
+                  tabindex="0" aria-label="Archive ${mapping.phenotype}"
                   role="button"
                   data-target="archive"
                   data-id="${id}"></span>
@@ -201,9 +201,9 @@ const renderNameAnchor = (pageType, key, entity) => {
     case 'archived': {
       return `
         <a href='${url}'>${text}</a>
-        <span tooltip="Restore Phenotype" direction="right">
+        <span tooltip="Restore ${mapping.phenotype}" direction="right">
           <span class="profile-collection__restore-icon"
-                tabindex="0" aria-label="Restore Phenotype"
+                tabindex="0" aria-label="Restore ${mapping.phenotype}"
                 role="button"
                 data-target="restore"
                 data-id="${id}"></span>
@@ -243,13 +243,15 @@ const renderStatusTag = (data) => {
 /**
  * renderCollectionComponent
  * @desc method to render the collection component
- * @param {string} pageType the component page type, e.g. in the case of profile/moderation pages
- * @param {string} key the component type associated with this component, e.g. collection
- * @param {node} container the container node associated with this element
- * @param {object} data the data associated with this element
+ * 
+ * @param {string} pageType  the component page type, e.g. in the case of profile/moderation pages
+ * @param {string} key       the component type associated with this component, e.g. collection
+ * @param {node}   container the container node associated with this element
+ * @param {object} data      the data associated with this element
+ * @param {object} mapping   brand context text data
  * 
  */
-const renderCollectionComponent = (pageType, key, container, data) => {
+const renderCollectionComponent = (pageType, key, container, data, mapping) => {
   if (isNullOrUndefined(data) || Object.keys(data).length == 0) {
     return;
   }
@@ -296,7 +298,7 @@ const renderCollectionComponent = (pageType, key, container, data) => {
         render: (value, cell, rowIndex) => {
           const [entityId, ...others] = value.match(/^\w+-?/g);
           const entity = data.find(e => e.id == entityId);
-          return renderNameAnchor(pageType, key, entity);
+          return renderNameAnchor(pageType, key, entity, mapping);
         },
       },
       { select: 2, type: 'number', hidden: true },
@@ -410,10 +412,11 @@ const renderCollectionComponent = (pageType, key, container, data) => {
  *       whether they want to archive a phenotype; and then
  *       attempts to send a request to the server to archive a phenotype
  * 
- * @param {number} id the associated phenotype id
+ * @param {number} id      the associated phenotype id
+ * @param {object} mapping brand context text data
  * 
  */
-const tryArchivePhenotype = (id) => {
+const tryArchivePhenotype = (id, mapping) => {
   window.ModalFactory.create({
     title: `Are you sure you want to archive ${id}?`,
     content: ARCHIVE_TEMPLATE.innerHTML,
@@ -459,11 +462,14 @@ const tryArchivePhenotype = (id) => {
 /**
  * tryRestorePhenotype
  * @desc attempts to send a request to the server to restore a phenotype
- * @param {number} id the associated phenotype id
+ * 
+ * @param {number} id      the associated phenotype id
+ * @param {object} mapping brand context text data
+ * 
  * @returns {object<Promise>} returns the request promise
  * 
  */
-const tryRestorePhenotype = (id) => {
+const tryRestorePhenotype = (id, mapping) => {
   const token = getCookie('csrftoken');
   return fetch(
     window.location.href,
@@ -502,12 +508,15 @@ domReady.finally(() => {
   ARCHIVE_TEMPLATE = document.querySelector('#archive-form');
 
   const data = getCollectionData();
+  const mapping = data.mapping.data;
+  delete data.mapping;
+
   for (let [key, value] of Object.entries(data)) {
-    if (value.data.length < 1) {
+    if (value.data.length < 1 || !stringHasChars(value.pageType)) {
       continue;
     }
 
-    renderCollectionComponent(value.pageType, key, value.container, value.data);
+    renderCollectionComponent(value.pageType, key, value.container, value.data, mapping);
   }
 
   if (!isNullOrUndefined(ARCHIVE_TEMPLATE)) {
@@ -521,7 +530,7 @@ domReady.finally(() => {
       switch (trg) {
         case 'archive': {
           const id = target.getAttribute('data-id');
-          tryArchivePhenotype(id);
+          tryArchivePhenotype(id, mapping);
         } break;
         
         case 'edit': {
@@ -535,7 +544,7 @@ domReady.finally(() => {
             content: `<p>Would you like to restore <strong>${id}</strong>?</p>`
           })
             .then((result) => {
-              return tryRestorePhenotype(id);
+              return tryRestorePhenotype(id, mapping);
             })
             .then(() => {
               window.location.reload();

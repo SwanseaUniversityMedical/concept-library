@@ -2,13 +2,14 @@
 {% load compress %}
 {% load sass_tags %}
 {% load cl_extras %}
-{% load entity_renderer %}
 {% load markdownify %}
-<!--   phenotype_clinical_code_lists   -->
+{% load entity_renderer %}
 
+<!-- phenotype_clinical_code_lists -->
+{% get_brand_map_rules as brand_mapping %}
 <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/clinicalcode/data/conceptUtils.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/data/conceptUtils.js' %}"></script>
 {% endcompress %}
 
 {% if component.value|length %}
@@ -66,16 +67,14 @@
             title="{{ c.name }} ({{ c.coding_system_name }})">
           <span aria-label="{{ c.name }} ({{ c.coding_system_name }})" class="fill-accordion__wrap-label">
             <a href="{% url 'entity_detail' pk=c.phenotype_owner_id %}"
-                  title="Visit Linked Phenotype: {{c.phenotype_owner_id}} / C{{ c.concept_id }}">
+                  title="Visit Linked {{ brand_mapping.phenotype }}: {{c.phenotype_owner_id}} / C{{ c.concept_id }}">
               {{c.phenotype_owner_id}} / C{{ c.concept_id }}
             </a>
-
-            &nbsp;-&nbsp;{{ c.name }}
-            &nbsp;|&nbsp;<em>{{ c.coding_system_name }}</em>
-
+            &nbsp;-&nbsp;<span>{{ c.name }}</span>&nbsp;|&nbsp;
+            <em>{{ c.coding_system_name }}</em>
             <span id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
                   class="hide"
-                  aria-label="Legacy Concept Version">
+                  aria-label="Legacy {{ brand_mapping.concept }} Version">
               &nbsp;|&nbsp;
               <strong>LEGACY VERSION</strong>
             </span>

@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
 {% load static %}
+{% load compress %}
+{% load sass_tags %}
 {% load cl_extras %}
 {% load markdownify %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
 {% load entity_publish_renderer %}
-{% load compress %}
-{% load sass_tags %}
 
-{% block title %}| {{ entity_class }}: {{ entity.name }}{% endblock title %}
-{% block description %}{{ entity_class }} {{ entity.id }}/{{ entity.history_id }} - {{ entity.name }}{% endblock description %}
-{% block keywords %}, {{ entity.name }}, {{ entity.id }}/{{ entity.history_id }}, {{ entity_class }}{% endblock keywords %}
+{% block title %}| {% get_template_entity_name entity_class template %}: {{ entity.name }}{% endblock title %}
+{% block description %}{% get_template_entity_name entity_class template %} {{ entity.id }}/{{ entity.history_id }} - {{ entity.name }}{% endblock description %}
+{% block keywords %}, {{ entity.name }}, {{ entity.id }}/{{ entity.history_id }}, {% get_template_entity_name entity_class template %}{% endblock keywords %}
 
 {% block canonical_path %}
 	<link rel="canonical" href="{{ page_canonical_path }}" />
@@ -28,7 +28,7 @@
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
 
   {% compress js %}
-  <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
   {% endcompress %}
 
   <!-- Page Stylesheets -->

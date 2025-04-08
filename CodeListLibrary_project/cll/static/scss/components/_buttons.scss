@@ -75,61 +75,35 @@
   }
   
   /* Icon style */
-  &.save-icon:after {
-    content: '\f0c7';
-    cursor: pointer;
-    position: absolute;
-    pointer-events: auto;
-    height: 100%;
-    top: 1.1rem;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
-  }
-  
-  &.create-icon:after {
-    content: '\f382';
-    cursor: pointer;
-    position: absolute;
-    pointer-events: auto;
-    height: 100%;
-    top: 1.1rem;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
-  }
+  &.icon {
+    &:after {
+      cursor: pointer;
+      position: absolute;
+      pointer-events: auto;
+      height: 100%;
+      top: calc(50% - var(--icons-size)*0.5);
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      text-align: center;
+    }
 
-  &.next-icon:after {
-    content: '\f35a';
-    cursor: pointer;
-    position: absolute;
-    pointer-events: auto;
-    height: 100%;
-    top: 1.1rem;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
-  }
+    &-save:after {
+      content: '\f0c7';
+    }
+
+    &-create:after {
+      content: '\f382';
+    }
   
-  &.r-arrow-icon:after {
-    content: '\f061';
-    cursor: pointer;
-    pointer-events: auto;
-    position: absolute;
-    right: 0;
-    height: 100%;
-    top: 32.75%;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
+    &-next:after {
+      content: '\f35a';
+    }
+    
+    &-r-arrow:after {
+      content: '\f061';
+    }
   }
 
   /* Effects */
@@ -195,9 +169,6 @@
   &.text-warning{
     color: col(text-warning);
   }
-
-
-
 
   /* Outline accents */
   &.outline {
@@ -276,66 +247,36 @@
   &.icon {
     padding: 0.5rem 2.5rem 0.5rem 1rem;
     text-align: left;
-  }
 
-  &.import-icon:after {
-    content: '\f381';
-    cursor: pointer;
-    pointer-events: auto;
-    position: absolute;
-    right: 0;
-    height: 100%;
-    top: 25%;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
-  }
+    &:after {
+      cursor: pointer;
+      pointer-events: auto;
+      position: absolute;
+      right: 0;
+      height: 100%;
+      top: calc(50% - var(--icons-size)*0.5);
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      text-align: center;
+    }
 
-  &.create-icon:after {
-    content: '\f0cb';
-    cursor: pointer;
-    pointer-events: auto;
-    position: absolute;
-    right: 0;
-    height: 100%;
-    top: 25%;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
-  }
-
-  &.ruleset-icon:after {
-    content: '\f542';
-    cursor: pointer;
-    pointer-events: auto;
-    position: absolute;
-    right: 0;
-    height: 100%;
-    top: 25%;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
-  }
-
-  &.file-icon:after {
-    content: '\f574';
-    cursor: pointer;
-    pointer-events: auto;
-    position: absolute;
-    right: 0;
-    height: 100%;
-    top: 25%;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
+    &-import:after {
+      content: '\f381';
+    }
+  
+    &-create:after {
+      content: '\f0cb';
+    }
+  
+    &-ruleset:after {
+      content: '\f542';
+    }
+  
+    &-file:after {
+      content: '\f574';
+    }
   }
 
   /* Text style */
@@ -461,23 +402,22 @@
     -webkit-transform: translateY(0.2rem);
   }
 
-  &.import-icon:after {
-    content: '\f0c7';
-    cursor: pointer;
-    position: absolute;
-    pointer-events: auto;
-    height: 100%;
-    top: 0.75rem;
-    right: 0;
-    aspect-ratio: 1 / 1;
-    font-family: var(--icons-name);
-    font-style: var(--icons-style);
-    font-size: var(--icons-size);
-    text-align: center;
-  }
-
   &.icon {
     padding: 0.5rem 2rem 0.5rem 0.5rem;
+
+    &:after {
+      cursor: pointer;
+      position: absolute;
+      pointer-events: auto;
+      height: 100%;
+      top: calc(50% - var(--icons-size)*0.5);
+      right: 0;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      text-align: center;
+    }
 
     &.left {
       padding: 0.5rem 0.5rem 0.5rem 2rem;
@@ -485,6 +425,10 @@
       &:after {
         left: 0;
       }
+    }
+
+    &-import:after {
+      content: '\f0c7';
     }
   }
 

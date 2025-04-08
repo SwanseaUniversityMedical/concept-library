@@ -14,11 +14,11 @@ from django.utils.translation import gettext_lazy as _
 
 import re
 import json
+import inspect
 import numbers
 import warnings
 
 from ..models.Brand import Brand
-from ..models.GenericEntity import GenericEntity
 from ..entity_utils import (
   concept_utils, permission_utils, template_utils, search_utils,
   model_utils, create_utils, gen_utils, constants
@@ -48,6 +48,45 @@ def sort_by_alpha(arr, column="name", order="desc"):
     except:
         sorted_arr = arr
     return sorted_arr
+
+
+@register.simple_tag(takes_context=True)
+def get_brand_map_rules(context, brand=None, default=constants.DEFAULT_CONTENT_MAPPING):
+    if brand is None:
+        brand = model_utils.try_get_brand(context.get('request'))
+    elif isinstance(brand, str) and not gen_utils.is_empty_string(brand):
+        brand = model_utils.try_get_instance(Brand, name__iexact=brand)
+    elif isinstance(brand, int) and brand >= 0:
+        brand = model_utils.try_get_instance(Brand, pk=brand)
+    elif not isinstance(brand, Brand) and (not inspect.isclass(brand) or not issubclass(brand, Brand)):
+        brand = None
+
+    if brand is None:
+        return default
+
+    return brand.get_map_rules(default=default)
+
+
+@register.simple_tag(takes_context=True)
+def fmt_brand_mapped_string(context, target, brand=None, default=None):
+    brand = get_brand_map_rules(context, brand, default=None)
+    if brand is None:
+        if isinstance(default, str):
+            return default
+        brand = constants.DEFAULT_CONTENT_MAPPING if not isinstance(default, dict) else default
+    return target.format(**brand)
+
+
+@register.simple_tag(takes_context=True)
+def get_brand_mapped_string(context, target, default=None, brand=None):
+    if not isinstance(default, str):
+        raise Exception('Failed to map string, expected a default value of type str, got %s' % type(default).__name__)
+
+    if not isinstance(target, str):
+        raise Exception('Expected mapping key as str, got %s' % type(target).__name__)
+
+    brand = get_brand_map_rules(context, brand)
+    return brand.get(target, default)
 
 
 @register.simple_tag
@@ -117,6 +156,101 @@ def get_brand_base_desc(brand):
     return desc
 
 
+@register.simple_tag(takes_context=True)
+def get_brand_base_website(context, brand=None):
+    """
+        Gets the brand-related site description if available, otherwise returns the base embed description (see `APP_DESC` in `settings.py`)
+
+        Args:
+            brand (Brand|dict|None): the brand from which to resolve the info
+
+        Returns:
+            A (str) specifying the site description
+    """
+    request = context.get('request')
+    if brand is None:
+        brand = model_utils.try_get_brand(request)
+    elif isinstance(brand, str) and not gen_utils.is_empty_string(brand):
+        brand = model_utils.try_get_instance(Brand, name__iexact=brand)
+    elif isinstance(brand, int) and brand >= 0:
+        brand = model_utils.try_get_instance(Brand, pk=brand)
+    elif not isinstance(brand, dict) and not isinstance(brand, Brand) and (not inspect.isclass(brand) or not issubclass(brand, Brand)):
+        brand = None
+
+    if isinstance(brand, dict):
+        url = brand.get('website', None)
+    elif isinstance(brand, Model):
+        url = getattr(brand, 'website', None) if hasattr(brand, 'website') else None
+    else:
+        url = None
+
+    if url is not None and not gen_utils.is_empty_string(url):
+        return url
+
+    if brand is not None:
+        return f'/{brand.name}'
+    return request.build_absolute_uri()
+
+
+@register.simple_tag(takes_context=True)
+def get_brand_citation_req(context, brand=None):
+    """
+        Gets the brand-related citation requirement if available, otherwise returns the base embed description (see `APP_CITATION` in `settings.py`)
+
+        Args:
+            context        (RequestContext): the page's request context (auto-prepended)
+            brand (Request|Brand|dict|None): the brand from which to resolve the info
+
+        Returns:
+            A (str) specifying the site citation requirement message
+    """
+    request = context.get('request')
+    if brand is None:
+        brand = model_utils.try_get_brand(request)
+    elif isinstance(brand, str) and not gen_utils.is_empty_string(brand):
+        brand = model_utils.try_get_instance(Brand, name__iexact=brand)
+    elif isinstance(brand, int) and brand >= 0:
+        brand = model_utils.try_get_instance(Brand, pk=brand)
+    elif not isinstance(brand, Brand) and (not inspect.isclass(brand) or not issubclass(brand, Brand)):
+        brand = None
+
+    if brand is not None:
+        map_rules = brand.get_map_rules()
+        citation = map_rules.get('citation')
+        website = map_rules.get('website')
+    else:
+        map_rules = constants.DEFAULT_CONTENT_MAPPING
+        citation = None
+        website = map_rules.get('website')
+
+    has_valid_website = isinstance(website, str) and not gen_utils.is_empty_string(website)
+    if isinstance(brand, dict):
+        title = brand.get('site_title', None)
+        website = brand.get('website', None) if not has_valid_website else website
+    elif isinstance(brand, Model):
+        title = getattr(brand, 'site_title', None) if hasattr(brand, 'site_title') else None
+        website = getattr(brand, 'website', None) if not has_valid_website and hasattr(brand, 'website') else website
+    else:
+        title = None
+        website = website if has_valid_website else None
+
+    if title is None or gen_utils.is_empty_string(title):
+        title = settings.APP_TITLE
+
+    if website is None or gen_utils.is_empty_string(website):
+        website = request.build_absolute_uri()
+
+    if not isinstance(citation, str) or gen_utils.is_empty_string(citation):
+        citation = settings.APP_CITATION
+
+    return citation.format(
+        **map_rules,
+        app_title=title,
+        brand_name=brand.name if brand else 'SAIL',
+        brand_website=website
+    )
+
+
 @register.simple_tag
 def get_brand_base_embed_desc(brand):
     """
@@ -165,6 +299,23 @@ def get_brand_base_embed_img(brand):
         return settings.APP_EMBED_ICON.format(logo_path=settings.APP_LOGO_PATH)
     return settings.APP_EMBED_ICON.format(logo_path=path)
 
+
+@register.simple_tag
+def get_template_entity_name(entity_class, template=None):
+    tmpl_def = None
+    if isinstance(template, Model) or inspect.isclass(template) and issubclass(template, Model):
+        tmpl_def = template.definition.get('template_details') if isinstance(template.definition, dict) else None
+    elif isinstance(template, dict):
+        tmpl_def = template.get('definition').get('template_details') if isinstance(template.get('definition'), dict) else None
+
+    if isinstance(tmpl_def, dict):
+        shortname = tmpl_def.get('shortname')
+    else:
+        shortname = None
+
+    if isinstance(shortname, str) and not gen_utils.is_empty_string(shortname):
+        return shortname
+    return entity_class.name
 
 @register.simple_tag
 def render_citation_block(entity, request):
@@ -385,7 +536,7 @@ def truncate(value, lim=10, ending=None):
 
 
 @register.simple_tag(name='render_field_value')
-def render_field_value(entity, layout, field, through=None):
+def render_field_value(entity, layout, field, through=None, default=''):
     """
         Responsible for rendering fields after transforming them using their respective layouts, such that:
             - In the case of `type` (in this case, phenotype clinical types) where `pk__eq=1` would be "_Disease or Syndrome_" instead of returning the `pk`, it would return the field's string representation from either (a) its source or (b) the options parameter;
@@ -397,22 +548,23 @@ def render_field_value(entity, layout, field, through=None):
             layout          (dict): the entity's template data
             field            (str): the name of the field to resolve
             through     (str|None): optionally specify the through field target, if applicable; defaults to `None`
+            default          (Any): optionally specify the default value; defaults to an empty (str) `''`
 
         Returns:
             The renderable (str) value resolved from this entity's field value 
     """
     data = template_utils.get_entity_field(entity, field)
     info = template_utils.get_layout_field(layout, field)
-
     if not info or not data:
-        return ''
+        return default
     
     validation = template_utils.try_get_content(info, 'validation')
     if validation is None:
-        return ''
+        return default
+
     field_type = template_utils.try_get_content(validation, 'type')
     if field_type is None:
-        return ''
+        return default
     
     if field_type == 'enum' or field_type == 'int':
         output = template_utils.get_template_data_values(entity, layout, field, default=None)
@@ -425,12 +577,12 @@ def render_field_value(entity, layout, field, through=None):
             if values is not None:
                 if through is not None:
                     # Use override template
-                    return ''
+                    return default
                 else:
                     # Use desired output
-                    return ''
+                    return default
 
-    return ''
+    return default
 
 
 @register.simple_tag(name='renderable_field_values')
@@ -1181,7 +1333,7 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
                 return default
 
     if field_info.get('field_type') == 'data_sources':
-        return get_data_sources(data, info, default=default)
+        return get_data_sources(data, field_info, default=default)
 
     if info.get('is_metadata'):
         return template_utils.get_metadata_value_from_source(entity, field, field_info=info, layout=layout, default=default)

@@ -233,7 +233,10 @@ class ModalFactory {
         }
       }
 
-      const closeModal = (method, details) => {
+      let escapeHnd, closeModal;
+      closeModal = (method, details) => {
+        document.removeEventListener('keyup', escapeHnd);
+
         document.body.classList.remove('modal-open');
         window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
         modal.remove();
@@ -271,7 +274,7 @@ class ModalFactory {
               } break;
             }
           });
-        }
+        };
 
         const exit = modal.querySelector('#modal-close-btn');
         if (exit) {
@@ -280,7 +283,19 @@ class ModalFactory {
             closeModal(reject);
           });
         }
-        
+
+        escapeHnd = (e) => {
+          const activeFocusElem = document.activeElement;
+          if (!!activeFocusElem && activeFocusElem.matches('input, textarea, button, select')) {
+            return;
+          }
+  
+          if (e.code === 'Escape') {
+            closeModal(reject);
+          }
+        };
+        document.addEventListener('keyup', escapeHnd);
+
         // Show the modal
         createElement('a', { href: `#${id}` }).click();
         window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});

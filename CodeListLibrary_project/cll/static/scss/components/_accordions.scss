@@ -92,15 +92,15 @@
     outline: 0;
 
     &:not(:hover) {
-      background-color: col(accent-darkish);
+      background-color: col(accent-grey);
 
       .fill-accordion__label-icon {
-        background-color: col(accent-darkish);
+        background-color: col(accent-grey);
       }
     }
 
     .fill-accordion__name-input {
-      --bg-color: var(--color-accent-darkish);
+      --bg-color: var(--color-accent-lightest);
       --dot-color: rgb(0, 0, 0);
     }
 
@@ -138,7 +138,7 @@
     background-color: col(accent-washed);
 
     .fill-accordion__name-input {
-      --bg-color: var(--color-accent-darkish);
+      --bg-color: var(--color-accent-lightest);
     }
 
     & .fill-accordion__label-icon {
@@ -197,7 +197,7 @@
     outline: 1px solid col(accent-washed);
 
     span:not(.fill-accordion__label-icon) {
-      padding: 1rem 0.5rem;
+      padding: 1rem 1ch;
       position: relative;
       white-space: nowrap;
       overflow: hidden;
@@ -212,17 +212,16 @@
       }
     }
 
-
     &__delete-icon {
       background: transparent;
       border: none;
     
-    &:after {
-      @include fontawesome-icon();
-      content: '\f1f8';
-      color: col(accent-danger);
+      &:after {
+        @include fontawesome-icon();
+        content: '\f1f8';
+        color: col(accent-danger);
+      }
     }
-  }
 
     & .fill-accordion__label-icon {
       display: block;
@@ -266,5 +265,15 @@
     max-width: 100%;
     overflow: hidden;
     padding: 0rem 0.5rem;
+  }
+
+  &__input:checked + &__label:not(:hover) {
+    & .fill-accordion__wrap-label > *:not(a) {
+      color: col(text-brightest);
+    }
+
+    & .fill-accordion__input-title {
+      color: col(text-brightest);
+    }
   }
 }

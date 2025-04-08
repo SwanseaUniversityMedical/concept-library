@@ -20,10 +20,12 @@
           placeholder="e.g. Doe J. et al. Publication. Publisher"
           minlength="3" pattern="^[a-zA-Z]{1,}.*?"
           id="publication-input-box">
-        <input class="text-input" aria-label="Publication DOI" type="text" placeholder="e.g. DOI 10.111" id="doi-input-box">
+        <input class="text-input" aria-label="Publication DOI" type="text" placeholder="e.g. DOI 10.1000/111" id="doi-input-box">
+      </div>
+      <div class="publication-list-group__interface-children publication-list-group__interface-children--right">
         <div class="checkbox-item-container min-size">
-        <input id="primary-publication-checkbox" aria-label="Primary Publication" type="checkbox" class="checkbox-item" data-value="1" data-name="Primary Publication">
-        <label for="primary-publication-checkbox">Primary Publication</label>
+          <input id="primary-publication-checkbox" aria-label="Primary Publication" type="checkbox" class="checkbox-item" data-value="1" data-name="Primary Publication">
+          <label for="primary-publication-checkbox">Primary Publication</label>
         </div>
         <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Publication" id="add-input-btn">Add</button>
       </div>

@@ -1,17 +1,18 @@
 {% load entity_renderer %}
 
+{% get_brand_map_rules as brand_mapping %}
 {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 <header class="main-header search-banner">
 	<div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
     <div class="search-banner__header">
-      <h2 class="search-banner__title">Phenotypes</h2>
+      <h2 class="search-banner__title">{{ brand_mapping.phenotype }}s</h2>
     </div>
     <div class="search-banner__container">
       <fieldset class="search-container" data-controller="filter" data-class="searchbar" data-field="search">
         <input type="text" placeholder="Search..." value="{{ search_query }}" id="searchbar" class="search-container__field washed-outline"
           data-class="searchbar" data-field="search"
-          aria-label="Search Phenotypes..."/>
-        <button class="search-container__icon" aria-label="Search Phenotypes" id="searchbar-icon-btn" tabindex="0">
+          aria-label="Search {{ brand_mapping.phenotype }}s..."/>
+        <button class="search-container__icon" aria-label="Search {{ brand_mapping.phenotype }}s" id="searchbar-icon-btn" tabindex="0">
         </button>
       </fieldset>
     </div>
@@ -33,10 +34,10 @@
         {% url 'create_phenotype' as create_url %}
         <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
             data-target="{{ create_url }}" onclick="redirectToTarget(this);"
-            tabindex="0" aria-label="Create a Phenotype">
+            tabindex="0" aria-label="Create a {{ brand_mapping.phenotype }}">
           
           <div class="referral-card__header">
-            <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype <span class="referral-card__title-icon"></span></a>
+            <a class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }} <span class="referral-card__title-icon"></span></a>
           </div>
           <div class="referral-card__body">
             <p>Start here to contribute to the {{ base_page_title }}.</p>
@@ -66,7 +67,7 @@
               <a class="referral-card__title" href="{{ reference_url }}">Reference Data <span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
-              <p>Look up values for phenotype fields.</p>
+              <p>Look up values for {{ brand_mapping.phenotype }} fields.</p>
             </div>
           </article>
         {% endif %}

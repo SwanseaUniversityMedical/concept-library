@@ -28,6 +28,7 @@
     <script type="module" src="{% static 'js/clinicalcode/services/dashboardService/index.js' %}"></script>
   {% endcompress js %}
 
+  {% get_brand_map_rules as brand_mapping %}
   {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <main id="app" class="dashboard-layout dashboard-layout--constrained">
 
@@ -241,6 +242,8 @@
     </section>
   </main>
 
+  {% to_json_script brand_mapping data-for="dashboard" data-view="brandMapping" desc-type="text/json" %}
+
   <template data-name="model" data-for="dashboard">
     <article class="dashboard-view__content-group ${articleCls}">
       <header class="dashboard-view__content-header ${headerCls}">
@@ -335,13 +338,13 @@
         value="${query}"
         placeholder="Search..."
         data-class="searchbar" data-field="search"
-        aria-label="Search Phenotypes..."
+        aria-label="Search {{ brand_mapping.phenotype }}s..."
       />
       <button
         id="searchbar-icon-btn"
         class="search-container__icon"
         tabindex="0"
-        aria-label="Search Phenotypes">
+        aria-label="Search {{ brand_mapping.phenotype }}s">
       </button>
     </fieldset>
     <article class="dash-list">

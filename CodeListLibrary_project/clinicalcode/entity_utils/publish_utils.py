@@ -1,15 +1,16 @@
-import re
-from django.urls import reverse, reverse_lazy
-from django.template.loader import render_to_string
-from clinicalcode.entity_utils import model_utils
-from clinicalcode.models import Organisation,OrganisationMembership
+from django.urls import reverse
 from django.contrib.auth import get_user_model
+from clinicalcode.entity_utils import model_utils
+
+import re
+
 from clinicalcode.tasks import send_review_email
 from clinicalcode.entity_utils import constants, permission_utils, entity_db_utils
-
 from clinicalcode.models.Concept import Concept
+from clinicalcode.models.Organisation import Organisation, OrganisationMembership
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
+from clinicalcode.templatetags.entity_renderer import get_template_entity_name
 
 User = get_user_model()
 
@@ -137,6 +138,7 @@ def check_entity_to_publish(request, pk, entity_history_id):
 
     checks = {
         'entity_type': entity_class,
+        'branded_entity_cls': get_template_entity_name(entity.template.entity_class, entity.template),
         'name': entity_ver.name,
         'errors': errors or None,
         'allowed_to_publish': allow_to_publish,
@@ -328,7 +330,7 @@ def format_message_and_send_email(request, pk, data, entity, entity_history_id, 
     Format the message, send an email, and update data with the new message
     """
     data['message'] = message_template.format(
-        entity_type=checks['entity_type'], 
+        entity_type=checks.get('branded_entity_cls'),
         url=reverse('entity_history_detail', args=(pk, entity_history_id)), 
         pk=pk,
         history=entity_history_id
@@ -371,7 +373,7 @@ def send_email_decision_entity(request, entity, entity_history_id, checks,data):
     context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user_id":requested_userid,"url_redirect":url_redirect}
     if data['approval_status'].value == constants.APPROVAL_STATUS.PENDING:
         context["status"] = "Pending"
-        context["message"] = "Phenotype has been submitted and is under review"
+        context["message"] = "Your work has been submitted and is under review"
         context["staff_emails"] = get_emails_by_groupname("Moderators")
         if checks.get('org_user_managed',False):
             context['staff_emails'] = get_emails_by_organization(request,entity.entity_id)
@@ -380,10 +382,10 @@ def send_email_decision_entity(request, entity, entity_history_id, checks,data):
     elif data['approval_status'].value == constants.APPROVAL_STATUS.APPROVED:
         # This line for the case when user want to get notification of same workingset id but different version
         context["status"] = "Published"
-        context["message"] = "Phenotype has been approved and successfully published"
+        context["message"] = "The work you submitted has been approved and successfully published"
         send_review_email(request, context)
     elif data['approval_status'].value == constants.APPROVAL_STATUS.REJECTED:
         context["status"] = "Rejected"
-        context["message"] = "Phenotype submission has been rejected by the moderator"
-        context["custom_message"] = "We welcome you to try again but please address these concerns with your Phenotype first" #TODO add custom message logic
+        context["message"] = "The work you submitted has been rejected by the moderator"
+        context["custom_message"] = "We welcome you to try again but please address these concerns with your work first" #TODO add custom message logic
         send_review_email(request, context)

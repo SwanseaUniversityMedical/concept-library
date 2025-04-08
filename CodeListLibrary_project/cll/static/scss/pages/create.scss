@@ -39,11 +39,18 @@
     
     &-row {
       @include flex-row($gap: 0.5rem);
-
+      flex-wrap: wrap-reverse;
       justify-content: center;
+      max-width: 100%;
+
       @include media(">phone", "screen") {
-        & {
-          justify-content: right;
+        justify-content: right;
+      }
+
+      @include media("<=phone", "screen") {
+        & > #submit-entity-btn {
+          text-wrap: wrap;
+          word-wrap: break-all;
         }
       }
     }
@@ -61,6 +68,8 @@
       color: col(text-darkest);
       line-height: 1;
       margin: 1rem auto;
+      text-wrap: wrap;
+      word-break: break-all;
     }
   
     span {
@@ -180,6 +189,8 @@
       font-size: var(--progress-tracker-header-size);
       color: var(--progress-tracker-header-color);
       line-height: 1;
+      text-wrap: wrap;
+      word-break: break-word;
     }
 
     @include media("<desktop", "screen") {

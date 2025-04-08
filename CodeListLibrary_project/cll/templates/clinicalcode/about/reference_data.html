@@ -26,13 +26,14 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
   {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container">
         <h2 class="banner__title">Reference Data</h2>
         <p class="banner__description">
-          Look up values for Phenotype fields.
+          Look up values for {{ brand_mapping.phenotype }} fields.
         </p>
         <div class="banner__cards">
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
@@ -48,7 +49,7 @@
             {% url 'create_phenotype' as create_url %}
             <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
+                <a class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></a>
               </div>
               <div class="referral-card__body">
                 <p>Start here to contribute to the {{ base_page_title }}.</p>
@@ -57,10 +58,10 @@
             {% url 'search_phenotypes' as search_url %}
             <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
+                <a class="referral-card__title" href="{{ search_url }}">Search {{ brand_mapping.phenotype }}s<span class="referral-card__title-icon"></span></a>
               </div>
               <div class="referral-card__body">
-                <p>Find Phenotypes within the {{ base_page_title }}.</p>
+                <p>Find {{ brand_mapping.phenotype }}s within the {{ base_page_title }}.</p>
               </div>
             </article>
           </div>
@@ -87,7 +88,7 @@
           <section class="reference-collection__inner-container" id="collections">
             {% to_json_script collections data-owner="reference-data-service" name="collections" desc-type="text/json" %}
             <h3>Collections</h3>
-            <p>List of content collections this phenotype belongs to.</p>
+            <p>List of content collections this {{ brand_mapping.phenotype }} belongs to.</p>
             <div class="reference-collection__table-container constrained-codelist-table" id="collections-area">
 
             </div>
@@ -98,7 +99,7 @@
           <section class="reference-collection__inner-container" id="coding_system">
             {% to_json_script coding_system data-owner="reference-data-service" name="coding_system" desc-type="text/json" %}
             <h3>Coding Systems</h3>
-            <p>Clinical coding system(s) that relate to Phenotypes.</p>
+            <p>Clinical coding system(s) that relate to {{ brand_mapping.phenotype }}s.</p>
             <div class="reference-collection__table-container constrained-codelist-table" id="coding-systems-area">
 
             </div>
@@ -109,7 +110,7 @@
           <section class="reference-collection__inner-container" id="data_sources">
               {% to_json_script data_sources data-owner="reference-data-service" name="data_sources" desc-type="text/json" %}
             <h3>Data Sources</h3>
-            <p>Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.</p>
+            <p>Data sources the {{ brand_mapping.phenotype }} creators have run this {{ brand_mapping.phenotype }} against; or view as appropriate to use this {{ brand_mapping.phenotype }} for.</p>
             <div class="reference-collection__table-container constrained-codelist-table" id="data-sources-area">
 
             </div>
@@ -121,7 +122,7 @@
             {% to_json_script ontology_groups data-owner="reference-data-service" name="ontology-groups" desc-type="text/json" %}
 
             <h3>Ontology</h3>
-            <p>A set of taggable categories and concepts that describes a Phenotype.</p>
+            <p>A set of taggable categories and concepts that describes a {{ brand_mapping.phenotype }}.</p>
 
             <div class="reference-collection__table-container constrained-codelist-table" id="ontology-area" type="tree">
               <div class="tab-view" id="tab-view">

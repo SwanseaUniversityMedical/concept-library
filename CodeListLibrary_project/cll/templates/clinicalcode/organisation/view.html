@@ -26,6 +26,7 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container">
@@ -103,7 +104,7 @@
         </section>
         <section class="organisation-page__section">
           <article class="organisation-page__section__title">
-            <h3>Published Phenotypes</h3>
+            <h3>Published {{ brand_mapping.phenotype }}s</h3>
           </article>
           <article class="organisation-page__section__body">
             {% to_json_script published data-owner="organisation-service" page-type="PUBLISHED_COLLECTIONS" name="published" desc-type="text/json" %}
@@ -120,7 +121,7 @@
         {% if draft is not None %}
           <section class="organisation-page__section">
             <article class="organisation-page__section__title">
-              <h3>Draft Phenotypes</h3>
+              <h3>Draft {{ brand_mapping.phenotype }}s</h3>
             </article>
             <article class="organisation-page__section__body">
               {% to_json_script draft data-owner="organisation-service" page-type="DRAFT_COLLECTIONS" name="draft" desc-type="text/json" %}
@@ -133,7 +134,7 @@
         {% if moderated is not None %}
           <section class="organisation-page__section">
             <article class="organisation-page__section__title">
-              <h3>Phenotypes Awaiting Review</h3>
+              <h3>{{ brand_mapping.phenotype }}s Awaiting Review</h3>
             </article>
             <article class="organisation-page__section__body">
               {% to_json_script moderated data-owner="organisation-service" page-type="MODERATION_COLLECTIONS" name="moderated" desc-type="text/json" %}
