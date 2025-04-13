@@ -1247,49 +1247,74 @@ export const parseAsFieldType = (packet, value, modifier) => {
     } break;
 
     case 'int_range': {
-      const output = [];
-      if (typeof value === 'string') {
-        value = value.trim().split(',');
-      } else if (typeof value === 'number') {
-        value = [value];
-      }
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
 
-      if (!Array.isArray(value)) {
-        return false;
-      }
+          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
+            ? validation.properties.min
+            : null;
+          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
+            ? validation.properties.max
+            : null;
 
-      for (let i = 0; i < value.length; ++i) {
-        let item = value[i];
-        if (typeof item === 'string') {
-          item = parseInt(item.trim());
-        }
+          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
+            min = Math.min(Math.max(min, fMin), fMax);
+            max = Math.min(Math.max(max, fMin), fMax);
+          }
 
-        if (typeof item !== 'number') {
-          continue;
-        }
-
-        item = Math.trunc(item);
-        valid = !isNaN(item) && Number.isFinite(item) && Number.isSafeInteger(item);
-
-        if (!valid) {
+          value = { min: Math.trunc(min), max: Math.trunc(max) };
           break;
         }
 
-        output.push(item);
-      }
-      value = output;
-
-      if (value.length === 1 && validation?.closure_optional) {
-        const num = Math.trunc(value.shift());
-        valid = !isNaN(num) && Number.isFinite(num) && Number.isSafeInteger(num);
-        value = [num];
-      } else if (value.length < 2 && !validation?.closure_optional) {
         valid = false;
-      } else {
-        const lower = Math.min(output[0], output[1]);
-        const upper = Math.max(output[0], output[1]);
-        output[0] = lower;
-        output[1] = upper;
+      } else if (!isNullOrUndefined(value)) {
+        const output = [];
+        if (typeof value === 'string') {
+          value = value.trim().split(',');
+        } else if (typeof value === 'number') {
+          value = [value];
+        }
+
+        if (!Array.isArray(value)) {
+          return false;
+        }
+
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            item = parseInt(item.trim());
+          }
+
+          if (typeof item !== 'number') {
+            continue;
+          }
+
+          item = Math.trunc(item);
+          valid = !isNaN(item) && Number.isFinite(item) && Number.isSafeInteger(item);
+
+          if (!valid) {
+            break;
+          }
+
+          output.push(item);
+        }
+        value = output;
+
+        if (value.length === 1 && validation?.closure_optional) {
+          const num = Math.trunc(value.shift());
+          valid = !isNaN(num) && Number.isFinite(num) && Number.isSafeInteger(num);
+          value = [num];
+        } else if (value.length < 2 && !validation?.closure_optional) {
+          valid = false;
+        } else {
+          const lower = Math.min(output[0], output[1]);
+          const upper = Math.max(output[0], output[1]);
+          output[0] = lower;
+          output[1] = upper;
+        }
       }
     } break;
 
@@ -1704,40 +1729,12 @@ export const parseAsFieldType = (packet, value, modifier) => {
       value = output;
     } break;
 
-    case 'int_range': {
-      if (isObjectType(value)) {
-        let { min, max } = value;
-        if (typeof min === 'number' && typeof max === 'number') {
-          min = Math.min(min, max);
-          max = Math.max(min, max);
-
-          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
-            ? validation.properties.min
-            : null;
-          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
-            ? validation.properties.max
-            : null;
-
-          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
-            min = Math.min(Math.max(min, fMin), fMax);
-            max = Math.min(Math.max(max, fMin), fMax);
-          }
-
-          value = { min: Math.trunc(min), max: Math.trunc(max) };
-          break;
-        }
-      }
-
-      valid = false;
-      break;
-    }
-
     case 'contacts':
     case 'publication': {
       if (!Array.isArray(value)) {
         valid = false;
       }
-      break;
+    } break;
 
     default:
       valid = true;
