@@ -1,0 +1,29 @@
+{% load entity_renderer %}
+<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+    <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
+  {% endif %}
+
+  {% if component.options %}
+    {% to_json_script component.options data-type="options" for=component.field_name %}
+  {% endif %}
+
+  {% if component.properties %}
+    {% to_json_script component.properties data-type="properties" for=component.field_name %}
+  {% endif %}
+
+  {% if component.value %}
+    {% to_json_script component.value data-type="value" for=component.field_name %}
+  {% endif %}
+
+  <fieldset class="hstack-radio-group" id="entity-{{ component.field_name }}" data-class="listenum"
+    data-field="{{ component.field_name }}" data-value="">
+
+  </fieldset>
+</div>

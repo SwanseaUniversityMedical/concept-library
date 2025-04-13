@@ -1321,7 +1321,7 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
     elif field_type == 'int_array':
         source_info = validation.get('source')
         tree_models = source_info.get('trees') if isinstance(source_info, dict) else None
-        model_source = source_info.get('model')
+        model_source = source_info.get('model') if isinstance(source_info, dict) else None
         if isinstance(tree_models, list) and isinstance(model_source, str):
             try:
                 model = apps.get_model(app_label='clinicalcode', model_name=model_source)
@@ -1360,7 +1360,8 @@ class EntityDetailWizardSections(template.Node):
     def __try_render_item(self, **kwargs):
         try:
             html = render_to_string(**kwargs)
-        except:
+        except Exception as e:
+            print(e)
             return ''
         else:
             return html

@@ -1,0 +1,40 @@
+{% load entity_renderer %}
+<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+    <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
+  {% endif %}
+
+  {% if component.properties %}
+    {% to_json_script component.properties data-type="properties" for=component.field_name %}
+  {% endif %}
+
+  {% if component.value %}
+    {% to_json_script component.value data-type="value" for=component.field_name %}
+  {% endif %}
+
+  <fieldset class="double-slider"
+    id="entity-{{ component.field_name }}"
+    data-class="doublerangeslider"
+    data-field="{{ component.field_name }}"
+    data-value="">
+    <div class="double-slider__input">
+      <div class="double-slider__input__progress" id="progress-bar"></div>
+      <input type="range" min="0" max="100" value="0" id="min-slider" data-target="min">
+      <input type="range" min="0" max="100" value="100" id="max-slider" data-target="max">
+    </div>
+    <div class="double-slider__group">
+      <div class="double-slider__group__input">
+        <input type="number" value="0" id="min-value" data-target="min">
+      </div>
+      <div class="double-slider__group__input">
+        <input type="number" value="100" id="max-value" data-target="max">
+      </div>
+    </div>
+  </fieldset>
+</div>

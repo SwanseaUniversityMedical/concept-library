@@ -1034,6 +1034,86 @@
   }
 }
 
+// double-slider
+//  @desc desfines styles for double range slider
+.double-slider {
+  @include flex-row();
+  @include remove-appearance();
+  
+  border: none;
+  position: relative;
+  align-items: center;
+
+  &__group {
+    @include flex-row();
+    width: 100%;
+    margin-top: 25px;
+    justify-content: space-between;
+    
+    &__progress {
+      
+    }
+  }
+
+  &__input {
+    position: relative;
+    width: 100%;
+
+    &__progress {
+      position: absolute;
+      width: 100%;
+      height: 10px;
+      margin: auto;
+      top: 2.5px;
+      border-radius: 0.5rem;
+      background: linear-gradient(
+        to right, 
+        var(--color-accent-semi-transparent) 0%, 
+        var(--color-accent-primary) 0%, 
+        var(--color-accent-primary) 100%, 
+        var(--color-accent-semi-transparent) 100%
+      );
+    }
+
+    &>input[type=range] {
+      position: absolute;
+      pointer-events: none;
+      appearance: none;
+      background-color: transparent;
+      width: 100%;
+      height: 10px;
+      top: 0;
+
+      &::-ms-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+
+      &::-webkit-slider-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+
+      &::-moz-range-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
 // hstack-radio-group
 //  @desc defines a horizontal stack of radio inputs
 .hstack-radio-group {
