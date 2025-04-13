@@ -1,3 +1,5 @@
+{% load cl_extras %}
+
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
   <h3 class="detailed-input-group__title">
@@ -8,7 +10,23 @@
   </h3>
   <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
-  <input class="text-input" aria-label="{{ component.field.title }}" id="entity-{{ component.field_name }}"
-    placeholder=""  {% if component.field_data.validation and component.field_data.validation == 'string' %} minlength="3" pattern="^[a-zA-Z]{1,}.*?" {% endif %} data-class="inputbox"
-    data-field="{{ component.field_name }}" value="{% if component.value %}{{ component.value }}{% endif %}">
+  <input
+    id="entity-{{ component.field_name }}"
+    class="text-input"
+    value="{% if component.value %}{{ component.value }}{% endif %}"
+    {% if component.placeholder|get_type == "str" and component.placeholder.length > 0 %}
+      placeholder="{{ component.placeholder }}"
+    {% else %}
+      placeholder="Enter {{ component.field_data.title }}"
+    {% endif %}
+    {% if component.field_data.validation.length|get_type == "list" and component.field_data.validation.length|length >= 2 %}
+      minlength="{{ component.field_data.validation.length.0 }}"
+      maxlength="{{ component.field_data.validation.length.1 }}"
+    {% endif %}
+    {% if component.field_data.validation.regex|get_type == 'str' and component.field_data.validation.regex|length > 0 %}
+      pattern="{{ component.field_data.validation.regex }}"
+    {% endif %}
+    aria-label="{{ component.field_data.title }}"
+    data-class="inputbox"
+    data-field="{{ component.field_name }}">
 </div>

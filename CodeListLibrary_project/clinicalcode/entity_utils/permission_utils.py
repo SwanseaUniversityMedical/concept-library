@@ -525,8 +525,8 @@ def get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.EDITO
               from public.clinicalcode_organisation org
               join public.clinicalcode_organisationmembership mem
                 on org.id = mem.organisation_id
-            where mem.user_id = %(user_id)s
-              and mem.role >= %(role_enum)s
+            where org.owner_id = %(user_id)s
+               or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s)
           ''', 
           params={
             'user_id': user.id,
@@ -543,8 +543,7 @@ def get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.EDITO
               join public.clinicalcode_organisationauthority aut
                 on org.id = aut.organisation_id
               and aut.brand_id = %(brand)s
-            where mem.user_id = %(user_id)s
-              and mem.role >= %(role_enum)s
+            where (org.owner_id = %(user_id)s or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s))
               and aut.can_post = true
           ''', 
           params={

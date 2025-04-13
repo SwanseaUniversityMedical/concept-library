@@ -313,6 +313,11 @@ const CONCEPT_CREATOR_TEXT = {
     title: 'Are you sure?',
     content: '<p>Are you sure you want to delete this ${brandMapping.concept} from your ${brandMapping.phenotype}?</p>',
   },
+  // Concept deletion prompt
+  CODING_CHANGE: {
+    title: 'Are you sure?',
+    content: '<p>Are you sure you want to change your coding system? Any changes you\'ve made so far will be deleted.</p>',
+  },
   // Toast to inform user to close editor
   REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a ${brandMapping.concept}.',
   // Toast for Concept name validation
@@ -1464,20 +1469,8 @@ export default class ConceptCreator {
       }
     }
 
-    // Only disable/enable the coding selector if not updated via the change event
-    if (ignoreSelection) {
-      return;
-    }
-
-    // Don't allow users to reselect the coding system once we've created at least 1 rule + selected a system
-    const selector = editor.querySelector('#coding-system-select')
-    selector.disabled = hasCodingSystem;
-
-    // Only enable to change event if no coding system is present
-    if (hasCodingSystem) {
-      return;
-    }
-    selector.addEventListener('change', this.#handleCodingSelection.bind(this));
+    const selector = editor.querySelector('#coding-system-select');
+    selector.disabled = !this.state.data?.is_new;
   }
 
   /**
@@ -1747,7 +1740,7 @@ export default class ConceptCreator {
     this.state.editor = editor;
     this.state.element = conceptGroup;
     this.state.editing = { id: conceptId, history_id: historyId };
-    this.#applyRulesetState({ id: dataset?.coding_system?.id, editor: editor});
+    this.#applyRulesetState({ id: dataset?.coding_system?.id, editor: editor });
     this.#tryRenderRulesets();
 
     // Handle name changing
@@ -1767,6 +1760,10 @@ export default class ConceptCreator {
 
     const confirmChanges = editor.querySelector('#confirm-changes');
     confirmChanges.addEventListener('click', this.#handleConfirmEditor.bind(this));
+
+    // Handle coding system selector
+    const selector = editor.querySelector('#coding-system-select');
+    selector.addEventListener('change', this.#handleCodingSelection.bind(this));
     
     // Render codelist
     this.#tryRenderAggregatedCodelist();
@@ -1913,14 +1910,89 @@ export default class ConceptCreator {
     }
 
     const target = e.target;
-    const selection = target.options[target.selectedIndex];
-    this.state.data.coding_system = {
-      id: parseInt(selection.value),
-      name: selection.text,
-      description: selection.text,
-    };
+    const dataset = this.state.data;
+    const selectedIndex = target.selectedIndex;
+    const currentSelection = dataset?.coding_system?.id ?? null;
 
-    this.#applyRulesetState({ id: selection.value, editor: this.state.editor, ignoreSelection: true });
+    let selection = target.options[selectedIndex];
+    if (isNullOrUndefined(selection)) {
+      if (isNullOrUndefined(currentSelection)) {
+        selection = selectedIndex;
+      } else {
+        for (let i = 0; i < target.options.length; ++i) {
+          const opt = target.options[i];
+          if (parseInt(opt.value) === currentSelection) {
+            selection = i
+            break;
+          }
+        }
+      }
+
+      target.selectedIndex = selection;
+      return;
+    }
+
+    const codingId = parseInt(selection.value);
+    if (codingId === currentSelection) {
+      return;
+    }
+
+    const hasUnsavedWork = !isNullOrUndefined(dataset) && (dataset?.aggregatedStateView?.length || dataset?.component?.length);
+    const hasCurrentSelection = !isNullOrUndefined(currentSelection);
+
+    let promise;
+    if (hasCurrentSelection && hasUnsavedWork) {
+      promise = window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CODING_CHANGE);
+    } else {
+      promise = new Promise((resolve) => resolve());
+    }
+
+    promise
+      .then(async () => {
+        if (hasCurrentSelection) {
+          dataset?.components?.splice?.(0, dataset?.components?.length);
+          dataset?.aggregatedStateView?.splice(0, dataset?.aggregatedStateView?.length);
+        }
+
+        dataset.coding_system = {
+          id: codingId,
+          name: selection.text,
+          description: selection.text,
+          selectedIndex: selectedIndex,
+        };
+
+        this.#applyRulesetState({ id: codingId, editor: this.state.editor });
+
+        await this.#recalculateExclusionaryRules();
+        this.#tryRenderRulesets();
+        this.#tryRenderAggregatedCodelist(true);
+      })
+      .catch((e) => {
+        if (!(e instanceof ModalFactory.ModalResults)) {
+          window.ToastFactory.push({
+            type: 'error',
+            message: 'Failed to change codelist, please try again.',
+            duration: 4000,
+          });
+
+          return console.error(e);
+        }
+
+        const action = e.name;
+        if (hasCurrentSelection && (action === 'Reject' || action === 'Cancel')) {
+          selection = selectedIndex;
+
+          for (let i = 0; i < target.options.length; ++i) {
+            const opt = target.options[i];
+            if (parseInt(opt.value) === currentSelection) {
+              selection = i;
+              break;
+            }
+          }
+
+          target.selectedIndex = selection;
+        }
+      });
   }
 
   /**

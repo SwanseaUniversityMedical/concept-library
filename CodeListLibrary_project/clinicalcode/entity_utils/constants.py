@@ -952,4 +952,18 @@ FIELD_TYPES = {
         'input_type': 'tagbox',
         'output_type': 'tagbox',
     },
+    'validation_measures': {
+        'input_type': 'var_selector',
+        'output_type': 'var_selector',
+        'appearance': {
+            'txt': {
+                'single': 'Validation Measure',
+                'plural': 'Validation Measures'
+            },
+            'btn': {
+                'label': 'Create new Measure',
+                'icon': '&#xf1ec;',
+            }
+        },
+    },
 }

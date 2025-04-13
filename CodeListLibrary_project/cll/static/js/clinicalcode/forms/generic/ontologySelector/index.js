@@ -54,8 +54,11 @@ export default class OntologySelectionService {
           if (componentData && componentData?.value) {
             this.#computeComponentValue(componentData?.value, true);
           }
+          this.#renderCreateComponent();
         })
         .catch(console.error);
+    } else {
+      this.#renderCreateComponent();
     }
   }
 
@@ -260,7 +263,6 @@ export default class OntologySelectionService {
       );
     }
     this.templates = templates;
-    this.#renderCreateComponent();
   }
 
   /**
@@ -511,7 +513,7 @@ export default class OntologySelectionService {
       return response.json();
     })
     .then(response => {
-      if (!typeof response === 'object' || !Array.isArray(response?.ancestors) || !Array.isArray(response?.value)) {
+      if (typeof response !== 'object' || !Array.isArray(response?.ancestors) || !Array.isArray(response?.value)) {
         return null;
       }
 

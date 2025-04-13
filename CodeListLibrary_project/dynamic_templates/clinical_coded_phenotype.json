@@ -236,7 +236,7 @@
           "[\\s+]?\\-[\\s+]?(?:\\d+\\/|\\d+)+",
           "(?:\\d+\\/|\\d+)+[\\s+]?\\-[\\s+]?"
         ],
-        "date_closure_optional": true
+        "closure_optional": true
       }
     },
     "sex": {

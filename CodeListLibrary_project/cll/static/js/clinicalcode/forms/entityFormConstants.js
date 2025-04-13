@@ -114,3 +114,26 @@ export const
    * @desc Min. message duration for toast notif popups
    */
   PUBLICATION_MIN_MSG_DURATION = 5000;
+
+/**
+ * VariableCreator const(s)
+ */
+export const
+  /**
+   * VFCREATOR_TYPE_MAP
+   * @desc maps allowable types to template types
+   */
+  VFCREATOR_TYPE_MAP = {
+    // Numeric
+    int: 'number',
+    numeric: 'number',
+    percentage: 'number',
+
+    // Numeric range(s)
+    int_range: 'range',
+    numeric_range: 'range',
+    percentage_range: 'range',
+
+    // Str-related
+    string: 'inputbox',
+  };

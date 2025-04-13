@@ -7,6 +7,7 @@ import EndorsementCreator from '../clinical/endorsementCreator.js';
 import StringInputListCreator from '../stringInputListCreator.js';
 import UrlReferenceListCreator from '../generic/urlReferenceListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
+import VariableCreator from '../generic/variableCreator.js';
 
 import {
   ENTITY_DATEPICKER_FORMAT,
@@ -47,7 +48,6 @@ export const ENTITY_HANDLERS = {
   'tagify': (element, dataset) => {
     const parent = element.parentElement;
     const data = parent.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
-    console.log(parent, data);
 
     let varyDataVis = parseInt(element.getAttribute('data-vis') ?? '0');
     varyDataVis = !Number.isNaN(varyDataVis) && Boolean(varyDataVis);
@@ -77,8 +77,6 @@ export const ENTITY_HANDLERS = {
       }
     }
 
-    console.log(element, varyDataVis);
-
     const tagbox = new Tagify(element, {
       'autocomplete': true,
       'useValue': true,
@@ -86,7 +84,6 @@ export const ENTITY_HANDLERS = {
       'restricted': true,
       'items': options,
       'onLoad': (box) => {
-        console.log(box);
         for (let i = 0; i < value.length; ++i) {
           const item = value[i];
           if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
@@ -358,7 +355,37 @@ export const ENTITY_HANDLERS = {
     }
 
     return new OntologySelectionService(element, dataset, data);
-  }
+  },
+
+  // HDRN-related
+  'var_array': (element) => {
+    const nodes = element.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    const data = { };
+    for (let i = 0; i < nodes.length; ++i) {
+      let node = nodes[i];
+
+      const datatype = node.getAttribute('data-type');
+      if (isStringEmpty(datatype)) {
+        continue;
+      }
+
+      let innerText = node.innerText;
+      if (isStringEmpty(innerText) || isStringWhitespace(innerText)) {
+        continue;
+      }
+
+      try {
+        innerText = JSON.parse(innerText);
+        data[datatype] = innerText;
+      }
+      catch (e) {
+        console.warn(`Failed to parse validation measures attr "${datatype}" data:`, e)
+      }
+    }
+
+    return new VariableCreator(element, data);
+  },
 };
 
 /**
@@ -501,7 +528,7 @@ export const ENTITY_FIELD_COLLECTOR = {
     const endDateInput = element.querySelector(`#${id}-enddate`);
 
     const validation = packet?.validation;
-    const dateClosureOptional = typeof validation === 'object' && validation?.date_closure_optional;
+    const dateClosureOptional = typeof validation === 'object' && validation?.closure_optional;
 
     const startValid = startDateInput.checkValidity(),
           endValid   = endDateInput.checkValidity();
@@ -914,6 +941,24 @@ export const ENTITY_FIELD_COLLECTOR = {
       valid: true,
       value: data,
     }
+  },
+
+  // HDRN-related
+  'var_array': (field, packet) => {
+    const handler = packet.handler;
+    const data = handler.getData();
+    if (isMandatoryField(packet) && (!isObjectType(data) || Object.values(data).length < 1)) {
+      return {
+        valid: false,
+        value: data,
+        message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: data,
+    }
   }
 };
 
@@ -1013,7 +1058,7 @@ export const isMandatoryField = (packet) => {
  * @param {*} value the value retrieved from the form
  * @returns {object} that returns the success state of the parsing & the parsed value, if applicable
  */
-export const parseAsFieldType = (packet, value) => {
+export const parseAsFieldType = (packet, value, modifier) => {
   const validation = packet?.validation;
   if (isNullOrUndefined(validation)) {
     return {
@@ -1022,7 +1067,11 @@ export const parseAsFieldType = (packet, value) => {
     }
   }
 
-  const type = validation?.type;
+  let type = validation?.type;
+  if (isObjectType(modifier) && modifier?.type) {
+    type = modifier.type;
+  }
+
   if (isNullOrUndefined(type)) {
     return {
       success: true,
@@ -1034,8 +1083,313 @@ export const parseAsFieldType = (packet, value) => {
   switch (type) {
     case 'int':
     case 'enum': {
-      value = parseInt(value);
-      valid = !isNaN(value);
+      if (typeof value === 'string') {
+        value = parseInt(value.trim());
+      }
+
+      if (typeof value === 'number') {
+        value = Math.trunc(value);
+        valid = !isNaN(value) && Number.isFinite(value) && Number.isSafeInteger(value);
+      } else {
+        valid = false;
+      }
+    } break;
+
+    case 'int_range': {
+      const output = [];
+      if (typeof value === 'string') {
+        value = value.trim().split(',');
+      } else if (typeof value === 'number') {
+        value = [value];
+      }
+
+      if (!Array.isArray(value)) {
+        return false;
+      }
+
+      for (let i = 0; i < value.length; ++i) {
+        let item = value[i];
+        if (typeof item === 'string') {
+          item = parseInt(item.trim());
+        }
+
+        if (typeof item !== 'number') {
+          continue;
+        }
+
+        item = Math.trunc(item);
+        valid = !isNaN(item) && Number.isFinite(item) && Number.isSafeInteger(item);
+
+        if (!valid) {
+          break;
+        }
+
+        output.push(item);
+      }
+      value = output;
+
+      if (value.length === 1 && validation?.closure_optional) {
+        const num = Math.trunc(value.shift());
+        valid = !isNaN(num) && Number.isFinite(num) && Number.isSafeInteger(num);
+        value = [num];
+      } else if (value.length < 2 && !validation?.closure_optional) {
+        valid = false;
+      } else {
+        const lower = Math.min(output[0], output[1]);
+        const upper = Math.max(output[0], output[1]);
+        output[0] = lower;
+        output[1] = upper;
+      }
+    } break;
+
+    case 'int_array': {
+      const output = [];
+      if (typeof value === 'string') {
+        value = value.trim().split(',');
+      } else if (typeof value === 'number') {
+        value = [value];
+      }
+
+      if (!Array.isArray(value)) {
+        break;
+      }
+
+      for (let i = 0; i < value.length; ++i) {
+        let item = value[i];
+        if (typeof item === 'string') {
+          item = parseInt(item.trim());
+        }
+  
+        if (typeof item !== 'number') {
+          continue;
+        }
+
+        item = Math.trunc(item);
+        valid = !isNaN(item) && Number.isFinite(item) && Number.isSafeInteger(item);
+
+        if (!valid) {
+          break;
+        }
+        output.push(item);
+      }
+
+      if (!valid) {
+        break;
+      }
+      value = output;
+    } break;
+
+    case 'float':
+    case 'decimal':
+    case 'numeric': {
+      if (typeof value === 'string') {
+        const matches = value.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+        if (!isNullOrUndefined(matches)) {
+          value = parseFloat(matches.shift().trim().replaceAll(/,/g, ''));
+        }
+      }
+
+      if (typeof value === 'number') {
+        valid = !isNaN(value) && Number.isFinite(value);
+      } else {
+        valid = false;
+      }
+    } break;
+
+    case 'float_range':
+    case 'decimal_range':
+    case 'numeric_range': {
+      const output = [];
+      if (typeof value === 'string') {
+        value = value.trim().split(',');
+      } else if (typeof value === 'number') {
+        value = [value];
+      }
+
+      if (!Array.isArray(value)) {
+        return false;
+      }
+
+      for (let i = 0; i < value.length; ++i) {
+        let item = value[i];
+        if (typeof item === 'string') {
+          const matches = item.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+          if (isNullOrUndefined(matches)) {
+            valid = false;
+            break;
+          }
+
+          item = parseFloat(matches.shift().trim());
+        }
+
+        if (typeof item !== 'number') {
+          continue;
+        }
+
+        valid = !isNaN(item) && Number.isFinite(item);
+
+        if (!valid) {
+          break;
+        }
+
+        output.push(item);
+      }
+      value = output;
+
+      if (value.length === 1 && validation?.closure_optional) {
+        const num = value.shift();
+        valid = !isNaN(num) && Number.isFinite(num);
+        value = [num];
+      } else if (value.length < 2 && !validation?.closure_optional) {
+        valid = false;
+      } else {
+        const lower = Math.min(output[0], output[1]);
+        const upper = Math.max(output[0], output[1]);
+        output[0] = lower;
+        output[1] = upper;
+      }
+    } break;
+
+    case 'float_array':
+    case 'decimal_array':
+    case 'numeric_range': {
+      const output = [];
+      if (typeof value === 'string') {
+        value = value.trim().split(',');
+      } else if (typeof value === 'number') {
+        value = [value];
+      }
+
+      if (!Array.isArray(value)) {
+        break;
+      }
+
+      for (let i = 0; i < value.length; ++i) {
+        let item = value[i];
+        if (typeof item === 'string') {
+          const matches = item.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+          if (isNullOrUndefined(matches)) {
+            valid = false;
+            break;
+          }
+
+          item = parseFloat(matches.shift().trim());
+        }
+
+        if (typeof item !== 'number') {
+          continue;
+        }
+
+        valid = !isNaN(item) && Number.isFinite(item);
+
+        if (!valid) {
+          break;
+        }
+
+        output.push(item);
+      }
+
+      if (!valid) {
+        break;
+      }
+      value = output;
+    } break;
+
+    case 'percentage': {
+      if (typeof value === 'string') {
+        const matches = value.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
+        if (!isNullOrUndefined(matches)) {
+          value = parseFloat(matches.shift().trim());
+
+          let coercion = (isObjectType(modifier) && !isNullOrUndefined(modifier?.coercion))
+            ? modifier.coercion
+            : null;
+
+          if (isNullOrUndefined(coercion)) {
+            coercion = validation?.coercion;
+          }
+
+          const hasPercentageSymbol = !isNullOrUndefined(matches) ? (matches[matches.length - 1] === '%') : false;
+          if (coercion === 'normalised' && hasPercentageSymbol) {
+            value /= 100;
+          } else if (coercion === 'percentage' && !hasPercentageSymbol) {
+            value *= 100;
+          }
+        }
+      }
+
+      if (typeof value === 'number') {
+        valid = !isNaN(value) && Number.isFinite(value);
+      } else {
+        valid = false;
+      }
+    } break;
+
+    case 'ci_interval': {
+      if (!isObjectType(value)) {
+        valid = false;
+        break;
+      }
+
+      const output = { };
+      for (const key in value) {
+        let item = value[key];
+        if (key === 'level') {
+          item = parseAsFieldType({ validation: { type: 'percentage' }}, item, { coercion: 'percentage' });
+
+          if (!item || !item?.success) {
+            valid = false;
+            break;
+          }
+
+          item = item.value;
+        } else {
+          let attemptCoercion;
+          if (typeof item === 'string') {
+            attemptCoercion = item.match(/^(\+|-)?(((\d{1,3}([,?\d{3}])*(\.?\d+)?)|(\d{1,}))|(\.\d+)?)(%)?$/m);
+            attemptCoercion = !isNullOrUndefined(attemptCoercion);
+          } else if (typeof item === 'number') {
+            attemptCoercion = true;
+          }
+
+          let failure = false;
+          if (attemptCoercion) {
+            const res = parseAsFieldType({ validation: { type: 'float' } }, item);
+            if (res && res?.success) {
+              item = res.value;
+            } else {
+              failure = true;
+            }
+          }
+
+          if (!failure && typeof item !== 'number' && typeof item !== 'string') {
+            valid = false;
+            break;
+          }
+
+          if (typeof item === 'number' && (isNaN(item) || !Number.isFinite(item))) {
+            valid = false;
+            break;
+          }
+
+          if (failure && typeof item === 'number') {
+            item = item.toString();
+          }
+
+          if (typeof item === 'string' && !stringHasChars(item)) {
+            valid = false;
+            break;
+          }
+        }
+
+        output[key] = item;
+      }
+
+      if (!valid) {
+        break;
+      }
+
+      value = output;
     } break;
 
     case 'string': {
@@ -1069,7 +1423,6 @@ export const parseAsFieldType = (packet, value) => {
         console.error(`Failed to test String<value: ${value}> with err: ${e}`);
         valid = false;
       }
-
     } break;
 
     case 'string_array': {
@@ -1081,20 +1434,117 @@ export const parseAsFieldType = (packet, value) => {
       value = value.map(item => String(item));
     } break;
 
-    case 'int_array': {
+    case 'publication': {
       if (!Array.isArray(value)) {
+        valid = false;
+      }
+    } break;
+
+    case 'organisation': {
+      if (!isNullOrUndefined(value) && typeof value !== 'string' && typeof value !== 'number') {
         valid = false;
         break;
       }
 
-      const output = [ ];
-      for (let i = 0; i < value.length; ++i) {
-        const item = parseInt(value[i]);
-        if (isNaN(item)) {
+      if (typeof value === 'string') {
+        value = parseInt(value.trim());
+      }
+
+      if (typeof value === 'number') {
+        value = Math.trunc(value);
+        valid = !isNaN(value) && Number.isFinite(value) && Number.isSafeInteger(value);
+      } else if (!isNullOrUndefined(value)) {
+        valid = false;
+      }
+    } break;
+
+    case 'var_array': {
+      if (!isObjectType(value)) {
+        valid = false;
+        break;
+      }
+
+      const options = isObjectType(validation.options) ? validation.options : null;
+      const properties = isObjectType(validation.properties) ? validation.properties : null;
+
+      const allowUnknown = !!properties ? properties.allow_unknown : false;
+      const allowDescription = !!properties ? properties.allow_description : false;
+
+      const output = {};
+      for (const key in value) {
+        let item = value[key];
+        if (!isObjectType(item)) {
           valid = false;
           break;
         }
-        output.push(item);
+
+        let description = null;
+        if (allowDescription) {
+          if (!isNullOrUndefined(item?.description) && typeof item?.description !== 'string') {
+            item.description = String(item?.description);
+          }
+
+          if (typeof item.description === 'string') {
+            description = item.description;
+          }
+
+          if (!stringHasChars(description)) {
+            delete item.description;
+          }
+        }
+
+        let success = false;
+        if (options) {
+          const props = options[key];
+          if (!isNullOrUndefined(props)) {
+            const res = parseAsFieldType(packet, item.value, props);
+            if (!res || !res?.success) {
+              valid = false;
+              break
+            }
+
+            item = {
+              name: typeof props.name === 'string' ? props.name : key,
+              type: props.type,
+              value: res.value,
+              description: description,
+            };
+            success = true;
+          }
+        }
+
+        if (!success && !allowUnknown) {
+          valid = false;
+          break;
+        }
+
+        if (!success) {
+          const vtype = typeof item.type === 'string' && stringHasChars(item.type) ? item.type : null;
+          const vlabel = typeof item.name === 'string' && stringHasChars(item.name) ? item.name : null;
+          if (!vtype || !vlabel) {
+            valid = false;
+            break
+          }
+
+          const res = parseAsFieldType({ validation: { type: vtype }}, item.value);
+          if (!res || !res?.success) {
+            valid = false;
+            break
+          }
+
+          item = {
+            name: vlabel,
+            type: vtype,
+            value: res.value,
+            description: description,
+          };
+        }
+
+        if (item.hasOwnProperty('description') && (!allowDescription || item.description === null)) {
+          delete item.description;
+        }
+
+        output[key] = item;
       }
 
       if (!valid) {
@@ -1103,19 +1553,9 @@ export const parseAsFieldType = (packet, value) => {
       value = output;
     } break;
 
-    case 'publication': {
-      if (!Array.isArray(value)) {
-        valid = false;
-      }
+    default:
+      valid = true;
       break;
-    }
-
-    case 'organisation': {
-      if (value instanceof Number) {
-        valid = true;
-      }
-      break;
-    }
   }
 
   return {

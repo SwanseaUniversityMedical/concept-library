@@ -45,6 +45,7 @@ html {
 
 *:not(body) {
   position: relative;
+  -webkit-font-smoothing: antialiased;
 
   &.hide {
     display: none;
@@ -61,7 +62,13 @@ body {
   padding: 0;
   background-color: col(bg);
   flex-wrap: nowrap;
+
+  // Font anti-aliasing
+  font-smooth: auto;
   -webkit-font-smoothing: antialiased;
+
+  // Disable zooming via touble tap on safari
+  touch-action: manipulation;
 }
 
 h1, h2, h3, h4, h5, h6 {

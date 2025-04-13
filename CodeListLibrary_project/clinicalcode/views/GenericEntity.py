@@ -474,7 +474,6 @@ class CreateEntityView(TemplateView):
                 if validation is not None:
                     default_value = [] if validation.get('type') == 'int_array' else default_value
 
-            print(struct, field)
             options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, default=default_value, struct=struct)
         else:
             options = template_utils.get_template_sourced_values(template, field, request=request, struct=struct)
