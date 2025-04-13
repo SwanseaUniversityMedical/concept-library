@@ -1,6 +1,9 @@
 import Tagify from '../../components/tagify.js';
 import ConceptCreator from '../clinical/conceptCreator.js';
 import GroupedEnum from '../../components/groupedEnumSelector.js';
+import ListEnum from '../../components/listEnumSelector.js';
+import DoubleRangeSlider from '../../components/doubleRangeSlider.js';
+import ContactListCreator from '../clinical/contactListCreator.js';
 import PublicationCreator from '../clinical/publicationCreator.js';
 import TrialCreator from '../clinical/trialCreator.js';
 import EndorsementCreator from '../clinical/endorsementCreator.js';
@@ -22,6 +25,28 @@ import {
  * 
  */
 export const ENTITY_HANDLERS = {
+  // Generates a doublerangeslider component context
+  'doublerangeslider': (element) => {
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for GroupedEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new DoubleRangeSlider(element, packet);
+  },
+
   // Generates a groupedenum component context
   'groupedenum': (element) => {
     const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
@@ -42,6 +67,28 @@ export const ENTITY_HANDLERS = {
     }
 
     return new GroupedEnum(element, packet);
+  },
+
+  // Generates a listenum component context
+  'listenum': (element) => {
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for ListEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new ListEnum(element, packet);
   },
 
   // Generates a tagify component for an element
@@ -267,6 +314,20 @@ export const ENTITY_HANDLERS = {
     }
 
     return new UrlReferenceListCreator(element, parsed)
+  },
+
+  'contact-list': (element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new ContactListCreator(element, parsed)
   },
 
   // Generates a clinical publication list component for an element
@@ -659,7 +720,37 @@ export const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
-  // Retrieves and validates groupedenum compoonents
+  // Retrieves and validates groupedenum components
+  'doublerangeslider': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates groupedenum components
   'groupedenum': (field, packet) => {
     const handler = packet.handler;
     const value = handler.getValue();
@@ -683,6 +774,36 @@ export const ENTITY_FIELD_COLLECTOR = {
       }
     }
     
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates listenum compoonents
+  'listenum': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
     return {
       valid: true,
       value: parsedValue?.value
@@ -769,6 +890,36 @@ export const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: listItems,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates contact list components
+  'contact-list': (field, packet) => {
+    const handler = packet.handler;
+    const contacts = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(contacts) || contacts.length < 1) {
+        return {
+          valid: false,
+          value: contacts,
+          message: (isNullOrUndefined(contacts) || contacts.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, contacts);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: contacts,
         message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
@@ -1552,6 +1703,41 @@ export const parseAsFieldType = (packet, value, modifier) => {
       }
       value = output;
     } break;
+
+    case 'int_range': {
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
+
+          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
+            ? validation.properties.min
+            : null;
+          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
+            ? validation.properties.max
+            : null;
+
+          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
+            min = Math.min(Math.max(min, fMin), fMax);
+            max = Math.min(Math.max(max, fMin), fMax);
+          }
+
+          value = { min: Math.trunc(min), max: Math.trunc(max) };
+          break;
+        }
+      }
+
+      valid = false;
+      break;
+    }
+
+    case 'contacts':
+    case 'publication': {
+      if (!Array.isArray(value)) {
+        valid = false;
+      }
+      break;
 
     default:
       valid = true;
