@@ -545,9 +545,16 @@ def get_template_sourced_values(template, field, default=None, request=None, str
     if 'options' in validation:
         output = []
         for i, v in validation.get('options').items():
+            if isinstance(v, dict):
+                ref = i
+                val = v
+            else:
+                ref = v
+                val = i
+
             output.append({
-                    'name': v,
-                    'value': i
+                'name': ref,
+                'value': val,
             })
 
         return output

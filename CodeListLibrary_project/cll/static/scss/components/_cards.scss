@@ -109,9 +109,10 @@
   &__title {
     @include clear-anchor();
     color: var(--referral-card-anchor-color);
+    max-width: 100%;
+    margin: 0;
     font-weight: bold;
     font-size: 18px;
-    max-width: 100%;
 
     &-icon::after {
       content: '\f061';

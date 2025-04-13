@@ -39,9 +39,14 @@
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
             {% if not CLL_READ_ONLY %}
               {% url 'create_phenotype' as create_url %}
-              <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+              <article
+                  class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                  data-target="{{ create_url }}"
+                  onclick="redirectToTarget(this, event);"
+                  tabindex="0"
+                  aria-label="Create a {{ brand_mapping.phenotype }}">
                 <div class="referral-card__header">
-                  <a class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></a>
+                  <p class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></p>
                 </div>
                 <div class="referral-card__body">
                   <p>Start here to contribute to the {{ base_page_title }}.</p>
@@ -49,18 +54,28 @@
               </article>
             {% endif %}
             {% url 'search_phenotypes' as search_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ search_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                aria-label="Go to {{ brand_mapping.phenotype }} Search">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ search_url }}">Search {{ brand_mapping.phenotype }}s<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ search_url }}">Search {{ brand_mapping.phenotype }}s<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
                 <p>Find {{ brand_mapping.phenotype }}s within the {{ base_page_title }}.</p>
               </div>
             </article>
             {% url 'my_organisations' as organisations_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ organisations_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                aria-label="View Organisations">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ organisations_url }}">My Organisations<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ organisations_url }}">My Organisations<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
                 <p>View organisations you're associated with.</p>

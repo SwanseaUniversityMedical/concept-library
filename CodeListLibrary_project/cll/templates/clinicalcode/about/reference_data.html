@@ -38,27 +38,42 @@
         <div class="banner__cards">
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
             {% url 'api:root' as api_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ api_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                aria-label="Visit API documentation">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
                 <p>View the API documentation.</p>
               </div>
             </article>
             {% url 'create_phenotype' as create_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ create_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                aria-label="Create a {{ brand_mapping.phenotype }}">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
                 <p>Start here to contribute to the {{ base_page_title }}.</p>
               </div>
             </article>
             {% url 'search_phenotypes' as search_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ search_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                aria-label="Visit {{ brand_mapping.phenotype }} Search">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ search_url }}">Search {{ brand_mapping.phenotype }}s<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ search_url }}">Search {{ brand_mapping.phenotype }}s<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
                 <p>Find {{ brand_mapping.phenotype }}s within the {{ base_page_title }}.</p>

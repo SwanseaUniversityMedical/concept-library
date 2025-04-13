@@ -187,8 +187,13 @@
         </p>
         <p>
           Originally developed by the SAIL Databank team, the {{ base_page_title }} has been adopted as 
-          a sharing solution by multiple organizations, including Health Data Research UK. 
-          A multi-institutional, interdisciplinary team is responsible for ongoing development.
+          a sharing solution by multiple organizations, including
+          {% if request.CURRENT_BRAND != '' %}
+            HDRN.
+          {% else %}
+            Health Data Research UK. 
+            A multi-institutional, interdisciplinary team is responsible for ongoing development.
+          {% endif %}
         </p>
 
         <div class="homepage-about__info-buttons">

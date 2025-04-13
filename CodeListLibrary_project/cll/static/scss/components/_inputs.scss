@@ -9,6 +9,79 @@
  *
  */
 
+.var-selection-group {
+  @include flex-col(0.5rem, true);
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: fit-content;
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__list {
+    @include flex-col(0.5rem, true);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+
+    &:not(.show) {
+      display: none;
+    }
+
+    &-header {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      border-bottom: 1px solid col(accent-dark);
+
+      h3 {
+        padding: 0;
+      }
+    }
+
+    &-container {
+      @include flex-col(0.5rem, true);
+      position: relative;
+      width: 100%;
+      max-width: calc(100% - 0.5rem);
+      max-height: 200px;
+      padding: 0.5rem;
+      overflow-y: auto;
+      overflow-x: none;
+    }
+  }
+
+  &__interface {
+    @include flex-row(0.5rem, false);
+    height: min-content;
+    max-width: 100%;
+    align-items: center;
+    justify-content: flex-end;
+
+    & button {
+      font-weight: normal;
+      padding: 0.5rem 1rem;
+      margin: 0;
+
+      & > .as-icon {
+        margin-left: 0.5em;
+      }
+    }
+  }
+}
+
 /// publication-list-group
 ///   @desc Defines the publication component controlled by publicationCreator.js
 .publication-list-group {
@@ -861,10 +934,10 @@
   }
 }
 
-// detailed-input-group
-//  @desc defines a group of one or more inputs, and allows the addition of other
-//        elements, e.g. a title/description/mandatory status, to communicate its
-//        use to the user
+/// detailed-input-group
+///  @desc defines a group of one or more inputs, and allows the addition of other
+///        elements, e.g. a title/description/mandatory status, to communicate its
+///        use to the user
 .detailed-input-group {
   @include flex-col();
 
@@ -957,8 +1030,8 @@
   }
 }
 
-// date-range-field
-//  @desc describes a date range field, where each input describes either the start or end of the date
+/// date-range-field
+///  @desc describes a date range field, where each input describes either the start or end of the date
 .date-range-field {
   display: flex;
   flex-flow: row nowrap;
@@ -998,8 +1071,8 @@
   }
 }
 
-// radio-chips-group
-//  @desc describes a group of radio chips
+/// radio-chips-group
+///  @desc describes a group of radio chips
 .radio-chips-group {
   @include flex-row($gap: 0.5rem);
 
@@ -1008,8 +1081,8 @@
   list-style-type: none;
 }
 
-// hstack-checkbox-group
-//  @desc defines a horizontal stack of checkboxes
+/// hstack-checkbox-group
+///  @desc defines a horizontal stack of checkboxes
 .hstack-checkbox-group {
   @include flex-row();
   @include remove-appearance();
@@ -1114,8 +1187,8 @@
   }
 }
 
-// hstack-radio-group
-//  @desc defines a horizontal stack of radio inputs
+/// hstack-radio-group
+///  @desc defines a horizontal stack of radio inputs
 .hstack-radio-group {
   @include flex-row();
   @include remove-appearance();
@@ -1138,8 +1211,8 @@
   }
 }
 
-// checkbox-item-container
-//  @desc defines a horizontal group of checkbox items
+/// checkbox-item-container
+///  @desc defines a horizontal group of checkbox items
 .checkbox-item-container {
   display: flex;
   flex-flow: row nowrap;
@@ -1157,8 +1230,8 @@
   }
 }
 
-// search-options
-//  @desc defines a set of search options, example in create/concept.html
+/// search-options
+///  @desc defines a set of search options, example in create/concept.html
 .search-options {
   @include flex-row();
   position: relative;
@@ -1285,8 +1358,8 @@
   }
 }
 
-// search-container
-//  @desc defines a search input field
+/// search-container
+///  @desc defines a search input field
 .search-container {
   @include flex-col();
   position: relative;
@@ -1409,8 +1482,8 @@
   }
 }
 
-// date-range-picker
-//  @desc defines a date range picker for use with lightpick.js
+/// date-range-picker
+///  @desc defines a date range picker for use with lightpick.js
 .date-range-picker {
   @include remove-appearance();
 
@@ -1435,11 +1508,245 @@
   }
 }
 
-// text inputs
-//  @desc defines a set of text inputs
-.code-text-input,
+/// selection panel
+///  @desc defines a panel for the variable selection modal
+///  @example see create frontend, _e.g._ `variableCreator.js`
+.var-selection {
+  @include flex-col(false, true);
+  height: fit-content;
+  max-width: 100%;
+
+  &__header {
+    @include flex-row(0.5rem, false);
+    height: min-content;
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+    justify-content: flex-end;
+
+    &-group {
+      @include flex-col(0.5rem, true);
+      height: fit-content;
+      max-width: 100%;
+      align-items: flex-end;
+    }
+
+    &-label {
+      display: inline-block;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0;
+      font-weight: bold;
+      font-family: inherit;
+      line-height: 1em;
+      text-wrap: wrap;
+      color: col(text-darkest);
+    }
+  }
+
+  &__content {
+    @include flex-col(0.5rem, true);
+    height: fit-content;
+    max-width: 100%;
+  }
+}
+
+/// an input group
+///  @desc defines a fielset
+///  @example see create frontend, _e.g._ `variableCreator.js`
+.input-field-container {
+  @include flex-col(0.5rem, true);
+  height: fit-content;
+  max-width: 100%;
+
+  &__label {
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0;
+    font-family: inherit;
+    line-height: 1em;
+    letter-spacing: 2px;
+    text-wrap: wrap;
+    text-transform: uppercase;
+  }
+}
+
+/// number input types
+///  @desc defines a set of number inputs
+///  @example see create frontend, _e.g._ `variableCreator.js`
+.number-input {
+  --num-input-height: 1.5rem;
+  --num-input-icon-sz: 1rem;
+
+  &__group {
+    @include flex-row(false, true);
+    height: fit-content;
+    max-width: 100%;
+    max-height: 100%;
+
+    &-action {
+      appearance: none;
+      -webkit-appearance: none;
+
+      cursor: pointer;
+      position: relative;
+      margin: 0;
+      padding: 0;
+      color: col(text-darkest);
+      border: 1px solid col(accent-dark);
+      border-radius: none;
+      background-color: col(bg);
+      height: 100%;
+      width: 100%;
+
+      &:after {
+        content: '\f057';
+        position: absolute;
+        width: var(--num-input-icon-sz);
+        height: var(--num-input-icon-sz);
+        top: calc(50% - var(--num-input-icon-sz)*0.5);
+        left: calc(50% - var(--num-input-icon-sz)*0.5);
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--num-input-icon-sz);
+        color: col(accent-dark);
+        text-align: center;
+        transition: all 0.1s ease-out;
+        transform: scale(1);
+        -webkit-transform: scale(1);
+      }
+
+      &:not(:disabled) {
+        &:active,
+        &:focus {
+          outline: none;
+        }
+
+        &:not(:active):focus-visible {
+          outline: 1px solid col(accent-highlight);
+          z-index: 2;
+        }
+
+        &:hover {
+          border: 1px solid col(accent-dark);
+        }
+
+        &:active:after {
+          transform: scale(0.8);
+          -webkit-transform: scale(0.8);
+        }
+      }
+
+      &:disabled {
+        pointer-events: none;
+        opacity: 0.25;
+      }
+
+      &[data-op="decrement"]:after {
+        content: '\f068';
+      }
+
+      &[data-op="increment"]:after {
+        content: '\2b';
+      }
+    }
+
+    &-inner {
+      @include flex-row(false, false);
+      width: fit-content;
+    }
+
+    &-spin {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+      width: var(--num-input-height);
+    }
+
+    &-input[type="number"] {
+      position: relative;
+      appearance: none;
+      -moz-appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: textfield;
+
+      flex: 1;
+      width: 100%;
+      max-width: calc(10ch + 1rem);
+      height: var(--num-input-height);
+      padding: 0.5rem 1ch;
+      line-height: 1rem;
+      text-align: center;
+      transition: all 0.2s ease-out;
+      border: 1px solid col(accent-dark);
+      border-right: 1px solid rgba(0, 0, 0, 0);
+      border-radius: none;
+      background-color: col(bg);
+      -webkit-border-radius: 0px;
+
+      &:not(:disabled) {
+        &:focus {
+          outline: none;
+          border: 1px solid col(accent-dark);
+        }
+  
+        &:focus-visible {
+          outline: 1px solid col(accent-highlight);
+          z-index: 2;
+        }
+  
+        &:hover {
+          outline: none;
+          border: 1px solid col(accent-washed);
+        }
+      }
+
+      &:disabled {
+        pointer-events: none;
+        opacity: 0.25;
+      }
+
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button {
+        margin: 0;
+        -webkit-appearance: none;
+      }
+
+      & ~ .as-icon {
+        display: none;
+      }
+
+      &[data-type="percentage"] {
+        max-width: calc(15ch + 1rem);
+        padding-right: calc(2ch + var(--icons-size));
+
+        & ~ .as-icon {
+          display: block;
+          position: absolute;
+          right: 1ch;
+          top: 25%;
+
+          &:before {
+            content: '\25';
+          }
+        }
+  
+        &:focus-visible ~ .as-icon {
+          z-index: 2;
+        }
+      }
+    }
+  }
+}
+
+
+
+/// text input types
+///  @desc defines a set of text inputs
 .text-input,
-.text-area-input {
+.text-area-input,
+.code-text-input {
   @include remove-appearance();
 
   font-family: inherit;
@@ -1467,8 +1774,8 @@
   }
 }
 
-// code inputs
-//  @desc defines a set of input elements for code search
+/// code inputs
+///  @desc defines a set of input elements for code search
 .code-search-group {
   @include flex-col();
   position: relative;
@@ -1519,8 +1826,8 @@
   }
 }
 
-// text-area-input
-//  @desc defines an area for text input
+/// text-area-input
+///  @desc defines an area for text input
 .text-area-input {
   resize: vertical;
 
@@ -1538,8 +1845,8 @@
   }
 }
 
-// selection inputs
-//  @desc defines a group of selection inputs for radio buttons, checkboxes, dropdown etc
+/// selection inputs
+///  @desc defines a group of selection inputs for radio buttons, checkboxes, dropdown etc
 .selection-input {
   font-family: inherit;
   margin-top: 0.25rem;
@@ -1800,8 +2107,8 @@
   }
 }
 
-// switch inputs
-//  @desc defines a switch, similar in function to a radiobutton, to describe a binary state
+/// switch inputs
+///  @desc defines a switch, similar in function to a radiobutton, to describe a binary state
 .switch-input {
   display: none;
 

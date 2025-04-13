@@ -1,9 +1,14 @@
 {% load entity_renderer %}
 
 <div class="detailed-input-group fill">
-  <h3 class="detailed-input-group__title">Publications {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+      <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
   {% if not component.hide_input_details %}
-    <pre class="detailed-input-group__description">Add a publication by providing the reference details and its DOI.</pre>
+    <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
 
   <div class="publication-list-group">

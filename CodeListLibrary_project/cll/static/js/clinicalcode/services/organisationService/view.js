@@ -342,7 +342,6 @@ domReady.finally(() => {
   ARCHIVE_TEMPLATE = document.querySelector('#archive-form');
 
   const data = getCollectionData();
-  console.log(data);
   for (let [key, value] of Object.entries(data)) {
     if (value.data.length < 1) {
       continue;

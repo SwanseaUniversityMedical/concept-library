@@ -19,12 +19,15 @@
     <div class="search-banner__cards">
       <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
         {% url 'my_collection' as collections_url %}
-        <article class="referral-card referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
-            data-target="{{ collections_url }}" onclick="redirectToTarget(this);"
-            tabindex="0" aria-label="My Collection">
+        <article
+            class="referral-card referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
+            data-target="{{ collections_url }}"
+            onclick="redirectToTarget(this, event);"
+            tabindex="0"
+            aria-label="My Collection">
           
           <div class="referral-card__header">
-            <a class="referral-card__title" href="{{ collections_url }}">My Collection <span class="referral-card__title-icon"></span></a>
+            <p class="referral-card__title" href="{{ collections_url }}">My Collection <span class="referral-card__title-icon"></span></p>
           </div>
           <div class="referral-card__body">
             <p>View content owned by or shared with you.</p>
@@ -32,12 +35,15 @@
         </article>
 
         {% url 'create_phenotype' as create_url %}
-        <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
-            data-target="{{ create_url }}" onclick="redirectToTarget(this);"
-            tabindex="0" aria-label="Create a {{ brand_mapping.phenotype }}">
+        <article
+            class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
+            data-target="{{ create_url }}"
+            onclick="redirectToTarget(this, event);"
+            tabindex="0"
+            aria-label="Create a {{ brand_mapping.phenotype }}">
           
           <div class="referral-card__header">
-            <a class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }} <span class="referral-card__title-icon"></span></a>
+            <p class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }} <span class="referral-card__title-icon"></span></p>
           </div>
           <div class="referral-card__body">
             <p>Start here to contribute to the {{ base_page_title }}.</p>
@@ -46,12 +52,15 @@
 
         {% if user|is_member:"Moderators" or user.is_superuser %}
           {% url 'moderation_page' as moderator_url %}
-          <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
-              data-target="{{ moderator_url }}" onclick="redirectToTarget(this);"
-              tabindex="0" aria-label="View Moderation">
+          <article
+              class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
+              data-target="{{ moderator_url }}"
+              onclick="redirectToTarget(this, event);"
+              tabindex="0"
+              aria-label="View Moderation">
             
             <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ moderator_url }}">View Moderation <span class="referral-card__title-icon"></span></a>
+              <p class="referral-card__title" href="{{ moderator_url }}">View Moderation <span class="referral-card__title-icon"></span></a>
             </div>
             <div class="referral-card__body">
               <p>Review content before publication.</p>
@@ -59,12 +68,15 @@
           </article>
         {% else %}
           {% url 'reference_data' as reference_url %}
-          <article class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
-              data-target="{{ reference_url }}" onclick="redirectToTarget(this);"
-              tabindex="0" aria-label="Reference Data">
+          <article
+              class="referral-card referral-card-bannerised referral-card-fill-area bright-accent referral-card-shadow referral-card-border-radius"
+              data-target="{{ reference_url }}"
+              onclick="redirectToTarget(this, event);"
+              tabindex="0"
+              aria-label="Reference Data">
             
             <div class="referral-card__header">
-              <a class="referral-card__title" href="{{ reference_url }}">Reference Data <span class="referral-card__title-icon"></span></a>
+              <p class="referral-card__title" href="{{ reference_url }}">Reference Data <span class="referral-card__title-icon"></span></p>
             </div>
             <div class="referral-card__body">
               <p>Look up values for {{ brand_mapping.phenotype }} fields.</p>

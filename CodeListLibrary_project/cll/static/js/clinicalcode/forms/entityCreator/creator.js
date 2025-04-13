@@ -9,7 +9,8 @@ import {
   ENTITY_FIELD_COLLECTOR,
   getTemplateFields,
   createFormHandler,
-  tryGetFieldTitle
+  tryGetFieldTitle,
+  parseAsFieldType
 } from './utils.js';
 
 /**
@@ -28,6 +29,39 @@ export default class EntityCreator {
     this.#collectForm();
     this.#setUpForm();
     this.#setUpSubmission();
+
+    const form = this.form;
+    const vmField = form.validation_measures
+    console.log('Measures', parseAsFieldType(
+      vmField,
+      {
+        sensitivity: {
+          value: '0.5'
+        },
+        specificity: {
+          value: '50%'
+        },
+        somethingElse: {
+          name: 'bruh',
+          type: 'float',
+          value: '0.5',
+        },
+        confidence_interval: {
+          description: 'Some CI interval :)',
+          value: {
+            level: '95%',
+            upper: '0.5',
+            lower: -5,
+          },
+        },
+        c_statistic: {
+          value: 0.001,
+        },
+        kappa: {
+          value: '1,000,000',
+        }
+      }
+    ));
   }
 
   /*************************************
