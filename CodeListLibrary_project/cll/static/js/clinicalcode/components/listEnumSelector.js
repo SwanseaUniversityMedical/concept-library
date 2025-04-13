@@ -1,15 +1,13 @@
 /**
- * @class GroupedEnum
- * @desc handler for GroupedEnum components, where:
+ * @class ListEnum
+ * @desc handler for ListEnum components, where:
  *        - Selection of individual values via checkboxes
- *        - Selection of another value through a combination of checkboxes
- *        - Emulates radiobutton-like behaviour in all other cases
  * @param {string/node} obj The ID of the input element or the input element itself
  * @param {object} data Should contain both (1) the available options and (2) the available groups
  * @return {object} An interface to control the behaviour of the component
  * 
  */
-export default class GroupedEnum {
+export default class ListEnum {
   constructor(obj, data, defaultValue) {
     if (typeof obj === 'string') {
       this.id = id;
@@ -21,7 +19,7 @@ export default class GroupedEnum {
       }
     }
 
-    this.value = null;
+    this.value = [];
     this.data = data;
     this.#initialise()
   }
@@ -52,7 +50,7 @@ export default class GroupedEnum {
    */
   setValue(value) {
     if (isNullOrUndefined(value)) {
-      this.value = null;
+      this.value = [];
 
       const checked = this.element.querySelectorAll('input:checked')
       for (let i = 0; i < checked.length; ++i) {
@@ -62,25 +60,10 @@ export default class GroupedEnum {
     }
     this.value = value;
 
-    let matchedGroup = this.data?.properties.find(x => x.result === value);
-    if (!isNullOrUndefined(matchedGroup)) {
-      const inputs = this.element.querySelectorAll('input');
-      for (let i = 0; i < inputs.length; ++i) {
-        let val = inputs[i].getAttribute('data-value');
-        if (matchedGroup?.when.includes(val)) {
-          inputs[i].checked = true;
-          continue
-        }
-        inputs[i].checked = false;
-      }
-
-      return this;
-    }
-
     const inputs = this.element.querySelectorAll('input');
     for (let i = 0; i < inputs.length; ++i) {
       let val = inputs[i].getAttribute('data-value');
-      inputs[i].checked = val === value;
+      inputs[i].checked = value.includes(val);
     }
 
     return this;
@@ -99,14 +82,6 @@ export default class GroupedEnum {
     // Build renderables
     for (let i = 0; i < this.data?.options.length; ++i) {
       const option = this.data?.options[i];
-      const properties = this.data?.properties
-      if (!isNullOrUndefined(properties)) {
-        const group = properties.find(x => x.result == option.value);   
-        if (!isNullOrUndefined(group)) {
-          continue
-        }
-      }
-
       const item = this.#createCheckbox(
         `${option.name}-${option.value}`,
         option.name,
@@ -119,14 +94,12 @@ export default class GroupedEnum {
     }
 
     // Assign default value
-    let value = this.data?.value?.[0]?.value;
-    if (!isNullOrUndefined(value)) {
+    let value = this.data.value;
+    if (Array.isArray(value) && value.length > 0) {
+      value = value.map(x => x.value)
       this.setValue(value);
     } else {
-      const defaultValue = this.element.getAttribute('data-default');
-      if (!isNullOrUndefined(defaultValue)) {
-        this.setValue(defaultValue);
-      }
+      this.setValue(null);
     }
   }
 
@@ -146,12 +119,11 @@ export default class GroupedEnum {
       .map(node => {
         return this.data?.options.find(x => x.value == node.getAttribute('data-value'))
       });
-
-    // Select a group if a match is found
-    let matchedGroup;
+      
     let selectedValues = selected.map(x => x?.value);
 
-    const properties = this.data?.properties;
+    let deselectExcept = null;
+    let properties = this.data?.properties;
     if (!isNullOrUndefined(properties)) {
       for (let i = 0; i < properties.length; ++i) {
         let group = properties[i];
@@ -159,51 +131,54 @@ export default class GroupedEnum {
           continue;
         }
 
-        if (isArrayEqual(selectedValues, group?.when)) {
-          matchedGroup = group;
-          break
-        }
-
-        const hasIntersection = group?.when.filter(el => selectedValues.includes(el)).length > 0;
-        const hasDifference = selectedValues.filter(el => !group?.when.includes(el)).length > 0;
-        if (hasIntersection && !hasDifference) {
-          matchedGroup = group;
-          break;
-        }
-      }
-    }
-
-    if (!isNullOrUndefined(matchedGroup)) {
-      for (let i = 0; i < checked.length; ++i) {
-        let checkbox = checked[i];
-        let value = checkbox.getAttribute('data-value');
-
-        if (matchedGroup?.when.includes(value)) {
+        if (isNullOrUndefined(group?.result)) {
           continue;
         }
 
-        checkbox.checked = false;
+        if (group.result == 'deselect') {
+          if (this.value[0] === group?.when) {
+            this.value = this.value.filter((el) => {
+              return el !== group?.when;
+            });
+
+            for (let i = 0; i < checked.length; ++i) {
+              let checkbox = checked[i];
+              let checkboxValue = checkbox.getAttribute('data-value');
+              if (checkboxValue === group?.when) {
+                checkbox.checked = false;
+              }
+            }
+            continue;
+          }
+
+          if (selectedValues.includes(group?.when)) {
+            deselectExcept = group?.when;
+          }
+        }
+      }
+    }
+
+    if (!isNullOrUndefined(deselectExcept)) {
+      for (let i = 0; i < checked.length; ++i) {
+        let checkbox = checked[i];
+        let checkboxValue = checkbox.getAttribute('data-value');
+
+        checkbox.checked = checkboxValue === deselectExcept;
       }
 
-      this.value = matchedGroup?.result;
+      this.value = [deselectExcept];
       return;
     }
 
-    // None found, clear current selection & apply state of our current checkbox
     const target = e.currentTarget;
-    for (let i = 0; i < checked.length; ++i) {
-      let checkbox = checked[i];
-      if (target == checkbox) {
-        continue;
-      }
-
-      checkbox.checked = false;
-    }
-    
+    const targetValue = target.getAttribute('data-value');
     if (target.checked) {
-      this.value = target.getAttribute('data-value');
+      this.value.push(targetValue);
+      this.value.sort();
     } else {
-      this.value = null;
+      this.value = this.value.filter((el) => {
+        return el !== targetValue;
+      });
     }
   }
 

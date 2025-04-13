@@ -830,11 +830,29 @@ FIELD_TYPES = {
         'output_type': 'dropdown-list'
     },
 
+    'double_range_slider': {
+        'data_type': 'string',
+        'input_type': 'double_range_slider',
+        'output_type': 'double_range'
+    },
+
     'grouped_enum': {
         'data_type': 'int',
         'input_type': 'grouped_enum',
         'output_type': 'radiobutton',
         'apply_badge_style': True
+    },
+
+    'list_enum': {
+        'data_type': 'int_array',
+        'input_type': 'list_enum',
+        'output_type': 'radiobutton',
+        'apply_badge_style': True
+    },
+
+    'contact_information': {
+        'input_type': 'clinical/contact_information',
+        'output_type': 'clinical/contact_information',
     },
 
     'ontology': {
