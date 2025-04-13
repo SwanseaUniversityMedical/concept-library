@@ -1,6 +1,7 @@
 {
   "template_details": {
     "name": "HDRN Concept",
+    "shortname": "Concept",
     "version": 1,
     "description": "Concept definitions that are based on lists of clinical codes, or algorithms using clinical codes.",
     "card_type": "clinical"
@@ -147,10 +148,7 @@
         "unique": true,
         "length": [0, 250],
         "sanitise": "strict",
-        "regex": [
-          "^[\\d]{1,}$",
-          "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
-        ]
+        "regex": "^([\\d]{1,})|([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}))$"
       },
       "search": {
         "api": true
@@ -351,7 +349,7 @@
           "[\\s+]?\\-[\\s+]?(?:\\d+\\/|\\d+)+",
           "(?:\\d+\\/|\\d+)+[\\s+]?\\-[\\s+]?"
         ],
-        "date_closure_optional": true
+        "closure_optional": true
       },
       "hide_if_empty": true
     },
@@ -532,8 +530,57 @@
       "field_type": "validation_measures",
       "active": true,
       "validation": {
-        "type": "validation_measures",
-        "mandatory": false
+        "type": "var_array",
+        "mandatory": false,
+        "options": {
+          "sensitivity": {
+            "name": "Sensitivity",
+            "type": "percentage",
+            "coercion": "normalised"
+          },
+          "specificity": {
+            "name": "Specificity",
+            "type": "percentage",
+            "coercion": "normalised"
+          },
+          "ppv": {
+            "name": "Positive Predictive Value",
+            "type": "percentage",
+            "coercion": "normalised"
+          },
+          "npv": {
+            "name": "Negative Predictive Value",
+            "type": "percentage",
+            "coercion": "normalised"
+          },
+          "confidence_interval": {
+            "name": "Confidence Interval",
+            "type": "ci_interval",
+            "format": "{level} CI ({lower}; {upper})"
+          },
+          "c_statistic": {
+            "name": "C-statistic",
+            "type": "numeric"
+          },
+          "hazard_ratio": {
+            "name": "Hazard Ratio",
+            "type": "numeric"
+          },
+          "kappa": {
+            "name": "Kappa",
+            "type": "numeric"
+          }
+        },
+        "properties": {
+          "allow_unknown": true,
+          "allow_description": true,
+          "allow_types": [
+            "int",
+            "numeric",
+            "percentage",
+            "string"
+          ]
+        }
       },
       "hide_if_empty": true
     },
@@ -603,8 +650,21 @@
       "field_type": "srv_list",
       "active": true,
       "validation": {
-        "type": "srv_list",
-        "mandatory": false
+        "type": "var_array",
+        "mandatory": false,
+        "properties": {
+          "allow_unknown": true,
+          "allow_description": true,
+          "allow_types": [
+            "int",
+            "numeric",
+            "percentage",
+            "percentage_range",
+            "int_range",
+            "numeric_range",
+            "string"
+          ]
+        }
       },
       "hide_if_empty": true
     },
