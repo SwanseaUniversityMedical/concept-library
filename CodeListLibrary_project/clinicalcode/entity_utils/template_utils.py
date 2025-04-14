@@ -760,31 +760,35 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
             return [output]
     elif field_type == 'int_array':
         source_info = validation.get('source')
-        if not source_info:
+        options = validation.get('options')
+        if source_info:
+            model_name = source_info.get('table')
+            tree_models = source_info.get('trees')
+
+            if isinstance(tree_models, list):
+                model_source = source_info.get('model')
+                if isinstance(model_source, str):
+                    try:
+                        model = apps.get_model(app_label='clinicalcode', model_name=model_source)
+                        output = model.get_detailed_source_value(data, tree_models, default=default)
+                        if isinstance(output, list):
+                            return output
+                    except Exception as e:
+                        logger.warning(f'Failed to derive template data values of "{field}" with err:\n\n{e}')
+            elif isinstance(model_name, str):
+                values = []
+                for item in data:
+                    value = get_detailed_sourced_value(item, info)
+                    if value is None:
+                        continue
+
+                    values.append(value)
+                return values
+        elif isinstance(options, dict) and isinstance(data, list):
+            values = [{ 'name': options.get(x), 'value': x } for x in data if isinstance(options.get(x), str)]
+            return values if len(values) > 0 else default
+        else:
             return default
-
-        model_name = source_info.get('table')
-        tree_models = source_info.get('trees')
-
-        if isinstance(tree_models, list):
-            model_source = source_info.get('model')
-            if isinstance(model_source, str):
-                try:
-                    model = apps.get_model(app_label='clinicalcode', model_name=model_source)
-                    output = model.get_detailed_source_value(data, tree_models, default=default)
-                    if isinstance(output, list):
-                        return output
-                except Exception as e:
-                    logger.warning(f'Failed to derive template data values of "{field}" with err:\n\n{e}')
-        elif isinstance(model_name, str):
-            values = []
-            for item in data:
-                value = get_detailed_sourced_value(item, info)
-                if value is None:
-                    continue
-
-                values.append(value)
-            return values
     elif field_type == 'concept':
         values = []
         for item in data:
