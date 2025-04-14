@@ -36,7 +36,7 @@
   </header>
 
   <main class="main-content" id="root">
-    {% to_json_script members desc-type="value" for="organisation-members" %}
+    {% to_json_script members desc-type="value" for="organisation-members" uid=request.user.id %}
     {% to_json_script invites desc-type="value" for="organisation-invites" %}
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="organisation-page">
@@ -104,10 +104,19 @@
                     Your organisation has no members yet.
                   </p>
                 </section>
-
-                <div id="member-role-list">
-
-                </div>
+                
+                <table class="member-management__table">
+                  <thead>
+                    <tr>
+                      <td>User</td>
+                      <td>Role</td>
+                      <td>Actions</td>
+                    </tr>
+                  </thead>
+                  <tbody id="member-role-list">
+                    
+                  </tbody>
+                </table>
               </article>
           
               <article class="tab__content">
@@ -145,11 +154,17 @@
                     </p>
                   </section>
 
-                  <section class="member-management__invites">
-                    <div id="invite-list-container">
-
-                    </div>
-                  </section>
+                  <table class="member-management__table">
+                    <thead>
+                      <tr>
+                        <td>User</td>
+                        <td>Actions</td>
+                      </tr>
+                    </thead>
+                    <tbody id="invite-list-container">
+                      
+                    </tbody>
+                  </table>
                 </section>
               </article>
             </div>
@@ -160,22 +175,23 @@
 
     <!-- Member list -->
     <template data-name="member" data-owner="management">
-      <span class="member-management__list-item" data-target="${userid}">
-        <span class="member-name">
+      <tr data-target="${userid}">
+        <td>
           ${name}
-        </span>
-        <span class="action-buttons">
-          <span tooltip="Delete" direction="left">
-            <span class="delete-icon"
-                  tabindex="0"
-                  aria-label="Delete Member"
-                  role="button"
-                  data-target="delete"
-                  disabled="">
-            </span>
-          </span>
-        </span>
-      </span>
+        </td>
+        <td id="member-role-container">
+
+        </td>
+        <td>
+          <button aria-label="Remove User" 
+                  class="secondary-btn text-accent-darkest bold icon delete-icon outline" 
+                  title="Remove User"
+                  data-target="delete" 
+                  role="button">
+            Remove
+          </button>
+        </td>
+      </tr>
     </template>
 
     <template data-name="dropdown" data-owner="management">
@@ -193,21 +209,20 @@
 
     <!-- Invite list -->
     <template data-name="invite" data-owner="invite">
-      <span class="member-management__list-item" data-target="${userid}">
-        <span class="member-name">
+      <tr data-target="${userid}">
+        <td>
           ${name}
-        </span>
-        <span class="action-buttons">
-          <span tooltip="Delete" direction="left">
-            <span class="delete-icon"
-                  tabindex="0"
-                  aria-label="Delete Member"
-                  role="button"
-                  data-target="delete">
-            </span>
-          </span>
-        </span>
-      </span>
+        </td>
+        <td>
+          <button aria-label="Remove Invite" 
+                  class="secondary-btn text-accent-darkest bold icon delete-icon outline" 
+                  title="Remove User"
+                  data-target="delete" 
+                  role="button">
+            Remove
+          </button>
+        </td>
+      </tr>
     </template>
   </main>
 

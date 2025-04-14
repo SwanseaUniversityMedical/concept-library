@@ -241,6 +241,7 @@
 
   &:disabled {
     opacity: 0.5;
+    pointer-events: none;
   }
 
   /* Icon style */
@@ -277,6 +278,21 @@
     &-file:after {
       content: '\f574';
     }
+  }
+
+  &.delete-icon:after {
+    content: '\f235';
+    cursor: pointer;
+    pointer-events: auto;
+    position: absolute;
+    right: 0;
+    height: 100%;
+    top: 25%;
+    aspect-ratio: 1 / 1;
+    font-family: var(--icons-name);
+    font-style: var(--icons-style);
+    font-size: var(--icons-size);
+    text-align: center;
   }
 
   /* Text style */

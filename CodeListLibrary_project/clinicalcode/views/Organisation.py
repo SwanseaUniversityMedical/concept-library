@@ -121,7 +121,6 @@ class OrganisationManageView(UpdateView):
 
     members = self.object.members.through.objects \
       .filter(organisation_id=self.object.id) \
-      .exclude(user_id=user.id) \
       .annotate(
         role_name=Case(
           *[When(role=v.value, then=Value(v.name)) for v in constants.ORGANISATION_ROLES],
@@ -159,7 +158,11 @@ class OrganisationManageView(UpdateView):
 
     user_list = User.objects.all() \
       .exclude(
-        id__in=[user.id, self.object.owner_id] + [member.get('user_id') for member in members]
+        id__in=(
+          [user.id, self.object.owner_id] + 
+          [member.get('user_id') for member in members] +
+          [invite.get('user_id') for invite in invites]
+        )
       ) \
       .values('id', 'username')
     user_list = list(user_list)
@@ -238,6 +241,9 @@ class OrganisationManageView(UpdateView):
     rid = body.get('rid')
     if not isinstance(uid, int) or not isinstance(oid, int) or not isinstance(rid, int):
       return gen_utils.jsonify_response(code=400)
+    
+    if uid == request.user.id:
+      return gen_utils.jsonify_response(code=400)
 
     roles = [x.value for x in constants.ORGANISATION_ROLES]
     if rid not in roles:
@@ -268,6 +274,9 @@ class OrganisationManageView(UpdateView):
     uid = body.get('uid')
     oid = body.get('oid')
     if not isinstance(uid, int) or not isinstance(oid, int):
+      return gen_utils.jsonify_response(code=400)
+
+    if uid == request.user.id:
       return gen_utils.jsonify_response(code=400)
 
     membership = OrganisationMembership.objects.filter(

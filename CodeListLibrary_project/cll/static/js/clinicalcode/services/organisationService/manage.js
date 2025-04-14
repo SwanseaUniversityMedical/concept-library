@@ -1,7 +1,7 @@
 import * as orgUtils from './utils.js';
 import { Autocomplete } from '../../components/autocomplete.js';
 
-const renderMembersList = (root, token, data) => {
+const renderMembersList = (root, token, data, uid) => {
   if (isNullOrUndefined(data)) {
     return fetch(getCurrentURL(), {
       method: 'GET',
@@ -16,7 +16,7 @@ const renderMembersList = (root, token, data) => {
       }
     })
       .then(response => response.json())
-      .then(response => renderMembersList(root, token, response.members))
+      .then(response => renderMembersList(root, token, response.members, uid))
   }
 
   const memberList = root.querySelector('#member-role-list');
@@ -44,65 +44,66 @@ const renderMembersList = (root, token, data) => {
         userid: obj.user_id,
         name: obj.username,
       },
-      modify: [{
-        select: 'span',
-        parent: memberList,
-        apply: (elem) => { 
-          const spn = elem.querySelector('.action-buttons');
+      parent: memberList,
+      render: (elems) => {
+        const [tr] = elems;
+        const roleContainer = tr.querySelector('#member-role-container');
 
-          let [btn] = composeTemplate(templates.dropdown, {
-            params: {
-              uid: obj.user_id,
-            },
-          });
-          btn = spn.appendChild(btn);
-
-          btn.addEventListener('change', (e) => {
-            const selected = btn.options[btn.selectedIndex];
-            const targetValue = parseInt(selected.value);
-
-            if (targetValue !== obj.role && !isNaN(targetValue)) {
-              const prevValue = obj.role;
-
-              fetch(getCurrentURL(), {
-                method: 'POST',
-                cache: 'no-cache',
-                credentials: 'same-origin',
-                withCredentials: true,
-                headers: {
-                  'X-Target': 'change_user_role',
-                  'X-Requested-With': 'XMLHttpRequest',
-                  'X-CSRFToken': token,
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  uid: obj.user_id,
-                  oid: obj.organisation_id,
-                  rid: targetValue
-                })
-              })
-                .then(response => response.json())
-                .then(() => {
-                  if (parseInt(selected.value) !== prevValue) {
-                    obj.role = targetValue;
-                  }
-                })
-                .catch((err) => {
-                  btn.value = prevValue;
-                  obj.role = prevValue;
-                });
-            }
-          });
-
-          const opt = btn.querySelector(`[value="${obj.role}"]`);
-          if (opt) {
-            opt.selected = true;
+        let [btn] = composeTemplate(templates.dropdown, {
+          params: {
+            uid: obj.user_id,
           }
-        },
-      }]
+        });
+        btn = roleContainer.appendChild(btn);
+        btn.disabled = (uid === obj.user_id);
+
+        btn.addEventListener('change', (e) => {
+          const selected = btn.options[btn.selectedIndex];
+          const targetValue = parseInt(selected.value);
+
+          if (targetValue !== obj.role && !isNaN(targetValue)) {
+            const prevValue = obj.role;
+
+            fetch(getCurrentURL(), {
+              method: 'POST',
+              cache: 'no-cache',
+              credentials: 'same-origin',
+              withCredentials: true,
+              headers: {
+                'X-Target': 'change_user_role',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': token,
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                uid: obj.user_id,
+                oid: obj.organisation_id,
+                rid: targetValue
+              })
+            })
+              .then(response => response.json())
+              .then(() => {
+                if (parseInt(selected.value) !== prevValue) {
+                  obj.role = targetValue;
+                }
+              })
+              .catch((err) => {
+                btn.value = prevValue;
+                obj.role = prevValue;
+              });
+          }
+        });
+
+        const opt = btn.querySelector(`[value="${obj.role}"]`);
+        if (opt) {
+          opt.selected = true;
+        }
+      },
+      sanitiseTemplate: false
     });
     
     const delete_btn = card.querySelector(`[data-target="delete"]`);
+    delete_btn.disabled = (uid === obj.user_id);
     delete_btn.addEventListener('click', (e) => {
       orgUtils.confirmationPrompt({
         title: 'Are you sure?',
@@ -125,7 +126,7 @@ const renderMembersList = (root, token, data) => {
             })
           })
             .then(response => response.json())
-            .then(response => renderMembersList(root, token, null))
+            .then(response => renderMembersList(root, token, null, uid))
         }
       });
     });
@@ -237,10 +238,8 @@ const renderInvitesList = (root, token, data) => {
         userid: obj.user_id,
         name: obj.username,
       },
-      modify: [{
-        select: 'span',
-        parent: invitesList
-      }]
+      parent: invitesList,
+      sanitiseTemplate: false
     });
 
     const delete_btn = card.querySelector(`[data-target="delete"]`);
@@ -277,10 +276,12 @@ domReady.finally(() => {
   const root = document.querySelector('#root');
   const token = getCookie('csrftoken');
   
+  const data = root.querySelector('script[for="organisation-members"]');
   const member_data = JSON.parse(
-    root.querySelector('script[for="organisation-members"]').innerText.trim()
+    data.innerText.trim()
   );
-  renderMembersList(root, token, member_data);
+  const user_id = parseInt(data.getAttribute('uid'));
+  renderMembersList(root, token, member_data, user_id);
   
   const invite_data = JSON.parse(
     root.querySelector('script[for="organisation-invites"]').innerText.trim()
