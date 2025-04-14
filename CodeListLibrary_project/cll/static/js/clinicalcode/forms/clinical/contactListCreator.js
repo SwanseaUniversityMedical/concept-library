@@ -258,7 +258,7 @@ export default class ContactListCreator {
     if (!this.nameInput.checkValidity() || isNullOrUndefined(name) || isStringEmpty(name)) {
       window.ToastFactory.push({
         type: 'danger',
-        message: 'Incorrect endorsement details provided',
+        message: 'You must provide a name for the contact',
         duration: this.options.notificationDuration,
       });
 

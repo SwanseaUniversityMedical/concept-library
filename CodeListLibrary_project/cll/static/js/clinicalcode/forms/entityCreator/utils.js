@@ -11,6 +11,7 @@ import StringInputListCreator from '../stringInputListCreator.js';
 import UrlReferenceListCreator from '../generic/urlReferenceListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
 import VariableCreator from '../generic/variableCreator.js';
+import IndicatorCalculationCreator from '../generic/indicatorCalculationCreator.js';
 
 import {
   ENTITY_DATEPICKER_FORMAT,
@@ -446,6 +447,38 @@ export const ENTITY_HANDLERS = {
     }
 
     return new VariableCreator(element, data);
+  },
+
+  'indicator_calculation': (element) => {
+    const nodes = element.querySelectorAll(`script[for="${element.getAttribute('data-field')}"]`);
+
+    const data = { };
+    for (let i = 0; i < nodes.length; ++i) {
+      let node = nodes[i];
+
+      const datatype = node.getAttribute('type');
+      const dataname = node.getAttribute('data-name');
+      if (isStringEmpty(datatype) || isStringEmpty(dataname)) {
+        continue;
+      }
+
+      let innerText = node.innerText;
+      if (isStringEmpty(innerText) || isStringWhitespace(innerText)) {
+        continue;
+      }
+
+      try {
+        if (datatype === 'application/json') {
+          innerText = JSON.parse(innerText);
+        }
+        data[dataname] = innerText;
+      }
+      catch (e) {
+        console.warn(`Failed to parse indicator calculations attr "${datatype}" data:`, e)
+      }
+    }
+
+    return new IndicatorCalculationCreator(element, data);
   },
 };
 
@@ -1109,6 +1142,33 @@ export const ENTITY_FIELD_COLLECTOR = {
     return {
       valid: true,
       value: data,
+    }
+  },
+
+  'indicator_calculation': (field, packet) => {
+    const handler = packet.handler;
+
+    let values = { },
+        length = 0;
+    Object.entries(handler.elements).forEach(([role, editor]) => {
+      const content = editor.value();
+      console.log(content);
+
+      values[role] = typeof content === 'string' ? strictSanitiseString(content) : '';
+      if (!stringHasChars(values[role])) {
+        values[role] = '';
+      }
+
+      length += values[role].length;
+    });
+
+    if (length === 0) {
+      values = null;
+    }
+
+    return {
+      valid: true,
+      value: values,
     }
   }
 };

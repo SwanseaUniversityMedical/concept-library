@@ -984,4 +984,8 @@ FIELD_TYPES = {
             }
         },
     },
+    'indicator_calculation': {
+        'input_type': 'indicator_calculation',
+        'output_type': 'indicator_calculation'
+    },
 }

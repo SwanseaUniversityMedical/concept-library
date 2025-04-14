@@ -1034,6 +1034,29 @@ def try_value_as_type(
                     break
 
         return field_value if valid else default
+    elif field_type == 'indicator_calculation':
+        if not isinstance(field_value, dict):
+            return default
+        
+        keys = set(field_value.keys())
+        expected_keys = set(['description', 'numerator', 'denominator'])
+        if not keys.issubset(expected_keys):
+            return default
+
+        valid = False
+        output = { }
+        for key, val in field_value.items():
+            if not isinstance(val, str) or is_empty_string(val):
+                continue
+
+            value = sanitise_utils.sanitise_value(val, method='markdown', default=None)
+            if value is None or is_empty_string(value):
+                continue
+            else:
+                output[key] = value
+                valid = True
+
+        return output if valid else default
     elif field_type == 'contact':
         if not isinstance(field_value, list):
             default

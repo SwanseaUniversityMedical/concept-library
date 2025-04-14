@@ -166,7 +166,7 @@
       "validation": {
         "type": "string",
         "mandatory": true,
-        "sanitise": "markdown"
+        "sanitise": "strict"
       },
       "is_base_field": true,
       "hide_if_empty": true

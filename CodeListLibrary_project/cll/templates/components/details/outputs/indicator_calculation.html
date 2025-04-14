@@ -1,0 +1,46 @@
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+
+{% if not component.hide_if_empty or component.value %}
+  <div class="detailed-input-group fill">
+    <div class="col-sm-12 shadow-frame">
+      <h3 class="paneltitle">
+        <span id="entity-{{ component.field_name }}"></span>
+        {% if not component.hide_input_title %}
+          <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+        {% endif %}
+        {% if not component.hide_input_details %}
+          <p class="detailed-input-group__description">{{ component.description }}</p> 
+        {% endif %}
+      </h3>
+    </div>
+
+    <h4>Description</h4>
+    {% if component.value.description|length %}
+      <div class="markdown-render-container slim-scrollbar">
+        {{ component.value.description|markdownify }}
+      </div>
+    {% else %}
+      <span class="card-no-data">No data</span>
+    {% endif %}
+    
+    <h4>Numerator</h4>
+    {% if component.value.numerator|length %}
+      <div class="markdown-render-container slim-scrollbar">
+        {{ component.value.numerator|markdownify }}
+      </div>
+    {% else %}
+      <span class="card-no-data">No data</span>
+    {% endif %}
+
+    <h4>Denominator</h4>
+    {% if component.value.denominator|length %}
+      <div class="markdown-render-container slim-scrollbar">
+        {{ component.value.denominator|markdownify }}
+      </div>
+    {% else %}
+      <span class="card-no-data">No data</span>
+    {% endif %}
+  </div>
+{% endif %}
