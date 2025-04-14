@@ -1,5 +1,10 @@
 domReady.finally(() => {
-  const ctrlKeys = ['KeyA', 'KeyF', 'KeyX', 'KeyZ', 'KeyY', 'KeyC', 'Backspace', 'Delete'];
+  const ctrlKeys = [
+    'KeyA', 'KeyF', 'KeyX',
+    'KeyZ', 'KeyY', 'KeyC',
+    'Backspace', 'Delete'
+  ];
+
   createGlobalListener(
     'inputs.number:keydown',
     'input.number-input__group-input[type="number"]',
@@ -34,10 +39,10 @@ domReady.finally(() => {
 
       if (!allowed) {
         e.preventDefault();
-        return false;
+        return true;
       }
 
-      return true;
+      return false;
     }
   );
 
@@ -48,7 +53,7 @@ domReady.finally(() => {
       e.preventDefault();
 
       let paste = (e.clipboardData || window.clipboardData).getData('text');
-      paste = paste.toUpperCase().trim().replace(/[^\d\.]/gmi, '');
+      paste = paste.toUpperCase().trim().replace(/[^\-\d\.]/gmi, '');
       paste = Number(paste)
 
       if (!isNaN(paste)) {
@@ -109,7 +114,7 @@ domReady.finally(() => {
 
           value = parseFloat(input.value.trim());
         } break;
-        
+
         default:
           value = null;
           break;
@@ -121,11 +126,15 @@ domReady.finally(() => {
 
       value += diff*(opr === 'decrement' ? -1 : 1);
       if (datatype === 'int') {
-        input.value = Math.trunc(value);
+        value = Math.trunc(value);
       } else {
         const m = Math.pow(10, step.split('.')?.[1]?.length || 0);
-        input.value = Math.round(value * m) / m;
+        value = Math.round(value * m) / m;
       }
+
+      input.value = value;
+      fireChangedEvent(input);
+
       return true;
     }
   );

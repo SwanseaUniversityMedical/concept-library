@@ -160,7 +160,7 @@ const renderNameAnchor = (pageType, key, entity, mapping) => {
 
   if (isNullOrUndefined(ARCHIVE_TEMPLATE) || pageType !== 'PROFILE_COLLECTIONS') {
     return `
-      <a href='${url}'>${text}</a>
+      <a href='${url}' target=_blank rel="noopener">${text}</a>
     `;
   }
 
@@ -172,7 +172,7 @@ const renderNameAnchor = (pageType, key, entity, mapping) => {
       });
     
       let target =  `
-        <a href='${url}'>${text}</a>
+        <a href='${url}' target=_blank rel="noopener">${text}</a>
         <span tooltip="Edit ${mapping.phenotype}" direction="right">
           <span class="profile-collection__edit-icon"
                 tabindex="0"
@@ -200,7 +200,7 @@ const renderNameAnchor = (pageType, key, entity, mapping) => {
 
     case 'archived': {
       return `
-        <a href='${url}'>${text}</a>
+        <a href='${url}' target=_blank rel="noopener">${text}</a>
         <span tooltip="Restore ${mapping.phenotype}" direction="right">
           <span class="profile-collection__restore-icon"
                 tabindex="0" aria-label="Restore ${mapping.phenotype}"
@@ -213,7 +213,7 @@ const renderNameAnchor = (pageType, key, entity, mapping) => {
 
     default: {
       return `
-        <a href='${url}'>${text}</a>
+        <a href='${url}' target=_blank rel="noopener">${text}</a>
       `;
     }
   }

@@ -1197,7 +1197,6 @@ export const ENTITY_FIELD_COLLECTOR = {
         length = 0;
     Object.entries(handler.elements).forEach(([role, editor]) => {
       const content = editor.value();
-      console.log(content);
 
       values[role] = typeof content === 'string' ? strictSanitiseString(content) : '';
       if (!stringHasChars(values[role])) {
@@ -1346,6 +1345,20 @@ export const parseAsFieldType = (packet, value, modifier) => {
       if (typeof value === 'number') {
         value = Math.trunc(value);
         valid = !isNaN(value) && Number.isFinite(value) && Number.isSafeInteger(value);
+
+        const range = validation.range;
+        if (valid && Array.isArray(range) && range.length >= 2) {
+          let fmin = typeof range[0] === 'number' ? range[0] : null;
+          let fmax = typeof range[1] === 'number' ? range[1] : null;
+
+          if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
+            let tmp = Math.max(fmin, fmax);
+            fmin = Math.min(fmin, fmax);
+            fmax = tmp;
+
+            value = Math.min(Math.max(value, fmin), fmax);
+          }
+        }
       } else {
         valid = false;
       }
@@ -1361,6 +1374,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
           const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
             ? validation.properties.min
             : null;
+
           const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
             ? validation.properties.max
             : null;
@@ -1415,10 +1429,27 @@ export const parseAsFieldType = (packet, value, modifier) => {
         } else if (value.length < 2 && !validation?.closure_optional) {
           valid = false;
         } else {
-          const lower = Math.min(output[0], output[1]);
-          const upper = Math.max(output[0], output[1]);
-          output[0] = lower;
-          output[1] = upper;
+          const lower = Math.min(value[0], value[1]);
+          const upper = Math.max(value[0], value[1]);
+          value[0] = lower;
+          value[1] = upper;
+        }
+
+        if (valid) {
+          const range = validation.range;
+          if (Array.isArray(range) && range.length >= 2) {
+            let fmin = typeof range[0] === 'number' ? range[0] : null;
+            let fmax = typeof range[1] === 'number' ? range[1] : null;
+
+            if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
+              let tmp = Math.max(fmin, fmax);
+              fmin = Math.min(fmin, fmax);
+              fmax = tmp;
+
+              value[0] = Math.min(Math.max(value[1], fmin), fmax);
+              value[1] = Math.min(Math.max(value[0], fmin), fmax);
+            }
+          }
         }
       }
     } break;
@@ -1464,7 +1495,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
     case 'decimal':
     case 'numeric': {
       if (typeof value === 'string') {
-        const matches = value.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+        const matches = value.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
         if (!isNullOrUndefined(matches)) {
           value = parseFloat(matches.shift().trim().replaceAll(/,/g, ''));
         }
@@ -1472,6 +1503,20 @@ export const parseAsFieldType = (packet, value, modifier) => {
 
       if (typeof value === 'number') {
         valid = !isNaN(value) && Number.isFinite(value);
+
+        const range = validation.range;
+        if (valid && Array.isArray(range) && range.length >= 2) {
+          let fmin = typeof range[0] === 'number' ? range[0] : null;
+          let fmax = typeof range[1] === 'number' ? range[1] : null;
+
+          if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
+            let tmp = Math.max(fmin, fmax);
+            fmin = Math.min(fmin, fmax);
+            fmax = tmp;
+
+            value = Math.min(Math.max(value, fmin), fmax);
+          }
+        }
       } else {
         valid = false;
       }
@@ -1480,54 +1525,95 @@ export const parseAsFieldType = (packet, value, modifier) => {
     case 'float_range':
     case 'decimal_range':
     case 'numeric_range': {
-      const output = [];
-      if (typeof value === 'string') {
-        value = value.trim().split(',');
-      } else if (typeof value === 'number') {
-        value = [value];
-      }
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
 
-      if (!Array.isArray(value)) {
-        return false;
-      }
+          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
+            ? validation.properties.min
+            : null;
 
-      for (let i = 0; i < value.length; ++i) {
-        let item = value[i];
-        if (typeof item === 'string') {
-          const matches = item.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
-          if (isNullOrUndefined(matches)) {
-            valid = false;
-            break;
+          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
+            ? validation.properties.max
+            : null;
+
+          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
+            min = Math.min(Math.max(min, fMin), fMax);
+            max = Math.min(Math.max(max, fMin), fMax);
           }
 
-          item = parseFloat(matches.shift().trim());
-        }
-
-        if (typeof item !== 'number') {
-          continue;
-        }
-
-        valid = !isNaN(item) && Number.isFinite(item);
-
-        if (!valid) {
+          value = { min, max };
           break;
         }
-
-        output.push(item);
-      }
-      value = output;
-
-      if (value.length === 1 && validation?.closure_optional) {
-        const num = value.shift();
-        valid = !isNaN(num) && Number.isFinite(num);
-        value = [num];
-      } else if (value.length < 2 && !validation?.closure_optional) {
-        valid = false;
       } else {
-        const lower = Math.min(output[0], output[1]);
-        const upper = Math.max(output[0], output[1]);
-        output[0] = lower;
-        output[1] = upper;
+        const output = [];
+        if (typeof value === 'string') {
+          value = value.trim().split(',');
+        } else if (typeof value === 'number') {
+          value = [value];
+        }
+  
+        if (!Array.isArray(value)) {
+          return false;
+        }
+  
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+            if (isNullOrUndefined(matches)) {
+              valid = false;
+              break;
+            }
+  
+            item = parseFloat(matches.shift().trim());
+          }
+  
+          if (typeof item !== 'number') {
+            continue;
+          }
+  
+          valid = !isNaN(item) && Number.isFinite(item);
+  
+          if (!valid) {
+            break;
+          }
+  
+          output.push(item);
+        }
+        value = output;
+  
+        if (value.length === 1 && validation?.closure_optional) {
+          const num = value.shift();
+          valid = !isNaN(num) && Number.isFinite(num);
+          value = [num];
+        } else if (value.length < 2 && !validation?.closure_optional) {
+          valid = false;
+        } else {
+          const lower = Math.min(value[0], value[1]);
+          const upper = Math.max(value[0], value[1]);
+          value[0] = lower;
+          value[1] = upper;
+        }
+
+        if (valid) {
+          const range = validation.range;
+          if (Array.isArray(range) && range.length >= 2) {
+            let fmin = typeof range[0] === 'number' ? range[0] : null;
+            let fmax = typeof range[1] === 'number' ? range[1] : null;
+
+            if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
+              let tmp = Math.max(fmin, fmax);
+              fmin = Math.min(fmin, fmax);
+              fmax = tmp;
+
+              value[0] = Math.min(Math.max(value[1], fmin), fmax);
+              value[1] = Math.min(Math.max(value[0], fmin), fmax);
+            }
+          }
+        }
       }
     } break;
 
@@ -1548,7 +1634,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
       for (let i = 0; i < value.length; ++i) {
         let item = value[i];
         if (typeof item === 'string') {
-          const matches = item.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+          const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
           if (isNullOrUndefined(matches)) {
             valid = false;
             break;
@@ -1578,7 +1664,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
 
     case 'percentage': {
       if (typeof value === 'string') {
-        const matches = value.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
+        const matches = value.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
         if (!isNullOrUndefined(matches)) {
           value = parseFloat(matches.shift().trim());
 
@@ -1601,8 +1687,115 @@ export const parseAsFieldType = (packet, value, modifier) => {
 
       if (typeof value === 'number') {
         valid = !isNaN(value) && Number.isFinite(value);
+
+        const range = validation.range;
+        if (valid && Array.isArray(range) && range.length >= 2) {
+          let fmin = typeof range[0] === 'number' ? range[0] : null;
+          let fmax = typeof range[1] === 'number' ? range[1] : null;
+
+          if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
+            let tmp = Math.max(fmin, fmax);
+            fmin = Math.min(fmin, fmax);
+            fmax = tmp;
+
+            value = Math.min(Math.max(value, fmin), fmax);
+          }
+        }
       } else {
         valid = false;
+      }
+    } break;
+
+    case 'percentage_range': {
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
+
+          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
+            ? validation.properties.min
+            : null;
+
+          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
+            ? validation.properties.max
+            : null;
+
+          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
+            min = Math.min(Math.max(min, fMin), fMax);
+            max = Math.min(Math.max(max, fMin), fMax);
+          }
+
+          value = { min, max };
+          break;
+        }
+      } else {
+        const output = [];
+        if (typeof value === 'string') {
+          value = value.trim().split(',');
+        } else if (typeof value === 'number') {
+          value = [value];
+        }
+
+        if (!Array.isArray(value)) {
+          break;
+        }
+
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
+            if (!isNullOrUndefined(matches)) {
+              item = parseFloat(matches.shift().trim());
+    
+              let coercion = (isObjectType(modifier) && !isNullOrUndefined(modifier?.coercion))
+                ? modifier.coercion
+                : null;
+
+              if (isNullOrUndefined(coercion)) {
+                coercion = validation?.coercion;
+              }
+
+              const hasPercentageSymbol = !isNullOrUndefined(matches) ? (matches[matches.length - 1] === '%') : false;
+              if (coercion === 'normalised' && hasPercentageSymbol) {
+                item /= 100;
+              } else if (coercion === 'percentage' && !hasPercentageSymbol) {
+                item *= 100;
+              }
+            }
+          }
+
+          if (typeof item !== 'number') {
+            continue;
+          }
+
+          valid = !isNaN(item) && Number.isFinite(item);
+          if (!valid) {
+            break;
+          }
+
+          output.push(item);
+        }
+
+        if (!valid) {
+          break;
+        }
+        value = output;
+
+        const range = validation.range;
+        if (Array.isArray(range) && range.length >= 2) {
+          let fmin = typeof range[0] === 'number' ? range[0] : null;
+          let fmax = typeof range[1] === 'number' ? range[1] : null;
+
+          if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
+            let tmp = Math.max(fmin, fmax);
+            fmin = Math.min(fmin, fmax);
+            fmax = tmp;
+
+            value[0] = Math.min(Math.max(value[1], fmin), fmax);
+            value[1] = Math.min(Math.max(value[0], fmin), fmax);
+          }
+        }
       }
     } break;
 
@@ -1615,9 +1808,8 @@ export const parseAsFieldType = (packet, value, modifier) => {
       const output = { };
       for (const key in value) {
         let item = value[key];
-        if (key === 'level') {
-          item = parseAsFieldType({ validation: { type: 'percentage' }}, item, { coercion: 'percentage' });
-
+        if (key === 'probability') {
+          item = parseAsFieldType({ validation: { type: 'percentage', range: [0, 100] }}, item);
           if (!item || !item?.success) {
             valid = false;
             break;
@@ -1674,35 +1866,80 @@ export const parseAsFieldType = (packet, value, modifier) => {
     } break;
 
     case 'string': {
-      value = String(value);
+      value = !isNullOrUndefined(value) ? String(value) : null;
 
       const pattern = validation?.regex;
-      if (isNullOrUndefined(pattern)) {
-        valid = true;
-        break;
-      }
-
-      try {
-        if (typeof pattern === 'string') {
-          valid = new RegExp(pattern).test(value);
-        } else if (Array.isArray(pattern)) {
-          let test = undefined, i = 0;
-          while (i < pattern.length) {
-            test = pattern[i];
-            if (typeof test !== 'string') {
-              continue;
-            }
-
-            valid = new RegExp(test).test(value);
-            if (valid) {
-              break;
+      if (!isNullOrUndefined(pattern)) {
+        try {
+          if (typeof pattern === 'string') {
+            valid = new RegExp(pattern).test(value);
+          } else if (Array.isArray(pattern)) {
+            let test = undefined, i = 0;
+            while (i < pattern.length) {
+              test = pattern[i];
+              if (typeof test !== 'string') {
+                continue;
+              }
+  
+              valid = new RegExp(test).test(value);
+              if (valid) {
+                break;
+              }
             }
           }
         }
+        catch (e) {
+          console.error(`Failed to test String<value: ${value}> with err: ${e}`);
+          valid = false;
+        }
+
+        if (!valid) {
+          break;
+        }
       }
-      catch (e) {
-        console.error(`Failed to test String<value: ${value}> with err: ${e}`);
-        valid = false;
+
+      const { clippable, validateLen } = isObjectType(validation.properties) ? validation.properties : {};
+      if (clippable || validateLen) {
+        let len = validation?.['length'] || validation?.properties?.['length'];
+        if (Array.isArray(len)) {
+          len = len.length >= 2 ? len.slice(0, 2) : len?.[0];
+        }
+  
+        if (Array.isArray(len)) {
+          len = len.map(x => Math.floor(x));
+  
+          let min = Math.min(...len);
+          let max = Math.max(...len);
+          if (min === max) {
+            len = min;
+          } else {
+            if (clippable) {
+              value = value.substring(0, Math.min(value.length, max));
+            } else if (validateLen && (value.length < min || value.length > max)) {
+              value = { len: value.length };
+              valid = false;
+            }
+          }
+  
+          if (!valid) {
+            break;
+          }
+        }
+  
+        if (typeof len === 'number') {
+          len = Math.floor(len);
+  
+          if (clippable) {
+            value = value.substring(0, Math.min(value.length, len));
+          } else if (validateLen && value.length > len) {
+            value = { len: value.length };
+            valid = false;
+          }
+  
+          if (!valid) {
+            break;
+          }
+        }
       }
     } break;
 

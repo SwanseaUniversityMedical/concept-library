@@ -40,7 +40,7 @@
     },
     {
       "title": "Population",
-      "description": "The population used to develop this Concept or the population to which it applies (e.g., age, sex, gender, race, disease group).\nIndicate any cautions and link to the &rsquo;Limitations&lsquo; field to further contextualize the information.",
+      "description": "The population used to develop this Concept or the population to which it applies (e.g., age, sex, gender, race, disease group).\nIndicate any cautions in the \"Limitations\" field to further contextualize the information.",
       "fields": [
         "population_age",
         "population_sex",
@@ -222,6 +222,8 @@
         "type": "int_range",
         "mandatory": false,
         "properties": {
+          "type": "int",
+          "step": 1,
           "min": 0,
           "max": 100
         }
@@ -506,7 +508,7 @@
     },
     "implementation": {
       "title": "Description",
-      "description": "The process to develop and implement the Concept, including key methodological details, criteria, and decision points.\n\nSummarize the methodology, including step-by-step details or a high-level overview. Specify implementation aspects such as the timeframe, observation/lookback window, and inclusion/exclusion criteria. If the Concept applies across multiple regions, describe how data were standardized or aligned (e.g., crosswalk algorithms).\n\nProvide details on how different components contribute to the Concept or the algorithm logic (e.g., &quot;at least 2 ICD codes within 6 months&quot; or &quot;1 ICD code + positive lab test&quot;). If alternative methods were considered but not used, briefly explain why. Link to any relevant documentation or publications for additional details.",
+      "description": "The process to develop and implement the Concept, including key methodological details, criteria, and decision points.\n\nSummarize the methodology, including step-by-step details or a high-level overview. Specify implementation aspects such as the timeframe, observation/lookback window, and inclusion/exclusion criteria. If the Concept applies across multiple regions, describe how data were standardized or aligned (e.g., crosswalk algorithms).\n\nProvide details on how different components contribute to the Concept or the algorithm logic (e.g., \"at least 2 ICD codes within 6 months\" or \"1 ICD code + positive lab test\"). If alternative methods were considered but not used, briefly explain why. Link to any relevant documentation or publications for additional details.",
       "field_type": "textarea_markdown",
       "active": true,
       "shunt": "description",
@@ -536,27 +538,27 @@
           "sensitivity": {
             "name": "Sensitivity",
             "type": "percentage",
-            "coercion": "normalised"
+            "format": "{value}%"
           },
           "specificity": {
             "name": "Specificity",
             "type": "percentage",
-            "coercion": "normalised"
+            "format": "{value}%"
           },
           "ppv": {
             "name": "Positive Predictive Value",
             "type": "percentage",
-            "coercion": "normalised"
+            "format": "{value}%"
           },
           "npv": {
             "name": "Negative Predictive Value",
             "type": "percentage",
-            "coercion": "normalised"
+            "format": "{value}%"
           },
           "confidence_interval": {
             "name": "Confidence Interval",
             "type": "ci_interval",
-            "format": "{level} CI ({lower}; {upper})"
+            "format": "{value.probability}% CI ({value.lower}; {value.upper})"
           },
           "c_statistic": {
             "name": "C-statistic",
@@ -572,19 +574,22 @@
           }
         },
         "properties": {
+          "label": "Validation Measures",
+          "selector": {
+            "label": "Options...",
+            "title": "Select Measures"
+          },
+          "allow_unknown": true,
           "allow_description": true,
           "allow_types": [
             "int",
             "numeric",
             "percentage",
+            "percentage_range",
+            "int_range",
+            "numeric_range",
             "string"
-          ],
-          "allow_unknown": true,
-          "label": "Validation Measures",
-          "selector": {
-            "label": "Options...",
-            "title": "Select Measures"
-          }
+          ]
         }
       },
       "hide_if_empty": true
@@ -755,8 +760,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 250],
-        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
+        "length": [0, 500],
+        "regex": "^(https?:\\/\\/)((?!-)(?!.*--)[a-zA-Z\\-0-9]{1,63}(?<!-)\\.)+[a-zA-Z]{2,63}(\\/[^\\s]*)?$"
       },
       "hide_if_empty": true
     },
@@ -768,7 +773,7 @@
       "validation": {
         "type": "url_list",
         "mandatory": false,
-        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$",
+        "regex": "^(https?:\\/\\/)((?!-)(?!.*--)[a-zA-Z\\-0-9]{1,63}(?<!-)\\.)+[a-zA-Z]{2,63}(\\/[^\\s]*)?$",
         "sanitise": "strict"
       },
       "hide_if_empty": true

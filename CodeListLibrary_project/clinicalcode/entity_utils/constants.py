@@ -988,6 +988,20 @@ FIELD_TYPES = {
             }
         },
     },
+    'srv_list': {
+        'input_type': 'var_selector',
+        'output_type': 'var_selector',
+        'appearance': {
+            'txt': {
+                'single': 'Variable',
+                'plural': 'Variables'
+            },
+            'btn': {
+                'label': 'Create new Variable',
+                'icon': '&#xf698;',
+            }
+        },
+    },
     'indicator_calculation': {
         'input_type': 'indicator_calculation',
         'output_type': 'indicator_calculation'

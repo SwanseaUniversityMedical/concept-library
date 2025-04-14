@@ -14,7 +14,7 @@
           {% for p in component.value %}
             {% if p.title and p.title|length %}
             <li>
-              <a href="{% if p.url and p.url|length %}{{ p.url }}{% endif %}"
+              <a target=_blank rel="noopener" href="{% if p.url and p.url|length %}{{ p.url }}{% endif %}"
                  aria-label="Visit Reference: {{ p.title }}">
                 {{ p.title }}
               </a>

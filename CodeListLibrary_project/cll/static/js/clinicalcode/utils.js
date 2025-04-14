@@ -339,6 +339,23 @@ const getTransitionMethod = () => {
 }
 
 /**
+ * fireChangedEvent
+ * @desc attempts to fire the changed event for a particular DOM element
+ * 
+ * @param {HTMLElement} elem
+ */
+const fireChangedEvent = (elem) => {
+  if ('createEvent' in document) {
+    const evt = document.createEvent('HTMLEvents');
+    evt.initEvent('change', false, true);
+    elem.dispatchEvent(evt);
+    return;
+  }
+
+  elem.fireEvent('onchange');
+}
+
+/**
  * @desc attempts to parse the global listener key
  * 
  * @param {string} key the desired global listener key name
@@ -578,7 +595,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
         case 'data':
         case 'dataset': {
           for (const key in attr) {
-            if (typeof key !== 'string' || typeof key !== 'number') {
+            if (typeof key !== 'string' && typeof key !== 'number') {
               console.error(`[createElement->${name}] Failed to append 'data-*' attr, expected key as String|Number but got ${typeof key}`);
               continue;
             }
@@ -602,7 +619,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
 
         case 'attributes': {
           for (const key in attr) {
-            if (typeof key !== 'string' || typeof key !== 'number') {
+            if (typeof key !== 'string' && typeof key !== 'number') {
               console.error(`[createElement->${name}] Failed to append an attribute, expected key as String|Number but got ${typeof key}`);
               continue;
             }
@@ -695,12 +712,14 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
 
         case 'parent': {
           if (isObjectType(element) && typeof attr.insert === 'string' && !isNullOrUndefined(attr.element)) {
-            const insert = (typeof attr.insert === 'string' && !!attr.insert.match(/\b(append|prepend)/i))
+            const insert = (typeof attr.insert === 'string' && !!attr.insert.match(/\b(append|prepend|insertbefore)/i))
               ? attr.insert.trim().toLowerCase()
               : 'append';
 
             if (insert === 'prepend') {
               attr.prepend(attr.element);
+            } else if (insert === 'insertbefore') {
+              attr.element.parentElement.insertBefore(element, attr.element);
             } else if (insert === 'append') {
               attr.appendChild(attr.element);
             }
@@ -1082,7 +1101,17 @@ const transformTitleCase = (str) => {
  * @returns {string} the resultant, transformed string
  */
 const transformCamelCase = (str) => {
-  return str.toLowerCase().replace(/([-_][a-z])/g, group => group.toUpperCase().replace('-', '').replace('_', ''));
+  return str.toLowerCase().replace(/([-_\s][a-z])/g, group => group.toUpperCase()).replace(/[-_\s]/gm, '');
+}
+
+/**
+ * transformSnakeCase
+ * @desc transforms a string to snake_case
+ * @param {string} str the string to transform
+ * @returns {string} the resultant, transformed string
+ */
+const transformSnakeCase = (str) => {
+  return str.toLowerCase().replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/([-_\s])/g, '_');
 }
 
 /**

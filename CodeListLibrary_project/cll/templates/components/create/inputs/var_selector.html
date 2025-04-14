@@ -33,21 +33,23 @@
     <header class="var-selection-group__interface" id="var-interface">
       {% if component.appearance and component.appearance.btn %}
         <button
-            id="add-btn"
-            class="primary-btn text-accent-darkest bold secondary-accent"
-            data-role="addBtn"
-            aria-label="{{ component.appearance.btn.label }}">
-            {{ component.appearance.btn.label }}
-            {% if component.appearance.btn.icon %}
-              <span class="as-icon" data-icon="{{ component.appearance.btn.icon|safe }}" aria-hidden="true"></span>
-            {% endif %}
+          id="add-btn"
+          class="primary-btn text-accent-darkest bold secondary-accent"
+          data-role="addBtn"
+          aria-label="{{ component.appearance.btn.label }}"
+        >
+          {{ component.appearance.btn.label }}
+          {% if component.appearance.btn.icon %}
+            <span class="as-icon" data-icon="{{ component.appearance.btn.icon|safe }}" aria-hidden="true"></span>
+          {% endif %}
         </button>
       {% else %}
         <button
-            id="add-btn"
-            class="primary-btn text-accent-darkest bold secondary-accent"
-            data-role="addBtn"
-            aria-label="Add New {{ component.field_data.title }}">
+          id="add-btn"
+          class="primary-btn text-accent-darkest bold secondary-accent"
+          data-role="addBtn"
+          aria-label="Add New {{ component.field_data.title }}"
+        >
           Create New
           <span class="as-icon" data-icon="&#xf1ec;" aria-hidden="true"></span>
         </button>
@@ -74,15 +76,51 @@
       </header>
       <div
           id="var-list"
-          class="var-selection-group__list-container slim-scrollbar"
+          class="var-selection-group__list-container show slim-scrollbar"
           data-role="contentList">
         
       </div>
     </section>
 
+    <template data-name="item" data-view="vinterface">
+      <div
+        class="var-selection-group__item"
+        data-target="${ref}"
+      >
+        <div class="var-selection-group__item-text">
+          <p>${name} (<em>${type}</em>)</p>
+          <p class="var-selection-group__badge">${value}</p>
+        </div>
+        <button
+          class="var-selection-group__item-btn"
+          role="button"
+          tabindex="0"
+          title="Edit Item"
+          aria-label="Edit Item"
+          data-owner="var-selector"
+          data-target="${ref}"
+          data-action="edit"
+        >
+          <span class="as-icon" data-icon="&#xf044;"></span>
+        </button>
+        <button
+          class="var-selection-group__item-btn"
+          role="button"
+          tabindex="0"
+          title="Remove Item"
+          aria-label="Remove Item"
+          data-owner="var-selector"
+          data-target="${ref}"
+          data-action="remove"
+        >
+          <span class="as-icon" data-icon="&#xf1f8;"></span>
+        </button>
+      </div>
+    </template>
+
     <template data-name="panel" data-view="vinterface">
       <section class="var-selection">
-        <header class="var-selection__header">
+        <header class="var-selection__header" data-role="header">
           <div class="var-selection__header-group">
             <p class="var-selection__header-label">
               ${title}
@@ -112,13 +150,20 @@
         >
 
         </section>
+        <section
+          class="var-selection__content"
+          data-role="prompt"
+        >
+
+        </section>
       </section>
     </template>
 
     <template data-name="number" data-view="inputs">
       <div class="input-field-container number-input" data-ctrl="number" data-ref="${ref}">
-        <p class="input-field-container__label">
+        <p class="input-field-container__label input-field-container--fill-w">
           ${label}
+          <span class="input-field-container__mandatory ${mandatory ? '' : 'hidden'}">*</span>
         </p>
         <div class="number-input__group">
           <div class="number-input__group-inner">
@@ -128,7 +173,7 @@
               class="number-input__group-input"
               type="number"
               value="${value}"
-              pattern="^\\d*(\\.\\d{0,})?$"
+              pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
               ${step}
               ${rangemin}
               ${rangemax}
@@ -137,6 +182,7 @@
               aria-label="Enter number value"
               data-step="${btnStep}"
               data-type="${type}"
+              ${disabled}
             />
             <span class="as-icon" aria-hidden="true"></span>
           </div>
@@ -151,6 +197,7 @@
               data-op="increment"
               data-ref="${ref}"
               data-role="button"
+              ${disabled}
             >
             </button>
             <button
@@ -163,6 +210,7 @@
               data-op="decrement"
               data-ref="${ref}"
               data-role="button"
+              ${disabled}
             >
             </button>
           </div>
@@ -172,17 +220,338 @@
 
     <template data-name="inputbox" data-view="inputs">
       <div class="input-field-container" data-ctrl="inputbox" data-ref="${ref}">
-        <p class="input-field-container__label">
+        <p class="input-field-container__label input-field-container--fill-w">
           ${label}
+          <span class="input-field-container__mandatory ${mandatory ? '' : 'hidden'}">*</span>
         </p>
         <input
           id="${id}"
           name="${ref}"
           class="text-input input-field-container__input"
           value="${value}"
+          ${minlength}
+          ${maxlength}
           placeholder="${placeholder}"
           aria-label="Text field"
+          ${disabled}
         />
+      </div>
+    </template>
+
+    <template data-name="percentrange" data-view="inputs">
+      <div class="input-field-container" data-ctrl="percentrange" data-ref="${ref}">
+        <p class="input-field-container__label input-field-container--fill-w">
+          ${label}
+          <span class="input-field-container__mandatory ${mandatory ? '' : 'hidden'}">*</span>
+        </p>
+        <fieldset
+          id="${id}"
+          name="${ref}"
+          class="double-slider"
+        >
+          <div class="double-slider__input">
+            <div class="double-slider__input__progress" id="progress-bar"></div>
+            <input type="range" min="0" max="100" value="0" id="min-slider" data-target="min" ${disabled}>
+            <input type="range" min="0" max="100" value="100" id="max-slider" data-target="max" ${disabled}>
+          </div>
+          <div class="double-slider__group">
+            <div class="double-slider__group__input">
+              <input type="number" value="0" id="min-value" data-target="min" ${disabled}>
+            </div>
+            <div class="double-slider__group__input">
+              <input type="number" value="100" id="max-value" data-target="max" ${disabled}>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+    </template>
+
+    <template data-name="numericrange" data-view="inputs">
+      <div class="input-field-container number-input" data-ctrl="numericrange" data-ref="${ref}">
+        <p class="input-field-container__label input-field-container--fill-w">
+          ${label}
+          <span class="input-field-container__mandatory ${mandatory ? '' : 'hidden'}">*</span>
+        </p>
+        <div class="input-field-container__row">
+          <div class="input-field-container__group">
+            <p class="input-field-container__desc">
+              Min value
+            </p>
+            <div class="number-input__group">
+              <div class="number-input__group-inner">
+                <input
+                  id="min"
+                  name="min"
+                  class="number-input__group-input"
+                  type="number"
+                  value="${min}"
+                  pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+                  ${step}
+                  tabindex="0"
+                  placeholder="Enter number..."
+                  aria-label="Enter number"
+                  data-step="${btnStep}"
+                  data-type="${type}"
+                  ${disabled}
+                />
+                <span class="as-icon" aria-hidden="true"></span>
+              </div>
+              <div class="number-input__group-spin">
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Increase number value"
+                  aria-label="Increase number value"
+                  data-op="increment"
+                  data-ref="min"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Decrease number value"
+                  aria-label="Decrease number value"
+                  data-op="decrement"
+                  data-ref="min"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="input-field-container__group">
+            <p class="input-field-container__desc">
+              Max value
+            </p>
+            <div class="number-input__group">
+              <div class="number-input__group-inner">
+                <input
+                  id="max"
+                  name="max"
+                  class="number-input__group-input"
+                  type="number"
+                  value="${max}"
+                  pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+                  tabindex="0"
+                  ${step}
+                  placeholder="Enter number..."
+                  aria-label="Enter number"
+                  data-step="${btnStep}"
+                  data-type="${type}"
+                  ${disabled}
+                />
+                <span class="as-icon" aria-hidden="true"></span>
+              </div>
+              <div class="number-input__group-spin">
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Increase number value"
+                  aria-label="Increase number value"
+                  data-op="increment"
+                  data-ref="max"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Decrease number value"
+                  aria-label="Decrease number value"
+                  data-op="decrement"
+                  data-ref="max"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template data-name="ciinterval" data-view="inputs">
+      <div class="input-field-container number-input" data-ctrl="ciinterval" data-ref="${ref}">
+        <p class="input-field-container__label input-field-container--fill-w">
+          ${label}
+          <span class="input-field-container__mandatory ${mandatory ? '' : 'hidden'}">*</span>
+        </p>
+        <div class="input-field-container__row">
+          <div class="input-field-container__group">
+            <p class="input-field-container__desc">
+              CI Probability
+            </p>
+            <div class="number-input__group">
+              <div class="number-input__group-inner">
+                <input
+                  id="probability"
+                  name="probability"
+                  class="number-input__group-input"
+                  type="number"
+                  value="${probability}"
+                  pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  tabindex="0"
+                  placeholder="Enter CI Probability"
+                  aria-label="Enter probability"
+                  data-step="0.1"
+                  data-type="percentage"
+                  ${disabled}
+                />
+                <span class="as-icon" aria-hidden="true"></span>
+              </div>
+              <div class="number-input__group-spin">
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Increase number value"
+                  aria-label="Increase number value"
+                  data-op="increment"
+                  data-ref="probability"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Decrease number value"
+                  aria-label="Decrease number value"
+                  data-op="decrement"
+                  data-ref="probability"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="input-field-container__group">
+            <p class="input-field-container__desc">
+              Lower Bound
+            </p>
+            <div class="number-input__group">
+              <div class="number-input__group-inner">
+                <input
+                  id="lower"
+                  name="lower"
+                  class="number-input__group-input"
+                  type="number"
+                  value="${lower}"
+                  pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+                  step="0.1"
+                  tabindex="0"
+                  placeholder="Enter CI lower bound"
+                  aria-label="Enter lower bound"
+                  data-step="0.1"
+                  data-type="numeric"
+                  ${disabled}
+                />
+                <span class="as-icon" aria-hidden="true"></span>
+              </div>
+              <div class="number-input__group-spin">
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Increase number value"
+                  aria-label="Increase number value"
+                  data-op="increment"
+                  data-ref="lower"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Decrease number value"
+                  aria-label="Decrease number value"
+                  data-op="decrement"
+                  data-ref="lower"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="input-field-container__group">
+            <p class="input-field-container__desc">
+              Upper Bound
+            </p>
+            <div class="number-input__group">
+              <div class="number-input__group-inner">
+                <input
+                  id="upper"
+                  name="upper"
+                  class="number-input__group-input"
+                  type="number"
+                  value="${upper}"
+                  pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+                  step="0.1"
+                  tabindex="0"
+                  placeholder="Enter CI upper bound"
+                  aria-label="Enter upper bound"
+                  data-step="0.1"
+                  data-type="numeric"
+                  ${disabled}
+                />
+                <span class="as-icon" aria-hidden="true"></span>
+              </div>
+              <div class="number-input__group-spin">
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Increase number value"
+                  aria-label="Increase number value"
+                  data-op="increment"
+                  data-ref="upper"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+                <button
+                  class="number-input__group-action"
+                  type="button"
+                  role="button"
+                  tabindex="0"
+                  title="Decrease number value"
+                  aria-label="Decrease number value"
+                  data-op="decrement"
+                  data-ref="upper"
+                  data-role="button"
+                  ${disabled}
+                >
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </template>
   </div>

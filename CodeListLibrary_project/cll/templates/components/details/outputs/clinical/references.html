@@ -14,7 +14,7 @@
           {% for p in component.value %}
             <li>
               {% if p.url %}
-                <a href="{{ p.url }}" target="_blank" rel="noopener noreferrer">{{ p.title }}</a>
+                <a target=_blank rel="noopener" href="{{ p.url }}" target="_blank" rel="noopener noreferrer">{{ p.title }}</a>
               {% else %}
                 {{ p.title }}
               {% endif %}
