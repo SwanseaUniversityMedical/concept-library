@@ -572,14 +572,19 @@
           }
         },
         "properties": {
-          "allow_unknown": true,
           "allow_description": true,
           "allow_types": [
             "int",
             "numeric",
             "percentage",
             "string"
-          ]
+          ],
+          "allow_unknown": true,
+          "label": "Validation Measures",
+          "selector": {
+            "label": "Options...",
+            "title": "Select Measures"
+          }
         }
       },
       "hide_if_empty": true
