@@ -859,7 +859,7 @@ def validate_entity_form(request, content, errors=[], method=None):
             return
 
         valid_user_orgs = permission_utils.get_user_organisations(request)
-        if organisation in [org.get('id') for org in valid_user_orgs]:
+        if organisation not in [org.get('id') for org in valid_user_orgs]:
             errors.append('Your organisation doesn\'t have authorisation to post this work')
             return
 
