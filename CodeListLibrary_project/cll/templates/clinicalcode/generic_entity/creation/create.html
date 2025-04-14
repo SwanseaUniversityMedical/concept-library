@@ -7,13 +7,14 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| {% if form_method.value == 1 %} Create your Phenotype {% else %} Update your Phenotype{% endif %}{% endblock title %}
+{% block title %}| {% get_template_entity_name template.entity_class template as entity_shortname %}{% if form_method.value == 1 %} Create {{ entity_shortname }}{% else %} Update {{ entity_shortname }}{% endif %}{% endblock title %}
 
 {% block embedding_wrapper %}
+  {% get_template_entity_name template.entity_class template as entity_shortname %}
   {% if form_method.value == 1 %}
-    {% render_og_tags header='Create Phenotype' %}
+    {% render_og_tags header='Create '|add:entity_shortname %}
   {% else %}
-    {% render_og_tags header='Update Phenotype' %}
+    {% render_og_tags header='Update '|add:entity_shortname %}
   {% endif %}
 {% endblock embedding_wrapper %}
 
@@ -24,6 +25,7 @@
 {% endblock indexing_robots %}
 
 {% block container %}
+  {% get_brand_map_rules as brand_mapping %}
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
   <script src="{% static 'js/lib/easymde/easymde.min.js' %}"></script>
   <script src="{% static 'js/lib/moment.min.js' %}"></script>
@@ -31,6 +33,7 @@
 
   {% compress js %}
     <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/numberInput.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
     <script type="module" src="{% static 'js/clinicalcode/components/entityCreator.js' %}"></script>
@@ -42,10 +45,23 @@
     <link rel="stylesheet" href="{% sass_src 'scss/pages/create.scss' %}" type="text/css" />
   {% endcompress %}
 
+  {% get_template_entity_name template.entity_class template as entity_shortname %}
   <header class="main-header">
     <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
-      {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
-      {% endbreadcrumbs %}
+      <section class="breadcrumbs">
+        <span class="breadcrumb-item">
+          <span class="marker"></span>
+          <span class="breadcrumb">
+            <a href="/">Home</a>
+          </span>
+        </span>
+        <span class="breadcrumb-item">
+          <span class="marker"></span>
+          <span class="breadcrumb">
+            <a href="/HDRN/create/4">Create {{ entity_shortname }}</a>
+          </span>
+        </span>
+      </section>
     </div>
   </header>
   
@@ -57,11 +73,11 @@
       <article class="phenotype-creation">
         <section class="phenotype-creation__header">
           {% if form_method.value == 1 %}
-            <h1>Create a new Phenotype:<span>step by step</span></h1>
-            <p>Follow the steps below to create and publish your Phenotype.</p>
+            <h1>Create a new {{ entity_shortname }}:<span>step by step</span></h1>
+            <p>Follow the steps below to create and publish your {{ entity_shortname }}.</p>
           {% else %}
-            <h1>Update your Phenotype:<span>step by step</span></h1>
-            <p>Follow the steps below to update and publish your Phenotype.</p>
+            <h1>Update your {{ entity_shortname }}:<span>step by step</span></h1>
+            <p>Follow the steps below to update and publish your {{ entity_shortname }}.</p>
           {% endif %}
         </section>
         
@@ -70,11 +86,11 @@
             <div class="phenotype-creation__alert-content">
               <div class="phenotype-creation__alert-icon"></div>
               <div class="text">
-                <h3>Legacy Phenotype</h3>
-                <p>You are editing a legacy version of this Phenotype.</p>
+                <h3>Legacy {{ entity_shortname }}</h3>
+                <p>You are editing a legacy version of this {{ entity_shortname }}.</p>
                 <p>
                   <strong>Please note: </strong>
-                  If you save any changes to this Phenotype it will overwrite the most recent version.
+                  If you save any changes to this {{ entity_shortname }} it will overwrite the most recent version.
                 </p>
               </div>
             </div>
@@ -91,11 +107,11 @@
             <button class="secondary-btn text-accent-darkest bold washed-accent" aria-label="Save Draft" id="cancel-entity-btn">
               Cancel
             </button>
-            <button class="primary-btn text-accent-darkest bold tertiary-accent icon create-icon sweep-left" aria-label="Create or Update Entity" id="submit-entity-btn">
+            <button class="primary-btn text-accent-darkest bold tertiary-accent icon icon-create sweep-left" aria-label="Create or Update Entity" id="submit-entity-btn">
               {% if form_method.value == 1 %}
-                Create Phenotype
+                Create {{ entity_shortname }}
               {% else %}
-                Update Phenotype
+                Update {{ entity_shortname }}
               {% endif %}
             </button>
           </div>
@@ -125,6 +141,7 @@
 
   {% to_json_script metadata data-owner="entity-creator" id="metadata-data" name="metadata" desc-type="text/json" %}
   {% to_json_script template data-owner="entity-creator" id="template-data" name="template" desc-type="text/json" %}
+  {% to_json_script brand_mapping data-owner="entity-creator" id="mapping-data" name="mapping" desc-type="text/json" data-shortname=entity_shortname %}
 
   {% if entity is not None %}
     {% to_json_script entity data-owner="entity-creator" id="entity-data" name="entity" desc-type="text/json" %}

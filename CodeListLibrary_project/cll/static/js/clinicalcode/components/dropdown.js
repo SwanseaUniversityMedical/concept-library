@@ -26,9 +26,9 @@ const createDropdownSelectionElement = (element) => {
   });
 
   const btn = createElement('button', {
+    'type': 'button',
     'className': 'dropdown-selection__button',
     'data-value': '',
-    'type': 'button'
   });
 
   const title = createElement('span', {

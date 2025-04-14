@@ -1,4 +1,6 @@
 {% load cl_extras %}
+{% load entity_renderer %}
+
 
 <!-- ----------------------------------------------------------------------
 	 The table of history entries.
@@ -6,6 +8,7 @@
 	 ---------------------------------------------------------------------- 
 -->
 
+{% get_brand_map_rules as brand_mapping %}
 <div class="col-sm-12 no-print constrained-version-history" id="history-section">
 	{% comment %}
 		<h3 class="paneltitle" >
@@ -65,7 +68,7 @@
 								</td>
 							{% endif %}
 							<td>
-								<a href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}" title="Visit Phenotype: {{ h.name }}">
+								<a href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}" title="Visit {{ brand_mapping.phenotype }}: {{ h.name }}">
 									{% if h.name_highlighted|length %}
 										{{ h.name_highlighted|striptags }}
 									{% else %}

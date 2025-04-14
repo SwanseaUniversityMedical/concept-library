@@ -306,17 +306,22 @@ const CONCEPT_CREATOR_TEXT = {
   // Rule deletion prompt
   RULE_DELETION: {
     title: 'Are you sure?',
-    content: '<p>Are you sure you want to delete this Ruleset from your Concept?</p>',
+    content: '<p>Are you sure you want to delete this Ruleset from your ${brandMapping.concept}?</p>',
   },
   // Concept deletion prompt
   CONCEPT_DELETION: {
     title: 'Are you sure?',
-    content: '<p>Are you sure you want to delete this Concept from your Phenotype?</p>',
+    content: '<p>Are you sure you want to delete this ${brandMapping.concept} from your ${brandMapping.phenotype}?</p>',
+  },
+  // Concept deletion prompt
+  CODING_CHANGE: {
+    title: 'Are you sure?',
+    content: '<p>Are you sure you want to change your coding system? Any changes you\'ve made so far will be deleted.</p>',
   },
   // Toast to inform user to close editor
-  REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a Concept.',
+  REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a ${brandMapping.concept}.',
   // Toast for Concept name validation
-  REQUIRE_CONCEPT_NAME: 'You need to name your Concept before saving',
+  REQUIRE_CONCEPT_NAME: 'You need to name your ${brandMapping.concept} before saving',
   // Toast for Concept CodingSystem validation
   REQUIRE_CODING_SYSTEM: 'You need to select a coding system before saving!',
   // Toast to inform the user that no exclusionary codes were addded since they aren't present in an inclusionary rule
@@ -334,17 +339,17 @@ const CONCEPT_CREATOR_TEXT = {
   // Toast to inform the user there was an error when trying to upload their code file
   NO_CODE_FILE_MATCH: 'Unable to parse uploaded file. Please try again.',
   // Toast to inform the user that the codes from the imported concept(s) were added
-  ADDED_CONCEPT_CODES: 'Added ${code_len} codes via Concept Import',
+  ADDED_CONCEPT_CODES: 'Added ${code_len} codes via ${brandMapping.concept} Import',
   // Toast to inform the user there was an error when trying to upload their code file
-  NO_CONCEPT_MATCH: 'We were unable to add this Concept. Please try again.',
+  NO_CONCEPT_MATCH: 'We were unable to add this ${brandMapping.concept}. Please try again.',
   // Toast to inform the user they tried to import non-distinct top-level concepts
   CONCEPT_IMPORTS_ARE_PRESENT: 'Already imported ${failed}',
   // Toast to inform the user they tried to import non-distinct rule-level concepts
-  CONCEPT_RULE_IS_PRESENT: 'You have already imported this Concept as a rule',
+  CONCEPT_RULE_IS_PRESENT: 'You have already imported this ${brandMapping.concept} as a rule',
   // Toast to inform successful update to new concept version
-  CONCEPT_UPDATE_SUCCESS: 'Updated Concept to Version ${version}',
+  CONCEPT_UPDATE_SUCCESS: 'Updated ${brandMapping.concept} to Version ${version}',
   // Toast to inform failed update to new concept version
-  CONCEPT_UPDATE_FAILED: 'Failed to update Concept, please try again.',
+  CONCEPT_UPDATE_FAILED: 'Failed to update ${brandMapping.concept}, please try again.',
 }
 
 /**
@@ -516,12 +521,15 @@ export default class ConceptCreator {
    * @returns {promise} that can be used as a Thenable if required
    */
   tryImportConcepts() {
+    const brandMapping = this.parent.mapping;
     const prompt = new ConceptSelectionService({
-      promptTitle: 'Import Concepts',
+      promptTitle: `Import ${brandMapping.concept}`,
+      mapping: brandMapping,
       template: this.template?.id,
       entity_id: this.entity?.id,
       entity_history_id: this.entity?.history_id,
       allowMultiple: true,
+      noneSelectedMessage: `You haven't selected any ${brandMapping.concept}s yet`,
     });
 
     return prompt.show()
@@ -549,8 +557,9 @@ export default class ConceptCreator {
       return Promise.reject();
     }
 
+    const brandMapping = this.parent.mapping;
     const prompt = new ConceptSelectionService({
-      promptTitle: `Import Concept as Rule (${codingSystemName})`,
+      promptTitle: `Import ${brandMapping.concept} as Rule (${codingSystemName})`,
       template: this.template?.id,
       allowMultiple: false,
       entity_id: this.entity?.id,
@@ -1460,20 +1469,8 @@ export default class ConceptCreator {
       }
     }
 
-    // Only disable/enable the coding selector if not updated via the change event
-    if (ignoreSelection) {
-      return;
-    }
-
-    // Don't allow users to reselect the coding system once we've created at least 1 rule + selected a system
-    const selector = editor.querySelector('#coding-system-select')
-    selector.disabled = hasCodingSystem;
-
-    // Only enable to change event if no coding system is present
-    if (hasCodingSystem) {
-      return;
-    }
-    selector.addEventListener('change', this.#handleCodingSelection.bind(this));
+    const selector = editor.querySelector('#coding-system-select');
+    selector.disabled = !this.state.data?.is_new;
   }
 
   /**
@@ -1708,11 +1705,12 @@ export default class ConceptCreator {
   /**
    * tryRenderEditor [async]
    * @desc async method to render the editor when a user enters the editor state
-   * @param {node} conceptGroup the concept group node related to the Concept being edited
-   * @param {object} dataset the concept dataset
+   * @param {node}   conceptGroup  the concept group node related to the Concept being edited
+   * @param {object} dataset       the concept dataset
+   * @param {object} codingSystems a set of available coding systems (selected by the concept)
    * @returns {node} the editor element
    */
-  async #tryRenderEditor(conceptGroup, dataset) {
+  async #tryRenderEditor(conceptGroup, dataset, codingSystems) {
     const conceptId = conceptGroup.getAttribute('data-concept-id');
     const historyId = conceptGroup.getAttribute('data-concept-history-id');
     
@@ -1727,12 +1725,11 @@ export default class ConceptCreator {
     accordion.classList.add('is-open');
     conceptGroup.setAttribute('editing', true);
 
-    const systemOptions = await this.#fetchCodingOptions(dataset);
     const template = this.templates['concept-editor'];
     const html = interpolateString(template, {
       'concept_name': strictSanitiseString(dataset?.details?.name),
       'coding_system_id': dataset?.coding_system?.id,
-      'coding_system_options': systemOptions,
+      'coding_system_options': codingSystems,
       'has_inclusions': false,
       'has_exclusions': false,
     });
@@ -1743,7 +1740,7 @@ export default class ConceptCreator {
     this.state.editor = editor;
     this.state.element = conceptGroup;
     this.state.editing = { id: conceptId, history_id: historyId };
-    this.#applyRulesetState({ id: dataset?.coding_system?.id, editor: editor});
+    this.#applyRulesetState({ id: dataset?.coding_system?.id, editor: editor });
     this.#tryRenderRulesets();
 
     // Handle name changing
@@ -1763,6 +1760,10 @@ export default class ConceptCreator {
 
     const confirmChanges = editor.querySelector('#confirm-changes');
     confirmChanges.addEventListener('click', this.#handleConfirmEditor.bind(this));
+
+    // Handle coding system selector
+    const selector = editor.querySelector('#coding-system-select');
+    selector.addEventListener('change', this.#handleCodingSelection.bind(this));
     
     // Render codelist
     this.#tryRenderAggregatedCodelist();
@@ -1873,7 +1874,13 @@ export default class ConceptCreator {
       }
 
       new Promise((resolve, reject) => {
-        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.RULE_DELETION)
+        window.ModalFactory.create({
+          title: CONCEPT_CREATOR_TEXT.RULE_DELETION.title,
+          content: interpolateString(
+            CONCEPT_CREATOR_TEXT.RULE_DELETION.content,
+            { brandMapping: this.parent.mapping }
+          )
+        })
         .then(resolve)
         .catch(reject);
       })
@@ -1903,14 +1910,89 @@ export default class ConceptCreator {
     }
 
     const target = e.target;
-    const selection = target.options[target.selectedIndex];
-    this.state.data.coding_system = {
-      id: parseInt(selection.value),
-      name: selection.text,
-      description: selection.text,
-    };
+    const dataset = this.state.data;
+    const selectedIndex = target.selectedIndex;
+    const currentSelection = dataset?.coding_system?.id ?? null;
 
-    this.#applyRulesetState({ id: selection.value, editor: this.state.editor, ignoreSelection: true });
+    let selection = target.options[selectedIndex];
+    if (isNullOrUndefined(selection)) {
+      if (isNullOrUndefined(currentSelection)) {
+        selection = selectedIndex;
+      } else {
+        for (let i = 0; i < target.options.length; ++i) {
+          const opt = target.options[i];
+          if (parseInt(opt.value) === currentSelection) {
+            selection = i
+            break;
+          }
+        }
+      }
+
+      target.selectedIndex = selection;
+      return;
+    }
+
+    const codingId = parseInt(selection.value);
+    if (codingId === currentSelection) {
+      return;
+    }
+
+    const hasUnsavedWork = !isNullOrUndefined(dataset) && (dataset?.aggregatedStateView?.length || dataset?.component?.length);
+    const hasCurrentSelection = !isNullOrUndefined(currentSelection);
+
+    let promise;
+    if (hasCurrentSelection && hasUnsavedWork) {
+      promise = window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CODING_CHANGE);
+    } else {
+      promise = new Promise((resolve) => resolve());
+    }
+
+    promise
+      .then(async () => {
+        if (hasCurrentSelection) {
+          dataset?.components?.splice?.(0, dataset?.components?.length);
+          dataset?.aggregatedStateView?.splice(0, dataset?.aggregatedStateView?.length);
+        }
+
+        dataset.coding_system = {
+          id: codingId,
+          name: selection.text,
+          description: selection.text,
+          selectedIndex: selectedIndex,
+        };
+
+        this.#applyRulesetState({ id: codingId, editor: this.state.editor });
+
+        await this.#recalculateExclusionaryRules();
+        this.#tryRenderRulesets();
+        this.#tryRenderAggregatedCodelist(true);
+      })
+      .catch((e) => {
+        if (!(e instanceof ModalFactory.ModalResults)) {
+          window.ToastFactory.push({
+            type: 'error',
+            message: 'Failed to change codelist, please try again.',
+            duration: 4000,
+          });
+
+          return console.error(e);
+        }
+
+        const action = e.name;
+        if (hasCurrentSelection && (action === 'Reject' || action === 'Cancel')) {
+          selection = selectedIndex;
+
+          for (let i = 0; i < target.options.length; ++i) {
+            const opt = target.options[i];
+            if (parseInt(opt.value) === currentSelection) {
+              selection = i;
+              break;
+            }
+          }
+
+          target.selectedIndex = selection;
+        }
+      });
   }
 
   /**
@@ -2156,7 +2238,13 @@ export default class ConceptCreator {
           .then(result => {
             spinner = startLoadingSpinner();
             if (!this.#isConceptRuleImportDistinct(result, logicalType)) {
-              this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT});
+              this.#pushToast({
+                type: 'danger',
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT,
+                  { brandMapping: this.parent.mapping }
+                )
+              });
               return;
             }
 
@@ -2167,9 +2255,10 @@ export default class ConceptCreator {
               this.#tryAddNewRule(logicalType, sourceType, result);
               this.#pushToast({
                 type: 'success',
-                message: interpolateString(CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES, {
-                  code_len: result?.codelist.length.toLocaleString(),
-                })
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES,
+                  { brandMapping: this.parent.mapping, code_len: result?.codelist.length.toLocaleString() }
+                )
               });
 
               return;
@@ -2182,7 +2271,13 @@ export default class ConceptCreator {
           })
           .catch(e => {
             if (!isNullOrUndefined(e)) {
-              this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.NO_CONCEPT_MATCH});
+              this.#pushToast({
+                type: 'danger',
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.NO_CONCEPT_MATCH,
+                  { brandMapping: this.parent.mapping }
+                )
+              });
               console.error(e);
               return;
             }
@@ -2251,12 +2346,24 @@ export default class ConceptCreator {
 
     // Validate the concept data
     if (isNullOrUndefined(data?.details?.name) || isStringEmpty(data?.details?.name)) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CONCEPT_NAME });
+      this.#pushToast({
+        type: 'danger',
+        message: interpolateString(
+          CONCEPT_CREATOR_TEXT.REQUIRE_CONCEPT_NAME,
+          { brandMapping: this.parent.mapping }
+        ),
+      });
       return;
     }
 
     if (isNullOrUndefined(data?.coding_system)) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM});
+      this.#pushToast({
+        type: 'danger',
+        message: interpolateString(
+          CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM,
+          { brandMapping: this.parent.mapping }
+        ),
+      });
       return;
     }
     
@@ -2346,7 +2453,7 @@ export default class ConceptCreator {
    */
   #handleConceptCreation(e) {
     this.tryCloseEditor()
-      .then(() => {
+      .then(async () => {
         const conceptIncrement = this.#getNextConceptCount();
         const concept = {
           is_new: true,
@@ -2354,13 +2461,14 @@ export default class ConceptCreator {
           concept_version_id: generateUUID(),
           components: [ ],
           details: {
-            name: `Concept ${conceptIncrement}`,
+            name: `Codelist ${conceptIncrement}`,
             has_edit_access: true,
           },
-        }
+        };
 
+        const codingSystems = await this.#fetchCodingOptions(concept);
         const conceptGroup = this.#tryRenderConceptComponent(concept);
-        this.#tryRenderEditor(conceptGroup, concept);
+        this.#tryRenderEditor(conceptGroup, concept, codingSystems);
         this.#toggleNoConceptBox(true);
       })
       .catch(() => { /* User does not want to lose progress, sink edit request */ })
@@ -2373,9 +2481,11 @@ export default class ConceptCreator {
    */
   #handleEditing(target) {
     // If editing, prompt before continuing
+    let spinner;
     return this.tryCloseEditor()
-      .then((res) => {
-        const spinner = startLoadingSpinner();
+      .then(async (res) => {
+        spinner = startLoadingSpinner();
+
         const [id, history_id] = res || [ ];
         const conceptGroup = tryGetRootElement(target, 'concept-list__group');
         const conceptId = conceptGroup.getAttribute('data-concept-id');
@@ -2391,10 +2501,16 @@ export default class ConceptCreator {
         let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
         dataset = deepCopy(dataset.shift());
 
-        this.#tryRenderEditor(conceptGroup, dataset);
+        const codingSystems = await this.#fetchCodingOptions(dataset);
+        this.#tryRenderEditor(conceptGroup, dataset, codingSystems);
         spinner.remove();
       })
-      .catch(() => { /* User does not want to lose progress, sink edit request */ })
+      .catch(() => {
+        /* User does not want to lose progress, sink edit request */
+        if (spinner) {
+          spinner.remove();
+        }
+      });
   }
 
   /**
@@ -2405,12 +2521,21 @@ export default class ConceptCreator {
    */
   #handleDeletion(target) {
     if (this.state.editing) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_EDIT_CLOSURE });
+      this.#pushToast({ type: 'danger', message: interpolateString(
+        CONCEPT_CREATOR_TEXT.REQUIRE_EDIT_CLOSURE,
+        { brandMapping: this.parent.mapping }
+      ) });
       return;
     }
 
     return new Promise((resolve, reject) => {
-        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
+        window.ModalFactory.create({
+          title: CONCEPT_CREATOR_TEXT.CONCEPT_DELETION.title,
+          content: interpolateString(
+            CONCEPT_CREATOR_TEXT.CONCEPT_DELETION.content,
+            { brandMapping: this.parent.mapping }
+          )
+        }).then(resolve).catch(reject);
       })
       .then(() => {
         const conceptGroup = tryGetRootElement(target, 'concept-list__group');
@@ -2491,9 +2616,10 @@ export default class ConceptCreator {
         this.#tryUpdateRenderConceptComponents(updatedConcept.concept_id, updatedConcept.concept_version_id, true);
         this.#pushToast({
           type: 'success',
-          message: interpolateString(CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_SUCCESS, {
-            version: updatedConcept.concept_version_id.toString(),
-          })
+          message: interpolateString(
+            CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT,
+            { brandMapping: this.parent.mapping, version: updatedConcept.concept_version_id.toString() }
+          )
         });
       })
       .catch((e) => {
@@ -2503,7 +2629,10 @@ export default class ConceptCreator {
 
         this.#pushToast({
           type: 'danger',
-          message: CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED
+          message: interpolateString(
+            CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED,
+            { brandMapping: this.parent.mapping }
+          )
         });
       });
   }

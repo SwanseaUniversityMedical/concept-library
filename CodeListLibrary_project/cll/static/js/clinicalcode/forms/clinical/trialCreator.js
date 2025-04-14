@@ -40,18 +40,15 @@ const TRIAL_OPTIONS = {
  * 
  */
 const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
-  <div class="publication-list-group__list-item-url" style="flex: 1;"> \
-    <p>${id}</p> \
+  <div class="publication-list-group__list-item-id"> \
+    <p>${primary === 1 ? \'<span class="publication-list-group__list-item--is-primary"></span>\' : \'\'}${id}</p> \
   </div> \
-  <div class="publication-list-group__list-item-url" style="flex: 1;">\
-    <p style="margin: 0;">${link}</p> \
+  <div class="publication-list-group__list-item-url">\
+    <p>${link}</p> \
   </div>\
-  <div class="publication-list-group__list-item-names" style="flex: 1;"> \
+  <div class="publication-list-group__list-item-names"> \
     <p>${name}</p> \
   </div> \
-  <div class="publication-list-group__list-item-primary" style="flex: 1">\
-  \${primary === 1 ? \'<p><strong>Primary</strong></p>\' : \'\'}\
-  </div>\
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
     <span>Remove</span> \
@@ -64,7 +61,7 @@ const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-
  *       and its interpolable targets
  *
  */
-const TRIAL_LINK_ELEMENT = '<a href="${link}">${link}</a>';
+const TRIAL_LINK_ELEMENT = '<a href="${link}" data-shrinkreplace="Trial Link" data-shrinkcontent="true" aria-label="Trial Link"></a>';
 
 /**
  * TRIAL_NOTIFICATIONS
@@ -74,8 +71,9 @@ const TRIAL_LINK_ELEMENT = '<a href="${link}">${link}</a>';
  *
  */
 const TRIAL_LINK_NOTIFICATIONS = {
-  // e.g. in the case of a user providing a DOI
-  //      that isn't matched by utils.js' `CLU_DOI_PATTERN` regex
+  // e.g. in the case of a user not providing an Trial ID / Name
+  InvalidInput: 'You must provide the ID and Name at a minimum.',
+  // e.g. in the case of a user providing a Trial URL
   InvalidLinkProvided: 'Invalid link. Please check if it starts with "http://" or "https://"—that might be the issue.',
 }
 
@@ -157,7 +155,6 @@ export default class TrialCreator {
    * @returns {string} html string representing the element
    */
   #drawItem(index, id, link, name, primary) {
-
     let linkElement;
     if (!isNullOrUndefined(link) && !isStringEmpty(link)) {
       linkElement = interpolateString(TRIAL_LINK_ELEMENT, { link: link });
@@ -166,12 +163,11 @@ export default class TrialCreator {
     }
 
     return interpolateString(TRIAL_ITEM_ELEMENT, {
-      index: index,
       id: id,
-      link: linkElement,
       name: name,
+      link: linkElement,
+      index: index,
       primary: primary
-
     });
   }
 
@@ -186,6 +182,37 @@ export default class TrialCreator {
     if (this.data.length > 0) {
       this.renderables.group.classList.add('show');
       this.renderables.none.classList.remove('show');
+
+      // TODO: we should have binary inserted the elems...
+      this.data.sort((a, b) => {
+        let { id: t0, primary: p0 } = a;
+        p0 = typeof p0 === 'boolean' ? Number(p0) : p0;
+
+        let { id: t1, primary: p1 } = b;
+        p1 = typeof p1 === 'boolean' ? Number(p1) : p1;
+
+        const twoPrimary = typeof p0 === 'number' && typeof p1 === 'number';
+        const equalPrimary = p0 === p1;
+        if (twoPrimary && !equalPrimary) {
+          return p0 > p1 ? -1 : 1;
+        } else if (!twoPrimary || (twoPrimary && !equalPrimary)) {
+          if (typeof p0 === 'number') {
+            return -1;
+          } else if (typeof p1 === 'number') {
+            return 1;
+          }
+        }
+
+        if (typeof t0 === 'string' && typeof t1 === 'string') {
+          return t0 < t1 ? -1 : (t0 > t1 ? 1 : 0);
+        } else if (typeof t0 === 'string') {
+          return -1;
+        } else if (typeof t1 === 'string') {
+          return 1;
+        }
+
+        return 0;
+      });
 
       for (let i = 0; i < this.data.length; ++i) {
         const node = this.#drawItem(i, this.data[i]?.id, this.data[i]?.link,  this.data[i].name,  this.data[i]?.primary);
@@ -242,15 +269,30 @@ export default class TrialCreator {
     e.stopPropagation();
 
     const id = strictSanitiseString(this.regId.value);
-    const link = strictSanitiseString(this.regLink.value);
     const name = strictSanitiseString(this.trialName.value);
-    const primary= Number(this.primaryTrialCheckbox.checked ? this.primaryTrialCheckbox.dataset.value: '0');
+    const primary = Number(this.primaryTrialCheckbox.checked ? this.primaryTrialCheckbox.dataset.value : '0');
+
+    if (!stringHasChars(id) || !stringHasChars(name)) {
+      window.ToastFactory.push({
+        type: 'error',
+        message: TRIAL_LINK_NOTIFICATIONS.InvalidInput,
+        duration: this.options.notificationDuration,
+      });
+
+      return;
+    }
+
+    let link = strictSanitiseString(this.regLink.value);
+    link = typeof link === 'string' ? link.trim() : '';
+
+    if (!link.startsWith('http')) {
+      link = `https://${link}`;
+    }
 
     const matches = parseString(link, CLU_TRIAL_LINK_PATTERN);
     if (!matches?.[0]) {
-      window.ToastFactory.push(
-          {
-        type: 'danger',
+      window.ToastFactory.push({
+        type: 'warning',
         message: TRIAL_LINK_NOTIFICATIONS.InvalidLinkProvided,
         duration: this.options.notificationDuration,
       });
@@ -260,16 +302,14 @@ export default class TrialCreator {
     this.regLink.value = '';
     this.trialName.value = '';
     this.primaryTrialCheckbox.checked = false;
-    this.data.push(
-        {
-          id: id,
-          link: matches?.[0],
-          name: name,
-          primary: primary
-        }
-        );
+    this.data.push({
+      id: id,
+      link: matches?.[0],
+      name: name,
+      primary: primary
+    });
+
     this.makeDirty();
-    
     this.#redrawTrials();
   }
 

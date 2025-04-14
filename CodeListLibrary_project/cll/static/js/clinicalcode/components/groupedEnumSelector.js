@@ -99,9 +99,12 @@ export default class GroupedEnum {
     // Build renderables
     for (let i = 0; i < this.data?.options.length; ++i) {
       const option = this.data?.options[i];
-      const group = this.data?.properties.find(x => x.result == option.value);
-      if (!isNullOrUndefined(group)) {
-        continue
+      const properties = this.data?.properties
+      if (!isNullOrUndefined(properties)) {
+        const group = properties.find(x => x.result == option.value);   
+        if (!isNullOrUndefined(group)) {
+          continue
+        }
       }
 
       const item = this.#createCheckbox(
@@ -147,15 +150,26 @@ export default class GroupedEnum {
     // Select a group if a match is found
     let matchedGroup;
     let selectedValues = selected.map(x => x?.value);
-    for (let i = 0; i < this.data?.properties.length; ++i) {
-      let group = this.data?.properties[i];
-      if (isNullOrUndefined(group?.when)) {
-        continue;
-      }
-      
-      if (isArrayEqual(selectedValues, group?.when)) {
-        matchedGroup = group;
-        break
+
+    const properties = this.data?.properties;
+    if (!isNullOrUndefined(properties)) {
+      for (let i = 0; i < properties.length; ++i) {
+        let group = properties[i];
+        if (isNullOrUndefined(group?.when)) {
+          continue;
+        }
+
+        if (isArrayEqual(selectedValues, group?.when)) {
+          matchedGroup = group;
+          break
+        }
+
+        const hasIntersection = group?.when.filter(el => selectedValues.includes(el)).length > 0;
+        const hasDifference = selectedValues.filter(el => !group?.when.includes(el)).length > 0;
+        if (hasIntersection && !hasDifference) {
+          matchedGroup = group;
+          break;
+        }
       }
     }
 
@@ -163,6 +177,7 @@ export default class GroupedEnum {
       for (let i = 0; i < checked.length; ++i) {
         let checkbox = checked[i];
         let value = checkbox.getAttribute('data-value');
+
         if (matchedGroup?.when.includes(value)) {
           continue;
         }

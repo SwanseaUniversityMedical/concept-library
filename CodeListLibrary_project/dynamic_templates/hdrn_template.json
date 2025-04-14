@@ -1,114 +1,377 @@
 {
+  "template_details": {
+    "name": "HDRN Concept",
+    "shortname": "Concept",
+    "version": 1,
+    "description": "Concept definitions that are based on lists of clinical codes, or algorithms using clinical codes.",
+    "card_type": "clinical"
+  },
+
+  "shunt": {
+    "definition": "brief_description",
+    "implementation": "description"
+  },
+
+  "sections": [
+    {
+      "title": "Identification",
+      "fields": [
+        "name",
+        "sites",
+        "author",
+        "hdrn_resource_ref"
+      ],
+      "hide_on_detail": true
+    },
+    {
+      "title": "Overview",
+      "description": "A set of descriptors that identifies this Concept.",
+      "fields": [
+        "definition",
+        "jurisdictions",
+        "category",
+        "data_sources",
+        "date_range_sources",
+        "tags",
+        "collections",
+        "ontology",
+        "contacts"
+      ]
+    },
+    {
+      "title": "Population",
+      "description": "The population used to develop this Concept or the population to which it applies (e.g., age, sex, gender, race, disease group).\nIndicate any cautions and link to the &rsquo;Limitations&lsquo; field to further contextualize the information.",
+      "fields": [
+        "population_age",
+        "population_sex",
+        "population_gender",
+        "population_race"
+      ]
+    },
+    {
+      "title": "Methods",
+      "description": "Information describing this Concept and documentation concerning its methodology.",
+      "fields": [
+        "implementation",
+        "description",
+        "validation",
+        "validation_measures",
+        "limitations",
+        "additional_information"
+      ]
+    },
+    {
+      "title": "Components",
+      "description": "A set of data, codes and files used to derive the Concept.",
+      "fields": [
+        "concept_information",
+        "variable_list",
+        "indicator_calculation",
+        "asset_files"
+      ]
+    },
+    {
+      "title": "Publication",
+      "description": "Publications that reference this Concept and how this Concept might be cited in further research.",
+      "fields": [
+        "publications",
+        "acknowledgements",
+        "citation_requirements"
+      ]
+    },
+    {
+      "title": "References & Relationships",
+      "description": "A set of related Concepts, sources, and resources.",
+      "fields": [
+        "related_concepts",
+        "source_reference",
+        "references"
+      ]
+    }
+  ],
+
+
   "fields": {
-    "validations": {
-      "title": "Validation",
+    "name": {
+      "title": "Name",
+      "description": "The full name of this Concept.",
+      "field_type": "string_inputbox",
       "active": true,
-      "field_type": "textarea_markdown",
       "validation": {
         "type": "string",
-        "sanitise": "markdown",
-        "mandatory": false
+        "mandatory": true,
+        "sanitise": "strict"
       },
-      "description": "A description of the methods used to validate this Concept (optional)."
+      "is_base_field": true
     },
-    "related_references": {
-      "title": "Related Reference",
-      "description": "A list of third party references related to this Concept",
-      "field_type": "references",
+    "sites": {
+      "title": "Site(s)",
+      "description": "Site(s) where the Concept has been developed and/or applied.",
+      "field_type": "model_relations",
       "active": true,
+      "hydrated": true,
       "validation": {
-        "type": "references",
-        "mandatory": false
+        "type": "int_array",
+        "source": {
+          "table": "HDRNSite",
+          "query": "id",
+          "relative": "name",
+          "include": ["description"]
+        },
+        "mandatory": true
+      },
+      "search": {
+        "filterable": true,
+        "api": true
       }
     },
-    "source_reference": {
-      "title": "Source Reference",
-      "active": true,
+    "author": {
+      "title": "Author",
+      "description": "Name(s) of individual(s), project and/or research group that created this Concept.",
       "field_type": "string_inputbox",
-      "validation": {
-        "type": "string",
-        "sanitise": "strict",
-        "mandatory": false
-      },
-      "description": ""
-    },
-    "limitations": {
-      "title": "Limitations & Cautions",
       "active": true,
-      "field_type": "textarea_markdown",
       "validation": {
         "type": "string",
-        "sanitise": "markdown",
-        "mandatory": false
+        "mandatory": false,
+        "sanitise": "strict"
       },
-      "description": "Limitations, constraints and/or cautions that should be considered when implementation this Concept."
-    },
-    "background": {
-      "title": "Background",
-      "active": true,
-      "field_type": "textarea_markdown",
-      "validation": {
-        "type": "string",
-        "sanitise": "markdown",
-        "mandatory": false
-      },
-      "description": "A overview of the Concept."
-    },
-    "implementation": {
-      "title": "Implementation",
-      "active": true,
-      "field_type": "textarea_markdown",
-      "validation": {
-        "type": "string",
-        "sanitise": "markdown",
-        "mandatory": false
-      },
-      "description": "Information on how the Phenotype is applied to data."
+      "is_base_field": true
     },
     "hdrn_resource_ref": {
       "title": "HDRN Resource Reference",
-      "active": true,
+      "description": "If applicable, this describes an internal HDRN identifier, i.e. an ID or UUID, referencing a historic HDRN resource (optional).",
       "field_type": "string_inputbox",
+      "active": false,
       "validation": {
         "type": "string",
+        "mandatory": false,
+        "unique": true,
+        "length": [0, 250],
         "sanitise": "strict",
-        "mandatory": false
+        "regex": "^([\\d]{1,})|([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}))$"
       },
-      "description": ""
-    },
-    "phenotype_uuid": {
-      "title": "Phenotype UUID",
-      "active": true,
       "search": {
         "api": true
       },
-      "field_type": "string_inputbox_code",
+      "hide_if_empty": true
+    },
+
+
+    "definition": {
+      "title": "Brief Description",
+      "description": "A succinct summary of the Concept in plain language including its definition, purpose, and applications.",
+      "field_type": "string_inputbox",
+      "active": true,
+      "shunt": "brief_description",
       "validation": {
         "type": "string",
-        "length": [
-          0,
-          250
-        ],
-        "unique": true,
-        "sanitise": "strict",
+        "mandatory": true,
+        "sanitise": "strict"
+      },
+      "is_base_field": true,
+      "hide_if_empty": true
+    },
+    "jurisdictions": {
+      "title": "Jurisdiction(s)",
+      "description": "The province or territory where the Concept was developed and/or applied.",
+      "field_type": "model_relations",
+      "active": false,
+      "hydrated": true,
+      "validation": {
+        "type": "int_array",
+        "source": {
+          "table": "HDRNJurisdiction",
+          "query": "id",
+          "relative": "name",
+          "include": ["description"]
+        },
+        "mandatory": true
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      }
+    },
+    "category": {
+      "title": "Category",
+      "description": "The category of patient characteristics this Concept is best described by.",
+      "field_type": "model_relations",
+      "active": true,
+      "hydrated": true,
+      "validation": {
+        "type": "int_array",
+        "source": {
+          "table": "HDRNDataCategory",
+          "query": "id",
+          "relative": "name",
+          "include": ["description"]
+        },
         "mandatory": false
       },
-      "description": "If applicable, the UUID referencing this Concept's HDRUK source (optional).",
-      "hide_if_empty": true,
-      "requires_auth": true,
-      "hide_on_create": true
+      "search": {
+        "filterable": true,
+        "api": true
+      }
+    },
+    "population_age": {
+      "title": "Age",
+      "description": "The age range this Concept is applicable to.",
+      "field_type": "double_range_slider",
+      "active": true,
+      "validation": {
+        "type": "int_range",
+        "mandatory": false,
+        "properties": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    "population_sex": {
+      "title": "Sex",
+      "description": "Population sex description",
+      "field_type": "grouped_enum",
+      "active": true,
+      "validation": {
+        "type": "enum",
+        "mandatory": true,
+        "options": {
+          "1": "Male",
+          "2": "Female",
+          "3": "Both",
+          "4": "Neither"
+        },
+        "properties": [
+          {
+            "when": ["1", "2"],
+            "result": "3"
+          }
+        ]
+      },
+      "search": {
+        "api": true
+      }
+    },
+    "population_gender": {
+      "title": "Gender",
+      "description": "Population gender description",
+      "field_type": "list_enum",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": true,
+        "options": {
+          "1": "Cisgender men",
+          "2": "Cisgender women",
+          "3": "Transgender men",
+          "4": "Transgender women",
+          "5": "Non-binary persons",
+          "6": "N/A"
+        },
+        "properties": [
+          {
+            "when": "6",
+            "result": "deselect"
+          }
+        ]
+      },
+      "search": {
+        "api": true
+      }
+    },
+    "population_race": {
+      "title": "Race",
+      "description": "Population race description",
+      "field_type": "list_enum",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": true,
+        "options": {
+          "1": "White",
+          "2": "Indigenous",
+          "3": "South Asian",
+          "4": "Chinese",
+          "5": "Black",
+          "6": "Filipino",
+          "7": "Arab",
+          "8": "Latin American",
+          "9": "Southeast Asian",
+          "10": "West Asian",
+          "11": "Korean",
+          "12": "Japanese",
+          "13": "Mixed/Other",
+          "14": "N/A"
+        },
+        "properties": [
+          {
+            "when": "14",
+            "result": "deselect"
+          }
+        ]
+      },
+      "search": {
+        "api": true
+      }
+    },
+    "data_sources": {
+      "title": "Data Sources",
+      "description": "A list identifying data sources referenced, used or required by this Concept.",
+      "field_type": "data_sources",
+      "active": true,
+      "hydrated": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": true,
+        "source": {
+          "table": "HDRNDataAsset",
+          "query": "id",
+          "relative": "name",
+          "include": ["description", "hdrn_uuid", "link"]
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      },
+      "hide_if_empty": true
+    },
+    "date_range_sources": {
+      "title": "Date Range for Source Data",
+      "description": "A date range identifying the time period for the data.",
+      "field_type": "daterange",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "regex": [
+          "(?:\\d+\\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\\/|\\d+)+",
+          "[\\s+]?\\-[\\s+]?(?:\\d+\\/|\\d+)+",
+          "(?:\\d+\\/|\\d+)+[\\s+]?\\-[\\s+]?"
+        ],
+        "closure_optional": true
+      },
+      "hide_if_empty": true
+    },
+    "tags": {
+      "title": "Tags",
+      "description": "A list of keywords helping to categorize this content.",
+      "is_base_field": true
+    },
+    "collections": {
+      "title": "Collections",
+      "description": "A list of content collections that this Concept belongs to.",
+      "is_base_field": true
     },
     "ontology": {
       "title": "Ontology",
-      "active": true,
-      "search": {
-        "api": true,
-        "filterable": true
-      },
-      "hydrated": true,
+      "description": "A set of categories, terms and concepts that describe this Concept.",
       "field_type": "ontology",
+      "active": true,
+      "hydrated": true,
       "validation": {
         "type": "int_array",
+        "mandatory": false,
         "source": {
           "model": "OntologyTag",
           "trees": [
@@ -116,56 +379,22 @@
             1,
             2
           ],
-          "subquery": {
-            "id": {
-              "type": "int_array",
-              "field": "id",
-              "modifiers": [
-                "descendants"
-              ]
-            },
-            "code": {
-              "key": "code",
-              "type": "string_array",
-              "field": "properties",
-              "modifiers": [
-                "descendants"
-              ],
-              "field_type": "jsonb"
-            },
-            "name": {
-              "type": "string_array",
-              "field": "name",
-              "modifiers": [
-                "descendants"
-              ]
-            },
-            "type": {
-              "type": "int_array",
-              "field": "type_id"
-            },
-            "reference": {
-              "type": "int_array",
-              "field": "reference_id",
-              "modifiers": [
-                "descendants"
-              ]
-            }
-          },
           "references": {
             "trim": true,
+            "pattern": "^(\\w+):([\\w\\.\\-\\_ ]+)$",
+            "transform": "([^a-zA-Z0-9]+)",
             "mapping": {
-              "icd9": {
+              "mesh": {
                 "type": "string",
-                "match_in": "icd9_codes",
+                "match_in": "mesh_codes",
                 "match_out": "code",
                 "match_src": "clinicalcode_SNOMED_CODES",
                 "match_type": "overlap",
                 "link_target": "properties__code"
               },
-              "mesh": {
+              "icd9": {
                 "type": "string",
-                "match_in": "mesh_codes",
+                "match_in": "icd9_codes",
                 "match_out": "code",
                 "match_src": "clinicalcode_SNOMED_CODES",
                 "match_type": "overlap",
@@ -211,302 +440,338 @@
                 "match_type": "in",
                 "link_target": "properties__code"
               }
-            },
-            "pattern": "^(\\w+):([\\w\\.\\-\\_ ]+)$",
-            "transform": "([^a-zA-Z0-9]+)"
-          }
-        },
-        "mandatory": false
-      },
-      "description": "A set of taggable categories and concepts that best describe this Concept (optional)."
-    },
-    "sites": {
-      "title": "Site(s)",
-      "active": true,
-      "search": {
-        "api": true
-      },
-      "hydrated": true,
-      "field_type": "data_sources",
-      "validation": {
-        "type": "int_array",
-        "source": {
-          "query": "id",
-          "table": "HDRNSite",
-          "include": [
-            "description"
-          ],
-          "relative": "name"
-        },
-        "mandatory": false
-      },
-      "description": "Site(s) that developed this Concept"
-    },
-    "category": {
-      "title": "Category",
-      "active": true,
-      "search": {
-        "api": true
-      },
-      "hydrated": true,
-      "field_type": "data_sources",
-      "validation": {
-        "type": "int_array",
-        "source": {
-          "query": "id",
-          "table": "HDRNDataCategory",
-          "include": [
-            "description"
-          ],
-          "relative": "name"
-        },
-        "mandatory": false
-      },
-      "description": "A list identifying categories referenced by this Concept (optional)."
-    },
-    "related_concepts": {
-      "title": "Related Concepts",
-      "active": true,
-      "search": {
-        "api": true
-      },
-      "hydrated": true,
-      "field_type": "data_sources",
-      "validation": {
-        "type": "string_array",
-        "source": {
-          "query": "id",
-          "table": "GenericEntity",
-          "include": [
-            "name"
-          ],
-          "filter": {
-            "status": 2
+            }
           },
-          "relative": "id"
-        },
-        "mandatory": false
-      },
-      "description": "A list concepts related to this concept."
-    },
-    "data_assets": {
-      "title": "Data Assets",
-      "active": true,
-      "search": {
-        "api": true
-      },
-      "hydrated": true,
-      "field_type": "data_sources",
-      "validation": {
-        "type": "int_array",
-        "source": {
-          "query": "id",
-          "table": "HDRNDataAsset",
-          "include": [
-            "link",
-            "hdrn_uuid"
-          ],
-          "relative": "name"
-        },
-        "mandatory": false
-      },
-      "description": "A list identifying data assets referenced, used or required by this Concept (optional)."
-    },
-    "event_date_range": {
-      "title": "Valid Event Date Range",
-      "active": true,
-      "field_type": "daterange",
-      "validation": {
-        "type": "string",
-        "regex": [
-          "(?:\\d+\\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\\/|\\d+)+",
-          "[\\s+]?\\-[\\s+]?(?:\\d+\\/|\\d+)+",
-          "(?:\\d+\\/|\\d+)+[\\s+]?\\-[\\s+]?"
-        ],
-        "mandatory": false,
-        "date_closure_optional": false
-      },
-      "description": "If this Concept is only applicable within a limited time period, please specify that here. End date is optional (optional)."
-    },
-    "sex": {
-      "title": "Sex",
-      "active": true,
-      "search": {
-        "api": true
-      },
-      "field_type": "grouped_enum",
-      "validation": {
-        "type": "enum",
-        "options": {
-          "1": "Male",
-          "2": "Female",
-          "3": "Both",
-          "4": "Neither"
-        },
-        "mandatory": true,
-        "properties": [
-          {
-            "when": [
-              "1",
-              "2"
-            ],
-            "result": "3"
+          "subquery": {
+            "id": {
+              "type": "int_array",
+              "field": "id",
+              "modifiers": ["descendants"]
+            },
+            "name": {
+              "type": "string_array",
+              "field": "name",
+              "modifiers": ["descendants"]
+            },
+            "type": {
+              "type": "int_array",
+              "field": "type_id"
+            },
+            "reference": {
+              "type": "int_array",
+              "field": "reference_id",
+              "modifiers": ["descendants"]
+            },
+            "code": {
+              "key": "code",
+              "type": "string_array",
+              "field": "properties",
+              "field_type": "jsonb",
+              "modifiers": ["descendants"]
+            }
           }
-        ]
+        }
       },
-      "description": "The biological sex this Concept is applicable to."
-    },
-    "age": {
-      "title": "Age",
-      "active": true,
       "search": {
+        "filterable": true,
         "api": true
       },
-      "field_type": "enum_dropdown_badge",
-      "validation": {
-        "type": "enum",
-        "options": {
-          "1": "< 18 yrs",
-          "2": "18-35 yrs",
-          "3": "35-60 yrs",
-          "4": ">60 yrs"
-        },
-        "mandatory": true,
-        "properties": []
-      },
-      "description": "The age range this Concept is applicable to."
-    },
-    "agreement_date": {
-      "title": "Agreement Date",
-      "active": false,
-      "field_type": "date",
-      "validation": {
-        "type": "string",
-        "regex": "(0[1-9]|[12]\\d|30|31)\\/(0[1-9]|1[0-2])\\/(\\d{4})",
-        "mandatory": false
-      },
-      "description": "A date representing when this Concept was first finalised (may predate the Concept Library). Deprecated.",
-      "hide_if_empty": true,
-      "hide_on_create": true
-    },
-    "coding_system": {
-      "title": "Coding System",
-      "active": true,
-      "search": {
-        "api": true,
-        "filterable": true
-      },
-      "field_type": "coding_system",
-      "validation": {
-        "type": "int_array",
-        "source": {
-          "query": "codingsystem_id",
-          "table": "CodingSystem",
-          "relative": "name"
-        },
-        "computed": true,
-        "mandatory": false
-      },
-      "description": "Clinical coding system(s) contained by this Concept. A Concept may have multiple concepts, each with its own coding system. All contained coding systems are programmatically represented here.",
-      "hide_on_create": true
-    },
-    "phenoflowid": {
-      "title": "Phenoflow ID",
-      "active": true,
-      "field_type": "phenoflowid",
-      "validation": {
-        "type": "string",
-        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$",
-        "length": [
-          0,
-          500
-        ],
-        "mandatory": false
-      },
-      "description": "URL of this Concept's PhenoFLOW implementation, if applicable (optional). For more information: https://kclhi.org/phenoflow/",
       "hide_if_empty": true
     },
-    "concept_information": {
-      "title": "Clinical Codes",
+    "contacts": {
+      "title": "Contacts",
+      "description": "Identified contact to provide additional information related to the Concept.",
+      "field_type": "contact_information",
       "active": true,
+      "requires_auth": true,
+      "validation": {
+        "type": "contacts",
+        "mandatory": false
+      },
+      "hide_if_empty": true
+    },
+
+
+    "background": {
+      "title": "Background",
+      "description": "The context for the development of this Concept, including the problem it addresses, the rationale for its development, and its significance.\n\nProvide a brief overview of why this Concept was developed, including the problem it addresses and its intended use. Indicate whether it is a new Concept or an adaptation of previous work, explaining any modifications made. If relevant, include references to supporting research or documentation.",
+      "field_type": "textarea_markdown",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "sanitise": "markdown"
+      },
+      "hide_if_empty": true
+    },
+    "implementation": {
+      "title": "Description",
+      "description": "The process to develop and implement the Concept, including key methodological details, criteria, and decision points.\n\nSummarize the methodology, including step-by-step details or a high-level overview. Specify implementation aspects such as the timeframe, observation/lookback window, and inclusion/exclusion criteria. If the Concept applies across multiple regions, describe how data were standardized or aligned (e.g., crosswalk algorithms).\n\nProvide details on how different components contribute to the Concept or the algorithm logic (e.g., &quot;at least 2 ICD codes within 6 months&quot; or &quot;1 ICD code + positive lab test&quot;). If alternative methods were considered but not used, briefly explain why. Link to any relevant documentation or publications for additional details.",
+      "field_type": "textarea_markdown",
+      "active": true,
+      "shunt": "description",
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "sanitise": "markdown"
+      },
+      "is_base_field": true,
+      "hide_if_empty": true
+    },
+    "validation": {
+      "title": "Validation",
+      "description": "A description of the methods used to validate this Concept.\n\nSummarize the statistical or other methods used to validate the Concept, including how scales, ranges, or outcomes were measured. Reference any relevant research used as a validation source.",
+      "hide_if_empty": true,
+      "is_base_field": true
+    },
+    "validation_measures": {
+      "title": "Validation Measures",
+      "description": "Include any specific validation metrics (e.g., sensitivity, specificity) if available.",
+      "field_type": "validation_measures",
+      "active": true,
+      "validation": {
+        "type": "var_array",
+        "mandatory": false,
+        "options": {
+          "sensitivity": {
+            "name": "Sensitivity",
+            "type": "percentage",
+            "coercion": "normalised"
+          },
+          "specificity": {
+            "name": "Specificity",
+            "type": "percentage",
+            "coercion": "normalised"
+          },
+          "ppv": {
+            "name": "Positive Predictive Value",
+            "type": "percentage",
+            "coercion": "normalised"
+          },
+          "npv": {
+            "name": "Negative Predictive Value",
+            "type": "percentage",
+            "coercion": "normalised"
+          },
+          "confidence_interval": {
+            "name": "Confidence Interval",
+            "type": "ci_interval",
+            "format": "{level} CI ({lower}; {upper})"
+          },
+          "c_statistic": {
+            "name": "C-statistic",
+            "type": "numeric"
+          },
+          "hazard_ratio": {
+            "name": "Hazard Ratio",
+            "type": "numeric"
+          },
+          "kappa": {
+            "name": "Kappa",
+            "type": "numeric"
+          }
+        },
+        "properties": {
+          "allow_description": true,
+          "allow_types": [
+            "int",
+            "numeric",
+            "percentage",
+            "string"
+          ],
+          "allow_unknown": true,
+          "label": "Validation Measures",
+          "selector": {
+            "label": "Options...",
+            "title": "Select Measures"
+          }
+        }
+      },
+      "hide_if_empty": true
+    },
+    "limitations": {
+      "title": "Limitations & Cautions",
+      "description": "An overview of the limitations and cautions associated with the Concept.\n\nDescribe any limitations, constraints, or challenges encountered during the development of the Concept. This may include issues like placeholder variables, small cell sizes, data availability, or time-dependent data changes. Note any potential impact these limitations may have on analysis and interpretation of results.",
+      "field_type": "textarea_markdown",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "sanitise": "markdown"
+      },
+      "hide_if_empty": true
+    },
+    "additional_information": {
+      "title": "Additional Information",
+      "description": "Any additional relevant methodological information that is important to understanding the Concept.",
+      "field_type": "textarea_markdown",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "sanitise": "markdown"
+      },
+      "hide_if_empty": true
+    },
+
+
+    "concept_information": {
+      "title": "Codelists",
+      "description": "Identify the clinical or fee codes used in the Concept. For example, for Concepts looking at how we define certain diseases / medical conditions or surgical procedures, include the International Classification of Disease (ICD) diagnoses or ICD / CCI (Canadian Classification of Health Interventions) procedure / intervention codes.",
       "field_type": "concept_information",
+      "active": true,
+      "shunt": "codelist",
       "validation": {
         "type": "concept",
         "mandatory": false,
         "has_children": true
       },
-      "description": "A set of concepts, each of which defines a list of clinical codes, contained within this Concept."
+      "hide_if_empty": true
+    },
+    "coding_system": {
+      "title": "Coding System",
+      "description":"Clinical coding system(s) contained by this Concept. A Concept may have multiple codelists, each with its own coding system. All contained coding systems are programmatically represented here.",
+      "field_type": "coding_system",
+      "active": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "computed": true,
+        "source": {
+          "table": "CodingSystem",
+          "query": "codingsystem_id",
+          "relative": "name"
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      },
+      "hide_on_create": true
+    },
+    "variable_list": {
+      "title": "Scales, Range of Values, and Variable Lists",
+      "description": "Identify the scales or ranges of values, include the measures for each and describe what they represent.",
+      "field_type": "srv_list",
+      "active": true,
+      "validation": {
+        "type": "var_array",
+        "mandatory": false,
+        "properties": {
+          "allow_unknown": true,
+          "allow_description": true,
+          "allow_types": [
+            "int",
+            "numeric",
+            "percentage",
+            "percentage_range",
+            "int_range",
+            "numeric_range",
+            "string"
+          ]
+        }
+      },
+      "hide_if_empty": true
+    },
+    "indicator_calculation": {
+      "title": "Indicator Calculation",
+      "description": "If applicable, identify a indicator calculation specifying the numerator (population) and relevant denominator (outcome criteria).",
+      "field_type": "indicator_calculation",
+      "active": true,
+      "validation": {
+        "type": "indicator_calculation",
+        "mandatory": false
+      },
+      "hide_if_empty": true
+    },
+    "asset_files": {
+      "title": "Asset Files & Links",
+      "description": "Attach programming codes, macros, assets or data files used to generate the Concept; or provide link/path to internal repository.",
+      "field_type": "asset_list",
+      "active": false,
+      "validation": {
+        "type": "asset_files_links",
+        "mandatory": false
+      },
+      "hide_if_empty": true
+    },
+
+
+    "publications": {
+      "title": "Publications",
+      "description": "Publication(s) that define or describe development, validation, or modification of this Concept.",
+      "field_type": "publications",
+      "sort": {"key": "primary"},
+      "active": true,
+      "validation": {
+        "type": "publication",
+        "mandatory": false
+      },
+      "is_base_field": true,
+      "hide_if_empty": true
+    },
+    "acknowledgements": {
+      "title": "Acknowledgements",
+      "description": "An acknowledgement of funding sources or other support received during development of this Concept.",
+      "field_type": "textarea_markdown",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "sanitise": "markdown"
+      },
+      "hide_if_empty": true
+    },
+    "citation_requirements": {
+      "title": "Citation Requirements",
+      "description": "A request for how this Concept is referenced if used in other work.\nThis will be automatically generated if not specified.",
+      "field_type": "citation_requirements",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "sanitise": "markdown"
+      },
+      "is_base_field": true
+    },
+
+
+    "related_entities": {
+      "title": "Related Concepts",
+      "description": "Any related Concepts that already exist in the dictionary and are used or referenced in the Concept.",
+      "field_type": "related_entities",
+      "active": true,
+      "validation": {
+        "type": "related_entities",
+        "mandatory": false
+      },
+      "hide_if_empty": true
+    },
+    "source_reference": {
+      "title": "Source Reference",
+      "description": "A link to the original third-party source if this Concept is based on or derived from an external reference.",
+      "field_type": "source_reference",
+      "active": true,
+      "validation": {
+        "type": "string",
+        "mandatory": false,
+        "length": [0, 250],
+        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
+      },
+      "hide_if_empty": true
+    },
+    "references": {
+      "title": "References",
+      "description": "Any publications or other sources that were referenced in the development of this Concept, i.e., previous research, or foundational sources that informed the creation of the Concept or served as a starting point for its development.",
+      "field_type": "url_list",
+      "active": true,
+      "validation": {
+        "type": "url_list",
+        "mandatory": false,
+        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$",
+        "sanitise": "strict"
+      },
+      "hide_if_empty": true
     }
-  },
-  "sections": [
-    {
-      "title": "Name & Author",
-      "fields": [
-        "name",
-        "author",
-        "sites"
-      ],
-      "description": "",
-      "hide_on_detail": true
-    },
-    {
-      "title": "Overview",
-      "fields": [
-        "hdrn_resource_ref",
-        "type",
-        "phenotype_uuid",
-        "sex",
-        "age",
-        "event_date_range",
-        "coding_system",
-        "data_assets",
-        "category",
-        "collections",
-        "tags",
-        "ontology"
-      ],
-      "description": "A set of descriptors that defines this Concept."
-    },
-    {
-      "title": "Definition",
-      "fields": [
-        "definition",
-        "implementation",
-        "validations",
-        "limitations"
-      ],
-      "description": "Information describing this Concept and documentation concerning it methodology, validation & usage"
-    },
-    {
-      "title": "Components",
-      "fields": [
-        "concept_information"
-      ],
-      "description": "Clinical codes that defines this Concept.",
-      "documentation": "clinical-coded-phenotype-docs"
-    },
-    {
-      "title": "Publication",
-      "fields": [
-        "publications",
-        "citation_requirements"
-      ],
-      "description": "Publications that reference this Concept and how this Concept might be cited in further research."
-    },
-    {
-      "title": "References & Relationships",
-      "fields": [
-        "related_concepts",
-        "source_reference",
-        "related_references"
-      ],
-      "description": "A set of related Concepts, sources, and resources."
-    }
-  ],
-  "template_details": {
-    "name": "HDRN Concept",
-    "version": 1,
-    "card_type": "clinical",
-    "description": "Concept definitions that are based on lists of clinical codes, or algorithms using clinical codes."
   }
 }

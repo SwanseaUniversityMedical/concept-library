@@ -525,8 +525,8 @@ def get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.EDITO
               from public.clinicalcode_organisation org
               join public.clinicalcode_organisationmembership mem
                 on org.id = mem.organisation_id
-            where mem.user_id = %(user_id)s
-              and mem.role >= %(role_enum)s
+            where org.owner_id = %(user_id)s
+               or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s)
           ''', 
           params={
             'user_id': user.id,
@@ -543,8 +543,7 @@ def get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.EDITO
               join public.clinicalcode_organisationauthority aut
                 on org.id = aut.organisation_id
               and aut.brand_id = %(brand)s
-            where mem.user_id = %(user_id)s
-              and mem.role >= %(role_enum)s
+            where (org.owner_id = %(user_id)s or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s))
               and aut.can_post = true
           ''', 
           params={
@@ -1038,7 +1037,7 @@ def get_accessible_entities(
         '''
     else:
         conditional = '''
-             and (live_entity.id is not null and (live_entity.is_deleted is null or live_entity.is_deleted = false))
+             and (live_entity.is_deleted is null or live_entity.is_deleted = false)
              and (hist_entity.is_deleted is null or hist_entity.is_deleted = false)
         '''
 
@@ -1374,12 +1373,12 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
     """
     live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if live_entity is None:
-            return None, { 'title': 'Page Not Found - Missing Phenotype', 'message': 'No Phenotype exists with the ID.', 'status_code': 404 }
+            return None, { 'title': 'Page Not Found - Missing Entity', 'message': 'No entity exists with the ID.', 'status_code': 404 }
 
     if entity_history_id is not None:
         historical_entity = model_utils.try_get_entity_history(live_entity, entity_history_id)
         if historical_entity is None:
-            return None, { 'title': 'Page Not Found - Missing Version', 'message': 'No Phenotype version exists with the specified version ID.', 'status_code': 404 }
+            return None, { 'title': 'Page Not Found - Missing Version', 'message': 'No entity version exists with the specified version ID.', 'status_code': 404 }
     else:
         historical_entity = live_entity.history.latest()
         entity_history_id = historical_entity.history_id

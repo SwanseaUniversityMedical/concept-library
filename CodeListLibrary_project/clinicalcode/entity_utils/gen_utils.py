@@ -820,6 +820,34 @@ def try_value_as_type(
         if not strict_elements:
             return cleaned
         return cleaned if valid else default
+    elif field_type == 'int_range':
+        if not isinstance(field_value, dict):
+            return default
+
+        if validation is None:
+            return default
+
+        validation_properties = validation.get('properties')
+        if validation_properties is None:
+            return default
+
+        min_validation_value = parse_int(validation_properties.get('min'), default)
+        max_validation_value = parse_int(validation_properties.get('max'), default)
+        if min_validation_value is None or max_validation_value is None:
+            return default
+
+        min_field_value = parse_int(field_value.get('min'), default)
+        max_field_value = parse_int(field_value.get('max'), default)
+        if min_field_value is None and max_field_value is None:
+            return default
+
+        valid_range = min_field_value <= max_field_value
+        min_valid = min_field_value >= min_validation_value
+        max_valid = max_field_value <= max_validation_value
+        if not valid_range or not min_valid or not max_valid:
+            return default
+
+        return field_value
     elif field_type == 'code':
         try:
             value = str(field_value) if field_value is not None else ''
@@ -1005,6 +1033,52 @@ def try_value_as_type(
                     valid = False
                     break
 
+        return field_value if valid else default
+    elif field_type == 'indicator_calculation':
+        if not isinstance(field_value, dict):
+            return default
+        
+        keys = set(field_value.keys())
+        expected_keys = set(['description', 'numerator', 'denominator'])
+        if not keys.issubset(expected_keys):
+            return default
+
+        valid = False
+        output = { }
+        for key, val in field_value.items():
+            if not isinstance(val, str) or is_empty_string(val):
+                continue
+
+            value = sanitise_utils.sanitise_value(val, method='markdown', default=None)
+            if value is None or is_empty_string(value):
+                continue
+            else:
+                output[key] = value
+                valid = True
+
+        return output if valid else default
+    elif field_type == 'contact':
+        if not isinstance(field_value, list):
+            default
+        
+        if len(field_value) < 1:
+            return field_value
+        
+        valid = True
+        for val in field_value:
+            if not isinstance(val, dict):
+                valid = False
+                break
+            
+            name = sanitise_utils.sanitise_value(val.get('name'), method='strict', default=None)
+            if not name or not isinstance(name, str) or is_empty_string(name):
+                valid = False
+                break
+
+            email = sanitise_utils.sanitise_value(val.get('email'), method='strict', default=None)
+            if not email or not isinstance(email, str) or is_empty_string(email):
+                valid = False
+                break
         return field_value if valid else default
     elif field_type == 'publication':
         if not isinstance(field_value, list):

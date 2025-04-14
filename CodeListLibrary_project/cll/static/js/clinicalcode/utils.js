@@ -21,6 +21,11 @@ const
     'MozTransition': 'mozTransitionEnd',
   },
   /**
+   * CLU_EMAIL_PATTERN
+   * @desc Regex pattern to match emails
+   */
+  CLU_EMAIL_PATTERN = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/,
+  /**
    * CLU_DOI_PATTERN
    * @desc Regex pattern to match DOI
    */
@@ -527,72 +532,113 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
 
   let element = document.createElement(tag);
   if (isRecordType(attributes)) {
-    let attr;
-    for (let name in attributes) {
-      name = ustrSanitise('key', name);
-      attr = attributes[name];
-      switch (name) {
-        case 'class': {
-          element.classList.add(ustrSanitise('value', attr));
-        } break;
+    let attr, name;
+    name = Object.keys(attributes).find(x => typeof x === 'string' && !!x.match(/\b(html|innerhtml)/i));
+    attr = !!name ? attributes[name] : null;
+    if (name && attr) {
+      let res;
+      if (typeof attr === 'string') {
+        res = parseHTMLFromString(attr.trim(), !udfSanHtml, udfSanHtml);
+      } else if (isRecordType(attr)) {
+        const src = attr.src;
+        if (typeof src === 'string') {
+          const ignore = !!attr.noSanitise;
+          const params = Array.isArray(attr.sanitiseArgs) ? attr.sanitiseArgs : [];
+          res = parseHTMLFromString.apply(null, [src.trim(), ignore, ...params]);
+        }
+      }
 
-        case 'className': {
-          element.className = ustrSanitise('value', attr);
-        } break;
+      if (Array.isArray(res)) {
+        for (let i = 0; i < res.length; ++i) {
+          if (!isHtmlObject(res[i])) {
+            continue;
+          }
 
-        case 'classList': {
+          element.appendChild(res[i]);
+        }
+      }
+    }
+
+    for (const keyName in attributes) {
+      attr = attributes[keyName];
+      name = ustrSanitise('key', keyName);
+      switch (keyName.toLowerCase()) {
+        case 'class':
+        case 'classname':
+        case 'classlist': {
           if (Array.isArray(attr)) {
             for (let i = 0; i < attr.length; ++i) {
               element.classList.add(ustrSanitise('value', attr[i]));
             }
           } else {
-            element.classList.add(ustrSanitise('value', attr));
+            element.className = ustrSanitise('value', attr);
           }
         } break;
 
         case 'data':
         case 'dataset': {
-          for (let key in attr) {
-            element.dataset[key] = ustrSanitise('value', attr[key]);
+          for (const key in attr) {
+            if (typeof key !== 'string' || typeof key !== 'number') {
+              console.error(`[createElement->${name}] Failed to append 'data-*' attr, expected key as String|Number but got ${typeof key}`);
+              continue;
+            }
+
+            let dataKey = String(key).trim().toLowerCase();
+            if (dataKey.startsWith('data-')) {
+              dataKey = dataKey.replace(/^(data\-)/i, '');
+            }
+
+            if (dataKey.length < 1) {
+              console.error(`[createElement->${name}] Failed to append a 'data-*' attr of Key<from: '${key}', to: '${dataKey}'>, expected transformed key to have length of >= 1`);
+              continue;
+            }
+
+            if (dataKey !== key) {
+              console.warn(`[createElement->${name}] A 'data-*' attr was transformed from '${key}' to '${dataKey}'`);
+            }
+            element.dataset[dataKey] = ustrSanitise('value', attr[dataKey]);
           }
         } break;
 
         case 'attributes': {
-          for (let key in attr) {
-            element.setAttribute(key, ustrSanitise('value', attr[key]));
+          for (const key in attr) {
+            if (typeof key !== 'string' || typeof key !== 'number') {
+              console.error(`[createElement->${name}] Failed to append an attribute, expected key as String|Number but got ${typeof key}`);
+              continue;
+            }
+
+            let dataKey = String(key).trim().toLowerCase();
+            if (dataKey.length < 1) {
+              console.error(`[createElement->${name}] Failed to append an attribute of Key<from: '${key}', to: '${dataKey}'>, expected transformed key to have length of >= 1`);
+              continue;
+            }
+
+            if (dataKey !== key) {
+              console.warn(`[createElement->${name}] An attribute was transformed from '${key}' to '${dataKey}'`);
+            }
+            element.setAttribute(dataKey, ustrSanitise('value', attr[dataKey]));
           }
         } break;
 
         case 'text':
-        case 'innerText':
-        case 'textContent': {
-          element.textContent = attr;
-        } break;
-
-        case 'html':
-        case 'innerHTML': {
-          let res;
-          if (typeof attr === 'string') {
-            res = parseHTMLFromString(attr.trim(), !udfSanHtml, udfSanHtml);
-          } else if (isRecordType(attr)) {
-            const src = attr.src;
-            if (typeof src !== 'string') {
-              break;
+        case 'innertext':
+        case 'textcontent': {
+          if (Array.isArray(attr)) {
+            for (let i = 0; i < attr.length; ++i) {
+              element.textContent += attr[i];
             }
+          } else if (isObjectType(attr) && !isNullOrUndefined(attr.text)) {
+            const insert = (typeof attr.insert === 'string' && !!attr.insert.match(/\b(append|prepend)/i))
+              ? attr.insert.trim().toLowerCase()
+              : 'append';
 
-            const ignore = !!attr.noSanitise;
-            const params = Array.isArray(attr.sanitiseArgs) ? attr.sanitiseArgs : [];
-            res = parseHTMLFromString.apply(null, [src.trim(), ignore, ...params]);
-          }
-
-          if (Array.isArray(res)) {
-            for (let i = 0; i < res.length; ++i) {
-              if (!isHtmlObject(res[i])) {
-                continue;
-              }
-
-              element.appendChild(res[i]);
+            if (insert === 'prepend') {
+              element.prepend(document.createTextNode(attr.text));
+            } else {
+              element.textContent += attr.text;
             }
+          } else {
+            element.textContent = attr;
           }
         } break;
 
@@ -627,7 +673,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
         } break;
 
         case 'children': 
-        case 'childNodes': {
+        case 'childnodes': {
           if (Array.isArray(attr)) {
             for (let i = 0; i < attr.length; ++i) {
               let res = attr[i];
@@ -648,8 +694,24 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
         } break;
 
         case 'parent': {
-          attr.appendChild(element);
+          if (isObjectType(element) && typeof attr.insert === 'string' && !isNullOrUndefined(attr.element)) {
+            const insert = (typeof attr.insert === 'string' && !!attr.insert.match(/\b(append|prepend)/i))
+              ? attr.insert.trim().toLowerCase()
+              : 'append';
+
+            if (insert === 'prepend') {
+              attr.prepend(attr.element);
+            } else if (insert === 'append') {
+              attr.appendChild(attr.element);
+            }
+          } else {
+            attr.appendChild(element);
+          }
         } break;
+
+        case 'html':
+        case 'innerhtml':
+          break;
 
         default: {
           if (name.startsWith('on') && typeof attr === 'function') {
@@ -920,13 +982,35 @@ const clearAllChildren = (element, cond) => {
  * @desc onClick handler for content cards, primarily used for ./search page - referral to detail page
  * @param {node} element the clicked node
  */
-const redirectToTarget = (elem) => {
-  const target = elem.getAttribute('data-target');
-  if (!target) {
+const redirectToTarget = (elem, event) => {
+  if (!elem) {
     return;
   }
 
-  window.location.href = strictSanitiseString(target);
+  let target = elem.getAttribute('data-target');
+  if (!stringHasChars(target) && elem.matches('.referral-card')) {
+    target = elem.querySelector('.referral-card__title[href]');
+    target = !!target ? target.getAttribute('href') : '';
+  }
+
+  target = typeof target === 'string'
+    ? strictSanitiseString(target)
+    : '';
+
+  if (!stringHasChars(target)) {
+    return;
+  }
+
+  const metaActive = !!event && (event.ctrlKey || event.metaKey);
+  if (target === '__blank' || metaActive) {
+    let rel = elem.getAttribute('rel')
+    rel = typeof rel === 'string' ? rel : '';
+
+    window.open(target, '_blank', rel);
+    return true;
+  }
+
+  window.location.href = target;
 }
 
 /**

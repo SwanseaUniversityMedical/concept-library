@@ -422,7 +422,7 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False,
     if not user_can_access:
         return Response(
             data={
-                'message': 'Concept version must be published or you must have permission to access it'
+                'message': 'Entity version must be published or you must have permission to access it'
             }, 
             content_type='json',
             status=status.HTTP_401_UNAUTHORIZED

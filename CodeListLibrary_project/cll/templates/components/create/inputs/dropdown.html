@@ -7,9 +7,7 @@
     <span class="detailed-input-group__mandatory">*</span>
     {% endif %}
   </h3>
-  <p class="detailed-input-group__description">
-    {{ component.description }}
-  </p>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
   <select class="selection-input" aria-label="{{ component.field_data.title }}" name="entity-{{ component.field_name }}" id="entity-{{ component.field_name }}" data-field="{{ component.field_name }}" data-class="dropdown">
     <option disabled value="-1" {% if component.value|length == 0 %} selected {% endif %} hidden>{{ component.field_data.title }}</option>

@@ -370,6 +370,7 @@ export class DashboardService {
 
   #renderOverview() {
     const state = this.#state;
+    const brandMapping = this.#templates.brandMapping;
     this.#clearContent();
 
     const [activity] = composeTemplate(this.#templates.base.group, {
@@ -433,8 +434,8 @@ export class DashboardService {
 
           composeTemplate(this.#templates.base.display_card, {
             params: {
-              name: details.name,
-              desc: details.desc,
+              name: interpolateString(details.name, { brandMapping }),
+              desc: interpolateString(details.desc, { brandMapping }),
               icon: details.icon,
               iconCls: details.iconCls,
               content: `<figure class="card__data">${stats[key].toLocaleString()}</figure>`,
@@ -963,7 +964,7 @@ export class DashboardService {
 
   #collectPage() {
     const layout = document.querySelectorAll('[id^="app-"]');
-    const templates = document.querySelectorAll('template[data-for="dashboard"]');
+    const templates = document.querySelectorAll('template[data-for="dashboard"], script[data-for="dashboard"]');
 
     // Collect base layout
     let elem, name;
@@ -983,13 +984,17 @@ export class DashboardService {
         view = 'base';
       }
 
-      group =  this.#templates?.[view];
-      if (!group) {
-        group = { };
-        this.#templates[view] = group;
+      if (elem.tagName === 'TEMPLATE') {
+        group =  this.#templates?.[view];
+        if (!group) {
+          group = { };
+          this.#templates[view] = group;
+        }
+  
+        group[name] = elem;
+      } else if (elem.tagName === 'SCRIPT' && elem.getAttribute('desc-type') === 'text/json') {
+        this.#templates[view] = JSON.parse(elem.innerText.trim());
       }
-
-      group[name] = elem;
     }
   }
 };

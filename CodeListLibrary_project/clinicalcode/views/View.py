@@ -87,11 +87,18 @@ def index(request):
 
 def index_home(request, index_path):
     stats = get_brand_index_stats(request, 'ALL')
+    brand = model_utils.try_get_brand(request)
 
-    brand_descriptors = cache.get('idx_brand__cache')
+    cache_key = f'idx_brand__{brand.name}__cache' if brand is not None else 'idx_brand__cache'
+    brand_descriptors = cache.get(cache_key)
     if brand_descriptors is None:
-        brand_descriptors = Brand.objects.all().all().values('name', 'description')
-        cache.set('idx_brand__desc__cache', brand_descriptors, 3600)
+        brand_descriptors = list(Brand.all_instances().values('id', 'name', 'description', 'website'))
+        if brand is not None:
+            index = [ x.get('id') for x in brand_descriptors ].index(brand.id)
+            first = brand_descriptors.pop(index)
+            brand_descriptors.insert(0, first)
+
+        cache.set(cache_key, brand_descriptors, 3600)
 
     return render(request, index_path, {
         'known_brands': brand_descriptors,

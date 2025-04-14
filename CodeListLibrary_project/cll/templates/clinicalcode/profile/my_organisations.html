@@ -26,6 +26,7 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
   {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
@@ -38,9 +39,14 @@
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
             {% if not CLL_READ_ONLY %}
               {% url 'create_phenotype' as create_url %}
-              <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+              <article
+                  class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                  data-target="{{ create_url }}"
+                  onclick="redirectToTarget(this, event);"
+                  tabindex="0"
+                  aria-label="Create a {{ brand_mapping.phenotype }}">
                 <div class="referral-card__header">
-                  <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
+                  <a class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></a>
                 </div>
                 <div class="referral-card__body">
                   <p>Start here to contribute to the {{ base_page_title }}.</p>
@@ -48,7 +54,12 @@
               </article>
               {% url 'create_organisation' as create_org_url %}
               {% if not is_brand_managed %}
-              <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+              <article
+                  class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                  data-target="{{ create_org_url }}"
+                  onclick="redirectToTarget(this, event);"
+                  tabindex="0"
+                  aria-label="Create an Organisation">
                 <div class="referral-card__header">
                   <a class="referral-card__title" href="{{ create_org_url }}">Create an Organisation<span class="referral-card__title-icon"></span></a>
                 </div>
@@ -59,7 +70,12 @@
               {% endif %}
             {% endif %}
             {% url 'my_collection' as collections_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ collections_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                aria-label="View {{ brand_mapping.phenotype }} Collection">
               <div class="referral-card__header">
                 <a class="referral-card__title" href="{{ collections_url }}">My Collection<span class="referral-card__title-icon"></span></a>
               </div>

@@ -1,15 +1,17 @@
 {% load static %}
+{% load entity_renderer %}
 
+{% get_brand_map_rules as brand_mapping %}
 <div class="page-split__left">
   <aside class="scrollspy">
     <div class="scrollspy__container">
       <button class="scrollspy__container__item scrollspy__container__item--tertiary active"
-        aria-label="What are Phenotypes?" data-target="#what-are-phenotypes">
-        <a href="#what-are-phenotypes">What are Phenotypes?</a>
+        aria-label="What are {{ brand_mapping.phenotype }}s?" data-target="#what-are-{{ brand_mapping.phenotype }}s">
+        <a href="#what-are-{{ brand_mapping.phenotype }}s">What are {{ brand_mapping.phenotype }}s?</a>
       </button>
       <button class="scrollspy__container__item scrollspy__container__item--tertiary"
-        aria-label="Clinical Coded Phenotypes" data-target="#clinical-coded-phenotypes">
-        <a href="#clinical-coded-phenotypes">Clinical Coded Phenotypes</a>
+        aria-label="{{ brand_mapping.phenotype }}s" data-target="#{{ brand_mapping.phenotype }}s">
+        <a href="#{{ brand_mapping.phenotype }}s">{{ brand_mapping.phenotype }}s</a>
       </button>
       <button class="scrollspy__container__item scrollspy__container__item--tertiary"
         aria-label="Accessing the creation pages" data-target="#accessing-create">
@@ -24,16 +26,16 @@
         <a href="#creation-wizard">The creation wizard</a>
       </button>
       <button class="scrollspy__container__item scrollspy__container__item--tertiary"
-        aria-label="Adding Concepts" data-target="#adding-concepts">
-        <a href="#adding-concepts">Adding Concepts</a>
+        aria-label="Adding {{ brand_mapping.concept }}s" data-target="#adding-{{ brand_mapping.concept }}s">
+        <a href="#adding-{{ brand_mapping.concept }}s">Adding {{ brand_mapping.concept }}s</a>
       </button>
       <button class="scrollspy__container__item scrollspy__container__item--tertiary"
-        aria-label="Creating a Concept" data-target="#creating-concepts">
-        <a href="#creating-concepts">Creating a Concept</a>
+        aria-label="Creating a {{ brand_mapping.concept }}" data-target="#creating-{{ brand_mapping.concept }}s">
+        <a href="#creating-{{ brand_mapping.concept }}s">Creating a {{ brand_mapping.concept }}</a>
       </button>
       <button class="scrollspy__container__item scrollspy__container__item--tertiary"
-        aria-label="Finalising your Concept" data-target="#finalising-concepts">
-        <a href="#finalising-concepts">Finalising your Concept</a>
+        aria-label="Finalising your {{ brand_mapping.concept }}" data-target="#finalising-{{ brand_mapping.concept }}s">
+        <a href="#finalising-{{ brand_mapping.concept }}s">Finalising your {{ brand_mapping.concept }}</a>
       </button>
       <button class="scrollspy__container__item scrollspy__container__item--tertiary"
         aria-label="Searchterm rules" data-target="#searchterm-rules">
@@ -44,12 +46,12 @@
         <a href="#file-imports">File import rules</a>
       </button>
       <button class="scrollspy__container__item scrollspy__container__item--tertiary"
-        aria-label="Using Concepts as rules" data-target="#concept-as-rules">
-        <a href="#concept-as-rules">Using Concepts as rules</a>
+        aria-label="Using {{ brand_mapping.concept }}s as rules" data-target="#{{ brand_mapping.concept }}-as-rules">
+        <a href="#{{ brand_mapping.concept }}-as-rules">Using {{ brand_mapping.concept }}s as rules</a>
       </button>
       <button class="scrollspy__container__item scrollspy__container__item--tertiary"
-        aria-label="Importing Concepts" data-target="#importing-concepts">
-        <a href="#importing-concepts">Importing Concepts</a>
+        aria-label="Importing {{ brand_mapping.concept }}s" data-target="#importing-{{ brand_mapping.concept }}s">
+        <a href="#importing-{{ brand_mapping.concept }}s">Importing {{ brand_mapping.concept }}s</a>
       </button>
     </div>
   </aside>
@@ -57,20 +59,20 @@
 <div class="page-split__right">
   <div class="page-split__container">
     <h2>
-      Learn about Clinical Coded Phenotypes
+      Learn about {{ brand_mapping.phenotype }}s
     </h2>
     <section class="about-container__section__text">
       <h3 class="subheader">
-        <span class="scrollspy-target" id="what-are-phenotypes"></span>
-        What are Phenotypes?
+        <span class="scrollspy-target" id="what-are-{{ brand_mapping.phenotype }}s"></span>
+        What are {{ brand_mapping.phenotype }}s?
       </h3>
       <p>
-        A Phenotype is an observable and measurable piece of information that is relevant to health or healthcare.
+        A {{ brand_mapping.phenotype }} is an observable and measurable piece of information that is relevant to health or healthcare.
         For example, it can be a disease (e.g. type 2 diabetes), a blood pressure measurement, a blood sugar value 
         or a prescription of antibiotics.
       </p>
       <p>
-        Phenotyping algorithms are special tools that enable researchers to extract Phenotypes from complex, and 
+        Phenotyping algorithms are special tools that enable researchers to extract {{ brand_mapping.phenotype }}s from complex, and 
         often messy data that get generated during routine interactions within the healthcare system. 
         They identify and extract data from medical records using clinical codes which are the building block of 
         how information is recorded in healthcare (for example ICD-10). Using these specialised algorithms, 
@@ -80,35 +82,35 @@
     </section>
     <section class="about-container__section__text">
       <h3 class="subheader">
-        <span class="scrollspy-target" id="clinical-coded-phenotypes"></span>
-        Clinical Coded Phenotypes
+        <span class="scrollspy-target" id="{{ brand_mapping.phenotype }}s"></span>
+        {{ brand_mapping.phenotype }}s
       </h3>
       <p>
-        Clinical Coded Phenotype are Phenotype definitions that are applied to structured health data and 
-        involve the use of clinical code lists. A Clinical Coded Phenotype may have one or more code lists, 
-        referred to as a “<em>Concept</em>”. 
+        {{ brand_mapping.phenotype }} are definitions that are applied to structured health data and 
+        involve the use of clinical codelists. A {{ brand_mapping.phenotype }} may have one or more components associated with them, 
+        referred to as a “<em>{{ brand_mapping.concept }}</em>”. 
       </p>
       <h4>
-        Concepts
+        {{ brand_mapping.concept }}s
       </h4>
       <p>
-        Each Concept defines a single code list using a single clinical coding system, and having a particular meaning. 
+        Each {{ brand_mapping.concept }} defines a single codelist using a single clinical coding system, and having a particular meaning. 
       </p>
       <p>
-        Different concepts may define the Phenotype in different contexts: for example, an asthma Phenotype may have a 
-        Concept defining asthma in secondary care using ICD-10, and another Concept defining asthma in primary care 
+        Different {{ brand_mapping.concept }}s may define the {{ brand_mapping.phenotype }} in different contexts: for example, an asthma {{ brand_mapping.phenotype }} may have a 
+        {{ brand_mapping.concept }} defining asthma in secondary care using ICD-10, and another {{ brand_mapping.concept }} defining asthma in primary care 
         using SNOMED-CT.
       </p>
       <p>
-        Concepts may also define different attributes or events associated with a Phenotype. For example, a depression 
-        Phenotype may have a Concept defining depression symptoms, another defining a diagnosis of depression, and a 
+        {{ brand_mapping.concept }} may also define different attributes or events associated with a {{ brand_mapping.phenotype }}. For example, a depression 
+        {{ brand_mapping.phenotype }} may have a {{ brand_mapping.concept }} defining depression symptoms, another defining a diagnosis of depression, and a 
         third defining antidepressant medication.
       </p>
       <h4>
-        Defining Concepts with Rules
+        Defining {{ brand_mapping.concept }}s with Rules
       </h4>
       <p>
-        The codes within a Concept are defined using one or more rules. The rules are as follows:
+        The codes within a {{ brand_mapping.concept }} are defined using one or more rules. The rules are as follows:
       </p>
       <ul>
         <li>
@@ -128,14 +130,14 @@
             <em><strong>Please note:</strong></em>
             <ul>
               <li>
-                It is expected that your file contains only a single code list containing a set of codes
-                that are only associated with a single type of clinical terminology, <em>e.g.</em> an ICD-10 code list.
+                It is expected that your file contains only a single codelist containing a set of codes
+                that are only associated with a single type of clinical terminology, <em>e.g.</em> an ICD-10 codelist.
               </li>
               <li>
                 It is also expected that the file is composed of <strong>at least two columns</strong>: <em><strong>(1)</strong>the first containing the code</em>;
                 and <em><strong>(1)</strong>the second containing the terms or description associated with that code</em>.
                 <br/>
-                In the case of an ICD-10 code list, a row might look like this: “<em>A00.0,Cholera due to Vibrio cholerae 01, biovar cholerae</em>”
+                In the case of an ICD-10 codelist, a row might look like this: “<em>A00.0,Cholera due to Vibrio cholerae 01, biovar cholerae</em>”
                 <br/>
                 <strong>Note:</strong> In this example, the first column denotes the code and the second contains the description - the remaining columns, if any, would be ignored.  
               </li>
@@ -144,15 +146,15 @@
         </li>
         <li>
           <p>
-            <strong>Import from another Phenotype:</strong> concepts that exist in other Phenotype in 
-            the library can be referred to and used as building blocks to create a new Phenotype. 
-            For example, a new Phenotype “<em>Heart Conditions</em>” could be created by combining existing 
+            <strong>Import from another {{ brand_mapping.phenotype }}:</strong> {{ brand_mapping.concept }}s that exist in other {{ brand_mapping.phenotype }} in 
+            the library can be referred to and used as building blocks to create a new {{ brand_mapping.phenotype }}. 
+            For example, a new {{ brand_mapping.phenotype }} “<em>Heart Conditions</em>” could be created by combining existing 
             definitions of heart attack, heart failure, high blood pressure, and other diseases.
           </p>
         </li>
       </ul>
       <p>
-        Multiple inclusion rules can be used to add codes and build up the code list; additionally, 
+        Multiple inclusion rules can be used to add codes and build up the codelist; additionally, 
         exclusion rules can be used to remove codes that would otherwise be included. 
       </p>
       <h4>
@@ -165,19 +167,19 @@
         <li>
           <p>
             <strong>Excluding codes from a file upload:</strong> it is not possible to exclude codes imported with a file rule.
-            If you encounter this, we recommend you remove that code from your code list file.
+            If you encounter this, we recommend you remove that code from your codelist file.
           </p>
         </li>
         <li>
           <p>
             <strong>Custom coding systems:</strong> it is not possible to exclude custom codes - 
-            the codes must match an existing, known code list that is available from our clinical terminology repository.
+            the codes must match an existing, known codelist that is available from our clinical terminology repository.
           </p>
         </li>
         <li>
           <p>
             <strong>Exclusionary types:</strong> it is not possible to exclude codes through a file upload - 
-            codes can only be excluded via search rules or imported code lists.
+            codes can only be excluded via search rules or imported codelists.
           </p>
         </li>
       </ul>
@@ -189,8 +191,8 @@
       </h3>
       <p>
         Users can access the creation page via the search page - this can be accessed by selecting 
-        the “Phenotypes“ button (marked in red) seen in the navigation bar.
-        To begin working on a Phenotype users must click the link within the “Create a Phenotype“ 
+        the “{{ brand_mapping.phenotype }}s“ button (marked in red) seen in the navigation bar.
+        To begin working on a {{ brand_mapping.phenotype }} users must click the link within the “Create a {{ brand_mapping.phenotype }}“ 
         card (seen below in pink).
       </p>
       <img loading="lazy" class="about-container__alt-image"
@@ -203,27 +205,19 @@
         Selecting your template
       </h3>
       <p>
-        To start creating a Phenotype the users must select the template they wish to follow. 
+        To start creating a {{ brand_mapping.phenotype }} the users must select the template they wish to follow. 
         Different templates may be created for different types of algorithms, data settings, etc.
-         Currently, two types of Phenotype are supported:
       </p>
       <ul>
         <li>
           <p>
-            <strong>Clinical Coded Phenotype:</strong> Phenotypes that apply to structured 
+            <strong>Clinical Coded {{ brand_mapping.phenotype }}:</strong> {{ brand_mapping.phenotype }}s that apply to structured 
             health data and involve the use of clinical codes.
-          </p>
-        </li>
-        <li>
-          <p>
-            <strong>Structured data algorithm:</strong> Phenotypes that apply to structured 
-            health data, but do not relate to specific clinical codes and don&#8217;t contain 
-            any list of codes.
           </p>
         </li>
       </ul>
       <p>
-        This tutorial relates to the process for Clinical Coded Phenotypes, though other 
+        This tutorial relates to the process for Clinical Coded {{ brand_mapping.phenotype }}s, though other 
         templates will be similar. Click the appropriate template button as shown below:
       </p>
       <img loading="lazy" class="about-container__alt-image"
@@ -247,28 +241,28 @@
     </section>
     <section class="about-container__section__text">
       <h3 class="subheader">
-        <span class="scrollspy-target" id="adding-concepts"></span>
-        Adding Concepts
+        <span class="scrollspy-target" id="adding-{{ brand_mapping.concept }}s"></span>
+        Adding {{ brand_mapping.concept }}s
       </h3>
       <p>
-        The “<em>Clinical Code List</em>” section allows researchers to define the Concepts 
-        and associated codes that will be used to define their Phenotype. To start, 
-        the user can either (a) create a new Concept (red) or (b) import an existing 
-        Concept from another Phenotype  (pink).
+        The “<em>Clinical codelist</em>” section allows researchers to define the {{ brand_mapping.concept }}s 
+        and associated codes that will be used to define their {{ brand_mapping.phenotype }}. To start, 
+        the user can either (a) create a new {{ brand_mapping.concept }} (red) or (b) import an existing 
+        {{ brand_mapping.concept }} from another {{ brand_mapping.phenotype }} (pink).
       </p>
       <img loading="lazy" class="about-container__alt-image"
         src="{% static 'img/documentation/clinical-coded-phenotypes/image4.png' %}"
-        alt="Adding Concepts to your Phenotype" />
+        alt="Adding {{ brand_mapping.concept }}s to your {{ brand_mapping.phenotype }}" />
     </section>
     <section class="about-container__section__text">
       <h3 class="subheader">
-        <span class="scrollspy-target" id="creating-concepts"></span>
-        Creating a Concept
+        <span class="scrollspy-target" id="creating-{{ brand_mapping.concept }}s"></span>
+        Creating a {{ brand_mapping.concept }}
       </h3>
       <p>
-        If the user decides to create a new Concept they will be met with the 
+        If the user decides to create a new {{ brand_mapping.concept }} they will be met with the 
         option to define the coding system that will be used to create the 
-        Concept, and to define some basic metadata such as the Concept&#8217;s name.
+        {{ brand_mapping.concept }}, and to define some basic metadata such as the {{ brand_mapping.concept }}&#8217;s name.
       </p>
       <p>
         As seen in the image below, a coding system must be selected first 
@@ -286,15 +280,15 @@
         alt="Adding a new Rule" />
       <p>
         After adding or modifying a rule the user will be notified 
-        of the changes made to the code list by a toast notification on 
+        of the changes made to the codelist by a toast notification on 
         the bottom right of the screen (seen below in pink). 
       </p>
       <img loading="lazy" class="about-container__alt-image"
         src="{% static 'img/documentation/clinical-coded-phenotypes/image7.png' %}"
         alt="Adding a codes with your Rule" />
       <p>
-        The code list, as generated by the user&#8217;s rules, will be visible 
-        in the “<em>code list</em>” section. The table columns can be sorted by 
+        The codelist, as generated by the user&#8217;s rules, will be visible 
+        in the “<em>codelist</em>” section. The table columns can be sorted by 
         clicking on the header of each column.
       </p>
       <p>
@@ -304,7 +298,7 @@
         <li>
           <p>
             The “<em>Final</em>” column (red box) describes whether the code will 
-            be included or excluded from the final code list
+            be included or excluded from the final codelist
           </p>
         </li>
         <li>
@@ -321,22 +315,22 @@
     </section>
     <section class="about-container__section__text">
       <h3 class="subheader">
-        <span class="scrollspy-target" id="finalising-concepts"></span>
-        Finalising your Concept
+        <span class="scrollspy-target" id="finalising-{{ brand_mapping.concept }}s"></span>
+        Finalising your {{ brand_mapping.concept }}
       </h3>
       <p>
-        After finalising the Concept&#8217;s associated rules and codes, the user can 
+        After finalising the {{ brand_mapping.concept }}&#8217;s associated rules and codes, the user can 
         click the “<em>Confirm</em>” button to save those changes locally. 
-        They will be prompted to do so if they try to submit the Phenotype 
+        They will be prompted to do so if they try to submit the {{ brand_mapping.phenotype }} 
         before doing so. 
       </p>
       <p>
         If they decide to cancel these changes by clicking the “<em>Cancel</em>” button 
-        then the Concept will be reverted to its previous state, if any.
+        then the {{ brand_mapping.concept }} will be reverted to its previous state, if any.
       </p>
       <img loading="lazy" class="about-container__alt-image"
         src="{% static 'img/documentation/clinical-coded-phenotypes/image9.png' %}"
-        alt="Finalising your Concept" />
+        alt="Finalising your {{ brand_mapping.concept }}" />
     </section>
     <section class="about-container__section__text">
       <h3 class="subheader">
@@ -363,9 +357,9 @@
         File import rules
       </h3>
       <p>
-        These can be used to fulfil the need to upload code lists that have 
+        These can be used to fulfil the need to upload codelists that have 
         been created in the past, or can be used to support workflows where 
-        users are modifying or iterating on code lists that have been used 
+        users are modifying or iterating on codelists that have been used 
         in research papers.
       </p>
       <p>
@@ -377,50 +371,50 @@
     </section>
     <section class="about-container__section__text">
       <h3 class="subheader">
-        <span class="scrollspy-target" id="concept-as-rules"></span>
-        Using Concepts as rules
+        <span class="scrollspy-target" id="{{ brand_mapping.concept }}-as-rules"></span>
+        Using {{ brand_mapping.concept }}s as rules
       </h3>
       <p>
-        Concepts from other Phenotypes can be used as rules to build up or 
-        modify a code list. This allows combining different specific 
-        concepts to create a more general one, etc. 
+        {{ brand_mapping.concept }}s from other {{ brand_mapping.phenotype }}s can be used as rules to build up or 
+        modify a codelist. This allows combining different specific 
+        {{ brand_mapping.concept }}s to create a more general one, etc. 
       </p>
       <p>
-        When a Concept is added as a rule, only the final code list of 
-        that Concept is imported, and those codes are used as an 
+        When a {{ brand_mapping.concept }} is added as a rule, only the final codelist of 
+        that {{ brand_mapping.concept }} is imported, and those codes are used as an 
         inclusion or exclusion criterion in a similar manner to other rules.
       </p>
       <p>
-        If you want to add an entire existing Concept to a Phenotype 
+        If you want to add an entire existing {{ brand_mapping.concept }} to a {{ brand_mapping.phenotype }} 
         and present it in its original form, do not add it as a rule, 
-        but use “<em>Import concepts</em>” instead (see below).  
+        but use “<em>Import {{ brand_mapping.concept }}s</em>” instead (see below).  
       </p>
       <img loading="lazy" class="about-container__alt-image"
         src="{% static 'img/documentation/clinical-coded-phenotypes/image12.png' %}"
-        alt="Using a Concept as a Rule" />
+        alt="Using a {{ brand_mapping.concept }} as a Rule" />
     </section>
     <section class="about-container__section__text">
       <h3 class="subheader">
-        <span class="scrollspy-target" id="importing-concepts"></span>
-        Importing Concepts
+        <span class="scrollspy-target" id="importing-{{ brand_mapping.concept }}s"></span>
+        Importing {{ brand_mapping.concept }}s
       </h3>
       <p>
-        Importing a Concept from another Phenotype adds it to the new 
-        Phenotype as a top-level entity, with all its rules presented 
-        as they were in the original Phenotype. 
+        Importing a {{ brand_mapping.concept }} from another {{ brand_mapping.phenotype }} adds it to the new 
+        {{ brand_mapping.phenotype }} as a top-level entity, with all its rules presented 
+        as they were in the original {{ brand_mapping.phenotype }}. 
       </p>
       <p>
-        By selecting the “<em>Import Concepts</em>” button, the user will 
-        be prompted by a modal to select the Concepts they would 
+        By selecting the “<em>Import {{ brand_mapping.concept }}s</em>” button, the user will 
+        be prompted by a modal to select the {{ brand_mapping.concept }}s they would 
         like to import. 
       </p>
       <img loading="lazy" class="about-container__alt-image"
         src="{% static 'img/documentation/clinical-coded-phenotypes/image13.png' %}"
-        alt="Importing one or more Concepts" />
+        alt="Importing one or more {{ brand_mapping.concept }}s" />
       <p>
-        The user can select one or more Concepts to import by expanding 
-        the “<em>Available Concepts</em>” section and clicking each individual 
-        Concept they would like to import.
+        The user can select one or more {{ brand_mapping.concept }}s to import by expanding 
+        the “<em>Available {{ brand_mapping.concept }}s</em>” section and clicking each individual 
+        {{ brand_mapping.concept }} they would like to import.
       </p>
       <p>
         After confirming their choices, they will be met with a screen 
@@ -428,7 +422,7 @@
       </p>
       <img loading="lazy" class="about-container__alt-image"
         src="{% static 'img/documentation/clinical-coded-phenotypes/image14.png' %}"
-        alt="Imported Concepts in the viewer" />
+        alt="Imported {{ brand_mapping.concept }}s in the viewer" />
     </section>
   </div>
 </div>

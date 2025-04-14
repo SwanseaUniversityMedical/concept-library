@@ -816,6 +816,11 @@ def admin_upload_hdrn_assets(request):
         "ignore_collection_ctx": True,
         # Controls the visibility of Templates and related content (e.g. Collections, Tags, etc)
         "content_visibility": None,
+        # Controls entity name mapping
+        "content_mapping": {
+            "phenotype": "Concept",
+            "concept": "Codelist",
+        },
     }
 
     brand_data = {

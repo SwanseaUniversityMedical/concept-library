@@ -7,7 +7,7 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| Phenotype Moderation {% endblock title %}
+{% block title %}| {% get_brand_mapped_string target="phenotype" default="Phenotype" %} Moderation {% endblock title %}
 
 {% block container %}
   <!-- Vendor -->
@@ -25,10 +25,11 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container">
-        <h2 class="banner__title">Phenotype Moderation</h2>
+        <h2 class="banner__title">{{ brand_mapping.phenotype }} Moderation</h2>
         <p class="banner__description">
           Review content before publication.
         </p>
@@ -45,8 +46,8 @@
           {% if requested_content %}
             {% to_json_script requested_content data-owner="collection-service" page-type="MODERATION_COLLECTIONS" name="requested" desc-type="text/json" %}
           {% endif %}
-          <h3>1. Phenotypes to be Reviewed</h3>
-          <p>Phenotypes that are awaiting a review before publication</p>
+          <h3>1. {{ brand_mapping.phenotype }}s to be Reviewed</h3>
+          <p>{{ brand_mapping.phenotype }}s that are awaiting a review before publication</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
               There are no review requests at the moment
@@ -60,8 +61,8 @@
           {% if pending_content %}
             {% to_json_script pending_content data-owner="collection-service" page-type="MODERATION_COLLECTIONS" name="pending" desc-type="text/json" %}
           {% endif %}
-          <h3>2. Phenotypes under Review</h3>
-          <p>Table that lists all phenotypes that this individual is reviewing</p>
+          <h3>2. {{ brand_mapping.phenotype }}s under Review</h3>
+          <p>Table that lists all {{ brand_mapping.phenotype }}s that this individual is reviewing</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
               There are no pending reviews at the moment

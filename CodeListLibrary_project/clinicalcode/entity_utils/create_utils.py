@@ -61,27 +61,27 @@ def get_createable_entities(request):
         'templates': list(templates)
     }
 
-def get_template_creation_data(request, entity, layout, field, default=None):
+def get_template_creation_data(request, entity, layout, field, default=None, info=None):
     """
         Used to retrieve assoc. data values for specific keys, e.g.
         concepts, in its expanded format for use with create/update pages
     """
-    data = template_utils.get_entity_field(entity, field)
-    info = template_utils.get_layout_field(layout, field)
-    if not info and template_utils.is_metadata(entity, field):
-        info = template_utils.try_get_content(constants.metadata, field)
+    if info is None:
+        info = template_utils.get_template_field_info(layout, field)
 
+    data = template_utils.get_entity_field(entity, field)
     if not info or not data:
         return default
 
-    validation = template_utils.try_get_content(info, 'validation')
+    field_info = info.get('field')
+    validation = template_utils.try_get_content(field_info, 'validation')
     if validation is None:
         return default
 
     field_type = template_utils.try_get_content(validation, 'type')
     if field_type is None:
         return default
-    
+
     if field_type == 'concept':
         values = []
         for item in data:
@@ -111,17 +111,19 @@ def get_template_creation_data(request, entity, layout, field, default=None):
                 logger.warning(f'Failed to retrieve template "{field}" property from Entity<{entity}> with err: {e}')
                 return default
 
-    if template_utils.is_metadata(entity, field):
-        return template_utils.get_metadata_value_from_source(entity, field, default=default)
+    if info.get('is_metadata'):
+        return template_utils.get_metadata_value_from_source(entity, field, field_info=info, layout=layout, default=default)
     
     return template_utils.get_template_data_values(entity, layout, field, default=default)
 
-def try_add_computed_fields(field, form_data, form_template, data):
+def try_add_computed_fields(field, form_data, form_template, data, field_data=None):
     """
         Checks to see if any of our fields have any computed data
         that we need to collect from a child or related field
     """
-    field_data = template_utils.get_layout_field(form_template, field)
+    if field_data is None:
+        field_data = template_utils.get_layout_field(form_template, field)
+
     if field_data is None:
         return
     
@@ -512,7 +514,7 @@ def validate_concept_form(form, errors):
         concept = model_utils.try_get_instance(Concept, id=concept_id)
         concept = model_utils.try_get_entity_history(concept, history_id=concept_history_id)
         if concept is None:
-            errors.append(f'Child Concept entity with ID {concept_id} and history ID {concept_history_id} does not exist.')
+            errors.append(f'Child entity with ID {concept_id} and history ID {concept_history_id} does not exist.')
             return None
         field_value['concept']['id'] = concept_id
         field_value['concept']['history_id'] = concept_history_id
@@ -524,19 +526,19 @@ def validate_concept_form(form, errors):
     
     concept_details = form.get('details')
     if is_new_concept and (concept_details is None or not isinstance(concept_details, dict)):
-        errors.append(f'Invalid concept with ID {concept_id} - details is a non-nullable dict field.')
+        errors.append(f'Invalid child entity with ID {concept_id} - details is a non-nullable dict field.')
         return None
 
     if isinstance(concept_details, dict):
         concept_name = gen_utils.try_value_as_type(concept_details.get('name'), 'string', { 'sanitise': 'strict' })
         if is_new_concept and concept_name is None:
-            errors.append(f'Invalid concept with ID {concept_id} - name is non-nullable, string field.')
+            errors.append(f'Invalid child entity with ID {concept_id} - name is non-nullable, string field.')
             return None
 
         concept_coding = gen_utils.parse_int(concept_details.get('coding_system'), None)
         concept_coding = model_utils.try_get_instance(CodingSystem, pk=concept_coding)
         if is_new_concept and concept_coding is None:
-            errors.append(f'Invalid concept with ID {concept_id} - coding_system is non-nullable int field.')
+            errors.append(f'Invalid child entity with ID {concept_id} - coding_system is non-nullable int field.')
             return None
 
         attribute_headers = gen_utils.try_value_as_type(
@@ -547,7 +549,7 @@ def validate_concept_form(form, errors):
 
     concept_components = form.get('components')
     if is_new_concept and (concept_components is None or not isinstance(concept_components, list)):
-        errors.append(f'Invalid concept with ID {concept_id} - components is a non-nullable list field.')
+        errors.append(f'Invalid child entity with ID {concept_id} - components is a non-nullable list field.')
         return None
 
     components = [ ]
@@ -560,7 +562,7 @@ def validate_concept_form(form, errors):
         if not is_new_component and component_id is not None:
             historical_component = Component.history.filter(id=component_id)
             if not historical_component.exists():
-                errors.append(f'Invalid concept with ID {concept_id} - component is not valid')
+                errors.append(f'Invalid child entity with ID {concept_id} - component is not valid')
                 return None
             component['id'] = component_id
         else:
@@ -568,37 +570,37 @@ def validate_concept_form(form, errors):
         
         component_name = gen_utils.try_value_as_type(concept_component.get('name'), 'string', { 'sanitise': 'strict' })
         if component_name is None or gen_utils.is_empty_string(component_name):
-            errors.append(f'Invalid concept with ID {concept_id} - Component names are non-nullable, string fields.')
+            errors.append(f'Invalid child entity with ID {concept_id} - Component names are non-nullable, string fields.')
             return None
         
         component_logical_type = concept_component.get('logical_type')
         if component_logical_type is None or component_logical_type not in constants.CLINICAL_RULE_TYPE:
-            errors.append(f'Invalid concept with ID {concept_id} - Component logical types are non-nullable, string fields.')
+            errors.append(f'Invalid child entity with ID {concept_id} - Component logical types are non-nullable, string fields.')
             return None
         component_logical_type = constants.CLINICAL_RULE_TYPE.from_name(component_logical_type)
         
         component_source_type = concept_component.get('source_type')
         if component_source_type is None or component_source_type not in constants.CLINICAL_CODE_SOURCE:
-            errors.append(f'Invalid concept with ID {concept_id} - Component source types are non-nullable, string fields.')
+            errors.append(f'Invalid child entity with ID {concept_id} - Component source types are non-nullable, string fields.')
             return None
         component_source_type = constants.CLINICAL_CODE_SOURCE.from_name(component_source_type)
         
         component_source = concept_component.get('source')
         if component_source_type == constants.CLINICAL_CODE_SOURCE.SEARCH_TERM and (component_source is None or gen_utils.is_empty_string(component_source)):
-            errors.append(f'Invalid concept with ID {concept_id} - Component sources are non-nullable, string fields for search terms.')
+            errors.append(f'Invalid child entity with ID {concept_id} - Component sources are non-nullable, string fields for search terms.')
             return None
 
         component_codes = concept_component.get('codes')
         component_codes = list() if not isinstance(component_codes, list) else component_codes
         # if len(component_codes) < 1:
-        #     errors.append(f'Invalid concept with ID {concept_id} - Component codes is a non-nullable, list field')
+        #     errors.append(f'Invalid child entity with ID {concept_id} - Component codes is a non-nullable, list field')
         #     return None
         
         codes = { }
         for component_code in component_codes:
             code = { }
             if not isinstance(component_code, dict):
-                errors.append(f'Invalid concept with ID {concept_id} - Component code items are non-nullable, dict field')
+                errors.append(f'Invalid child entity with ID {concept_id} - Component code items are non-nullable, dict field')
                 return None
 
             is_new_code = is_new_component or component_code.get('is_new')
@@ -606,7 +608,7 @@ def validate_concept_form(form, errors):
             if not is_new_code and code_id is not None:
                 historical_code = Code.history.filter(id=code_id)
                 if not historical_code.exists():
-                    errors.append(f'Invalid concept with ID {concept_id} - Code is not valid')
+                    errors.append(f'Invalid child entity with ID {concept_id} - Code is not valid')
                     return None
                 code['id'] = code_id
             else:
@@ -614,7 +616,7 @@ def validate_concept_form(form, errors):
 
             code_name = gen_utils.try_value_as_type(component_code.get('code'), 'code', { 'sanitise': 'strict' })
             if gen_utils.is_empty_string(code_name):
-                errors.append(f'Invalid concept with ID {concept_id} - A code\'s code is a non-nullable, string field')
+                errors.append(f'Invalid child entity with ID {concept_id} - A code\'s code is a non-nullable, string field')
                 return None
             
             if code_name in codes:
@@ -631,7 +633,7 @@ def validate_concept_form(form, errors):
 
                 if isinstance(code_attributes, list):
                     if len(set(attribute_headers)) != len(code_attributes):
-                        errors.append(f'Invalid concept with ID {concept_id} - attribute headers must be unique.')
+                        errors.append(f'Invalid child entity with ID {concept_id} - attribute headers must be unique.')
                         return None
 
                     code_attributes = code_attributes[:len(attribute_headers)]
@@ -708,11 +710,13 @@ def validate_related_entities(field, field_data, value, errors):
     
     return value
 
-def validate_metadata_value(request, field, value, errors=[]):
+def validate_metadata_value(request, field, value, errors=[], field_data=None):
     """
         Validates the form's field value against the metadata fields
     """
-    field_data = template_utils.try_get_content(constants.metadata, field)
+    if field_data is None:
+        field_data = template_utils.try_get_content(constants.metadata, field)
+
     if field_data is None:
         return None, True
     
@@ -746,11 +750,13 @@ def validate_metadata_value(request, field, value, errors=[]):
     field_value = gen_utils.try_value_as_type(value, field_type, validation)
     return field_value, True
 
-def is_computed_template_field(field, form_template):
+def is_computed_template_field(field, form_template, field_data=None):
     """
         Checks whether a field is considered a computed field within its template
     """
-    field_data = template_utils.get_layout_field(form_template, field)
+    if field_data is None:
+        field_data = template_utils.get_layout_field(form_template, field)
+
     if field_data is None:
         return False
 
@@ -764,11 +770,13 @@ def is_computed_template_field(field, form_template):
 
     return False
 
-def validate_template_value(request, field, form_template, value, errors=[]):
+def validate_template_value(request, field, form_template, value, errors=[], field_data=None):
     """
         Validates the form's field value against the entity template
     """
-    field_data = template_utils.get_layout_field(form_template, field)
+    if field_data is None:
+        field_data = template_utils.get_layout_field(form_template, field)
+
     if field_data is None:
         return None, True
     
@@ -847,33 +855,35 @@ def validate_entity_form(request, content, errors=[], method=None):
     if current_brand is not None:
         organisation = form_data.get('organisation')
         if organisation is None:
-            errors.append('Phenotypes must be associated with an organisation')
+            errors.append('Your work must be associated with an organisation')
             return
 
         valid_user_orgs = permission_utils.get_user_organisations(request)
         if organisation in [org.get('id') for org in valid_user_orgs]:
-            errors.append('Your organisation doesn\'t have authorisation to post this phenotype')
+            errors.append('Your organisation doesn\'t have authorisation to post this work')
             return
 
     # Validate & Clean the form data
     top_level_data = { }
     template_data = { }
     for field, value in form_data.items():
-        if template_utils.is_metadata(GenericEntity, field):
-            field_value, validated = validate_metadata_value(request, field, value, errors)
+        info = template_utils.get_template_field_info(form_template, field)
+        struct = info.get('field')
+        if info.get('is_metadata'):
+            field_value, validated = validate_metadata_value(request, field, value, errors, field_data=struct)
             if not validated or field_value is None:
                 continue
             top_level_data[field] = field_value
-        elif validate_template_field(form_template, field):
+        elif struct:
             if is_computed_template_field(field, form_template):
                 continue
 
-            field_value, validated = validate_template_value(request, field, form_template, value, errors)
+            field_value, validated = validate_template_value(request, field, form_template, value, errors, field_data=struct)
             if not validated or field_value is None:
                 continue
 
             template_data[field] = field_value
-            try_add_computed_fields(field, form_data, form_template, template_data)
+            try_add_computed_fields(field, form_data, form_template, template_data, field_data=struct)
 
     if len(errors) > 0:
         return

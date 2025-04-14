@@ -4,7 +4,7 @@ from django.views.generic import TemplateView, CreateView, UpdateView
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.db.models import F, When, Case, Value, Subquery, OuterRef
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -436,9 +436,15 @@ class OrganisationView(TemplateView):
             on memb.organisation_id = org.id
           where memb.organisation_id = {organisation.id}
             and memb.user_id = {user.id if user else 'null'}
+          union
+          select uau.id as user_id, org.id as organisation_id, 3 as role
+            from public.auth_user as uau
+            join public.clinicalcode_organisation as org
+              on org.owner_id = uau.id
+           where uau.id = {user.id if user else 'null'}
         '''
         if current_brand is not None:
-          entity_brand_clause = f'and ge.brands @> array[{current_brand.id}]'
+          entity_brand_clause = f'and ge.brands && array[{current_brand.id}]'
 
           user_perms_sql = f'''
             select memb.user_id, memb.organisation_id, memb.role
@@ -452,6 +458,12 @@ class OrganisationView(TemplateView):
             where memb.organisation_id = {organisation.id}
               and memb.user_id = {user.id if user else 'null'}
               and auth.brand_id = {current_brand.id}
+            union
+            select uau.id as user_id, org.id as organisation_id, 3 as role
+              from public.auth_user as uau
+              join public.clinicalcode_organisation as org
+                on org.owner_id = uau.id
+             where uau.id = {user.id if user else 'null'}
           '''
         
         sql = f'''
@@ -460,7 +472,7 @@ class OrganisationView(TemplateView):
         ),
         entities as (
           select hge.id, hge.history_id, hge.name, hge.updated, 
-                 hge.publish_status, ge.organisation_id,
+                 hge.publish_status, ge.organisation_id, ge.is_deleted,
                  row_number() over (partition by hge.id order by hge.history_id desc) as rn
           from public.clinicalcode_historicalgenericentity as hge
           join public.clinicalcode_genericentity as ge
@@ -491,6 +503,7 @@ class OrganisationView(TemplateView):
              and published.history_id > entities.history_id
             where entities.publish_status != {constants.APPROVAL_STATUS.APPROVED}
               and published.id is null
+              and entities.is_deleted is null or entities.is_deleted = false
           ) as sq
           where rn = min_rn
         ),
@@ -577,8 +590,9 @@ class OrganisationView(TemplateView):
     if context.get('is_owner') or context.get('is_member') == False:
       return gen_utils.jsonify_response(code=400)
 
+    slug = context.get('slug')
     membership = OrganisationMembership.objects.filter(
-      organisation__slug=context.get('slug'), user_id=user.id
+      organisation__slug=slug, user_id=user.id
     )
     if not membership.exists():
       return gen_utils.jsonify_response(code=404)
@@ -588,7 +602,7 @@ class OrganisationView(TemplateView):
       membership.delete()
     except Exception as e:
       logger.warning(
-        f'Integrity error when attempting to remove user from organisation: {body}> with err: {e}'
+        f'Integrity error when attempting to remove user from organisation: {slug}> with err: {e}'
       )
       return gen_utils.jsonify_response(code=400)
 

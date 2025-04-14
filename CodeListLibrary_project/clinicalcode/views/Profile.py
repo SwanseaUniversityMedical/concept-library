@@ -90,7 +90,7 @@ class MyCollection(TemplateView):
     if entity is None:
       return JsonResponse({
         'success': False,
-        'message': 'Phenotype ID is not valid',
+        'message': 'Entity ID is not valid',
       })
     
     if not permission_utils.can_user_edit_entity(request, entity_id):

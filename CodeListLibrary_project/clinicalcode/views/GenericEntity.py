@@ -35,7 +35,9 @@ from clinicalcode.models.CodingSystem import CodingSystem
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 
+
 logger = logging.getLogger(__name__)
+
 
 class EntitySearchView(TemplateView):
     """
@@ -106,6 +108,7 @@ class EntitySearchView(TemplateView):
             
         return render(request, self.template_name, context)
 
+
 @schema(None)
 class EntityDescendantSelection(APIView):
     """
@@ -167,6 +170,7 @@ class EntityDescendantSelection(APIView):
         template_id = context.get('template_id')
         result = search_utils.get_template_entities(request, template_id)
         return JsonResponse(result)
+
 
 class CreateEntityView(TemplateView):
     """
@@ -460,19 +464,20 @@ class CreateEntityView(TemplateView):
         if field is None or gen_utils.is_empty_string(field):
             return gen_utils.jsonify_response(message='Invalid field parameter', code=400, status='false')
 
-        if template_utils.is_metadata(GenericEntity, field):
+        info = template_utils.get_template_field_info(template, field)
+        struct = info.get('field')
+        if info.get('is_metadata'):
             default_value = None
 
-            struct = template_utils.get_layout_field(constants.metadata, field)
             if struct is not None:
-                struct = template_utils.try_get_content(struct, 'validation')
-                if struct is not None:
-                    default_value = [] if struct.get('type') == 'int_array' else default_value
+                validation = template_utils.try_get_content(struct, 'validation')
+                if validation is not None:
+                    default_value = [] if validation.get('type') == 'int_array' else default_value
 
-            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, default=default_value)
+            options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, default=default_value, struct=struct)
         else:
-            options = template_utils.get_template_sourced_values(template, field, request=request)
-        
+            options = template_utils.get_template_sourced_values(template, field, request=request, struct=struct)
+
         if options is None:
             return gen_utils.jsonify_response(message='Invalid field parameter, does not exist or is not an optional parameter', code=400, status='false')
 
@@ -520,6 +525,7 @@ class CreateEntityView(TemplateView):
             'result': codelist
         })
 
+
 class RedirectConceptView(TemplateView):
     """
         Redirects requests to the phenotype page, assuming a phenotype owner can be resolved from the child Concept
@@ -538,22 +544,31 @@ class RedirectConceptView(TemplateView):
                 2. Will then try to find its Phenotype owner
                 3. Finally, redirect the user to the Phenotype page
         """
+        brand = model_utils.try_get_brand(request)
+        if brand is not None:
+            brand_mapping = brand.get_map_rules()
+        else:
+            brand_mapping = constants.DEFAULT_CONTENT_MAPPING
+
+        tx_concept = brand_mapping.get('concept', 'Concept')
+        tx_phenotype = brand_mapping.get('phenotype', 'Phenotype')
+
         concept_id = gen_utils.parse_int(kwargs.get('pk'), default=None)
         if concept_id is None:
             return View.notify_err(
                 request,
                 title='Bad Request - Invalid ID',
                 status_code=400,
-                details=['The Concept ID you supplied is invalid. If we sent you here, please contact us and let us know.']
+                details=[f'The {tx_concept} ID you supplied is invalid. If we sent you here, please contact us and let us know.']
             )
 
         concept = model_utils.try_get_instance(Concept, id=concept_id)
         if concept is None:
             return View.notify_err(
                 request,
-                title='Page Not Found - Missing Concept',
+                title=f'Page Not Found - Missing {tx_concept}',
                 status_code=404,
-                details=['Sorry but it looks like this Concept doesn\'t exist. If we sent you here, please contact us and let us know.']
+                details=[f'Sorry but it looks like this {tx_concept} doesn\'t exist. If we sent you here, please contact us and let us know.']
             )
 
         entity_owner = concept.phenotype_owner
@@ -562,20 +577,28 @@ class RedirectConceptView(TemplateView):
                 request,
                 title='Page Not Found - Failed To Resolve',
                 status_code=404,
-                details=['Sorry but it looks like this Concept isn\'t currently associated with a Phenotype. Please use the API to access the contents of this Concept.']
+                details=[f'Sorry but it looks like this {tx_concept} isn\'t currently associated with a {tx_phenotype}. Please use the API to access the contents of this {tx_concept}.']
             )
 
         return redirect(reverse(self.ENTITY_DETAIL_VIEW, kwargs={ 'pk': entity_owner.id }))
 
+
 def generic_entity_detail(request, pk, history_id=None):
     """Display the detail of a generic entity at a point in time."""
     # validate pk param
+    brand = model_utils.try_get_brand(request)
+    if brand is not None:
+        brand_mapping = brand.get_map_rules()
+    else:
+        brand_mapping = constants.DEFAULT_CONTENT_MAPPING
+
+    tx_phenotype = brand_mapping.get('phenotype', 'Phenotype')
     if not model_utils.get_entity_id(pk):
         return View.notify_err(
             request,
             title='Bad Request - Invalid ID',
             status_code=400,
-            details=['The Phenotype ID you supplied is invalid. If we sent you here, please contact us and let us know.']
+            details=[f'The {tx_phenotype} ID you supplied is invalid. If we sent you here, please contact us and let us know.']
         )
 
     # find latest accessible entity for given pk if historical id not specified
@@ -586,9 +609,9 @@ def generic_entity_detail(request, pk, history_id=None):
         if not entities.exists():
             return View.notify_err(
                 request,
-                title='Page Not Found - Missing Phenotype',
+                title=f'Page Not Found - Missing {tx_phenotype}',
                 status_code=404,
-                details=['Sorry but it looks like this Phenotype doesn\'t exist. If we sent you here, please contact us and let us know.']
+                details=[f'Sorry but it looks like this {tx_phenotype} doesn\'t exist. If we sent you here, please contact us and let us know.']
             )
         else:
             history_id = entities.first().history_id
@@ -606,7 +629,7 @@ def generic_entity_detail(request, pk, history_id=None):
             request,
             title='Forbidden - Permission Denied',
             status_code=403,
-            details=['Sorry but it looks like this Phenotype hasn\'t been made accessible to you yet. Please contact the author of this Phenotype to grant you access.']
+            details=[f'Sorry but it looks like this {tx_phenotype} hasn\'t been made accessible to you yet. Please contact the author of this {tx_phenotype} to grant you access.']
         )
 
     entity = accessibility.get('historical_entity')
@@ -627,7 +650,7 @@ def generic_entity_detail(request, pk, history_id=None):
     published_historical_ids = entity_dataset.get('published_ids', [])
 
     template = entity.template.history.filter(template_version=entity.template_version).latest()
-    entity_class = template.entity_class.name
+    entity_class = template.entity_class
 
     if request.user.is_authenticated:
         can_edit = accessibility.get('edit_access', False)
@@ -703,8 +726,8 @@ def get_history_table_data(request, pk):
                 historical_versions.append(ver)
                 
     return historical_versions
-   
-   
+
+
 def export_entity_codes_to_csv(request, pk, history_id=None):
     """Returns a csv file of codes for a clinical-coded phenotype for a specific historical version."""
 
@@ -761,7 +784,7 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         'creation_date': time.strftime("%Y%m%dT%H%M%S")
     }
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = ('attachment; filename="phenotype_%(phenotype_id)s_ver_%(history_id)s_concepts_%(creation_date)s.csv"' % my_params)
+    response['Content-Disposition'] = ('attachment; filename="%(phenotype_id)s_ver_%(history_id)s_codelists_%(creation_date)s.csv"' % my_params)
 
     writer = csv.writer(response)
 

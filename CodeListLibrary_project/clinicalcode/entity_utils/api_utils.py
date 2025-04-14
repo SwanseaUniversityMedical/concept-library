@@ -127,7 +127,7 @@ def exists_concept(concept_id):
     if not concept:
         return Response(
             data={
-                'message': 'Concept does not exist'
+                'message': 'Entity does not exist'
             },
             content_type='json',
             status=status.HTTP_404_NOT_FOUND
@@ -163,7 +163,7 @@ def exists_historical_concept(request, concept_id, historical_id=None):
     if not historical_concept:
         return Response(
             data={
-                'message': 'Historical concept version does not exist'
+                'message': 'Historical entity version does not exist'
             },
             content_type='json',
             status=status.HTTP_404_NOT_FOUND

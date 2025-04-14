@@ -2,7 +2,6 @@ from django.conf import settings
 from django.db.models import Model
 from email.mime.image import MIMEImage
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
-from django.db.models import F, When, Case, Value, Subquery, OuterRef
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.contrib.staticfiles import finders
@@ -14,7 +13,6 @@ import datetime
 from clinicalcode.entity_utils import model_utils, gen_utils
 from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
-from ..models.Organisation import Organisation
 
 
 User = get_user_model()
@@ -78,7 +76,7 @@ def send_review_email_generic(request,data,message_from_reviewer=None):
     if len(owner_email.strip()) > 1:
         all_emails.append(owner_email)
 
-    email_subject = '%s - Phenotype %s: %s' % (brand_title, data['id'], data['message'])
+    email_subject = '%s - %s: %s' % (brand_title, data['id'], data['message'])
     email_content = render_to_string(
         'clinicalcode/email/email_content.html',
         data,
@@ -176,17 +174,17 @@ def get_scheduled_email_to_send():
         review_message = ''
         if result['data'][i]['approval_status'] == 1:
             review_decision = 'Pending'
-            review_message = "Phenotype is waiting to be approved"
+            review_message = "Your work is waiting to be approved"
         elif result['data'][i]['approval_status'] == 3:
             review_decision = 'Declined'
-            review_message = 'Phenotype has been declined'
+            review_message = 'Your work has been declined'
 
         owner_email = User.objects.get(id=phenotype_owner_id).email
         if owner_email == '':
             return False
 
         email_message = '''<br><br>
-                 <strong>Phenotype:</strong><br>{id} - {name}<br><br>
+                 <strong>Entity:</strong><br>{id} - {name}<br><br>
                  <strong>Decision:</strong><br>{decision}<br><br>
                  <strong>Reviewer message:</strong><br>{message}
                  '''.format(id=phenotype_id, name=phenotype_name, decision=review_decision, message=review_message)

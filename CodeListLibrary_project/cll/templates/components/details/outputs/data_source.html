@@ -4,16 +4,20 @@
     <div class="row">
       <span id="entity-{{ component.field_name }}"></span>
       <div class="col-sm-2 row-padding detail-field-title">{{ component.field_data.title }}</div>
-      <div class="col-sm-10 chips-group chips-group--presentation slim-scrollbar"> 
+      <div class="col-sm-10 chips-group chips-group--presentation chips-group--dense slim-scrollbar"> 
         {% if component.value|length %}
           {% for ds in component.value %}
             {% if ds.url|length %}
               <div class="chip bold primary-accent text-accent-darkest">
-                <a href="{{ ds.url }}" target="_blank" rel="noopener" class="chip-text no-icon">{{ ds.name }}</a>
+                <a href="{{ ds.url }}" target="_blank" rel="noopener" class="chip-text no-icon">
+                  {{ ds.name }}
+                </a>
               </div>
             {% else %}
               <div class="chip bold primary-accent text-accent-darkest" disabled>
-                <a target="_blank" rel="noopener noreferrer" class="chip-text no-icon" aria-disabled="true" disabled>{{ ds.name }}</a>
+                <a target="_blank" rel="noopener noreferrer" class="chip-text no-icon" aria-disabled="true" disabled>
+                  {{ ds.name }}
+                </a>
               </div>
             {% endif %}
           {% endfor %}
