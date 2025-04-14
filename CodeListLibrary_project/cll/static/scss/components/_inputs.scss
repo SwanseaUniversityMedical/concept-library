@@ -1516,6 +1516,20 @@
   height: fit-content;
   max-width: 100%;
 
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
   &__header {
     @include flex-row(0.5rem, false);
     height: min-content;
@@ -1548,6 +1562,10 @@
     @include flex-col(0.5rem, true);
     height: fit-content;
     max-width: 100%;
+
+    &:not(.show) {
+      display: none;
+    }
   }
 }
 
@@ -1581,9 +1599,14 @@
 
   &__group {
     @include flex-row(false, true);
+    width: fit-content;
     height: fit-content;
     max-width: 100%;
     max-height: 100%;
+
+    &:has(.number-input__group-input:invalid) {
+      outline: 1px solid col(accent-danger) !important;
+    }
 
     &-action {
       appearance: none;
@@ -1726,15 +1749,15 @@
           position: absolute;
           right: 1ch;
           top: 25%;
-
-          &:before {
-            content: '\25';
-          }
         }
   
         &:focus-visible ~ .as-icon {
           z-index: 2;
         }
+      }
+
+      &[data-type="percentage"] ~ .as-icon:before {
+        content: '\25';
       }
     }
   }

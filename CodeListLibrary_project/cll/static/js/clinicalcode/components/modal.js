@@ -317,7 +317,6 @@ class ModalFactory {
                 break;
 
               default:
-                console.log('default???');
                 modalState.isActioning = false;
                 break;
             }
