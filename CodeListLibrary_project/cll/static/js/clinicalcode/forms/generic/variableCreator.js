@@ -1,3 +1,37 @@
+/**
+ * Desired types:
+ *  - [x] ci_interval
+ *  - [x] string
+ *  - [x] int
+ *  - [x] int_range
+ *  - [x] numeric
+ *  - [x] numeric_range
+ *  - [x] percent
+ *  - [ ] percent_range
+ * 
+ * Component Dev:
+ *  -> Modal
+ *    => See `ontologySelector`
+ * 
+ *  -> [Option selector | Other creator]
+ *    => i.e. dropdown as specific item + create btn;
+ *    =>  OR; alternative UI to create your own from a specific type (if allow_others)
+ * 
+ *  -> Type components
+ *    => See desired types above
+ * 
+ *  -> Additional description field
+ *    => Do we want Markdown???
+ * 
+ * Scales, Variables & Lists:
+ *  -> See template.json for additional comp. requirements
+ * 
+ * See components:
+ *  -> https://onsdigital.github.io/sdc-global-design-patterns/components/detail/input--percentage
+ * 
+ */
+
+
 export default class VariableCreator {
   /**
    * @desc default constructor options
@@ -19,10 +53,17 @@ export default class VariableCreator {
 
   /**
    * @desc
-   * @type {Record<string, Record<string, HTMLElement>}
+   * @type {Record<string, Record<string, HTMLElement>>}
    * @private
    */
   #templates = {};
+
+  /**
+   * @desc
+   * @type {Record<string, any>|null}
+   * @private
+   */
+  #modalState = null;
 
   /**
    * @param {HTMLElement}         element   the HTMLElement assoc. with this component
@@ -30,10 +71,13 @@ export default class VariableCreator {
    * @param {Record<string, any>} [opts]    optionally specify any additional component opts; see {@link VariableCreator.#DefaultOpts}
    */
   constructor(element, fieldData, opts) {
-    let { value, options, properties } = fieldData;
+    let { value, options, properties } = isObjectType(fieldData) ? fieldData : { };
+    options = Array.isArray(options) ? options : [];
+    properties = isObjectType(properties) ? properties : { };
+
     opts = isObjectType(opts) ? opts : {};
-    opts.options = mergeObjects(isObjectType(opts.options) ? opts.options : {}, options, false, true)
-    opts.properties = mergeObjects(isObjectType(opts.properties) ? opts.properties : {}, properties, false, true)
+    opts.options = mergeObjects(Array.isArray(opts.options) ? opts.options : [], options, false, true);
+    opts.properties = mergeObjects(isObjectType(opts.properties) ? opts.properties : {}, properties, false, true);
 
     this.data = isObjectType(value) ? value : {};
     this.props = mergeObjects(opts, VariableCreator.#DefaultOpts);
@@ -87,6 +131,26 @@ export default class VariableCreator {
     return this;
   }
 
+  /**
+   * @return {this}
+   */
+  #toggleContentVis(val) {
+    const ctx = this.#modalState?.ctx;
+    if (!ctx) {
+      return;
+    }
+
+    if (val) {
+      ctx.content.classList.add('show');
+      ctx.none.classList.remove('show');
+    } else {
+      ctx.none.classList.add('show');
+      ctx.content.classList.remove('show');
+    }
+
+    return this;
+  }
+
 
   /*************************************
    *                                   *
@@ -95,7 +159,8 @@ export default class VariableCreator {
    *************************************/
   #renderOptionPanel(modal, types) {
     const ctx = { };
-    const state = { };
+    const state = { ctx };
+    this.#modalState = state;
 
     const tmpl = this.props;
     const layout = this.#layout;
@@ -104,34 +169,33 @@ export default class VariableCreator {
     const opts = tmpl.options;
     const props = tmpl.properties;
 
-    const hasOpts = isObjectType(opts) && Object.keys(opts).length > 0;
-    const typesAllowed = Array.isArray(props.allow_types) ? props.allow_types : null;
+    const label = props.label;
+    const hasOpts = Array.isArray(opts) && opts.length > 0;
+    const typesAllowed = Array.isArray(props.allow_types) && props.allow_types.length > 0 ? props.allow_types : null;
     const unknownAllowed = !!typesAllowed && !!props.allow_unknown;
     const descriptionAllowed = !!props.allow_description;
     state.hasOpts = hasOpts;
     state.typesAllowed = typesAllowed;
     state.unknownAllowed = unknownAllowed;
-    state.descriptionAllowed = state.descriptionAllowed;
+    state.descriptionAllowed = descriptionAllowed;
 
     const innerModal = modal.querySelector('#target-modal-content');
     composeTemplate(templates.vinterface.panel, {
-      params: {
-        title: 'Select Measure',
-        label: 'Options...',
-      },
+      params: props.selector,
       parent: innerModal,
       render: (elems) => {
         ctx.panel = elems[0];
+        ctx.none = ctx.panel.querySelector(':scope > [data-role="none"]');
         ctx.content = ctx.panel.querySelector(':scope > [data-role="content"]');
 
         if (hasOpts) {
           const selItems = [];
           ctx.selector = ctx.panel.querySelector('#tmpl-selector');
 
-          for (const key in opts) {
+          for (let i = 0; i < opts.length; ++i) {
             selItems.push(createElement('option', {
-              value: opts[key].name,
-              innerText: opts[key].value.name,
+              value: opts[i].name,
+              innerText: opts[i].value.name,
             }));
           }
   
@@ -153,17 +217,35 @@ export default class VariableCreator {
           state.selItems = selItems;
         }
 
-        if (unknownAllowed) {
-          const typeItems = [];
-        }
+        // const typeItems = [];
+        // for (let i = 0; i < typesAllowed.length; ++i) {
+        //   const type = typesAllowed[i];
+        //   const typeLabel = transformTitleCase(type);
+        //   typeItems.push(createElement('option', {
+        //     value: type,
+        //     innerText: typeLabel,
+        //   }));
+
+        //   typeItems.sort((a, b) => {
+        //     return a.innerText < b.innerText;
+        //   });
+
+        //   if (!hasOpts) {
+        //     for (let i = 0; i < typeItems.length; ++i) {
+        //       typeItems[i] = ctx.selector.append(typeItems[i]);
+        //     }
+        //     state.typeItems = typeItems;
+        //   }
+        // }
       }
     });
+    this.#toggleContentVis(!unknownAllowed);
 
     composeTemplate(templates.inputs.number, {
       params: {
         id: 'num',
         ref: 'num',
-        type: 'percentage',
+        type: 'numeric',
         step: 'step="0.01"',
         label: 'Value',
         btnStep: '', // step="1" | step="0.01" etc

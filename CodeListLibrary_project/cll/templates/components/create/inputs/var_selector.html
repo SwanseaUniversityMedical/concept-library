@@ -99,6 +99,14 @@
           </div>
         </header>
         <section
+            id="none-available"
+            class="var-selection__none-available"
+            data-role="none">
+          <p class="var-selection-group__none-available-message">
+            Please select an option.
+          </p>
+        </section>
+        <section
           class="var-selection__content"
           data-role="content"
         >
@@ -120,6 +128,7 @@
               class="number-input__group-input"
               type="number"
               value="${value}"
+              pattern="^\\d*(\\.\\d{0,})?$"
               ${step}
               ${rangemin}
               ${rangemax}

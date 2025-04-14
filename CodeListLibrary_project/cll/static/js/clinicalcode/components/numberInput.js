@@ -1,11 +1,12 @@
 domReady.finally(() => {
+  const ctrlKeys = ['KeyA', 'KeyF', 'KeyX', 'KeyZ', 'KeyY', 'KeyC', 'Backspace', 'Delete'];
   createGlobalListener(
     'inputs.number:keydown',
     'input.number-input__group-input[type="number"]',
     (e) => {
       const target = e.target;
       const keyCode = e.which ?? e.keyCode;
-      if (!keyCode || (keyCode >= 8 && keyCode <= 46) || ((keyCode === 86 || keyCode === 65) && e.ctrlKey)) {
+      if (!keyCode || (keyCode >= 8 && keyCode <= 46) || (e.ctrlKey && ctrlKeys.includes(e.code))) {
         return true;
       }
 
@@ -21,7 +22,12 @@ domReady.finally(() => {
         datatype = datatype.trim().toLowerCase();
       }
 
-      let allowed = (keyCode >= 48 && keyCode <= 57) || (keyCode >= 96 && keyCode <= 105);
+      let allowed = (
+        (keyCode >= 48 && keyCode <= 57) ||
+        (keyCode >= 96 && keyCode <= 105) ||
+        keyCode === 173
+      );
+
       if (datatype !== 'int') {
         allowed = allowed || keyCode === 190;
       }
@@ -64,7 +70,7 @@ domReady.finally(() => {
       const trg = e.target;
       const opr = trg.getAttribute('data-op').trim().toLowerCase();
 
-      const input = trg?.parentElement?.parentElement?.querySelector('input.number-input__group-input[type="number"]');
+      const input = trg?.parentElement?.parentElement?.querySelector?.('input.number-input__group-input');
       if (!input) {
         return false;
       }
@@ -79,35 +85,47 @@ domReady.finally(() => {
       let step = input.getAttribute('data-step');
       step = stringHasChars(step) ? step.trim() : input.getAttribute('step')?.trim?.();
 
-      let value;
+      let value, diff;
       switch (datatype) {
         case 'int': {
-          step = parseInt(step);
-          step = !isNaN(step) ? step : 1;
+          diff = parseInt(step);
+          if (isNaN(diff)) {
+            diff = 1;
+            step = '1';
+          }
 
-          value = parseInt(value);
+          value = parseInt(input.value.trim());
         } break;
 
         case 'float':
         case 'numeric':
         case 'decimal':
         case 'percentage': {
-          step = parseFloat(step);
-          step = !isNaN(step) ? step : 0.1;
+          diff = parseFloat(step);
+          if (isNaN(diff)) {
+            diff = 0.1;
+            step = '0.1';
+          }
 
-          value = parseFloat(value);
-        }
-
+          value = parseFloat(input.value.trim());
+        } break;
+        
         default:
           value = null;
           break;
       }
 
       if (isNullOrUndefined(value) || isNaN(value)) {
-        return false;
+        value = 0;
       }
 
-      target.value = value + step*(opr === 'decrement' ? -1 : 1);
+      value += diff*(opr === 'decrement' ? -1 : 1);
+      if (datatype === 'int') {
+        input.value = Math.trunc(value);
+      } else {
+        const m = Math.pow(10, step.split('.')?.[1]?.length || 0);
+        input.value = Math.round(value * m) / m;
+      }
       return true;
     }
   );
