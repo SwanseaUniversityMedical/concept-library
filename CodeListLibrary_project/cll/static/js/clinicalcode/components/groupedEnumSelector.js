@@ -164,7 +164,7 @@ export default class GroupedEnum {
           break
         }
 
-        const hasIntersection = group?.when.filter(el => selectedValues.includes(el)).length > 0;
+        const hasIntersection = group?.when.filter(el => selectedValues.includes(el)).length == group?.when.length;
         const hasDifference = selectedValues.filter(el => !group?.when.includes(el)).length > 0;
         if (hasIntersection && !hasDifference) {
           matchedGroup = group;
