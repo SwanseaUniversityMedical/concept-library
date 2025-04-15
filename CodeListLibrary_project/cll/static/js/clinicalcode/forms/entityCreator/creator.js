@@ -682,7 +682,7 @@ export default class EntityCreator {
 
     // Add __error class below title if available & the forceErrorToasts parameter was not passed
     if (!this.options.forceErrorToasts) {
-      const inputGroup = tryGetRootElement(element, 'detailed-input-group');
+      const inputGroup = tryGetRootElement(element, '.detailed-input-group');
       if (!isNullOrUndefined(inputGroup)) {
         const titleNode = inputGroup.querySelector('.detailed-input-group__title');
         const errorNode = createElement('p', {

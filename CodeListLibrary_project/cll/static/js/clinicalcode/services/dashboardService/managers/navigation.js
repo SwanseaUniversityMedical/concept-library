@@ -35,7 +35,7 @@ export const manageNavigation = ({
     'nav.toggle:click',
     '[data-controlledby="nav-toggle"] [data-role="toggle"]',
     (e) => {
-      const group = tryGetRootElement(e.target, 'dashboard-nav-toggle');
+      const group = tryGetRootElement(e.target, '.dashboard-nav-toggle');
       if (!group) {
         return;
       }

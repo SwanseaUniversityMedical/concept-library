@@ -77,7 +77,7 @@ domReady.finally(() => {
 
       const input = trg?.parentElement?.parentElement?.querySelector?.('input.number-input__group-input');
       if (!input) {
-        return false;
+        return true;
       }
 
       let datatype = input.getAttribute('data-type');
@@ -135,7 +135,7 @@ domReady.finally(() => {
       input.value = value;
       fireChangedEvent(input);
 
-      return true;
+      return false;
     }
   );
 });

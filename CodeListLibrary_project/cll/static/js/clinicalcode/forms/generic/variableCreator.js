@@ -1,39 +1,12 @@
 import DoubleRangeSlider from '../../components/doubleRangeSlider.js';
-import { parseAsFieldType } from '../entityCreator/utils.js';
+import { parseAsFieldType, resolveRangeOpts } from '../entityCreator/utils.js';
 
 /**
- * Desired types:
- *  - [x] ci_interval
- *  - [x] string
- *  - [x] int
- *  - [x] int_range
- *  - [x] numeric
- *  - [x] numeric_range
- *  - [x] percent
- *  - [x] percent_range
+ * Class to manage variable & measurement creation
  * 
- * Component Dev:
- *  -> Modal
- *    => See `ontologySelector`
- * 
- *  -> [Option selector | Other creator]
- *    => i.e. dropdown as specific item + create btn;
- *    =>  OR; alternative UI to create your own from a specific type (if allow_others)
- * 
- *  -> Type components
- *    => See desired types above
- * 
- *  -> Additional description field
- *    => Do we want Markdown???
- * 
- * Scales, Variables & Lists:
- *  -> See template.json for additional comp. requirements
- * 
- * See components:
- *  -> https://onsdigital.github.io/sdc-global-design-patterns/components/detail/input--percentage
- * 
+ * @class
+ * @constructor
  */
-
 export default class VariableCreator {
   /**
    * @desc default constructor options
@@ -42,9 +15,7 @@ export default class VariableCreator {
    * @constant
    * 
    */
-  static #DefaultOpts = {
-
-  };
+  static #DefaultOpts = {};
 
   /**
    * @desc describes the validation params for specific field(s)
@@ -95,11 +66,22 @@ export default class VariableCreator {
    * @param {Record<string, any>} [opts]    optionally specify any additional component opts; see {@link VariableCreator.#DefaultOpts}
    */
   constructor(element, fieldData, opts) {
-    let { value, options, properties } = isObjectType(fieldData) ? fieldData : { };
+    let { value, options, properties, txt } = isObjectType(fieldData) ? fieldData : { };
+    txt = isObjectType(txt) ? txt : { };
     options = Array.isArray(options) ? options : [];
     properties = isObjectType(properties) ? properties : { };
 
+    let fieldName = element.getAttribute('data-field');
+    fieldName = stringHasChars(fieldName) ? fieldName : 'Variable';
+    fieldName = transformTitleCase(fieldName).replace('_', ' ');
+
     opts = isObjectType(opts) ? opts : {};
+    opts.txt = mergeObjects(
+      txt,
+      isObjectType(opts.txt)
+        ? opts.txt
+        : { single: fieldName, plural: fieldName + '(s)' },
+    );
     opts.options = mergeObjects(Array.isArray(opts.options) ? opts.options : [], options, false, true);
     opts.properties = mergeObjects(isObjectType(opts.properties) ? opts.properties : {}, properties, false, true);
 
@@ -169,9 +151,11 @@ export default class VariableCreator {
     if (val) {
       layout.contentGroup.classList.add('show');
       layout.noneAvailable.classList.remove('show');
+      layout?.clearBtn?.classList?.remove?.('hide');
     } else {
       layout.noneAvailable.classList.add('show');
       layout.contentGroup.classList.remove('show');
+      layout?.clearBtn?.classList?.add?.('hide');
     }
 
     return this;
@@ -268,7 +252,7 @@ export default class VariableCreator {
     return this;
   }
 
-  #openModal() {
+  #openModal(editKey = null) {
     const tmpl = this.props;
     window.ModalFactory.create({
       id: 'var-creator-dialog',
@@ -311,7 +295,7 @@ export default class VariableCreator {
         this.data[this.#modalState.info.editKey] = packet.value;
         return this.data;
       },
-      onRender: (modal) => this.#renderOptionPanel(modal),
+      onRender: (modal) => this.#renderOptionPanel(modal, editKey),
     })
       .then(res => {
         this.makeDirty();
@@ -362,9 +346,9 @@ export default class VariableCreator {
       parent: innerModal,
       render: (elems) => {
         ctx.panel = elems[0];
-        ctx.none = ctx.panel.querySelector(':scope > [data-role="none"]');
-        ctx.header = ctx.panel.querySelector(':scope > [data-role="header"]');
-        ctx.content = ctx.panel.querySelector(':scope > [data-role="content"]');
+        ctx.none = ctx.panel.querySelector(':scope > [data-section="none"]');
+        ctx.header = ctx.panel.querySelector(':scope > [data-section="header"]');
+        ctx.content = ctx.panel.querySelector(':scope > [data-section="content"]');
 
         if (hasOpts) {
           const selItems = [];
@@ -567,23 +551,18 @@ export default class VariableCreator {
     });
 
     if (info.ref === 'unknown') {
-      let idx;
       const typeItems = [];
       for (let i = 0; i < state.typesAllowed.length; ++i) {
         const type = state.typesAllowed[i];
         const typeLabel = transformTitleCase(type).replace('_', ' ');
-
-        const attr = { value: type, innerText: typeLabel };
-        if (type === data.type) {
-          idx = i;
-        }
-        typeItems.push(createElement('option', attr));
+        typeItems.push(createElement('option', { value: type, innerText: typeLabel }));
       }
 
       typeItems.sort((a, b) => {
         return a.innerText < b.innerText ? -1 : (a.innerText > b.innerText ? 1 : 0);
       });
 
+      const idx = typeItems.findIndex(x => x.value === data.type);
       const dropdown = createElement('select', {
         childNodes: typeItems,
         attributes: {
@@ -613,19 +592,23 @@ export default class VariableCreator {
         element: dropdown,
       };
 
-      dropdown.addEventListener('change', (e) => {
-        const trg = dropdown.options?.[dropdown.selectedIndex];
-        if (isHtmlObject(ctrls.value)) {
-          ctrls.value.remove();
-        } else if (ctrls?.value?.getElement) {
-          ctrls.value.getElement().remove();
-        }
-
-        data.type = trg.value;
-        data.value = null;
-
-        this.#renderValueFieldComponent(state.descriptionAllowed ? ctrls.description : null);
-      });
+      if (disableInputs) {
+        dropdown.disabled = true;
+      } else {
+        dropdown.addEventListener('change', (e) => {
+          const trg = dropdown.options?.[dropdown.selectedIndex];
+          if (isHtmlObject(ctrls.value)) {
+            ctrls.value.remove();
+          } else if (ctrls?.value?.getElement) {
+            ctrls.value.getElement().remove();
+          }
+  
+          data.type = trg.value;
+          data.value = null;
+  
+          this.#renderValueFieldComponent(state.descriptionAllowed ? ctrls.description : null);
+        });
+      }
     }
     this.#renderValueFieldComponent();
 
@@ -677,39 +660,19 @@ export default class VariableCreator {
       case 'decimal':
       case 'numeric':
       case 'percentage': {
-        const opts = info.opts;
+        const range = resolveRangeOpts(data.type, info.opts);
         data.value = !isNullOrUndefined(data.value) ? data.value : 0;
-
-        let min, max, step;
-        if (isObjectType(opts)) {
-          min = typeof opts.min === 'number' ? `max="${opts.min}"` : null;
-          max = typeof opts.max === 'number' ? `min="${opts.max}"` : null;
-          step = typeof opts.step === 'number' ? `${opts.step}` : null;
-        }
-
-        let fmin, fmax;
-        if (data.type === 'percentage') {
-          fmin = 0;
-          fmax = 100;
-        } else {
-          fmin = typeof opts.min === 'number' ? fmin : null;
-          fmax = typeof opts.max === 'number' ? fmax : null;
-        }
-
-        if (isNullOrUndefined(step)) {
-          step = data.type === 'int' ? `1` : `0.001`;
-        }
 
         composeTemplate(templates.inputs.number, {
           params: {
             id: 'value',
             ref: 'value',
             type: data.type,
-            step: !isNullOrUndefined(step) ? `step="${step}"` : '',
+            step: range.attr.step,
             label: 'Value',
-            btnStep: !isNullOrUndefined(step) ? step : '',
-            rangemin: min ?? '',
-            rangemax: max ?? '',
+            btnStep: range.values.step,
+            rangemin: range.attr.min,
+            rangemax: range.attr.max,
             value: !isNullOrUndefined(data.value) ? data.value : '',
             placeholder: 'Number value...',
             disabled: '',
@@ -725,7 +688,7 @@ export default class VariableCreator {
             ctrls.value = elem;
 
             const fieldValidation = { validation: { type: data.type } };
-            if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
+            if (!isNullOrUndefined(range.values.min) && !isNullOrUndefined(range.values.max)) {
               fieldValidation.validation.range = [fmin, fmax];
             }
 
@@ -748,6 +711,7 @@ export default class VariableCreator {
 
       case 'string': {
         data.value = !isNullOrUndefined(data.value) ? data.value : '';
+
         composeTemplate(templates.inputs.inputbox, {
           params: {
             id: 'value',
@@ -848,103 +812,120 @@ export default class VariableCreator {
       case 'int_range':
       case 'float_range':
       case 'decimal_range':
-      case 'numeric_range': {
-        if (!Array.isArray(data.value)) {
-          data.value = [0, 0];
-        }
-
-        const type = data.type.split('_').shift();
-        const step = type === 'int' ? `1` : `0.001`;
-        const minValue = typeof data.value[0] === 'number' ? `${data.value[0]}` : '0';
-        const maxValue = typeof data.value[1] === 'number' ? `${data.value[1]}` : '0';
-        composeTemplate(templates.inputs.numericrange, {
-          params: {
-            id: 'value',
-            ref: 'value',
-            label: 'Value',
-            type: type,
-            min: minValue,
-            max: maxValue,
-            step: `step="${step}"`,
-            btnStep: step,
-            disabled: '',
-            mandatory: true,
-          },
-          render: (elem) => {
-            elem = elem.shift();
-            if (!isHtmlObject(parent)) {
-              elem = ctx.content.appendChild(elem);
-            } else {
-              elem = ctx.content.insertBefore(elem, parent);
-            }
-            ctrls.value = elem;
-
-            const minElem = elem.querySelector('input[name="min"]');
-            const maxElem = elem.querySelector('input[name="max"]');
-
-            const onChange = (e) => {
-              const trg = e.target.getAttribute('name');
-              const val = parseAsFieldType({ validation: { type: type } }, e.target.value);
-              if (!!val && val?.success) {
-                data.value[trg === 'min' ? 0 : 1] = val.value;
-                data.value.sort();
-                state.isDirty = true;
-
-                minElem.value = data.value[0];
-                maxElem.value = data.value[1];
-              }
-            };
-
-            minElem.addEventListener('change', onChange);
-            maxElem.addEventListener('change', onChange);
-          },
-        });
-      } break;
-
+      case 'numeric_range':
       case 'percentage_range': {
+        const type = data.type.split('_').shift();
+        const range = resolveRangeOpts(data.type, info.opts);
+
+        const {
+          min: fmin,
+          max: fmax,
+          step: fstep
+        } = range.values;
+
+        const hasRangeValues = (
+          typeof fmin === 'number' &&
+          typeof fmax === 'number' &&
+          typeof fstep === 'number'
+        );
+
         if (!Array.isArray(data.value)) {
-          data.value = [0, 0];
+          let vmax = type === 'int' ? 100 : 1;
+          vmax = isNullOrUndefined(fmin) ? vmax : fmin + vmax;
+
+          data.value = [
+            isNullOrUndefined(fmin) ? fmin : 0,
+            isNullOrUndefined(fmax) ? fmax : vmax,
+          ];
         }
 
-        composeTemplate(templates.inputs.percentrange, {
-          params: {
-            id: 'value',
-            ref: 'value',
-            label: 'Value',
-            disabled: '',
-            mandatory: true,
-          },
-          render: (elem) => {
-            elem = elem.shift();
-            if (!isHtmlObject(parent)) {
-              elem = ctx.content.appendChild(elem);
-            } else {
-              elem = ctx.content.insertBefore(elem, parent);
-            }
-
-            ctrls.value = new DoubleRangeSlider(elem, {
-              value: {
-                min: value[0],
-                max: value[1],
-              },
-              properties: {
-                type: 'float',
-                step: 0.001,
-                min: 0,
-                max: 100,
-              },
-            });
-
-            elem.addEventListener('change', (e) => {
-              let val = ctrls.value.getValue();
-              val = parseAsFieldType({ validation: { type: 'percentage_range' } }, [val.min, val.max]);
-              if (!!val && val?.success) {
-                data.value = val.value;
-                state.isDirty = true;
+        if (hasRangeValues) {
+          composeTemplate(templates.inputs.rangeslider, {
+            params: {
+              id: 'value',
+              ref: 'value',
+              type: type,
+              label: 'Value',
+              disabled: '',
+              mandatory: true,
+            },
+            render: (elem) => {
+              elem = elem.shift();
+              if (!isHtmlObject(parent)) {
+                elem = ctx.content.appendChild(elem);
+              } else {
+                elem = ctx.content.insertBefore(elem, parent);
               }
-            });
-          },
-        });
+
+              ctrls.value = new DoubleRangeSlider(elem, {
+                value: {
+                  min: data.value[0],
+                  max: data.value[1],
+                },
+                properties: {
+                  min: fmin,
+                  max: fmax,
+                  step: fstep,
+                  type: 'float',
+                },
+              });
+
+              elem.addEventListener('change', (e) => {
+                let val = ctrls.value.getValue();
+                val = parseAsFieldType({ validation: { type: data.type, range: [fmin, fmax] } }, [val.min, val.max]);
+                if (!!val && val?.success) {
+                  data.value = val.value;
+                  state.isDirty = true;
+                }
+              });
+            },
+          });
+        } else {
+          const minValue = typeof data.value[0] === 'number' ? `${data.value[0]}` : '0';
+          const maxValue = typeof data.value[1] === 'number' ? `${data.value[1]}` : '0';
+          composeTemplate(templates.inputs.numericrange, {
+            params: {
+              id: 'value',
+              ref: 'value',
+              label: 'Value',
+              type: type,
+              min: minValue,
+              max: maxValue,
+              step: range.attr.step,
+              btnStep: range.values.step,
+              disabled: '',
+              mandatory: true,
+            },
+            render: (elem) => {
+              elem = elem.shift();
+              if (!isHtmlObject(parent)) {
+                elem = ctx.content.appendChild(elem);
+              } else {
+                elem = ctx.content.insertBefore(elem, parent);
+              }
+              ctrls.value = elem;
+  
+              const minElem = elem.querySelector('input[name="min"]');
+              const maxElem = elem.querySelector('input[name="max"]');
+  
+              const onChange = (e) => {
+                const trg = e.target.getAttribute('name');
+                const val = parseAsFieldType({ validation: { type: type } }, e.target.value);
+                if (!!val && val?.success) {
+                  data.value[trg === 'min' ? 0 : 1] = val.value;
+                  data.value.sort();
+                  state.isDirty = true;
+  
+                  minElem.value = data.value[0];
+                  maxElem.value = data.value[1];
+                }
+              };
+  
+              minElem.addEventListener('change', onChange);
+              maxElem.addEventListener('change', onChange);
+            },
+          });
+        }
       } break;
 
       default:
@@ -959,9 +940,115 @@ export default class VariableCreator {
    *                                   *
    *************************************/
   #initEvents() {
+    const data = this.data;
     const layout = this.#layout;
-    layout.addBtn.addEventListener('click', (e) => {
-      this.#openModal();
+    const element = this.element;
+    const fieldText = this.props.txt;
+
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!element.contains(target) || !target.matches('[data-fn="button"][data-owner="var-selector"]')) {
+        return true;
+      }
+
+      const action = target.getAttribute('data-action');
+      if (!stringHasChars(action)) {
+        return true;
+      }
+
+      const ref = target.getAttribute('data-ref');
+      e.preventDefault();
+
+      if (stringHasChars(ref) && layout.contentList.contains(target)) {
+        // Item action button(s)
+        const item = this.data[ref];
+        if (!item) {
+          return true;
+        }
+
+        switch (action) {
+          case 'edit': {
+            this.#openModal(ref);
+          } break;
+  
+          case 'remove': {
+            window.ModalFactory.create({
+              id: generateUUID(),
+              ref: 'prompt',
+              title: 'Are you sure?',
+              content: `Are you sure you want to delete the ${fieldText.single} "${item.name}"? This action cannot be reverted.`,
+            })
+              .then(_ => {
+                if (this.data?.[ref]) {
+                  delete this.data[ref];
+                }
+
+                const elem = tryGetRootElement(target, '[data-area="item"]');
+                if (!elem) {
+                  this.#renderLayout();
+                  return;
+                }
+
+                const len = Object.keys(data).length;
+                elem.remove();
+
+                this.#toggleLayoutContentVis(len > 0);
+              })
+              .catch(res => {
+                if (!(res instanceof ModalFactory.ModalResults)) {
+                  return console.error(res);
+                }
+              });
+          } break;
+  
+          default:
+            break;
+        }
+
+        return false;
+      }
+
+      // Action bar button(s)
+      switch (action) {
+        case 'add':
+          this.#openModal();
+          break;
+
+        case 'clear': {
+          const len = Object.keys(data).length;
+          if (len < 1) {
+            break;
+          }
+
+          window.ModalFactory.create({
+            id: generateUUID(),
+            ref: 'prompt',
+            title: 'Are you sure?',
+            content: `Are you sure you want to delete all ${len}x ${fieldText.plural}? Please note that this action cannot be undone without losing all other page progress.`,
+          })
+            .then(_ => {
+              for (const key in data) {
+                if (!data.hasOwnProperty(key)) {
+                  continue;
+                }
+
+                delete data[key];
+              }
+
+              this.#renderLayout();
+            })
+            .catch(res => {
+              if (!(res instanceof ModalFactory.ModalResults)) {
+                return console.error(res);
+              }
+            });
+        } break;
+
+        default:
+          break;
+      }
+
+      return false;
     });
   }
 
@@ -1134,8 +1221,8 @@ export default class VariableCreator {
   #initialise() {
     const elem = this.element;
     const layout = this.#layout;
-    elem.querySelectorAll('[data-role]').forEach(v => {
-      const role = v.getAttribute('data-role');
+    elem.querySelectorAll('[data-area]').forEach(v => {
+      const role = v.getAttribute('data-area');
       if (stringHasChars(role)) {
         layout[role] = v;
       }

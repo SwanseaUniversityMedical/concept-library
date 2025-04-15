@@ -443,7 +443,7 @@ export default class ConceptCreator {
    * @returns {string|boolean} returns the title of this component if present, otherwise returns false
    */
   getTitle() {
-    const group = tryGetRootElement(this.element, 'phenotype-progress__item');
+    const group = tryGetRootElement(this.element, '.phenotype-progress__item');
     if (!isNullOrUndefined(group)) {
       const title = group.querySelector('.phenotype-progress__item-title');
       if (!isNullOrUndefined(title)) {
@@ -1154,7 +1154,7 @@ export default class ConceptCreator {
    * @param {boolean} forceUpdate whether to force update the codelist
    */
   #toggleConcept(target, forceUpdate) {
-    const conceptGroup = tryGetRootElement(target, 'concept-list__group');
+    const conceptGroup = tryGetRootElement(target, '.concept-list__group');
     const conceptId = conceptGroup.getAttribute('data-concept-id');
     const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
@@ -2324,7 +2324,7 @@ export default class ConceptCreator {
    * @param {event} e the associated event
    */
   #handleCancelEditor(e) {
-    const conceptGroup = tryGetRootElement(e.target, 'concept-list__group');
+    const conceptGroup = tryGetRootElement(e.target, '.concept-list__group');
     this.tryCloseEditor()
       .then((res) => {
         this.#toggleConcept(conceptGroup);
@@ -2487,7 +2487,7 @@ export default class ConceptCreator {
         spinner = startLoadingSpinner();
 
         const [id, history_id] = res || [ ];
-        const conceptGroup = tryGetRootElement(target, 'concept-list__group');
+        const conceptGroup = tryGetRootElement(target, '.concept-list__group');
         const conceptId = conceptGroup.getAttribute('data-concept-id');
         const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
@@ -2538,7 +2538,7 @@ export default class ConceptCreator {
         }).then(resolve).catch(reject);
       })
       .then(() => {
-        const conceptGroup = tryGetRootElement(target, 'concept-list__group');
+        const conceptGroup = tryGetRootElement(target, '.concept-list__group');
         const conceptId = conceptGroup.getAttribute('data-concept-id');
         const historyId = conceptGroup.getAttribute('data-concept-history-id');
 

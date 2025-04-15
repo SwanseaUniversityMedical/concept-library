@@ -1307,6 +1307,56 @@ export const isMandatoryField = (packet) => {
 }
 
 /**
+ * resolveRangeOpts
+ * @desc resolves the range assoc. with some component's properties (if available)
+ * 
+ * @param {string}              type             the name of the type assoc. with this range
+ * @param {Record<string, any>} opts             the properties assoc. with the component containing this value/range
+ * @param {boolean}             [forceStep=true] optionally specify whether to resolve a step interval regardless of range availability; defaults to `true`
+ * 
+ * @returns {Record<string, Record<string, string|number>>} the range values (if applicable)
+ */
+export const resolveRangeOpts = (type, opts, forceStep = true) => {
+  let fmin = null;
+  let fmax = null;
+  let fstep = null;
+  if (isObjectType(opts)) {
+    fmin = typeof opts.min === 'number' ? opts.min : null;
+    fmax = typeof opts.max === 'number' ? opts.max : null;
+    fstep = typeof opts.step === 'number' ? opts.step : null;
+  } else if (Array.isArray(opts) && opts.length >= 2) {
+    fmin = typeof opts[0] === 'number' ? opts[0] : null;
+    fmax = typeof opts[1] === 'number' ? opts[1] : null;
+    fstep = null;
+  }
+
+  if (typeof fmin == 'number' && typeof fmax === 'number') {
+    let tmp = Math.max(fmin, fmax);
+    fmin = Math.min(fmin, fmax);
+    fmax = tmp;
+  }
+
+  if (fstep === null && forceStep) {
+    fstep = type.startsWith('int') ? 1 : 0.001;
+  }
+
+  return {
+    hasStep: fstep !== null,
+    hasRange: fmin !== null && fmax !== null,
+    attr: {
+      min: fmin !== null ? `min="${fmin}"` : '',
+      max: fmax !== null ? `max="${fmax}"` : '',
+      step: fstep !== null ? `step="${fstep}"` : '',
+    },
+    values: {
+      min: fmin,
+      max: fmax,
+      step: fstep,
+    },
+  };
+}
+
+/**
  * parseAsFieldType
  * @desc parses the field as its type, returns true if no validation or type field
  * @param {object} packet the field data
@@ -1346,18 +1396,9 @@ export const parseAsFieldType = (packet, value, modifier) => {
         value = Math.trunc(value);
         valid = !isNaN(value) && Number.isFinite(value) && Number.isSafeInteger(value);
 
-        const range = validation.range;
-        if (valid && Array.isArray(range) && range.length >= 2) {
-          let fmin = typeof range[0] === 'number' ? range[0] : null;
-          let fmax = typeof range[1] === 'number' ? range[1] : null;
-
-          if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
-            let tmp = Math.max(fmin, fmax);
-            fmin = Math.min(fmin, fmax);
-            fmax = tmp;
-
-            value = Math.min(Math.max(value, fmin), fmax);
-          }
+        const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value = clampNumber(value, range.values.min, range.values.max);
         }
       } else {
         valid = false;
@@ -1371,17 +1412,9 @@ export const parseAsFieldType = (packet, value, modifier) => {
           min = Math.min(min, max);
           max = Math.max(min, max);
 
-          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
-            ? validation.properties.min
-            : null;
-
-          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
-            ? validation.properties.max
-            : null;
-
-          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
-            min = Math.min(Math.max(min, fMin), fMax);
-            max = Math.min(Math.max(max, fMin), fMax);
+          const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            value = clampNumber(value, range.values.min, range.values.max);
           }
 
           value = { min: Math.trunc(min), max: Math.trunc(max) };
@@ -1435,21 +1468,10 @@ export const parseAsFieldType = (packet, value, modifier) => {
           value[1] = upper;
         }
 
-        if (valid) {
-          const range = validation.range;
-          if (Array.isArray(range) && range.length >= 2) {
-            let fmin = typeof range[0] === 'number' ? range[0] : null;
-            let fmax = typeof range[1] === 'number' ? range[1] : null;
-
-            if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
-              let tmp = Math.max(fmin, fmax);
-              fmin = Math.min(fmin, fmax);
-              fmax = tmp;
-
-              value[0] = Math.min(Math.max(value[1], fmin), fmax);
-              value[1] = Math.min(Math.max(value[0], fmin), fmax);
-            }
-          }
+        const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
         }
       }
     } break;
@@ -1504,18 +1526,9 @@ export const parseAsFieldType = (packet, value, modifier) => {
       if (typeof value === 'number') {
         valid = !isNaN(value) && Number.isFinite(value);
 
-        const range = validation.range;
-        if (valid && Array.isArray(range) && range.length >= 2) {
-          let fmin = typeof range[0] === 'number' ? range[0] : null;
-          let fmax = typeof range[1] === 'number' ? range[1] : null;
-
-          if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
-            let tmp = Math.max(fmin, fmax);
-            fmin = Math.min(fmin, fmax);
-            fmax = tmp;
-
-            value = Math.min(Math.max(value, fmin), fmax);
-          }
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value = clampNumber(value, range.values.min, range.values.max);
         }
       } else {
         valid = false;
@@ -1531,17 +1544,10 @@ export const parseAsFieldType = (packet, value, modifier) => {
           min = Math.min(min, max);
           max = Math.max(min, max);
 
-          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
-            ? validation.properties.min
-            : null;
-
-          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
-            ? validation.properties.max
-            : null;
-
-          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
-            min = Math.min(Math.max(min, fMin), fMax);
-            max = Math.min(Math.max(max, fMin), fMax);
+          const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            min = clampNumber(min, range.values.min, range.values.max);
+            max = clampNumber(max, range.values.min, range.values.max);
           }
 
           value = { min, max };
@@ -1598,28 +1604,17 @@ export const parseAsFieldType = (packet, value, modifier) => {
           value[1] = upper;
         }
 
-        if (valid) {
-          const range = validation.range;
-          if (Array.isArray(range) && range.length >= 2) {
-            let fmin = typeof range[0] === 'number' ? range[0] : null;
-            let fmax = typeof range[1] === 'number' ? range[1] : null;
-
-            if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
-              let tmp = Math.max(fmin, fmax);
-              fmin = Math.min(fmin, fmax);
-              fmax = tmp;
-
-              value[0] = Math.min(Math.max(value[1], fmin), fmax);
-              value[1] = Math.min(Math.max(value[0], fmin), fmax);
-            }
-          }
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
         }
       }
     } break;
 
     case 'float_array':
     case 'decimal_array':
-    case 'numeric_range': {
+    case 'numeric_array': {
       const output = [];
       if (typeof value === 'string') {
         value = value.trim().split(',');
@@ -1688,18 +1683,9 @@ export const parseAsFieldType = (packet, value, modifier) => {
       if (typeof value === 'number') {
         valid = !isNaN(value) && Number.isFinite(value);
 
-        const range = validation.range;
-        if (valid && Array.isArray(range) && range.length >= 2) {
-          let fmin = typeof range[0] === 'number' ? range[0] : null;
-          let fmax = typeof range[1] === 'number' ? range[1] : null;
-
-          if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
-            let tmp = Math.max(fmin, fmax);
-            fmin = Math.min(fmin, fmax);
-            fmax = tmp;
-
-            value = Math.min(Math.max(value, fmin), fmax);
-          }
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value = clampNumber(value, range.values.min, range.values.max);
         }
       } else {
         valid = false;
@@ -1713,17 +1699,10 @@ export const parseAsFieldType = (packet, value, modifier) => {
           min = Math.min(min, max);
           max = Math.max(min, max);
 
-          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
-            ? validation.properties.min
-            : null;
-
-          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
-            ? validation.properties.max
-            : null;
-
-          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
-            min = Math.min(Math.max(min, fMin), fMax);
-            max = Math.min(Math.max(max, fMin), fMax);
+          const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            min = clampNumber(min, range.values.min, range.values.max);
+            max = clampNumber(max, range.values.min, range.values.max);
           }
 
           value = { min, max };
@@ -1782,19 +1761,10 @@ export const parseAsFieldType = (packet, value, modifier) => {
         }
         value = output;
 
-        const range = validation.range;
-        if (Array.isArray(range) && range.length >= 2) {
-          let fmin = typeof range[0] === 'number' ? range[0] : null;
-          let fmax = typeof range[1] === 'number' ? range[1] : null;
-
-          if (!isNullOrUndefined(fmin) && !isNullOrUndefined(fmax)) {
-            let tmp = Math.max(fmin, fmax);
-            fmin = Math.min(fmin, fmax);
-            fmax = tmp;
-
-            value[0] = Math.min(Math.max(value[1], fmin), fmax);
-            value[1] = Math.min(Math.max(value[0], fmin), fmax);
-          }
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
         }
       }
     } break;
@@ -2101,7 +2071,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
  * @return {string} the title of this field
  */
 export const tryGetFieldTitle = (field, packet) => {
-  const group = tryGetRootElement(packet.element, 'detailed-input-group');
+  const group = tryGetRootElement(packet.element, '.detailed-input-group');
   const title = !isNullOrUndefined(group) ? group.querySelector('.detailed-input-group__title') : null;
   if (!isNullOrUndefined(title)) {
     return title.innerText.trim();

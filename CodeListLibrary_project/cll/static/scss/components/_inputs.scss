@@ -71,9 +71,14 @@
   &__interface {
     @include flex-row(0.5rem, false);
     height: min-content;
+    width: 100%;
     max-width: 100%;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
+
+    @include media('<tablet', 'screen') {
+      flex-wrap: wrap-reverse;
+    }
 
     & button {
       font-weight: normal;
@@ -82,6 +87,10 @@
 
       & > .as-icon {
         margin-left: 0.5em;
+      }
+
+      &:last-child {
+        margin-left: auto;
       }
     }
   }
@@ -1064,7 +1073,7 @@
 ///        elements, e.g. a title/description/mandatory status, to communicate its
 ///        use to the user
 .detailed-input-group {
-  @include flex-col();
+  @include flex-col(false, true);
 
   max-width: 100%;
   font-family: inherit;
@@ -1165,11 +1174,17 @@
   border: 0;
   width: 100%;
 
+  &--padding0_5 {
+    padding: 0 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
   &--wrapped {
     flex-wrap: wrap;
     max-width: 100%;
 
-    @include media('<tablet', 'screen') {display: grid;
+    @include media('<tablet', 'screen') {
+      display: grid;
       grid: 1fr 1fr / 1fr 1fr;
       gap: 0.5rem 0.25rem;
       justify-items: safe;
@@ -1179,11 +1194,15 @@
         margin-right: 0 !important;
       }
     }
-  }
 
-  &--padding0_5 {
-    padding: 0 0.5rem;
-    max-width: calc(100% - 0.5rem);
+    @include media('<phone', 'screen') {
+      @include flex-row(0, false);
+      padding: 0;
+
+      & > input {
+        max-width: calc(100% - 1rem);
+      }
+    }
   }
 
   &__label {
@@ -1334,6 +1353,14 @@
       width: 100%;
     }
   }
+
+  &--grid {
+    display: grid;
+    gap: 0.25rem 0.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    align-items: flex-start;
+    justify-items: flex-start;
+  }
 }
 
 /// checkbox-item-container
@@ -1348,6 +1375,16 @@
   &.min-size {
     max-width: fit-content;
     margin-right: 0.5rem;
+  }
+  
+  &.min-gap {
+    gap: 0.5rem;
+    max-width: fit-content;
+    margin-bottom: 0;
+
+    & > label {
+      margin: 0 !important;
+    }
   }
 
   &.ignore-overflow {
@@ -2162,7 +2199,7 @@
   padding: 0;
   border: 1px solid var(--border-color, var(--border-accent));
   background: var(--bg-color, var(--background-accent));
-  box-sizing: inherit;
+  box-sizing: border-box;
 
   &:focus-visible + label {
     outline: 1px solid col(accent-dark);
@@ -2180,9 +2217,9 @@
     border: 2px solid var(--icon-accent);
     border-top: 0;
     border-left: 0;
-    left: 6px;
-    top: 2px;
-    box-sizing: inherit;
+    left: calc(50% - 5px*0.5);
+    top: calc(50% - 9px*0.5);
+    box-sizing: border-box;
   }
 
   &:before {

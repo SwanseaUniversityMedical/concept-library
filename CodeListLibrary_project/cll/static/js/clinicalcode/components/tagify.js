@@ -282,7 +282,7 @@ export default class Tagify {
     e.preventDefault();
 
     if (trg.className == 'tag__remove') {
-      this.removeTag(tryGetRootElement(trg, 'tag'));
+      this.removeTag(tryGetRootElement(trg, '.tag'));
     }
     this.field.focus();
   }
@@ -511,8 +511,9 @@ export default class Tagify {
         parameter: this.fieldName,
         template: phenotype.template.id,
       });
-  
-      const response = await fetch(
+
+      let hasWarnedClient = false;
+      const response = await fetchWithCtrl(
         `${getCurrentURL()}?` + parameters,
         {
           method: 'GET',
@@ -522,6 +523,32 @@ export default class Tagify {
             'Cache-Control': 'max-age=28800',
             'Pragma': 'max-age=28800',
           }
+        },
+        {
+          retries: 5,
+          backoff: 100,
+          onRetry: (retryCount, remainingTries) => {
+            if (!hasWarnedClient && retryCount >= 2) {
+              hasWarnedClient = true;
+              window.ToastFactory.push({
+                type: 'danger',
+                message: `We're struggling to connect to the server, if this persists you might not be able to save the form.`,
+                duration: 3500,
+              });
+            }
+          },
+          onError: (_err, _retryCount, remainingTries) => {
+            if (hasWarnedClient && remainingTries < 1) {
+              window.ToastFactory.push({
+                type: 'danger',
+                message: `We've not been able to connect to the server, please refresh the page and try again.`,
+                duration: 7000,
+              });
+            }
+
+            return true;
+          },
+          beforeAccept: (response, _retryCount, _remainingTries) => response.ok,
         }
       );
 
@@ -532,6 +559,14 @@ export default class Tagify {
       const dataset = await response.json();
       if (!(dataset instanceof Object) || Array.isArray(dataset) || !Array.isArray(dataset?.result)) {
         throw new Error(`Expected tagify init data to be an object with a result array, got ${dataset}`);
+      }
+
+      if (hasWarnedClient) {
+        window.ToastFactory.push({
+          type: 'success',
+          message: `We have reestablished a connection with the server.`,
+          duration: 2000,
+        });
       }
 
       this.options.items = dataset.result;

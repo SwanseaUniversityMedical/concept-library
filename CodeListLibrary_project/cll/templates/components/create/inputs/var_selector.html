@@ -11,7 +11,11 @@
     <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
 
-  <div class="var-selection-group" data-class="var_array" data-field="{{ component.field_name }}">
+  <div
+    class="var-selection-group"
+    data-class="var_array"
+    data-field="{{ component.field_name }}"
+  >
     {% if component.value %}
       {% to_json_script component.value data-type="value" for=component.field_name %}
     {% else %}
@@ -30,24 +34,65 @@
       <script type="application/json" data-type="properties" for="{{ component.field_name }}"></script>
     {% endif %}
 
-    <header class="var-selection-group__interface" id="var-interface">
-      {% if component.appearance and component.appearance.btn %}
+    {% if component.appearance and component.appearance.txt %}
+      {% to_json_script component.appearance.txt data-type="txt" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="txt" for="{{ component.field_name }}"></script>
+    {% endif %}
+
+    <header id="var-interface" class="var-selection-group__interface">
+      {% if component.appearance and component.appearance.clear_btn %}
+        <button
+          id="clear-btn"
+          class="primary-btn text-accent-darkest bold danger-accent"
+          data-fn="button"
+          data-area="clearBtn"
+          data-owner="var-selector"
+          data-action="clear"
+          aria-label="{{ component.appearance.clear_btn.label }}"
+        >
+          {{ component.appearance.clear_btn.label }}
+          {% if component.appearance.clear_btn.icon %}
+            <span class="as-icon" data-icon="{{ component.appearance.clear_btn.icon|safe }}" aria-hidden="true"></span>
+          {% endif %}
+        </button>
+      {% else %}
+        <button
+          id="clear-btn"
+          class="primary-btn text-accent-darkest bold danger-accent"
+          data-fn="button"
+          data-area="clearBtn"
+          data-owner="var-selector"
+          data-action="clear"
+          aria-label="Clear All {{ component.field_data.title }}"
+        >
+          Clear All
+          <span class="as-icon" data-icon="&#xf2ed;" aria-hidden="true"></span>
+        </button>
+      {% endif %}
+      {% if component.appearance and component.appearance.add_btn %}
         <button
           id="add-btn"
           class="primary-btn text-accent-darkest bold secondary-accent"
-          data-role="addBtn"
-          aria-label="{{ component.appearance.btn.label }}"
+          data-fn="button"
+          data-area="addBtn"
+          data-owner="var-selector"
+          data-action="add"
+          aria-label="{{ component.appearance.add_btn.label }}"
         >
-          {{ component.appearance.btn.label }}
-          {% if component.appearance.btn.icon %}
-            <span class="as-icon" data-icon="{{ component.appearance.btn.icon|safe }}" aria-hidden="true"></span>
+          {{ component.appearance.add_btn.label }}
+          {% if component.appearance.add_btn.icon %}
+            <span class="as-icon" data-icon="{{ component.appearance.add_btn.icon|safe }}" aria-hidden="true"></span>
           {% endif %}
         </button>
       {% else %}
         <button
           id="add-btn"
           class="primary-btn text-accent-darkest bold secondary-accent"
-          data-role="addBtn"
+          data-fn="button"
+          data-area="addBtn"
+          data-owner="var-selector"
+          data-action="add"
           aria-label="Add New {{ component.field_data.title }}"
         >
           Create New
@@ -59,7 +104,7 @@
     <section
         id="none-available"
         class="var-selection-group__none-available show"
-        data-role="noneAvailable">
+        data-area="noneAvailable">
       <p class="var-selection-group__none-available-message">
         You haven't added any {{ component.field_data.title }} yet.
       </p>
@@ -68,7 +113,7 @@
     <section
         id="var-group"
         class="var-selection-group__list"
-        data-role="contentGroup">
+        data-area="contentGroup">
       <header id="var-header" class="var-selection-group__list-header">
         <h3>
           Your {{ component.field_data.title }}
@@ -77,7 +122,7 @@
       <div
           id="var-list"
           class="var-selection-group__list-container show slim-scrollbar"
-          data-role="contentList">
+          data-area="contentList">
         
       </div>
     </section>
@@ -85,7 +130,8 @@
     <template data-name="item" data-view="vinterface">
       <div
         class="var-selection-group__item"
-        data-target="${ref}"
+        data-area="item"
+        data-ref="${ref}"
       >
         <div class="var-selection-group__item-text">
           <p>${name} (<em>${type}</em>)</p>
@@ -97,8 +143,9 @@
           tabindex="0"
           title="Edit Item"
           aria-label="Edit Item"
+          data-fn="button"
+          data-ref="${ref}"
           data-owner="var-selector"
-          data-target="${ref}"
           data-action="edit"
         >
           <span class="as-icon" data-icon="&#xf044;"></span>
@@ -109,8 +156,9 @@
           tabindex="0"
           title="Remove Item"
           aria-label="Remove Item"
+          data-fn="button"
+          data-ref="${ref}"
           data-owner="var-selector"
-          data-target="${ref}"
           data-action="remove"
         >
           <span class="as-icon" data-icon="&#xf1f8;"></span>
@@ -120,7 +168,7 @@
 
     <template data-name="panel" data-view="vinterface">
       <section class="var-selection">
-        <header class="var-selection__header" data-role="header">
+        <header class="var-selection__header" data-section="header">
           <div class="var-selection__header-group">
             <p class="var-selection__header-label">
               ${title}
@@ -139,20 +187,20 @@
         <section
             id="none-available"
             class="var-selection__none-available"
-            data-role="none">
+            data-section="none">
           <p class="var-selection-group__none-available-message">
             Please select an option.
           </p>
         </section>
         <section
           class="var-selection__content"
-          data-role="content"
+          data-section="content"
         >
 
         </section>
         <section
           class="var-selection__content"
-          data-role="prompt"
+          data-section="prompt"
         >
 
         </section>
@@ -238,8 +286,8 @@
       </div>
     </template>
 
-    <template data-name="percentrange" data-view="inputs">
-      <div class="input-field-container" data-ctrl="percentrange" data-ref="${ref}">
+    <template data-name="rangeslider" data-view="inputs">
+      <div class="input-field-container" data-ctrl="rangeslider" data-ref="${ref}">
         <p class="input-field-container__label input-field-container--fill-w">
           ${label}
           <span class="input-field-container__mandatory ${mandatory ? '' : 'hidden'}">*</span>

@@ -58,6 +58,8 @@
 
   @include media('<tablet', 'screen') {
     padding: 0.5rem 1rem;
+    text-wrap: wrap;
+    word-wrap: break-word;
   }
   
   &:not(:disabled):active {
@@ -232,6 +234,8 @@
 
   @include media('<tablet', 'screen') {
     padding: 0.5rem 1rem;
+    text-wrap: wrap;
+    word-wrap: break-word;
   }
 
   &:focus-visible {
@@ -401,6 +405,8 @@
 
   @include media('<tablet', 'screen') {
     padding: 0.5rem 1rem;
+    text-wrap: wrap;
+    word-wrap: break-word;
   }
 
   &:disabled {

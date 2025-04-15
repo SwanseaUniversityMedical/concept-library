@@ -32,7 +32,7 @@ export default class DoubleRangeSlider {
     this.dirty = false;
 
     this.data = data;
-    this.data.properties = DoubleRangeSlider.ComputeProperties(this.data.properties);
+    this.data.properties = DoubleRangeSlider.ComputeProperties(this.data?.properties);
 
     this.#initialise();
   }
@@ -46,6 +46,8 @@ export default class DoubleRangeSlider {
    * @returns {Record<string, string|number>} the resulting range props
    */
   static ComputeProperties(props) {
+    props = isObjectType(props) ? props : { };
+
     let valueType = props?.type;
     let valueStep = typeof props?.step === 'string' ? Number(props?.step) : props.step;
 
@@ -208,8 +210,8 @@ export default class DoubleRangeSlider {
       vmax = Math.round(vmax * m) / m;
     }
 
-    value.min = Math.min(Math.max(vmin, min), max);
-    value.max = Math.min(Math.max(vmax, min), max);
+    value.min = clampNumber(vmin, min, max);
+    value.max = clampNumber(vmax, min, max);
     this.value = value;
 
     this.elements.inputs.min.value = value.min;

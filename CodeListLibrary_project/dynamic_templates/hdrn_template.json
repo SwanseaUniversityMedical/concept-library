@@ -270,12 +270,15 @@
           "5": "Non-binary persons",
           "6": "N/A"
         },
-        "properties": [
-          {
-            "when": "6",
-            "result": "deselect"
-          }
-        ]
+        "properties": {
+          "none_selector": "6",
+          "groups": [
+            {
+              "when": "6",
+              "result": "deselect"
+            }
+          ]
+        }
       },
       "search": {
         "api": true
@@ -305,12 +308,15 @@
           "13": "Mixed/Other",
           "14": "N/A"
         },
-        "properties": [
-          {
-            "when": "14",
-            "result": "deselect"
-          }
-        ]
+        "properties": {
+          "none_selector": "14",
+          "groups": [
+            {
+              "when": "14",
+              "result": "deselect"
+            }
+          ]
+        }
       },
       "search": {
         "api": true
