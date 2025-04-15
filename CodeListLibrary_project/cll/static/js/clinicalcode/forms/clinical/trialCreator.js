@@ -61,7 +61,7 @@ const TRIAL_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-
  *       and its interpolable targets
  *
  */
-const TRIAL_LINK_ELEMENT = '<a href="${link}" data-shrinkreplace="Trial Link" data-shrinkcontent="true" aria-label="Trial Link"></a>';
+const TRIAL_LINK_ELEMENT = '<a href="${link}" data-shrinkreplace="Trial Link" data-shrinkcontent="true" aria-label="Trial Link" target=_blank rel="noopener"></a>';
 
 /**
  * TRIAL_NOTIFICATIONS

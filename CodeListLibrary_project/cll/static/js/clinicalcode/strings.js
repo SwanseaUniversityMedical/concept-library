@@ -51,6 +51,28 @@ window.interpolateString = (str, params, noSanitise) => {
 }
 
 /**
+ * pyFormat
+ * @desc interpolates a str in a similar fashion to python
+ * @note does not support operators
+ * 
+ * @param {string}           str              the string to be formatted
+ * @param {Record<any, any>} params           the parameter lookup
+ * @param {boolean}          [sanitise=false] optionally specify whether to sanitise the output; defaults to `false`  
+ * 
+ * @returns {string} the resulting format string
+ */
+window.pyFormat = (str, params, sanitise = false) => {
+  return str.replace(/{([^{}]+)}/g, (_, param) => {
+    let value = param.split('.').reduce((res, x) => res[x], params);
+    if (sanitise && typeof value === 'string') {
+      value = DOMPurify.sanitize(x);
+    }
+
+    return value;
+  });
+}
+
+/**
  * parseHTMLFromString
  * @desc given a string of HTML, will return a parsed DOM
  * 

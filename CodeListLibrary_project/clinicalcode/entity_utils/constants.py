@@ -982,9 +982,31 @@ FIELD_TYPES = {
                 'single': 'Validation Measure',
                 'plural': 'Validation Measures'
             },
-            'btn': {
+            'add_btn': {
                 'label': 'Create new Measure',
                 'icon': '&#xf1ec;',
+            },
+            'clear_btn': {
+                'label': 'Clear all Measures',
+                'icon': '&#xf2ed;',
+            }
+        },
+    },
+    'srv_list': {
+        'input_type': 'var_selector',
+        'output_type': 'var_selector',
+        'appearance': {
+            'txt': {
+                'single': 'Variable',
+                'plural': 'Variables'
+            },
+            'add_btn': {
+                'label': 'Create new Variable',
+                'icon': '&#xf698;',
+            },
+            'clear_btn': {
+                'label': 'Clear all Variables',
+                'icon': '&#xf2ed;',
             }
         },
     },

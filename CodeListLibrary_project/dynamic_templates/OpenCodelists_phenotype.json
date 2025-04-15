@@ -150,8 +150,7 @@
       "active": true,
       "validation": {
         "type": "string",
-        "mandatory": false,
-        "length": [0, 250]
+        "mandatory": false
       },
       "hide_if_empty": true
     },

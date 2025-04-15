@@ -75,6 +75,161 @@ const
 /* UTILITIES */
 
 /**
+ * clampNumber
+ * @desc clamps a number within the given range
+ *
+ * @param {number} value some value to clamp
+ * @param {number} min   lower lim of the range
+ * @param {number} max   upper lim of the range
+ *
+ * @return {number} the resultant value clamped within the specified range
+ */
+const clampNumber = (value, min, max) => {
+  return Math.min(Math.max(value, min), max);
+}
+
+/**
+ * fetchWithCtrl
+ * @desc an async fetch with extended functionality 
+ * 
+ * @example
+ * const params = new URLSearchParams({ someQueryParams: '...' });
+ * fetchwithCtrl(
+ *  '/some/target/url/' + params,
+ *  { method: 'GET', headers: { 'Cache-Control': 'max-age=28800' } },
+ *  {
+ *    timeout: 10,
+ *    retries: 3,
+ *    backoff: 50,
+ *    onRetry: (retryCount, remainingTries) => {
+ *      console.log('Retrying request, on attempt:', retryCount);
+ *    },
+ *    onError: (err, retryCount) => {
+ *      if (!!err && err instanceof Error && err.message == '...') {
+ *        // Ignore the error and continue retrying (if retries are available)
+ *        return true;
+ *      }
+ * 
+ *      // Raise the error
+ *      return false;
+ *    },
+ *    beforeAccept: (response, retryCount) => {
+ *      if (!response.ok) {
+ *        // Ignore this response & continue retrying (if retries are available)
+ *        return false;
+ *      }
+ * 
+ *      // Accept this result
+ *      return true;
+ *    },
+ *  }
+ * )
+ *  .then(res => res.json())
+ *  .then(console.log)
+ *  .catch(console.error);
+ * 
+ * @param {string}      url                   the URL to fetch
+ * @param {RequestInit} opts                  the fetch request init options
+ * @param {object}      param2                optionally specify parameters used to control the fetch request behaviour
+ * @param {number}      [param2.retries=1]    optionally specify the number of times to retry the request; defaults to `1`
+ * @param {number}      [param2.backoff=50]   optionally specify whether to the backoff factor - given a `null` value the backoff will be ignored; defaults to `50`
+ * @param {number}      [param2.timeout]      optionally specify the maximum timeout period in seconds
+ * @param {Function}    [param2.onRetry]      optionally specify a callback to perform an action on each retry attempt
+ * @param {Function}    [param2.onError]      optionally specify a predicate to examine errors between retries where returning a truthy value will continue the request retries
+ * @param {Function}    [param2.beforeAccept] optionally specify a predicate to examine the result of the retry before it is accepted and resolved, returning a truthy value will accept the response
+ * 
+ * @returns {Promise<Response>} a promise containing the request response
+ */
+const fetchWithCtrl = async (
+  url,
+  opts,
+  {
+    retries      = 1,
+    backoff      = 50,
+    timeout      = undefined,
+    onRetry      = undefined,
+    onError      = undefined,
+    beforeAccept = undefined,
+  } = {}
+) => {
+  let ref = null;
+  let response = null;
+  let controller = null;
+  let remainingTries = null;
+
+  const hasTimeout = typeof timeout === 'number' && timeout > 0;
+  const hasBackoff = typeof backoff === 'number' && backoff > 0;
+  retries = (typeof retries === 'number' && retries > 0) ? retries : 1;
+
+  onRetry = typeof onRetry === 'function' ? onRetry : null;
+  onError = typeof onError === 'function' ? onError : null;
+  beforeAccept = typeof beforeAccept === 'function' ? beforeAccept : null;
+
+  const clearAbortTimer = () => {
+    if (ref !== null) {
+      clearTimeout(ref);
+    }
+
+    return ref = null;
+  };
+
+  for (let i = 0; i < retries; ++i) {
+    remainingTries = retries - i - 1;
+
+    if (onRetry) {
+      Promise
+        .try(onRetry, i, remainingTries)
+        .catch(console.error);
+    }
+
+    try {
+      if (hasTimeout) {
+        controller = new AbortController();
+        ref = setTimeout(_ => controller.abort(), timeout*1000);
+      }
+
+      response = await fetch(
+        url,
+        hasTimeout
+          ? { ...opts, signal: controller.signal }
+          : opts
+      );
+      ref = clearAbortTimer();
+
+      if (beforeAccept) {
+        const pred = await Promise.resolve(beforeAccept(response, i, remainingTries));
+        if (pred || remainingTries < 1) {
+          return response;
+        }
+      }
+    } catch (err) {
+      ref = clearAbortTimer();
+
+      if (!(err instanceof DOMException)) {
+        if (onError) {
+          const pred = await Promise.resolve(onError(err, i, remainingTries));
+          if (!pred || remainingTries < 1) {
+            throw err;
+          }
+        }
+      }
+    }
+
+    if (hasBackoff && remainingTries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 2**retries*backoff));
+    }
+  }
+
+  if (hasTimeout && retries > 1) {
+    throw new Error(`Failed request after ${retries}, none finished within the timeout period of ${timeout}s`);
+  } else if (hasTimeout) {
+    throw new Error(`Failed request as it did not resolve within ${timeout}s`);
+  }
+
+  throw new Error(`Failed to resolve request with no known errors`);
+}
+
+/**
  * getObjectClassName
  * @desc derives the given object's classname
  * @param {any} val the value to examine
@@ -339,6 +494,23 @@ const getTransitionMethod = () => {
 }
 
 /**
+ * fireChangedEvent
+ * @desc attempts to fire the changed event for a particular DOM element
+ * 
+ * @param {HTMLElement} elem
+ */
+const fireChangedEvent = (elem) => {
+  if ('createEvent' in document) {
+    const evt = document.createEvent('HTMLEvents');
+    evt.initEvent('change', false, true);
+    elem.dispatchEvent(evt);
+    return;
+  }
+
+  elem.fireEvent('onchange');
+}
+
+/**
  * @desc attempts to parse the global listener key
  * 
  * @param {string} key the desired global listener key name
@@ -578,7 +750,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
         case 'data':
         case 'dataset': {
           for (const key in attr) {
-            if (typeof key !== 'string' || typeof key !== 'number') {
+            if (typeof key !== 'string' && typeof key !== 'number') {
               console.error(`[createElement->${name}] Failed to append 'data-*' attr, expected key as String|Number but got ${typeof key}`);
               continue;
             }
@@ -602,7 +774,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
 
         case 'attributes': {
           for (const key in attr) {
-            if (typeof key !== 'string' || typeof key !== 'number') {
+            if (typeof key !== 'string' && typeof key !== 'number') {
               console.error(`[createElement->${name}] Failed to append an attribute, expected key as String|Number but got ${typeof key}`);
               continue;
             }
@@ -695,12 +867,14 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
 
         case 'parent': {
           if (isObjectType(element) && typeof attr.insert === 'string' && !isNullOrUndefined(attr.element)) {
-            const insert = (typeof attr.insert === 'string' && !!attr.insert.match(/\b(append|prepend)/i))
+            const insert = (typeof attr.insert === 'string' && !!attr.insert.match(/\b(append|prepend|insertbefore)/i))
               ? attr.insert.trim().toLowerCase()
               : 'append';
 
             if (insert === 'prepend') {
               attr.prepend(attr.element);
+            } else if (insert === 'insertbefore') {
+              attr.element.parentElement.insertBefore(element, attr.element);
             } else if (insert === 'append') {
               attr.appendChild(attr.element);
             }
@@ -716,7 +890,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
         default: {
           if (name.startsWith('on') && typeof attr === 'function') {
             element.addEventListener(name.substring(2), attr);
-          } else if (!element.hasOwnProperty(name) || name.startsWith('data-')) {
+          } else if ((!element.hasOwnProperty(name) && isNullOrUndefined(element[name])) || name.startsWith('data-')) {
             element.setAttribute(name, ustrSanitise('value', attr));
           } else {
             element[name] = ustrSanitise('value', attr);
@@ -969,10 +1143,26 @@ const stringHasChars = (value) => typeof value === 'string' && value.length && v
  * @param {fn} cond conditional to determine fate of elem
  */
 const clearAllChildren = (element, cond) => {
-  for (const [index, child] of Object.entries(element.children)) {
-    if (child.nodeType == 1 && cond && cond(child)) {
+  let child;
+  if (!!cond && typeof cond !== 'function') {
+    cond = null;
+    console.warn(`[utils->clearAllChildren] Condition has been ignored, expected a function but got a "${typeof cond}"`);
+  }
+
+  if (!cond) {
+    while (element.firstChild) {
+      element.removeChild(element.lastChild);
+    }
+  }
+
+  const children = element.children;
+  for (let i = 0; i < children.length; ++i) {
+    child = children[i];
+
+    if (child.nodeType === Node.ELEMENT_NODE && cond(child)) {
       continue;
     }
+
     element.removeChild(child);
   }
 }
@@ -1082,7 +1272,17 @@ const transformTitleCase = (str) => {
  * @returns {string} the resultant, transformed string
  */
 const transformCamelCase = (str) => {
-  return str.toLowerCase().replace(/([-_][a-z])/g, group => group.toUpperCase().replace('-', '').replace('_', ''));
+  return str.toLowerCase().replace(/([-_\s][a-z])/g, group => group.toUpperCase()).replace(/[-_\s]/gm, '');
+}
+
+/**
+ * transformSnakeCase
+ * @desc transforms a string to snake_case
+ * @param {string} str the string to transform
+ * @returns {string} the resultant, transformed string
+ */
+const transformSnakeCase = (str) => {
+  return str.toLowerCase().replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/([-_\s])/g, '_');
 }
 
 /**
@@ -1094,18 +1294,18 @@ const transformCamelCase = (str) => {
  * @param {string} expectedClass the expected class name 
  * @return {node|none} the parent element, if found
  */
-const tryGetRootElement = (item, expectedClass) => {
+const tryGetRootElement = (item, selector) => {
   if (isNullOrUndefined(item)) {
     return null;
   }
 
-  if (item.classList.contains(expectedClass)) {
+  if (item.nodeType === Node.ELEMENT_NODE && item.matches(selector)) {
     return item;
   }
 
-  while (!isNullOrUndefined(item.parentNode) && item.parentNode.classList) {
+  while (!isNullOrUndefined(item?.parentNode) && item?.nodeType === Node.ELEMENT_NODE) {
     item = item.parentNode;
-    if (item.classList.contains(expectedClass)) {
+    if (item?.matches?.(selector)) {
       return item;
     }
   }
@@ -1823,20 +2023,20 @@ const isHtmlObject = (obj, desiredType = 'Any') => {
     case 'node': {
       condition = typeof Node === 'object'
         ? obj instanceof Node
-        : typeof obj === 'object' && typeof obj.nodeType === 'number' && obj.nodeType !== 3 && typeof obj.nodeName === 'string';
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && obj.nodeType !== Node.TEXT_NODE && typeof obj.nodeName === 'string';
     } break;
 
     case 'element': {
       condition = typeof HTMLElement === 'object'
         ? obj instanceof HTMLElement
-        : typeof obj === 'object' && obj.nodeType === 1 && typeof obj.nodeName === 'string';
+        : typeof obj === 'object' && obj.nodeType === Node.ELEMENT_NODE && typeof obj.nodeName === 'string';
     } break;
 
     case 'any':
     default: {
       condition = (typeof Node === 'object' && typeof HTMLElement === 'object')
         ? (obj instanceof Node || obj instanceof HTMLElement)
-        : typeof obj === 'object' && typeof obj.nodeType === 'number' && obj.nodeType !== 3 && typeof obj.nodeName === 'string';
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && obj.nodeType !== Node.TEXT_NODE && typeof obj.nodeName === 'string';
     } break;
   }
 

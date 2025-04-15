@@ -933,7 +933,6 @@ def try_value_as_type(
                 else None
 
             pattern = validation.get('regex') if isinstance(pattern, (list, str, Pattern)) else None
-
             sanitiser = validation.get('sanitise') if isinstance(validation.get('sanitise'), str) else None
 
         for val in field_value:

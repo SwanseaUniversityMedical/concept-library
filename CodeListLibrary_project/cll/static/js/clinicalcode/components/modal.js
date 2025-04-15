@@ -102,7 +102,7 @@ class CancellablePromise {
  * 
  */
 class ModalResult {
-  constructor(name, type, data) {
+  constructor(name, type = PROMPT_BUTTON_TYPES.REJECT, data = null) {
     this.name = name;
     this.type = type;
     this.data = data;
@@ -176,7 +176,42 @@ class ModalFactory {
   ModalResults = ModalResult;
 
   constructor() {
-    this.modal = null;
+    this.modals = { };
+
+    document.addEventListener('keyup', (e) => {
+      let modal = Object.values(this.modals)
+        .filter(x => !!x.escape)
+        .sort((a, b) => {
+          const d0 = a?.timestamp || 0;
+          const d1 = b?.timestamp || 0;
+          return d0 > d1 ? -1 : (d0 < d1 ? 1 : 0);
+        })
+        .shift();
+
+      if (isObjectType(modal)) {
+        modal.escape(e);
+      }
+    });
+  }
+
+  /** 
+   * @param {string|null} [ref=null] optionally specify the modal ref name
+   * 
+   * @returns {object|null} either (a) the base modal descriptor, or (b) the modal by the specified name if provided 
+   */
+  getModal(ref = null) {
+    let state = this.modals;
+    if (typeof ref === 'string') {
+      state = state[ref];
+    } else {
+      state = state.__base;
+    }
+
+    if (!isObjectType(state)) {
+      return null;
+    }
+
+    return state;
   }
 
   /**
@@ -195,13 +230,14 @@ class ModalFactory {
    */
   create(options) {
     options = isObjectType(options) ? options : { };
-    this.closeCurrentModal();
+
+    const modalRef = stringHasChars(options.ref) ? options.ref : '__base';
+    this.closeCurrentModal(modalRef);
 
     try {
       options = mergeObjects(options, PROMPT_DEFAULT_PARAMS);
 
       const { id, title, content, showFooter, buttons, size } = options;
-    
       const html = interpolateString(PROMPT_DEFAULT_CONTAINER, {
         id: id,
         size: size,
@@ -209,6 +245,7 @@ class ModalFactory {
         content: content,
       });
 
+      const modalState = { };
       const doc = parseHTMLFromString(html, true);
       const currentHeight = window.scrollY;
       const modal = document.body.appendChild(doc[0]);
@@ -232,7 +269,7 @@ class ModalFactory {
           item = footer.appendChild(item[0]);
           item.innerText = button.name;
           item.setAttribute('aria-label', button.name);
-  
+
           footerButtons.push({
             name: button.name,
             type: button.type,
@@ -241,17 +278,18 @@ class ModalFactory {
         }
       }
 
-      const modalState = {};
       let escapeHnd, closeModal, spinner;
       closeModal = (method, details) => {
-        document.removeEventListener('keyup', escapeHnd);
+        delete this.modals[modalRef];
 
-        document.body.classList.remove('modal-open');
-        window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
-        modal.remove();
-        history.pushState('', document.title, window.location.pathname + window.location.search);
-
-        this.modal = null;
+        if (Object.values(this.modals).length > 0) {
+          modal.remove();
+        } else {
+          document.body.classList.remove('modal-open');
+          window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
+          modal.remove();
+          history.pushState('', document.title, window.location.pathname + window.location.search);
+        }
         modalState.isActioning = false;
 
         if (!isNullOrUndefined(spinner)) {
@@ -290,12 +328,16 @@ class ModalFactory {
                       spinner = startLoadingSpinner();
                     }
                   }
-  
+
                   closure = Promise.resolve(options.beforeAccept(modal));
                 }
 
                 closure
                   .then(data => {
+                    if (!!data && data instanceof ModalResult && data.name === 'Cancel') {
+                      return;
+                    }
+
                     closeModal(resolve, Object.assign({}, btn, { data }));
                   })
                   .catch(e => {
@@ -346,18 +388,17 @@ class ModalFactory {
           if (!!activeFocusElem && activeFocusElem.matches('input, textarea, button, select')) {
             return;
           }
-  
+
           if (e.code === 'Escape') {
             modalState.isActioning = true;
             closeModal(reject);
           }
         };
-        document.addEventListener('keyup', escapeHnd);
 
         // Show the modal
         createElement('a', { href: `#${options.id}` }).click();
         window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
-    
+
         // Inform screen readers of alert
         modal.setAttribute('aria-hidden', false);
         modal.setAttribute('role', 'alert');
@@ -372,10 +413,12 @@ class ModalFactory {
       });
 
       modalState.close = closeModal;
+      modalState.escape = escapeHnd;
       modalState.element = modal;
       modalState.promise = promise;
+      modalState.timestamp = Date.now();
       modalState.isActioning = false;
-      this.modal = modalState;
+      this.modals[modalRef] = modalState;
 
       return promise;
     }
@@ -386,12 +429,19 @@ class ModalFactory {
 
   /**
    * closeCurrentModal
-   * @desc closes the current modal and resolves its associated
-   *       promise
+   * @desc closes the current modal and resolves its associated promise
+   * 
+   * @param {string|null} [ref=null] optionally specify the modal ref name
    * 
    */
-  closeCurrentModal() {
-    const state = this.modal;
+  closeCurrentModal(ref = null) {
+    let state = this.modals;
+    if (typeof ref === 'string') {
+      state = state[ref];
+    } else {
+      state = state.__base;
+    }
+
     if (!isObjectType(state)) {
       return;
     }

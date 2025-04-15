@@ -80,8 +80,21 @@ export default class ListEnum {
    */
   #initialise() {
     // Build renderables
-    for (let i = 0; i < this.data?.options.length; ++i) {
-      const option = this.data?.options[i];
+    let opts = Array.isArray(this?.data?.options) ? this.data.options : [];
+    opts = opts.sort((a, b) => a.name.localeCompare(b.name));
+    this.data.options = opts;
+
+    let noneSelector = this?.data?.properties?.none_selector;
+    if (!isNullOrUndefined(noneSelector)) {
+      const idx = opts.findIndex(x => x?.value === noneSelector);
+      if (idx >= 0) {
+        noneSelector = opts.splice(idx, 1)[0];
+        opts.push(noneSelector);
+      }
+    }
+
+    for (let i = 0; i < opts.length; ++i) {
+      const option = opts[i];
       const item = this.#createCheckbox(
         `${option.name}-${option.value}`,
         option.name,
@@ -123,7 +136,7 @@ export default class ListEnum {
     let selectedValues = selected.map(x => x?.value);
 
     let deselectExcept = null;
-    let properties = this.data?.properties;
+    let properties = this.data?.properties?.groups;
     if (!isNullOrUndefined(properties)) {
       for (let i = 0; i < properties.length; ++i) {
         let group = properties[i];
@@ -196,7 +209,7 @@ export default class ListEnum {
    * @returns {node} a checkbox element
    */
   #createCheckbox(id, title, value) {
-    const html = `<div class="checkbox-item-container min-size">
+    const html = `<div class="checkbox-item-container min-gap">
       <input id="${id}" aria-label="${title}" type="checkbox" class="checkbox-item" data-value="${value}" data-name="${title}"/>
       <label for="${id}">${title}</label>
     </div>`

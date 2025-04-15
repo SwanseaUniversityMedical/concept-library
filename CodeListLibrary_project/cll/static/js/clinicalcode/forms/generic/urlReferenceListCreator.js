@@ -89,7 +89,7 @@ export default class UrlReferenceListCreator {
     return `
     <div class="publication-list-group__list-item" data-target="${index}">
       <div class="publication-list-group__list-item-url">
-        <a href="${listItem.url}">${listItem.title}</a>
+        <a href="${listItem.url}" target=_blank rel="noopener">${listItem.title}</a>
       </div>
       <button class="publication-list-group__list-item-btn" data-target="${index}">
         <span class="delete-icon"></span>
