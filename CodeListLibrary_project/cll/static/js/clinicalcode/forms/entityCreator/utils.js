@@ -1197,7 +1197,6 @@ export const ENTITY_FIELD_COLLECTOR = {
         length = 0;
     Object.entries(handler.elements).forEach(([role, editor]) => {
       const content = editor.value();
-      console.log(content);
 
       values[role] = typeof content === 'string' ? strictSanitiseString(content) : '';
       if (!stringHasChars(values[role])) {

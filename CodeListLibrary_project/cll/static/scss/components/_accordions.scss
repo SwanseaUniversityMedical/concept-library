@@ -253,6 +253,16 @@
         -webkit-filter: invert(1) contrast(200%);
       }
     }
+
+    &--slim {
+      & .fill-accordion__wrap-label {
+        padding: 0.5rem 1ch;
+      }
+
+      & .fill-accordion__label-icon {
+        padding: 0.5rem 0;
+      }
+    }
   }
 
   &__container {

@@ -533,8 +533,8 @@
   white-space: nowrap;
   vertical-align: middle;
   border-radius: 10px;
-  color: #3C3C3B;
-  background-color: rgba(208, 211, 212, 0.5);
+  color: col(text-darkest);
+  background-color: col(accent-tertiary);
 }
 
 .label {
