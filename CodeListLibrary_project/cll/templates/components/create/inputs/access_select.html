@@ -12,13 +12,13 @@
     <input class="radio-input" data-value="1" aria-label="No Access" type="radio" id="{{ component.field_name }}-1"
       name="entity-radio-{{ component.field_name }}" {% if component.value == 1 or not component.value %} checked {% endif %}>
     <label for="{{ component.field_name }}-1">
-      Hide from Public
+      Hide
     </label>
 
     <input class="radio-input" data-value="2"  aria-label="View Access" type="radio" id="{{ component.field_name }}-2"
       name="entity-radio-{{ component.field_name }}" {% if component.value == 2 %} checked {% endif %}>
     <label for="{{ component.field_name }}-2">
-      Allow Public Access
+      Share with other organisations
     </label>
   </fieldset>
 </div>
