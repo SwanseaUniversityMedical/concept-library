@@ -45,7 +45,7 @@ const tryCleanCodingItem = (val, row, col) => {
     return;
   }
 
-  return strictSanitiseString(val.replace(/^\s+|\s+$/gm, ''));
+  return strictSanitiseString(val.toString().replace(/^\s+|\s+$/gm, ''));
 }
 
 /**
@@ -119,6 +119,14 @@ const tryParseCodingExcelFile = (file) => {
     content = tryCleanCodingFile(content);
     return content;
   })
+  .catch(error => {
+    console.error(`Failed to retrieve codes from file: ${error})`);
+    window.ToastFactory.push({
+      type: 'error',
+      message: `Failed to retrieve codes from file: ${error})`,
+      duration: 4000,
+    });
+  });
 }
 
 /**
