@@ -634,7 +634,7 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
 
     query = None
     if field_type == 'int' or field_type == 'enum':
-        if 'options' in validation or 'source' in validation:
+        if not validation.get('ugc', False) and ('options' in validation or 'source' in validation):
             data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None ]
 
             if is_dynamic:

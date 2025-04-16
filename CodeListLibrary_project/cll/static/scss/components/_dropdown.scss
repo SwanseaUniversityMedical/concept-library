@@ -729,12 +729,168 @@
     list-style: none;
     transition: none;
     max-height: 100px;
-    overflow-y: scroll;
+    overflow-y: auto;
     z-index: 999;
     background-color: col(bg);
 
     &.hidden {
       display: none !important;
+    }
+  }
+}
+
+
+/// entity dropdown search selector
+/// @desc Primarily used for create page; specifically for selecting related entities
+/// @example see `related_entities.html` 
+/// 
+.entity-dropdown {
+  display: flex;
+  position: relative;
+  width: 100%;
+  min-width: 100px;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0.5rem 0;
+  box-sizing: border-box;
+
+  &__input {
+    display: block;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    line-height: 1.5em;
+    resize: none;
+    border: 1px solid col(accent-dark);
+    border-radius: 2pt;
+    background-color: col(bg);
+    box-sizing: border-box;
+  }
+
+  &__results {
+    @include flex-col(false, true);
+    position: absolute;
+    width: 100%;
+    height: fit-content;
+    max-width: 100%;
+    max-height: 100px;
+    top: calc(100% - 1px);
+    left: 0;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid col(accent-dark);
+    border-radius: 2pt;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    background-color: col(bg);
+    z-index: 999;
+    box-sizing: border-box;
+  }
+
+  &__infobox {
+    @include flex-col(false, true);
+    width: 100%;
+    max-width: 100%;
+    height: fit-content;
+    background-color: transparent;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    color: col(text-darker);
+    border-bottom: 1px dashed col(accent-highlight);
+    text-wrap: wrap;
+    word-break: break-all;
+    word-wrap: break-word;
+    box-sizing: border-box;
+
+    &:not(.entity-dropdown__infobox--show) {
+      display: none;
+    }
+
+    &-details {
+      @include flex-row(false, false);
+      width: 100%;
+      max-width: 100%;
+      background-color: transparent;
+      box-sizing: border-box;
+    }
+
+    &-label {
+      width: 100%;
+      max-width: 100%;
+      text-align: center;
+    }
+
+    & p,
+    & a {
+      margin: 0;
+    }
+  }
+
+  &__item {
+    @include flex-row(false, false);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.5rem;
+    text-wrap: wrap;
+    word-wrap: break-word;
+    word-break: break-all;
+    text-align: left;
+    box-sizing: border-box;
+    border: 0;
+    outline: 0;
+    color: col(text-darkest);
+    background-color: transparent;
+    box-sizing: border-box;
+
+    &:not(:disabled) {
+      &:active {
+        filter: saturate(0.5);
+      }
+
+      &:hover,
+      &:focus,
+      &:focus-within,
+      &:focus-visible,
+      &[aria-selected="true"] {
+        outline: 1px solid col(accent-anchor);
+        color: col(text-brightest);
+        background-color: col(accent-highlight);
+      }
+    }
+
+    &-label {
+      pointer-events: none;
+      display: -webkit-box;
+      width: max-content;
+      max-width: 100%;
+      margin-top: auto;
+      margin-bottom: auto;
+      line-clamp: 2;
+      -webkit-line-clamp: 2;
+      -moz-box-orient: vertical;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-sizing: border-box;
+    }
+  }
+
+  &[aria-expanded="true"] {
+    & .entity-dropdown__results {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  &[aria-expanded="false"] {
+    & .entity-dropdown__results {
+      display: none;
+      visibility: collapse;
     }
   }
 }

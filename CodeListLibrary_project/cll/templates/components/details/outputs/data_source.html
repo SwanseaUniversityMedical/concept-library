@@ -13,6 +13,12 @@
                   {{ ds.name }}
                 </a>
               </div>
+            {% elif ds.link|length %}
+              <div class="chip bold primary-accent text-accent-darkest">
+                <a href="{{ ds.link }}" target="_blank" rel="noopener" class="chip-text no-icon">
+                  {{ ds.name }}
+                </a>
+              </div>
             {% else %}
               <div class="chip bold primary-accent text-accent-darkest" disabled>
                 <a target="_blank" rel="noopener noreferrer" class="chip-text no-icon" aria-disabled="true" disabled>

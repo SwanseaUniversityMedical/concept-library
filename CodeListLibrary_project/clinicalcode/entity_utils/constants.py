@@ -178,6 +178,11 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
 INVITE_TIMEOUT = 30
 
 """
+    Describes a set of names representing a float/double-like numeric value
+"""
+NUMERIC_NAMES = ['float', 'numeric', 'decimal', 'percentage']
+
+"""
     Used to define the labels for each
     known ontology type
 
@@ -981,7 +986,7 @@ FIELD_TYPES = {
         'appearance': {
             'txt': {
                 'single': 'Validation Measure',
-                'plural': 'Validation Measures'
+                'plural': 'Validation Measures',
             },
             'add_btn': {
                 'label': 'Create new Measure',
@@ -990,7 +995,7 @@ FIELD_TYPES = {
             'clear_btn': {
                 'label': 'Clear all Measures',
                 'icon': '&#xf2ed;',
-            }
+            },
         },
     },
     'srv_list': {
@@ -999,7 +1004,7 @@ FIELD_TYPES = {
         'appearance': {
             'txt': {
                 'single': 'Variable',
-                'plural': 'Variables'
+                'plural': 'Variables',
             },
             'add_btn': {
                 'label': 'Create new Variable',
@@ -1008,11 +1013,15 @@ FIELD_TYPES = {
             'clear_btn': {
                 'label': 'Clear all Variables',
                 'icon': '&#xf2ed;',
-            }
+            },
         },
     },
     'indicator_calculation': {
         'input_type': 'indicator_calculation',
-        'output_type': 'indicator_calculation'
+        'output_type': 'indicator_calculation',
+    },
+    'related_entities': {
+        'input_type': 'related_entities',
+        'output_type': 'related_entities',
     },
 }

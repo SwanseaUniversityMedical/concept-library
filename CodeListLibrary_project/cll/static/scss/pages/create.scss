@@ -526,3 +526,159 @@
     color: col(accent-danger);
   }
 }
+
+.entity-selector-group {
+  @include flex-col(0.5rem, true);
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: fit-content;
+  margin-bottom: 0.5rem;
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__list {
+    @include flex-col(0.5rem, true);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+
+    &:not(.show) {
+      display: none;
+    }
+
+    &-header {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      border-bottom: 1px solid col(accent-dark);
+
+      h3 {
+        padding: 0;
+      }
+    }
+
+    &-container {
+      @include flex-col(0.5rem, true);
+      position: relative;
+      width: 100%;
+      max-width: calc(100% - 0.5rem);
+      max-height: 200px;
+      padding: 0.5rem;
+      overflow-y: auto;
+      overflow-x: none;
+    }
+  }
+
+  &__item {
+    @include flex-row(0.5rem, false);
+    max-width: calc(100% - 0.5rem);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+
+    & p {
+      margin: 0;
+    }
+
+    &-text {
+      flex: 1;
+      max-width: 100%;
+
+      & p {
+        text-wrap: wrap;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+
+      & a {
+        text-wrap: wrap;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+
+      @include media("<tablet", "screen") {
+        flex: 1;
+        min-width: 100%;
+
+        & p {
+          width: fit-content;
+        }
+      }
+    }
+
+    &-btn {
+      @include flex-row();
+      @include prefix(transition, all 250ms ease, webkit moz o ms);
+      cursor: pointer;
+      pointer-events: auto;
+      flex-wrap: nowrap;
+      width: fit-content;
+      height: fit-content;
+      padding: 0.5rem 0.5rem;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+      align-items: center;
+      justify-content: space-evenly;
+      color: col(text-brightest);
+      border-radius: 0.25rem;
+      border: none;
+      outline: none;
+
+      & > .as-icon {
+        pointer-events: none;
+      }
+
+      &[data-action="remove"] {
+        background-color: col(accent-danger);
+      }
+
+      & > span {
+        font-weight: bold;
+        pointer-events: none;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+
+      &:focus-visible {
+        outline: 1px solid col(accent-dark);
+        border-radius: 2pt;
+      }
+
+      &:focus {
+        outline: none;
+        border-radius: 0.25rem;
+      }
+
+      &:hover {
+        @include prefix(filter, brightness(80%), webkit moz o ms);
+      }
+
+      &:active {
+        @include prefix(transform, scale(0.95), webkit moz o ms);
+      }
+
+      &:not(:last-child) {
+        margin-left: auto;
+      }
+    }
+
+    &:not(:last-child) {
+      border-bottom: 1px solid col(accent-washed);
+    }
+  }
+}

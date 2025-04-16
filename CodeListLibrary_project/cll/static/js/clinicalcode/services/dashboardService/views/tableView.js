@@ -120,7 +120,7 @@ export class TableView {
     const templates = this.#templates;
 
     let parameters = this.#queryState;
-    if (parameters instanceof URLSearchParams) {
+    if (!!parameters && parameters instanceof URLSearchParams) {
       parameters = '?' + parameters;
     } else if (isObjectType(parameters)) {
       parameters = '?' + new URLSearchParams(parameters);

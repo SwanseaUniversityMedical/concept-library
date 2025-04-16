@@ -75,6 +75,11 @@ body {
   }
 }
 
+.autocomplete-input {
+  padding: 0.5rem 1rem;
+  line-height: 1.5em;
+}
+
 .note-block {
   display: block;
   padding: 0.5rem 1rem;
@@ -233,7 +238,7 @@ body {
       position: absolute;
       right: 0;
       height: 100%;
-      top: 25%;
+      top: calc(50% - 0.5rem);
       aspect-ratio: 1 / 1;
       font-family: var(--icons-name);
       font-style: var(--icons-style);

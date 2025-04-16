@@ -278,7 +278,8 @@
   }
 
   &__input:checked + &__label:not(:hover) {
-    & .fill-accordion__wrap-label > *:not(a) {
+    & .fill-accordion__wrap-label,
+    & .fill-accordion__wrap-label * {
       color: col(text-brightest);
     }
 

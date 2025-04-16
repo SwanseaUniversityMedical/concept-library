@@ -294,13 +294,12 @@ export default class PublicationCreator {
     if (!this.publicationInput.checkValidity() || isNullOrUndefined(publication) || isStringEmpty(publication)) {
       window.ToastFactory.push({
         type: 'danger',
-        message: 'Incorrect endorsement details provided',
+        message: 'Cannot add a publication without adding the publication details.',
         duration: this.options.notificationDuration,
       });
 
       this.doiInput.value = doi;
       this.publicationInput.value = publication;
-
       return;
     }
 

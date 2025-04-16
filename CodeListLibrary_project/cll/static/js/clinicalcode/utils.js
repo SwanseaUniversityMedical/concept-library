@@ -1,3 +1,7 @@
+/**
+ * @module utils
+ */
+
 /* CONSTANTS */
 const
   /**
@@ -185,7 +189,7 @@ const fetchWithCtrl = async (
     try {
       if (hasTimeout) {
         controller = new AbortController();
-        ref = setTimeout(_ => controller.abort(), timeout*1000);
+        ref = setTimeout(_ => { controller.abort() }, timeout*1000);
       }
 
       response = await fetch(
@@ -201,6 +205,8 @@ const fetchWithCtrl = async (
         if (pred || remainingTries < 1) {
           return response;
         }
+      } else {
+        return response;
       }
     } catch (err) {
       ref = clearAbortTimer();
@@ -208,9 +214,15 @@ const fetchWithCtrl = async (
       if (!(err instanceof DOMException)) {
         if (onError) {
           const pred = await Promise.resolve(onError(err, i, remainingTries));
-          if (!pred || remainingTries < 1) {
-            throw err;
+          if (remainingTries < 1) {
+            if (!pred) {
+              throw err;
+            }
+
+            return err;
           }
+        } else {
+          throw err;
         }
       }
     }
@@ -221,12 +233,21 @@ const fetchWithCtrl = async (
   }
 
   if (hasTimeout && retries > 1) {
-    throw new Error(`Failed request after ${retries}, none finished within the timeout period of ${timeout}s`);
+    throw new Error(
+      `Failed request after ${retries}, none finished within the timeout period of ${timeout}s`,
+      { cause: 'timeout' },
+    );
   } else if (hasTimeout) {
-    throw new Error(`Failed request as it did not resolve within ${timeout}s`);
+    throw new Error(
+      `Failed request as it did not resolve within ${timeout}s`,
+      { cause: 'timeout' },
+    );
   }
 
-  throw new Error(`Failed to resolve request with no known errors`);
+  throw new Error(
+    `Failed to resolve request with no known errors`,
+    { cause: 'unknown' },
+  );
 }
 
 /**
@@ -243,7 +264,7 @@ const getObjectClassName = (val) => {
   }
 
   try {
-    if (val.constructor == Object && !(typeof val === 'function')) {
+    if (val.constructor == Object && typeof val !== 'function') {
       return 'Object';
     }
   }
@@ -1139,11 +1160,28 @@ const stringHasChars = (value) => typeof value === 'string' && value.length && v
 /**
  * clearAllChildren
  * @desc removes all children from a node
- * @param {node} element the node to remove
- * @param {fn} cond conditional to determine fate of elem
+ * 
+ * @param {HTMLElement}     element        the node to remove
+ * @param {Function|string} [cond = null]  optionally specify either (a) a predicate `function`, or (b) a string selector, to determine fate of element
+ * 
+ * @example
+ * // clear all children
+ * clearAllChildren(document.body);
+ * 
+ * // clear using predicate
+ * clearAllChildren(document.body, (x) => x.tagName === 'DIV');
+ * 
+ * // clear all matching selector
+ * clearAllChildren(document.body, 'button[data-attr="some-attr-value"]');
+ * 
  */
-const clearAllChildren = (element, cond) => {
+const clearAllChildren = (element, cond = null) => {
   let child;
+  if (typeof cond === 'string') {
+    const selector = cond;
+    cond = (x) => !x.matches(selector);
+  }
+
   if (!!cond && typeof cond !== 'function') {
     cond = null;
     console.warn(`[utils->clearAllChildren] Condition has been ignored, expected a function but got a "${typeof cond}"`);

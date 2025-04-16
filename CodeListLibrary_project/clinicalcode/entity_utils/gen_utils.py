@@ -52,6 +52,8 @@ def is_float(x):
         Desc:
             - "Checks if a param can be parsed as a float"
     """
+    if x is None:
+        return False
     try:
         a = float(x)
     except ValueError:
@@ -533,7 +535,7 @@ def parse_model_field_query(model, params, ignored_fields=None, default=None):
                         continue
 
                     if value.find(','):
-                        arr = [float(x) for x in value.split(',') if is_float(x, default=None)]
+                        arr = [float(x) for x in value.split(',') if is_float(x)]
                         if isinstance(arr, list) and len(arr) > 1:
                             value = arr
                             query = f'{field_name}__in'
@@ -771,6 +773,13 @@ def try_value_as_type(
             if isinstance(limits, list) and isinstance(field_type, int) and (field_value < limits[0] or field_value > limits[1]):
                 return default
         return field_value
+    elif field_type in constants.NUMERIC_NAMES:
+        field_value = parse_float(field_value, default)
+        if field_value is not None and validation is not None:
+            limits = validation.get('range')
+            if isinstance(limits, list) and isinstance(field_type, int) and (field_value < limits[0] or field_value > limits[1]):
+                return default
+        return field_value
     elif field_type == 'int_array':
         if isinstance(field_value, int):
             return [field_value]
@@ -821,33 +830,82 @@ def try_value_as_type(
             return cleaned
         return cleaned if valid else default
     elif field_type == 'int_range':
+        properties = validation.get('properties') if validation is not None else None
+
+        fmin = None
+        fmax = None
+        if isinstance(field_value, dict):
+            fmin = parse_int(field_value.get('min'), default)
+            fmax = parse_int(field_value.get('max'), default)
+        elif isinstance(field_value, list) and len(field_value) >= 2 and all(is_int(x) for x in field_value):
+            fmin = parse_int(field_value[0], default)
+            fmax = parse_int(field_value[1], default)
+
+        if fmin is None or fmax is None:
+            return default
+
+        if properties is not None:
+            vrange = properties.get('range')
+            if isinstance(vrange, list) and len(vrange) >= 2 and all(is_int(x) for x in vrange):
+                vmin = min(vrange[0], vrange[1])
+                vmax = max(vrange[0], vrange[1])
+            else:
+                vmin = parse_int(properties.get('min'), default)
+                vmax = parse_int(properties.get('max'), default)
+
+        if vmin is not None and vmax is not None:
+            min_valid = fmin >= vmin
+            max_valid = fmax <= vmax
+            if not min_valid or not max_valid:
+                return default
+        return field_value
+    elif field_type.endswith('_range') and field_type.split('_')[0] in constants.NUMERIC_NAMES:
+        properties = validation.get('properties') if validation is not None else None
+
+        fmin = None
+        fmax = None
+        if isinstance(field_value, dict):
+            fmin = parse_float(field_value.get('min'), default)
+            fmax = parse_float(field_value.get('max'), default)
+        elif isinstance(field_value, list) and len(field_value) >= 2 and all(is_float(x) for x in field_value):
+            fmin = parse_float(field_value[0], default)
+            fmax = parse_float(field_value[1], default)
+
+        if fmin is None or fmax is None:
+            return default
+
+        if properties is not None:
+            vrange = properties.get('range')
+            if isinstance(vrange, list) and len(vrange) >= 2 and all(is_float(x) for x in vrange):
+                vmin = min(vrange[0], vrange[1])
+                vmax = max(vrange[0], vrange[1])
+            else:
+                vmin = parse_float(properties.get('min'), default)
+                vmax = parse_float(properties.get('max'), default)
+
+        if vmin is not None and vmax is not None:
+            min_valid = fmin >= vmin
+            max_valid = fmax <= vmax
+            if not min_valid or not max_valid:
+                return default
+        return field_value
+    elif field_type == 'ci_interval':
         if not isinstance(field_value, dict):
             return default
 
-        if validation is None:
+        lower = parse_float(field_value.get('lower'), None)
+        upper = parse_float(field_value.get('upper'), None)
+        probability = parse_float(field_value.get('probability'), None)
+
+        if lower is None or upper is None or probability is None:
             return default
 
-        validation_properties = validation.get('properties')
-        if validation_properties is None:
-            return default
-
-        min_validation_value = parse_int(validation_properties.get('min'), default)
-        max_validation_value = parse_int(validation_properties.get('max'), default)
-        if min_validation_value is None or max_validation_value is None:
-            return default
-
-        min_field_value = parse_int(field_value.get('min'), default)
-        max_field_value = parse_int(field_value.get('max'), default)
-        if min_field_value is None and max_field_value is None:
-            return default
-
-        valid_range = min_field_value <= max_field_value
-        min_valid = min_field_value >= min_validation_value
-        max_valid = max_field_value <= max_validation_value
-        if not valid_range or not min_valid or not max_valid:
-            return default
-
-        return field_value
+        probability = min(max(probability, 0), 100)
+        return {
+            'lower': lower,
+            'upper': upper,
+            'probability': probability,
+        }
     elif field_type == 'code':
         try:
             value = str(field_value) if field_value is not None else ''
@@ -1079,6 +1137,90 @@ def try_value_as_type(
                 valid = False
                 break
         return field_value if valid else default
+    elif field_type == 'var_data':
+        if not isinstance(field_value, dict):
+            return default
+
+        options = validation.get('options') if validation is not None and isinstance(validation.get('options'), dict) else None
+        properties = validation.get('properties') if validation is not None else None
+        if isinstance(properties, dict):
+            allow_types = properties.get('allow_types', [])
+            allow_unknown = properties.get('allow_unknown', False)
+            allow_description = properties.get('allow_description', False)
+        else:
+            allow_types = []
+            allow_unknown = False
+            allow_description = False
+
+        result = { }
+        for key, item in field_value.items():
+            if not isinstance(item, dict):
+                continue
+
+            out = { 'name': key }
+            name = try_value_as_type(item.get('name'), 'string', { 'properties': { 'sanitise': 'strict', 'length': [2, 500] } })
+            typed = item.get('type')
+            value = None
+
+            props = options.get(key) if options is not None else None
+            if isinstance(props, dict) and isinstance(props.get('type'), str):
+                name = props.get('name')
+                typed = props.get('type')
+                value = try_value_as_type(item.get('value'), typed, { 'properties': props })
+
+            if value is None and allow_unknown and isinstance(allow_types, list):
+                if not name:
+                    continue
+
+                typed = item.get('type')
+                if isinstance(typed, str) and typed in allow_types:
+                    value = try_value_as_type(item.get('value'), typed, { 'properties': { 'sanitise': 'strict', 'length': 1024 } })
+
+            if value is None or typed is None:
+                continue
+
+            if allow_description:
+                desc = try_value_as_type(item.get('description'), 'string', { 'properties': { 'sanitise': 'strict', 'length': [2, 500] } })                
+                if desc is not None:
+                    out.update(description=desc)
+
+            out.update(name=name, type=typed, value=value)
+            result.update({ key: out })
+
+        return result
+    elif field_type == 'related_entities':
+        if not isinstance(field_value, list):
+            return default
+
+        if len(field_value) < 1:
+            return default
+
+        target = validation.get('target') if validation is not None else None
+        tbl_name = target.get('table') if target is not None else None
+        selector = target.get('select') if target is not None else None
+
+        properties = validation.get('properties') if validation is not None else None
+        storage = properties.get('storage') if properties is not None else None
+
+        if not isinstance(tbl_name, str) or not isinstance(storage, list) or not isinstance(selector, list):
+            return default
+
+        valid = True
+        result = []
+        try:
+            model = apps.get_model(app_label='clinicalcode', model_name=tbl_name)
+            for item in field_value:
+                selection = { k: item.get(k) for k in selector }
+                entity = model.objects.filter(**selection)
+                if entity is None or not entity.exists():
+                    continue
+
+                entity = entity.first()
+                result.append({ k: getattr(entity, k) for k in storage })
+        except:
+            valid = False
+
+        return result if valid and len(result) > 0 else default
     elif field_type == 'publication':
         if not isinstance(field_value, list):
             return default

@@ -86,7 +86,7 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "regex": "(?:\\d+\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\/|\\d+)+"
+        "regex": "[\\S\\s]*?(\\d+(?:-\\d+)*)[^\\d]*"
       }
     },
     "sex": {

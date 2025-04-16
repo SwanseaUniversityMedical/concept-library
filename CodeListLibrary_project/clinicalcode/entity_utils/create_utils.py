@@ -731,7 +731,7 @@ def validate_metadata_value(request, field, value, errors=[], field_data=None):
         return value, False
     
     field_type = template_utils.try_get_content(validation, 'type')
-    if 'source' in validation or 'options' in validation:
+    if not validation.get('ugc', False) and ('source' in validation or 'options' in validation):
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
         field_value = try_validate_sourced_value(field, field_data, field_value, request=request)
         if field_value is None and field_required:
@@ -791,7 +791,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
         return value, False
     
     field_type = template_utils.try_get_content(validation, 'type')
-    if 'source' in validation or 'options' in validation:
+    if not validation.get('ugc', False) and ('source' in validation or 'options' in validation):
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
         field_value = try_validate_sourced_value(field, field_data, field_value, request=request)
         if field_value is None and field_required:

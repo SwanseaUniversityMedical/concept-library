@@ -270,7 +270,14 @@
           margin-top: 2rem;
 
           @include media('<tablet', 'screen') {
-            margin-top: 1rem;
+            margin-top: 0;
+            flex: 100%;
+          }
+        }
+
+        & input {
+          @include media('<tablet', 'screen') {
+            margin-right: 0 !important;
           }
         }
       }
@@ -1390,6 +1397,11 @@
   &.ignore-overflow {
     overflow: visible;
   }
+
+  &:has(input:focus),
+  &:has(input:focus-visible) {
+    outline: 1px solid col(accent-anchor);
+  }
 }
 
 /// search-options
@@ -2001,6 +2013,10 @@
   &:disabled {
     opacity: 0.5;
   }
+
+  &:focus-visible {
+    outline: 1px solid col(accent-anchor);
+  }
 }
 
 /// code inputs
@@ -2202,8 +2218,7 @@
   box-sizing: border-box;
 
   &:focus-visible + label {
-    outline: 1px solid col(accent-dark);
-    border-radius: 2pt;
+    outline: none;
   }
 
   &:after {
@@ -2506,4 +2521,96 @@
 /* Loading style */
 .eletree_icon-loading1:before {
   content: '\f110';
+}
+
+.item-display {
+  @include flex-col(0.5rem, true);
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: fit-content;
+  margin-bottom: 0.5rem;
+
+  &__none {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-label {
+      text-align: center;
+    }
+  }
+
+  &__list {
+    @include flex-col(0.5rem, true);
+    position: relative;
+    width: 100%;
+    max-width: calc(100% - 0.5rem);
+    max-height: 200px;
+    padding: 0.5rem;
+    overflow-y: auto;
+    overflow-x: none;
+  }
+
+  &__item {
+    @include flex-row(0.5rem, false);
+    max-width: calc(100% - 0.5rem);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed col(accent-washed);
+
+    & p {
+      margin: 0;
+    }
+  }
+
+  &__text {
+    flex: 1;
+    max-width: 100%;
+
+    & p {
+      text-wrap: wrap;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+
+    & a {
+      text-wrap: wrap;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+
+    @include media("<tablet", "screen") {
+      flex: 1;
+      min-width: 100%;
+
+      & p {
+        width: fit-content;
+      }
+    }
+  }
+
+  &__value {
+    display: inline-block;
+    flex: 0.5;
+    height: max-content;
+    min-width: 10px;
+    max-width: fit-content;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8em;
+    font-weight: 700 !important;
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-radius: 2pt;
+    color: col(text-darkest);
+    background-color: col(accent-lightest);
+    text-wrap: wrap;
+    word-wrap: break-word;
+
+    @include media('<tablet', 'screen') {
+      flex: 1;
+    }
+  }
 }

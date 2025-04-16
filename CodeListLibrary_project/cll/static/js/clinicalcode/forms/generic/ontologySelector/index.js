@@ -1,6 +1,8 @@
 import * as Constants from './constants.js';
+
+import DebouncedTask from '../../../components/tasks/debouncedTask.js';
+import VirtualisedList from '../../../components/virtualisedList/index.js';
 import OntologySelectionModal from './modal.js';
-import VirtualisedList, { DebouncedTask } from '../../../components/virtualisedList/index.js';
 
 /**
  * @desc constructs a predicate to find an object within an arr

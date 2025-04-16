@@ -166,7 +166,7 @@
       "field_type": "daterange",
       "validation": {
         "type": "string",
-        "regex": "(?:\\d+/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+/|\\d+)+",
+        "regex": "[\\S\\s]*?(\\d+(?:-\\d+)*)[^\\d]*",
         "mandatory": false
       },
       "description": "If this Phenotype is only applicable within a limited time period, please specify that here (optional)."
