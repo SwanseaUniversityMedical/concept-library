@@ -16,31 +16,81 @@
       </h3>
     </div>
 
-    <h4>Description</h4>
     {% if component.value.description|length %}
-      <div class="markdown-render-container slim-scrollbar">
-        {{ component.value.description|markdownify }}
+      <div id="indicator-calculation-description" class="fill-accordion">
+        <input class="fill-accordion__input" 
+          id="indicator-description"
+          name="indicator-description" 
+          type="checkbox" />
+        <label class="fill-accordion__label fill-accordion__label--slim"
+            id="indicator-description-label"
+            for="indicator-description"
+            role="button"
+            tabindex="0"
+            aria-label="Toggle Accordion: Indicator Calculation Description"
+            title="Description">
+          <span aria-label="Indicator Calculation Description" class="fill-accordion__wrap-label">
+            <span>Description</span>
+          </span>
+          <span class="fill-accordion__label-icon"></span>
+        </label>
+        <article class="fill-accordion__container codelist-extents">
+          <div class="markdown-render-container slim-scrollbar">
+            {{ component.value.description|markdownify }}
+          </div>
+        </article>
       </div>
-    {% else %}
-      <span class="card-no-data">No data</span>
-    {% endif %}
-    
-    <h4>Numerator</h4>
-    {% if component.value.numerator|length %}
-      <div class="markdown-render-container slim-scrollbar">
-        {{ component.value.numerator|markdownify }}
-      </div>
-    {% else %}
-      <span class="card-no-data">No data</span>
     {% endif %}
 
-    <h4>Denominator</h4>
-    {% if component.value.denominator|length %}
-      <div class="markdown-render-container slim-scrollbar">
-        {{ component.value.denominator|markdownify }}
+    {% if component.value.numerator|length %}
+      <div id="indicator-calculation-numerator" class="fill-accordion">
+        <input class="fill-accordion__input" 
+          id="indicator-numerator"
+          name="indicator-numerator" 
+          type="checkbox" />
+        <label class="fill-accordion__label fill-accordion__label--slim"
+            id="indicator-numerator-label"
+            for="indicator-numerator"
+            role="button"
+            tabindex="0"
+            aria-label="Toggle Accordion: Indicator Calculation Numerator"
+            title="Numerator">
+          <span aria-label="Indicator Calculation Numerator" class="fill-accordion__wrap-label">
+            <span>Numerator</span>
+          </span>
+          <span class="fill-accordion__label-icon"></span>
+        </label>
+        <article class="fill-accordion__container codelist-extents">
+          <div class="markdown-render-container slim-scrollbar">
+            {{ component.value.numerator|markdownify }}
+          </div>
+        </article>
       </div>
-    {% else %}
-      <span class="card-no-data">No data</span>
     {% endif %}
-  </div>
+
+    {% if component.value.denominator|length %}
+      <div id="indicator-calculation-denominator" class="fill-accordion">
+        <input class="fill-accordion__input" 
+          id="indicator-denominator"
+          name="indicator-denominator" 
+          type="checkbox" />
+        <label class="fill-accordion__label fill-accordion__label--slim"
+            id="indicator-denominator-label"
+            for="indicator-denominator"
+            role="button"
+            tabindex="0"
+            aria-label="Toggle Accordion: Indicator Calculation Denominator"
+            title="Denominator">
+          <span aria-label="Indicator Calculation Denominator" class="fill-accordion__wrap-label">
+            <span>Denominator</span>
+          </span>
+          <span class="fill-accordion__label-icon"></span>
+        </label>
+        <article class="fill-accordion__container codelist-extents">
+          <div class="markdown-render-container slim-scrollbar">
+            {{ component.value.denominator|markdownify }}
+          </div>
+        </article>
+      </div>
+    {% endif %}
 {% endif %}

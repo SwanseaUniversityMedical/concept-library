@@ -812,10 +812,19 @@ def get_accessible_entity_history(
     #   i.e. dependent on user role
     clauses = 'true'
     if not is_superuser:
-        clauses = '''
+        org_view_clause = ''
+        if brand is not None and brand.org_user_managed:
+          user_orgs = get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.MEMBER)
+          if user_orgs and len(user_orgs) >= 1:
+            org_view_clause = f'''
+              or t0.world_access = {WORLD_ACCESS_PERMISSIONS.VIEW.value}
+            '''
+
+        clauses = f'''
            (live.owner_id = %(user_id)s
            or org.owner_id = %(user_id)s
-           or (mem.user_id = %(user_id)s AND mem.role >= %(role_enum)s))
+           or (mem.user_id = %(user_id)s AND mem.role >= %(role_enum)s)
+           {org_view_clause})
         '''
 
         query_params.update({
@@ -1005,10 +1014,16 @@ def get_accessible_entities(
 
     # Non-anon user
     #   i.e. dependent on user role
-    clauses = '''
+    org_view_clause = ''
+    if consider_brand and brand is not None and brand.org_user_managed:
+      user_orgs = get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.MEMBER)
+      if user_orgs and len(user_orgs) >= 1:
+        org_view_clause = f'''or live_entity.world_access = {WORLD_ACCESS_PERMISSIONS.VIEW.value}'''
+
+    clauses = f'''
         (live_entity.owner_id = %(user_id)s
         or org.owner_id = %(user_id)s
-        or (mem.user_id = %(user_id)s AND mem.role >= %(role_enum)s))
+        or (mem.user_id = %(user_id)s AND mem.role >= %(role_enum)s){org_view_clause})
     '''
 
     query_params.update({
@@ -1356,6 +1371,15 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
     if has_member_access(user, live_entity, ORGANISATION_ROLES.MEMBER):
         return check_brand_access(request, is_published, entity_id, entity_history_id)
 
+    brand = model_utils.try_get_brand(request)
+    if brand is not None and brand.org_user_managed:
+      if live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
+        user_orgs = get_user_organisations(
+          request, min_role_permission=ORGANISATION_ROLES.MEMBER
+        )
+        if user_orgs and len(user_orgs) >= 1:
+          return check_brand_access(request, is_published, entity_id, entity_history_id)
+
     return False
 
 def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
@@ -1408,6 +1432,7 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
     is_viewable = False
     is_editable = False
     is_published = historical_entity.publish_status == APPROVAL_STATUS.APPROVED.value
+    is_org_accessible = False
 
     if user is not None:
         is_owner = live_entity.owner == user
@@ -1422,6 +1447,11 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
 
             entity_org = live_entity.organisation
             if entity_org is not None:
+              if live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
+                user_orgs = get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.MEMBER)
+                if user_orgs and len(user_orgs) >= 1:
+                  is_org_accessible = True
+
                 if entity_org.owner_id == user.id:
                     is_org_member = True
                 else:
@@ -1451,6 +1481,7 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
             user_is_admin
             or is_published
             or is_moderatable
+            or is_org_accessible
             or (is_owner or is_org_member)
         )
     else:
@@ -1546,12 +1577,24 @@ def can_user_view_concept(
                 ]
             )
         else:
-            sql = '''
+            brand = model_utils.try_get_brand(request)
+
+            org_view_clause = ''
+            if brand is not None and brand.org_user_managed:
+              user_orgs = get_user_organisations(
+                request, min_role_permission=ORGANISATION_ROLES.MEMBER
+              )
+              if user_orgs and len(user_orgs) >= 1:
+                org_view_clause = f'''
+                  or live.world_access = {WORLD_ACCESS_PERMISSIONS.VIEW.value}
+                '''
+
+            sql = f'''
             select distinct results.concept_id, results.concept_version_id
               from (
                 select distinct on (id)
                        entity.id,
-                       entity.publish_status,
+                       entity.publish_status
                        cast(concepts->>'concept_id' as integer) as concept_id,
                        cast(concepts->>'concept_version_id' as integer) as concept_version_id
                   from public.clinicalcode_historicalgenericentity as entity,
@@ -1578,6 +1621,7 @@ def can_user_view_concept(
                 or org.owner_id = %(user_id)s
                 or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s)
                 or live.owner_id = %(user_id)s
+                {org_view_clause}
              )
              limit 1
             '''
@@ -1588,7 +1632,7 @@ def can_user_view_concept(
                     'concept_version_id': historical_concept.history_id,
                     'publish_status': APPROVAL_STATUS.APPROVED.value,
                     'user_id': user.id,
-                    'role_enum': min_group_permission,
+                    'role_enum': min_group_permission
                 }
             )
         
