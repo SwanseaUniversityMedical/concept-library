@@ -1220,6 +1220,12 @@ class EntityCreateWizardSections(template.Node):
                 
                 if template_field.get('hide_on_create'):
                     continue
+
+                if template_field.get('hide_non_org_managed'):
+                    current_brand = model_utils.try_get_brand(request)
+                    current_brand = current_brand if current_brand and current_brand.org_user_managed else None
+                    if current_brand is None:
+                        continue
                 
                 component = template_utils.try_get_content(field_types, template_field.get('field_type'))                
                 if component is None:

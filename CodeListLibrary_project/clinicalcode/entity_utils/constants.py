@@ -377,7 +377,7 @@ APPENDED_SECTIONS = [
     {
         'title': 'Permissions',
         'description': 'Settings for sharing and collaboration.',
-        'fields': ['organisation']
+        'fields': ['organisation', 'world_access']
     }
 ]
 
@@ -708,16 +708,17 @@ metadata = {
         'is_base_field': True
     },
     'world_access': {
-        'title': 'All authenticated users',
-        'description': "Enables this entity to be viewed by all logged-in users of the Library (does not make it public on the web -- use the Publish action for that).",
+        'title': 'Share with other organisations',
+        'description': "Enables this entity to be viewed by all logged-in users of the Library who are members of an Organisation.",
         'field_type': 'access_field',
-        'active': False,
+        'active': True,
         'validation': {
             'type': 'int',
             'mandatory': True,
             'range': [1, 3]
         },
-        'is_base_field': True
+        'is_base_field': True,
+        'hide_non_org_managed': True
     },
     'updated': {
         'title': 'Updated',
