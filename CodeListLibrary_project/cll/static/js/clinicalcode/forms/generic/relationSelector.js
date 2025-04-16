@@ -1,33 +1,6 @@
 import DebouncedTask from '../../components/tasks/debouncedTask.js';
 
 /**
- * TODO:
- *  1. Autocomplete/Search logic via fetch
- *    -> See this.data.properties.lookup
- *    -> Aria-controls + Key shortcuts
- * 
- *  2. Display
- *    -> Render selected items
- *    -> Allow users to delete items
- * 
- * Completion:
- *  1. Tagbox creation
- * 
- *  2. Model changes
- *    -> Add abbr to Site model
- *    -> Add Jurisdiction model
- *    -> Update content in JSON / add jurisdiction
- *    -> Add fake ATC / CCI / Physician Fee Codes
- * 
- *  3. Ontology
- *    -> Add MeSH codes
- *    -> Need to be able to filter... future?
- * 
- *  4. Fix ICD-10-CA / CM codes
- * 
- */
-
-/**
  * Class to manage related entity selector component(s)
  * 
  * @class
