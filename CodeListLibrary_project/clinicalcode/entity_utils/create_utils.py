@@ -97,7 +97,7 @@ def get_template_creation_data(request, entity, layout, field, default=None, inf
 
             if value:
                 values.append(value)
-        
+
         return values
     elif field_type == 'int_array':
         source_info = validation.get('source')
@@ -1380,6 +1380,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.collections = metadata.get('collections')
                 entity.publications = metadata.get('publications')
                 entity.organisation = org
+                entity.world_access = metadata.get('world_access')
                 entity.template = template_instance
                 entity.template_version = form_template.template_version
                 entity.template_data = template_data
