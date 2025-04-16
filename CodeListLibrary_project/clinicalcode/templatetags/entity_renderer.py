@@ -1260,7 +1260,7 @@ class EntityCreateWizardSections(template.Node):
                     component['value'] = self.__try_get_entity_value(request, template, entity, field, info=field_info)
                 else:
                     component['value'] = ''
-
+                
                 self.__apply_properties(component, template_field, field)
 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
@@ -1331,6 +1331,66 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
             except:
                 # Logging
                 return default
+    elif field_type == 'related_entities':
+        if isinstance(data, list) and len(data) > 0:
+            props = validation.get('properties') if isinstance(validation.get('properties'), dict) else None
+            display = props.get('display') if props else None
+
+            if not isinstance(display, list):
+                return default
+
+            anchor = props.get('anchor') if props else None
+            target = anchor.get('target') if anchor and isinstance(anchor.get('target'), str) else None
+
+            result = []
+            for item in data:
+                name = ''
+                for i, key in enumerate(display):
+                    res = item.get(key, '')
+                    if i == 0:
+                        name = str(res)
+                    elif i == 1:
+                        name += '/' + str(res)
+                    else:
+                        name += ' - ' + str(res)
+
+                ref = item.get(target) if target else None
+                result.append({
+                    'anchor': anchor.get('name'),
+                    'target': ref,
+                    'label': name,
+                })
+            return result if len(result) > 0 else None
+        return default
+    elif field_type == 'var_data':
+        if isinstance(data, dict) and len(data.keys()) > 0:
+            options = validation.get('options') if validation else None
+
+            result = []
+            for key, item in data.items():
+                typed = item.get('type')
+                opt = options.get(key) if options else None
+                value = None
+                if opt:
+                    fmt = opt.get('format')
+                    if fmt:
+                        value = fmt.format(**item.get('value')) if isinstance(item.get('value'), dict) else fmt.format(value=item.get('value'))
+
+                if value is None:
+                    value = item.get('value')
+                    if typed.endswith('_range'):
+                        suffix = '%' if 'percentage' in typed else ''
+                        value = '{v0}{suffix} - {v1}{suffix}'.format(v0=value[0], v1=value[1], suffix=suffix)
+                    elif 'percentage' in typed:
+                        value = '{0}%'.format(value)
+                    else:
+                        value = str(value)
+
+                typed = typed.replace('_', ' ').title()
+                result.append({ 'name': item.get('name'), 'type': typed, 'value': value })
+            
+            return result if len(result) > 0 else None
+        return default
 
     if field_info.get('field_type') == 'data_sources':
         return get_data_sources(data, field_info, default=default)
@@ -1360,8 +1420,7 @@ class EntityDetailWizardSections(template.Node):
     def __try_render_item(self, **kwargs):
         try:
             html = render_to_string(**kwargs)
-        except Exception as e:
-            print(e)
+        except:
             return ''
         else:
             return html

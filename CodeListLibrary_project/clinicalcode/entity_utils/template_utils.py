@@ -752,7 +752,7 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
 
     if field_type == 'enum' or field_type == 'int':
         output = None
-        if 'options' in validation:
+        if 'options' in validation and not validation.get('ugc', False):
             output = get_detailed_options_value(data, info)
         elif 'source' in validation:
             output = get_detailed_sourced_value(data, info)

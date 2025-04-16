@@ -27,7 +27,7 @@ export default class VariableCreator {
   static #Validation = {
     name: {
       minlength: 2,
-      maxlength: 120,
+      maxlength: 500,
     },
     description: {
       minlength: 0,
@@ -217,7 +217,7 @@ export default class VariableCreator {
         let relative = options.find(x => x.name == key);
         relative = !!relative ? relative.value : null;
         if (relative && stringHasChars(relative.format)) {
-          value = pyFormat(relative.format, item);
+          value = pyFormat(relative.format, item.value);
           processed = true;
         }
       }
@@ -292,7 +292,12 @@ export default class VariableCreator {
           return new window.ModalFactory.ModalResults('Cancel');
         }
 
-        this.data[this.#modalState.info.editKey] = packet.value;
+        if (packet.editKey !== this.#modalState.info.editKey) {
+          if (this.data?.[this.#modalState.info.editKey]) {
+            delete this.data[this.#modalState.info.editKey];
+          }
+        }
+        this.data[packet.editKey] = packet.value;
         return this.data;
       },
       onRender: (modal) => this.#renderOptionPanel(modal, editKey),
@@ -1152,10 +1157,10 @@ export default class VariableCreator {
     type = data.type;
 
     let invalid = false;
+    const relative = this.props.options.find(x => x.name === info.editKey);
     if (info.ref === 'unknown') {
       invalid = !unknownAllowed || typeof type !== 'string' || !typesAllowed.includes(type);
     } else {
-      const relative = this.props.options.find(x => x.name === info.editKey);
       invalid = typeof type !== 'string' || !relative || relative?.value?.type !== type;
     }
 
@@ -1208,6 +1213,8 @@ export default class VariableCreator {
 
     return {
       success: true,
+      editKey: relative ? info.editKey : transformSnakeCase(name),
+      isRelative: !!relative,
       value: { name, type, value, description },
     };
   }

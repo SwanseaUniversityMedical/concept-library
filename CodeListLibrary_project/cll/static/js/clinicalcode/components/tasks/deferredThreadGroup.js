@@ -1,9 +1,9 @@
 /**
- * @class DeferredThreadGroup
- * @desc Deferred group of threads, similar impl. to requestAnimationFrame
+ * Class describing a deferred group of threads, similar impl. to requestAnimationFrame
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame|RAF}
  * 
- *       See ref @ https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
- * 
+ * @class
+ * @constructor
  */
 export default class DeferredThreadGroup {
   #iHnd = 0;
@@ -57,13 +57,13 @@ export default class DeferredThreadGroup {
             this.#silentlyThrow(e);
           }
         }
-      }, Math.round(timeout))
+      }, Math.round(timeout));
     }
 
     const id = ++this.#iHnd;
     this.#queue.push({ handle: id, callback: callback });
 
-    return id
+    return id;
   }
 
   /**

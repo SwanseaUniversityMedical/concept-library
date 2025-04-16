@@ -577,7 +577,7 @@ def get_generic_entities(request):
         for entity in entities:
             entity_detail = api_utils.get_entity_detail(
                 request, 
-                entity.id, 
+                entity.id,
                 entity, 
                 is_authed, 
                 fields_to_ignore=constants.ENTITY_LIST_API_HIDDEN_FIELDS, 
@@ -585,6 +585,7 @@ def get_generic_entities(request):
             )
 
             if not isinstance(entity_detail, Response):
+                entity_detail.update(phenotype_version_id=entity.history_id)
                 formatted_entities.append(entity_detail)
 
         result = formatted_entities if not should_paginate else {

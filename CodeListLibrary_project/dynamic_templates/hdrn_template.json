@@ -17,7 +17,6 @@
       "title": "Identification",
       "fields": [
         "name",
-        "sites",
         "author",
         "hdrn_resource_ref"
       ],
@@ -27,6 +26,7 @@
       "title": "Overview",
       "description": "A set of descriptors that identifies this Concept.",
       "fields": [
+        "sites",
         "definition",
         "jurisdictions",
         "category",
@@ -36,7 +36,8 @@
         "collections",
         "ontology",
         "contacts"
-      ]
+      ],
+      "hide_if_empty": true
     },
     {
       "title": "Population",
@@ -46,7 +47,8 @@
         "population_sex",
         "population_gender",
         "population_race"
-      ]
+      ],
+      "hide_if_empty": true
     },
     {
       "title": "Methods",
@@ -58,7 +60,8 @@
         "validation_measures",
         "limitations",
         "additional_information"
-      ]
+      ],
+      "hide_if_empty": true
     },
     {
       "title": "Components",
@@ -68,7 +71,8 @@
         "variable_list",
         "indicator_calculation",
         "asset_files"
-      ]
+      ],
+      "hide_if_empty": true
     },
     {
       "title": "Publication",
@@ -77,16 +81,18 @@
         "publications",
         "acknowledgements",
         "citation_requirements"
-      ]
+      ],
+      "hide_if_empty": true
     },
     {
       "title": "References & Relationships",
       "description": "A set of related Concepts, sources, and resources.",
       "fields": [
-        "related_concepts",
+        "related_entities",
         "source_reference",
         "references"
-      ]
+      ],
+      "hide_if_empty": true
     }
   ],
 
@@ -220,7 +226,7 @@
       "active": true,
       "validation": {
         "type": "int_range",
-        "mandatory": false,
+        "mandatory": true,
         "properties": {
           "type": "int",
           "step": 1,
@@ -353,7 +359,7 @@
         "type": "string",
         "mandatory": false,
         "regex": [
-          "(?:\\d+\\/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+\\/|\\d+)+",
+          "[\\S\\s]*?(\\d+(?:-\\d+)*)[^\\d]*",
           "[\\s+]?\\-[\\s+]?(?:\\d+\\/|\\d+)+",
           "(?:\\d+\\/|\\d+)+[\\s+]?\\-[\\s+]?"
         ],
@@ -538,7 +544,8 @@
       "field_type": "validation_measures",
       "active": true,
       "validation": {
-        "type": "var_array",
+        "ugc": true,
+        "type": "var_data",
         "mandatory": false,
         "options": {
           "sensitivity": {
@@ -564,7 +571,7 @@
           "confidence_interval": {
             "name": "Confidence Interval",
             "type": "ci_interval",
-            "format": "{value.probability}% CI ({value.lower}; {value.upper})"
+            "format": "{probability}% CI ({lower}; {upper})"
           },
           "c_statistic": {
             "name": "C-statistic",
@@ -585,6 +592,7 @@
             "label": "Options...",
             "title": "Select Measures"
           },
+          "sanitise": "strict",
           "allow_unknown": true,
           "allow_description": true,
           "allow_types": [
@@ -666,7 +674,8 @@
       "field_type": "srv_list",
       "active": true,
       "validation": {
-        "type": "var_array",
+        "ugc": true,
+        "type": "var_data",
         "mandatory": false,
         "properties": {
           "allow_unknown": true,
@@ -754,7 +763,23 @@
       "active": true,
       "validation": {
         "type": "related_entities",
-        "mandatory": false
+        "mandatory": false,
+        "target": {
+          "table": "HistoricalGenericEntity",
+          "select": ["id", "history_id"],
+          "relative": "name"
+        },
+        "properties": {
+          "anchor": {
+            "name": "entity_detail",
+            "target": "id"
+          },
+          "lookup": "/api/v1/phenotypes/",
+          "storage": ["id", "history_id", "name"],
+          "display": ["id", "history_id", "name"],
+          "labeling": ["phenotype_id", "phenotype_version_id", "name"],
+          "reference": ["phenotype_id", "phenotype_version_id"]
+        }
       },
       "hide_if_empty": true
     },

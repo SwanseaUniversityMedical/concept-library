@@ -228,7 +228,7 @@
       "field_type": "daterange",
       "validation": {
         "type": "string",
-        "regex": "(?:\\d+/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+/|\\d+)+",
+        "regex": "[\\S\\s]*?(\\d+(?:-\\d+)*)[^\\d]*",
         "mandatory": false,
         "sanitise": "strict"
       },

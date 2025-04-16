@@ -12,6 +12,7 @@ import StringInputListCreator from '../stringInputListCreator.js';
 import UrlReferenceListCreator from '../generic/urlReferenceListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
 import VariableCreator from '../generic/variableCreator.js';
+import RelationSelector from '../generic/relationSelector.js';
 import IndicatorCalculationCreator from '../generic/indicatorCalculationCreator.js';
 
 import {
@@ -436,7 +437,40 @@ export const ENTITY_HANDLERS = {
   },
 
   // HDRN-related
-  'var_array': (element) => {
+  'related_entities': (element, dataset) => {
+    const nodes = element.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    const data = { };
+    for (let i = 0; i < nodes.length; ++i) {
+      let node = nodes[i];
+
+      const datatype = node.getAttribute('data-type');
+      if (isStringEmpty(datatype)) {
+        continue;
+      }
+
+      let innerText = node.innerText;
+      if (isStringEmpty(innerText) || isStringWhitespace(innerText)) {
+        continue;
+      }
+
+      try {
+        innerText = JSON.parse(innerText);
+        data[datatype] = innerText;
+      }
+      catch (e) {
+        console.warn(`Failed to parse relation selector attr "${datatype}" data:`, e)
+      }
+    }
+
+    return new RelationSelector(element, data, {
+      method: dataset.method,
+      object: dataset.object,
+      templateId: dataset.template.id,
+    });
+  },
+
+  'var_data': (element) => {
     const nodes = element.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
 
     const data = { };
@@ -1173,7 +1207,24 @@ export const ENTITY_FIELD_COLLECTOR = {
   },
 
   // HDRN-related
-  'var_array': (field, packet) => {
+  'related_entities': (field, packet) => {
+    const handler = packet.handler;
+    const data = handler.getData();
+    if (isMandatoryField(packet) && (!Array.isArray(data) || data.length < 1)) {
+      return {
+        valid: false,
+        value: data,
+        message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: data,
+    }
+  },
+
+  'var_data': (field, packet) => {
     const handler = packet.handler;
     const data = handler.getData();
     if (isMandatoryField(packet) && (!isObjectType(data) || Object.values(data).length < 1)) {
@@ -1946,7 +1997,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
       }
     } break;
 
-    case 'var_array': {
+    case 'var_data': {
       if (!isObjectType(value)) {
         valid = false;
         break;
@@ -2042,7 +2093,8 @@ export const parseAsFieldType = (packet, value, modifier) => {
     } break;
 
     case 'contacts':
-    case 'publication': {
+    case 'publication':
+    case 'related_entities': {
       if (!Array.isArray(value)) {
         valid = false;
       }

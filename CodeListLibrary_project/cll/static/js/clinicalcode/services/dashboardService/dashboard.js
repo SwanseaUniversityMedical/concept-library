@@ -177,7 +177,7 @@ export class DashboardService {
   ) {
     view = view.toLowerCase();
 
-    if (parameters instanceof URLSearchParams) {
+    if (!!parameters && parameters instanceof URLSearchParams) {
       parameters = '?' + parameters;
     } else if (isObjectType(parameters)) {
       parameters = '?' + new URLSearchParams(parameters);
@@ -236,7 +236,7 @@ export class DashboardService {
     state.view = state.view ?? 'view';
 
     let { page, view, target } = state;
-    if (parameters instanceof URLSearchParams) {
+    if (!!parameters && parameters instanceof URLSearchParams) {
       parameters = '?' + parameters;
     } else if (isObjectType(parameters)) {
       parameters = '?' + new URLSearchParams(parameters);

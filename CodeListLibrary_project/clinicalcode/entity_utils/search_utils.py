@@ -259,7 +259,7 @@ def validate_query_param(param, template, data, default=None, request=None):
                 return default
             else:
                 return queryset if len(queryset) > 0 else default
-        elif 'options' in validation:
+        elif 'options' in validation and not validation.get('ugc', False):
             options = validation['options']
             cleaned = [ ]
             for item in data:
@@ -290,7 +290,7 @@ def apply_param_to_query(query, where, params, template, param, data,
         return False
     
     if field_type == 'int' or field_type == 'enum':
-        if 'options' in validation or 'source' in validation:
+        if not validation.get('ugc', False) and ('source' in validation or 'options' in validation):
             data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None]
             clean = validate_query_param(param, template_data, data, default=None, request=request)
             if clean is None and force_term:
