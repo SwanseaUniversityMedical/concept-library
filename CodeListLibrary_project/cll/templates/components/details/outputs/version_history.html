@@ -68,7 +68,7 @@
 								</td>
 							{% endif %}
 							<td>
-								<a href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}" title="Visit {{ brand_mapping.phenotype }}: {{ h.name }}">
+								<a target=_blank rel="noopener" href="{% url 'entity_history_detail' pk=h.id history_id=h.history_id %}" title="Visit {{ brand_mapping.phenotype }}: {{ h.name }}">
 									{% if h.name_highlighted|length %}
 										{{ h.name_highlighted|striptags }}
 									{% else %}

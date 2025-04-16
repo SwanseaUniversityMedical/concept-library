@@ -15,7 +15,7 @@ const cookieSettings = (privacyurl) => {
         Otherwise, you can consent to our use of cookies by clicking <em>"Save selection"</em>.
       </p>
       <p>
-        For more information about what information is collected and how it is shared with our partners, please read our <a href="${privacyurl}">Privacy and cookie policy</a>.
+        For more information about what information is collected and how it is shared with our partners, please read our <a href="${privacyurl}" target=_blank rel="noopener">Privacy and cookie policy</a>.
       </p>
       <div class="checkbox-item-container min-size">
         <input id="neccesary-cookies" type="checkbox" disabled checked class="checkbox-input" data-value="1" data-name="must-cookies"/>

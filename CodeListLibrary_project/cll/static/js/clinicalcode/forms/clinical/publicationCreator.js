@@ -58,7 +58,7 @@ const PUBLICATION_ITEM_ELEMENT = '<div class="publication-list-group__list-item"
  *       and its interpolable targets
  * 
  */
-const PUBLICATION_DOI_ELEMENT = '<br/><br/><a href="https://doi.org/${doi}">${doi}</a>';
+const PUBLICATION_DOI_ELEMENT = '<br/><br/><a href="https://doi.org/${doi}" target=_blank rel="noopener">${doi}</a>';
 
 
 /**

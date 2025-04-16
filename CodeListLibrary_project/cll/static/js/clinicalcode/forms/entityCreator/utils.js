@@ -1307,6 +1307,56 @@ export const isMandatoryField = (packet) => {
 }
 
 /**
+ * resolveRangeOpts
+ * @desc resolves the range assoc. with some component's properties (if available)
+ * 
+ * @param {string}              type             the name of the type assoc. with this range
+ * @param {Record<string, any>} opts             the properties assoc. with the component containing this value/range
+ * @param {boolean}             [forceStep=true] optionally specify whether to resolve a step interval regardless of range availability; defaults to `true`
+ * 
+ * @returns {Record<string, Record<string, string|number>>} the range values (if applicable)
+ */
+export const resolveRangeOpts = (type, opts, forceStep = true) => {
+  let fmin = null;
+  let fmax = null;
+  let fstep = null;
+  if (isObjectType(opts)) {
+    fmin = typeof opts.min === 'number' ? opts.min : null;
+    fmax = typeof opts.max === 'number' ? opts.max : null;
+    fstep = typeof opts.step === 'number' ? opts.step : null;
+  } else if (Array.isArray(opts) && opts.length >= 2) {
+    fmin = typeof opts[0] === 'number' ? opts[0] : null;
+    fmax = typeof opts[1] === 'number' ? opts[1] : null;
+    fstep = null;
+  }
+
+  if (typeof fmin == 'number' && typeof fmax === 'number') {
+    let tmp = Math.max(fmin, fmax);
+    fmin = Math.min(fmin, fmax);
+    fmax = tmp;
+  }
+
+  if (fstep === null && forceStep) {
+    fstep = type.startsWith('int') ? 1 : 0.001;
+  }
+
+  return {
+    hasStep: fstep !== null,
+    hasRange: fmin !== null && fmax !== null,
+    attr: {
+      min: fmin !== null ? `min="${fmin}"` : '',
+      max: fmax !== null ? `max="${fmax}"` : '',
+      step: fstep !== null ? `step="${fstep}"` : '',
+    },
+    values: {
+      min: fmin,
+      max: fmax,
+      step: fstep,
+    },
+  };
+}
+
+/**
  * parseAsFieldType
  * @desc parses the field as its type, returns true if no validation or type field
  * @param {object} packet the field data
@@ -1345,6 +1395,11 @@ export const parseAsFieldType = (packet, value, modifier) => {
       if (typeof value === 'number') {
         value = Math.trunc(value);
         valid = !isNaN(value) && Number.isFinite(value) && Number.isSafeInteger(value);
+
+        const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value = clampNumber(value, range.values.min, range.values.max);
+        }
       } else {
         valid = false;
       }
@@ -1357,16 +1412,9 @@ export const parseAsFieldType = (packet, value, modifier) => {
           min = Math.min(min, max);
           max = Math.max(min, max);
 
-          const fMin = isObjectType(validation.properties) && typeof validation.properties.min == 'number'
-            ? validation.properties.min
-            : null;
-          const fMax = isObjectType(validation.properties) && typeof validation.properties.max == 'number'
-            ? validation.properties.max
-            : null;
-
-          if (!isNullOrUndefined(fMin) && !isNullOrUndefined(fMax)) {
-            min = Math.min(Math.max(min, fMin), fMax);
-            max = Math.min(Math.max(max, fMin), fMax);
+          const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            value = clampNumber(value, range.values.min, range.values.max);
           }
 
           value = { min: Math.trunc(min), max: Math.trunc(max) };
@@ -1414,10 +1462,16 @@ export const parseAsFieldType = (packet, value, modifier) => {
         } else if (value.length < 2 && !validation?.closure_optional) {
           valid = false;
         } else {
-          const lower = Math.min(output[0], output[1]);
-          const upper = Math.max(output[0], output[1]);
-          output[0] = lower;
-          output[1] = upper;
+          const lower = Math.min(value[0], value[1]);
+          const upper = Math.max(value[0], value[1]);
+          value[0] = lower;
+          value[1] = upper;
+        }
+
+        const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
         }
       }
     } break;
@@ -1463,7 +1517,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
     case 'decimal':
     case 'numeric': {
       if (typeof value === 'string') {
-        const matches = value.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+        const matches = value.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
         if (!isNullOrUndefined(matches)) {
           value = parseFloat(matches.shift().trim().replaceAll(/,/g, ''));
         }
@@ -1471,6 +1525,11 @@ export const parseAsFieldType = (packet, value, modifier) => {
 
       if (typeof value === 'number') {
         valid = !isNaN(value) && Number.isFinite(value);
+
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value = clampNumber(value, range.values.min, range.values.max);
+        }
       } else {
         valid = false;
       }
@@ -1479,60 +1538,83 @@ export const parseAsFieldType = (packet, value, modifier) => {
     case 'float_range':
     case 'decimal_range':
     case 'numeric_range': {
-      const output = [];
-      if (typeof value === 'string') {
-        value = value.trim().split(',');
-      } else if (typeof value === 'number') {
-        value = [value];
-      }
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
 
-      if (!Array.isArray(value)) {
-        return false;
-      }
-
-      for (let i = 0; i < value.length; ++i) {
-        let item = value[i];
-        if (typeof item === 'string') {
-          const matches = item.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
-          if (isNullOrUndefined(matches)) {
-            valid = false;
-            break;
+          const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            min = clampNumber(min, range.values.min, range.values.max);
+            max = clampNumber(max, range.values.min, range.values.max);
           }
 
-          item = parseFloat(matches.shift().trim());
-        }
-
-        if (typeof item !== 'number') {
-          continue;
-        }
-
-        valid = !isNaN(item) && Number.isFinite(item);
-
-        if (!valid) {
+          value = { min, max };
           break;
         }
-
-        output.push(item);
-      }
-      value = output;
-
-      if (value.length === 1 && validation?.closure_optional) {
-        const num = value.shift();
-        valid = !isNaN(num) && Number.isFinite(num);
-        value = [num];
-      } else if (value.length < 2 && !validation?.closure_optional) {
-        valid = false;
       } else {
-        const lower = Math.min(output[0], output[1]);
-        const upper = Math.max(output[0], output[1]);
-        output[0] = lower;
-        output[1] = upper;
+        const output = [];
+        if (typeof value === 'string') {
+          value = value.trim().split(',');
+        } else if (typeof value === 'number') {
+          value = [value];
+        }
+  
+        if (!Array.isArray(value)) {
+          return false;
+        }
+  
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+            if (isNullOrUndefined(matches)) {
+              valid = false;
+              break;
+            }
+  
+            item = parseFloat(matches.shift().trim());
+          }
+  
+          if (typeof item !== 'number') {
+            continue;
+          }
+  
+          valid = !isNaN(item) && Number.isFinite(item);
+  
+          if (!valid) {
+            break;
+          }
+  
+          output.push(item);
+        }
+        value = output;
+  
+        if (value.length === 1 && validation?.closure_optional) {
+          const num = value.shift();
+          valid = !isNaN(num) && Number.isFinite(num);
+          value = [num];
+        } else if (value.length < 2 && !validation?.closure_optional) {
+          valid = false;
+        } else {
+          const lower = Math.min(value[0], value[1]);
+          const upper = Math.max(value[0], value[1]);
+          value[0] = lower;
+          value[1] = upper;
+        }
+
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
+        }
       }
     } break;
 
     case 'float_array':
     case 'decimal_array':
-    case 'numeric_range': {
+    case 'numeric_array': {
       const output = [];
       if (typeof value === 'string') {
         value = value.trim().split(',');
@@ -1547,7 +1629,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
       for (let i = 0; i < value.length; ++i) {
         let item = value[i];
         if (typeof item === 'string') {
-          const matches = item.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+          const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
           if (isNullOrUndefined(matches)) {
             valid = false;
             break;
@@ -1577,7 +1659,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
 
     case 'percentage': {
       if (typeof value === 'string') {
-        const matches = value.trim().match(/\b(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
+        const matches = value.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
         if (!isNullOrUndefined(matches)) {
           value = parseFloat(matches.shift().trim());
 
@@ -1600,8 +1682,90 @@ export const parseAsFieldType = (packet, value, modifier) => {
 
       if (typeof value === 'number') {
         valid = !isNaN(value) && Number.isFinite(value);
+
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value = clampNumber(value, range.values.min, range.values.max);
+        }
       } else {
         valid = false;
+      }
+    } break;
+
+    case 'percentage_range': {
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
+
+          const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            min = clampNumber(min, range.values.min, range.values.max);
+            max = clampNumber(max, range.values.min, range.values.max);
+          }
+
+          value = { min, max };
+          break;
+        }
+      } else {
+        const output = [];
+        if (typeof value === 'string') {
+          value = value.trim().split(',');
+        } else if (typeof value === 'number') {
+          value = [value];
+        }
+
+        if (!Array.isArray(value)) {
+          break;
+        }
+
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
+            if (!isNullOrUndefined(matches)) {
+              item = parseFloat(matches.shift().trim());
+    
+              let coercion = (isObjectType(modifier) && !isNullOrUndefined(modifier?.coercion))
+                ? modifier.coercion
+                : null;
+
+              if (isNullOrUndefined(coercion)) {
+                coercion = validation?.coercion;
+              }
+
+              const hasPercentageSymbol = !isNullOrUndefined(matches) ? (matches[matches.length - 1] === '%') : false;
+              if (coercion === 'normalised' && hasPercentageSymbol) {
+                item /= 100;
+              } else if (coercion === 'percentage' && !hasPercentageSymbol) {
+                item *= 100;
+              }
+            }
+          }
+
+          if (typeof item !== 'number') {
+            continue;
+          }
+
+          valid = !isNaN(item) && Number.isFinite(item);
+          if (!valid) {
+            break;
+          }
+
+          output.push(item);
+        }
+
+        if (!valid) {
+          break;
+        }
+        value = output;
+
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
+        }
       }
     } break;
 
@@ -1614,9 +1778,8 @@ export const parseAsFieldType = (packet, value, modifier) => {
       const output = { };
       for (const key in value) {
         let item = value[key];
-        if (key === 'level') {
-          item = parseAsFieldType({ validation: { type: 'percentage' }}, item, { coercion: 'percentage' });
-
+        if (key === 'probability') {
+          item = parseAsFieldType({ validation: { type: 'percentage', range: [0, 100] }}, item);
           if (!item || !item?.success) {
             valid = false;
             break;
@@ -1673,35 +1836,80 @@ export const parseAsFieldType = (packet, value, modifier) => {
     } break;
 
     case 'string': {
-      value = String(value);
+      value = !isNullOrUndefined(value) ? String(value) : null;
 
       const pattern = validation?.regex;
-      if (isNullOrUndefined(pattern)) {
-        valid = true;
-        break;
-      }
-
-      try {
-        if (typeof pattern === 'string') {
-          valid = new RegExp(pattern).test(value);
-        } else if (Array.isArray(pattern)) {
-          let test = undefined, i = 0;
-          while (i < pattern.length) {
-            test = pattern[i];
-            if (typeof test !== 'string') {
-              continue;
-            }
-
-            valid = new RegExp(test).test(value);
-            if (valid) {
-              break;
+      if (!isNullOrUndefined(pattern)) {
+        try {
+          if (typeof pattern === 'string') {
+            valid = new RegExp(pattern).test(value);
+          } else if (Array.isArray(pattern)) {
+            let test = undefined, i = 0;
+            while (i < pattern.length) {
+              test = pattern[i];
+              if (typeof test !== 'string') {
+                continue;
+              }
+  
+              valid = new RegExp(test).test(value);
+              if (valid) {
+                break;
+              }
             }
           }
         }
+        catch (e) {
+          console.error(`Failed to test String<value: ${value}> with err: ${e}`);
+          valid = false;
+        }
+
+        if (!valid) {
+          break;
+        }
       }
-      catch (e) {
-        console.error(`Failed to test String<value: ${value}> with err: ${e}`);
-        valid = false;
+
+      const { clippable, validateLen } = isObjectType(validation.properties) ? validation.properties : {};
+      if (clippable || validateLen) {
+        let len = validation?.['length'] || validation?.properties?.['length'];
+        if (Array.isArray(len)) {
+          len = len.length >= 2 ? len.slice(0, 2) : len?.[0];
+        }
+  
+        if (Array.isArray(len)) {
+          len = len.map(x => Math.floor(x));
+  
+          let min = Math.min(...len);
+          let max = Math.max(...len);
+          if (min === max) {
+            len = min;
+          } else {
+            if (clippable) {
+              value = value.substring(0, Math.min(value.length, max));
+            } else if (validateLen && (value.length < min || value.length > max)) {
+              value = { len: value.length };
+              valid = false;
+            }
+          }
+  
+          if (!valid) {
+            break;
+          }
+        }
+  
+        if (typeof len === 'number') {
+          len = Math.floor(len);
+  
+          if (clippable) {
+            value = value.substring(0, Math.min(value.length, len));
+          } else if (validateLen && value.length > len) {
+            value = { len: value.length };
+            valid = false;
+          }
+  
+          if (!valid) {
+            break;
+          }
+        }
       }
     } break;
 
@@ -1863,7 +2071,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
  * @return {string} the title of this field
  */
 export const tryGetFieldTitle = (field, packet) => {
-  const group = tryGetRootElement(packet.element, 'detailed-input-group');
+  const group = tryGetRootElement(packet.element, '.detailed-input-group');
   const title = !isNullOrUndefined(group) ? group.querySelector('.detailed-input-group__title') : null;
   if (!isNullOrUndefined(title)) {
     return title.innerText.trim();

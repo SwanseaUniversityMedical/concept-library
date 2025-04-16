@@ -9,12 +9,17 @@
  *
  */
 
+/// Page layout containing UGC variables
+///   @desc primarily used for create page; specifically `validation_measures` and `variable_list`
+///   @example see `variableCreator.js`
+///
 .var-selection-group {
   @include flex-col(0.5rem, true);
   position: relative;
   width: 100%;
   max-width: 100%;
   height: fit-content;
+  margin-bottom: 0.5rem;
 
   &__none-available {
     padding: 1rem;
@@ -66,9 +71,14 @@
   &__interface {
     @include flex-row(0.5rem, false);
     height: min-content;
+    width: 100%;
     max-width: 100%;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
+
+    @include media('<tablet', 'screen') {
+      flex-wrap: wrap-reverse;
+    }
 
     & button {
       font-weight: normal;
@@ -78,7 +88,131 @@
       & > .as-icon {
         margin-left: 0.5em;
       }
+
+      &:last-child {
+        margin-left: auto;
+      }
     }
+  }
+
+  &__item {
+    @include flex-row(0.5rem, false);
+    max-width: calc(100% - 0.5rem);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+
+    & p {
+      margin: 0;
+    }
+
+    &-text {
+      flex: 1;
+      max-width: 100%;
+
+      & p {
+        text-wrap: wrap;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+
+      & a {
+        text-wrap: wrap;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+
+      @include media("<tablet", "screen") {
+        flex: 1;
+        min-width: 100%;
+
+        & p {
+          width: fit-content;
+        }
+      }
+    }
+
+    &-btn {
+      @include flex-row();
+      @include prefix(transition, all 250ms ease, webkit moz o ms);
+      cursor: pointer;
+      pointer-events: auto;
+      flex-wrap: nowrap;
+      width: fit-content;
+      height: fit-content;
+      padding: 0.5rem 0.5rem;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+      align-items: center;
+      justify-content: space-evenly;
+      color: col(text-brightest);
+      border-radius: 0.25rem;
+      border: none;
+      outline: none;
+
+      & > .as-icon {
+        pointer-events: none;
+      }
+
+      &[data-action="edit"] {
+        background-color: col(accent-primary);
+      }
+
+      &[data-action="remove"] {
+        background-color: col(accent-danger);
+      }
+
+      & > span {
+        font-weight: bold;
+        pointer-events: none;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+
+      &:focus-visible {
+        outline: 1px solid col(accent-dark);
+        border-radius: 2pt;
+      }
+
+      &:focus {
+        outline: none;
+        border-radius: 0.25rem;
+      }
+
+      &:hover {
+        @include prefix(filter, brightness(80%), webkit moz o ms);
+      }
+
+      &:active {
+        @include prefix(transform, scale(0.95), webkit moz o ms);
+      }
+
+      &:not(:last-child) {
+        margin-left: auto;
+      }
+    }
+
+    &:not(:last-child) {
+      border-bottom: 1px solid col(accent-washed);
+    }
+  }
+
+  &__badge {
+    display: inline-block;
+    height: max-content;
+    min-width: 10px;
+    padding: 3px 7px !important;
+    font-size: 12px;
+    font-weight: 700 !important;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-radius: 10px;
+    color: col(text-darkest);
+    background-color: col(accent-lightest);
   }
 }
 
@@ -939,7 +1073,7 @@
 ///        elements, e.g. a title/description/mandatory status, to communicate its
 ///        use to the user
 .detailed-input-group {
-  @include flex-col();
+  @include flex-col(false, true);
 
   max-width: 100%;
   font-family: inherit;
@@ -1040,11 +1174,17 @@
   border: 0;
   width: 100%;
 
+  &--padding0_5 {
+    padding: 0 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
   &--wrapped {
     flex-wrap: wrap;
     max-width: 100%;
 
-    @include media('<tablet', 'screen') {display: grid;
+    @include media('<tablet', 'screen') {
+      display: grid;
       grid: 1fr 1fr / 1fr 1fr;
       gap: 0.5rem 0.25rem;
       justify-items: safe;
@@ -1054,11 +1194,15 @@
         margin-right: 0 !important;
       }
     }
-  }
 
-  &--padding0_5 {
-    padding: 0 0.5rem;
-    max-width: calc(100% - 0.5rem);
+    @include media('<phone', 'screen') {
+      @include flex-row(0, false);
+      padding: 0;
+
+      & > input {
+        max-width: calc(100% - 1rem);
+      }
+    }
   }
 
   &__label {
@@ -1209,6 +1353,14 @@
       width: 100%;
     }
   }
+
+  &--grid {
+    display: grid;
+    gap: 0.25rem 0.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    align-items: flex-start;
+    justify-items: flex-start;
+  }
 }
 
 /// checkbox-item-container
@@ -1223,6 +1375,16 @@
   &.min-size {
     max-width: fit-content;
     margin-right: 0.5rem;
+  }
+  
+  &.min-gap {
+    gap: 0.5rem;
+    max-width: fit-content;
+    margin-bottom: 0;
+
+    & > label {
+      margin: 0 !important;
+    }
   }
 
   &.ignore-overflow {
@@ -1577,16 +1739,60 @@
   height: fit-content;
   max-width: 100%;
 
+  &--fill-w {
+    width: 100% !important;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-gap: 0;
+    height: fit-content;
+    max-width: 100%;
+  }
+
+  &__row {
+    @include flex-row(0.5rem, false);
+    height: fit-content;
+    width: 100%;
+    max-width: 100%;
+  }
+
   &__label {
+    display: inline-block;
+    width: fit-content;
+    margin: 0;
+    font-family: inherit;
+    line-height: 1.2em;
+    letter-spacing: 2px;
+    text-wrap: wrap;
+    word-wrap: break-word;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    color: col(text-darkest);
+  }
+
+  &__desc {
     display: inline-block;
     width: fit-content;
     max-width: 100%;
     margin: 0;
+    color: col(text-darker);
     font-family: inherit;
     line-height: 1em;
-    letter-spacing: 2px;
     text-wrap: wrap;
-    text-transform: uppercase;
+    word-wrap: break-word;
+  }
+
+  &__mandatory {
+    float: right;
+    color: col(text-danger);
+    font-weight: bold;
+    font-size: 1.5em;
+
+    &.hidden {
+      display: none;
+    }
   }
 }
 
@@ -1993,7 +2199,7 @@
   padding: 0;
   border: 1px solid var(--border-color, var(--border-accent));
   background: var(--bg-color, var(--background-accent));
-  box-sizing: inherit;
+  box-sizing: border-box;
 
   &:focus-visible + label {
     outline: 1px solid col(accent-dark);
@@ -2011,9 +2217,9 @@
     border: 2px solid var(--icon-accent);
     border-top: 0;
     border-left: 0;
-    left: 6px;
-    top: 2px;
-    box-sizing: inherit;
+    left: calc(50% - 5px*0.5);
+    top: calc(50% - 9px*0.5);
+    box-sizing: border-box;
   }
 
   &:before {

@@ -6,18 +6,18 @@
 /// Tags
 ///   @desc e.g. chip-like interface to represent a label, assoc. with js/tagify.js
 .tags-root-container {
-  @include flex-col();
-
-  flex-wrap: nowrap;
+  @include flex-col(false, true);
+  max-width: 100%;
   margin-top: 0.25rem;
   margin-bottom: 0.5rem;
 }
 
 .tags-container {
-  @include flex-row($gap: 0.5rem);
+  @include flex-col(0.5rem, false);
 
-  justify-content: flex-start;
+  max-width: 100%;
   min-height: 1rem;
+  justify-content: flex-start;
   word-wrap: break-word;
   overflow: hidden;
   border: 1px solid col(accent-dark);

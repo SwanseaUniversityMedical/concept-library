@@ -22,7 +22,7 @@
               {% endif %}
               {{ p.details|markdownify }}
               {% if p.doi %}
-                (DOI: <a href="https://doi.org/{{ p.doi }}" aria-label="Visit Publication DOI page">{{ p.doi|striptags|escape }}</a>)
+                (DOI: <a target=_blank rel="noopener" href="https://doi.org/{{ p.doi }}" aria-label="Visit Publication DOI page">{{ p.doi|striptags|escape }}</a>)
               {% endif %}
             </li>
           {% endfor %}

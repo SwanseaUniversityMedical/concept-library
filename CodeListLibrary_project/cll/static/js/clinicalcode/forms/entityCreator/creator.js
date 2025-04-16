@@ -29,39 +29,6 @@ export default class EntityCreator {
     this.#collectForm();
     this.#setUpForm();
     this.#setUpSubmission();
-
-    const form = this.form;
-    const vmField = form.validation_measures
-    console.log('Measures', parseAsFieldType(
-      vmField,
-      {
-        sensitivity: {
-          value: '0.5'
-        },
-        specificity: {
-          value: '50%'
-        },
-        somethingElse: {
-          name: 'bruh',
-          type: 'float',
-          value: '0.5',
-        },
-        confidence_interval: {
-          description: 'Some CI interval :)',
-          value: {
-            level: '95%',
-            upper: '0.5',
-            lower: -5,
-          },
-        },
-        c_statistic: {
-          value: 0.001,
-        },
-        kappa: {
-          value: '1,000,000',
-        }
-      }
-    ));
   }
 
   /*************************************
@@ -715,7 +682,7 @@ export default class EntityCreator {
 
     // Add __error class below title if available & the forceErrorToasts parameter was not passed
     if (!this.options.forceErrorToasts) {
-      const inputGroup = tryGetRootElement(element, 'detailed-input-group');
+      const inputGroup = tryGetRootElement(element, '.detailed-input-group');
       if (!isNullOrUndefined(inputGroup)) {
         const titleNode = inputGroup.querySelector('.detailed-input-group__title');
         const errorNode = createElement('p', {
