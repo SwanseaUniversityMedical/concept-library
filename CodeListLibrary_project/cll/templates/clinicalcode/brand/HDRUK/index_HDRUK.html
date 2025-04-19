@@ -161,19 +161,20 @@
             </a>
           </div>
         </article>
-        <article
-          class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-          <div class="referral-card__header referral-card__header--icon-column">
-            <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
-            <p class="referral-card__title referral-card__title--align-centre">Submit a phenotype</p>
-          </div>
-          <div class="referral-card__body referral-card__body--hide-overflow">
-
-            <a class="referral-card__anchor" href="{% url 'create_phenotype' %}">
-              <p>Learn how you contribute your phenotypes to our library.</p>
-            </a>
-          </div>
-        </article>
+        {% if USER_CREATE_CONTEXT %}
+          <article
+            class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header referral-card__header--icon-column">
+              <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
+              <p class="referral-card__title referral-card__title--align-centre">Submit a phenotype</p>
+            </div>
+            <div class="referral-card__body referral-card__body--hide-overflow">
+              <a class="referral-card__anchor" href="{% url 'create_phenotype' %}">
+                <p>Learn how you contribute your phenotypes to our library.</p>
+              </a>
+            </div>
+          </article>
+        {% endif %}
       </div>
     </div>
     <section class="key-section">

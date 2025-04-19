@@ -189,9 +189,13 @@
               <ul>
                 <li>
                   By using the
-                  <a href="{% url 'create_phenotype' %}">
-                    Phenotype Builder
-                  </a>
+                  {% if USER_CREATE_CONTEXT %}
+                    <a href="{% url 'create_phenotype' %}">
+                      Phenotype Builder
+                    </a>
+                  {% else %}
+                    <p>Phenotype Builder</p>
+                  {% endif %}
                 </li>
                 <li>
                   By using the 

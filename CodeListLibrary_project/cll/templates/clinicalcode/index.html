@@ -312,18 +312,20 @@
               Search
             </a>
           </div>
-          <div class="homepage-carousel__item">
-            <span class="homepage-carousel__item-subtitle">
-              Create a {{ brand_mapping.phenotype }}
-            </span>
-            <span class="homepage-carousel__item-text">
-              Start here to contribute to the {{ base_page_title }}.
-            </span>
-            <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a {{ brand_mapping.phenotype }}" 
-              id="create-btn" href="{% url 'create_phenotype' %}">
-              Create
-            </a>
-          </div>
+          {% if USER_CREATE_CONTEXT %}
+            <div class="homepage-carousel__item">
+              <span class="homepage-carousel__item-subtitle">
+                Create a {{ brand_mapping.phenotype }}
+              </span>
+              <span class="homepage-carousel__item-text">
+                Start here to contribute to the {{ base_page_title }}.
+              </span>
+              <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a {{ brand_mapping.phenotype }}" 
+                id="create-btn" href="{% url 'create_phenotype' %}">
+                Create
+              </a>
+            </div>
+          {% endif %}
         </div>
       </div>
     </section>
