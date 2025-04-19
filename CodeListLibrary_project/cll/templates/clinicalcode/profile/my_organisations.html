@@ -37,8 +37,8 @@
         </p>
         <div class="banner__cards">
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
-            {% if not CLL_READ_ONLY %}
-              {% url 'create_phenotype' as create_url %}
+            {% url 'create_phenotype' as create_url %}
+            {% if USER_CREATE_CONTEXT %}
               <article
                   class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
                   data-target="{{ create_url }}"
@@ -52,7 +52,7 @@
                   <p>Start here to contribute to the {{ base_page_title }}.</p>
                 </div>
               </article>
-              {% url 'create_organisation' as create_org_url %}
+              <!-- {% url 'create_organisation' as create_org_url %}
               {% if not is_brand_managed %}
               <article
                   class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
@@ -67,7 +67,7 @@
                   <p>Create a new organisation.</p>
                 </div>
               </article>
-              {% endif %}
+              {% endif %} -->
             {% endif %}
             {% url 'my_collection' as collections_url %}
             <article

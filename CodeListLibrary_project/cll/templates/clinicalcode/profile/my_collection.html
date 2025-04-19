@@ -37,8 +37,8 @@
         </p>
         <div class="banner__cards">
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
-            {% if not CLL_READ_ONLY %}
-              {% url 'create_phenotype' as create_url %}
+            {% url 'create_phenotype' as create_url %}
+            {% if USER_CREATE_CONTEXT %}
               <article
                   class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
                   data-target="{{ create_url }}"

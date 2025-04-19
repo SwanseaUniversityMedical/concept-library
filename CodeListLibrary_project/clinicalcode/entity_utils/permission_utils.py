@@ -557,6 +557,24 @@ def get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.EDITO
       results = [dict(zip(columns, row)) for row in cursor.fetchall()]
       return results
 
+def user_has_create_context(request=None):
+  if request is None or settings.CLL_READ_ONLY:
+    return False
+
+  user = request.user
+  if user is None or user.is_anonymous or user.is_superuser:
+    return True
+
+  brand = model_utils.try_get_brand(request)
+  if brand is not None and brand.org_user_managed:
+    user_orgs = get_user_organisations(
+      request, min_role_permission=ORGANISATION_ROLES.EDITOR
+    )
+    if not user_orgs or len(user_orgs) < 1:
+      return False
+
+  return True
+
 def get_moderation_entities(
     request,
     status=None
