@@ -44,9 +44,10 @@
                   data-target="{{ create_url }}"
                   onclick="redirectToTarget(this, event);"
                   tabindex="0"
+                  role="button"
                   aria-label="Create a {{ brand_mapping.phenotype }}">
                 <div class="referral-card__header">
-                  <a class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></a>
+                  <p class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></p>
                 </div>
                 <div class="referral-card__body">
                   <p>Start here to contribute to the {{ base_page_title }}.</p>
@@ -59,9 +60,10 @@
                   data-target="{{ create_org_url }}"
                   onclick="redirectToTarget(this, event);"
                   tabindex="0"
+                  role="button"
                   aria-label="Create an Organisation">
                 <div class="referral-card__header">
-                  <a class="referral-card__title" href="{{ create_org_url }}">Create an Organisation<span class="referral-card__title-icon"></span></a>
+                  <p class="referral-card__title" href="{{ create_org_url }}">Create an Organisation<span class="referral-card__title-icon"></span></p>
                 </div>
                 <div class="referral-card__body">
                   <p>Create a new organisation.</p>
@@ -75,9 +77,10 @@
                 data-target="{{ collections_url }}"
                 onclick="redirectToTarget(this, event);"
                 tabindex="0"
+                role="button"
                 aria-label="View {{ brand_mapping.phenotype }} Collection">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ collections_url }}">My Collection<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ collections_url }}">My Collection<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
                 <p>View content owned by or shared with you.</p>

@@ -43,6 +43,7 @@
                 data-target="{{ api_url }}"
                 onclick="redirectToTarget(this, event);"
                 tabindex="0"
+                role="button"
                 aria-label="Visit API documentation">
               <div class="referral-card__header">
                 <p class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></p>
@@ -58,6 +59,7 @@
                   data-target="{{ create_url }}"
                   onclick="redirectToTarget(this, event);"
                   tabindex="0"
+                  role="button"
                   aria-label="Create a {{ brand_mapping.phenotype }}">
                 <div class="referral-card__header">
                   <p class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></p>
@@ -73,6 +75,7 @@
                 data-target="{{ search_url }}"
                 onclick="redirectToTarget(this, event);"
                 tabindex="0"
+                role="button"
                 aria-label="Visit {{ brand_mapping.phenotype }} Search">
               <div class="referral-card__header">
                 <p class="referral-card__title" href="{{ search_url }}">Search {{ brand_mapping.phenotype }}s<span class="referral-card__title-icon"></span></p>

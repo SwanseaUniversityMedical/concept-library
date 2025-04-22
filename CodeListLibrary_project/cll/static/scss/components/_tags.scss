@@ -221,6 +221,7 @@
 
   .autocomplete-item {
     cursor: pointer;
+    pointer-events: all;
     padding: 0.25rem 0.5rem;
     margin: 0;
     height: auto;
@@ -228,6 +229,11 @@
     transition: background-color 250ms ease;
     text-align: left;
     border: none;
+    text-decoration: none;
+
+    &:visited {
+      all: unset;
+    }
     
     &__title {
       color: col(text-darkest);

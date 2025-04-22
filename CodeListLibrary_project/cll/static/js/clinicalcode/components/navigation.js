@@ -85,7 +85,7 @@ const initHamburgerMenu = () => {
  */
 const submenuMobile = () => {
   // JavaScript for submenu behavior
-  const navText = document.querySelector('.nav-dropdown__text');
+  const navText = document.querySelector('.nav-dropdown__text a');
   const submenu = document.querySelector('.nav-dropdown__content');
 
   const avataText = document.querySelector('.avatar-content');

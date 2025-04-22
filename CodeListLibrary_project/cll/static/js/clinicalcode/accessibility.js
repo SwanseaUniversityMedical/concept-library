@@ -19,7 +19,7 @@ domReady.finally(() => {
   document.addEventListener('keydown', e => {
     const elem = document.activeElement;
     const code = e.code;
-    if (code.endsWith('Enter') || elem.disabled) {
+    if (!code.endsWith('Enter') || elem.disabled) {
       return;
     }
 

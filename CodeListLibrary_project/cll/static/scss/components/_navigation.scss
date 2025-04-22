@@ -126,6 +126,14 @@
           @include prefix(transform, translateY(-2px), webkit moz o);
         }
 
+        &:focus-within,
+        &:focus-visible {
+          outline: 1px solid col(accent-anchor);
+          background-color: transparent;
+          background-size: 25% var(--navigation-line-width), auto;
+          @include prefix(transform, translateY(-2px), webkit moz o);
+        }
+
         &:active {
           outline: unset;
           background-color: transparent;
@@ -465,6 +473,7 @@
   }
 
   .item-dropdown button.item-dropdown__submit:hover {
+    outline: 1px solid col(accent-anchor) !important;
     transform: translateY(0px) !important;
   }
 }
@@ -506,9 +515,15 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     background-position: center bottom;
     background-size: 0 var(--navigation-line-width), auto;
 
-    &:not(.active):not([role="login"]):not([role="profile"]):hover {
-      background-size: 25% var(--navigation-line-width), auto;
-      @include prefix(transform, translateY(-2px), webkit moz o);
+    &:not(.active):not([role="login"]):not([role="profile"]) {
+      &:hover {
+        background-size: 25% var(--navigation-line-width), auto;
+        @include prefix(transform, translateY(-2px), webkit moz o);
+      }
+
+      &:focus-visible {
+        outline: 1px solid col(accent-anchor) !important;
+      }
     }
 
     &.active {
@@ -528,7 +543,9 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
   }
 
   &[role="login"],
-  &[role="profile"] {
+  &[role="profile"],
+  &:focus-visible:has([role="login"]),
+  &:focus-visible:has([role="profile"]) {
     @include prefix(transition, $navigation_login_transition, webkit moz o);
     background-color: rgba(255, 255, 255, 0);
     border-radius: 0.25rem;
@@ -536,6 +553,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     &:hover {
       background-color: var(--navigation-item-selector);
     }
+
     &:active {
       @include prefix(transition, scale(0.95), webkit moz o);
     }
@@ -627,9 +645,14 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     display: flex;
     height: auto;
     width: auto;
+    visibility: hidden;
     z-index: 1;
 
     @include media("<desktop", "screen") {
+      & {
+        visibility: visible;
+      }
+
       &:not(.open):after {
         --as-burger: "true";
 

@@ -1156,6 +1156,46 @@ const scrollContainerTo = (
 }
 
 /**
+ * focusNextElement
+ * @desc attempts to tab cycle focusable elements
+ * 
+ * @param {HTMLElement}   [active=null] optionally specify the actively selected item if applicable; defaults to `document.activeElement`
+ * @param {number|string} [dir='next']  optionally specify the tab cycle direction; defaults to `next` | `+1` 
+ * 
+ * @returns {Nullable<HTMLElement>} the newly focused item (if applicable)
+ */
+const focusNextElement = (active = null, dir = 'next') => {
+  const element = !isNullOrUndefined(document?.activeElement?.form) ? document?.activeElement?.form : document;
+  active = !isNullOrUndefined(active) ? active : document?.activeElement;
+
+  dir = typeof dir === 'number'
+    ? clampNumber(dir, -1, 1)
+    : (dir.toLowerCase() === 'previous' ? -1 : 1);
+
+  let elements = [...element.querySelectorAll(
+    'a:not([disabled]):not([aria-hidden="true"]), \
+    button:not([disabled]):not([aria-hidden="true"]), \
+    input[type=text]:not([disabled]):not([aria-hidden="true"]), \
+    [tabindex]:not([disabled]):not([tabindex="-1"]):not([aria-hidden="true"]) \
+  ')]
+  elements = elements.filter(x => x.offsetWidth > 0 || x.offsetHeight > 0 || x === active);
+
+  let elm = elements.indexOf(active);
+  if (elm >= 0) {
+    elm = elm + dir < 0 ? elements.length : (elm + dir > elements.length ? 0 : elm + dir);
+  } else {
+    elm = 0;
+  }
+  elm = elements[elm];
+
+  if (!isNullOrUndefined(elm)) {
+    elm.focus();
+  }
+
+  return elm;
+}
+
+/**
   * getCookie
   * @desc Gets the CSRF token
   *       Ref @ https://docs.djangoproject.com/en/4.1/howto/csrf/

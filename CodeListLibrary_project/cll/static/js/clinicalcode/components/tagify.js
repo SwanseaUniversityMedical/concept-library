@@ -312,13 +312,12 @@ export default class Tagify {
   #onFocusLost(e) {
     this.#deselectHighlighted();
 
-    const target = e.relatedTarget;
-    if (target && target.classList.contains('autocomplete-item')) {
-      const name = target.getAttribute('data-name');
+    const { relatedTarget } = e;
+    if (!!relatedTarget && this.autocomplete.contains(relatedTarget) && relatedTarget.classList.contains('autocomplete-item')) {
+      const name = relatedTarget.getAttribute('data-name');
       this.addTag(name);
     }
     this.field.value = '';
-
     this.#clearAutocomplete();
     this.autocomplete.classList.remove('show');
   }
@@ -389,6 +388,14 @@ export default class Tagify {
               this.#focusAutocompleteElement();
             }
           } break;
+
+          case 'Tab':
+            this.#deselectHighlighted();
+            this.#clearAutocomplete(true);
+            if (!e.shiftKey) {
+              focusNextElement(this.field, 'next');
+            }
+            break;
 
           default: {
             this.#deselectHighlighted();
@@ -763,21 +770,21 @@ export default class Tagify {
   #generateAutocompleteElements(results) {
     for (let i = 0; i < results.length; ++i) {
       const data = results[i];
-      const item = createElement('button', {
+      createElement('a', {
         class: 'autocomplete-item',
+        href: '#',
         dataset: {
           name: data.name,
           value: data.value,
         },
+        childNodes: [
+          createElement('span', {
+            className: 'autocomplete-item__title',
+            innerText: this.#tryFmtName(data),
+          })
+        ],
+        parent: this.autocomplete
       });
-
-      const text = createElement('span', {
-        className: 'autocomplete-item__title',
-        innerText: this.#tryFmtName(data),
-      });
-
-      item.appendChild(text);
-      this.autocomplete.appendChild(item);
     }
   }
 

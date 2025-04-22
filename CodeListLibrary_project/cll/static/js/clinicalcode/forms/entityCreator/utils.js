@@ -901,13 +901,8 @@ export const ENTITY_FIELD_COLLECTOR = {
   // Retrieves and validates tagify components
   'tagify': (field, packet, creator, isInit) => {
     const handler = packet.handler;
-    console.log('Field:', field, '|', 'IsInit:', isInit);
-    console.log('\t', '-> Packet:', packet);
     if (!isInit) {
       const dataValue = handler.getDataValue();
-      console.log('\t', '-> Handler:', handler);
-      console.log('\t', '-> DataValue:', dataValue);
-  
       if (isMandatoryField(packet)) {
         if (isNullOrUndefined(dataValue) || dataValue.length < 1) {
           return {
@@ -935,7 +930,6 @@ export const ENTITY_FIELD_COLLECTOR = {
       };
     }
 
-    console.log('\t\t-> Init:', Array.isArray(packet?.value) ? packet.value : []);
     return { valid: true, value: Array.isArray(packet?.value) ? packet.value : [] };
   },
 

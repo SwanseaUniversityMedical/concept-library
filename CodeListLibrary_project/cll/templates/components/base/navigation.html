@@ -14,10 +14,10 @@
     {% with request.CURRENT_BRAND|default:"BASE_BRAND" as brand_target %}
       {% cache 3600 brand_nav_logo brand_target %}
         {% url 'concept_library_home' as home_url %}
-        <a class="page-navigation__logo-anchor" href="{{ home_url }}" id="Logourl">
+        <a class="page-navigation__logo-anchor" tabindex="0" href="{{ home_url }}" id="Logourl" aria-label="Sign out">
           <div class="page-navigation__logo"></div>
         </a>
-        <div class="page-navigation__buttons"></div>
+        <div class="page-navigation__buttons" tabindex="0" aria-label="Toggle Site Menu" role="button"></div>
       {% endcache %}
     {% endwith %}
 
