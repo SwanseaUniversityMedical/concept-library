@@ -7,8 +7,10 @@ from rest_framework.response import Response
 from .BaseTarget import BaseEndpoint, BaseSerializer
 from .HDRNSiteTarget import HDRNSiteSerializer
 from .HDRNCategoryTarget import HDRNCategorySerializer
+from .HDRNJurisdictionTarget import HDRNJurisdictionSerializer
 from clinicalcode.entity_utils import gen_utils
 from clinicalcode.models.HDRNSite import HDRNSite
+from clinicalcode.models.HDRNJurisdiction import HDRNJurisdiction
 from clinicalcode.models.HDRNDataAsset import HDRNDataAsset
 from clinicalcode.models.HDRNDataCategory import HDRNDataCategory
 
@@ -20,6 +22,7 @@ class HDRNDataAssetSerializer(BaseSerializer):
 
     # Fields
     site = HDRNSiteSerializer(many=False, required=False)
+    regions = HDRNJurisdictionSerializer(many=True, required=False)
     data_categories = HDRNCategorySerializer(many=True, required=False)
 
     # Appearance
@@ -88,6 +91,24 @@ class HDRNDataAssetSerializer(BaseSerializer):
         else:
             data_categories = None
 
+        # Regions: M2M
+        regions = data.get('regions', [])
+        if isinstance(regions, list) and not all(isinstance(i, int) for i in regions):
+            raise serializers.ValidationError({
+                'regions': 'Regions, if provided, must be a list of known HDRN Jurisdictions.'
+            })
+        elif isinstance(regions, list):
+            regions = HDRNJurisdiction.objects.filter(pk__in=regions)
+            if regions is None or not regions.exists():
+                raise serializers.ValidationError({
+                    'regions': 'Failed to find specified `regions`'
+                })
+
+            regions = list(regions)
+        else:
+            regions = None
+
+        # Site: FK
         site = data.get('site', None)
         if site is not None and not isinstance(site, int):
             raise serializers.ValidationError({
@@ -107,7 +128,13 @@ class HDRNDataAssetSerializer(BaseSerializer):
         if not gen_utils.is_valid_uuid(uuid):
             uuid = None
 
-        data.update({ 'data_categories': data_categories, 'site': site, 'hdrn_uuid': uuid })
+        data.update({
+            'site': site,
+            'regions': regions,
+            'hdrn_uuid': uuid,
+            'data_categories': data_categories,
+        })
+
         return data
 
 
@@ -153,7 +180,7 @@ class HDRNDataAssetEndpoint(BaseEndpoint):
             serializer.is_valid(raise_exception=True)
         except serializers.ValidationError as e:
             if isinstance(e.detail, dict):
-                detail = {k: v for k, v in e.detail.items() if k not in ('site', 'data_categories')}
+                detail = {k: v for k, v in e.detail.items() if k not in ('site', 'data_categories', 'regions')}
                 if len(detail) > 0:
                     raise serializers.ValidationError(detail=detail)
         except Exception as e:
@@ -161,9 +188,14 @@ class HDRNDataAssetEndpoint(BaseEndpoint):
 
         data = serializer.data
         data = self.get_serializer().validate(data)
+
+        regions = data.pop('regions', [])
+
         instance.__dict__.update(**data)
         instance.site = data.get('site')
         instance.save()
+
+        instance.regions.set(regions)
 
         return Response(self.get_serializer(instance).data)
 
@@ -176,7 +208,7 @@ class HDRNDataAssetEndpoint(BaseEndpoint):
             serializer.is_valid(raise_exception=True)
         except serializers.ValidationError as e:
             if isinstance(e.detail, dict):
-                detail = {k: v for k, v in e.detail.items() if k not in ('site', 'data_categories')}
+                detail = {k: v for k, v in e.detail.items() if k not in ('site', 'data_categories', 'regions')}
                 if len(detail) > 0:
                     raise serializers.ValidationError(detail=detail)
         except Exception as e:
@@ -184,6 +216,9 @@ class HDRNDataAssetEndpoint(BaseEndpoint):
 
         data = serializer.data
         data = self.get_serializer().validate(data)
+        regions = data.pop('regions', [])
 
         instance, _ = self.model.objects.get_or_create(**data)
+        instance.regions.set(regions)
+
         return Response(self.get_serializer(instance).data)

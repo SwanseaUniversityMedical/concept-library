@@ -523,17 +523,14 @@ def try_search_child_concepts(entities, search=None, order_clause=None):
                         cast(regexp_replace(id, '[a-zA-Z]+', '') as integer) as true_id,
                         ts_rank_cd(
                             hge.search_vector,
-                            websearch_to_tsquery('pg_catalog.english', %(searchterm)s)
+                            to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
                         ) as score
                       from public.clinicalcode_historicalgenericentity as hge
                      where id = ANY(%(entity_ids)s)
                        and history_id = ANY(%(history_ids)s)
                        and hge.search_vector @@ to_tsquery(
                             'pg_catalog.english',
-                            replace(
-                                websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*',
-                                '<->', '|'
-                            )
+                            replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')
                        )
                      {0}
                 ),
@@ -893,12 +890,12 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         history_ids = list(entities.values_list('history_id', flat=True))
 
         entities = GenericEntity.history.extra(
-            select={ 'score': '''ts_rank_cd("clinicalcode_historicalgenericentity"."search_vector", websearch_to_tsquery('pg_catalog.english', %s))'''},
+            select={ 'score': '''ts_rank_cd("clinicalcode_historicalgenericentity"."search_vector", to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))'''},
             select_params=[search],
             where=[
                 '''"clinicalcode_historicalgenericentity"."id" = ANY(%s)''',
                 '''"clinicalcode_historicalgenericentity"."history_id" = ANY(%s)''',
-                '''"clinicalcode_historicalgenericentity"."search_vector" @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %s)::text || ':*', '<->', '|'))'''
+                '''"clinicalcode_historicalgenericentity"."search_vector" @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))'''
             ],
             params=[entity_ids, history_ids, search]
         )

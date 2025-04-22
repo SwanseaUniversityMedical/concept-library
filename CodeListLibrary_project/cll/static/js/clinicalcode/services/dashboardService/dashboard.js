@@ -100,7 +100,7 @@ export class DashboardService {
    *              Public               *
    *                                   *
    *************************************/
-  openPage(page, view = null, target = null, pushState = true) {
+  openPage(page, view = 'list', target = null, pushState = true) {
     const state = this.#state;
     if (state.page === page && state.view === view && state.target === target && state.initialised) {
       return;
@@ -135,6 +135,7 @@ export class DashboardService {
       state.target = target;
       state.initialised = true;
       this.#toggleNavElement(page);
+
       if (pushState) {
         this.#pushDashboardState();
       }
@@ -274,16 +275,15 @@ export class DashboardService {
         if (isRecordType(target)) {
           type = !isNullOrUndefined(target.type) ? `~${target.type}` : '';
           kwargs = !isNullOrUndefined(target.kwargs) ? `@${target.kwargs}` : '';
+        } else if (!isNullOrUndefined(target)) {
+          type = '';
+          kwargs = `@${target}`;
         } else {
           type = '';
           kwargs = '';
         }
 
-        if (isNullOrUndefined(kwargs)) {
-          url = `${root}/${parameters}#update~${page}${type}`;
-        } else {
-          url = `${root}/${parameters}#update~${page}${type}${kwargs}`;
-        }
+        url = `${root}/${parameters}#update~${page}${type}${kwargs}`;
         break;
 
       default:
@@ -888,7 +888,7 @@ export class DashboardService {
             });
           })
           .catch((e) => {
-            if (!(e instanceof ModalFactory.ModalResults)) {
+            if (!!e && !(e instanceof ModalFactory.ModalResults)) {
               window.ToastFactory.push({
                 type: 'error',
                 message: 'Failed to send reset e-mail, please check their e-mail and try again.',
@@ -959,6 +959,58 @@ export class DashboardService {
     );
 
     // Init render
+
+    const { hash } = window.location;
+    if (stringHasChars(hash)) {
+      const crumbs = hash.trim()
+        .split(/~/g)
+        .reduce((res, x) => {
+          if (stringHasChars(x)) {
+            res.push(x.trim());
+          }
+          return res;
+        }, []);
+
+      if (crumbs.length === 2) {
+        let [view, trg] = crumbs;
+        view = view.replace('#', '');
+
+        const [_, page, ref] = trg.match(/([\w_\-]+)@?(\d+)?/);
+        this.openPage(page, view, typeof ref !== 'undefined' ? ref : null);
+        return;
+      } else if (crumbs.length === 3) {
+        let [view, page, trg] = crumbs;
+        view = view.replace('#', '');
+
+        const url = this.#getTargetUrl('overview');
+        const [_, asset, ref] = trg.match(/([\w_\-]+)@?(\d+)?/); 
+
+        const spinner = startLoadingSpinner();
+        this.#fetch(url, { method: 'GET' })
+          .then(res => {
+            return res.json();
+          })
+          .then(res => {
+            this.openPage(page, view, {
+              type: asset,
+              kwargs: typeof ref !== 'undefined' ? ref : null,
+              labels: res?.assets?.[asset]?.details
+            });
+          })
+          .catch((e) => {
+            console.error(`[Dashboard] Failed to initialise from hash with err:\n\n${e}\n`);
+
+            this.openPage(this.#state.page, 'view');
+          })
+          .finally(() => {
+            if (spinner) {
+              spinner?.remove?.();
+            }
+          });
+
+        return;
+      }
+    }
     this.openPage(this.#state.page, 'view');
   }
 

@@ -6,11 +6,11 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from clinicalcode.entity_utils import gen_utils
-from clinicalcode.models.HDRNSite import HDRNSite
+from clinicalcode.models.HDRNJurisdiction import HDRNJurisdiction
 from .BaseTarget import BaseSerializer, BaseEndpoint
 
 
-class HDRNSiteSerializer(BaseSerializer):
+class HDRNJurisdictionSerializer(BaseSerializer):
     """"""
 
     # Appearance
@@ -20,7 +20,7 @@ class HDRNSiteSerializer(BaseSerializer):
 
 	# Metadata
     class Meta:
-        model = HDRNSite
+        model = HDRNJurisdiction
         exclude = ['created', 'modified']
         extra_kwargs = {
             # RO
@@ -51,15 +51,15 @@ class HDRNSiteSerializer(BaseSerializer):
         return instance
 
 
-class HDRNSiteEndpoint(BaseEndpoint):
-    """API views for the `HDRNSite` model"""
-    model = HDRNSite
+class HDRNJurisdictionEndpoint(BaseEndpoint):
+    """API views for the `HDRNJurisdiction` model"""
+    model = HDRNJurisdiction
     fields = []
-    queryset = HDRNSite.objects.all()
-    serializer_class = HDRNSiteSerializer
+    queryset = HDRNJurisdiction.objects.all()
+    serializer_class = HDRNJurisdictionSerializer
 
-    reverse_name_default = 'hdrn_site_target'
-    reverse_name_retrieve = 'hdrn_site_target_with_id'
+    reverse_name_default = 'hdrn_jurisdiction_target'
+    reverse_name_retrieve = 'hdrn_jurisdiction_target_with_id'
 
     # Endpoint methods
     def get(self, request, *args, **kwargs):

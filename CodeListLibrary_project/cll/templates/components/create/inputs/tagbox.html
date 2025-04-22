@@ -1,25 +1,49 @@
+{% load cl_extras %}
 {% load entity_renderer %}
+
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
   <h3 class="detailed-input-group__title">
     {{ component.field_data.title }}
     {% if component.mandatory %}
-    <span class="detailed-input-group__mandatory">*</span>
+      <span class="detailed-input-group__mandatory">*</span>
     {% endif %}
   </h3>
   <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
 
   {% if component.options %}
-    {% to_json_script component.options desc-type="options" for=component.field_name %}
+    {% to_json_script component.options data-name="options" data-type="text/json" for=component.field_name %}
   {% endif %}
 
   {% if component.value %}
-    {% to_json_script component.value desc-type="value" for=component.field_name %}
+    {% to_json_script component.value data-name="value" data-type="text/json" for=component.field_name %}
   {% else %}
-    <script type="application/json" desc-type="value" for="{{ component.field_name }}"></script>
+    <script type="application/json" data-name="value" data-type="text/json" for="{{ component.field_name }}"></script>
   {% endif %}
 
+  {% if component.field_data.behaviour and component.field_data.behaviour|get_type == "dict" %}
+    {% to_json_script component.field_data.behaviour data-name="behaviour" data-type="text/json" for=component.field_name %}
+  {% endif %}
+
+  {% if component.mandatory or component.field_data.hint %}
+    <div class="validation-block validation-block--warning">
+      <div class="validation-block__container">
+        <div class="validation-block__title">
+          <span class="as-icon" data-icon="&#xf0eb;" aria-hidden="true"></span>
+          <p>Note:</p>
+        </div>
+        <ul>
+          {% if component.mandatory %}
+            <li><pre class="validation-block__message">This field is mandatory.</pre></li>
+          {% endif %}
+          {% if component.field_data.hint %}
+            <li><pre class="validation-block__message">{{ component.field_data.hint }}</pre></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
   <input
     id="entity-{{ component.field_name }}"
     type="text"

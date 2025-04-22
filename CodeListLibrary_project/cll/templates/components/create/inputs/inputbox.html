@@ -1,4 +1,5 @@
 {% load cl_extras %}
+{% load entity_renderer %}
 
 <div class="detailed-input-group fill">
   {% if not component.hide_input_details %}
@@ -10,6 +11,34 @@
   </h3>
   <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
+  {% get_str_validation component.field_data as str_val %}
+  {% if component.mandatory or str_val.has_range or str_val.has_min or component.field_data.hint %}
+    <div class="validation-block validation-block--warning">
+      <div class="validation-block__container">
+        <div class="validation-block__title">
+          <span class="as-icon" data-icon="&#xf0eb;" aria-hidden="true"></span>
+          <p>Note:</p>
+        </div>
+        <ul>
+          {% if component.mandatory %}
+            <li><pre class="validation-block__message">This field is mandatory.</pre></li>
+          {% endif %}
+          {% if component.field_data.hint %}
+            <li><pre class="validation-block__message">{{ component.field_data.hint }}</pre></li>
+          {% endif %}
+          {% if str_val.has_range %}
+            {% if component.field_data.validation.length.0 < 1 %}
+              <li><pre class="validation-block__message">Must have a minimum of a maximum length of {{ component.field_data.validation.length.1 }} characters.</pre></li>
+            {% else %}
+              <li><pre class="validation-block__message">Must have a length between {{ component.field_data.validation.length.0 }} and {{ component.field_data.validation.length.1 }} characters.</pre></li>
+            {% endif %}
+          {% elif str_val.has_min %}
+            <li><pre class="validation-block__message">Must be at least {{ component.field_data.validation.length }} characters in length.</pre></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
   <input
     id="entity-{{ component.field_name }}"
     class="text-input"
@@ -19,9 +48,11 @@
     {% else %}
       placeholder="Enter {{ component.field_data.title }}"
     {% endif %}
-    {% if component.field_data.validation.length|get_type == "list" and component.field_data.validation.length|length >= 2 %}
+    {% if str_val.has_range %}
       minlength="{{ component.field_data.validation.length.0 }}"
       maxlength="{{ component.field_data.validation.length.1 }}"
+    {% elif str_val.has_min %}
+      minlength="{{ component.field_data.validation.length }}"
     {% endif %}
     {% if component.field_data.validation.regex|get_type == 'str' and component.field_data.validation.regex|length > 0 %}
       pattern="{{ component.field_data.validation.regex }}"

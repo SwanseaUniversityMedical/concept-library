@@ -1982,6 +1982,71 @@
 }
 
 
+.validation-block {
+  --col: var(--color-accent-warning);
+
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  &__container {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    border-left: 0.25em solid transparent;
+    border-left-color: var(--col);
+    color: $mostly_black;
+    box-sizing: border-box;
+  }
+
+  &__title {
+    @include flex-row(0.5rem, false);
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    line-height: 1;
+    color: var(--col);
+    font-weight: bold;
+  }
+
+  &__message {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0;
+    margin-bottom: 0;
+    text-wrap: wrap;
+  }
+
+  ul {
+    padding-left: 0.95rem;
+  }
+
+  &--error {
+    --col: var(--color-accent-danger);
+
+    & ~ .validation-block:not(.validation-block--error) {
+      display: none;
+    }
+  }
+
+  &--warning:not(:has(~ input:focus-visible)):not(:has(~ * input:focus-visible)) .validation-block__container {
+    display: none;
+  }
+
+  &--warning {
+    & .validation-block__container {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      margin-bottom: 0;
+    }
+  }
+}
 
 /// text input types
 ///  @desc defines a set of text inputs
@@ -2016,6 +2081,14 @@
 
   &:focus-visible {
     outline: 1px solid col(accent-anchor);
+  }
+
+  &:focus-visible:valid {
+    border-color: col(accent-success);
+  }
+
+  &:invalid {
+    border-color: col(accent-danger);
   }
 }
 

@@ -156,7 +156,7 @@ class OrganisationManageView(UpdateView):
       .values('id', 'user_id', 'username')
     invites = list(invites)
 
-    user_list = User.objects.all() \
+    user_list = permission_utils.get_brand_related_users(request) \
       .exclude(
         id__in=(
           [user.id, self.object.owner_id] + 

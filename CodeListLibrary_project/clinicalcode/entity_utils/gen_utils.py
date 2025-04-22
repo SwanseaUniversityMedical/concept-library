@@ -54,6 +54,7 @@ def is_float(x):
     """
     if x is None:
         return False
+
     try:
         a = float(x)
     except ValueError:
@@ -69,6 +70,9 @@ def is_int(x):
         Desc:
             - "Checks if a number is an integer"
     """
+    if x is None:
+        return False
+
     try:
         a = float(x)
         b = int(a)
@@ -1029,21 +1033,16 @@ def try_value_as_type(
         if not isinstance(field_value, list):
             return default
         return field_value
-    elif field_type == 'organisation':
+    elif field_type == 'organisation' or field_type == 'group':
+        if isinstance(field_value, int):
+            group = apps.get_model(app_label='clinicalcode', model_name='Group')
+            group = group.objects.filter(id=field_value)
+            field_value = group.first().name if group.exists() else str(field_value)
+
         if isinstance(field_value, str) and not is_empty_string(field_value):
             org = apps.get_model(app_label='clinicalcode', model_name='Organisation')
             org = org.objects.filter(Q(name__iexact=field_value) | Q(slug__iexact=field_value))
             return org.first().pk if org.exists() else default
-        elif isinstance(field_value, int):
-            return field_value
-        return default
-    elif field_type == 'group': # [!] Delete in future
-        if isinstance(field_value, str) and not is_empty_string(field_value):
-            group = apps.get_model(app_label='clinicalcode', model_name='Group')
-            group = group.objects.filter(name__iexact=field_value)
-            return group.first().pk if group.exists() else default
-        elif isinstance(field_value, int):
-            return field_value
         return default
     elif field_type == 'url_list':
         if not isinstance(field_value, list):

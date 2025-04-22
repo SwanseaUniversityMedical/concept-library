@@ -163,6 +163,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
     const tree = eleTree({
       el: viewer,
       lazy: true,
+      sort: true,
       data: source.nodes,
       showCheckbox: false,
       highlightCurrent: true,
@@ -211,7 +212,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
     }
 
     const nodes = item.nodes;
-    const model = typeof item.model === 'object' ? item.model : { };
+    const model = !!item?.model && typeof item.model === 'object' ? item.model : { };
     const sourceId = model?.source;
     const sourceLabel = model?.label;
     if (typeof sourceId !== 'number' || typeof sourceLabel !== 'string' || !Array.isArray(nodes)) {

@@ -16,6 +16,36 @@ import TouchHandler from './touchHandler.js';
  * 
  */
 class ToastNotificationFactory {
+  static Types = {
+    // Display success
+    success: 'success',
+
+    // Display caution
+    warn: 'warning',
+    caution: 'warning',
+    warning: 'warning',
+
+    // Display error
+    error: 'danger',
+    danger: 'danger',
+
+    // Display info
+    info: 'information',
+    information: 'information',
+
+    // Palette-based
+    primary: 'primary',
+    secondary: 'secondary',
+    tertiary: 'tertiary',
+
+    // Misc.
+    debug: 'anchor',
+    anchor: 'anchor',
+
+    bubble: 'highlight',
+    highlight: 'bubble',
+  };
+
   constructor() {
     this.#createContainer();
   }
@@ -100,6 +130,15 @@ class ToastNotificationFactory {
    * @returns {node} the toast notification
    */
   #createToast(type, content, duration) {
+    if (!stringHasChars(type)) {
+      type = 'information';
+    }
+
+    type = type.toLowerCase();
+    type = ToastNotificationFactory.Types?.[type]
+      ? ToastNotificationFactory.Types[type]
+      : 'information'
+
     const toast = createElement('div', {
       'className': `toast toast--${type}`,
       'role': 'alert',

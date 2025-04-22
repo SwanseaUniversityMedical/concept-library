@@ -139,19 +139,19 @@ export default class RelationSelector {
 
     opts = isObjectType(opts) ? opts : {};
     opts.mapping = mergeObjects(
-      mapping,
       isObjectType(opts.mapping)
         ? opts.mapping
         : { },
+      mapping
     );
     opts.properties = mergeObjects(
-      properties,
       isObjectType(opts.properties) ? opts.properties : {},
+      properties,
       false,
       true
     );
 
-    opts = mergeObjects(RelationSelector.#DefaultOpts, opts, false, true);
+    opts = mergeObjects(opts, RelationSelector.#DefaultOpts, false, true);
 
     const lookup = opts.properties.lookup;
     opts.properties.lookup = stringHasChars(lookup)
@@ -592,8 +592,9 @@ export default class RelationSelector {
       : props.properties.lookup + parameters;
 
     const token = this.#token;
-    ctrl = mergeObjects(props.requestCtrl, isObjectType(ctrl) ? ctrl : { }, false, true);
+    ctrl = mergeObjects(isObjectType(ctrl) ? ctrl : { }, props.requestCtrl, false, true);
     opts = mergeObjects(
+      isObjectType(opts) ? opts : { },
       {
         method: 'GET',
         credentials: 'same-origin',
@@ -605,7 +606,6 @@ export default class RelationSelector {
           'Authorization': `Bearer ${token}`
         },
       },
-      isObjectType(opts) ? opts : { },
       false,
       true
     );
@@ -817,6 +817,7 @@ export default class RelationSelector {
       const elem = layout.results.querySelector(`[data-index="${state.activeIndex}"]`);
       if (elem) {
         elem.setAttribute('aria-selected', true);
+        scrollContainerTo(layout.results, elem);
       }
 
       state.activeObject = {
@@ -827,6 +828,7 @@ export default class RelationSelector {
       const elem = state.activeObject.element;
       if (elem) {
         elem.setAttribute('aria-selected', false);
+        layout.results.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       }
       state.activeObject = null;
     }

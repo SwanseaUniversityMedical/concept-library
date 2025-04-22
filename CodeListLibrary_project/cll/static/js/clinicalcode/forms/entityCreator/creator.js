@@ -10,7 +10,6 @@ import {
   getTemplateFields,
   createFormHandler,
   tryGetFieldTitle,
-  parseAsFieldType
 } from './utils.js';
 
 /**
@@ -450,7 +449,7 @@ export default class EntityCreator {
    * @desc iteratively collects the form data and validates it against the template data
    * @returns {object} which describes the form data and associated errors
    */
-  #collectFieldData() {
+  #collectFieldData(init = false) {
     const data = { };
     const errors = [ ];
     for (const [field, packet] of Object.entries(this.form)) {
@@ -459,7 +458,7 @@ export default class EntityCreator {
       }
 
       // Collect the field value & validate it
-      const result = ENTITY_FIELD_COLLECTOR[packet?.dataclass](field, packet, this);
+      const result = ENTITY_FIELD_COLLECTOR[packet?.dataclass](field, packet, this, init);
       if (result && result?.valid) {
         data[field] = result.value;
         continue;
@@ -590,7 +589,7 @@ export default class EntityCreator {
         continue;
       }
 
-      this.form[field].handler = createFormHandler(pkg.element, cls, this.data, pkg?.validation);
+      this.form[field].handler = createFormHandler(pkg.element, cls, this.data, pkg?.validation, pkg);
       this.form[field].dataclass = cls;
     }
 
@@ -598,7 +597,7 @@ export default class EntityCreator {
       window.addEventListener('beforeunload', this.#handleOnLeaving.bind(this), { capture: true });
     }
 
-    const { data, errors } = this.#collectFieldData();
+    const { data, errors } = this.#collectFieldData(true);
     this.initialisedData = data;
   }
 
@@ -649,7 +648,7 @@ export default class EntityCreator {
    */
   #clearErrorMessages() {
     // Remove appended error messages
-    const items = document.querySelectorAll('.detailed-input-group__error');
+    const items = document.querySelectorAll('.validation-block--error');
     for (let i = 0; i < items.length; ++i) {
       const item = items[i];
       item.remove();
@@ -685,10 +684,27 @@ export default class EntityCreator {
       const inputGroup = tryGetRootElement(element, '.detailed-input-group');
       if (!isNullOrUndefined(inputGroup)) {
         const titleNode = inputGroup.querySelector('.detailed-input-group__title');
-        const errorNode = createElement('p', {
-          'aria-live': 'true',
-          'className': 'detailed-input-group__error',
-          'innerText': error.message,
+
+        const errorNode = createElement('div', {
+          className: 'validation-block validation-block--error',
+          childNodes: [
+            createElement('div', {
+              className: 'validation-block__container',
+              childNodes: [
+                createElement('div', {
+                  className: 'validation-block__title',
+                  childNodes: [
+                    '<span class="as-icon" data-icon="&#xf06a;" aria-hidden="true"></span>',
+                    createElement('p', { innerText: 'Error' }),
+                  ],
+                }),
+                createElement('p', {
+                  className: 'validation-block__message',
+                  innerText: error.message,
+                }),
+              ]
+            })
+          ],
         });
 
         titleNode.after(errorNode);

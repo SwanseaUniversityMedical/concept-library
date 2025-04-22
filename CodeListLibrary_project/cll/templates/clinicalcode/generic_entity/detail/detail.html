@@ -38,7 +38,7 @@
 
   <!-- Form -->
   <header class="main-header">
-    <div class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
+    <div class="main-header__inner-container main-header__inner-container--centre-constrained">
       {% comment %} {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
       {% endbreadcrumbs %} {% endcomment %}
 
@@ -63,28 +63,52 @@
 
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="phenotype-creation">
-        {% include './detail_buttons.html' %}
-
         <section class="phenotype-creation__header">
-          <h1>{{ entity.name }}</h1>
-          <p><i>{{ entity.author }}</i></p>
-          <p>
-            <strong>{{ entity.id }} / {{ entity.history_id }}</strong>
-            {% if user.is_authenticated %}
-              (
-              {% if is_latest_version %}
-                <span class="tag label label-highlighted wrapped-tspan">LATEST VERSION</span>
-              {% else %}
-                <span class="tag label label-default wrapped-tspan">LEGACY VERSION</span>
+          <div class="phenotype-creation__header-title">
+            <h1>{{ entity.name }}</h1>
+            {% include './detail_buttons.html' %}
+          </div>
+          <div class="phenotype-creation__header-row phenotype-creation__header--fill phenotype-creation__header--jc-sb">
+            <div class="phenotype-creation__header-col phenotype-creation__header--fmax-1">
+              <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                <span class="as-icon phenotype-creation--icn" data-icon="&#xf5b7;" aria-hidden="true"></span>
+                <p><strong>{{ entity.id }} / {{ entity.history_id }}</strong></p>
+              </div>
+              <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                <span class="as-icon phenotype-creation--icn" data-icon="&#x40;" aria-hidden="true"></span>
+                <p><em>{{ entity.author }}</em></p>
+              </div>
+              <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                <span class="as-icon phenotype-creation--icn" data-icon="&#xf0e7;" aria-hidden="true"></span>
+                <p>{{ entity.updated|date:'M j, Y' }}</p>
+              </div>
+            </div>
+            <div class="phenotype-creation__header-col phenotype-creation__header--ai-fe phenotype-creation__header--fmin-0">
+              <span class="tag tag--detail tag--success">
+                <strong>
+                  <span class="as-icon phenotype-creation__header--mr-05" data-icon="&#xf15b;" aria-hidden="true"></span>
+                  {{ template.definition.template_details.name }}
+                </strong>
+              </span>
+              {% if user.is_authenticated %}
+                {% if is_latest_version %}
+                  <span class="tag tag--detail tag--warning">
+                    <strong>
+                      <span class="as-icon phenotype-creation__header--mr-05" data-icon="&#xf126;" aria-hidden="true"></span>
+                      LATEST VERSION
+                    </strong>
+                  </span>
+                {% else %}
+                  <span class="tag tag--detail tag--danger">
+                    <strong>
+                      <span class="as-icon phenotype-creation__header--mr-05" data-icon="&#xf126;" aria-hidden="true"></span>
+                      LEGACY VERSION
+                    </strong>
+                  </span>
+                {% endif %}
               {% endif %}
-              )
-            {% endif %}
-            <span class="badge wrapped-tspan">
-              <strong>
-                {{ template.definition.template_details.name }}
-              </strong>
-            </span>
-          </p>
+            </div>
+          </div>
         </section>
 
         <ol class="phenotype-progress" id="main-wizard">

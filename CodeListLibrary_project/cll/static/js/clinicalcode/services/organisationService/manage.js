@@ -179,7 +179,7 @@ const renderInvitesList = (root, token, data) => {
     inputNode: document.querySelector('.autocomplete-input'),
     resultsNode: document.querySelector('.autocomplete-results'),
     searchFn: (input) => {
-      if (input.length <= 3) {
+      if (input.length < 1) {
         return []
       }
 

@@ -1,4 +1,4 @@
-import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
+import { TOAST_MSG_DURATION } from '../entityFormConstants.js';
 
 /**
  * TRIAL_OPTIONS
@@ -7,7 +7,7 @@ import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
  */
 const TRIAL_OPTIONS = {
   // The minimum message duration for toast notif popups
-  notificationDuration: PUBLICATION_MIN_MSG_DURATION,
+  notificationDuration: TOAST_MSG_DURATION,
 
   /* Attribute name(s) */
   //  - dataAttribute: defines the attribute that's used to retrieve contextual data

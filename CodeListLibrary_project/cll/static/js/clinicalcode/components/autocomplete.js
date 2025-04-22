@@ -153,23 +153,23 @@ export class Autocomplete {
       return;
     }
 
-    this.resultsNode.innerHTML = results.map((result, index) => {
+    clearAllChildren(this.resultsNode);
+
+    for (let index = 0; index < results.length; ++index) {
+      const result = results[index];
       const isSelected = this.shouldAutoSelect && index === 0;
       if (isSelected) {
         this.activeIndex = 0;
       }
-
-      return `
-        <li
-          id='autocomplete-result-${index}'
-          class='autocomplete-result${isSelected ? ' selected' : ''}'
-          role='option'
-          ${isSelected ? "aria-selected='true'" : ''}
-        >
-          ${result}
-        </li>
-      `;
-    }).join('');
+  
+      createElement('li', {
+        text: String(result),
+        class: `autocomplete-result${isSelected ? ' selected' : ''}`,
+        attr: { id: `autocomplete-result-${index}` },
+        aria: { selected: !!isSelected },
+        parent: this.resultsNode,
+      });
+    }
 
     this.resultsNode.classList.remove('hidden');
     this.rootNode.setAttribute('aria-expanded', true);
@@ -183,10 +183,10 @@ export class Autocomplete {
     this.activeIndex = -1;
     this.resultsCount = 0;
 
-    this.resultsNode.innerHTML = '';
     this.resultsNode.classList.add('hidden');
     this.rootNode.setAttribute('aria-expanded', 'false');
     this.inputNode.setAttribute('aria-activedescendant', '');
+    clearAllChildren(this.resultsNode);
 
     this.onHide();
   }
@@ -218,8 +218,8 @@ export class Autocomplete {
   }
 
   #handleKeyup(event) {
-    const { key } = event
-    switch (key) {
+    const { code } = event
+    switch (code) {
       case 'ArrowUp':
       case 'ArrowDown':
       case 'Escape':
@@ -229,9 +229,10 @@ export class Autocomplete {
 
       default:
         this.updateResults();
+        break;
     }
 
-    if (!this.hasInlineAutocomplete || key === 'Backspace') {
+    if (!this.hasInlineAutocomplete || code === 'Backspace') {
       return;
     }
 
@@ -239,26 +240,26 @@ export class Autocomplete {
   }
 
   #handleKeydown(event) {
-    const { key } = event;
-    let activeIndex = this.activeIndex;
+    let activeItem, activeIndex;
+    activeIndex = this.activeIndex;
 
-    if (key === 'Escape') {
+    const { code } = event;
+    if (code === 'Escape') {
       this.hideResults();
       this.inputNode.value = '';
       return;
     }
 
     if (this.resultsCount < 1) {
-      if (!this.hasInlineAutocomplete || (key !== 'ArrowDown' & key !== 'ArrowUp')) {
+      if (!this.hasInlineAutocomplete || (code !== 'ArrowDown' & code !== 'ArrowUp')) {
         return;
       }
 
       this.updateResults();
     }
 
-    let activeItem;
     const prevActive = this.getItemAt(activeIndex);
-    switch(key) {
+    switch (code) {
       case 'ArrowUp':
         if (activeIndex <= 0) {
           activeIndex = this.resultsCount - 1;
@@ -301,6 +302,10 @@ export class Autocomplete {
     if (activeItem) {
       this.inputNode.setAttribute('aria-activedescendant', `autocomplete-result-${activeIndex}`);
       activeItem.classList.add('selected');
+
+      if (activeItem.getAttribute('aria-selected') !== 'true') {
+        scrollContainerTo(this.resultsNode, activeItem);
+      }
       activeItem.setAttribute('aria-selected', 'true');
 
       if (this.hasInlineAutocomplete) {

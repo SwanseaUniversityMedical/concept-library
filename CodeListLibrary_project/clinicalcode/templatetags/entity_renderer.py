@@ -16,7 +16,7 @@ import re
 import json
 import inspect
 import numbers
-import warnings
+import logging
 
 from ..models.Brand import Brand
 from ..entity_utils import (
@@ -26,6 +26,7 @@ from ..entity_utils import (
 
 
 register = template.Library()
+logger = logging.getLogger(__name__)
 
 
 @register.simple_tag
@@ -607,6 +608,20 @@ def renderable_field_values(entity, layout, field):
     return template_utils.get_template_data_values(entity, layout, field, default=[])
 
 
+@register.simple_tag
+def get_str_validation(component):
+    val = { 'has_range': False, 'has_min': False }
+    validation = component.get('validation') if isinstance(component, dict) else None
+    if not isinstance(validation, dict):
+        return val
+
+    val.update({
+        'has_min': isinstance(validation.get('length'), int),
+        'has_range': isinstance(validation.get('length'), list) and len(validation.get('length')) >= 2,
+    })
+    return val
+
+
 @register.tag(name="to_json_script")
 def render_jsonified_object(parser, token):
     """
@@ -879,7 +894,10 @@ class EntityFiltersNode(template.Node):
             if validation is not None:
                 if 'source' in validation:
                     options = self.__try_compile_reference(context, field, structure)
-                
+
+                    if options is None or (isinstance(options, list) and len(options) < 1):
+                        return ''
+
         filter_info['options'] = options
         context['filter_info'] = filter_info
         return render_to_string(f'{constants.FILTER_DIRECTORY}/{component}.html', context.flatten())
@@ -1130,8 +1148,7 @@ class EntityCreateWizardSections(template.Node):
         try:
             html = render_to_string(**kwargs)
         except Exception as e:
-            if settings.DEBUG:
-                warnings.warn(str(e))
+            logger.warning(str(e))
             return ''
         else:
             return html

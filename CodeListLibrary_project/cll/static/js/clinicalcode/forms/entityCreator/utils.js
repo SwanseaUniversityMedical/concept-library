@@ -95,66 +95,71 @@ export const ENTITY_HANDLERS = {
   },
 
   // Generates a tagify component for an element
-  'tagify': (element, dataset) => {
-    const parent = element.parentElement;
-    const data = parent.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+  'tagify': (element, dataset, validation, pkg) => {
+    const elem = element.parentElement;
+    const data = elem.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
 
     let varyDataVis = parseInt(element.getAttribute('data-vis') ?? '0');
     varyDataVis = !Number.isNaN(varyDataVis) && Boolean(varyDataVis);
 
-    let value = [];
-    let options = [];
+    const opts = { };
     for (let i = 0; i < data.length; ++i) {
       const datafield = data[i];
-      const type = datafield.getAttribute('desc-type');
-      if (!datafield.innerText.trim().length) {
+      const name = datafield.getAttribute('data-name');
+      const type = datafield.getAttribute('data-type');
+      if (!stringHasChars(name) || !stringHasChars(type)) {
         continue;
       }
 
-      try {
-        switch (type) {
-          case 'options': {
-            options = JSON.parse(datafield.innerText);
-          } break;
-
-          case 'value': {
-            value = JSON.parse(datafield.innerText);
-          } break;
+      if (type === 'text/json' && stringHasChars(datafield.innerText)) {
+        try {
+          const dataValue = JSON.parse(datafield.innerText);
+          opts[name] = dataValue;
         }
-      }
-      catch(e) {
-        console.warn(`Unable to parse datafield for Tagify element with target field: ${datafield.getAttribute('for')}`);
+        catch (e) {
+          console.warn(`Unable to parse datafield for Tagify element with target field: ${datafield.getAttribute('for')}`);
+        }
       }
     }
+    opts.value = Array.isArray(opts?.value) ? opts.value : [];
+    opts.options = Array.isArray(opts?.options) ? opts.options : [];
+    opts.behaviour = isRecordType(opts?.behaviour) ? opts.behaviour : { };
 
-    const tagbox = new Tagify(element, {
-      'autocomplete': true,
-      'useValue': true,
-      'allowDuplicates': false,
-      'restricted': true,
-      'items': options,
-      'onLoad': (box) => {
-        for (let i = 0; i < value.length; ++i) {
-          const item = value[i];
-          if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
-            continue;
+    const tagbox = new Tagify(
+      element,
+      {
+        items: opts.options,
+        useValue: true,
+        behaviour: opts.behaviour,
+        restricted: true,
+        autocomplete: true,
+        allowDuplicates: false,
+        onLoad: (box) => {
+          for (let i = 0; i < opts.value.length; ++i) {
+            const item = opts.value[i];
+            if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
+              continue;
+            }
+
+            box.addTag(item.name, item.value);
           }
+          pkg.value = tagbox.getDataValue();
 
-          box.addTag(item.name, item.value);
+          return () => {
+            if (!varyDataVis) {
+              return;
+            }
+
+            const choices = box?.options?.items?.length ?? 0;
+            if (choices < 1) {
+              elem.style.setProperty('display', 'none');
+            }
+
+          }
         }
-
-        return () => {
-          if (!varyDataVis) {
-            return;
-          }
-
-          const choices = box?.options?.items?.length ?? 0;
-          if (choices < 1) {
-            parent.style.setProperty('display', 'none');
-          }
-        }
-      }
-    }, dataset);
+      },
+      dataset
+    );
 
     return tagbox;
   },
@@ -672,7 +677,7 @@ export const ENTITY_FIELD_COLLECTOR = {
     const endDateInput = element.querySelector(`#${id}-enddate`);
 
     const validation = packet?.validation;
-    const dateClosureOptional = typeof validation === 'object' && validation?.closure_optional;
+    const dateClosureOptional = !!validation && typeof validation === 'object' && validation?.closure_optional;
 
     const startValid = startDateInput.checkValidity(),
           endValid   = endDateInput.checkValidity();
@@ -894,33 +899,44 @@ export const ENTITY_FIELD_COLLECTOR = {
   },
 
   // Retrieves and validates tagify components
-  'tagify': (field, packet) => {
+  'tagify': (field, packet, creator, isInit) => {
     const handler = packet.handler;
-    const tags = handler.getActiveTags().map(item => item.value);
-    
-    if (isMandatoryField(packet)) {
-      if (isNullOrUndefined(tags) || tags.length < 1) {
-        return {
-          valid: false,
-          value: tags,
-          message: (isNullOrUndefined(tags) || tags.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+    console.log('Field:', field, '|', 'IsInit:', isInit);
+    console.log('\t', '-> Packet:', packet);
+    if (!isInit) {
+      const dataValue = handler.getDataValue();
+      console.log('\t', '-> Handler:', handler);
+      console.log('\t', '-> DataValue:', dataValue);
+  
+      if (isMandatoryField(packet)) {
+        if (isNullOrUndefined(dataValue) || dataValue.length < 1) {
+          return {
+            valid: false,
+            value: dataValue,
+            message: (isNullOrUndefined(dataValue) || dataValue.length < 1)
+              ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+              : ENTITY_TEXT_PROMPTS.INVALID_FIELD,
+          };
         }
       }
+  
+      const parsedValue = parseAsFieldType(packet, dataValue, handler?.options?.behaviour);
+      if (!parsedValue || !parsedValue?.success) {
+        return {
+          valid: false,
+          value: dataValue,
+          message: ENTITY_TEXT_PROMPTS.INVALID_FIELD,
+        };
+      }
+  
+      return {
+        valid: true,
+        value: parsedValue?.value
+      };
     }
 
-    const parsedValue = parseAsFieldType(packet, tags);
-    if (!parsedValue || !parsedValue?.success) {
-      return {
-        valid: false,
-        value: tags,
-        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
-      }
-    }
-    
-    return {
-      valid: true,
-      value: parsedValue?.value
-    }
+    console.log('\t\t-> Init:', Array.isArray(packet?.value) ? packet.value : []);
+    return { valid: true, value: Array.isArray(packet?.value) ? packet.value : [] };
   },
 
   // Retrieves and validates list components
@@ -1241,16 +1257,16 @@ export const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
-  'indicator_calculation': (field, packet) => {
+  'indicator_calculation': (field, packet, creator, isInit) => {
     const handler = packet.handler;
 
     let values = { },
         length = 0;
     Object.entries(handler.elements).forEach(([role, editor]) => {
       const content = editor.value();
-
       values[role] = typeof content === 'string' ? strictSanitiseString(content) : '';
-      if (!stringHasChars(values[role])) {
+
+      if (!isInit && IndicatorCalculationCreator.IsDefaultValue(role, values[role])) {
         values[role] = '';
       }
 
@@ -1334,12 +1350,12 @@ export const getTemplateFields = (template) => {
  * @param {string} cls The data-class attribute value of that particular element
  * @return {object} An interface to control the behaviour of the component
  */
-export const createFormHandler = (element, cls, data, validation = undefined) => {
+export const createFormHandler = (element, cls, data, validation = undefined, pkg = undefined) => {
   if (!ENTITY_HANDLERS.hasOwnProperty(cls)) {
     return;
   }
 
-  return ENTITY_HANDLERS[cls](element, data, validation);
+  return ENTITY_HANDLERS[cls](element, data, validation, pkg);
 }
 
 /**
@@ -1539,23 +1555,27 @@ export const parseAsFieldType = (packet, value, modifier) => {
         break;
       }
 
-      for (let i = 0; i < value.length; ++i) {
-        let item = value[i];
-        if (typeof item === 'string') {
-          item = parseInt(item.trim());
-        }
+      if (isNullOrUndefined(modifier) || !modifier.freeform) {
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            item = parseInt(item.trim());
+          }
+    
+          if (typeof item !== 'number') {
+            continue;
+          }
   
-        if (typeof item !== 'number') {
-          continue;
+          item = Math.trunc(item);
+          valid = !isNaN(item) && Number.isFinite(item) && Number.isSafeInteger(item);
+  
+          if (!valid) {
+            break;
+          }
+          output.push(item);
         }
-
-        item = Math.trunc(item);
-        valid = !isNaN(item) && Number.isFinite(item) && Number.isSafeInteger(item);
-
-        if (!valid) {
-          break;
-        }
-        output.push(item);
+      } else {
+        output.splice(0, value.length, ...value);
       }
 
       if (!valid) {

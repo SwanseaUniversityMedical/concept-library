@@ -9,6 +9,7 @@ from django.contrib.postgres.indexes import GinIndex
 
 from clinicalcode.entity_utils import gen_utils, model_utils, constants
 from clinicalcode.models.HDRNSite import HDRNSite
+from clinicalcode.models.HDRNJurisdiction import HDRNJurisdiction
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
 
 class HDRNDataAsset(TimeStampedModel):
@@ -29,7 +30,7 @@ class HDRNDataAsset(TimeStampedModel):
 	site = models.ForeignKey(HDRNSite, on_delete=models.SET_NULL, null=True, related_name='data_assets')
 	years = models.CharField(max_length=256, unique=False, null=True, blank=True)
 	scope = models.TextField(null=True, blank=True)
-	region = models.CharField(max_length=2048, unique=False, null=True, blank=True)
+	regions = models.ManyToManyField(HDRNJurisdiction, related_name='data_assets', blank=True)
 	purpose = models.TextField(null=True, blank=True)
 
 	collection_period = models.TextField(null=True, blank=True)
@@ -51,12 +52,12 @@ class HDRNDataAsset(TimeStampedModel):
 			return HDRNDataAsset.objects.none()
 
 		if not isinstance(params, dict):
-				params = { }
+			params = { }
 
 		if isinstance(request, Request) and hasattr(request, 'query_params'):
-				params = { key: value for key, value in request.query_params.items() } | params
+			params = { key: value for key, value in request.query_params.items() } | params
 		elif isinstance(request, HttpRequest) and hasattr(request, 'GET'):
-				params = { key: value for key, value in request.GET.dict().items() } | params
+			params = { key: value for key, value in request.GET.dict().items() } | params
 
 		search = params.pop('search', None)
 		query = gen_utils.parse_model_field_query(HDRNDataAsset, params, ignored_fields=['description'])

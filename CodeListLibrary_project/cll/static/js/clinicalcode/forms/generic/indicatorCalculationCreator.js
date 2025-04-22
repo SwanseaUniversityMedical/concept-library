@@ -11,6 +11,19 @@ export default class IndicatorCalculationCreator {
   };
 
   /**
+   * @desc default field placeholder / values to compare against
+   * @type {string}
+   * @static
+   * @constant
+   * 
+   */
+  static #DefaultValues = {
+    description: `#### Type of Measurement\n\n\n\n#### Description\n\n`,
+    numerator: `#### Description\n\n\n\n#### Inclusions\n\n- ...\n\n#### Exclusions\n\n- ...\n`,
+    denominator: `#### Description\n\n\n\n#### Inclusions\n\n- ...\n\n#### Exclusions\n\n- ...\n`,
+  };
+
+  /**
    * @desc
    * @type {Record<string, HTMLElement>}
    * @private
@@ -35,6 +48,24 @@ export default class IndicatorCalculationCreator {
     this.element = element;
 
     this.#initialise();
+  }
+
+  /*************************************
+   *                                   *
+   *              Getter               *
+   *                                   *
+   *************************************/
+  static IsDefaultValue(role, value) {
+    if (!stringHasChars(value)) {
+      return true;
+    }
+
+    const comp = IndicatorCalculationCreator.#DefaultValues?.[role];
+    if (!stringHasChars(comp)) {
+      return false;
+    }
+
+    return comp.trim() === value.trim();
   }
 
   /*************************************
@@ -121,8 +152,10 @@ export default class IndicatorCalculationCreator {
         toolbarButtonClassPrefix: 'mde',
       });
       
-      const curContent = this.data?.[role];
-      if (!isStringEmpty(curContent) && !isStringWhitespace(curContent)) {
+      let curContent = this.data?.[role];
+      curContent = !stringHasChars(curContent) ? IndicatorCalculationCreator.#DefaultValues?.[role] : curContent;
+
+      if (stringHasChars(curContent)) {
         mde.value(curContent);
       }
 

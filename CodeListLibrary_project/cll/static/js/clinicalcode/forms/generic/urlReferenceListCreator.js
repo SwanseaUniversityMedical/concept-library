@@ -1,4 +1,4 @@
-import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
+import { TOAST_MSG_DURATION } from '../entityFormConstants.js';
 /**
  * PUBLICATION_NOTIFICATIONS
  * @desc notification text that is used to present information
@@ -167,7 +167,7 @@ export default class UrlReferenceListCreator {
       window.ToastFactory.push({
         type: 'danger',
         message: URL_REF_NOTIFICATIONS.InvalidTitle,
-        duration: PUBLICATION_MIN_MSG_DURATION,
+        duration: TOAST_MSG_DURATION,
       });
       return;
     }
@@ -177,7 +177,7 @@ export default class UrlReferenceListCreator {
       window.ToastFactory.push({
         type: 'danger',
         message: URL_REF_NOTIFICATIONS.InvalidURL,
-        duration: PUBLICATION_MIN_MSG_DURATION,
+        duration: TOAST_MSG_DURATION,
       });
       return;
     }

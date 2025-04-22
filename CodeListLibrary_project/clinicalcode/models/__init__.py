@@ -50,6 +50,8 @@ from .Organisation import (
   OrganisationInvite
 )
 
+from .CCI_CODES import CCI_CODES
+from .PHYSICIAN_FEE_CODES import PHYSICIAN_FEE_CODES
 from .ATCDDD_CODES import ATCDDD_CODES
 from .ICD10CA_CODES import ICD10CA_CODES
 from .ICD10CM_CODES import ICD10CM_CODES

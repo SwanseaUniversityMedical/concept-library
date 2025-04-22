@@ -475,7 +475,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}
@@ -486,14 +486,14 @@
         placeholder="${placeholder}"
         type="${inputtype}"
         value="${value}"
-        minlength="${minLength}"
-        maxlength="${maxLength}"
+        ${minLength}
+        ${maxLength}
+        ${required}
         aria-label="${title}"
         data-class="inputbox"
         data-type="string"
         data-field="${key}"
         autocomplete="${autocomplete}"
-        required="${required ? 'true' : 'false'}"
       />
     </div>
   </template>
@@ -502,7 +502,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}
@@ -512,9 +512,9 @@
         class="${cls}"
         value="${value}"
         placeholder="${placeholder}"
-        minlength="${minLength}"
-        maxlength="${maxLength}"
-        required="${required ? 'true' : 'false'}"
+        ${minLength}
+        ${maxLength}
+        ${required}
         autocorrect="${spellcheck ? 'true' : 'false'}"
         autocomplete="on"
         spellcheck="default"
@@ -530,7 +530,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}
@@ -542,8 +542,9 @@
         type="number"
         inputmode="${inputmode}"
         value="${value}"
-        min="${minValue}"
-        max="${maxValue}"
+        ${minvalue}
+        ${maxvalue}
+        ${required}
         aria-label="${title}"
         data-class="inputbox"
         data-type="number"
@@ -551,7 +552,6 @@
         data-rounding="${rounding}"
         data-decimals="${decimalPlaces}"
         data-maxdigits="${maxDigits}"
-        required="${required ? 'true' : 'false'}"
       />
     </div>
   </template>
@@ -560,7 +560,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}
@@ -574,7 +574,7 @@
           data-class="checkbox"
           data-type="boolean"
           data-field="${key}"
-          required="${required ? 'true' : 'false'}"
+          ${required}
         />
         <label class="constrained-filter-item" for="field-${key}">
           ${title}
@@ -587,7 +587,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}
@@ -599,7 +599,7 @@
         data-class="dropdown"
         data-type="choice"
         data-field="${key}"
-        required="${required ? 'true' : 'false'}"
+        ${required}
       >
       </select>
     </div>
@@ -609,7 +609,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}
@@ -623,7 +623,7 @@
           data-class="datetime"
           data-type="${datatype}"
           data-field="${key}"
-          required="${required ? 'true' : 'false'}"
+          ${required}
         />
       </fieldset>
     </div>
@@ -633,7 +633,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}
@@ -645,7 +645,7 @@
         data-class="dropdown"
         data-type="foreign-key"
         data-field="${key}"
-        required="${required ? 'true' : 'false'}"
+        ${required}
       >
       </select>
     </div>
@@ -655,7 +655,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}
@@ -719,7 +719,7 @@
     <div class="detailed-input-group fill" data-fieldset="${key}">
       <h3 class="detailed-input-group__title">
         ${title}
-        <span class="detailed-input-group__mandatory ${required ? '' : 'hidden'}">*</span>
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
       </h3>
       <p class="detailed-input-group__description" data-ref="help">
         ${help}

@@ -410,7 +410,7 @@ export class OrgMemberSelector {
         help: field.help ?? '',
         title: field.label ?? 'Membership',
         owner: 'OrgMemberSelector',
-        required: field.required,
+        required: field.required ? 'required="true"' : '',
         emptyMessage: 'You haven\'t added any Members yet.',
       },
       parent: element,

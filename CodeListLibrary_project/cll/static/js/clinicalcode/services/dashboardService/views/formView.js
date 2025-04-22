@@ -285,12 +285,14 @@ export class FormView {
           };
         }
 
+        props.formData = formData;
+        props.modelData = data;
+
         const features = isRecordType(res.renderable.features) ? res.renderable.features[props.type] : null;
         if (isRecordType(features)) {
           this.#renderFeatures(features);
         }
 
-        props.formData = formData;
         this.#renderForm();
       })
       .catch(e => {
@@ -314,6 +316,7 @@ export class FormView {
     const element = this.element;
     const dashForm = this.#layout.dashForm;
     const callback = this.#props.actionCallback;
+    const modelData = this.#props.modelData;
     const templates = this.#templates;
     for (const key in features) {
       switch (key) {
@@ -345,7 +348,7 @@ export class FormView {
 
           for (let i = 0; i < actions.length; ++i) {
             let action = actions[i];
-            if (action === 'reset_pwd') {
+            if (action === 'reset_pwd' && (!modelData || !modelData?.is_superuser)) {
               composeTemplate(templates.form.button, {
                 params: {
                   id: action,
@@ -439,7 +442,7 @@ export class FormView {
               key: key,
               help: helpText,
               title: label,
-              required: isRequired,
+              required: isRequired ? 'required="true"' : '',
             };
             renderCallback = (elems) => {
               const input = elems[0].querySelector('input');
@@ -447,40 +450,46 @@ export class FormView {
                 return;
               }
 
-              const tagbox = new Tagify(input, {
-                'autocomplete': true,
-                'useValue': true,
-                'allowDuplicates': false,
-                'restricted': true,
-                'items': options.map(item => {
-                  const itemPk = !isNullOrUndefined(item.pk) ? item.pk : item.id;
-                  const itemName = !isNullOrUndefined(item.name) ? item.name : item.username;
-                  return { name: itemName, value: itemPk };
-                }),
-                'onLoad': (box) => {
-                  for (let i = 0; i < value.length; ++i) {
-                    const item = value[i];
-                    if (typeof item !== 'object') {
-                      continue;
-                    }
-
+              const tagbox = new Tagify(
+                input,
+                {
+                  items: options.map(item => {
                     const itemPk = !isNullOrUndefined(item.pk) ? item.pk : item.id;
                     const itemName = !isNullOrUndefined(item.name) ? item.name : item.username;
-                    if (typeof itemName !== 'string' || isNullOrUndefined(itemPk)) {
-                      continue;
+                    return { name: itemName, value: itemPk };
+                  }),
+                  useValue: true,
+                  behaviour: {
+                    freeform: false,
+                  },
+                  autocomplete: true,
+                  allowDuplicates: false,
+                  onLoad: (box) => {
+                    for (let i = 0; i < value.length; ++i) {
+                      const item = value[i];
+                      if (!isRecordType(item)) {
+                        continue;
+                      }
+
+                      const itemPk = !isNullOrUndefined(item.pk) ? item.pk : item.id;
+                      const itemName = !isNullOrUndefined(item.name) ? item.name : item.username;
+                      if (typeof itemName !== 'string' || isNullOrUndefined(itemPk)) {
+                        continue;
+                      }
+
+                      box.addTag(itemName, itemPk);
                     }
 
-                    box.addTag(itemName, itemPk);
-                  }
-
-                  return () => {
-                    const choices = box?.options?.items?.length ?? 0;
-                    if (choices < 1) {
-                      parent.style.setProperty('display', 'none');
+                    return () => {
+                      const choices = box?.options?.items?.length ?? 0;
+                      if (choices < 1) {
+                        parent.style.setProperty('display', 'none');
+                      }
                     }
                   }
-                }
-              }, { });
+                },
+                { }
+              );
               this.#disposables.push(() => tagbox.dispose());
 
               collectors[key] = () => {
@@ -510,7 +519,7 @@ export class FormView {
               key: key,
               help: helpText,
               title: label,
-              required: isRequired,
+              required: isRequired ? 'required="true"' : '',
             };
             renderCallback = (elems) => {
               const select = elems[0].querySelector('select');
@@ -590,7 +599,7 @@ export class FormView {
             key: key,
             title: label,
             help: helpText,
-            required: isRequired,
+            required: isRequired ? 'required="true"' : '',
           };
           renderCallback = (elems) => {
             const chk = elems[0].querySelector('[data-class="checkbox"]');
@@ -618,6 +627,9 @@ export class FormView {
             inputMode = 'decimal';
           }
 
+          const minValue = formset.min_value ?? '';
+          const maxValue = formset.max_value ?? '';
+
           renderTemplate = templates.form.NumericField;
           renderParameters = {
             cls: style.class ?? '',
@@ -626,10 +638,10 @@ export class FormView {
             help: helpText,
             value: value ?? '',
             inputmode: inputMode,
-            required: isRequired,
+            required: isRequired ? 'required="true"' : '',
             placeholder: formset.initial ?? '',
-            minValue: formset.min_value ?? '',
-            maxValue: formset.max_value ?? '',
+            minvalue: typeof minValue === 'number' ? `min="${minValue}"` : '',
+            maxvalue: typeof maxValue === 'number' ? `max="${maxValue}"` : '',
             rounding: rounding ?? '',
             maxDigits: maxDigits ?? '',
             decimalPlaces: decimalPlaces ?? '',
@@ -652,7 +664,7 @@ export class FormView {
             key: key,
             help: helpText,
             title: label,
-            required: isRequired,
+            required: isRequired ? 'required="true"' : '',
           };
           renderCallback = (elems) => {
             const select = elems[0].querySelector('select');
@@ -754,9 +766,9 @@ export class FormView {
             help: helpText,
             value: '',
             placeholder: placeholder,
-            required: isRequired,
-            minLength: minLength,
-            maxLength: maxLength,
+            required: isRequired ? 'required="true"' : '',
+            minlength: typeof minLength === 'number' ? `minlength="${minLength}"` : '',
+            maxlength: typeof maxLength === 'number' ? `maxlength="${maxLength}"` : '',
             useMarkdown: isMarkdown,
             spellcheck: spellcheck,
           };
@@ -810,9 +822,9 @@ export class FormView {
             inputtype: inputAttributes.inputType,
             autocomplete: inputAttributes.autocomplete,
             placeholder: placeholder,
-            required: isRequired,
-            minLength: minLength,
-            maxLength: maxLength,
+            required: isRequired ? 'required="true"' : '',
+            minlength: typeof minLength === 'number' ? `minlength="${minLength}"` : '',
+            maxlength: typeof maxLength === 'number' ? `maxlength="${maxLength}"` : '',
           };
           renderCallback = (elems) => {
             const input = elems[0].querySelector('input');
@@ -851,7 +863,7 @@ export class FormView {
             help: helpText,
             datatype: datatype,
             value: value ?? '',
-            required: isRequired,
+            required: isRequired ? 'required="true"' : '',
           };
           renderCallback = (elems) => {
             const input = elems[0].querySelector('input');

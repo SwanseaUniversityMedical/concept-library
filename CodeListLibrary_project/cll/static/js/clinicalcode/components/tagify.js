@@ -13,20 +13,6 @@ const TAGIFY__DELAY = 1;
 const TAGIFY__TIMEOUT = 10;
 
 /**
- * TAGIFY__KEYCODES
- * @desc Keycodes used to navigate through the tag dropdown, and to add/remove tags
- */
-const TAGIFY__KEYCODES = {
-  // Add tag
-  'ENTER': 13,
-  // Remove tag
-  'BACK': 8,
-  // Navigate tag dropdown
-  'DOWN': 40,
-  'UP': 38,
-};
-
-/**
  * TAGIFY__TAG_OPTIONS
  * @desc Available options for the tagify component.
  *       These options are used as defaults and automatically added to the component
@@ -34,18 +20,25 @@ const TAGIFY__KEYCODES = {
  */
 const TAGIFY__TAG_OPTIONS = {
   // A predefined list of tags that can be used for autocomplete, or to control the input provided by the user
-  'items': [ ],
+  items: [ ],
   // Whether to use the value or the name keys for autocomplete and tag selected components
-  'useValue': false,
+  useValue: false,
   // Whether to perform autocomplete from a predefined list of items
-  'autocomplete': false,
+  autocomplete: false,
   // Whether to allow users to input duplicate tags
-  'allowDuplicates': false,
-  // Determines whether the user is restricted to the items within the predefined items list, or can input their own
-  'restricted': false,
+  allowDuplicates: false,
   // Determines whether to show tooltips
   //  [!] Note: This option requires tooltipFactory.js as a dependency
-  'showTooltips': true,
+  showTooltips: true,
+  // Component behaviour
+  behaviour: {
+    // Determines whether the user is restricted to the items within the predefined items list, or can input their own
+    freeform: false,
+    // Describes how to format the tag when displaying it
+    format: {
+      component: '{name}',
+    },
+  },
 };
 
 /**
@@ -58,29 +51,27 @@ const TAGIFY__TAG_OPTIONS = {
   * [!] Note: After the addition or removal of a tag, a custom event is dispatched to
   *           a the Tagify instance's element through the 'TagChanged' hook
   * 
-  * e.g.
-  ```js
-    import Tagify from '../components/tagify.js';
-
-    const tags = [
-      {
-        name: 'SomeTagName',
-        value: 'SomeTagValue',
-      },
-      {
-        name: 'SomeTagName',
-        value: 'SomeTagValue',
-      }
-    ];
-
-    const tagComponent = new Tagify('phenotype-tags', {
-      'autocomplete': true,
-      'useValue': false,
-      'allowDuplicates': false,
-      'restricted': true,
-      'items': tags,
-    });
-  ```
+  * @example
+  * import Tagify from '../components/tagify.js';
+  * 
+  * const tags = [
+  *   {
+  *     name: 'SomeTagName',
+  *     value: 'SomeTagValue',
+  *   },
+  *   {
+  *     name: 'SomeTagName',
+  *     value: 'SomeTagValue',
+  *   }
+  * ];
+  * 
+  * const tagComponent = new Tagify('phenotype-tags', {
+  *   items: tags,
+  *   useValue: false,
+  *   restricted: true,
+  *   autocomplete: true,
+  *   allowDuplicates: false,
+  * });
   * 
   */
 export default class Tagify {
@@ -109,9 +100,9 @@ export default class Tagify {
       this.fieldName = this.element.getAttribute('data-field');
     }
 
-    this.isBackspace = false;
-    this.tags = [ ];
+    this.tags = [];
     this.currentFocus = -1;
+    this.isBackspaceState = false;
 
     this.#initialise(options, phenotype);
   }
@@ -136,7 +127,20 @@ export default class Tagify {
    * @returns {Array} a list of data value(s)
    */
   getDataValue() {
-    return this.tags.map(x => x.value).filter(x => !isNullOrUndefined(x));
+    if (!this.options?.behaviour?.freeform) {
+      return this.tags.reduce((res, x) => {
+        if (!isNullOrUndefined(x?.value)) {
+          res.push(x.value);
+        }
+
+        return res;
+      }, []);
+    }
+
+    return this.tags.reduce((res, x) => {
+      res.push({ name: x?.name, value: typeof x?.value === 'number' ? x.value : null });
+      return res;
+    }, []);
   }
 
 
@@ -160,7 +164,7 @@ export default class Tagify {
     name = strictSanitiseString(name);
     value = typeof value === 'string' ? strictSanitiseString(value) : value;
 
-    if (this.options.restricted) {
+    if (!this.options?.behaviour?.freeform) {
       const index = this.options.items.map(e => e.name.toLocaleLowerCase()).indexOf(name.toLocaleLowerCase());
       if (index < 0) {
         return false;
@@ -178,7 +182,7 @@ export default class Tagify {
         if (elem) {
           this.#wobbleElement(elem);
         }
-        
+
         return false;
       }
     }
@@ -195,7 +199,7 @@ export default class Tagify {
 
     return tag;
   }
-  
+
   /**
    * removeTag
    * @desc removes a tag from the current list of tags
@@ -278,13 +282,26 @@ export default class Tagify {
     if (isNullOrUndefined(this.container) || isNullOrUndefined(trg) || !this.container.contains(trg)) {
       return;
     }
-
     e.preventDefault();
 
     if (trg.className == 'tag__remove') {
       this.removeTag(tryGetRootElement(trg, '.tag'));
     }
     this.field.focus();
+  }
+
+  /**
+   * onFocusIn
+   * @desc when the input box is focused by the client
+   * 
+   * @param {event} e the associated event
+   */
+  #onFocusIn(e) {
+    this.#deselectHighlighted();
+
+    if (this.options.autocomplete) {
+      this.#tryPopulateAutocomplete();
+    }
   }
 
   /**
@@ -309,6 +326,7 @@ export default class Tagify {
   /**
    * onKeyDown
    * @desc handles events assoc. with the input box receiving a key down event
+   * 
    * @param {event} e the associated event
    */
   #onKeyDown(e) {
@@ -316,80 +334,74 @@ export default class Tagify {
       const target = e.target;
       if (e.target.id == this.uuid) {
         let name = target.value.trim();
-        const code = e.which || e.keyCode;
+
+        const code = e.code;
         switch (code) {
-          case TAGIFY__KEYCODES.ENTER: {
+          case 'Enter':
+          case 'NumpadEnter': {
             e.preventDefault();
             e.stopPropagation();
 
             if (this.currentFocus >= 0) {
               name = this.#getFocusedName();
             }
-            
+
             if (name === '') {
               this.#deselectHighlighted();
               break;
             }
-            
+
             target.blur();
             target.value = '';
-  
+
             this.addTag(name);
             this.#clearAutocomplete(true);
-  
+
             if (this.timer)
               clearTimeout(this.timer);
-            
+
             this.timer = setTimeout(() => {
               target.focus();
             }, TAGIFY__TIMEOUT);
           } break;
-  
-          case TAGIFY__KEYCODES.BACK: {
+
+          case 'Backspace': {
             if (name === '') {
               this.#clearAutocomplete(true);
-  
-              if (!this.isBackspace) {
+
+              if (!this.isBackspaceState) {
                 this.#popTag();
               }
-            } else {
-              if (this.options.autocomplete) {
-                this.#tryPopulateAutocomplete(name);
-              }
+
+              break;
             }
-          } break;
-  
-          case TAGIFY__KEYCODES.UP:
-          case TAGIFY__KEYCODES.DOWN: {
-            if (this.autocomplete.classList.contains('show')) {
-              e.preventDefault();
-              this.currentFocus += (code == TAGIFY__KEYCODES.UP ? -1 : 1);
-              this.#focusAutocompleteElement();
-            }
-          } break;
-  
-          default: {
-            this.#deselectHighlighted();
-  
+
             if (this.options.autocomplete) {
               this.#tryPopulateAutocomplete(name);
             }
-  
+          } break;
+
+          case 'ArrowUp':
+          case 'ArrowDown': {
+            if (this.autocomplete.classList.contains('show')) {
+              e.preventDefault();
+              this.currentFocus += (code === 'ArrowUp' ? -1 : 1);
+              this.#focusAutocompleteElement();
+            }
+          } break;
+
+          default: {
+            this.#deselectHighlighted();
+
+            if (this.options.autocomplete) {
+              this.#tryPopulateAutocomplete(name);
+            }
           } break;
         }
       }
 
-      this.isBackspace = false;
+      this.isBackspaceState = false;
     }, TAGIFY__DELAY)
-  }
-
-  /**
-   * onKeyUp
-   * @desc handles events assoc. with the input box receiving a key up event
-   * @param {event} e the associated event
-   */
-  #onKeyUp(e) {
-
   }
 
   /*************************************
@@ -400,27 +412,28 @@ export default class Tagify {
   /**
    * initialise
    * @desc responsible for the main initialisation & render of this component
+   * 
    * @param {dict} options the option parameter 
    * @param {dict|*} phenotype optional initialisation template
    */
   async #initialise(options, phenotype) {
     this.container = createElement('div', {
-      'className': 'tags-root-container',
+      className: 'tags-root-container',
     });
 
     this.tagbox = createElement('div', {
-      'className': 'tags-container',
+      className: 'tags-container',
     });
 
     this.autocomplete = createElement('div', {
-      'className': 'tags-autocomplete-container filter-scrollbar',
+      className: 'tags-autocomplete-container filter-scrollbar',
     });
 
     this.field = createElement('input', {
-      'type': 'text',
-      'className': 'tags-input-field',
-      'id': this.uuid,
-      'placeholder': this.element.placeholder || '',
+      id: this.uuid,
+      type: 'text',
+      className: 'tags-input-field',
+      placeholder: this.element.placeholder || '',
     });
 
     this.tagbox.appendChild(this.field);
@@ -451,13 +464,15 @@ export default class Tagify {
    *       through the input box using the backspace key
    */
   #popTag() {
-    if (this.isBackspace)
+    if (this.isBackspaceState) {
       return;
-    
-    this.isBackspace = true;
-    if (this.tags.length <= 0)
+    }
+
+    this.isBackspaceState = true;
+    if (this.tags.length <= 0) {
       return;
-    
+    }
+
     const index = this.tags.length - 1;
     const tag = this.tags[index];
     if (!tag.element.classList.contains('tag__highlighted')) {
@@ -474,9 +489,9 @@ export default class Tagify {
    * @desc binds the associated events to the rendered components
    */
   #bindEvents() {
+    this.field.addEventListener('focusin', this.#onFocusIn.bind(this), false);
     this.tagbox.addEventListener('focusout', this.#onFocusLost.bind(this), false);
     this.tagbox.addEventListener('keydown', this.#onKeyDown.bind(this), false);
-    this.tagbox.addEventListener('keyup', this.#onKeyUp.bind(this), false);
 
     const clickHnd = this.#onClick.bind(this);
     document.addEventListener('click', clickHnd);
@@ -502,7 +517,8 @@ export default class Tagify {
    * @param {dict} phenotype the initialisation template
    */
   async #buildOptions(options, phenotype) {
-    this.options = mergeObjects(options, TAGIFY__TAG_OPTIONS);
+    options = isRecordType(options) ? options : { };
+    this.options = mergeObjects(options, TAGIFY__TAG_OPTIONS, true, true);
 
     const hasFieldName = !isStringEmpty(this.fieldName);
     const needsInitialiser = !isNullOrUndefined(phenotype) && (isNullOrUndefined(options?.items) || options?.items.length < 1);
@@ -589,6 +605,37 @@ export default class Tagify {
     return '';
   }
 
+  /**
+   * tryFmtName
+   * @desc attempts to format the tag item per the template field info
+   * 
+   * @param {string|object} data the data assoc. with the tag
+   * 
+   * @return {string} element name
+   */
+  #tryFmtName(data) {
+    let format = this.options?.behaviour?.format;
+    format = isRecordType(format) && stringHasChars(format?.component)
+      ? format.component
+      : '{name}';
+
+    let params;
+    if (isRecordType(data)) {
+      params = data;
+    } else {
+      params = { name: data };
+    }
+
+    let res;
+    try {
+      res = pyFormat(format, params);
+    } catch (e) {
+      res = stringHasChars(params?.name) ? params.name : 'TAG';
+    }
+
+    return res;
+  }
+
   /*************************************
    *                                   *
    *               Render              *
@@ -602,28 +649,34 @@ export default class Tagify {
    * @returns {node} the tag
    */
   #createTag(name, value) {
+    let label = this.options.items.find(x => x.name.toLocaleLowerCase() === name.toLocaleLowerCase());
+    if (!isNullOrUndefined(label)) {
+      label = this.#tryFmtName(label);
+    } else {
+      label = name;
+    }
+
     const tag = createElement('div', {
-      'className': 'tag',
-      'data-value': value,
-      'innerHTML': {
-        src: `<span class="tag__name">${name}</span><button class="tag__remove" aria-label="Remove Tag ${name}">&times;</button>`,
+      data: { value: value },
+      className: 'tag',
+      innerHTML: {
+        src: `<span class="tag__name">${label}</span><button class="tag__remove" aria-label="Remove Item">&times;</button>`,
         noSanitise: true,
-      }
+      },
     });
 
     this.tagbox.insertBefore(tag, this.field);
     this.tags.push({
-      'element': tag,
-      'name': name,
-      'value': value,
+      name: name,
+      value: value,
+      element: tag,
     });
 
     if (this.options.showTooltips) {
-      window.TooltipFactory.addElement(tag.querySelector('button'), 'Remove Tag', 'up');
+      window.TooltipFactory.addElement(tag.querySelector('button'), 'Remove Item', 'up');
     }
 
     this.#updateElement();
-    
     return tag;
   }
 
@@ -645,14 +698,11 @@ export default class Tagify {
    */
   #wobbleElement(elem) {
     const method = getTransitionMethod();
-    if (typeof method === 'undefined')
+    if (typeof method === 'undefined') {
       return;
-    
-    elem.addEventListener(method, function handle(e) {
-      elem.classList.remove('tag__wobble');
-      elem.removeEventListener(e.type, handle, false);
-    }, false);
+    }
 
+    elem.addEventListener(method, (e) => elem.classList.remove('tag__wobble'), { once: true });
     elem.classList.add('tag__wobble');
   }
 
@@ -683,14 +733,14 @@ export default class Tagify {
       children[i].classList.remove('autocomplete-item__highlighted');
     }
   }
-  
+
   /**
    * focusAutoCompleteElement
    * @desc focuses an element in the autocomplete list by selecting the element by its index (based on sel id)
    */
   #focusAutocompleteElement() {
     this.#popFocusedElement();
-    
+
     const children = this.autocomplete.children;
     const childLength = children.length;
     this.currentFocus = this.currentFocus < 0 ? (childLength - 1) : (this.currentFocus >= childLength ? 0 : this.currentFocus);
@@ -699,7 +749,9 @@ export default class Tagify {
       const element = children[this.currentFocus];
       element.classList.add('autocomplete-item__highlighted');
 
-      this.autocomplete.scrollTop = element.offsetTop;
+      if (!isScrolledIntoView(element, this.autocomplete, element.offsetHeight*0.5)) {
+        this.autocomplete.scrollTop = element.offsetTop;
+      }
     }
   }
 
@@ -712,14 +764,16 @@ export default class Tagify {
     for (let i = 0; i < results.length; ++i) {
       const data = results[i];
       const item = createElement('button', {
-        'className': 'autocomplete-item',
-        'data-value': data.value,
-        'data-name': data.name,
+        class: 'autocomplete-item',
+        dataset: {
+          name: data.name,
+          value: data.value,
+        },
       });
 
       const text = createElement('span', {
-        'className': 'autocomplete-item__title',
-        'innerText': data.name,
+        className: 'autocomplete-item__title',
+        innerText: this.#tryFmtName(data),
       });
 
       item.appendChild(text);
@@ -731,40 +785,46 @@ export default class Tagify {
    * tryPopulateAutocomplete
    * @desc tries to determine which elements need to be rendered through fuzzymatching,
    *       and then renders the autocomplete elements
-   * @param {string} value the search term to consider
+   * 
+   * @param {string} [value=''] the search term to consider
+   * 
    * @returns 
    */
-  #tryPopulateAutocomplete(value) {
-    if (value === '' || this.options.items.length <= 0) {
+  #tryPopulateAutocomplete(value = '') {
+    if (this.options.items.length < 1) {
       this.#clearAutocomplete(true);
       return;
     }
 
-    if (!this.haystack) {
-      this.haystack = this.options.items.map(e => e.name);
-    }
-    
-    let results = FuzzyQuery.Search(this.haystack, value, FuzzyQuery.Results.SORT, FuzzyQuery.Transformers.IgnoreCase);
-    results.sort((a, b) => {
-      if (a.score === b.score) {
-        return 0;
-      } else if (a.score > b.score) {
-        return 1;
-      } else if (a.score < b.score) {
-        return -1;
+    let results;
+    if (stringHasChars(value)) {
+      if (!this.haystack) {
+        this.haystack = this.options.items.map(e => e.name);
       }
-    });
 
-    results = results.map((e) => {
-      const item = this.options.items.find(x => x.name.toLocaleLowerCase() === e.item.toLocaleLowerCase());
-      return item;
-    });
-    
+      results = FuzzyQuery.Search(this.haystack, value, FuzzyQuery.Results.SORT, FuzzyQuery.Transformers.IgnoreCase);
+      results.sort((a, b) => {
+        if (a.score === b.score) {
+          return 0;
+        } else if (a.score > b.score) {
+          return 1;
+        } else if (a.score < b.score) {
+          return -1;
+        }
+      });
+
+      results = results.map((e) => {
+        const item = this.options.items.find(x => x.name.toLocaleLowerCase() === e.item.toLocaleLowerCase());
+        return item;
+      });
+    } else {
+      results = this.options.items.slice(0, this.options.items.length);
+    }
+
     if (results.length > 0) {
       this.#clearAutocomplete(false);
       this.autocomplete.classList.add('show');
       this.#generateAutocompleteElements(results);
-
       return;
     }
 

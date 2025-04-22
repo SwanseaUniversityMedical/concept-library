@@ -4,11 +4,14 @@
 {% load entity_publish_renderer %}
 
 {% get_brand_map_rules as brand_mapping %}
-<div id="topButtons" class="box-container action-buttons-container">
+<div id="topButtons" class="action-buttons-container">
   <div class="detail-actions">
-    <label class="dropdown-group">
+    <label class="dropdown-group dropdown-group--detail">
       <div class="dropdown-group__button">
-        Export {% get_template_entity_name entity_class template %}
+        <span class="as-icon phenotype-creation--icn" data-icon="&#xf56e;" aria-hidden="true"></span>
+        <span>
+          Export {% get_template_entity_name entity_class template %}
+        </span>
       </div>
 
       <input type="checkbox" class="dropdown-group__input" id="dd_1">
@@ -28,11 +31,12 @@
       {% if user_can_edit %}
         {% url 'update_phenotype' entity.id entity.history_id as update_entity_url %}
         <button role="link" 
-                class="primary-btn bold dropdown-btn__label"
+                class="primary-btn bold dropdown-btn__label phenotype-creation__action-btn"
                 title="Edit {{ brand_mapping.phenotype }}"
                 aria-label="Edit {{ brand_mapping.phenotype }}"
                 onClick="window.location.href='{{ update_entity_url }}';">
-          &nbsp;Edit&nbsp;
+          <span class="as-icon phenotype-creation--icn" data-icon="&#xf304;" aria-hidden="true"></span>
+          <span>Edit</span>
         </button>
       {% endif %}
 

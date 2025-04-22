@@ -17,8 +17,9 @@ from clinicalcode.views import (
 )
 
 from clinicalcode.views.dashboard.targets import (
-  BrandTarget, UserTarget, OrganisationTarget, TemplateTarget,
-  TagTarget, HDRNSiteTarget, HDRNCategoryTarget, HDRNDataAssetTarget
+  BrandTarget, UserTarget, OrganisationTarget,
+  TemplateTarget, TagTarget, HDRNSiteTarget,
+  HDRNCategoryTarget, HDRNDataAssetTarget, HDRNJurisdictionTarget
 )
 
 
@@ -86,6 +87,8 @@ urlpatterns = [
 
     url(r'^dashboard/target/sites/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_default),
     url(r'^dashboard/target/sites/(?P<pk>\w+)/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/jurisdictions/$', HDRNJurisdictionTarget.HDRNJurisdictionEndpoint.as_view(), name=HDRNJurisdictionTarget.HDRNJurisdictionEndpoint.reverse_name_default),
+    url(r'^dashboard/target/jurisdictions/(?P<pk>\w+)/$', HDRNJurisdictionTarget.HDRNJurisdictionEndpoint.as_view(), name=HDRNJurisdictionTarget.HDRNJurisdictionEndpoint.reverse_name_retrieve),
     url(r'^dashboard/target/category/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_default),
     url(r'^dashboard/target/category/(?P<pk>\w+)/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_retrieve),
     url(r'^dashboard/target/data_assets/$', HDRNDataAssetTarget.HDRNDataAssetEndpoint.as_view(), name=HDRNDataAssetTarget.HDRNDataAssetEndpoint.reverse_name_default),

@@ -276,8 +276,8 @@ export class TableView {
     }
 
     if (e.type === 'keyup') {
-      const code = e.keyIdentifier || e.which || e.keyCode;
-      if (code !== Const.CLU_DASH_KEYCODES.ENTER) {
+      const code = e.code;
+      if (code !== 'Enter') {
         return;
       }
     }

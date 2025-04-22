@@ -77,10 +77,10 @@ export default class VariableCreator {
 
     opts = isObjectType(opts) ? opts : {};
     opts.txt = mergeObjects(
-      txt,
       isObjectType(opts.txt)
         ? opts.txt
         : { single: fieldName, plural: fieldName + '(s)' },
+      txt
     );
     opts.options = mergeObjects(Array.isArray(opts.options) ? opts.options : [], options, false, true);
     opts.properties = mergeObjects(isObjectType(opts.properties) ? opts.properties : {}, properties, false, true);
@@ -309,7 +309,7 @@ export default class VariableCreator {
       .catch(res => {
         this.#modalState = null;
 
-        if (!(res instanceof ModalFactory.ModalResults)) {
+        if (!!res && !(res instanceof ModalFactory.ModalResults)) {
           return console.error(res);
         }
       });
@@ -497,7 +497,7 @@ export default class VariableCreator {
         this.#renderVariableForm();
       })
       .catch((res) => {
-        if (!(res instanceof ModalFactory.ModalResults)) {
+        if (!!res && !(res instanceof ModalFactory.ModalResults)) {
           return console.error(res);
         }
       })
@@ -1000,7 +1000,7 @@ export default class VariableCreator {
                 this.#toggleLayoutContentVis(len > 0);
               })
               .catch(res => {
-                if (!(res instanceof ModalFactory.ModalResults)) {
+                if (!!res && !(res instanceof ModalFactory.ModalResults)) {
                   return console.error(res);
                 }
               });
@@ -1043,7 +1043,7 @@ export default class VariableCreator {
               this.#renderLayout();
             })
             .catch(res => {
-              if (!(res instanceof ModalFactory.ModalResults)) {
+              if (!!res && !(res instanceof ModalFactory.ModalResults)) {
                 return console.error(res);
               }
             });

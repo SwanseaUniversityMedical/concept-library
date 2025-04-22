@@ -42,7 +42,7 @@ const cookieSettings = (privacyurl) => {
   })
   .catch((result) => {
     // An error occurred somewhere (unrelated to button input)
-    if (!(result instanceof ModalFactory.ModalResults)) {
+    if (!!result && !(result instanceof ModalFactory.ModalResults)) {
       return console.error(result);
     }
   });

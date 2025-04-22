@@ -171,6 +171,7 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     CLINICAL_DISEASE = 0
     CLINICAL_DOMAIN = 1
     CLINICAL_FUNCTIONAL_ANATOMY = 2
+    MESH_CODES = 3
 
 """
     Number of days before organisation invite expires
@@ -188,6 +189,7 @@ NUMERIC_NAMES = ['float', 'numeric', 'decimal', 'percentage']
 
 """
 ONTOLOGY_LABELS = {
+    ONTOLOGY_TYPES.MESH_CODES: 'Medical Subject Headings (MeSH)',
     ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
     ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (SNOMED)',
     ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',

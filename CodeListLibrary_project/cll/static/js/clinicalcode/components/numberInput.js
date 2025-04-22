@@ -10,7 +10,7 @@ domReady.finally(() => {
     'input.number-input__group-input[type="number"]',
     (e) => {
       const target = e.target;
-      const keyCode = e.which ?? e.keyCode;
+      const keyCode = e.which ?? e.keyCode ?? e.keyIdentifier;
       if (!keyCode || (keyCode >= 8 && keyCode <= 46) || (e.ctrlKey && ctrlKeys.includes(e.code))) {
         return true;
       }

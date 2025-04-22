@@ -33,17 +33,17 @@ def create_generic_entity(request):
             content_type='json',
             status=status.HTTP_403_FORBIDDEN
         )
-    
+
     form = api_utils.validate_api_create_update_form(
         request, method=constants.FORM_METHODS.CREATE.value
     )
     if isinstance(form, Response):
         return form
-        
+
     entity = api_utils.create_update_from_api_form(request, form)
     if isinstance(entity, Response):
         return entity
-    
+
     entity_data = {
         'id': entity.id,
         'version_id': entity.history_id,
@@ -159,11 +159,11 @@ def get_generic_entities(request):
 
         - **Metadata Parameters** → _i.e._ Top-level fields associated with all `Phenotypes`
 
-            | Param       | Type           | Default | Desc                                         |
-            |-------------|----------------|---------|----------------------------------------------|
-            | tags        | `list<number>` | `NULL`  | Filter results by one or more tag IDs        |
-            | collections | `list<number>` | `NULL`  | Filter results by one or more collection IDs |
-            | created     | `list<date>`   | `NULL`  | Date range filter on `created` field         |
+            | Param       | Type               | Default | Desc                                                 |
+            |-------------|--------------------|---------|------------------------------------------------------|
+            | tags        | `list<int or str>` | `NULL`  | Filter results by one or more tag IDs / names        |
+            | collections | `list<int or str>` | `NULL`  | Filter results by one or more collection IDs / names |
+            | created     | `list<date>`       | `NULL`  | Date range filter on `created` field                 |
 
         - **Template Parameters** → _i.e._ Fields relating to a specific `Template`
 
@@ -184,8 +184,8 @@ def get_generic_entities(request):
                 | Search across ID, Name and Code | `?ontology=([^&]+)`           | Search string or List of deliminated strings                                       |
                 | Search across ID                | `?ontology_id=([^&]+)`        | Single `ID` (`int`) or List of deliminated `ID`s                                   |
                 | Search across Code              | `?ontology_code=([^&]+)`      | Single `Code` string (_e.g._ ICD-10, SNOMED _etc_) or List of deliminated `Codes`s |
-                | Search acrross Name             | `?ontology_name=([^&]+)`      | Single `Name` string or List of deliminated `Name`s                                |
-                | Search across Type              | `?ontology_type=([^&]+)`      | Single `Type` (`int`) or List of deliminated `Type`s                               |
+                | Search acrros Name              | `?ontology_name=([^&]+)`      | Single `Name` string or List of deliminated `Name`s                                |
+                | Search across Type              | `?ontology_type=([^&]+)`      | Single `Type` (`int` or `str`) or List of deliminated `Type` IDs/Names             |
                 | Search across Reference         | `?ontology_reference=([^&]+)` | Single `ReferenceID` (`int`) or List of deliminated `ReferenceID`s                 |
 
     """
@@ -351,7 +351,7 @@ def get_generic_entities(request):
             continue
 
         success, query, query_params = api_utils.build_query_string_from_param(
-            key, data, validation, field_type,
+            request, key, data, field_data, field_type,
             prefix='mt', is_dynamic=False
         )
 
@@ -392,7 +392,7 @@ def get_generic_entities(request):
                     continue
 
                 success, query, query_params = api_utils.build_query_string_from_param(
-                    key, data, validation, field_type,
+                    request, key, data, field_data, field_type,
                     prefix=prefix, is_dynamic=True
                 )
 
@@ -480,7 +480,7 @@ def get_generic_entities(request):
         query = query + '''
          where t.search_vector @@ to_tsquery(
             'pg_catalog.english',
-            replace(websearch_to_tsquery('pg_catalog.english', %(search)s)::text || ':*', '<->', '|')
+            replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')
          )
         '''
         query_params.update({ 'search': search })

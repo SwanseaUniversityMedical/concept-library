@@ -1,16 +1,4 @@
 /**
- * DROPDOWN_KEYS
- * @desc Keycodes used to navigate through dropdown
- */
-const DROPDOWN_KEYS = {
-  // Navigate dropdown
-  'DOWN': 40,
-  'UP': 38,
-  // Exit component
-  'ESC': 27,
-};
-
-/**
  * createDropdownSelectionElement
  * @desc Creates an accessible dropdown element
  * @param {node} element the element to apply a dropdown element to
@@ -85,10 +73,10 @@ const createDropdownSelectionElement = (element) => {
       return;
     }
 
-    const code = e.keyIdentifier || e.which || e.keyCode;
+    const code = e.code;
     switch (code) {
-      case DROPDOWN_KEYS.UP:
-      case DROPDOWN_KEYS.DOWN:
+      case 'ArrowUp':
+      case 'ArrowDown':
         let target = e.target;
         if (container.contains(target)) {
           e.stopPropagation();
@@ -99,13 +87,13 @@ const createDropdownSelectionElement = (element) => {
             target = children[0];
           }
     
-          let index = children.indexOf(target) + (DROPDOWN_KEYS.UP == code ? -1 : 1);
+          let index = children.indexOf(target) + (code === 'ArrowUp' ? -1 : 1);
           index = index > children.length - 1 ? 0 : (index < 0 ? children.length - 1 : index);
           children[index].focus();
         }
         break;
 
-      case DROPDOWN_KEYS.ESC:
+      case 'Escape':
         list.classList.remove('active');
         break;
 

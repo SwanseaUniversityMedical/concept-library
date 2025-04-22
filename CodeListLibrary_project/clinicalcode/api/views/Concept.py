@@ -119,7 +119,7 @@ def get_concepts(request):
         query_clauses.append(psycopg2.sql.SQL('''(
             setweight(to_tsvector('pg_catalog.english', coalesce(historical.name,'')), 'A') ||
             setweight(to_tsvector('pg_catalog.english', coalesce(historical.description,'')), 'B')
-        ) @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(search_query)s)::text || ':*', '<->', '|'))
+        ) @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search_query)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
         '''))
 
     # Resolve pagination behaviour

@@ -15,6 +15,9 @@
   {% endif %}
 
   <div class="ontology-group-creator" data-class="ontology" data-field="{{ component.field_name }}">
+    {% if component.field_data.validation %}
+      {% to_json_script component.field_data.validation data-type="validation" for=component.field_name %}
+    {% endif %}
 
     {% if component.options %}
       {% to_json_script component.options data-type="dataset" for=component.field_name %}
@@ -100,7 +103,7 @@
               <div id="ontology-selector"
                   class="ontology-modal-body__section ontology-modal-body__section--flex-order-0-0">
                 <div class="ontology-modal-body__header">                  
-                  <h4>Ontologies</h4>
+                  <h4>Ontology Set</h4>
                 </div>
                 <div class="ontology-modal-body__window slim-scrollbar">
                   <div class="ontology-modal-body__layout" id="ontology-source-view">

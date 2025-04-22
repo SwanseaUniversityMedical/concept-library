@@ -78,42 +78,15 @@ export const
   };
 
 /**
- * StringInputListCreator constant(s)
- * 
- */
-export const 
-  /**
-   * STR_INPUT_LIST_KEYCODES
-   * @desc Keycodes used by list creator
-   */
-  STR_INPUT_LIST_KEYCODES = {
-    // Add list element
-    ENTER: 13,
-  },
-  /**
-   * STR_INPUT_LIST_MIN_MSG_DURATION
-   * @desc Min. message duration for toast notif popups
-   */
-  STR_INPUT_LIST_MIN_MSG_DURATION = 5000;
-
-/**
- * PublicationCreator constant(s)
+ * Toast constant(s)
  * 
  */
 export const
   /**
-   * PUBLICATION_KEYCODES
-   * @desc Keycodes used by publication creator
-   */
-  PUBLICATION_KEYCODES = {
-    // Add publication
-    ENTER: 13,
-  },
-  /**
-   * PUBLICATION_MIN_MSG_DURATION
+   * TOAST_MSG_DURATION
    * @desc Min. message duration for toast notif popups
    */
-  PUBLICATION_MIN_MSG_DURATION = 5000;
+  TOAST_MSG_DURATION = 5000;
 
 /**
  * VariableCreator const(s)
