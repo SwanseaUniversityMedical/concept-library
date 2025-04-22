@@ -1684,6 +1684,82 @@ def admin_convert_entity_groups(request):
         }
     )
 
+@login_required
+def admin_fix_icd_ca_cm_codes(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_icd_ca_cm_codes'),
+                'action_title': 'Fix ICD-10 CA/CM codes',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    with connection.cursor() as cursor:
+        cursor.execute('''
+            insert into public.clinicalcode_icd10cm_codes
+                select (select max("id") from public.clinicalcode_icd10cm_codes) + row_number() over (order by code) as id,
+                    code, description,
+                    CURRENT_TIMESTAMP as created_date
+                from (
+                    select replace(src.code, '.', '') as code, 
+                           src.description
+                    from public.clinicalcode_icd10_codes_and_titles_and_metadata as src
+                    left join public.clinicalcode_icd10cm_codes as trg
+                    on lower(replace(src.code, '.', '')) = lower(replace(trg.code, '.', ''))
+                    where length(replace(src.code, '.', '')) = 3
+                      and trg.code is null
+                    group by src.code, src.description
+                )
+                order by code;
+        ''')
+
+        cursor.execute('''
+            insert into public.clinicalcode_icd10ca_codes
+                select (select max("id") from public.clinicalcode_icd10ca_codes) + row_number() over (order by code) as id,
+                    code, description, long_desc,
+                    CURRENT_TIMESTAMP as created_date
+                from (
+                    select replace(src.code, '.', '') as code, 
+                           left(src.description, 128) as description,
+                           src.description as long_desc
+                    from public.clinicalcode_icd10_codes_and_titles_and_metadata as src
+                    left join public.clinicalcode_icd10ca_codes as trg
+                    on lower(replace(src.code, '.', '')) = lower(replace(trg.code, '.', ''))
+                    where length(replace(src.code, '.', '')) = 3
+                      and trg.code is null
+                    group by src.code, left(src.description, 128), src.description
+                )
+                order by code;
+        ''')
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Fix ICD-10 CA/CM codes',
+            'hide_phenotype_options': True,
+        }
+    )
+
 def get_serial_id():
     count_all = GenericEntity.objects.count()
     if count_all:

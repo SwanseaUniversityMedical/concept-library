@@ -967,6 +967,12 @@ def get_accessible_entities(
     if len(pk_clause) < 1 and consider_user_perms and user and user.is_superuser:
         if brand is not None:
             results = GenericEntity.objects.filter(brands__overlap=[brand.id])
+
+            if only_deleted:
+              results = results.filter(is_deleted=True)
+            else:
+              results = results.exclude(is_deleted=True)
+
             results = GenericEntity.history \
                 .filter(id__in=list(results.values_list('id', flat=True)))
         else:
