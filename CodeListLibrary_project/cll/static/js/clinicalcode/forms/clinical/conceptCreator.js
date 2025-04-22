@@ -215,15 +215,6 @@ const CONCEPT_CREATOR_SOURCE_TYPES = {
 }
 
 /**
- * CONCEPT_CREATOR_KEYCODES
- * @desc Keycodes used by Concept Creator
- */
-const CONCEPT_CREATOR_KEYCODES = {
-  // To modify rule name, apply search term etc
-  ENTER: 13,
-}
-
-/**
  * CONCEPT_CREATOR_FILE_UPLOAD
  * @desc File upload settings for file rule
  */
@@ -694,10 +685,6 @@ export default class ConceptCreator {
    * @returns {promise} a promise that resolves with the template's option/source data if successful
    */
   tryQueryOptionsParameter(param) {
-    if (!isNullOrUndefined(this.coding_data)) {
-      return Promise.resolve(this.coding_data);
-    }
-
     const parameters = new URLSearchParams({
       parameter: param,
       template: this.template?.id,
@@ -713,11 +700,7 @@ export default class ConceptCreator {
         }
       }
     )
-    .then(response => response.json())
-    .then(response => {
-      this.coding_data = response?.result;
-      return this.coding_data;
-    });
+    .then(response => response.json());
   }
   
   /**
@@ -1354,36 +1337,73 @@ export default class ConceptCreator {
    */
   #fetchCodingOptions(dataset) {
     // Fetch coding system from server
-    const promise = this.tryQueryOptionsParameter('coding_system')
-      .then(codingSystems => {
-        // Build <select/> option HTML
-        let options = interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_HIDDEN_OPTION, {
-          'is_unselected': codingSystems.length  < 1,
-        });
+    let promise;
+    if (Array.isArray(this.coding_data) && this.coding_data.length > 0) {
+      promise = Promise.resolve({ result: this.coding_data });
+    } else {
+      promise = this.tryQueryOptionsParameter('coding_system');
+    }
 
-        // Sort alphabetically in desc. order
-        codingSystems.sort((a, b) => {
-          if (a.name < b.name) {
-            return -1;
+    let codingSystems;
+    return new Promise((resolve, reject) => {
+      promise
+        .then((response) => {
+          codingSystems = response?.result;
+          if (!Array.isArray(codingSystems)) {
+            reject(new Error(
+              'Failed to fetch valid Coding Systems from server',
+              { cause: { type: 'fetch', detail: 'coding_system', msg: 'Failed to retrieve coding systems, please try again.' }
+            }));
+
+            return;
+          }
+  
+          // Build <select/> option HTML
+          let options = interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_HIDDEN_OPTION, {
+            'is_unselected': codingSystems.length  < 1,
+          });
+  
+          // Sort alphabetically in desc. order
+          codingSystems.sort((a, b) => {
+            if (a.name < b.name) {
+              return -1;
+            }
+  
+            return (a.name > b.name) ? 1 : 0;
+          });
+      
+          // Build each coding system option
+          for (let i = 0; i < codingSystems.length; ++i) {
+            const item = codingSystems[i];
+            options += interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_ACTIVE_OPTION, {
+              'is_selected': item.value == dataset?.coding_system?.id,
+              'name': item.name,
+              'value': item.value,
+            });
+          }
+  
+          resolve(options);
+        })
+        .catch(e => {
+          if (isNullOrUndefined(e) || !(e instanceof Error)) {
+            e = new Error('Failed to retrieve coding system from server.');
           }
 
-          return (a.name > b.name) ? 1 : 0;
-        });
-    
-        // Build each coding system option
-        for (let i = 0; i < codingSystems.length; ++i) {
-          const item = codingSystems[i];
-          options += interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_ACTIVE_OPTION, {
-            'is_selected': item.value == dataset?.coding_system?.id,
-            'name': item.name,
-            'value': item.value,
-          });
-        }
+          if (!isNullOrUndefined(e) && e instanceof Error && !isRecordType(e?.cause)) {
+            e.cause = {
+              type: 'fetch',
+              detail: 'coding_system',
+              msg: 'Failed to fetch coding systems, please try again.'
+            };
+          }
 
+          reject(e);
+        });
+    })
+      .then((options) => {
+        this.coding_data = codingSystems;
         return options;
       });
-
-    return promise;
   }
 
   /**
@@ -2041,13 +2061,13 @@ export default class ConceptCreator {
     const searchBtn = input.parentNode.querySelector('.code-text-input__icon');
     if (!isNullOrUndefined(searchBtn)) {
       searchBtn.addEventListener('click', (e) => {
-        input.dispatchEvent(new KeyboardEvent('keyup', { keyCode: CONCEPT_CREATOR_KEYCODES.ENTER }));
+        input.dispatchEvent(new KeyboardEvent('keyup', { code: 'Enter', keyCode: 13 }));
       });
     }
 
     input.addEventListener('keyup', (e) => {
-      const code = e.keyIdentifier || e.which || e.keyCode;
-      if (code != CONCEPT_CREATOR_KEYCODES.ENTER) {
+      const code = e.code;
+      if (code !== 'Enter') {
         return;
       }
 
@@ -2448,8 +2468,8 @@ export default class ConceptCreator {
         }
       })
       .catch((e) => {
-        if (!isNullOrUndefined(e)) {
-          console.error(e);
+        if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+          console.error(`[ConceptCreator->handleConceptImporting] Failed with err:\n\n${e}\n`);
         }
       })
   }
@@ -2460,8 +2480,11 @@ export default class ConceptCreator {
    * @param {event} e the associated event 
    */
   #handleConceptCreation(e) {
+    let spinner;
     this.tryCloseEditor()
       .then(async () => {
+        spinner = startLoadingSpinner();
+
         const conceptIncrement = this.#getNextConceptCount();
         const concept = {
           is_new: true,
@@ -2474,12 +2497,55 @@ export default class ConceptCreator {
           },
         };
 
-        const codingSystems = await this.#fetchCodingOptions(concept);
+        const codingRequest = await this.#fetchCodingOptions(concept)
+          .then(r => {
+            return { success: true, result: r };
+          })
+          .catch(e => {
+            if (!isNullOrUndefined(e) && e instanceof Error) {
+              const cause = e?.cause;
+              if (isRecordType(cause) && typeof cause?.message === 'string') {
+                return { success: false, result: e };
+              }
+            }
+
+            return {
+              success: false,
+              result: new Error(
+                'Failed to resolve data from server',
+                { cause: { type: 'fetch', detail: 'coding_system', msg: 'Failed to fetch results from server, please try again.' }}
+              ),
+            };
+          });
+
+        if (!codingRequest?.success) {
+          window.ToastFactory.push({
+            type: 'error',
+            message: codingRequest.result.cause.msg,
+            duration: 4000,
+          });
+
+          throw codingRequest.result;
+        }
+
+        if (!isNullOrUndefined(spinner)) {
+          spinner?.remove?.();
+        }
+
         const conceptGroup = this.#tryRenderConceptComponent(concept);
-        this.#tryRenderEditor(conceptGroup, concept, codingSystems);
+        this.#tryRenderEditor(conceptGroup, concept, codingRequest.result);
         this.#toggleNoConceptBox(true);
       })
-      .catch(() => { /* User does not want to lose progress, sink edit request */ })
+      .catch((e) => {
+        if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+          console.error(`[ConceptCreator->handleConceptCreation] Failed with err:\n\n${e}\n`);
+        }
+      })
+      .finally(() => {
+        if (!isNullOrUndefined(spinner)) {
+          spinner?.remove?.();
+        }
+      });
   }
 
   /**
@@ -2489,7 +2555,7 @@ export default class ConceptCreator {
    */
   #handleEditing(target) {
     // If editing, prompt before continuing
-    let spinner;
+    let spinner, failed;
     return this.tryCloseEditor()
       .then(async (res) => {
         spinner = startLoadingSpinner();
@@ -2509,12 +2575,51 @@ export default class ConceptCreator {
         let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
         dataset = deepCopy(dataset.shift());
 
-        const codingSystems = await this.#fetchCodingOptions(dataset);
-        this.#tryRenderEditor(conceptGroup, dataset, codingSystems);
-        spinner.remove();
+        const codingRequest = await this.#fetchCodingOptions(dataset)
+          .then(r => {
+            return { success: true, result: r };
+          })
+          .catch(e => {
+            if (!isNullOrUndefined(e) && e instanceof Error) {
+              const cause = e?.cause;
+              if (isRecordType(cause) && typeof cause?.message === 'string') {
+                return { success: false, result: e };
+              }
+            }
+
+            return {
+              success: false,
+              result: new Error(
+                'Failed to resolve data from server',
+                { cause: { type: 'fetch', detail: 'coding_system', msg: 'Failed to fetch results from server, please try again.' }}
+              ),
+            };
+          });
+
+        if (!codingRequest?.success) {
+          failed = true;
+          window.ToastFactory.push({
+            type: 'error',
+            message: codingRequest.result.cause.msg,
+            duration: 4000,
+          });
+
+          throw codingRequest.result;
+        }
+
+        if (!isNullOrUndefined(spinner)) {
+          spinner?.remove?.();
+        }
+
+        this.#tryRenderEditor(conceptGroup, dataset, codingRequest.result);
       })
-      .catch(() => {
+      .catch((e) => {
         /* User does not want to lose progress, sink edit request */
+        if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+          console.error(`[ConceptCreator->handleEditing] Failed with err:\n\n${e}\n`);
+        }
+      })
+      .finally(() => {
         if (spinner) {
           spinner.remove();
         }
@@ -2631,17 +2736,17 @@ export default class ConceptCreator {
         });
       })
       .catch((e) => {
-        if (!isNullOrUndefined(e)) {
-          console.error(e);
-        }
+        if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+          this.#pushToast({
+            type: 'danger',
+            message: interpolateString(
+              CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED,
+              { brandMapping: this.parent.mapping }
+            )
+          });
 
-        this.#pushToast({
-          type: 'danger',
-          message: interpolateString(
-            CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED,
-            { brandMapping: this.parent.mapping }
-          )
-        });
+          console.error(`[ConceptCreator->handleConceptImportUpdate] Failed with err:\n\n${e}\n`);
+        }
       });
   }
 }

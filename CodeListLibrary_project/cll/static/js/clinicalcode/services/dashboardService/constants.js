@@ -65,14 +65,6 @@ export const
     },
   ],
   /**
-   * CLU_DASH_KEYCODES
-   * @desc Describes keycodes for dashboard related events
-   * 
-   */
-  CLU_DASH_KEYCODES = {
-    ENTER: 13,
-  },
-  /**
    * CLU_DASH_TARGETS
    * @desc Describes `data-value` modifier(s)
    * 

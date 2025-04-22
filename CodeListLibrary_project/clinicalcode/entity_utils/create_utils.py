@@ -12,6 +12,7 @@ import psycopg2
 
 from ..models.Tag import Tag
 from ..models.Code import Code
+from ..models.Brand import Brand
 from ..models.Concept import Concept
 from ..models.CodeList import CodeList
 from ..models.Template import Template
@@ -447,6 +448,80 @@ def validate_template_field(template, field):
     
     return field in fields
 
+def validate_freeform_field(request, field, field_data, value, errors=[]):
+    """
+        Validates fields with behaviour variations, e.g. freeform tags
+    """
+    validation = template_utils.try_get_content(field_data, 'validation')
+    source = validation.get('source') if isinstance(validation, dict) else { }
+
+    model = source.get('table')
+    query = source.get('query')
+    relative = source.get('relative')
+
+    if value is not None and not isinstance(value, list):
+        if value is None:
+            return None
+
+        errors.append(f'Expected {field} as array, got {type(value)}')
+        return None
+
+    data_ids = [ x.get('value') for x in value if x is not None and gen_utils.is_int(x.get('value')) ]
+    data_str = [ x.get('name').strip() for x in value if x is None or not gen_utils.is_int(x.get('value')) ]
+
+    creatable = None
+    invalid = gen_utils.is_empty_string(model) or gen_utils.is_empty_string(query) or gen_utils.is_empty_string(relative)
+    if len(data_str) > 0 and not invalid:
+        model = f'clinicalcode_{model}'.lower()
+        with connection.cursor() as cursor:
+            sql = psycopg2.sql.SQL('''
+            select
+                {field} as id,
+                {relative} as name
+              from {model} as item
+             where lower({relative}::text) = any(%(str_comp)s::text[])
+            ''') \
+                .format(
+                    field=psycopg2.sql.Identifier(query),
+                    model=psycopg2.sql.Identifier(model),
+                    relative=psycopg2.sql.Identifier(relative)
+                )
+
+            cursor.execute(sql, params={
+                'str_comp': [ x.lower() for x in data_str ],
+            })
+
+            columns = [col[0] for col in cursor.description]
+            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            resultset = []
+            remainder = data_str.copy()
+            for x in results:
+                try:
+                    idx = remainder.index(data_str)
+                    if idx is not None:
+                        remainder.pop(idx)
+                except:
+                    pass
+                resultset.append(x.get('id'))
+
+            if len(resultset) > 0:
+                data_ids += resultset
+
+            if len(remainder) > 0:
+                creatable = remainder
+
+    if 'source' in validation or 'options' in validation:
+        field_value = try_validate_sourced_value(field, field_data, data_ids, request=request)
+        if not isinstance(field_value, list) or len(field_value) < 1:
+            field_value = None
+
+    if field_value is not None or creatable is not None:
+        return { 'value': field_value, 'creatable': creatable }
+
+    return None
+    
+
 def validate_computed_field(request, field, field_data, value, errors=[]):
     """
         Computed fields, e.g. Groups, that can be computed based on RequestContext
@@ -483,7 +558,7 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
             errors.append(f'"{field}" is invalid')
             return None
 
-        if field == 'organisation':
+        if field == 'organisation' or field == 'group':
             is_member = user.is_superuser or user.organisationmembership_set.filter(
                 Q(organisation_id=instance.id) & 
                 Q(role__gte=constants.ORGANISATION_ROLES.EDITOR.value)
@@ -729,7 +804,15 @@ def validate_metadata_value(request, field, value, errors=[], field_data=None):
     if field_required and value is None:
         errors.append(f'"{field}" is a non-nullable, required field')
         return value, False
-    
+
+    field_behaviour = template_utils.try_get_content(field_data, 'behaviour')
+    if field_behaviour is not None and field_behaviour.get('freeform', False):
+        field_value = validate_freeform_field(request, field, field_data, value, errors)
+        if field_value is None and field_required:
+            errors.append(f'"{field}" is invalid.')
+            return field_value, False
+        return field_value, True
+
     field_type = template_utils.try_get_content(validation, 'type')
     if not validation.get('ugc', False) and ('source' in validation or 'options' in validation):
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
@@ -738,7 +821,7 @@ def validate_metadata_value(request, field, value, errors=[], field_data=None):
             errors.append(f'"{field}" is invalid')
             return field_value, False
         return field_value, True
-    
+
     field_computed = template_utils.try_get_content(validation, 'computed')
     if field_computed is not None:
         field_value = validate_computed_field(request, field, field_data, value, errors)
@@ -779,17 +862,25 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
 
     if field_data is None:
         return None, True
-    
+
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
         # Exit without error since we haven't included any validation
         return value, False
-    
+
     field_required = template_utils.try_get_content(validation, 'mandatory')
     if field_required and value is None:
         errors.append(f'"{field}" is a non-nullable, required field')
         return value, False
-    
+
+    field_behaviour = template_utils.try_get_content(field_data, 'behaviour')
+    if field_behaviour is not None and field_behaviour.get('freeform', False):
+        field_value = validate_freeform_field(request, field, field_data, value, errors)
+        if field_value is None and field_required:
+            errors.append(f'"{field}" is invalid.')
+            return field_value, False
+        return field_value, True
+
     field_type = template_utils.try_get_content(validation, 'type')
     if not validation.get('ugc', False) and ('source' in validation or 'options' in validation):
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
@@ -798,7 +889,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
             errors.append(f'"{field}" is invalid')
             return field_value, False
         return field_value, True
-    
+
     field_computed = template_utils.try_get_content(validation, 'computed')
     if field_computed is not None:
         field_value = validate_computed_field(request, field, field_data, value, errors)
@@ -867,6 +958,9 @@ def validate_entity_form(request, content, errors=[], method=None):
     top_level_data = { }
     template_data = { }
     for field, value in form_data.items():
+        if field == 'group':
+            field = 'organisation'
+
         info = template_utils.get_template_field_info(form_template, field)
         struct = info.get('field')
         if info.get('is_metadata'):
@@ -1215,6 +1309,48 @@ def build_related_entities(request, field_data, packet, override_dirty=False, en
             [obj.get('entity') for obj in entities if obj.get('method') == 'create'],
             [{ 'concept_id': obj.get('historical').id, 'concept_version_id': obj.get('historical').history_id } for obj in entities]
         ]
+    elif field_type == 'int_array':
+        behaviour = template_utils.try_get_content(field_data, 'behaviour')
+        defaults = behaviour.get('defaults', None) if isinstance(behaviour, dict) and isinstance(behaviour.get('defaults'), dict) else {}
+        branding = behaviour.get('branding', None) if isinstance(behaviour, dict) and isinstance(behaviour.get('branding'), str) else None
+
+        if branding:
+            brand = model_utils.try_get_brand(request)
+            defaults[branding] = brand if isinstance(brand, Brand) else None
+
+        values = packet.get('value') if isinstance(packet.get('value'), list) else None
+        creatable = packet.get('creatable') if isinstance(packet.get('creatable'), list) else []
+
+        source_info = validation.get('source')
+        model = source_info.get('table') if isinstance(source_info, dict) else None
+        query = source_info.get('query') if isinstance(source_info, dict) else None
+        relative = source_info.get('relative') if isinstance(source_info, dict) else None
+
+        if gen_utils.is_empty_string(model) or gen_utils.is_empty_string(query) or gen_utils.is_empty_string(relative):
+            return True, [None, None, values]
+
+        try:
+            table = apps.get_model(app_label='clinicalcode', model_name=model)
+        except:
+            table = None
+
+        if table is None:
+            return True, [None, None, values]
+
+        entities = [ ]
+        for item in creatable:
+            if gen_utils.is_empty_string(item):
+                continue
+            entities.append(table(**({ relative: item } | defaults)))
+
+        entities = table.objects.bulk_create(entities) if len(entities) > 0 else []
+        entities = [getattr(x, query) for x in entities]
+        entities += (values if isinstance(values, list) else [])
+
+        if len(entities) < 1:
+            entities = None
+
+        return True, [None, None, entities]
 
     return False, None
 
@@ -1328,23 +1464,33 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             # Build any validated children
             template_data = { }
             new_entities = [ ]
-            for field, packet in template.items():
-                field_data = template_utils.get_layout_field(form_template, field)
-                if field_data is None:
-                    continue
+            for group in [metadata, template]:
+                for field, packet in group.items():
+                    info = template_utils.get_template_field_info(form_template, field)
+                    field_data = info.get('field')
+                    if field_data is None:
+                        continue
 
-                validation = template_utils.try_get_content(field_data, 'validation')
-                if validation is None or not validation.get('has_children'):
-                    template_data[field] = packet
-                    continue
-                
-                success, res = build_related_entities(request, field_data, packet, override_dirty, entity=form_entity)
-                if not success or not res:
-                    continue
+                    validation = template_utils.try_get_content(field_data, 'validation')
+                    freeform = template_utils.try_get_content(field_data, 'behaviour')
+                    freeform = freeform.get('freeform', False) if isinstance(freeform, dict) else None
 
-                ownership_key, created_entities, field_value = res
-                template_data[field] = field_value
-                new_entities.append({'field': ownership_key, 'entities': created_entities})
+                    data_value = packet
+                    if validation is not None and (validation.get('has_children') or freeform):
+                        success, res = build_related_entities(request, field_data, packet, override_dirty, entity=form_entity)
+                        if not success or not res:
+                            continue
+
+                        ownership_key, created_entities, field_value = res
+                        data_value = field_value
+
+                        if ownership_key is not None:
+                            new_entities.append({'field': ownership_key, 'entities': created_entities})
+
+                    if not info.get('is_metadata'):
+                        template_data[field] = data_value
+                    else:
+                        metadata[field] = data_value
 
             # Create or update the entity
             template_data['version'] = form_template.template_version

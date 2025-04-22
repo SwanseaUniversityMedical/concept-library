@@ -91,6 +91,18 @@ const
 const clampNumber = (value, min, max) => {
   return Math.min(Math.max(value, min), max);
 }
+/**
+ * @desc tests whether `a` is approximately `b` within some threshold described by `eps`
+ *
+ * @param {number} a   some number
+ * @param {number} b   some number
+ * @param {number} eps epsilon - defaults to 1e-6 (see `Const.EPS`)
+ *
+ * @returns {number} a boolean reflecting its approximate equality
+ */
+const approximately = (a, b, eps = 1e-4) => {
+  return a === b || Math.abs(a - b) <= eps;
+};
 
 /**
  * fetchWithCtrl
@@ -464,16 +476,15 @@ const mergeObjects = (a, b, copy = false, deepMerge = false) => {
           a[key] = value;
         }
       } else {
-        const hk = key in a;
-        const v0 = b[key];
-        const v1 = hk ? a[key] : null;
+        const v0 = a?.[key];
+        const v1 = b?.[key];
         if (isObjectType(v0) && isObjectType(v1)) {
           a[key] = mergeObjects(v0, v1, copy, deepMerge);
-        } else if (!hk) {
+        } else if (typeof v0 === 'undefined') {
           if (copy) {
-            a[key] = deepCopy(v0);
+            a[key] = deepCopy(v1);
           } else {
-            a[key] = v0;
+            a[key] = v1;
           }
         }
       }
@@ -768,6 +779,21 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
           }
         } break;
 
+        case 'aria': {
+          for (const key in attr) {
+            if (typeof key !== 'string' && typeof key !== 'number') {
+              console.error(`[createElement->${name}] Failed to append 'aria-*' attr, expected key as String|Number but got ${typeof key}`);
+              continue;
+            }
+
+            let dataKey = String(key).trim().toLowerCase();
+            if (!dataKey.startsWith('aria-')) {
+              dataKey = `aria-${dataKey}`;
+            }
+            element.setAttribute(dataKey, ustrSanitise('value', attr[key]))
+          }
+        } break;
+
         case 'data':
         case 'dataset': {
           for (const key in attr) {
@@ -789,10 +815,11 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
             if (dataKey !== key) {
               console.warn(`[createElement->${name}] A 'data-*' attr was transformed from '${key}' to '${dataKey}'`);
             }
-            element.dataset[dataKey] = ustrSanitise('value', attr[dataKey]);
+            element.dataset[dataKey] = ustrSanitise('value', attr[key]);
           }
         } break;
 
+        case 'attr':
         case 'attributes': {
           for (const key in attr) {
             if (typeof key !== 'string' && typeof key !== 'number') {
@@ -809,7 +836,7 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
             if (dataKey !== key) {
               console.warn(`[createElement->${name}] An attribute was transformed from '${key}' to '${dataKey}'`);
             }
-            element.setAttribute(dataKey, ustrSanitise('value', attr[dataKey]));
+            element.setAttribute(dataKey, ustrSanitise('value', attr[key]));
           }
         } break;
 
@@ -939,35 +966,192 @@ const createElement = (tag, attributes = null, behaviour = null, ...children) =>
 /**
   * isScrolledIntoView
   * @desc Checks whether an element is scrolled into view
-  * @param {node} elem The element to examine
-  * @param {number} offset An offset modifier (if required)
+  * @param {HTMLElement}   elem                      The element to examine
+  * @param {HTMLElement}   [container=document.body] The container element to watch
+  * @param {number}        [offset=0]                An offset modifier (if required)
   * @returns {boolean} that reflects the scroll view status of an element
   */
-const isScrolledIntoView = (elem, offset = 0) => {
-  const rect = elem.getBoundingClientRect();
-  const elemTop = rect.top;
-  const elemBottom = rect.bottom - offset;
+const isScrolledIntoView = (elem, container = null, offset = 0) => {
+  if (isNullOrUndefined(container)) {
+    const rect = elem.getBoundingClientRect();
+    const elemTop = rect.top;
+    const elemBottom = rect.bottom - offset;
+    return (elemTop >= 0) && (elemBottom <= window.innerHeight);
+  }
 
-  return (elemTop >= 0) && (elemBottom <= window.innerHeight);
+  let eRect;
+  if (isHtmlObject(elem)) {
+    eRect = elem.getBoundingClientRect();
+  } else {
+    eRect = elem;
+  }
+
+  let pRect;
+  if (isHtmlObject(container) || container === document.body) {
+    pRect = container.getBoundingClientRect();
+  } else {
+    pRect = container;
+  }
+
+  let { height, width } = eRect;
+  height = height - offset > 0 ? height - offset : height;
+  width = width - offset > 0 ? width - offset : width;
+
+  const topVisible = eRect.top <= pRect.top
+    ? pRect.top - eRect.top <= height
+    : eRect.bottom - pRect.bottom <= height;
+
+  const leftVisible = eRect.left <= pRect.left
+    ? pRect.left - eRect.left <= width
+    : eRect.right - pRect.right <= width;
+
+  return (topVisible && leftVisible);
 }
 
 /**
   * elementScrolledIntoView
   * @desc A promise that resolves when an element is scrolled into view
-  * @param {node} elem The element to examine
-  * @param {number} offset An offset modifier (if required)
+  * 
+  * @param {HTMLElement}   elem                      The element to examine
+  * @param {HTMLElement}   [container=document.body] The container element to watch
+  * @param {number}        [offset=0]                An offset modifier (if required)
+  * 
   * @returns {promise} a promise that resolves once the element scrolls into the view
   */
-const elementScrolledIntoView = (elem, offset = 0) => {
+const elementScrolledIntoView = (elem, container = null, offset = 0) => {
+  let rel = container;
+  if (isNullOrUndefined(container)) {
+    rel = null;
+    container = document;
+  }
+
   return new Promise(resolve => {
     const handler = (e) => {
-      if (isScrolledIntoView(elem, offset)) {
-        document.removeEventListener('scroll', handler);
+      if (isScrolledIntoView(elem, rel, offset)) {
+        container.removeEventListener('scroll', handler);
         resolve();
       }
     };
 
-    document.addEventListener('scroll', handler);
+    container.addEventListener('scroll', handler);
+  });
+}
+
+/**
+ * getRelativeElementPos
+ * @desc computes the element's relative rect
+ * 
+ * @param {HTMLElement} elem the element of interest
+ * 
+ * @returns {Record<string, number>} relative element rect 
+ */
+const getRelativeElementRect = (elem) => {
+  const pOff = elem.parentNode.scrollTop;
+  const pRect = elem.parentNode.getBoundingClientRect();
+  const eRect = elem.getBoundingClientRect();
+  return {
+       top: eRect.top    - pRect.top + pOff,
+     right: eRect.right  - pRect.right,
+    bottom: eRect.bottom - pRect.bottom,
+      left: eRect.left   - pRect.left,
+  };
+}
+
+/**
+ * scrollContainerTo
+ * @desc scrolls a container towards an element/target rect
+ * 
+ * @param {HTMLElement}               container                    the parent container in which to scroll
+ * @param {HTMLElement}               element                      the descendant HTMLElement to scroll towards
+ * @param {object}                    [param2]                     optionally specify a set of props varying this operation's behaviour
+ * @param {'auto'|'smooth'|'instant'} [param2.behaviour='smooth']  optionally specify the `scrollTo` behaviour; defaults to `smooth`
+ * @param {number}                    [param2.threshold=5]         optionally specify the approximation epsilon; defaults to `5` (i.e. 5 pixel)
+ * @param {number}                    [param2.failureTimeout=1000] optionally specify the time, in milliseconds, before we container the scroll to have failed; defaults to 1000ms/1s
+ * 
+ * @returns {Promise<object>} a promise that resolves an obj describing the both (a) the `target` rect, and (b) the current `scroll` position
+ */
+const scrollContainerTo = (
+  container,
+  element,
+  {
+    behaviour = 'smooth',
+    threshold = 5,
+    failureTimeout = 1000,
+  } = {}
+) => {
+  let _watchdog, _handleScroll, _listening;
+
+  const promise = new Promise((resolve) => {
+    const target = getRelativeElementRect(element);
+    behaviour = behaviour.trim().toLowerCase();
+    behaviour = behaviour.match(/^(auto|smooth|instant)$/gi) ? behaviour : 'smooth';
+
+    threshold = (typeof threshold === 'number' && !Number.isNaN(threshold) && Number.isFinite(threshold) && threshold >= 1e-4)
+      ? threshold
+      : 1e-4;
+
+    let { top, left } = target;
+    top = Math.floor(typeof target.top === 'number' ? target.top : 0);
+    left = Math.floor(typeof target.left === 'number' ? target.left : 0);
+
+    const cleanup = (shouldCancel = true) => {
+      if (shouldCancel && !isNullOrUndefined(_watchdog)) {
+        clearTimeout(_watchdog);
+      }
+      _watchdog = null;
+
+      if (_listening && _handleScroll) {
+        container?.removeEventListener?.('scroll', _handleScroll);
+      }
+      _listening = false;
+
+      resolve({
+        target: { top, left },
+        scroll: { top: container.scrollTop, left: container.scrollLeft },
+      });
+    }
+
+    if (isScrolledIntoView(container, element, threshold)) {
+      cleanup();
+      return;
+    }
+
+    if (typeof failureTimeout === 'number' && !Number.isNaN(failureTimeout) && Number.isFinite(failureTimeout) && failureTimeout > 1e-6) {
+      _watchdog = setTimeout(_ => cleanup(false), failureTimeout);
+    }
+
+    container.scrollTo({ top, left, behavior: behaviour });
+
+    _handleScroll = () => {
+      if (!_listening || (!approximately(container.scrollTop, top, threshold) && !approximately(container.scrollLeft, left, threshold))) {
+        return;
+      }
+
+      cleanup();
+    };
+
+    if (approximately(container.scrollTop, top, threshold) || approximately(container.scrollLeft, left, threshold)) {
+      cleanup();
+      return;
+    }
+
+    _listening = true;
+    container.addEventListener('scroll', _handleScroll);
+  });
+
+  return new Promise((resolve, reject) => {
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(_ => {
+        if (!isNullOrUndefined(_watchdog)) {
+          clearTimeout(_watchdog);
+        }
+
+        if (!isNullOrUndefined(_handleScroll)) {
+          container?.removeEventListener?.('scroll', _handleScroll);
+        }
+      });
   });
 }
 
@@ -1250,17 +1434,14 @@ const redirectToTarget = (elem, event) => {
  *  -> @param {null, list} extensions the expected file extensions (leave null for all file types)
  *  -> @param {null, function(selected[bool], files[list])} callback the callback function for when a file is selected
  * 
- * e.g. usage:
+ * @example
+ * const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
+ *   if (!selected) {
+ *     return;
+ *   }
  * 
-  ```js
-    const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
-      if (!selected) {
-        return;
-      }
-
-      console.log(files); --> [file_1, ..., file_n]
-    }});
-  ```
+ *   console.log(files); --> [file_1, ..., file_n]
+ * }});
  * 
  */
 const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {

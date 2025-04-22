@@ -5,6 +5,7 @@ from django.http import HttpRequest
 from django.conf import settings
 from rest_framework import status as RestHttpStatus
 from django.db.models import Q, Model
+from django.contrib.auth import get_user_model
 from rest_framework.request import Request
 from django.core.exceptions import PermissionDenied
 from rest_framework.exceptions import APIException, MethodNotAllowed, NotAuthenticated
@@ -27,6 +28,10 @@ from .constants import (
     ORGANISATION_ROLES, APPROVAL_STATUS,
     GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
 )
+
+
+User = get_user_model()
+
 
 '''Permission decorators'''
 def redirect_readonly(fn):
@@ -354,6 +359,43 @@ def is_requestor_brand_admin(request=None):
 		.exists()
 
 	return administrable
+
+def get_brand_related_users(req_brand=None):
+    """
+      Resolves users associated with a specific Brand context
+
+      Args:
+        req_brand (str|int|Brand|Request|HttpRequest): either (a) the name/id of the Brand, (b) the Brand object itself, or (c) the HTTP request assoc. with this operation
+
+      Returns:
+        A (QuerySet) containing the users assoc. with this request/brand context
+    """
+    if isinstance(req_brand, (Request, HttpRequest)):
+        brand = model_utils.try_get_brand(req_brand)
+    elif isinstance(req_brand, str) and not gen_utils.is_empty_string(req_brand):
+        brand = model_utils.try_get_instance(Brand, name__iexact=req_brand)
+    elif isinstance(req_brand, int) and req_brand >= 0:
+        brand = model_utils.try_get_instance(Brand, pk=req_brand)
+    elif isinstance(req_brand, Brand) and (inspect.isclass(req_brand) and issubclass(req_brand, Brand)):
+        brand = req_brand
+
+    records = None
+    if brand is not None:
+        vis_rules = brand.get_vis_rules()
+        if isinstance(vis_rules, dict):
+            allow_null = vis_rules.get('allow_null')
+            allowed_brands = vis_rules.get('ids')
+            if isinstance(allowed_brands, list) and isinstance(allow_null, bool):
+                records = User.objects.filter(Q(accessible_brands__id__in=allowed_brands) | Q(accessible_brands__id__isnull=allow_null))
+            elif isinstance(allowed_brands, list):
+                records = User.objects.filter(accessible_brands__id__in=allowed_brands)
+            elif isinstance(allow_null, bool) and allow_null:
+                records = User.objects.filter(accessible_brands__id__isnull=True)
+
+        if records is None:
+            records = User.objects.filter(accessible_brands__id=brand.id)
+
+    return records if records is not None else User.objects.all()
 
 def has_member_org_access(user, slug, min_permission):
     """

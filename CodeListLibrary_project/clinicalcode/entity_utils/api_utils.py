@@ -1,10 +1,13 @@
 from django.db import connection
+from difflib import SequenceMatcher as SM
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.functions import JSONObject
 from django.db.models import ForeignKey, F
 from rest_framework.renderers import JSONRenderer
 from django.contrib.auth import get_user_model
+
+import psycopg2
 
 from ..models.GenericEntity import GenericEntity
 from ..models.Organisation import Organisation
@@ -520,8 +523,28 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
     datatype = None
     processor = ''
     if sub_type == 'int_array':
-        data = [ int(x) for x in data.split(',') if isinstance(gen_utils.parse_int(x, default=None), int) ]
-        datatype = 'bigint'
+        data = data.split(',')
+
+        coercion = sub_validation.get('coerce')
+        if isinstance(coercion, list):
+            res = []
+            for x in data:
+                if isinstance(x, str):
+                    matched = [{ 'out': v.get('out'), 'ratio': SM(None, x.strip().lower(), v.get('compare').lower()).ratio() } for v in coercion]
+                    matched.sort(key=lambda x: x.get('ratio'), reverse=True)
+
+                    matched = matched[0] if len(matched) > 0 else None
+                    if matched and matched.get('ratio') > 0.3:
+                        res.append(matched.get('out'))
+                        continue
+
+                if gen_utils.is_int(x):
+                    res.append(int(x))
+            data = res
+        else:
+            data = [ int(x) for x in data if isinstance(gen_utils.parse_int(x, default=None), int) ]
+
+        datatype = 'bigint'       
     elif sub_type == 'string_array':
         data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
         datatype = 'text'
@@ -601,18 +624,20 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
 
     return True, [ query, dataset ]
 
-def build_query_string_from_param(param, data, validation, field_type, is_dynamic=False, prefix=''):
+def build_query_string_from_param(request, param, data, field_data, field_type, is_dynamic=False, prefix=''):
     """
       Builds query (terms and where clauses) based on a template
 
       [!] NOTE: Parameters & types should be validated _BEFORE_ calling this function
 
       Args:
+        request (HTTPContext): Request context
+
         param (string): the name of the request param that's been mapped to the template
 
         data (any): the value portion of the key-value pair param
 
-        validation (dict): validation dictionary defined by the template
+        field_data (dict): the field data dict
 
         field_type (str): the associated field type as defined by the template
 
@@ -629,6 +654,10 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
         3. dict|None - the processed data if successful
 
     """
+    validation = field_data.get('validation')
+    if not isinstance(validation, dict):
+        return False, None, None
+
     if len(prefix) > 0:
         prefix = prefix + '_'
 
@@ -654,8 +683,8 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
             source = validation.get('source')
             trees = source.get('trees') if source and 'trees' in validation.get('source') else None
 
-            data = [ str(x) for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
             if trees:
+                data = [ str(x) for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
                 model = source.get('model') if isinstance(source.get('model'), str) else None
 
                 if model:
@@ -689,10 +718,7 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
                                     t1.search_vector
                                     @@ to_tsquery(
                                         'pg_catalog.english',
-                                        replace(
-                                            websearch_to_tsquery('pg_catalog.english', %({prefix}{param}_trsearch)s)::text
-                                            || ':*', '<->', '|'
-                                        )
+                                        replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%({prefix}{param}_trsearch)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')
                                     )
                                 )
                            )
@@ -721,6 +747,9 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
                     )
                     '''
             else:
+                data = coerce_into_opts(request, field_data, data)
+                if data is None:
+                    return False, None, None
                 query = f'''
                 exists(
                     select 1
@@ -731,11 +760,13 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
                                 else '[]'
                             end
                       ) as val
-                     where val::text = any(%({prefix}{param}_data)s)
+                     where val::text = any(%({prefix}{param}_data)s::text[])
                 )
                 '''
         else:
-            data = [ int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None ]
+            data = coerce_into_opts(request, field_data, data)
+            if data is None:
+                return False, None, None
             query = f'''entity.{param} && %({prefix}{param}_data)s'''
 
         return True, query, { f'{prefix}{param}_data': data }
@@ -753,6 +784,72 @@ def build_query_string_from_param(param, data, validation, field_type, is_dynami
         return True, query, { f'{prefix}{param}_data': data }
 
     return False, None, None
+
+def coerce_into_opts(request, field_data, data, default=None):
+    """
+      Attempts to coerce str|int list values for `int_array` targets into an `int`-only array by querying the options available to the client
+
+      Args:
+        request (HTTPContext): Request context
+
+        field_data     (dict): the field data assoc. with the queryable field
+
+        data    (list|string): the data query input
+
+        default         (Any): optionally specify a default return value; defaults to `None`
+
+      Returns:
+        Either (a) a list of IDs assoc. with the specified input; or (b) if invalid, a None-type value
+    """
+    if isinstance(data, str):
+        data = data.split(',')
+
+    if not isinstance(data, list):
+        return default
+
+    data_ids = [ int(x.strip()) for x in data if gen_utils.is_int(x.strip()) ]
+    data_str = [ x.lower().strip() for x in data if isinstance(x, str) ]
+
+    validation = field_data.get('validation')
+    source = validation.get('source') if isinstance(validation, dict) else None
+    if not isinstance(source, dict):
+        return data_ids
+
+    model = source.get('table')
+    field = source.get('query')
+    relative = source.get('relative')
+    if gen_utils.is_empty_string(model) or gen_utils.is_empty_string(field) or gen_utils.is_empty_string(relative):
+        return data_ids
+
+    if len(data_str) < 1:
+        return data_ids
+
+    model = f'clinicalcode_{model}'.lower()
+    with connection.cursor() as cursor:
+        sql = psycopg2.sql.SQL('''
+        select
+            {field} as id
+          from {model} as item
+         where lower({relative}::text) = any(%(str_comp)s::text[])
+            or {field}::bigint = any(%(int_comp)s::bigint[]);
+        ''') \
+            .format(
+                field=psycopg2.sql.Identifier(field),
+                model=psycopg2.sql.Identifier(model),
+                relative=psycopg2.sql.Identifier(relative)
+            )
+
+        cursor.execute(sql, params={
+            'int_comp': data_ids,
+            'str_comp': data_str,
+        })
+
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return [x.get('id') for x in results]
+
+    return data_ids
+
 
 def build_query_from_template(request, user_authed, template=None):
     """
@@ -1331,30 +1428,51 @@ def get_formatted_concept_codes(concept, concept_codelist, headers=None):
 
     return concept_codes
 
-def annotate_linked_entities(entities):
+def annotate_linked_entities(entities, has_hx_id=True):
     """
         Annotates linked entities with phenotype and template details
 
         Args:
             entities (QuerySet): Entities queryset
+            has_hx_id    (bool): Optionally specify whether to append the phenotype history id
         
         Returns:
             Queryset containing annotated entities
     """
-    return entities.annotate(
-        phenotype_id=F('id'),
-        phenotype_version_id=F('history_id'),
-        phenotype_name=F('name')
-    ) \
-    .values(
-        'phenotype_id', 
-        'phenotype_version_id', 
-        'phenotype_name'
-    ) \
-    .annotate(
+    if has_hx_id:
+        res = entities.annotate(
+            phenotype_id=F('id'),
+            phenotype_version_id=F('history_id'),
+            phenotype_name=F('name')
+        ) \
+        .values(
+            'phenotype_id', 
+            'phenotype_version_id', 
+            'phenotype_name'
+        ) \
+        .annotate(
+            template=JSONObject(
+                id=F('template__id'),
+                version_id=F('template_version'),
+                name=F('template__name')
+            )
+        )
+    else:
+        res = entities.annotate(
+            phenotype_id=F('id'),
+            phenotype_name=F('name')
+        ) \
+        .values(
+            'phenotype_id', 
+            'phenotype_name'
+        )
+
+    res = res.annotate(
         template=JSONObject(
             id=F('template__id'),
             version_id=F('template_version'),
             name=F('template__name')
         )
     )
+
+    return res

@@ -481,7 +481,9 @@ class CreateEntityView(TemplateView):
         if options is None:
             return gen_utils.jsonify_response(message='Invalid field parameter, does not exist or is not an optional parameter', code=400, status='false')
 
-        options = model_utils.append_coding_system_data(options)
+        if field == 'coding_system':
+            options = model_utils.append_coding_system_data(options)
+
         return JsonResponse({
             'result': options
         })

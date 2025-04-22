@@ -600,12 +600,23 @@ def get_template_sourced_values(template, field, default=None, request=None, str
                     if 'relative' in source_info:
                         relative = source_info.get('relative')
 
+                    include = source_info.get('include')
+                    if isinstance(include, list):
+                        include = [x.strip() for x in include if isinstance(x, str) and len(x.strip()) > 0 and not x.strip().isspace()]
+                        include = include if len(include) > 0 else None
+                    else:
+                        include = None
+
                     output = []
                     for instance in queryset:
-                        output.append({
-                                'name': getattr(instance, relative),
-                                'value': getattr(instance, column)
-                        })
+                        item = {
+                            'name': getattr(instance, relative),
+                            'value': getattr(instance, column),
+                        }
+
+                        if include is not None:
+                            item.update({ k: getattr(instance, k) for k in include if hasattr(instance, k) })
+                        output.append(item)
 
                     return output if len(output) > 0 else default
             except Exception as e:

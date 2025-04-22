@@ -596,7 +596,12 @@
 .dropdown-group {
   display: inline-block;
   position: relative;
+  max-width: 100%;
   margin: 0;
+  text-wrap: wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
 
   &__input {
     display: none;
@@ -604,12 +609,14 @@
 
   &__button {
     cursor: pointer;
-    display: inline-block;
+    display: inline-flex;
+    flex-flow: row wrap;
+    gap: 0.5em;
     border: 1px solid col(accent-washed);
     border-radius: 4px;
     padding: 0.5rem 2rem 0.5rem 1rem;
     background-color: col(bg);
-    white-space: nowrap;
+    box-sizing: border-box;
 
     &:hover {
       background-color: col(accent-washed);
@@ -680,6 +687,24 @@
       }
     }
   }
+
+  &--detail {
+    flex: auto;
+    color: col(text-darkest);
+    font-weight: bold;
+    text-align: center;
+
+    & > .dropdown-group__button {
+      width: 100%;
+      justify-content: center;
+    }
+
+    @include media('<phone', 'screen') {
+      & .as-icon {
+        display: none;
+      }
+    }
+  }
 }
 
 /// autocomplete search selector
@@ -715,7 +740,22 @@
   &-result {
     cursor: default;
     padding: 0.5rem 1rem;
-    background-color: #fff;
+    background-color: col(bg);
+
+    &:active {
+      filter: saturate(0.5);
+    }
+
+    &:hover,
+    &:focus,
+    &:focus-within,
+    &:focus-visible,
+    &__highlighted,
+    &[aria-selected="true"] {
+      outline: 1px solid col(accent-anchor);
+      color: col(text-brightest);
+      background-color: col(accent-highlight);
+    }
   }
 
   &-results {

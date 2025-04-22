@@ -344,7 +344,7 @@ if not CLL_READ_ONLY and not IS_GATEWAY_PC:
 
 # Keep ModelBackend around for per-user permissions and a local superuser.
 # Don't check AD on development PCs due to network connection
-if IS_DEVELOPMENT_PC or (not ENABLE_LDAP_AUTH):
+if IS_DEVELOPMENT_PC or not ENABLE_LDAP_AUTH:
     AUTHENTICATION_BACKENDS = [
         # 'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend',

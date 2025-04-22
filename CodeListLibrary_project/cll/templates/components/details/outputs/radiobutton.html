@@ -1,8 +1,17 @@
 <div class="detailed-input-group fill">
   <div class="box-container">
-    <div class="row">
-      <div class="col-sm-2 row-padding detail-field-title">{{ component.field_data.title }}</div>
-      <div class="col-sm-10">
+    <div class="row{% if component.field_data.icon %} gap-md{% endif %}">
+      {% if component.field_data.icon %}
+        <div class="col-sm-2 row-padding detail-field-title display-flex justify-content-start gap-md">
+          <span class="as-icon phenotype-creation--icn" data-icon="{{ component.field_data.icon|safe }}" aria-hidden="true"></span>
+          {{ component.field_data.title }}
+        </div>
+      {% else %}
+        <div class="col-sm-2 row-padding detail-field-title">
+          {{ component.field_data.title }}
+        </div>
+      {% endif %}
+      <div class="col-sm-{% if component.field_data.icon %}8{% else %}10{% endif %}">
         {% if component.value|length > 0 %}
           {% for val in component.value %}
             <span class="badge wrapped-tspan" id="entity-{{ component.field_name }}">

@@ -26,8 +26,8 @@
       "title": "Overview",
       "description": "A set of descriptors that identifies this Concept.",
       "fields": [
-        "sites",
         "definition",
+        "sites",
         "jurisdictions",
         "category",
         "data_sources",
@@ -105,6 +105,8 @@
       "active": true,
       "validation": {
         "type": "string",
+        "length": [1, 250],
+        "regex": "^([\\w]+)(.*)$",
         "mandatory": true,
         "sanitise": "strict"
       },
@@ -116,13 +118,21 @@
       "field_type": "model_relations",
       "active": true,
       "hydrated": true,
+      "hint": "Your selection must be selected from the provided list.",
+      "behaviour": {
+        "freeform": false,
+        "format": {
+          "view": "{abbreviation}",
+          "component": "{abbreviation} - {name}"
+        }
+      },
       "validation": {
         "type": "int_array",
         "source": {
           "table": "HDRNSite",
           "query": "id",
           "relative": "name",
-          "include": ["description"]
+          "include": ["abbreviation", "description"]
         },
         "mandatory": true
       },
@@ -138,6 +148,8 @@
       "active": true,
       "validation": {
         "type": "string",
+        "length": [0, 1000],
+        "regex": "^([\\w]+)(.*)$",
         "mandatory": false,
         "sanitise": "strict"
       },
@@ -147,14 +159,15 @@
       "title": "HDRN Resource Reference",
       "description": "If applicable, this describes an internal HDRN identifier, i.e. an ID or UUID, referencing a historic HDRN resource (optional).",
       "field_type": "string_inputbox",
-      "active": false,
+      "active": true,
+      "hint": "Must be in the shape of a UUID, a numeric ID, or a URL (e.g. https://website.com/).",
       "validation": {
         "type": "string",
         "mandatory": false,
         "unique": true,
         "length": [0, 250],
         "sanitise": "strict",
-        "regex": "^([\\d]{1,})|([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}))$"
+        "regex": "(https?:\\/\\/)(.*)|(.*)([\\d]+)(.*)|([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})"
       },
       "search": {
         "api": true
@@ -171,6 +184,8 @@
       "shunt": "brief_description",
       "validation": {
         "type": "string",
+        "length": [1, 1000],
+        "regex": "^([\\w]+)(.*)$",
         "mandatory": true,
         "sanitise": "strict"
       },
@@ -181,15 +196,23 @@
       "title": "Jurisdiction(s)",
       "description": "The province or territory where the Concept was developed and/or applied.",
       "field_type": "model_relations",
-      "active": false,
+      "active": true,
       "hydrated": true,
+      "hint": "Your selection MUST be selected from the provided list.",
+      "behaviour": {
+        "freeform": false,
+        "format": {
+          "view": "{abbreviation}",
+          "component": "{abbreviation} - {name}"
+        }
+      },
       "validation": {
         "type": "int_array",
         "source": {
           "table": "HDRNJurisdiction",
           "query": "id",
           "relative": "name",
-          "include": ["description"]
+          "include": ["abbreviation", "description"]
         },
         "mandatory": true
       },
@@ -204,6 +227,10 @@
       "field_type": "model_relations",
       "active": true,
       "hydrated": true,
+      "hint": "You may select from the provided list or create your own.",
+      "behaviour": {
+        "freeform": true
+      },
       "validation": {
         "type": "int_array",
         "source": {
@@ -224,6 +251,7 @@
       "description": "The age range this Concept is applicable to.",
       "field_type": "double_range_slider",
       "active": true,
+      "icon": "&#xf133;",
       "validation": {
         "type": "int_range",
         "mandatory": true,
@@ -240,6 +268,7 @@
       "description": "Population sex description",
       "field_type": "grouped_enum",
       "active": true,
+      "icon": "&#xf228;",
       "validation": {
         "type": "enum",
         "mandatory": true,
@@ -265,6 +294,7 @@
       "description": "Population gender description",
       "field_type": "list_enum",
       "active": true,
+      "icon": "&#xf007;",
       "validation": {
         "type": "int_array",
         "mandatory": true,
@@ -295,6 +325,7 @@
       "description": "Population race description",
       "field_type": "list_enum",
       "active": true,
+      "icon": "&#xe592;",
       "validation": {
         "type": "int_array",
         "mandatory": true,
@@ -334,6 +365,10 @@
       "field_type": "data_sources",
       "active": true,
       "hydrated": true,
+      "hint": "Your selection must be selected from the provided list.",
+      "behaviour": {
+        "freeform": false
+      },
       "validation": {
         "type": "int_array",
         "mandatory": true,
@@ -370,11 +405,27 @@
     "tags": {
       "title": "Tags",
       "description": "A list of keywords helping to categorize this content.",
+      "hint": "You may select from the provided list or create your own.",
+      "behaviour": {
+        "freeform": true,
+        "branding": "collection_brand",
+        "defaults": {
+          "tag_type": 1
+        }
+      },
       "is_base_field": true
     },
     "collections": {
       "title": "Collections",
       "description": "A list of content collections that this Concept belongs to.",
+      "hint": "You may select from the provided list or create your own.",
+      "behaviour": {
+        "freeform": true,
+        "branding": "collection_brand",
+        "defaults": {
+          "tag_type": 2
+        }
+      },
       "is_base_field": true
     },
     "ontology": {
@@ -388,11 +439,7 @@
         "mandatory": false,
         "source": {
           "model": "OntologyTag",
-          "trees": [
-            0,
-            1,
-            2
-          ],
+          "trees": [3],
           "references": {
             "trim": true,
             "pattern": "^(\\w+):([\\w\\.\\-\\_ ]+)$",
@@ -469,7 +516,11 @@
             },
             "type": {
               "type": "int_array",
-              "field": "type_id"
+              "field": "type_id",
+              "coerce": [
+                { "compare": "MeSH", "out": 3 },
+                { "compare": "Medical Subject Headings (MeSH)", "out": 3 }
+              ]
             },
             "reference": {
               "type": "int_array",
@@ -788,6 +839,7 @@
       "description": "A link to the original third-party source if this Concept is based on or derived from an external reference.",
       "field_type": "source_reference",
       "active": true,
+      "hint": "Must be in the shape of a URL, e.g. https://website.com/",
       "validation": {
         "type": "string",
         "mandatory": false,

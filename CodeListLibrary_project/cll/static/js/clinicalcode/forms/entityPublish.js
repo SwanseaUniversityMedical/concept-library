@@ -83,7 +83,7 @@ class PublishModal {
           }
         })
         .catch((result) => {
-          if (!(result instanceof ModalFactory.ModalResults)) {
+          if (!!result && !(result instanceof ModalFactory.ModalResults)) {
             return console.error(result);
           }
         });

@@ -79,7 +79,7 @@ const renderNameAnchor = (pageType, key, entity) => {
   });
 
   return `
-    <a href='${url}' target=_blank rel="noopener">${text}</a>
+    <a href='${url}'>${text}</a>
   `;
 };
 

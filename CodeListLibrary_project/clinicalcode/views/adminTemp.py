@@ -1,7 +1,8 @@
 from datetime import datetime
 from operator import is_not
+from difflib import SequenceMatcher as SM
 from functools import partial
-from django.db import connection
+from django.db import transaction, connection
 from django.conf import settings
 from django.urls import reverse
 from django.db.models import Q
@@ -29,6 +30,7 @@ from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 from clinicalcode.models.Organisation import Organisation, OrganisationMembership
 
 from clinicalcode.models.HDRNSite import HDRNSite
+from clinicalcode.models.HDRNJurisdiction import HDRNJurisdiction
 from clinicalcode.models.HDRNDataAsset import HDRNDataAsset
 from clinicalcode.models.HDRNDataCategory import HDRNDataCategory
 
@@ -810,7 +812,8 @@ def admin_upload_hdrn_assets(request):
             # HDRN specific assets
             "sites": {"model": "HDRNSite", "target": "HDRNSiteTarget", "endpoint": "HDRNSiteEndpoint"},
             "category": {"model": "HDRNDataCategory", "target": "HDRNDataCategoryTarget", "endpoint": "HDRNDataCategoryEndpoint"},
-            "data_assets": {"model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint"}
+            "data_assets": {"model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint"},
+            "jurisdictions": {"model": "HDRNJurisdiction", "target": "HDRNJurisdictionTarget", "endpoint": "HDRNJurisdictionEndpoint"}
         },
         # Controls how Brand ctx is computed for entities on creation
         "ignore_collection_ctx": True,
@@ -847,79 +850,118 @@ def admin_upload_hdrn_assets(request):
         'is_administrable': True,
     }
 
-    brand = Brand.objects.filter(name__iexact='HDRN')
-    if brand.exists():
-        brand = brand.first()
-        brand.__dict__.update(**brand_data)
-        brand.save()
-    else:
-        brand = Brand.objects.create(**brand_data)
+    with transaction.atomic():
+        brand = Brand.objects.filter(name__iexact='HDRN')
+        if brand.exists():
+            brand = brand.first()
+            brand.__dict__.update(**brand_data)
+            brand.save()
+        else:
+            brand = Brand.objects.create(**brand_data)
 
-    models = {}
-    metadata = input_data.get('metadata')
-    for key, data in metadata.items():
-        result = None
-        match key:
-            case 'site':
-                '''HDRNSite'''
-                result = HDRNSite.objects.bulk_create([HDRNSite(name=v) for v in data])
-            case 'categories':
-                '''HDRNDataCategory'''
-                result = HDRNDataCategory.objects.bulk_create([HDRNDataCategory(name=v) for v in data])
-            case 'data_categories':
-                '''Tag (tag_type=1)'''
-                result = Tag.objects.bulk_create([Tag(description=v, tag_type=1, collection_brand=brand) for v in data])
-            case _:
-                pass
+        models = {}
+        metadata = input_data.get('metadata')
+        for key, data in metadata.items():
+            result = None
+            match key:
+                case 'site':
+                    '''HDRNSite'''
+                    result = HDRNSite.objects.bulk_create([
+                        HDRNSite(name=v.get('name'), abbreviation=v.get('abbreviation'))
+                        for v in data
+                    ])
+                case 'jurisdictions':
+                    '''HDRNJurisdiction'''
+                    result = HDRNJurisdiction.objects.bulk_create([
+                        HDRNJurisdiction(name=v.get('name'), abbreviation=v.get('abbreviation'))
+                        for v in data
+                    ])
+                case 'categories':
+                    '''HDRNDataCategory'''
+                    result = HDRNDataCategory.objects.bulk_create([HDRNDataCategory(name=v) for v in data])
+                case 'tags':
+                    '''Tag (tag_type=1)'''
+                    result = Tag.objects.bulk_create([Tag(description=v, tag_type=1, collection_brand=brand) for v in data])
+                case 'collections':
+                    '''Tag (tag_type=2)'''
+                    result = Tag.objects.bulk_create([Tag(description=v, tag_type=2, collection_brand=brand) for v in data])
+                case _:
+                    pass
 
-        if result is not None:
-            models.update({ key: result })
+            if result is not None:
+                models.update({ key: result })
 
-    now = make_aware(datetime.now())
-    assets = input_data.get('assets')
-    to_create = []
+        now = make_aware(datetime.now())
+        assets = input_data.get('assets')
+        to_create = []
+        to_regions = []
 
-    for data in assets:
-        site = data.get('site')
-        cats = data.get('data_categories')
+        for data in assets:
+            site = data.get('site')
+            cats = data.get('data_categories')
+            regions = data.get('region')
 
-        if isinstance(cats, list):
-            cats = [models.get('categories')[v - 1].id for v in cats if models.get('categories')[v - 1] is not None]
+            if isinstance(cats, list):
+                cats = [models.get('tags')[v - 1].id for v in cats if models.get('tags')[v - 1] is not None]
 
-        site = next((x for x in models.get('site') if x.id == site), None) if isinstance(site, int) else None
-        created_date = try_parse_hdrn_datetime(data.get('created_date', None), default=now)
-        modified_date = try_parse_hdrn_datetime(data.get('modified_date', None), default=now)
+            if isinstance(regions, str):
+                rlkup = models.get('jurisdictions')
 
-        to_create.append(HDRNDataAsset(
-            name=data.get('name'),
-            description=data.get('description'),
-            hdrn_id=data.get('hdrn_id'),
-            hdrn_uuid=data.get('hdrn_uuid'),
-            site=site,
-            link=data.get('link'),
-            years=data.get('years'),
-            scope=data.get('scope'),
-            region=data.get('region'),
-            purpose=data.get('purpose'),
-            collection_period=data.get('collection_period'),
-            data_level=data.get('data_level'),
-            data_categories=cats,
-            created=created_date,
-            modified=modified_date
-        ))
+                reg = []
+                regions = regions.split(',')
+                for region in regions:
+                    match = [{ 'item': x, 'score': SM(None, region.strip(), x.name).ratio() } for x in rlkup]
+                    match.sort(key=lambda x:x.get('score'), reverse=True)
 
-    models.update({ 'assets': HDRNDataAsset.objects.bulk_create(to_create) })
+                    match = match[0] if len(match) > 0 else None
+                    if match and match.get('item') is not None:
+                        reg.append(match.get('item'))
 
-    return render(
-        request,
-        'clinicalcode/adminTemp/admin_temp_tool.html',
-        {
-            'pk': -10,
-            'rowsAffected' : { k: len(v) for k, v in models.items() },
-            'action_title': 'Upload HDRN Assets',
-            'hide_phenotype_options': True,
-        }
-    )
+                if len(reg) > 0:
+                    regions = reg
+            else:
+                regions = None
+            to_regions.append(regions)
+
+            site = next((x for x in models.get('site') if x.id == site), None) if isinstance(site, int) else None
+            created_date = try_parse_hdrn_datetime(data.get('created_date', None), default=now)
+            modified_date = try_parse_hdrn_datetime(data.get('modified_date', None), default=now)
+
+            to_create.append(HDRNDataAsset(
+                name=data.get('name'),
+                description=data.get('description'),
+                hdrn_id=data.get('hdrn_id'),
+                hdrn_uuid=data.get('hdrn_uuid'),
+                site=site,
+                link=data.get('link'),
+                years=data.get('years'),
+                scope=data.get('scope'),
+                purpose=data.get('purpose'),
+                collection_period=data.get('collection_period'),
+                data_level=data.get('data_level'),
+                data_categories=cats,
+                created=created_date,
+                modified=modified_date
+            ))
+
+        models.update({ 'assets': HDRNDataAsset.objects.bulk_create(to_create) })
+
+        for i, asset in enumerate(models.get('assets')):
+            regions = to_regions[i]
+            if not isinstance(regions, list):
+                continue
+            asset.regions.set(regions)
+
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html',
+            {
+                'pk': -10,
+                'rowsAffected' : { k: len(v) for k, v in models.items() },
+                'action_title': 'Upload HDRN Assets',
+                'hide_phenotype_options': True,
+            }
+        )
 
 @login_required
 def admin_update_phenoflow_targets(request):

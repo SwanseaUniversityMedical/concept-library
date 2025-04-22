@@ -1240,15 +1240,15 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 								node.name,
 								node.type_id,
 								node.properties,
-								ts_rank_cd(node.search_vector, websearch_to_tsquery('pg_catalog.english', %(searchterm)s)) as score
+								ts_rank_cd(node.search_vector, to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))) as score
 						from public.clinicalcode_ontologytag as node
 					 where ((
 								search_vector
-								@@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|'))
+								@@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
 						  )
 							 or (
-								(relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|')))
-								or (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|')))
+								(relation_vector @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
+								or (synonyms_vector @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
 						  )
 					   )
 			''')

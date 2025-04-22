@@ -1,14 +1,4 @@
 /**
- * CL_ACCESSIBILITY_KEYS
- * @desc Keycodes used for accessibility on elements
- *       that are not necessarily meant to be accessible by default
- */
-const CL_ACCESSIBILITY_KEYS = {
-  // Enter, to activate click elements via accessibility readers
-  'ENTER': 13,
-}
-
-/**
  * Main thread
  * @desc listens to key events to see if the user has utilised any accessibility keys,
  *       and uses contextual information related to both the element & the keyCode to
@@ -28,8 +18,8 @@ domReady.finally(() => {
 
   document.addEventListener('keydown', e => {
     const elem = document.activeElement;
-    const code = e.keyIdentifier || e.which || e.keyCode;
-    if (code !== CL_ACCESSIBILITY_KEYS.ENTER || elem.disabled) {
+    const code = e.code;
+    if (code.endsWith('Enter') || elem.disabled) {
       return;
     }
 

@@ -15,7 +15,7 @@ export const confirmationPrompt = ({
   })
     .then((result) => onAccept(result))
     .catch((e) => {
-      if (!(e instanceof ModalFactory.ModalResults)) {
+      if (!!e && !(e instanceof ModalFactory.ModalResults)) {
         if (typeof onError === 'function') {
           return onError();
         }

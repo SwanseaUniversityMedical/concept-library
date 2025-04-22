@@ -33,11 +33,6 @@ const CSEL_BEHAVIOUR = {
   // Defines the output format behaviour of datetime objects
   DATE_FORMAT: 'YYYY-MM-DD',
 
-  // Describes keycodes for filter-related events
-  KEY_CODES: {
-    ENTER: 13,
-  },
-
   // Describes non-numerical data-value targets for pagination buttons
   PAGINATION: {
     NEXT: 'next',
@@ -1653,8 +1648,8 @@ export class ConceptSelectionService {
    * @param {event} e the assoc. event
    */
   #handleSearchbarUpdate(e) {
-    const code = e.keyIdentifier || e.which || e.keyCode;
-    if (code != CSEL_BEHAVIOUR.KEY_CODES.ENTER) {
+    const code = e.code;
+    if (code !== 'Enter') {
       return;
     }
 

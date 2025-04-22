@@ -406,7 +406,7 @@ export class OrgAuthoritySelector {
         help: field.help ?? '',
         title: field.label ?? 'Brand Authority',
         owner: 'OrgAuthoritySelector',
-        required: field.required,
+        required: field.required ? 'required="true"' : '',
         emptyMessage: 'You haven\'t added any Brands yet.',
       },
       parent: element,

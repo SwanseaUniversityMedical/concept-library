@@ -60,9 +60,14 @@
 
   &__search {
     position: relative;
-    width: calc(100% - 0.5rem);
+    width: calc(100% - 2rem);
+    max-width: calc(100% - 2rem);
     padding: 0;
     margin: 0;
+
+    @include media('<tablet', 'screen') {
+      max-width: 100%;
+    }
 
     &-input {
       @include box-shadow(0px, 1px, 5px, rgba(0, 0, 0, 0.1));
@@ -71,7 +76,8 @@
       box-sizing: border-box;
       position: relative;
       height: 2.5rem;
-      width: calc(100%);
+      width: 100%;
+      max-width: 100%;
       padding: 0 2.5rem 0 1rem;
       color: col(text-darkest);
       background-color: col(accent-bright);
@@ -132,9 +138,15 @@
   }
 
   &__details {
+    width: 100%;
     max-width: 550px;
+    text-wrap: wrap;
+    word-wrap: break-word;
+    text-wrap-style: pretty;
 
     h1 {
+      width: 100%;
+      max-width: 100%;
       color: col(text-darker);
       font-size: 3rem;
       font-weight: 700;
@@ -143,20 +155,32 @@
     }
 
     p {
+      width: 100%;
+      max-width: 100%;
       font-size: 1rem;
-    }
-
-    p {
       color: col(text-dark);
     }
 
     h2 {
+      width: 100%;
+      max-width: 100%;
       color: col(text-dark);
       font-size: 1.2rem;
       font-weight: 700;
       margin-top: 0;
       margin-bottom: 0.5rem;
     }
+
+    @include media('<tablet', 'screen') {
+      max-width: 100%;
+      word-break: break-all;
+    }
+  }
+
+  @include media('<tablet', 'screen') {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    max-width: calc(100% - 2rem);
   }
 }
 

@@ -8,10 +8,8 @@ from django.utils.translation import gettext_lazy as _
 from clinicalcode.entity_utils import gen_utils, model_utils, constants
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
 
-class HDRNSite(TimeStampedModel):
-	"""
-	HDRN Institution Sites 
-	"""
+class HDRNJurisdiction(TimeStampedModel):
+	"""HDRN Jurisdictions: Provinces & Territories of Canada"""
 	id = models.AutoField(primary_key=True)
 	name = models.CharField(max_length=512, unique=True, null=False, blank=False)
 	abbreviation = models.CharField(max_length=256, null=True, blank=True)
@@ -20,16 +18,16 @@ class HDRNSite(TimeStampedModel):
 
 	@staticmethod
 	def get_verbose_names(*args, **kwargs):
-		return { 'verbose_name': HDRNSite._meta.verbose_name, 'verbose_name_plural': HDRNSite._meta.verbose_name_plural }
+		return { 'verbose_name': HDRNJurisdiction._meta.verbose_name, 'verbose_name_plural': HDRNJurisdiction._meta.verbose_name_plural }
 
 	@staticmethod
 	def get_brand_records_by_request(request, params=None):
 		brand = model_utils.try_get_brand(request)
 		if brand is None or brand.name == 'HDRN':
-			records = HDRNSite.objects.all()
+			records = HDRNJurisdiction.objects.all()
 
 		if records is None:
-			return HDRNSite.objects.none()
+			return HDRNJurisdiction.objects.none()
 
 		if not isinstance(params, dict):
 				params = { }
@@ -40,7 +38,7 @@ class HDRNSite(TimeStampedModel):
 				params = { key: value for key, value in request.GET.dict().items() } | params
 
 		search = params.pop('search', None)
-		query = gen_utils.parse_model_field_query(HDRNSite, params, ignored_fields=['description'])
+		query = gen_utils.parse_model_field_query(HDRNJurisdiction, params, ignored_fields=['description'])
 		if query is not None:
 			records = records.filter(**query)
 
@@ -60,7 +58,7 @@ class HDRNSite(TimeStampedModel):
 		elif isinstance(request, HttpRequest) and hasattr(request, 'GET'):
 				params = { key: value for key, value in request.GET.dict().items() } | params
 
-		records = HDRNSite.get_brand_records_by_request(request, params)
+		records = HDRNJurisdiction.get_brand_records_by_request(request, params)
 
 		page = gen_utils.try_value_as_type(params.get('page'), 'int', default=1)
 		page = max(page, 1)
@@ -72,7 +70,7 @@ class HDRNSite(TimeStampedModel):
 			page_size = constants.PAGE_RESULTS_SIZE.get(page_size)
 
 		if records is None:
-			return Page(HDRNSite.objects.none(), 0, Paginator([], page_size, allow_empty_first_page=True))
+			return Page(HDRNJurisdiction.objects.none(), 0, Paginator([], page_size, allow_empty_first_page=True))
 
 		pagination = Paginator(records, page_size, allow_empty_first_page=True)
 		try:
@@ -82,10 +80,10 @@ class HDRNSite(TimeStampedModel):
 		return page_obj
 
 	class Meta:
-		verbose_name = _('HDRN Site')
-		verbose_name_plural = _('HDRN Sites')
+		verbose_name = _('HDRN Jurisdiction')
+		verbose_name_plural = _('HDRN Jurisdictions')
 
 	def __str__(self):
 		if isinstance(self.abbreviation, str) and not gen_utils.is_empty_string(self.abbreviation):
-			return self.abbreviation
+			return f'{self.name} ({self.abbreviation})'
 		return self.name

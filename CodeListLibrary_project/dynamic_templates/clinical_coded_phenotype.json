@@ -180,7 +180,13 @@
             },
             "type": {
               "type": "int_array",
-              "field": "type_id"
+              "field": "type_id",
+              "coerce": [
+                { "compare": "SNOMED", "out": 0 },
+                { "compare": "Clinical Disease Category (SNOMED)", "out": 0 },
+                { "compare": "Clinical Domain", "out": 1 },
+                { "compare": "Functional Anatomy", "out": 2 }
+              ]
             },
             "reference": {
               "type": "int_array",
@@ -307,7 +313,7 @@
         "type": "string",
         "mandatory": false,
         "length": [0, 500],
-        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
+        "regex": "^(https?:\\/\\/)((?!-)(?!.*--)[a-zA-Z\\-0-9]{1,63}(?<!-)\\.)+[a-zA-Z]{2,63}(\\/[^\\s]*)?$"
       },
       "hide_if_empty": true
     },

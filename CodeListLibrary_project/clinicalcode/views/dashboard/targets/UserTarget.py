@@ -66,7 +66,7 @@ class UserSerializer(BaseSerializer):
 			# WO
 			'groups': { 'write_only': True, 'required': False },
 			'password': { 'write_only': True },
-			'is_superuser': { 'write_only': True, 'required': False },
+			'is_superuser': { 'read_only': True, 'required': False },
 			'is_staff': { 'write_only': True, 'required': False },
 			'is_active': { 'write_only': True, 'required': False },
 			'user_permissions': { 'write_only': True, 'required': False },
@@ -77,7 +77,10 @@ class UserSerializer(BaseSerializer):
 	# GET
 	def to_representation(self, instance):
 		data = super(UserSerializer, self).to_representation(instance)
-		data.update({ 'is_moderator': permission_utils.is_member(instance, 'Moderators')})
+		data.update({
+			'is_moderator': permission_utils.is_member(instance, 'Moderators'),
+			'is_superuser': instance.is_superuser,
+		})
 		return data
 
 	def resolve_format(self):
@@ -259,7 +262,7 @@ class UserEndpoint(BaseEndpoint):
 		target = request.headers.get('X-Target', None)
 		if isinstance(target, str) and target.lower() == 'reset_pwd':
 			instance = self.get_object(*args, **kwargs)
-			if isinstance(instance, User):
+			if isinstance(instance, User) and not instance.is_superuser:
 				self.get_serializer().send_pwd_email(request, instance)
 				return Response({ 'sent': True, 'user_id': instance.id })
 

@@ -13,7 +13,7 @@ import OntologySelectionModal from './modal.js';
  */
 const hasParentPred = (id) => {
   return (x) => {
-    if (typeof x === 'object' && x?.id === id) {
+    if (!!x && typeof x === 'object' && x?.id === id) {
       return true;
     } else if (typeof x === 'number' && x === id) {
       return true;
@@ -40,11 +40,23 @@ export default class OntologySelectionService {
 
     const hasInitData = !isNullOrUndefined(componentData?.dataset);
     this.dataset = hasInitData ? componentData?.dataset : [];
+    this.allowedTypes = isRecordType(componentData?.validation?.source) && Array.isArray(componentData?.validation?.source?.trees)
+      ? componentData.validation.source.trees
+      : [];
+
     this.#initialise(componentData, options);
 
     if (!hasInitData) {
       this.#fetchComponentData()
         .then(dataset => {
+          let i = 0;
+          while (i < dataset.length) {
+            if (this.allowedTypes.includes(dataset?.[i]?.model?.source)) {
+              i++;
+              continue;
+            }
+            dataset.splice(i, 1);
+          }
           this.dataset.splice(this.dataset.length, 0, ...dataset);
           this.#initialiseTree();
 
@@ -515,7 +527,7 @@ export default class OntologySelectionService {
       return response.json();
     })
     .then(response => {
-      if (typeof response !== 'object' || !Array.isArray(response?.ancestors) || !Array.isArray(response?.value)) {
+      if (!isRecordType(response) || !Array.isArray(response?.result)) {
         return null;
       }
 
@@ -914,7 +926,15 @@ export default class OntologySelectionService {
       this.renderable = renderable;
 
       this.#initialiseDialogue();
-      this.#pushDataset(0);
+
+      const trg = this.dataset.reduce((res, x) => {
+          if (!isNullOrUndefined(res) && typeof x?.model?.source === 'number') {
+            return Math.min(x.model.source, res);
+          }
+          return x?.model?.source
+      }, null);
+
+      this.#pushDataset(typeof trg === 'number' ? trg : 0);
       this.#resolveSelectedItems();
     })
       .then(state => {
@@ -1000,6 +1020,7 @@ export default class OntologySelectionService {
     const treeComponent = eleTree({
       el: treeContainer,
       lazy: true,
+      sort: true,
       data: this.activeData,
       showCheckbox: true,
       highlightCurrent: true,
