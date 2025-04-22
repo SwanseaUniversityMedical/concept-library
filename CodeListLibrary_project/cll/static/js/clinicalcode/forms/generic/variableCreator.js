@@ -216,8 +216,12 @@ export default class VariableCreator {
       if (hasOptions) {
         let relative = options.find(x => x.name == key);
         relative = !!relative ? relative.value : null;
-        if (relative && stringHasChars(relative.format)) {
-          value = pyFormat(relative.format, item.value);
+        if (!isNullOrUndefined(relative) && stringHasChars(relative.format)) {
+          if (isRecordType(item.value)) {
+            value = pyFormat(relative.format, item.value);
+          } else {
+            value = pyFormat(relative.format, { value: item.value });
+          }
           processed = true;
         }
       }

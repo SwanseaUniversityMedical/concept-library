@@ -33,7 +33,7 @@
 /// Markdown render container & associated style(s)
 ///   @desc Used to contain `django-markdownify` results, e.g. in the case of the detail page
 .markdown-render-container {
-  @include flex-col();
+  @include flex-col(false, true);
 
   position: relative;
   overflow: hidden;
