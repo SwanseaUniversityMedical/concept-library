@@ -1534,7 +1534,10 @@ class EntityDetailWizardSections(template.Node):
                     component['value'] = ''
 
                 if 'sort' in component['field_data'] and component['value'] is not None:
-                    component['value'] = sorted(component['value'], **component['field_data']['sort'])
+                    try:
+                        component['value'] = sorted(component['value'], **component['field_data']['sort'])
+                    except:
+                        component['value'] = component.get('value')
 
                 if template_field.get('hide_if_empty', False):
                     comp_value = component.get('value')
