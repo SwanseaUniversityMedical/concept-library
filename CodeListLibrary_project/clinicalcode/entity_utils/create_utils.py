@@ -476,10 +476,11 @@ def validate_freeform_field(request, field, field_data, value, errors=[]):
         with connection.cursor() as cursor:
             sql = psycopg2.sql.SQL('''
             select
+                distinct on ({relative})
                 {field} as id,
                 {relative} as name
               from {model} as item
-             where lower({relative}::text) = any(%(str_comp)s::text[])
+             where lower({relative}::text) = any(%(str_comp)s::text[]);
             ''') \
                 .format(
                     field=psycopg2.sql.Identifier(query),
@@ -494,6 +495,7 @@ def validate_freeform_field(request, field, field_data, value, errors=[]):
             columns = [col[0] for col in cursor.description]
             results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+            seen = {}
             resultset = []
             remainder = data_str.copy()
             for x in results:
@@ -503,10 +505,13 @@ def validate_freeform_field(request, field, field_data, value, errors=[]):
                         remainder.pop(idx)
                 except:
                     pass
-                resultset.append(x.get('id'))
+
+                if not x.get('name') in seen:
+                    seen[x.get('name')] = True
+                    resultset.append(x.get('id'))
 
             if len(resultset) > 0:
-                data_ids += resultset
+                data_ids = list(set(data_ids + resultset))
 
             if len(remainder) > 0:
                 creatable = remainder
