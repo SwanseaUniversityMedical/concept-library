@@ -495,21 +495,18 @@ def validate_freeform_field(request, field, field_data, value, errors=[]):
             columns = [col[0] for col in cursor.description]
             results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-            seen = {}
             resultset = []
             remainder = list(set(data_str.copy()))
             for x in results:
                 try:
-                    idx = remainder.index(data_str)
+                    idx = remainder.index(x.get('name'))
                     if idx is not None:
                         remainder.pop(idx)
                 except:
                     pass
 
-                if not x.get('name') in seen:
-                    seen[x.get('name')] = True
-                    resultset.append(x.get('id'))
-
+                resultset.append(x.get('id'))
+            
             if len(resultset) > 0:
                 data_ids = list(set(data_ids + resultset))
             else:
