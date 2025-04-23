@@ -43,11 +43,12 @@
       {% if user_can_edit or user|is_member:"Moderators" or user.is_superuser%}
         {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
           <button id="publication-information"
-                  class="primary-btn bold dropdown-btn__label text-success"
+                  class="phenotype-creation__action-btn primary-btn bold dropdown-btn__label text-success"
                   title="This version is already published"
                   aria-disabled="true"
                   disabled>
-            &nbsp;Published&nbsp;
+            <span class="as-icon phenotype-creation--icn" data-icon="&#xf1c4;" aria-hidden="true"></span>
+            <span>Published</span>
           </button>
         {% else %}
           {% render_publish_button %} 

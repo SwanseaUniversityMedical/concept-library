@@ -1660,7 +1660,7 @@ def can_user_view_concept(
               from (
                 select distinct on (id)
                        entity.id,
-                       entity.publish_status
+                       entity.publish_status,
                        cast(concepts->>'concept_id' as integer) as concept_id,
                        cast(concepts->>'concept_version_id' as integer) as concept_version_id
                   from public.clinicalcode_historicalgenericentity as entity,
@@ -1904,13 +1904,19 @@ def user_has_concept_ownership(user, concept):
       Returns:
         (boolean) that reflects whether the user has top-level access
     """
+    if user.is_superuser:
+        return True
+
     if user is None or concept is None:
         return False
 
     if concept.owner == user:
         return True
 
-    return user.is_superuser or has_member_access(user, concept, ORGANISATION_ROLES.EDITOR)
+    owner = concept.phenotype_owner
+    if owner is None:
+        return False
+    return has_member_access(user, owner, ORGANISATION_ROLES.EDITOR)
 
 def validate_access_to_view(request, entity_id, entity_history_id=None):
     """

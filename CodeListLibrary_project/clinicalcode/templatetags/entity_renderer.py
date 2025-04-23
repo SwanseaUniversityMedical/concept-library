@@ -7,7 +7,6 @@ from django.urls import reverse
 from django.db.models import Model
 from django.utils.html import _json_script_escapes as json_script_escapes
 from jinja2.exceptions import TemplateSyntaxError, FilterArgumentError
-from django.http.request import HttpRequest
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -777,7 +776,10 @@ class EntityCardsNode(template.Node):
     
     def render(self, context):
         """Inherited method to render the nodes"""
-        request = self.request.resolve(context)
+        user = context.get('user')
+        request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        request.user = user
+
         entities = context['page_obj'].object_list
         layouts = context['layouts']
 
@@ -964,8 +966,9 @@ class EntityFiltersNode(template.Node):
 
     def render(self, context):
         """Inherited method to render the nodes"""
-        if isinstance(self.request, template.Variable):
-            self.request = self.request.resolve(context)
+        self.user = context.get('user')
+        self.request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        self.request.user = self.user
 
         entity_type = context.get('entity_type', None)
         layouts = context.get('layouts', None)
@@ -1029,12 +1032,11 @@ class EntityWizardAside(template.Node):
         self.params = params
         self.nodelist = nodelist
 
-    def __render_detail(self, context, template):
-        request = self.request.resolve(context)
-
+    def __render_detail(self, context, tmpl):
         # We should be getting the FieldTypes.json related to the template
+        request = self.request
         detail_page_sections = []
-        template_sections = template.definition.get('sections')
+        template_sections = tmpl.definition.get('sections')
         template_sections.extend(constants.DETAIL_PAGE_APPENDED_SECTIONS)
         for section in template_sections:
             if section.get('hide_on_detail', False):
@@ -1056,8 +1058,8 @@ class EntityWizardAside(template.Node):
 
         return output
 
-    def __render_create(self, context, template):
-        sections = template.definition.get('sections')
+    def __render_create(self, context, tmpl):
+        sections = tmpl.definition.get('sections')
         if sections is None:
             return ''
 
@@ -1072,15 +1074,19 @@ class EntityWizardAside(template.Node):
     
     def render(self, context):
         """Inherited method to render the nodes"""
-        template = context.get('template', None)
-        if template is None:
+        self.user = context.get('user')
+        self.request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        self.request.user = self.user
+
+        tmpl = context.get('template', None)
+        if tmpl is None:
             return ''
 
         is_detail_pg = self.params.get('detail_pg', False)
         if is_detail_pg:
-            return self.__render_detail(context, template)
+            return self.__render_detail(context, tmpl)
 
-        return self.__render_create(context, template)
+        return self.__render_create(context, tmpl)
 
 
 @register.tag(name='render_wizard_sections')
@@ -1134,9 +1140,9 @@ class EntityCreateWizardSections(template.Node):
         self.params = params
         self.nodelist = nodelist
     
-    def __try_get_entity_value(self, request, template, entity, field, info=None):
+    def __try_get_entity_value(self, tmpl, entity, field, info=None):
         """Attempts to safely generate the creation data for field within a template"""
-        value = create_utils.get_template_creation_data(request, entity, template, field, default=None, info=info)
+        value = create_utils.get_template_creation_data(self.request, entity, tmpl, field, default=None, info=info)
 
         if value is None:
             return template_utils.get_entity_field(entity, field)
@@ -1153,10 +1159,10 @@ class EntityCreateWizardSections(template.Node):
         else:
             return html
     
-    def __try_get_props(self, template, field, struct=None):
+    def __try_get_props(self, tmpl, field, struct=None):
         """Attempts to safely get the properties of a validation field, if present"""
         if struct is None:
-            struct = template_utils.get_layout_field(template, field)
+            struct = template_utils.get_layout_field(tmpl, field)
 
         if not isinstance(struct, dict):
             return
@@ -1166,7 +1172,7 @@ class EntityCreateWizardSections(template.Node):
             return
         return validation.get('properties')
     
-    def __try_get_computed(self, request, field, struct=None):
+    def __try_get_computed(self, field, struct=None):
         """Attempts to safely parse computed fields"""
         if struct is None:
             struct = template_utils.get_layout_field(constants.metadata, field)
@@ -1183,17 +1189,17 @@ class EntityCreateWizardSections(template.Node):
         
         # append other computed fields if required
         if field == 'organisation':
-            return permission_utils.get_user_organisations(request)
+            return permission_utils.get_user_organisations(self.request)
         return
 
-    def __apply_properties(self, component, template, _field):
+    def __apply_properties(self, component, tmpl, _field):
         """
             Applies properties assoc. with some template's field to some target
 
             Returns:
                 Updates in place but returns the updated (dict)
         """
-        validation = template_utils.try_get_content(template, 'validation')
+        validation = template_utils.try_get_content(tmpl, 'validation')
         if validation is not None:
             mandatory = template_utils.try_get_content(validation, 'mandatory')
             component['mandatory'] = mandatory if isinstance(mandatory, bool) else False
@@ -1206,16 +1212,16 @@ class EntityCreateWizardSections(template.Node):
             return output
         return output + section_content + self.SECTION_END
 
-    def __generate_wizard(self, request, context):
+    def __generate_wizard(self, context):
         """Generates the creation wizard template"""
         output = ''
-        template = context.get('template', None)
+        tmpl = context.get('template', None)
         entity = context.get('entity', None)
-        if template is None:
+        if tmpl is None:
             return output
         
         field_types = constants.FIELD_TYPES
-        sections = template.definition.get('sections')
+        sections = tmpl.definition.get('sections')
         if sections is None:
             return ''
 
@@ -1223,10 +1229,14 @@ class EntityCreateWizardSections(template.Node):
         sections.extend(constants.APPENDED_SECTIONS)
 
         for section in sections:
-            section_content = self.__try_render_item(template_name=constants.CREATE_WIZARD_SECTION_START, request=request, context=context.flatten() | { 'section': section })
+            section_content = self.__try_render_item(
+                template_name=constants.CREATE_WIZARD_SECTION_START,
+                request=self.request,
+                context=context.flatten() | { 'section': section }
+            )
 
             for field in section.get('fields'):
-                field_info = template_utils.get_template_field_info(template, field)
+                field_info = template_utils.get_template_field_info(tmpl, field)
                 template_field = field_info.get('field')
                 if not template_field:
                     continue
@@ -1239,7 +1249,7 @@ class EntityCreateWizardSections(template.Node):
                     continue
 
                 if template_field.get('hide_non_org_managed'):
-                    current_brand = model_utils.try_get_brand(request)
+                    current_brand = model_utils.try_get_brand(self.request)
                     current_brand = current_brand if current_brand and current_brand.org_user_managed else None
                     if current_brand is None:
                         continue
@@ -1265,37 +1275,44 @@ class EntityCreateWizardSections(template.Node):
                 options = None
                 if not will_hydrate:
                     if is_metadata:
-                        options = template_utils.get_template_sourced_values(constants.metadata, field, request=request, struct=template_field)
+                        options = template_utils.get_template_sourced_values(
+                            constants.metadata,
+                            field,
+                            request=self.request,
+                            struct=template_field
+                        )
 
                         if options is None:
-                            options = self.__try_get_computed(request, field, struct=template_field)
+                            options = self.__try_get_computed(field, struct=template_field)
                     else:
-                        options = template_utils.get_template_sourced_values(template, field, request=request, struct=template_field)
+                        options = template_utils.get_template_sourced_values(tmpl, field, request=self.request, struct=template_field)
 
                 if options is not None:
                     component['options'] = options
 
-                field_properties = self.__try_get_props(template, field, struct=template_field)
+                field_properties = self.__try_get_props(tmpl, field, struct=template_field)
                 if field_properties is not None:
                     component['properties'] = field_properties
 
                 if entity:
-                    component['value'] = self.__try_get_entity_value(request, template, entity, field, info=field_info)
+                    component['value'] = self.__try_get_entity_value(tmpl, entity, field, info=field_info)
                 else:
                     component['value'] = ''
                 
                 self.__apply_properties(component, template_field, field)
 
                 uri = f'{constants.CREATE_WIZARD_INPUT_DIR}/{component.get("input_type")}.html'
-                section_content += self.__try_render_item(template_name=uri, request=request, context=context.flatten() | { 'component': component })
+                section_content += self.__try_render_item(template_name=uri, context=context.flatten() | { 'component': component })
             output = self.__append_section(output, section_content)
 
         return output
     
     def render(self, context):
         """Inherited method to render the nodes"""
-        request = self.request.resolve(context)
-        return self.__generate_wizard(request, context)
+        self.user = context.get('user')
+        self.request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        self.request.user = self.user
+        return self.__generate_wizard(context)
 
 
 ## NOTE:
@@ -1429,12 +1446,13 @@ class EntityDetailWizardSections(template.Node):
     SECTION_END = render_to_string(template_name=constants.DETAIL_WIZARD_SECTION_END)
 
     def __init__(self, params, nodelist):
+        self.user = None
         self.request = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
 
-    def __try_get_entity_value(self, template, entity, field, info=None):
-        value = get_template_creation_data(entity, template, field, request=self.request, default=None, info=info)
+    def __try_get_entity_value(self, tmpl, entity, field, info=None):
+        value = get_template_creation_data(entity, tmpl, field, request=self.request, default=None, info=info)
         if value is None:
             return template_utils.get_entity_field(entity, field)
 
@@ -1453,25 +1471,25 @@ class EntityDetailWizardSections(template.Node):
             return output
         return output + section_content + self.SECTION_END
 
-    def __generate_wizard(self, request, context):
+    def __generate_wizard(self, context):
         output = ''
-        template = context.get('template', None)
+        tmpl = context.get('template', None)
         entity = context.get('entity', None)
-        if template is None:
+        if tmpl is None:
             return output
 
         flat_ctx = context.flatten()
         is_prod_env = not settings.IS_DEMO and not settings.IS_DEVELOPMENT_PC
-        is_unauthenticated = not request.user or request.user.is_anonymous
+        is_unauthenticated = not self.request.user or self.request.user.is_anonymous
 
-        merged_definition = template_utils.get_merged_definition(template, default={})
+        merged_definition = template_utils.get_merged_definition(tmpl, default={})
         template_fields = template_utils.try_get_content(merged_definition, 'fields')
         template_fields.update(constants.DETAIL_PAGE_APPENDED_FIELDS)
-        template.definition['fields'] = template_fields
+        tmpl.definition['fields'] = template_fields
 
         # We should be getting the FieldTypes.json related to the template
         field_types = constants.FIELD_TYPES
-        template_sections = template.definition.get('sections')
+        template_sections = tmpl.definition.get('sections')
         #template_sections.extend(constants.DETAIL_PAGE_APPENDED_SECTIONS)
         for section in template_sections:
             is_hidden = (
@@ -1484,13 +1502,15 @@ class EntityDetailWizardSections(template.Node):
                 continue
 
             section['hide_description'] = True
-            section_content = self.__try_render_item(template_name=constants.DETAIL_WIZARD_SECTION_START
-                                                     , request=request
-                                                     , context=flat_ctx | {'section': section})
+            section_content = self.__try_render_item(
+                template_name=constants.DETAIL_WIZARD_SECTION_START,
+                request=self.request,
+                context=flat_ctx | {'section': section}
+            )
 
             field_count = 0
             for field in section.get('fields'):
-                field_info = template_utils.get_template_field_info(template, field)
+                field_info = template_utils.get_template_field_info(tmpl, field)
                 template_field = field_info.get('field')
                 if not template_field:
                     continue
@@ -1529,7 +1549,7 @@ class EntityDetailWizardSections(template.Node):
                     component['hide_input_title'] = True
 
                 if entity:
-                    component['value'] = self.__try_get_entity_value(template, entity, field, info=field_info)
+                    component['value'] = self.__try_get_entity_value(tmpl, entity, field, info=field_info)
                 else:
                     component['value'] = ''
 
@@ -1545,8 +1565,10 @@ class EntityDetailWizardSections(template.Node):
                 output_type = component.get("output_type")
                 uri = f'{constants.DETAIL_WIZARD_OUTPUT_DIR}/{output_type}.html'
                 field_count += 1
-                section_content += self.__try_render_item(template_name=uri, request=request,
-                                                          context=flat_ctx | {'component': component})
+                section_content += self.__try_render_item(
+                    template_name=uri, request=self.request,
+                    context=flat_ctx | {'component': component}
+                )
 
             if field_count > 0:
                 output = self.__append_section(output, section_content)
@@ -1555,7 +1577,7 @@ class EntityDetailWizardSections(template.Node):
 
     def render(self, context):
         """Inherited method to render the nodes"""
-        if not isinstance(self.request, HttpRequest):
-            self.request = self.request.resolve(context)
-
-        return self.__generate_wizard(self.request, context)
+        self.user = context.get('user')
+        self.request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        self.request.user = self.user
+        return self.__generate_wizard(context)

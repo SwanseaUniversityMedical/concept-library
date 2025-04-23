@@ -1,11 +1,12 @@
 {% if not pub_btn_hidden %}
   <button
-    role="link"
     class="phenotype-creation__action-btn {{class_modal}}"
-    title="{{title}}"
-    
+    title="{{ title }}"
+    aria-label="{% if ariaLabel %}{{ ariaLabel }}{% else %}{{ title }}{% endif %}"
+    role="button"
     {%if disabled%}
-    disabled
+      disabled
+      aria-disabled="true"
     {%endif%}
     id="publish-btn"
   >

@@ -127,26 +127,27 @@ class PublishModal {
     let paragraph;
     switch (data.approval_status) {
       case 1:
-        paragraph = `<p>Are you sure you want to approve this version of "${data.name}"?</p>
-        <p>Publishing a ${data.branded_entity_cls} cannot be undone.</p>`;
+        paragraph =
+          `<p>Are you sure you want to approve this version of "${data.name}"?</p>` +
+          `<p>Publishing a ${data.branded_entity_cls} cannot be undone.</p>`;
         break;
+
       case 3:
-        paragraph = `<p>Are you sure you want to approve previously declined version of "${data.name}"?</p>
-        <p>Changes made to this ${data.branded_entity_cls} cannot be undone.</p>`;
+        paragraph =
+          `<p>Are you sure you want to approve a previously declined version of "${data.name}"?</p>` +
+          `<p>Changes made to this ${data.branded_entity_cls} cannot be undone.</p>`;
         break;
-      case null:
-        if (data.is_moderator || data.is_lastapproved) {
-          paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
-        <p>Publishing a ${data.branded_entity_cls} cannot be undone.</p>`;
-        } else {
-          paragraph = `<p>Are you sure you want submit to publish this version of "${data.name}"?</p>
-          <p>Changes made to this ${data.branded_entity_cls} cannot be undone.</p>
-          <p>This ${data.branded_entity_cls} is going to be reviewed by the moderator and you will be notified when is published</p>`;
-        }
-        break;
+
       default:
-        paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
-        <p>Publishing a ${data.branded_entity_cls} cannot be undone.</p>`;
+        if (data.is_moderator || data.is_lastapproved) {
+          paragraph =
+            `<p>Are you sure you want to publish this version of "${data.name}"?</p>` +
+            `<p>Publishing a ${data.branded_entity_cls} cannot be undone.</p>`;
+        } else {
+          paragraph = 
+            `<p>Are you sure you want to publish this version of "${data.name}"?</p>` +
+            `<p>This ${data.branded_entity_cls} is going to be reviewed by the moderator; you will be notified via e-mail when they have decided to publish your work.</p>`;
+        }
         break;
     }
     return paragraph;

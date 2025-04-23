@@ -65,7 +65,7 @@ def render_publish_button(context, *args, **kwargs):
                                     'Button_type': "Approve",
                                   'url': reverse('generic_entity_publish', kwargs={'pk': entity.id, 'history_id': entity.history_id}),
                                   'title': "Requires approval"
-                                  })            
+                                  })
             elif context['approval_status'] == constants.APPROVAL_STATUS.REJECTED:
                 button_context.update({'class_modal':"primary-btn text-danger bold dropdown-btn__label",
                                 'url': reverse('generic_entity_publish', kwargs={'pk': entity.id, 'history_id': entity.history_id}),
@@ -105,7 +105,7 @@ def render_publish_button(context, *args, **kwargs):
                 button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
                                 'Button_type': "Request publication",
                                 'url': reverse('generic_entity_request_publish', kwargs={'pk': entity.id, 'history_id': entity.history_id}),
-                                'title': "Needs to be approved"
+                                'title': "Request publication"
                                 })
         elif publish_checks["is_lastapproved"] and not context["live_ver_is_deleted"] and context["approval_status"] != constants.APPROVAL_STATUS.REJECTED:
              button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
