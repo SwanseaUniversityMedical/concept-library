@@ -543,9 +543,9 @@ export default class Tagify {
           headers: {
             'X-Target': 'get_options',
             'X-Requested-With': 'XMLHttpRequest',
-            'Cache-Control': 'max-age=28800',
-            'Pragma': 'max-age=28800',
-          }
+            'Cache-Control': 'max-age=300',
+            'Pragma': 'max-age=300',
+          },
         },
         {
           retries: 5,

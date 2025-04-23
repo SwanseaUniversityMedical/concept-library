@@ -497,7 +497,7 @@ def validate_freeform_field(request, field, field_data, value, errors=[]):
 
             seen = {}
             resultset = []
-            remainder = data_str.copy()
+            remainder = list(set(data_str.copy()))
             for x in results:
                 try:
                     idx = remainder.index(data_str)
@@ -512,6 +512,8 @@ def validate_freeform_field(request, field, field_data, value, errors=[]):
 
             if len(resultset) > 0:
                 data_ids = list(set(data_ids + resultset))
+            else:
+                data_ids = list(set(data_ids))
 
             if len(remainder) > 0:
                 creatable = remainder

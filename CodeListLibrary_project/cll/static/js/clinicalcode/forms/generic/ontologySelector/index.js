@@ -313,6 +313,8 @@ export default class OntologySelectionService {
         headers: {
           'X-Target': 'get_options',
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     )
@@ -478,6 +480,8 @@ export default class OntologySelectionService {
         headers: {
           'X-Target': 'query_ontology_typeahead',
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     )
@@ -513,6 +517,8 @@ export default class OntologySelectionService {
         headers: {
           'X-Target': 'query_ontology_record',
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     )
@@ -552,7 +558,13 @@ export default class OntologySelectionService {
       { host: this.domain, id: id.toString() }
     );
 
-    const response = await fetch(url, { method: 'GET' });
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'max-age=3600',
+        'Pragma': 'max-age=3600',
+      },
+    });
     if (!response.ok) {
       throw new Error(`An error has occurred: ${response.status}`);
     }
