@@ -81,7 +81,7 @@
     margin: 0;
     padding: 0;
     font-weight: bold;
-    font-size: 1.5rem;
+    font-size: 1rem;
     transition: color 250ms ease;
     border: 0;
     line-height: 1;
@@ -198,7 +198,7 @@
 }
 
 .tags-autocomplete-container {
-  @include flex-col();
+  @include flex-col(false, true);
 
   position: absolute;
   flex-wrap: nowrap;
@@ -234,7 +234,7 @@
     &:visited {
       all: unset;
     }
-    
+
     &__title {
       color: col(text-darkest);
     }

@@ -50,6 +50,33 @@
     }
   }
 
+  &:has(a.meta-chip__name) {
+    --sat-trg: 1;
+
+    border-radius: 5pt;
+    filter: saturate(var(--sat-trg));
+  }
+
+  &:has(a.meta-chip__name:hover) {
+    --sat-trg: 0;
+  }
+
+  &:has(a.meta-chip__name:active) {
+    transform: scale(0.95);
+    transition: transform 0.1s ease-in-out;
+  }
+
+  & a.meta-chip__name {
+    color: col(text-dark);
+    font-weight: bold;
+    text-transform: none;
+    text-decoration-style: dashed;
+
+    &:visited {
+      font-weight: normal;
+    }
+  }
+
   &-primary-accent {
     background-color: col(accent-primary);
   }

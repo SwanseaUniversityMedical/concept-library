@@ -367,7 +367,7 @@
       "hydrated": true,
       "hint": "Your selection must be selected from the provided list.",
       "behaviour": {
-        "freeform": false
+        "freeform": true
       },
       "validation": {
         "type": "int_array",
@@ -376,7 +376,7 @@
           "table": "HDRNDataAsset",
           "query": "id",
           "relative": "name",
-          "include": ["description", "hdrn_uuid", "link"]
+          "include": ["description", "link"]
         }
       },
       "search": {
@@ -406,6 +406,7 @@
       "title": "Tags",
       "description": "A list of keywords helping to categorize this content.",
       "hint": "You may select from the provided list or create your own.",
+      "target": "tag_list_by_id",
       "behaviour": {
         "freeform": true,
         "branding": "collection_brand",
@@ -419,6 +420,7 @@
       "title": "Collections",
       "description": "A list of content collections that this Concept belongs to.",
       "hint": "You may select from the provided list or create your own.",
+      "target": "collections_list_by_id",
       "behaviour": {
         "freeform": true,
         "branding": "collection_brand",

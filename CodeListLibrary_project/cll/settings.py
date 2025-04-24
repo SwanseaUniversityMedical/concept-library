@@ -330,6 +330,8 @@ MIDDLEWARE = [
     'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
     'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
+    # Handle exceptions
+    'clinicalcode.middleware.exceptions.ExceptionMiddleware',
 ]
 
 if not CLL_READ_ONLY and not IS_GATEWAY_PC:

@@ -9,6 +9,309 @@
  *
  */
 
+  /*
+    Idea:
+      -> Tagbox with autocomplete (doesnt allow non-defined)
+      -> Tagbox has button beside it to allow you to create your own
+      -> Modal with inputs
+  */
+
+/// Data Asset component
+///   @desc handles data asset tagbox & creator
+///   @example see `assetCreator.js`
+.asset-component {
+  --ac-ol-color: var(--color-clear);
+  --ac-bd-color: var(--color-accent-dark);
+
+  @include flex-col(0.5rem, true);
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+
+  &__actions {
+    @include flex-row(1rem, false);
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__create-btn {
+    @include flex-row(0.5rem, false);
+    flex: max-content 0;
+    width: auto;
+    padding: 0.6rem 1rem !important;
+    overflow: visible !important;
+    white-space: collapse !important;
+
+    &:before {
+      display: block;
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: calc(100% - 0.5rem);
+      top: 0.25rem;
+      left: calc(-0.5rem - 1px);
+      opacity: 0.75;
+      background-color: col(accent-washed);
+    }
+  }
+
+  &__field {
+    @include flex-col(0, true);
+
+    flex: auto 1;
+    width: auto;
+    max-width: 100%;
+    min-height: 1rem;
+    justify-content: flex-start;
+    word-wrap: break-word;
+    border: 1px solid var(--ac-bd-color);
+    border-radius: 2px;
+    outline: 1px solid var(--ac-ol-color);
+    transition: border-color 250ms ease;
+    box-sizing: border-box;
+
+    &:has(> input:disabled) {
+      opacity: 0.5;
+    }
+
+    &:has(> input:focus) {
+      --ac-bd-color: var(--color-accent-dark);
+      --ac-ol-color: var(--color-clear);
+    }
+
+    &:has(> input:focus:valid) {
+      --ac-bd-color: var(--color-accent-success);
+    }
+
+    &:has(> input:focus-visible) {
+      --ac-ol-color: var(--color-accent-anchor);
+    }
+
+    &:has(> input:invalid) {
+      --ac-bd-color: var(--color-accent-danger);
+    }
+
+    &-input {
+      @include remove-appearance();
+  
+      resize: none;
+      width: 100%;
+      height: 100%;
+      padding: 0.5rem 2rem 0.5rem 0.5rem;
+      border: none;
+      font-family: inherit;
+      box-sizing: border-box;
+
+      &:not(:disabled) + .asset-component__field-btn {
+        &:focus-visible {
+          outline: 1px solid col(accent-dark);
+          border-radius: 2pt;
+        }
+  
+        &:active {
+          transform: scale(0.9);
+          transition: transform 0.1s ease-in-out;
+        }
+      }
+
+      &:disabled + .asset-component__field-btn:before {
+        color: col(accent-washed) !important;
+      }
+    }
+
+    &-btn {
+      all: unset;
+
+      cursor: pointer;
+      display: flex;
+      position: absolute;
+      flex-flow: column nowrap;
+      height: 2rem;
+      aspect-ratio: 1 / 1;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      top: 0;
+      right: 0;
+      padding: 0;
+      margin: 0;
+      background-color: transparent;
+      outline: 0;
+      border: 0;
+
+      &:before {
+        @include fontawesome-icon();
+        content: '\f055';
+        display: block;
+        margin: auto;
+        font-size: 1em;
+        font-weight: bold;
+        position: absolute;
+        color: col(accent-secondary);
+      }
+    }
+
+    &-suggestions {
+      @include flex-col(false, true);
+
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: -1px;
+      width: 100%;
+      height: auto;
+      max-height: 200px;
+      background-color: col(bg);
+      border: 1px solid col(accent-dark);
+      border-radius: 2px;
+      border-top-left-radius: 0px;
+      border-top-right-radius: 0px;
+      border-top: 0px;
+      overflow-y: auto;
+      z-index: 99;
+
+      &[aria-expanded="true"] {
+        display: flex;
+      }
+
+      &-item {
+        cursor: pointer;
+        pointer-events: all;
+        padding: 0.25rem 0.5rem;
+        margin: 0;
+        height: auto;
+        background-color: col(bg);
+        transition: background-color 250ms ease;
+        text-align: left;
+        border: none;
+        color: col(text-darkest);
+        text-decoration: none;
+
+        &:visited {
+          all: unset;
+        }
+
+        &:hover,
+        &--highlighted {
+          background-color: col(accent-highlight);
+
+          .asset-component__suggestions-title {
+            color: col(text-brightest);
+          }
+        }
+      }
+    }
+  }
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__selection {
+    @include flex-row(0.5rem, false);
+
+    width: 100%;
+    max-width: 100%;
+    height: fit-content;
+    min-height: 1rem;
+    max-height: 100px;
+    justify-items: flex-start;
+    border: 1px dashed col(accent-washed);
+    padding: 0.5rem;
+    word-wrap: break-word;
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-sizing: border-box;
+
+    &:not(.show) {
+      display: none;
+    }
+
+    & .tag {
+      gap: 0.5rem;
+      width: fit-content;
+      height: fit-content;
+      max-width: 140px;
+      max-height: 50px;
+      text-align: left;
+      padding: 0.25rem 1rem;
+      border-radius: 1rem;
+
+      &:not([data-new="true"]) > [data-role="edit"] {
+        display: none;
+      }
+
+      & .as-icon {
+        margin-right: 0;
+        font-weight: bold;
+        color: var(--xcolor);
+        border: none;
+        background-color: transparent;
+
+        &[data-role="edit"]:hover {
+          color: col(accent-bubble);
+        }
+
+        &[data-role="remove"]:hover {
+          color: col(accent-danger);
+        }
+      }
+    }
+  }
+
+  @include media('<tablet', 'screen') {
+    &__actions {
+      flex-wrap: wrap-reverse;
+    }
+
+    &__create-btn {
+      flex: 100%;
+      text-align: center;
+      justify-content: center;
+
+      &:before {
+        width: calc(100% - 0.5rem);
+        height: 2px;
+        top: calc(100% + 0.5rem - 1px);
+        left: 0.25rem;
+      }
+    }
+
+    &__field {
+      flex: 100%;
+    }
+  }
+
+  @include media('<phone', 'screen') {
+    &__field {
+      &-input {
+        padding: 0.5rem;
+      }
+
+      &-btn {
+        display: none;
+      }
+    }
+  }
+}
+
 /// Page layout containing UGC variables
 ///   @desc primarily used for create page; specifically `validation_measures` and `variable_list`
 ///   @example see `variableCreator.js`

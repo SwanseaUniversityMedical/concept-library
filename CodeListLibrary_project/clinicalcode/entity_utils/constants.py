@@ -928,7 +928,11 @@ FIELD_TYPES = {
         'system_defined': True,
         'description': 'list of data_sources ids (managed by code snippet)',
         'input_type': 'tagbox',
-        'output_type': 'data_source'
+        'output_type': 'data_source',
+    },
+    'data_assets': {
+        'input_type': 'data_assets',
+        'output_type': 'data_assets',
     },
     'phenoflowid': {
         'system_defined': True,
