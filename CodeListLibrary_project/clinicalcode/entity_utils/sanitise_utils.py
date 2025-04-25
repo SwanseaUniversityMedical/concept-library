@@ -1,6 +1,7 @@
 from functools import partial
 from django.conf import settings
 
+import re
 import bleach
 import logging
 import markdown
@@ -21,6 +22,10 @@ SANITISE_STRICT = {
 	'strip': True,
 	'strip_comments': True
 }
+
+def nl_transform(match):
+	m =  match.group(0)
+	return m + '\n'
 
 def sanitise_markdown_html(text):
 	"""
@@ -44,6 +49,9 @@ def sanitise_markdown_html(text):
 	text = str(text).strip()
 	if len(text) < 1 or text.isspace():
 		return text
+
+	text = re.sub(r'(.+\S)\n(?!\n)', nl_transform, text, flags=re.MULTILINE | re.IGNORECASE)
+	text = text.strip()
 
 	markdown_settings = settings.MARKDOWNIFY.get('default')
 

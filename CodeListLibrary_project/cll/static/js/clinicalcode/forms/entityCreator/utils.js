@@ -1145,7 +1145,6 @@ export const ENTITY_FIELD_COLLECTOR = {
     const handler = packet.handler;
 
     let value = handler.editor.value();
-    value = typeof value === 'string' ? strictSanitiseString(value) : '';
 
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(value) || isStringEmpty(value)) {
@@ -1257,8 +1256,7 @@ export const ENTITY_FIELD_COLLECTOR = {
     let values = { },
         length = 0;
     Object.entries(handler.elements).forEach(([role, editor]) => {
-      const content = editor.value();
-      values[role] = typeof content === 'string' ? strictSanitiseString(content) : '';
+      values[role] = editor.value()
 
       if (!isInit && IndicatorCalculationCreator.IsDefaultValue(role, values[role])) {
         values[role] = '';
