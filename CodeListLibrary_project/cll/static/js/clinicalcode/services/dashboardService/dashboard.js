@@ -1,0 +1,1052 @@
+import * as Const from './constants.js';
+
+import { FormView } from './views/formView.js';
+import { TableView } from './views/tableView.js';
+import { managePlugins } from './managers/plugins.js';
+import { manageNavigation } from './managers/navigation.js';
+import { managePopoverMenu } from '../../components/popoverMenu.js';
+
+/**
+ * Class to serve & manage Dashboard page content
+ * 
+ * @class
+ * @constructor
+ */
+export class DashboardService {
+  /**
+   * @desc
+   * @type {string}
+   * @static
+   * @constant
+   */
+  static #UrlPath = 'dashboard';
+
+  /**
+   * @desc default constructor props
+   * @type {Record<string, any>}
+   * @static
+   * @constant
+   * 
+   * @property {string}             [page='overview'] Page to open on initialisation
+   * @property {string}             [view]            View to open on initialisation
+   * @property {string}             [token=*]         CSRF cookie (auto-filled)
+   * @property {*}                  [target]          Entity to target on initialisation
+   * @property {string|HTMLElement} [element='#app']  The root app element in which to render the service
+   */
+  static #DefaultOpts = {
+    page: 'overview',
+    view: null,
+    token: null,
+    target: null,
+    element: '#app',
+  };
+
+  /**
+   * @desc
+   * @type {HTMLElement}
+   * @public
+   */
+  element = null;
+
+  /**
+   * @desc
+   * @type {object}
+   * @private
+   */
+  #state = {
+    initialised: false,
+  };
+
+  /**
+   * @desc
+   * @type {Nullable<object>}
+   * @private
+   */
+  #controller = null;
+
+  /**
+   * @desc
+   * @type {Record<string, HTMLElement>}
+   * @private
+   */
+  #layout = {};
+
+  /**
+   * @desc
+   * @type {Record<string, Record<string, HTMLElement>}
+   * @private
+   */
+  #templates = {};
+
+  /**
+   * @desc
+   * @type {Array<Function>}
+   * @private
+   */
+  #disposables = [];
+
+  /**
+   * @param {Record<string, any>} [opts] constructor arguments; see {@link DashboardService.#DefaultOpts}
+   */
+  constructor(opts = null) {
+    opts = isRecordType(opts) ? opts : { };
+    opts = mergeObjects(opts, DashboardService.#DefaultOpts, true);
+
+    this.#initialise(opts);
+  }
+
+  /*************************************
+   *                                   *
+   *              Public               *
+   *                                   *
+   *************************************/
+  openPage(page, view = 'list', target = null, pushState = true) {
+    const state = this.#state;
+    if (state.page === page && state.view === view && state.target === target && state.initialised) {
+      return;
+    }
+
+    let hnd;
+    switch (page) {
+      case 'overview':
+        hnd = this.#renderOverview;
+        view = view ?? 'view';
+        break;
+
+      case 'inventory':
+        hnd = this.#renderInventory;
+        view = view ?? 'view';
+        break;
+
+      case 'brand-config':
+        hnd = this.#renderBrand;
+        view = view ?? 'update';
+        break;
+
+      default:
+        hnd = this.#renderModelView;
+        view = view ?? 'list';
+        break;
+    }
+
+    if (hnd) {
+      state.page = page;
+      state.view = view;
+      state.target = target;
+      state.initialised = true;
+      this.#toggleNavElement(page);
+
+      if (pushState) {
+        this.#pushDashboardState();
+      }
+      hnd.apply(this);
+    }
+  }
+
+  dispose() {
+    const controller = this.#controller;
+    if (controller) {
+      this.#controller = null;
+      controller.dispose();
+    }
+
+    let disposable;
+    for (let i = this.#disposables.length; i > 0; i--) {
+      disposable = this.#disposables.pop();
+      if (typeof disposable !== 'function') {
+        continue;
+      }
+
+      disposable();
+    }
+  }
+
+
+  /*************************************
+   *                                   *
+   *              Private              *
+   *                                   *
+   *************************************/
+  #getTargetUrl(
+    target,
+    {
+      view = 'view',
+      kwargs = null,
+      parameters = null,
+      useBranded = true,
+    } = {}
+  ) {
+    view = view.toLowerCase();
+
+    if (!!parameters && parameters instanceof URLSearchParams) {
+      parameters = '?' + parameters;
+    } else if (isObjectType(parameters)) {
+      parameters = '?' + new URLSearchParams(parameters);
+    } else if (typeof parameters !== 'string') {
+      parameters = '';
+    }
+
+    const host = useBranded ? getBrandedHost() : getCurrentHost();
+    const root = host + '/' + DashboardService.#UrlPath;
+    switch (view) {
+      case 'view':
+        return `${root}/view/${target}/` + parameters;
+
+      case 'list':
+        return `${root}/target/${target}/` + parameters;
+
+      case 'create':
+        return `${root}/target/${target}/` + parameters;
+
+      case 'update':
+        if (!isNullOrUndefined(kwargs)) {
+          return `${root}/target/${target}/${kwargs}/` + parameters;
+        }
+        return `${root}/target/${target}/` + parameters;
+
+      default:
+        return null
+    }
+  }
+
+  #fetch(url, opts = {}) {
+    const token = this.#state.token;
+    opts = mergeObjects(
+      isObjectType(opts) ? opts : {},
+      {
+        method: 'GET',
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        withCredentials: true,
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRFToken': token,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      },
+      false,
+      true
+    );
+
+    return fetch(url, opts);
+  }
+
+  #pushDashboardState(parameters = null, useBranded = true) {
+    const state = this.#state;
+    state.view = state.view ?? 'view';
+
+    let { page, view, target } = state;
+    if (!!parameters && parameters instanceof URLSearchParams) {
+      parameters = '?' + parameters;
+    } else if (isObjectType(parameters)) {
+      parameters = '?' + new URLSearchParams(parameters);
+    } else {
+      parameters = '';
+    }
+
+    const host = useBranded ? getBrandedHost() : getCurrentHost();
+    const root = host + '/' + DashboardService.#UrlPath;
+
+    let url;
+    switch (view) {
+      case 'view':
+        url = `${root}/${parameters}#view~${page}`;
+        break;
+
+      case 'list':
+        if (!isRecordType(target)) {
+          url = `${root}/${parameters}#list~${page}`;
+        } else {
+          url = `${root}/${parameters}#list~${page}~${target.type}`;
+        }
+        break;
+
+      case 'create':
+        if (!isRecordType(target)) {
+          url = `${root}/${parameters}#create~${page}`;
+        } else {
+          url = `${root}/${parameters}#create~${page}~${target.type}`;
+        }
+        break;
+
+      case 'update':
+        let kwargs, type;
+        if (isRecordType(target)) {
+          type = !isNullOrUndefined(target.type) ? `~${target.type}` : '';
+          kwargs = !isNullOrUndefined(target.kwargs) ? `@${target.kwargs}` : '';
+        } else if (!isNullOrUndefined(target)) {
+          type = '';
+          kwargs = `@${target}`;
+        } else {
+          type = '';
+          kwargs = '';
+        }
+
+        url = `${root}/${parameters}#update~${page}${type}${kwargs}`;
+        break;
+
+      default:
+        break;
+    }
+
+    window.history.pushState({ dashboardRef: state }, null, url);
+  }
+
+
+  /*************************************
+   *                                   *
+   *            Renderables            *
+   *                                   *
+   *************************************/
+  #toggleNavElement(target) {
+    const items = this.#layout.nav.querySelectorAll('[data-controlledby="navigation"]');
+    for (let i = 0; i < items.length; ++i) {
+      const btn = items[i];
+      const ref = btn.getAttribute('data-ref');
+      btn.setAttribute('data-active', ref === target);
+    }
+  }
+
+  #clearContent() {
+    const controller = this.#controller;
+    if (controller) {
+      this.#controller = null;
+      controller.dispose();
+    }
+
+    this.#layout.content.replaceChildren();
+  }
+
+  #displayAssets({
+    container,
+    assets,
+    spinner = null,
+    callback = null,
+  } = {}) {
+    if (!isHtmlObject(container) || !isObjectType(assets)) {
+      console.warn('[Dashboard]: Failed to render Asset cards');
+      return;
+    }
+
+    const keys = Object.keys(assets).sort((a, b) => {
+      const v0 = assets[a]?.details?.verbose_name ?? '';
+      const v1 = assets[b]?.details?.verbose_name ?? '';
+      return v0 < v1 ? -1 : (v0 > v1 ? 1 : 0);
+    });
+
+    for (let i = 0; i < keys.length; ++i) {
+      const key = keys[i];
+      const asset = assets[key];
+      const details = isObjectType(asset) ? asset?.details : null
+      if (!details) {
+        continue;
+      }
+
+      const [card] = composeTemplate(this.#templates.base.action_card, {
+        params: {
+          ref: key,
+          name: details.verbose_name,
+          desc: `Manage ${details.verbose_name_plural}`,
+          icon: '&#xf1c0;',
+          iconCls: 'as-icon--primary',
+          action: 'Manage',
+        },
+        parent: container,
+      });
+
+      const button = card.querySelector('[data-role="action-btn"]');
+      button.addEventListener('click', () => {
+        if (typeof callback === 'function') {
+          callback(key);
+        }
+      });
+    }
+
+    if (isRecordType(spinner) && typeof spinner.remove === 'function') {
+      spinner.remove();
+    }
+  }
+
+  #renderOverview() {
+    const state = this.#state;
+    const brandMapping = this.#templates.brandMapping;
+    this.#clearContent();
+
+    const [activity] = composeTemplate(this.#templates.base.group, {
+      params: {
+        id: 'activity',
+        title: 'Activity',
+        level: '1',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: 'dashboard-view__content-grid slim-scrollbar',
+        content: '',
+      },
+      parent: this.#layout.content,
+    });
+
+    const [quickAccess] = composeTemplate(this.#templates.base.group, {
+      params: {
+        id: 'quick-access',
+        title: 'Quick Access',
+        level: '2',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: 'dashboard-view__content-grid slim-scrollbar',
+        content: '',
+      },
+      parent: this.#layout.content,
+    });
+
+    let spinners;
+    let spinnerTimeout = setTimeout(() => {
+      spinners = {
+        activity: startLoadingSpinner(activity, true),
+        quickAccess: startLoadingSpinner(quickAccess, true),
+      };
+    }, 200);
+
+    const url = this.#getTargetUrl('overview');
+    this.#fetch(url, { method: 'GET' })
+      .then(res => {
+        if (!spinners) {
+          clearTimeout(spinnerTimeout);
+        }
+
+        return res.json();
+      })
+      .then(res => {
+        const stats = res.summary.data;
+        const statsTimestamp = new Date(Date.parse(res.summary.timestamp));
+
+        const [statsDatetime] = composeTemplate(this.#templates.base.time, {
+          params: {
+            datefmt: statsTimestamp.toLocaleString(),
+            timestamp: statsTimestamp.toISOString(),
+          }
+        });
+
+        const activityContent = activity.querySelector('section');
+        for (let key in stats) {
+          const details = Const.CLU_ACTIVITY_CARDS.find(x => x.key === key);
+          if (!details) {
+            continue;
+          }
+
+          composeTemplate(this.#templates.base.display_card, {
+            params: {
+              name: interpolateString(details.name, { brandMapping }),
+              desc: interpolateString(details.desc, { brandMapping }),
+              icon: details.icon,
+              iconCls: details.iconCls,
+              content: `<figure class="card__data">${stats[key].toLocaleString()}</figure>`,
+              footer: statsDatetime.outerHTML,
+            },
+            parent: activityContent,
+          });
+        }
+        spinners?.activity?.remove?.();
+
+        const assets = res.assets;
+        const quickAccessContent = quickAccess.querySelector('section');
+        this.#displayAssets({
+          assets: assets,
+          container: quickAccessContent,
+          spinner: spinners?.quickAccess ?? null,
+          callback: (key) => {
+            this.openPage('inventory', 'list', { type: key, labels: assets?.[key]?.details });
+          }
+        });
+        spinners?.quickAccess?.remove?.();
+
+        if (quickAccessContent.childElementCount < 1) {
+          quickAccess.remove();
+        }
+      })
+      .catch(e => {
+        console.error(`[Dashboard] Failed to load view:\n\n- State: ${this.#state}- with err: ${e}\n`);
+
+        window.ToastFactory.push({
+          type: 'warning',
+          message: 'Failed to load view, please try again.',
+          duration: 4000,
+        });
+      });
+  }
+
+  #renderModelView() {
+    const state = this.#state;
+
+    const type = state.page;
+    const view = state.view ?? 'list';
+    state.view = view;
+
+    const label = transformTitleCase(state.page.replace('_', ' '));
+    this.#clearContent();
+
+    let article, container, header, createBtn;
+    composeTemplate(this.#templates.base.model, {
+      params: {
+        id: type,
+        title: `${transformTitleCase(view)} ${label}`,
+        level: '1',
+        content: '',
+        headerCls: '',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: view === 'list' ? 'dashboard-view__content-display' : 'dashboard-view__content-form',
+      },
+      parent: this.#layout.content,
+      render: (elem) => {
+        article = elem[0];
+
+        header = article.querySelector('header');
+        createBtn = header.querySelector('[data-role="create-btn"]');
+        container = article.querySelector('section');
+      }
+    });
+
+    let url;
+    switch (view) {
+      case 'list': {
+        url = this.#getTargetUrl(type, { view: 'list' });
+        header.classList.add('dashboard-view__content-header--constrain');
+
+        const ctrl = new TableView({
+          url: url,
+          state: state,
+          element: container,
+          displayCallback: (_ref, trg) => {
+            state.label = label;
+            this.openPage(type, 'update', trg);
+          }
+        });
+        this.#controller = ctrl;
+
+        createBtn.addEventListener('click', (e) => {
+          this.openPage(type, 'create', null);
+        });
+      } break;
+
+      case 'create': {
+        url = this.#getTargetUrl(type, { view: 'create' });
+        header.classList.add('dashboard-view__content-header--constrain-sm');
+        createBtn.remove();
+
+        const ctrl = new FormView({
+          url: url,
+          type: 'create',
+          state: state,
+          element: container,
+          actionCallback: this.#actionCallback.bind(this),
+          completeCallback: this.#completeCallback.bind(this),
+        });
+        this.#controller = ctrl;
+
+      } break;
+
+      case 'update':
+        url = this.#getTargetUrl(type, { view: 'update', kwargs: state.target });
+        header.classList.add('dashboard-view__content-header--constrain-sm');
+        createBtn.remove();
+
+        const ctrl = new FormView({
+          url: url,
+          type: 'update',
+          state: state,
+          element: container,
+          actionCallback: this.#actionCallback.bind(this),
+          completeCallback: this.#completeCallback.bind(this),
+        });
+        this.#controller = ctrl;
+
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  #renderBrand() {
+    const state = this.#state;
+    const type = state.page;
+    const view = 'update';
+    state.view = view;
+    state.target = null;
+
+    const label = transformTitleCase(type.replace('_', ' '));
+    this.#clearContent();
+
+    let article, container, header, createBtn;
+    composeTemplate(this.#templates.base.model, {
+      params: {
+        id: 'brand',
+        title: `${transformTitleCase(view)} ${label}`,
+        level: '1',
+        content: '',
+        headerCls: '',
+        articleCls: 'dashboard-view__content--fill-w',
+        sectionCls: view === 'list' ? 'dashboard-view__content-display' : 'dashboard-view__content-form',
+      },
+      parent: this.#layout.content,
+      render: (elem) => {
+        article = elem[0];
+
+        header = article.querySelector('header');
+        createBtn = header.querySelector('[data-role="create-btn"]');
+        container = article.querySelector('section');
+      }
+    });
+
+    const url = this.#getTargetUrl('brand', { view: 'update', kwargs: null });
+    header.classList.add('dashboard-view__content-header--constrain-sm');
+    createBtn.remove();
+
+    const ctrl = new FormView({
+      url: url,
+      type: 'update',
+      state: state,
+      element: container,
+      actionCallback: this.#actionCallback.bind(this),
+      completeCallback: this.#completeCallback.bind(this),
+    });
+    this.#controller = ctrl;
+  }
+
+  #renderInventory() {
+    const state = this.#state;
+    this.#clearContent();
+
+    let view, url, target;
+    view = state.view;
+    target = state.target;
+    if (!isRecordType(target)) {
+      url = this.#getTargetUrl('inventory');
+
+      let spinner;
+      let spinnerTimeout = setTimeout(() => {
+        spinner = startLoadingSpinner(activity, true);
+      }, 200);
+
+      const [assetList] = composeTemplate(this.#templates.base.group, {
+        params: {
+          id: 'asset-list',
+          title: 'Inventory',
+          level: '2',
+          articleCls: 'dashboard-view__content--fill-w',
+          sectionCls: 'dashboard-view__content-grid slim-scrollbar',
+          content: '',
+        },
+        parent: this.#layout.content,
+      });
+
+      this.#fetch(url, { method: 'GET' })
+        .then(res => {
+          if (!spinner) {
+            clearTimeout(spinnerTimeout);
+          }
+
+          return res.json();
+        })
+        .then(res => {
+          const assets = res.assets;
+          const content = assetList.querySelector('section');
+          this.#displayAssets({
+            assets: assets,
+            container: content,
+            spinner: spinner ?? null,
+            callback: (key) => {
+              this.openPage('inventory', 'list', { type: key, labels: assets?.[key]?.details });
+            }
+          });
+          spinner?.remove?.();
+  
+          if (content.childElementCount < 1) {
+            assetList.remove();
+          }
+        })
+        .catch(e => {
+          console.error(`[Dashboard] Failed to load view:\n\n- State: ${this.#state}- with err: ${e}\n`);
+  
+          window.ToastFactory.push({
+            type: 'warning',
+            message: 'Failed to load view, please try again.',
+            duration: 4000,
+          });
+        });
+    } else {
+      view = view ?? 'list';
+      state.view = view;
+
+      url = this.#getTargetUrl(target.type, { view: view, kwargs: target.kwargs });
+
+      const type = target.type;
+      const label = target?.labels?.verbose_name ?? transformTitleCase((target.type ?? 'Model').replace('_', ' '));;
+
+      let article, container, header, createBtn;
+      composeTemplate(this.#templates.base.model, {
+        params: {
+          id: type,
+          title: `${transformTitleCase(view)} ${label}`,
+          level: '1',
+          content: '',
+          headerCls: '',
+          articleCls: 'dashboard-view__content--fill-w',
+          sectionCls: view === 'list' ? 'dashboard-view__content-display' : 'dashboard-view__content-form',
+        },
+        parent: this.#layout.content,
+        render: (elem) => {
+          article = elem[0];
+  
+          header = article.querySelector('header');
+          createBtn = header.querySelector('[data-role="create-btn"]');
+          container = article.querySelector('section');
+        }
+      });
+  
+      switch (view) {
+        case 'list': {
+          header.classList.add('dashboard-view__content-header--constrain');
+  
+          const ctrl = new TableView({
+            url: url,
+            state: state,
+            element: container,
+            displayCallback: (_ref, trg) => {
+              this.openPage('inventory', 'update', { type: type, labels: target?.labels, kwargs: trg });
+            }
+          });
+          this.#controller = ctrl;
+
+          createBtn.addEventListener('click', (e) => {
+            this.openPage('inventory', 'create', { type: type, labels: target?.labels });
+          });
+        } break;
+  
+        case 'create': {
+          header.classList.add('dashboard-view__content-header--constrain-sm');
+          createBtn.remove();
+  
+          const ctrl = new FormView({
+            url: url,
+            type: 'create',
+            state: state,
+            element: container,
+            actionCallback: this.#actionCallback.bind(this),
+            completeCallback: this.#completeCallback.bind(this),
+          });
+          this.#controller = ctrl;
+  
+        } break;
+  
+        case 'update':
+          header.classList.add('dashboard-view__content-header--constrain-sm');
+          createBtn.remove();
+  
+          const ctrl = new FormView({
+            url: url,
+            type: 'update',
+            state: state,
+            element: container,
+            actionCallback: this.#actionCallback.bind(this),
+            completeCallback: this.#completeCallback.bind(this),
+          });
+          this.#controller = ctrl;
+  
+          break;
+  
+        default:
+          break;
+      }
+    }
+  }
+
+
+  /*************************************
+   *                                   *
+   *              Events               *
+   *                                   *
+   *************************************/
+  #eventHandler(e) {
+
+  }
+
+  #handleHistory(e) {
+    const ref = !isNullOrUndefined(e.state) ? e.state.dashboardRef : null;
+    if (isNullOrUndefined(ref)) {
+      return;
+    }
+
+    const { page, view, target } = ref;
+    this.openPage(page, view, target, false);
+  }
+
+  #handleNavigation(e, targetName) {
+    this.openPage(targetName);
+  }
+
+  #handlePopoverMenu(e, _group, _closeHnd) {
+    const btn = e.target;
+    const link = btn.getAttribute('data-link');
+    if (typeof link === 'string') {
+      tryNavigateLink(btn, { relatedEvent: e });
+    }
+  }
+
+  #completeCallback(eventType, data) {
+    switch (eventType) {
+      case 'submitForm': {
+        const state = data.ok ? data.form.state : null;
+        if (!isRecordType(state)) {
+          break;
+        }
+
+        let actionType;
+        const method = state.view;
+        if (method === 'create') {
+          const entityId = isRecordType(data.result) && !isNullOrUndefined(data.result.id)
+            ? data.result.id
+            : null;
+
+          if (isRecordType(state.target)) {
+            state.target.kwargs = entityId;
+          } else {
+            state.target = entityId;
+          }
+
+          state.view = 'update';
+          actionType = 'created';
+        } else {
+          actionType = 'updated';
+        }
+
+        window.ToastFactory.push({
+          type: 'success',
+          message: `Entity successfully ${actionType}.`,
+          duration: 4000,
+        });
+
+        this.openPage(state.page, state.view, state.target);
+      } break;
+
+      default:
+        console.warn(`[Dashboard] Failed to process completion callback signal of type '${eventType}'`);
+        break;
+    }
+  }
+
+  #actionCallback(action, e, props, _formView, _btn) {
+    e.preventDefault();
+
+    const { type, url } = props;
+    if (type !== 'update' || !stringHasChars(url)) {
+      return;
+    }
+
+    switch (action) {
+      case 'reset_pwd': {
+        let spinner;
+        ModalFactory.create({
+          title: 'Are you sure?',
+          content: 'This will immediately send a password reset e-mail to the user.',
+          beforeAccept: () => {
+            spinner = startLoadingSpinner();
+            return this.#fetch(url, { method: 'PUT', headers: { 'X-Target': action } })
+              .then(async response => {
+                if (!response.ok) {
+                  const headers = response.headers;
+
+                  let msg;
+                  if (headers.get('content-type').search('json')) {
+                    try {
+                      let packet = await response.json();
+                      packet = JSON.stringify(packet);
+                      msg = packet;
+                    } catch (e) {
+                      console.warn(`[Dashboard::${action}] Failed to parse reset json error with err:\n\n${e}\n`);
+                    }
+                  }
+
+                  if (!isNullOrUndefined(msg)) {
+                    msg = `[Dashboard::${action}::${response.status}] Failed to send reset e-mail with err:\n\n${msg}\n`;
+                  } else {
+                    msg = `[Dashboard::${action}::${response.status}] ${response.statusText}`;
+                  }
+
+                  throw new Error(msg);
+                }
+
+                return response.json();
+              });
+          }
+        })
+          .then(async result => {
+            await result.data; // SINK
+
+            window.ToastFactory.push({
+              type: 'success',
+              message: 'Password reset e-mail successfully sent.',
+              duration: 4000,
+            });
+          })
+          .catch((e) => {
+            if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+              window.ToastFactory.push({
+                type: 'error',
+                message: 'Failed to send reset e-mail, please check their e-mail and try again.',
+                duration: 4000,
+              });
+
+              return console.error(e);
+            }
+          })
+          .finally(() => {
+            spinner?.remove?.();
+          });
+      } break;
+
+      default:
+        break;
+    }
+  }
+
+
+  /*************************************
+   *                                   *
+   *            Initialiser            *
+   *                                   *
+   *************************************/
+  #initialise(opts) {
+    let element = opts.element;
+    if (typeof element === 'string') {
+      element = document.querySelector(element);
+    }
+
+    if (!isHtmlObject(element)) {
+      throw new Error('InitError: Failed to resolve DashboardService element');
+    }
+
+    let token = opts.token;
+    if (typeof token !== 'string' || !stringHasChars(token)) {
+      token = getCookie('csrftoken');
+    }
+
+    this.#state = mergeObjects(this.#state, { page: opts.page, token: token }, false);
+    this.element = element;
+    this.#collectPage();
+
+    // Init event listeners
+    const eventHandler = this.#eventHandler.bind(this);
+    element.addEventListener('dashboard', eventHandler, false);
+
+    // Observe hx
+    const hxHnd = this.#handleHistory.bind(this);
+    window.addEventListener('popstate', hxHnd);
+
+    // Initialise managers
+    this.#disposables.push(
+      manageNavigation({
+        parent: element,
+        callback: this.#handleNavigation.bind(this),
+      }),
+      managePlugins({
+        parent: element,
+        observeMutations: true,
+        observeDescendants: true,
+      }),
+      managePopoverMenu({
+        parent: element,
+        callback: this.#handlePopoverMenu.bind(this),
+      }),
+    );
+
+    // Init render
+
+    const { hash } = window.location;
+    if (stringHasChars(hash)) {
+      const crumbs = hash.trim()
+        .split(/~/g)
+        .reduce((res, x) => {
+          if (stringHasChars(x)) {
+            res.push(x.trim());
+          }
+          return res;
+        }, []);
+
+      if (crumbs.length === 2) {
+        let [view, trg] = crumbs;
+        view = view.replace('#', '');
+
+        const [_, page, ref] = trg.match(/([\w_\-]+)@?(\d+)?/);
+        this.openPage(page, view, typeof ref !== 'undefined' ? ref : null);
+        return;
+      } else if (crumbs.length === 3) {
+        let [view, page, trg] = crumbs;
+        view = view.replace('#', '');
+
+        const url = this.#getTargetUrl('overview');
+        const [_, asset, ref] = trg.match(/([\w_\-]+)@?(\d+)?/); 
+
+        const spinner = startLoadingSpinner();
+        this.#fetch(url, { method: 'GET' })
+          .then(res => {
+            return res.json();
+          })
+          .then(res => {
+            this.openPage(page, view, {
+              type: asset,
+              kwargs: typeof ref !== 'undefined' ? ref : null,
+              labels: res?.assets?.[asset]?.details
+            });
+          })
+          .catch((e) => {
+            console.error(`[Dashboard] Failed to initialise from hash with err:\n\n${e}\n`);
+
+            this.openPage(this.#state.page, 'view');
+          })
+          .finally(() => {
+            if (spinner) {
+              spinner?.remove?.();
+            }
+          });
+
+        return;
+      }
+    }
+    this.openPage(this.#state.page, 'view');
+  }
+
+  #collectPage() {
+    const layout = document.querySelectorAll('[id^="app-"]');
+    const templates = document.querySelectorAll('template[data-for="dashboard"], script[data-for="dashboard"]');
+
+    // Collect base layout
+    let elem, name;
+    for (let i = 0; i < layout.length; ++i) {
+      elem = layout[i];
+      name = elem.getAttribute('id').replace('app-', '');
+      this.#layout[name] = elem;
+    }
+
+    // Collect templates
+    let view, group;
+    for (let i = 0; i < templates.length; ++i) {
+      elem = templates[i];
+      name = elem.getAttribute('data-name');
+      view = elem.getAttribute('data-view');
+      if (!stringHasChars(view)) {
+        view = 'base';
+      }
+
+      if (elem.tagName === 'TEMPLATE') {
+        group =  this.#templates?.[view];
+        if (!group) {
+          group = { };
+          this.#templates[view] = group;
+        }
+  
+        group[name] = elem;
+      } else if (elem.tagName === 'SCRIPT' && elem.getAttribute('desc-type') === 'text/json') {
+        this.#templates[view] = JSON.parse(elem.innerText.trim());
+      }
+    }
+  }
+};

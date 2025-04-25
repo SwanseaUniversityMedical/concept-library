@@ -1,15 +1,17 @@
 {% if not pub_btn_hidden %}
   <button
-    role="link"
-    class="{{class_modal}}"
-    title="{{title}}"
-    
+    class="phenotype-creation__action-btn {{class_modal}}"
+    title="{{ title }}"
+    aria-label="{% if ariaLabel %}{{ ariaLabel }}{% else %}{{ title }}{% endif %}"
+    role="button"
     {%if disabled%}
-    disabled
+      disabled
+      aria-disabled="true"
     {%endif%}
     id="publish-btn"
   >
-    {{ Button_type }}
+    <span class="as-icon phenotype-creation--icn" data-icon="&#xf1c4;" aria-hidden="true"></span>
+    <span>{{ Button_type }}</span>
   </button>
 
   {% include 'clinicalcode/generic_entity/publish/publish.html' %}

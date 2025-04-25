@@ -6,10 +6,13 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| Search Phenotypes {% endblock title %}
+{% block title %}| Search {% get_brand_mapped_string target="phenotype" default="Phenotype" %}s{% endblock title %}
 
 {% block embedding_wrapper %}
-  {% render_og_tags header='Search Phenotypes' %}
+  {% get_brand_mapped_string target="phenotype" default="Phenotype" as ph_entity_name %}
+  {% with header_trg='Search '|add:ph_entity_name|add:'s' %}
+    {% render_og_tags header=header_trg %}
+  {% endwith %}
 {% endblock embedding_wrapper %}
 
 {% block container %}

@@ -33,17 +33,17 @@ def create_generic_entity(request):
             content_type='json',
             status=status.HTTP_403_FORBIDDEN
         )
-    
+
     form = api_utils.validate_api_create_update_form(
         request, method=constants.FORM_METHODS.CREATE.value
     )
     if isinstance(form, Response):
         return form
-        
+
     entity = api_utils.create_update_from_api_form(request, form)
     if isinstance(entity, Response):
         return entity
-    
+
     entity_data = {
         'id': entity.id,
         'version_id': entity.history_id,
@@ -159,11 +159,11 @@ def get_generic_entities(request):
 
         - **Metadata Parameters** → _i.e._ Top-level fields associated with all `Phenotypes`
 
-            | Param       | Type           | Default | Desc                                         |
-            |-------------|----------------|---------|----------------------------------------------|
-            | tags        | `list<number>` | `NULL`  | Filter results by one or more tag IDs        |
-            | collections | `list<number>` | `NULL`  | Filter results by one or more collection IDs |
-            | created     | `list<date>`   | `NULL`  | Date range filter on `created` field         |
+            | Param       | Type               | Default | Desc                                                 |
+            |-------------|--------------------|---------|------------------------------------------------------|
+            | tags        | `list<int or str>` | `NULL`  | Filter results by one or more tag IDs / names        |
+            | collections | `list<int or str>` | `NULL`  | Filter results by one or more collection IDs / names |
+            | created     | `list<date>`       | `NULL`  | Date range filter on `created` field                 |
 
         - **Template Parameters** → _i.e._ Fields relating to a specific `Template`
 
@@ -184,8 +184,8 @@ def get_generic_entities(request):
                 | Search across ID, Name and Code | `?ontology=([^&]+)`           | Search string or List of deliminated strings                                       |
                 | Search across ID                | `?ontology_id=([^&]+)`        | Single `ID` (`int`) or List of deliminated `ID`s                                   |
                 | Search across Code              | `?ontology_code=([^&]+)`      | Single `Code` string (_e.g._ ICD-10, SNOMED _etc_) or List of deliminated `Codes`s |
-                | Search acrross Name             | `?ontology_name=([^&]+)`      | Single `Name` string or List of deliminated `Name`s                                |
-                | Search across Type              | `?ontology_type=([^&]+)`      | Single `Type` (`int`) or List of deliminated `Type`s                               |
+                | Search acrros Name              | `?ontology_name=([^&]+)`      | Single `Name` string or List of deliminated `Name`s                                |
+                | Search across Type              | `?ontology_type=([^&]+)`      | Single `Type` (`int` or `str`) or List of deliminated `Type` IDs/Names             |
                 | Search across Reference         | `?ontology_reference=([^&]+)` | Single `ReferenceID` (`int`) or List of deliminated `ReferenceID`s                 |
 
     """
@@ -257,7 +257,7 @@ def get_generic_entities(request):
     # Finalise accessibility clause(s)
     user_id = None
     brand_id = None
-    group_ids = None
+    group_ids = None # [!] Change
 
     brand = model_utils.try_get_brand(request)
     if brand is not None:
@@ -268,8 +268,9 @@ def get_generic_entities(request):
     user_clause = '''entity.publish_status = 2'''
     if user:
         user_id = user.id
-        user_clause = f'''({user_clause} or entity.world_access = 2) or entity.owner_id = %(user_id)s'''
+        user_clause = f'''{user_clause} or entity.owner_id = %(user_id)s'''
 
+        # [!] Change
         groups = list(user.groups.all().values_list('id', flat=True))
         if len(groups) > 0:
             group_ids = [ int(group) for group in groups if gen_utils.parse_int(group, default=None) ]
@@ -350,7 +351,7 @@ def get_generic_entities(request):
             continue
 
         success, query, query_params = api_utils.build_query_string_from_param(
-            key, data, validation, field_type,
+            request, key, data, field_data, field_type,
             prefix='mt', is_dynamic=False
         )
 
@@ -391,7 +392,7 @@ def get_generic_entities(request):
                     continue
 
                 success, query, query_params = api_utils.build_query_string_from_param(
-                    key, data, validation, field_type,
+                    request, key, data, field_data, field_type,
                     prefix=prefix, is_dynamic=True
                 )
 
@@ -479,7 +480,7 @@ def get_generic_entities(request):
         query = query + '''
          where t.search_vector @@ to_tsquery(
             'pg_catalog.english',
-            replace(websearch_to_tsquery('pg_catalog.english', %(search)s)::text || ':*', '<->', '|')
+            replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')
          )
         '''
         query_params.update({ 'search': search })
@@ -525,7 +526,7 @@ def get_generic_entities(request):
                         order by entity.history_id desc
                     ) as rn_ref_n
                  from public.clinicalcode_historicalgenericentity as entity
-                 left join public.clinicalcode_genericentity as live_entity
+                 join public.clinicalcode_genericentity as live_entity
                    on entity.id = live_entity.id
                  join public.clinicalcode_historicaltemplate as template
                    on entity.template_id = template.id and entity.template_version = template.template_version
@@ -576,7 +577,7 @@ def get_generic_entities(request):
         for entity in entities:
             entity_detail = api_utils.get_entity_detail(
                 request, 
-                entity.id, 
+                entity.id,
                 entity, 
                 is_authed, 
                 fields_to_ignore=constants.ENTITY_LIST_API_HIDDEN_FIELDS, 
@@ -584,6 +585,7 @@ def get_generic_entities(request):
             )
 
             if not isinstance(entity_detail, Response):
+                entity_detail.update(phenotype_version_id=entity.history_id)
                 formatted_entities.append(entity_detail)
 
         result = formatted_entities if not should_paginate else {

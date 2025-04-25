@@ -1,6 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import Group, User
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class ConceptReviewStatus(models.Model):
     id = models.AutoField(primary_key=True)

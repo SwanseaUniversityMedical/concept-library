@@ -26,7 +26,7 @@ const
 const RDS_REFERENCE_MAP = (item, index) => {
   return [
     index,
-    item.id,
+    item?.id ?? item?.value,
     item.name
   ];
 }
@@ -163,6 +163,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
     const tree = eleTree({
       el: viewer,
       lazy: true,
+      sort: true,
       data: source.nodes,
       showCheckbox: false,
       highlightCurrent: true,
@@ -211,7 +212,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
     }
 
     const nodes = item.nodes;
-    const model = typeof item.model === 'object' ? item.model : { };
+    const model = !!item?.model && typeof item.model === 'object' ? item.model : { };
     const sourceId = model?.source;
     const sourceLabel = model?.label;
     if (typeof sourceId !== 'number' || typeof sourceLabel !== 'string' || !Array.isArray(nodes)) {
@@ -228,7 +229,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
       </button>
     `, true);
 
-    const elem = tabItems.appendChild(doc.body.children[0]);
+    const elem = tabItems.appendChild(doc[0]);
     elem.addEventListener('click', () => {
       createViewer(sourceId);
     });
@@ -268,9 +269,10 @@ const renderReferenceComponent = (key, container, data) => {
   const datatable = new window.simpleDatatables.DataTable(table, {
     perPage: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE,
     perPageSelect: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE_SELECT,
-    fixedColumns: false,
+    fixedColumns: true,
     classes: {
       wrapper: 'overflow-table-constraint',
+      container: 'datatable-container slim-scrollbar',
     },
     columns: [
       { select: 0, type: 'number', hidden: true },

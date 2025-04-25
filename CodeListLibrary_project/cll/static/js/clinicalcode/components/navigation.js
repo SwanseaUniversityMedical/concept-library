@@ -85,7 +85,7 @@ const initHamburgerMenu = () => {
  */
 const submenuMobile = () => {
   // JavaScript for submenu behavior
-  const navText = document.querySelector('.nav-dropdown__text');
+  const navText = document.querySelector('.nav-dropdown__text a');
   const submenu = document.querySelector('.nav-dropdown__content');
 
   const avataText = document.querySelector('.avatar-content');
@@ -219,7 +219,7 @@ const manageBrandTargets = () => {
     isProductionRoot = ['true', '1'].indexOf(isProductionRoot.toLowerCase()) >= 0;
   }
 
-  const handleBrandTarget = (e) => getBrandUrlTarget(brandTargets, isProductionRoot, e.target, oldRoot, path);
+  const handleBrandTarget = (e) => getBrandTargetURL(brandTargets, isProductionRoot, e.target, oldRoot, path);
   for (const element of elements) {
     element.addEventListener('click', handleBrandTarget);
   }

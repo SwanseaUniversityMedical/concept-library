@@ -119,7 +119,7 @@ def get_concepts(request):
         query_clauses.append(psycopg2.sql.SQL('''(
             setweight(to_tsvector('pg_catalog.english', coalesce(historical.name,'')), 'A') ||
             setweight(to_tsvector('pg_catalog.english', coalesce(historical.description,'')), 'B')
-        ) @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(search_query)s)::text || ':*', '<->', '|'))
+        ) @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search_query)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
         '''))
 
     # Resolve pagination behaviour
@@ -422,7 +422,7 @@ def get_concept_detail(request, concept_id, version_id=None, export_codes=False,
     if not user_can_access:
         return Response(
             data={
-                'message': 'Concept version must be published or you must have permission to access it'
+                'message': 'Entity version must be published or you must have permission to access it'
             }, 
             content_type='json',
             status=status.HTTP_401_UNAUTHORIZED

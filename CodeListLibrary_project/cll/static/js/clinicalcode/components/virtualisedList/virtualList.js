@@ -1,6 +1,7 @@
-import DebouncedTask from './debouncedTask.js';
-import DeferredThreadGroup from './deferredThreadGroup.js';
 import * as Constants from './constants.js';
+
+import DebouncedTask from '../tasks/debouncedTask.js';
+import DeferredThreadGroup from '../tasks/deferredThreadGroup.js';
 
 /**
  * boundaryComparator

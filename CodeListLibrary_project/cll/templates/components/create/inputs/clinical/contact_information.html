@@ -1,0 +1,50 @@
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Contacts {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+  {% if not component.hide_input_details %}
+    <pre class="detailed-input-group__description">{{ component.description }}</pre>
+  {% endif %}
+
+  <div class="publication-list-group">
+    {% if component.value %}
+      {% to_json_script component.value desc-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
+
+    <div class="publication-list-group__interface" data-class="contact-list" data-field="{{ component.field_name }}">
+      <p>Add Contact</p>
+      <div class="publication-list-group__interface-children">
+        <input class="text-input" 
+          aria-label="Contact Name" 
+          type="text"
+          placeholder="e.g. John Doe"
+          minlength="3" 
+          pattern="^[a-zA-Z]{1,}.*?"
+          id="publication-input-box">
+        <input class="text-input" 
+               aria-label="Contact email" 
+               type="text" 
+               placeholder="e.g. name@organisation.com" 
+               id="doi-input-box">
+      </div>
+      <div class="publication-list-group__interface-children publication-list-group__interface-children--right">
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Contact" id="add-input-btn">Add</button>
+      </div>
+    </div>
+
+    <section class="publication-list-group__none-available" id="no-available-publications">
+      <p class="publication-list-group__none-available-message">You haven't added any contacts yet.</p>
+    </section>
+
+    <section class="publication-list-group__list show" id="publication-group">
+      <div class="publication-list-group__list-header" id="pub-header">
+        <h3>Your contacts</h3>
+      </div>
+      <div class="publication-list-group__list-container slim-scrollbar" id="publication-list">
+        
+      </div>
+    </section>
+  </div>
+</div>

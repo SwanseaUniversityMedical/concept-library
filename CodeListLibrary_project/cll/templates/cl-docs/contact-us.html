@@ -16,9 +16,11 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
-      <div class="banner__container container--desktop-lg">
+      <div class="banner__container">
         <h2 class="banner__title">Contact Us</h2>
         <p class="banner__description">
           Fill out the form below and a member of our team will get back to you as soon as 
@@ -35,10 +37,10 @@
         <div class="contactus-container__info-container">
           <div class="contactus-container__info-container__content">
             <div class="contactus-container__info-container__section">
-              <h2>Submitting Phenotypes</h2>
+              <h2>Submitting {{ brand_mapping.phenotype }}s</h2>
               <p>
                 Please contact us using the form below to request a user account to be able 
-                to submit phenotypes.
+                to submit {{ brand_mapping.phenotype }}s.
               </p>
               <br/>
               <p>
@@ -53,7 +55,7 @@
               <h2>Issues and Feature Requests</h2>
               <p>
                 If you would like to report a bug or give feedback or suggestions for the 
-                Phenotype Library website, please submit an issue to our 
+                {{ base_page_title }} website, please submit an issue to our 
                 <a href="https://github.com/SwanseaUniversityMedical/concept-library/issues">
                   Github Repository
                 </a>
@@ -73,7 +75,7 @@
                 By submitting your enquiry you are consenting to your data being held by the 
                 SAIL Databank, Swansea University. Your data will be used for the purposes 
                 of dealing with your enquiry and sending you relevant information about the 
-                Concept Library.
+                {{ base_page_title }}.
               </p>
             </div>
           </div>

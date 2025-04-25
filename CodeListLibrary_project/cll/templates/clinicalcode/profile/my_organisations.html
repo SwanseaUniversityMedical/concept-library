@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| My Organisations {% endblock title %}
+
+{% block container %}
+  <!-- Vendor -->
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+
+  <!-- Dependencies -->
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/services/organisationService/service.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/profile.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+  <header class="main-header banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">My Organisations</h2>
+        <p class="banner__description">
+          View organisations you're associated with.
+        </p>
+        <div class="banner__cards">
+          <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
+            {% url 'create_phenotype' as create_url %}
+            {% if USER_CREATE_CONTEXT %}
+              <article
+                  class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                  data-target="{{ create_url }}"
+                  onclick="redirectToTarget(this, event);"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Create a {{ brand_mapping.phenotype }}">
+                <div class="referral-card__header">
+                  <p class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></p>
+                </div>
+                <div class="referral-card__body">
+                  <p>Start here to contribute to the {{ base_page_title }}.</p>
+                </div>
+              </article>
+              <!-- {% url 'create_organisation' as create_org_url %}
+              {% if not is_brand_managed %}
+              <article
+                  class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                  data-target="{{ create_org_url }}"
+                  onclick="redirectToTarget(this, event);"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Create an Organisation">
+                <div class="referral-card__header">
+                  <p class="referral-card__title" href="{{ create_org_url }}">Create an Organisation<span class="referral-card__title-icon"></span></p>
+                </div>
+                <div class="referral-card__body">
+                  <p>Create a new organisation.</p>
+                </div>
+              </article>
+              {% endif %} -->
+            {% endif %}
+            {% url 'my_collection' as collections_url %}
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ collections_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                role="button"
+                aria-label="View {{ brand_mapping.phenotype }} Collection">
+              <div class="referral-card__header">
+                <p class="referral-card__title" href="{{ collections_url }}">My Collection<span class="referral-card__title-icon"></span></p>
+              </div>
+              <div class="referral-card__body">
+                <p>View content owned by or shared with you.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="profile-collection">
+        <section class="profile-collection__inner-container" id="owned-orgs">
+          {% if owned_orgs %}
+            {% to_json_script owned_orgs data-owner="organisation-service" page-type="OWNED_ORG_COLLECTIONS" name="owned-orgs" desc-type="text/json" %}
+          {% endif %}
+          <h3>1. Owned Organisations</h3>
+          <p>Organisations you're the owner of.</p>
+          <section class="profile-collection__none-available show" id="empty-collection">
+            <p class="profile-collection__none-available-message">
+              You haven't created any organisations yet.
+            </p>
+          </section>
+          <div class="profile-collection__table-container" id="owned-orgs-area">
+
+          </div>
+        </section>
+        <section class="profile-collection__inner-container" id="member-orgs">
+          {% if member_orgs %}
+            {% to_json_script member_orgs data-owner="organisation-service" page-type="MEMBER_ORG_COLLECTIONS" name="member_orgs" desc-type="text/json" %}
+          {% endif %}
+          <h3>2. Member Organisations</h3>
+          <p>Organisations you're a member of.</p>
+          <section class="profile-collection__none-available show" id="empty-collection">
+            <p class="profile-collection__none-available-message">
+              You haven't joined any organisations yet.
+            </p>
+          </section>
+          <div class="profile-collection__table-container" id="member-orgs-area">
+            
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+{% endblock container %}

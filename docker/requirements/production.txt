@@ -5,4 +5,4 @@
 -r engagelens.txt
 
 # Production requirements
-mod-wsgi==5.0.1
+mod-wsgi==5.0.2

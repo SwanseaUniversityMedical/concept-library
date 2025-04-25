@@ -42,7 +42,7 @@
       "fields": ["source_reference", "references"]
     },
     {
-      "title": "Clinical Code List",
+      "title": "Clinical Codelist",
       "documentation": "clinical-coded-phenotype-docs",
       "description": "Clinical codes that defines this Phenotype.",
       "fields": ["concept_information"]
@@ -150,8 +150,7 @@
       "active": true,
       "validation": {
         "type": "string",
-        "mandatory": false,
-        "length": [0, 250]
+        "mandatory": false
       },
       "hide_if_empty": true
     },

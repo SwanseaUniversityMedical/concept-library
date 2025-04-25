@@ -1,40 +1,47 @@
-{% load static %}
 {% load i18n %}
+{% load cache %}
+{% load static %}
+{% load entity_renderer %}
 
 {% block content %}
-  <footer class="page-footer" id="footer_main">
-    <section class="page-footer__row">
-      <div class="page-footer__listlinks">
-        <hr class='footer-hr'>
-				<p>
-					<a href="{% url 'terms' %}">
-            Terms & Conditions
-          </a>
-				 	 |
-					<a href="{% url 'privacy_and_cookie_policy' %}">
-            Privacy & Cookie Policy
-          </a>
-					 | 
-					<a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/Concept-Library-Documentation" target=_blank>
-            Support & Documentation
-          </a>
-					 |
-					<a href="{% url 'contact_us' %}">Contact Us</a>
-        </p>
-        <p>
-          Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. 
-          User-submitted content held in the Library is openly licensed for 
-          non-commercial use via 
-          <a href='https://creativecommons.org/licenses/by-sa/4.0/'>
-            CC BY-SA 4.0
-          </a>.
-          All other rights reserved.
-        </p>
-				
-        {% block footer_links %}
-          {% include "components/base/footer_link_img.html" %}
-        {% endblock footer_links %}
-      </div>      
-    </section>
-  </footer>
+  {% with request.CURRENT_BRAND|default:"BASE_BRAND" as brand_target %}
+    {% cache 3600 brand_footer_content brand_target %}
+      {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+      <footer class="page-footer" id="footer_main">
+        <section class="page-footer__row">
+          <div class="page-footer__listlinks">
+            <hr class='footer-hr'>
+            <p>
+              <a href="{% url 'terms' %}">
+                Terms & Conditions
+              </a>
+              |
+              <a href="{% url 'privacy_and_cookie_policy' %}">
+                Privacy & Cookie Policy
+              </a>
+              | 
+              <a href="https://github.com/SwanseaUniversityMedical/concept-library/wiki/" target=_blank>
+                Support & Documentation
+              </a>
+              |
+              <a href="{% url 'contact_us' %}">Contact Us</a>
+            </p>
+            <p>
+              Copyright &copy; {% now 'Y' %} - SAIL Databank - Swansea University. 
+              User-submitted content held in the {{ base_page_title }} is openly licensed for 
+              non-commercial use via 
+              <a href='https://creativecommons.org/licenses/by-sa/4.0/'>
+                CC BY-SA 4.0
+              </a>.
+              All other rights reserved.
+            </p>
+            
+            {% block footer_links %}
+              {% include "components/base/footer_link_img.html" %}
+            {% endblock footer_links %}
+          </div>      
+        </section>
+      </footer>
+    {% endcache %}
+  {% endwith %}
 {% endblock content %}

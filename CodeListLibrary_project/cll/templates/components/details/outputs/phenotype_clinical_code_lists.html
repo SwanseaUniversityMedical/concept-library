@@ -2,17 +2,29 @@
 {% load compress %}
 {% load sass_tags %}
 {% load cl_extras %}
-{% load entity_renderer %}
 {% load markdownify %}
-<!--   phenotype_clinical_code_lists   -->
+{% load entity_renderer %}
 
+<!-- phenotype_clinical_code_lists -->
+{% get_brand_map_rules as brand_mapping %}
 <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/clinicalcode/data/conceptUtils.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/data/conceptUtils.js' %}"></script>
 {% endcompress %}
 
 {% if component.value|length %}
 <div class="detailed-input-group fill-width">
+  <div class="col-sm-12 shadow-frame">
+    <h3 class="paneltitle">
+      <span id="entity-{{ component.field_name }}"></span>
+      {% if not component.hide_input_title %}
+        <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+      {% endif %}
+      {% if not component.hide_input_details %}
+        <p class="detailed-input-group__description">{{ component.description }}</p> 
+      {% endif %}
+    </h3>
+  </div>
   <div id="export-code-button" class="box-container">
 
     <div class="row no-pad">
@@ -20,18 +32,21 @@
       </div>
       <div class="col-md-6 text-align-right">
 
-        <label class="dropdown-group">
+        <label class="dropdown-group dropdown-group--detail">
           <div class="dropdown-group__button">
-            Export Code List
+            <span class="as-icon phenotype-creation--icn" data-icon="&#xf1c9;" aria-hidden="true"></span>
+            <span>
+              Export Codelist
+            </span>
           </div>
           <input type="checkbox" class="dropdown-group__input"  id="dd_2">
-          <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export Code List">
-            <li aria-label="Export code list as CSV" role="button" tabindex="0">
+          <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export Codelists">
+            <li aria-label="Export codelist as CSV" role="button" tabindex="0">
               <a href="{% url 'export_entity_version_codes_to_csv' pk=entity.id history_id=entity.history_id %}">
                 CSV
               </a>
             </li>
-            <li aria-label="Export code list as Json" role="button" tabindex="0">
+            <li aria-label="Export codelist as JSON" role="button" tabindex="0">
               <a href="{% url 'api:get_generic_entity_field_by_version' entity.id entity.history_id 'codes' %}?format=json" target="_blank">
                 JSON
               </a>
@@ -65,21 +80,20 @@
             aria-label="Toggle Accordion: {{ c.name }} ({{ c.coding_system_name }})"
             title="{{ c.name }} ({{ c.coding_system_name }})">
           <span aria-label="{{ c.name }} ({{ c.coding_system_name }})" class="fill-accordion__wrap-label">
-            <a href="{% url 'entity_detail' pk=c.phenotype_owner_id %}"
-                  title="Visit Linked Phenotype: {{c.phenotype_owner_id}} / C{{ c.concept_id }}">
+            <a target=_blank rel="noopener" href="{% url 'entity_detail' pk=c.phenotype_owner_id %}"
+                  title="Visit Linked {{ brand_mapping.phenotype }}: {{c.phenotype_owner_id}} / C{{ c.concept_id }}">
               {{c.phenotype_owner_id}} / C{{ c.concept_id }}
             </a>
-
-            &nbsp;-&nbsp;{{ c.name }}
-            &nbsp;|&nbsp;<em>{{ c.coding_system_name }}</em>
-
+            &nbsp;-&nbsp;<span>{{ c.name }}</span>&nbsp;|&nbsp;
+            <em>{{ c.coding_system_name }}</em>
             <span id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"
                   class="hide"
-                  aria-label="Legacy Concept Version">
+                  aria-label="Legacy {{ brand_mapping.concept }} Version">
               &nbsp;|&nbsp;
               <strong>LEGACY VERSION</strong>
             </span>
           </span>
+          <span class="fill-accordion__label-icon"></span>
         </label>
         <article class="fill-accordion__container codelist-extents">
           <section class="concept-group-content__container show" id="concept-information">
@@ -104,23 +118,6 @@
                 </li>
               </ul>
             </section>
-            {% if c.attributes %}
-            <section class="concept-group-content__details">
-              <h4>
-                CONCEPT ATTRIBUTE:
-                <br>
-                {% for attribute in c.attributes %}
-                <br>
-                  {% if not attribute.value.strip %}
-                    <li> TYPE: {{ attribute.type}} - NAME: {{ attribute.name }} </li>
-                  {% else %}
-                  <li> TYPE: {{ attribute.type}}  - NAME: {{ attribute.name }} -  VALUE: {{ attribute.value}} </li>
-                {% endif %}
-                {% endfor %}
-
-              </h4>
-            </section>
-            {% endif %}
           </section>
 
           <div class="detailed-input-group fill">
@@ -132,7 +129,7 @@
       </div>
     {% endfor %}
   {% else %}
-    <span class="card-no-data">No Clinical Code Lists</span>
+    <span class="card-no-data">No Clinical Codelists</span>
   {% endif %}
 </div>
 
@@ -152,7 +149,7 @@
         queue[target] = 1;
 
         fetch(
-          `/api/v1/concepts/C${conceptId}/version/${conceptVersionId}/export/component-data?requested_entity=${entityId}`,
+          `${getBrandedHost()}/api/v1/concepts/C${conceptId}/version/${conceptVersionId}/export/component-data?requested_entity=${entityId}`,
           { method: 'GET' }
         )
           .then(response => response.json())

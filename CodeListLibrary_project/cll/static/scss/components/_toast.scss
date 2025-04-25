@@ -145,5 +145,35 @@
         --progress-color: var(--color-accent-danger);
       }
     }
+
+    &--primary {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-primary);
+      }
+    }
+
+    &--secondary {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-secondary);
+      }
+    }
+
+    &--tertiary {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-tertiary);
+      }
+    }
+
+    &--anchor {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-anchor);
+      }
+    }
+
+    &--highlight {
+      #{$self}__progress {
+        --progress-color: var(--color-accent-highlight);
+      }
+    }
   }
 }

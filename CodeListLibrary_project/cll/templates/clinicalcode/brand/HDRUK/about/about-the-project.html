@@ -4,6 +4,7 @@
 {% load compress %}
 {% load sass_tags %}
 {% load breadcrumbs %}
+{% load entity_renderer %}
 
 {% block title %}| About Us {% endblock title %}
 
@@ -19,6 +20,7 @@
 {% endcompress %}
 
 <!-- Main -->
+{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 <main class="main-content">
   <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
     <article class="about-container">
@@ -309,10 +311,10 @@
                   the Creative Commons Attribution 4.0 (CC-A).
                 </li>
                 <li>
-                  Users should cite the Phenotype Library in all publications,
+                  Users should cite the {{ base_page_title }} in all publications,
                   presentations and reports as follows:
                   <a href="https://phenotypes.healthdatagateway.org">
-                    HDR UK Phenotype Library
+                    HDR UK {{ base_page_title }}
                   </a>
                 </li>
                 <li>

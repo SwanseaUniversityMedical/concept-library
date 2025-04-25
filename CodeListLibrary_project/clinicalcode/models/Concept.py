@@ -3,15 +3,18 @@
 
     A Concept contains a list of Components specified by inclusion/exclusion.
 '''
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.template.defaultfilters import default
 from simple_history.models import HistoricalRecords
+from django.contrib.auth import get_user_model
 
 from .CodingSystem import CodingSystem
 from .TimeStampedModel import TimeStampedModel
 from ..entity_utils import constants
+
+User = get_user_model()
 
 class Concept(TimeStampedModel):
     id = models.AutoField(primary_key=True)

@@ -11,40 +11,30 @@ cur_time = str(datetime.now().date())
 
 @require_GET
 def robots_txt(request):
-    if not(settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC):
+    if settings.IS_HDRUK_EXT != "1" or not settings.IS_DEVELOPMENT_PC:
         raise PermissionDenied
-    
-    
+
     lines = [
         "User-Agent: *",
         "Allow: /",
     ]
-    
-    # sitemap 
-    # site = "https://conceptlibrary.saildatabank.com"
-    # if settings.IS_HDRUK_EXT == "1":
-    #     site = "https://phenotypes.healthdatagateway.org"
-    #
-    # lines += ["Sitemap22: " + site + "/sitemap.xml"]
 
     lines += ["Sitemap: " + request.build_absolute_uri(reverse('concept_library_home')).replace('http://' , 'https://') + "sitemap.xml"]
-
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
 @require_GET
 def get_sitemap(request):
-    if not(settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC):
+    if settings.IS_HDRUK_EXT != "1" or not settings.IS_DEVELOPMENT_PC:
         raise PermissionDenied    
 
     links = [
         (request.build_absolute_uri(reverse('concept_library_home')), cur_time, "1.00"), 
         (request.build_absolute_uri(reverse('concept_library_home2')), cur_time, "1.00"),  
-        (request.build_absolute_uri(reverse('search_phenotypes')), cur_time, "1.00"),  
+        (request.build_absolute_uri(reverse('search_entities')), cur_time, "1.00"),  
         (request.build_absolute_uri(reverse('reference_data')), cur_time, "1.00"),
         (request.build_absolute_uri(reverse('login')), cur_time, "1.00"),
     ]
-    
-    
+
     # About pages
     # brand/main about pages
     if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
@@ -56,24 +46,15 @@ def get_sitemap(request):
             ('https://phenotypes.healthdatagateway.org/about/hdruk_about_publications/', cur_time, "0.80"),
             ('https://phenotypes.healthdatagateway.org/about/breathe/', cur_time, "0.80"),
             ('https://phenotypes.healthdatagateway.org/about/bhf_data_science_centre/', cur_time, "0.80"),
-            # ('https://phenotypes.healthdatagateway.org/about/eurolinkcat/', cur_time, "0.80"),
-
+            ('https://phenotypes.healthdatagateway.org/about/eurolinkcat/', cur_time, "0.80"),
         ]
-    
-    # # privacy /terms /cookies
-    # links += [
-    #     (request.build_absolute_uri(reverse('cookies_settings')), cur_time, "0.40"),      
-    #     (request.build_absolute_uri(reverse('terms')), cur_time, "0.40"), 
-    #     (request.build_absolute_uri(reverse('privacy_and_cookie_policy')), cur_time, "0.40"),
-    #     (request.build_absolute_uri(reverse('technical_documentation')), cur_time, "0.40"),
-    # ]
 
     # contact us page
     if not settings.CLL_READ_ONLY:
         links += [
             (request.build_absolute_uri(reverse('contact_us')), cur_time, "1.00"), 
         ]
-        
+
     # API
     links += [
         (request.build_absolute_uri(reverse('api:root')), cur_time, "1.00"), 
@@ -84,9 +65,8 @@ def get_sitemap(request):
     ]
 
     # add links of published concepts/phenotypes
-    #if settings.CURRENT_BRAND != "":
     links += get_published_phenotypes_and_concepts(request)
-    
+
     links_str = """
                 <urlset
                       xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -102,10 +82,8 @@ def get_sitemap(request):
                         <priority>""" + t[2] + """</priority>        
                     </url>
                     """
-        
-    links_str += "</urlset>"
 
-    
+    links_str += "</urlset>"
     return HttpResponse(links_str, content_type="application/xml")
 
 

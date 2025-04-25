@@ -52,8 +52,8 @@ export const
       content: `
         <p>
           <strong>
-            You are saving a legacy Phenotype.
-            Updating this Phenotype will overwrite the most recent version.
+            You are saving a legacy entity.
+            Updating this entity will overwrite the most recent version.
           </strong>
         </p>
         <p>Are you sure you want to do this?</p>
@@ -78,39 +78,35 @@ export const
   };
 
 /**
- * StringInputListCreator constant(s)
- * 
- */
-export const 
-  /**
-   * STR_INPUT_LIST_KEYCODES
-   * @desc Keycodes used by list creator
-   */
-  STR_INPUT_LIST_KEYCODES = {
-    // Add list element
-    ENTER: 13,
-  },
-  /**
-   * STR_INPUT_LIST_MIN_MSG_DURATION
-   * @desc Min. message duration for toast notif popups
-   */
-  STR_INPUT_LIST_MIN_MSG_DURATION = 5000;
-
-/**
- * PublicationCreator constant(s)
+ * Toast constant(s)
  * 
  */
 export const
   /**
-   * PUBLICATION_KEYCODES
-   * @desc Keycodes used by publication creator
-   */
-  PUBLICATION_KEYCODES = {
-    // Add publication
-    ENTER: 13,
-  },
-  /**
-   * PUBLICATION_MIN_MSG_DURATION
+   * TOAST_MSG_DURATION
    * @desc Min. message duration for toast notif popups
    */
-  PUBLICATION_MIN_MSG_DURATION = 5000;
+  TOAST_MSG_DURATION = 5000;
+
+/**
+ * VariableCreator const(s)
+ */
+export const
+  /**
+   * VFCREATOR_TYPE_MAP
+   * @desc maps allowable types to template types
+   */
+  VFCREATOR_TYPE_MAP = {
+    // Numeric
+    int: 'number',
+    numeric: 'number',
+    percentage: 'number',
+
+    // Numeric range(s)
+    int_range: 'range',
+    numeric_range: 'range',
+    percentage_range: 'range',
+
+    // Str-related
+    string: 'inputbox',
+  };
