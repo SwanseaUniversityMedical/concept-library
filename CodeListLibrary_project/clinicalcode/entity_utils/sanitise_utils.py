@@ -50,7 +50,7 @@ def sanitise_markdown_html(text):
 	if len(text) < 1 or text.isspace():
 		return text
 
-	text = re.sub(r'(.+\S)\n(?!\n)', nl_transform, text, flags=re.MULTILINE | re.IGNORECASE)
+	text = re.sub(r'(^[^>\n].+[^\|\s])\n(?!\n)', nl_transform, text, flags=re.MULTILINE | re.IGNORECASE)
 	text = text.strip()
 
 	markdown_settings = settings.MARKDOWNIFY.get('default')

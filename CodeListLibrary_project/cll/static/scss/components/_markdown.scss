@@ -51,14 +51,15 @@
     min-width: min-content;
     width: 100%;
     height: fit-content;
-    padding: 0.5rem;
     max-width: calc(100% - 1rem);
     border-collapse: collapse;
     border-spacing: 0px;
     box-sizing: border-box;
-    border: 1px solid col(accent-washed);
+    border: 2px solid col(accent-washed);
     background-color: transparent;
-    margin-bottom: 0.25rem;
+    margin: 0.5rem;
+    border-collapse: collapse;
+    border-spacing: 0;
   }
 
   th,
