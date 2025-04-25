@@ -403,7 +403,7 @@ def has_member_org_access(user, slug, min_permission):
         Min_permissions relates to the organisation role, e.g.
         min_permission=1 means the user has to be an editor or above.
     """
-    if user:
+    if user and not user.is_anonymous:
       if not gen_utils.is_empty_string(slug):
         organisation = Organisation.objects.filter(slug=slug)
         if organisation.exists():
@@ -434,10 +434,11 @@ def has_member_access(user, entity, min_permission):
         if org.owner == user:
             return True
 
-        membership = user.organisationmembership_set \
-            .filter(organisation__id=org.id)
-        if membership.exists():
-            return membership.first().role >= min_permission
+        if user and not user.is_anonymous:
+            membership = user.organisationmembership_set \
+                .filter(organisation__id=org.id)
+            if membership.exists():
+                return membership.first().role >= min_permission
 
     return False
 
@@ -1520,7 +1521,7 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
 
                 if entity_org.owner_id == user.id:
                     is_org_member = True
-                else:
+                elif not user.is_anonymous:
                     membership = user.organisationmembership_set \
                         .filter(organisation__id=entity_org.id)
 
