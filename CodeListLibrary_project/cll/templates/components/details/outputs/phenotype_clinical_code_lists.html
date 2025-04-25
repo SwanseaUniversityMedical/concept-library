@@ -149,7 +149,7 @@
         queue[target] = 1;
 
         fetch(
-          `/api/v1/concepts/C${conceptId}/version/${conceptVersionId}/export/component-data?requested_entity=${entityId}`,
+          `${getBrandedHost()}/api/v1/concepts/C${conceptId}/version/${conceptVersionId}/export/component-data?requested_entity=${entityId}`,
           { method: 'GET' }
         )
           .then(response => response.json())
