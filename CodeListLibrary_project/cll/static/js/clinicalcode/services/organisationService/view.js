@@ -8,7 +8,7 @@ const
    * @desc describes the URL(s) associated with the action button(s)
    * 
    */
-  DETAIL_URL = '/phenotypes/${id}/version/${version_id}/detail/',
+  DETAIL_URL = '/${url_target}/${id}/version/${version_id}/detail/',
   /**
    * COLLECTION_HEADINGS
    * @desc describes the headings associated with each key's table
@@ -100,8 +100,13 @@ const COLLECTION_MAP = {
  * @returns {string} returns the formatted render html target
  * 
  */
-const renderNameAnchor = (pageType, key, entity) => {
+const renderNameAnchor = (pageType, key, entity, mapping) => {
   const { id, history_id, name, publish_status } = entity;
+
+  let urlTarget = mapping?.phenotype_url;
+  if (!stringHasChars(urlTarget)) {
+    urlTarget = 'phenotypes';
+  }
 
   let text = `${id} - ${strictSanitiseString(name)}`;
   text = text.length > MAX_NAME_LENGTH 
@@ -111,7 +116,8 @@ const renderNameAnchor = (pageType, key, entity) => {
   const brand = getBrandedHost();
   const url = interpolateString(brand + DETAIL_URL, {
     id: id,
-    version_id: history_id
+    version_id: history_id,
+    url_target: urlTarget,
   });
 
   return `
@@ -136,7 +142,7 @@ const getCollectionData = () => {
     const name = data.getAttribute('name');
     const type = data.getAttribute('desc-type');
     const pageType = data.getAttribute('page-type');
-
+    
     let value = data.innerText.trim();
     if (!isNullOrUndefined(value) && !isStringEmpty(value.trim())) {
       if (type == 'text/json') {
@@ -147,7 +153,7 @@ const getCollectionData = () => {
     result[name] = {
       pageType: pageType,
       container: data.parentNode.querySelector('.organisation-collection__table-container'),
-      data: value || [ ]
+      data: value || [ ],
     }
   }
 
@@ -184,7 +190,7 @@ const renderStatusTag = (data) => {
  * @param {object} data the data associated with this element
  * 
  */
-const renderCollectionComponent = (pageType, key, container, data) => {
+const renderCollectionComponent = (pageType, key, container, data, mapping) => {
   if (isNullOrUndefined(data) || Object.keys(data).length == 0) {
     return;
   }
@@ -209,6 +215,7 @@ const renderCollectionComponent = (pageType, key, container, data) => {
     fixedColumns: false,
     classes: {
       wrapper: 'overflow-table-constraint',
+      container: 'datatable-container slim-scrollbar',
     },
     template: (options, dom) => `
     <div class='${options.classes.top}'>
@@ -233,7 +240,7 @@ const renderCollectionComponent = (pageType, key, container, data) => {
         render: (value, cell, rowIndex) => {
           const [entityId, ...others] = value.match(/^\w+-?/g);
           const entity = data.find(e => e.id == entityId);
-          return renderNameAnchor(pageType, key, entity);
+          return renderNameAnchor(pageType, key, entity, mapping);
         }
       },
       { select: 2, type: 'number', hidden: true },
@@ -342,12 +349,15 @@ domReady.finally(() => {
   ARCHIVE_TEMPLATE = document.querySelector('#archive-form');
 
   const data = getCollectionData();
+  const mapping = data.mapping.data;
+  delete data.mapping;
+
   for (let [key, value] of Object.entries(data)) {
     if (value.data.length < 1) {
       continue;
     }
 
-    renderCollectionComponent(value.pageType, key, value.container, value.data);
+    renderCollectionComponent(value.pageType, key, value.container, value.data, mapping);
   }
 
   const leaveButton = document.querySelector('#leave-btn');

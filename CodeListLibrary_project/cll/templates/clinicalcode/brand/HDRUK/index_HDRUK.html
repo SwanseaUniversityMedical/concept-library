@@ -28,7 +28,7 @@
     </div>
     <div class="search-banner__container-landing">
       <form class="search-container" data-controller="filter" data-class="searchbar" data-field="search"
-        action="{% url 'search_phenotypes' %}" method="GET">
+        action="{% url 'search_entities' %}" method="GET">
         <input type="text" placeholder="Search our {{ base_page_title }}" id="searchbar"
           class="search-container__field washed-outline" data-class="searchbar" data-field="search" name="search"
           value="{{ search|default_if_none:'' }}" aria-label="Search our {{ base_page_title }}" />
@@ -156,7 +156,7 @@
             <p class="referral-card__title referral-card__title--align-centre">Search</p>
           </div>
           <div class="referral-card__body referral-card__body--hide-overflow">
-            <a class="referral-card__anchor" href="{% url 'search_phenotypes' %}">
+            <a class="referral-card__anchor" href="{% url 'search_entities' %}">
               <p>Start here to explore phenotypes in our library.</p>
             </a>
           </div>

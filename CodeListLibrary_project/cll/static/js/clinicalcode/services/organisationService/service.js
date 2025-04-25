@@ -148,6 +148,7 @@ const renderCollectionComponent = (pageType, key, container, data) => {
     fixedColumns: false,
     classes: {
       wrapper: 'overflow-table-constraint',
+      container: 'datatable-container slim-scrollbar',
     },
     template: (options, dom) => `
     <div class='${options.classes.top}'>

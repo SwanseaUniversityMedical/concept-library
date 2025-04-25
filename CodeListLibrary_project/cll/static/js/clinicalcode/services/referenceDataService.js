@@ -272,6 +272,7 @@ const renderReferenceComponent = (key, container, data) => {
     fixedColumns: true,
     classes: {
       wrapper: 'overflow-table-constraint',
+      container: 'datatable-container slim-scrollbar',
     },
     columns: [
       { select: 0, type: 'number', hidden: true },

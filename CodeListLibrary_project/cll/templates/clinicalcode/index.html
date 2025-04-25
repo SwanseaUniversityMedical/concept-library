@@ -36,7 +36,7 @@
             higher quality research; easier replication; and sharing of methods between researchers, institutions, and countries.
           </p>
         </div>
-        <form class="homepage-hero__search" action="{% url 'search_phenotypes' %}" method="GET">
+        <form class="homepage-hero__search" action="{% url 'search_entities' %}" method="GET">
           <input class="homepage-hero__search-input" aria-label="Search {{ brand_mapping.phenotype }}s" type="text"
             id="data-search" name="search" placeholder="Search..." minlength="3">
           <button class="homepage-hero__search-icon" tabindex="0" 
@@ -308,7 +308,7 @@
               View the {{ base_page_title }}'s {{ brand_mapping.phenotype }}s.
             </span>
             <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Search {{ brand_mapping.phenotype }}s"
-              id="explore-btn" href="{% url 'search_phenotypes' %}">
+              id="explore-btn" href="{% url 'search_entities' %}">
               Search
             </a>
           </div>

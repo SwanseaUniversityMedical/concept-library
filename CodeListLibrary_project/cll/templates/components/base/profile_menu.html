@@ -69,7 +69,7 @@
 
         <!-- Logout -->
         <li class="content-container">
-          <form method="post" action="{% url 'logout' %}?next={% url 'search_phenotypes' %}" class="item-dropdown">
+          <form method="post" action="{% url 'logout' %}?next={% url 'search_entities' %}" class="item-dropdown">
             {% csrf_token %}
             <button class="item-dropdown__submit" type="submit" aria-label="Log out" role="button" tabindex="0">
               <div class="item-dropdown__icon" id="logout-icon">

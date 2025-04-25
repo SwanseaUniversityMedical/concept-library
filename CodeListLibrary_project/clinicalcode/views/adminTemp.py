@@ -822,7 +822,9 @@ def admin_upload_hdrn_assets(request):
         # Controls entity name mapping
         "content_mapping": {
             "phenotype": "Concept",
+            "phenotype_url": "concepts",
             "concept": "Codelist",
+            "concept_url": "codelists",
         },
     }
 

@@ -61,7 +61,7 @@ class TestModerationComponents:
             login(self.driver, user.username, user.username + 'password')
 
         user_details = user_type if user else 'Anonymous'
-        self.driver.get(live_server + reverse('search_phenotypes'))
+        self.driver.get(live_server + reverse('search_entities'))
 
         desired_visibility = user_type in self.COMPONENT_VISIBILITY_RULES
         component_presence = False

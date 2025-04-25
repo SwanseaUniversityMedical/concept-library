@@ -91,7 +91,7 @@
               {% endif %}
             </div>
           </article>
-          <article class="organisation-page__section__body row">
+          <article class="organisation-page__section__body row organisation-page__section--constrained slim-scrollbar">
             <div class="organisation-page__section__body__collaborator">
               {{instance.owner.username}}
             </div>
@@ -146,6 +146,8 @@
         {% endif %}
       </article>
     </div>
+
+    {% to_json_script brand_mapping data-owner="organisation-service" id="mapping-data" name="mapping" desc-type="text/json" %}
   </main>
 
 {% endblock container %}

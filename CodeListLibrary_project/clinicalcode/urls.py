@@ -1,19 +1,14 @@
-"""
-    URL Configuration for the Clinical-Code application.
-
-    Pages appear as Working-sets, Concepts and Components within a Concept.
-"""
+"""Static URL Configuration for the Clinical-Code application."""
 
 from django.conf import settings
 from django.urls import re_path as url
-from django.views.generic.base import RedirectView
 
 from clinicalcode.views.dashboard import BrandAdmin
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
 
 from clinicalcode.views import (
-    site, View, Admin, adminTemp, GenericEntity,
-    Publish, Decline, Moderation, Profile, Organisation
+    site, View, Admin, adminTemp,
+    GenericEntity, Moderation, Profile, Organisation
 )
 
 from clinicalcode.views.dashboard.targets import (
@@ -94,19 +89,7 @@ urlpatterns = [
     url(r'^dashboard/target/data_assets/$', HDRNDataAssetTarget.HDRNDataAssetEndpoint.as_view(), name=HDRNDataAssetTarget.HDRNDataAssetEndpoint.reverse_name_default),
     url(r'^dashboard/target/data_assets/(?P<pk>\w+)/$', HDRNDataAssetTarget.HDRNDataAssetEndpoint.as_view(), name=HDRNDataAssetTarget.HDRNDataAssetEndpoint.reverse_name_retrieve),
 
-    # GenericEnities (Phenotypes)
-    ## Search
-    url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
-    # url(r'^phenotypes/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
-    
-    ## Detail
-    url(r'^phenotypes/(?P<pk>\w+)/$', RedirectView.as_view(pattern_name='entity_detail'), name='entity_detail_shortcut'),
-    url(r'^phenotypes/(?P<pk>\w+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),
-    url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_history_detail'),
-
-    url(r'^phenotypes/(?P<pk>\w+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_latest_version_codes_to_csv'),
-    url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_version_codes_to_csv'),   
-
+    # GenericEnities (GenericEntity)
     ## Selection service(s)
     url(r'^query/(?P<template_id>\w+)/?$', GenericEntity.EntityDescendantSelection.as_view(), name='entity_descendants'),
 
@@ -117,17 +100,12 @@ urlpatterns = [
     ## Documentation for create
     url(r'^documentation/(?P<documentation>([A-Za-z0-9\-]+))/?$', DocumentationViewer.as_view(), name='documentation_viewer'),
 
-    # GenericEnities (Phenotypes)
     ## Create / Update
     url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
     url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
     url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_phenotype'),
-
-    ## Publication
-    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/publish/$', Publish.Publish.as_view(),name='generic_entity_publish'),
-    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/decline/$', Decline.EntityDecline.as_view(),name='generic_entity_decline'),
-    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/submit/$', Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
 ]
+
 
 # Add sitemaps & robots if required (only for HDRUK .org site (or local dev.) -- check is done in site.py)
 urlpatterns += [

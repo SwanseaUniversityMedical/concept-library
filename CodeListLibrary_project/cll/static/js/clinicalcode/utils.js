@@ -11,7 +11,15 @@ const
   CLU_DOMAINS = {
     ROOT: 'https://conceptlibrary.saildatabank.com',
     HDRUK: 'https://phenotypes.healthdatagateway.org',
-  }
+  },
+  /**
+   * CLU_HOST
+   * @desc Domain host regex
+   */
+  CLU_HOST = {
+    ROOT: /(conceptlibrary\.saildatabank)/i,
+    HDRUK: /(phenotypes\.healthdatagateway)|(web\-phenotypes\-hdr)/i,
+  },
   /**
    * CLU_TRANSITION_METHODS
    * @desc defines the transition methods associated
@@ -1269,7 +1277,7 @@ const getBrandedHost = () => {
   const host = getCurrentHost();
   const brand = document.documentElement.getAttribute('data-brand');
   const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
-  if ((host === CLU_DOMAINS.HDRUK) || isUnbranded) {
+  if (!!host.match(CLU_HOST.HDRUK) || isUnbranded) {
     return host;
   }
 
@@ -1307,10 +1315,7 @@ const getBrandTargetURL = (brandTargets, productionTarget, element, oldRoot, pat
       } break;
 
       default: {
-        const isHDRUKSubdomain = window.location.href
-          .toLowerCase()
-          .includes('phenotypes.healthdatagateway');
-
+        const isHDRUKSubdomain = !!window.location.href.match(CLU_HOST.HDRUK);
         targetLocation = isHDRUKSubdomain ? CLU_DOMAINS.ROOT : document.location.origin;
         targetLocation = `${targetLocation}/${elementTarget}`;
       } break;
@@ -2220,7 +2225,7 @@ const tryNavigateLink = (link, {
       }
     } else {
       url = new URL(url, brandedHost.origin);
-      if (url.origin === CLU_DOMAINS.HDRUK && url.origin !== brandedHost.origin) {
+      if (url.origin.match(CLU_DOMAINS.HDRUK) && url.origin !== brandedHost.origin) {
         url = new URL(url.pathname + url.search + url.hash, brandedHost.origin);
       }
     }

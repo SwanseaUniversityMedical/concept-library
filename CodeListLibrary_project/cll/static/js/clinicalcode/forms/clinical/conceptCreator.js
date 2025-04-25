@@ -1209,9 +1209,14 @@ export default class ConceptCreator {
    * @returns {node} the rendered concept group
    */
   #tryRenderConceptComponent(concept) {
+    let urlTarget = this?.parent?.mapping?.phenotype_url;
+    if (!stringHasChars(urlTarget)) {
+      urlTarget = 'phenotypes';
+    }
+
     const template = this.templates['concept-item'];
     const access = this.#deriveEditAccess(concept);
-    const phenotype_version_url = `${window.location.origin}/phenotypes/${concept.details.phenotype_owner}/version/${concept.details.phenotype_owner_history_id}/detail`;
+    const phenotype_version_url = `${getBrandedHost()}/${urlTarget}/${concept.details.phenotype_owner}/version/${concept.details.phenotype_owner_history_id}/detail`;
   
     const isImportedItem = concept?.details?.phenotype_owner && !!concept?.details?.requested_entity_id && concept?.details?.phenotype_owner !== concept?.details?.requested_entity_id;
     const html = interpolateString(template, {
@@ -1708,6 +1713,7 @@ export default class ConceptCreator {
       ],
       classes: {
         wrapper: 'overflow-table-constraint',
+        container: 'datatable-container slim-scrollbar',
       },
       data: {
         headings: [

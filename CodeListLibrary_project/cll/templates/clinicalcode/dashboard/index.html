@@ -217,7 +217,7 @@
                 <span class="as-icon" data-icon="&#xf015;" aria-hidden="true"></span>
                 Home
               </button>
-              <form method="post" action="{% url 'logout' %}?next={% url 'search_phenotypes' %}">
+              <form method="post" action="{% url 'logout' %}?next={% url 'search_entities' %}">
                 {% csrf_token %}
                 <button
                   type="submit"

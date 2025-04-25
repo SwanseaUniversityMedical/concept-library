@@ -5,7 +5,7 @@
 
 {% block content %}
 {% get_brand_map_rules as brand_mapping %}
-<form action="{% url 'search_phenotypes' %}" class="search-navigation__search" method="GET">
+<form action="{% url 'search_entities' %}" class="search-navigation__search" method="GET">
     <input
       aria-label="Search {{ brand_mapping.phenotype }}s"
       class="search-navigation__search-input"

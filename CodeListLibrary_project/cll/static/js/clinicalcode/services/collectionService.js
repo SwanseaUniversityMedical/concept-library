@@ -6,7 +6,7 @@ const
    * @desc describes the URL(s) associated with the action button(s)
    * 
    */
-  DETAIL_URL = '/phenotypes/${id}/version/${version_id}/detail/',
+  DETAIL_URL = '/${url_target}/${id}/version/${version_id}/detail/',
   UPDATE_URL = '/update/${id}/${version_id}',
   /**
    * COLLECTION_HEADINGS
@@ -147,6 +147,11 @@ const getCollectionData = () => {
 const renderNameAnchor = (pageType, key, entity, mapping) => {
   const { id, history_id, name, publish_status } = entity;
 
+  let urlTarget = mapping?.phenotype_url;
+  if (!stringHasChars(urlTarget)) {
+    urlTarget = 'phenotypes';
+  }
+
   let text = `${id} - ${strictSanitiseString(name)}`;
   text = text.length > MAX_NAME_LENGTH 
     ? `${text.substring(0, MAX_NAME_LENGTH).trim()}...` 
@@ -155,7 +160,8 @@ const renderNameAnchor = (pageType, key, entity, mapping) => {
   const brand = getBrandedHost();
   const url = interpolateString(brand + DETAIL_URL, {
     id: id,
-    version_id: history_id
+    version_id: history_id,
+    url_target: urlTarget,
   });
 
   if (isNullOrUndefined(ARCHIVE_TEMPLATE) || pageType !== 'PROFILE_COLLECTIONS') {
@@ -274,6 +280,7 @@ const renderCollectionComponent = (pageType, key, container, data, mapping) => {
     fixedColumns: false,
     classes: {
       wrapper: 'overflow-table-constraint',
+      container: 'datatable-container slim-scrollbar',
     },
     template: (options, dom) => `<div class='${options.classes.top}'>
       <div class='${options.classes.dropdown}'>

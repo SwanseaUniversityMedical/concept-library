@@ -34,13 +34,12 @@
           {% endif %}
 
           {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}
-            {% url 'search_phenotypes' as entity_url %}
             {% if request.BRAND_OBJECT.allowed_tabs.phenotypes|get_type == 'dict' %}
-              <a href="{{ entity_url }}" id="{{ request.BRAND_OBJECT.allowed_tabs.phenotypes.id|default:'Phenotypes' }}" data-root="search,update,create">
+              <a href="{% url 'search_entities' %}" id="{{ request.BRAND_OBJECT.allowed_tabs.phenotypes.id|default:'Phenotypes' }}" data-root="search,update,create">
                 {{ request.BRAND_OBJECT.allowed_tabs.phenotypes.title|default:'Phenotypes' }}
               </a>
             {% else %}
-              <a href="{{ entity_url }}" id="Phenotypes" data-root="search,update,create">Phenotypes</a>
+              <a href="{% url 'search_entities' %}" id="Phenotypes" data-root="search,update,create">Phenotypes</a>
             {% endif %}
           {% endif %}
 

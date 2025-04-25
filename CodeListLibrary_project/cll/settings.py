@@ -198,9 +198,23 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'cll.settings'
 
 ## Brand related settings
 IS_HDRUK_EXT = '0'
+BRAND_OBJECT = {}
 CURRENT_BRAND = ''
 CURRENT_BRAND_WITH_SLASH = ''
-BRAND_OBJECT = {}
+
+## Brand variant URL resolver overrides
+BRAND_VAR_REFERENCE = {
+    'default': {
+        'urls': {
+            'phenotypes': 'phenotypes',
+        },
+    },
+    'HDRN': {
+        'urls': {
+            'phenotypes': 'concepts',
+        },
+    }
+}
 
 ## Graph settings
 GRAPH_MODELS = {
@@ -614,7 +628,7 @@ OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
 # General settings
 
 ## Django auth settings -> Redirect to home URL after login (Default redirects to /accounts/profile/)
-LOGIN_REDIRECT_URL = reverse_lazy('search_phenotypes')
+LOGIN_REDIRECT_URL = reverse_lazy('search_entities')
 LOGIN_URL = reverse_lazy('login')
 LOGOUT_URL = reverse_lazy('logout')
 
