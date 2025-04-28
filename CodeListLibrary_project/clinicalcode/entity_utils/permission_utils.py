@@ -443,6 +443,9 @@ def has_member_access(user, entity, min_permission):
     return False
 
 def get_organisation_role(user, organisation):
+    """
+    Return user membership role from organisation
+    """
     if organisation.owner == user:
         return ORGANISATION_ROLES.ADMIN
 
@@ -455,6 +458,9 @@ def get_organisation_role(user, organisation):
     return -1
 
 def has_org_member(user, organisation):
+    """
+    Check if user role in the selected organisation
+    """
     if organisation.owner == user:
         return True
 
@@ -462,6 +468,9 @@ def has_org_member(user, organisation):
     return org_membership is not None and org_membership.role in ORGANISATION_ROLES
 
 def has_org_authority(request, organisation):
+    """
+    Return the dictionary of selected organisations permissions 
+    """
     if not has_org_member(request.user, organisation):
         return False
 
@@ -479,6 +488,9 @@ def has_org_authority(request, organisation):
     return requested_authority
 
 def get_organisation(request, entity_id=None, default=None):
+    """
+    Based on the entity id return the Organization object 
+    """
     if entity_id is None:
         return None
 
@@ -490,6 +502,9 @@ def get_organisation(request, entity_id=None, default=None):
     return org
 
 def is_org_managed(request, brand_id=None):
+    """
+    By brand of requested website check if brand is organisationally managed
+    """
     if brand_id is not None:
         brand = model_utils.try_get_instance(Brand, id=brand_id)
     else:
