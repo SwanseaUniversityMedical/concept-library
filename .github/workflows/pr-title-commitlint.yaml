@@ -1,0 +1,19 @@
+name: Commit Lint PR Title
+
+on:
+  pull_request:
+    # Run on all PRs whenever the title could have changed
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # This linting can be cancelled if there is a newer commit to lint
+  cancel-in-progress: true
+
+jobs:
+  pr-title-commitlint:
+    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-title-commitlint.yaml@v1.4.8-pr-title-commitlint
