@@ -36,6 +36,8 @@ jobs:
     uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-chart.yaml@v3.0.1-charts
     with:
       job-name: concept-library-chart
+      comment-pr: true
+      comment-release: true
       registry: ${{ vars.HARBOR_REGISTRY }}
       registry-user: ${{ vars.HARBOR_USER }}
       registry-project: ${{ vars.HARBOR_PROJECT }}
