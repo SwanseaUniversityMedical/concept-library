@@ -1,8 +1,5 @@
 name: Commit Lint PR Title
 
-permissions:
-  contents: read
-
 on:
   pull_request:
     # Run on all PRs whenever the title could have changed
@@ -11,6 +8,10 @@ on:
       - reopened
       - edited
       - synchronize
+
+permissions:
+  contents: read
+  pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
