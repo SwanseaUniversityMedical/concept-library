@@ -39,7 +39,7 @@ jobs:
       registry: ${{ vars.HARBOR_REGISTRY }}
       registry-user: ${{ vars.HARBOR_USER }}
       registry-project: ${{ vars.HARBOR_PROJECT }}
-      registry-repo: serp-forms
+      registry-repo: concept-library
       release-tag-format: 'Concept-Library-Chart-${version}'
       cosign-public-key: ${{ vars.COSIGN_PUBLIC_KEY }}
       chart: chart/concept-library
