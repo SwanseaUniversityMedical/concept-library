@@ -881,7 +881,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
     if field_behaviour is not None and field_behaviour.get('freeform', False):
         field_value = validate_freeform_field(request, field, field_data, value, errors)
         if field_value is None and field_required:
-            errors.append(f'"{field}" is invalid. 1')
+            errors.append(f'"{field}" is invalid.')
             return field_value, False
         return field_value, True
 
@@ -890,7 +890,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
         field_value = try_validate_sourced_value(field, field_data, field_value, request=request)
         if field_value is None and field_required:
-            errors.append(f'"{field}" is invalid 2')
+            errors.append(f'"{field}" is invalid.')
             return field_value, False
         return field_value, True
 
@@ -898,7 +898,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
     if field_computed is not None:
         field_value = validate_computed_field(request, field, field_data, value, errors)
         if field_value is None and field_required:
-            errors.append(f'"{field}" is invalid. 3')
+            errors.append(f'"{field}" is invalid.')
             return field_value, False
         return field_value, True
 
@@ -906,7 +906,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
     if field_children is not None:
         field_value = validate_related_entities(field, field_data, value, errors)
         if field_value is None and field_required:
-            errors.append(f'"{field}" is invalid. 4')
+            errors.append(f'"{field}" is invalid.')
             return field_value, False
         return field_value, True
     
@@ -1540,7 +1540,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.brands = related_brands
                 entity.save()
 
-            # Update child related entities with entity object    
+            # Update child related entities with entity object
             for group in new_entities:
                 field = group.get('field')
                 instances = group.get('entities')
