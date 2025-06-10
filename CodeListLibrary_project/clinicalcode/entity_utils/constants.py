@@ -838,6 +838,17 @@ FIELD_TYPES = {
         'output_type': 'dropdown-list'
     },
 
+    'age_group': {
+        'input_type': 'generic/age_group',
+        'output_type': 'generic/age_group'
+    },
+
+    'single_slider': {
+        'data_type': 'string',
+        'input_type': 'single_slider',
+        'output_type': 'single_slider'
+    },
+
     'double_range_slider': {
         'data_type': 'string',
         'input_type': 'double_range_slider',

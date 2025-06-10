@@ -128,4 +128,17 @@
     top: 50%;
     right: calc(100% + 5px);
   }
+  
+  &[direction^="left-inwards"]:before {
+    @include prefix(transform, translate(-0.5em, -50%), webkit moz o ms);
+    left: 100%;
+    top: 50%;
+    border-right-width: 0;
+    border-right-color: var(--color-accent-dark);
+  }
+  &[direction^="left-inwards"]:after {
+    @include prefix(transform, translate(0.5em, -50%), webkit moz o ms);
+    right: 15px;
+    top: 50%;
+  }
 }

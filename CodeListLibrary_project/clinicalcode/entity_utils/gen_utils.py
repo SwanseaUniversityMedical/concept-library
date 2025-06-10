@@ -11,6 +11,7 @@ from django.http.response import JsonResponse
 from rest_framework.request import Request
 from django.core.exceptions import BadRequest
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import Group
 from django.http.multipartparser import MultiPartParser
 
 import re
@@ -776,6 +777,18 @@ def try_value_as_type(
             limits = validation.get('range')
             if isinstance(limits, list) and isinstance(field_type, int) and (field_value < limits[0] or field_value > limits[1]):
                 return default
+
+            properties = validation.get('properties')
+            if isinstance(properties, dict):
+                fmin = parse_int(properties.get('min'), None)
+                fmax = parse_int(properties.get('max'), None)
+
+                if fmin is None or fmax is None:
+                    return field_value
+
+                if field_value < fmin or field_value > fmax:
+                    return default
+
         return field_value
     elif field_type in constants.NUMERIC_NAMES:
         field_value = parse_float(field_value, default)
@@ -1034,15 +1047,24 @@ def try_value_as_type(
             return default
         return field_value
     elif field_type == 'organisation' or field_type == 'group':
-        if isinstance(field_value, int):
-            group = apps.get_model(app_label='clinicalcode', model_name='Group')
-            group = group.objects.filter(id=field_value)
-            field_value = group.first().name if group.exists() else str(field_value)
-
-        if isinstance(field_value, str) and not is_empty_string(field_value):
+        if is_int(field_value) or (isinstance(field_value, str) and not is_empty_string(field_value)):
             org = apps.get_model(app_label='clinicalcode', model_name='Organisation')
+            if is_int(field_value):
+                org = org.objects.filter(Q(pk=int(field_value)))
+
+            if org.exists():
+                return org.first().pk
+
+            org = org.objects.filter(Q(name__iexact=field_value) | Q(slug__iexact=field_value))
+            if org.exists():
+                return org.first().pk if org.exists() else default
+
+        if field_value is not None and is_int(field_value):
+            group = Group.objects.filter(id=int(field_value))
+            field_value = group.first().name if group.exists() else str(field_value)
             org = org.objects.filter(Q(name__iexact=field_value) | Q(slug__iexact=field_value))
             return org.first().pk if org.exists() else default
+
         return default
     elif field_type == 'url_list':
         if not isinstance(field_value, list):
@@ -1253,6 +1275,28 @@ def try_value_as_type(
                     break
 
         return field_value if valid else default
+    elif field_type == 'age_group':
+        if not isinstance(field_value, dict):
+            return default
+
+        comparator = field_value.get('comparator')
+        data_value = field_value.get('value')
+
+        if comparator == 'between':
+            if not isinstance(data_value, list):
+                return default
+
+            data_value = try_value_as_type(data_value, 'int_range', validation)
+            if data_value is None:
+                return default
+        else:
+            if not is_int(data_value):
+                return default
+
+            data_value = try_value_as_type(data_value, 'int', validation)
+            if data_value is None:
+                return default
+        return field_value
 
     return field_value
 

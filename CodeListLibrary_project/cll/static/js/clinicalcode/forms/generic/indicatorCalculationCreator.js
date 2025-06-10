@@ -141,7 +141,7 @@ export default class IndicatorCalculationCreator {
   
         // Controls
         status: ['lines', 'words', 'cursor'],
-        tabSize: 2,
+        tabSize: 4,
         toolbar: [
           'heading', 'bold', 'italic', 'strikethrough', '|',
           'unordered-list', 'ordered-list', 'code', 'quote', '|',
@@ -151,7 +151,7 @@ export default class IndicatorCalculationCreator {
         toolbarTips: true,
         toolbarButtonClassPrefix: 'mde',
       });
-      
+
       let curContent = this.data?.[role];
       curContent = !stringHasChars(curContent) ? IndicatorCalculationCreator.#DefaultValues?.[role] : curContent;
 

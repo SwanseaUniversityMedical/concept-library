@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^privacy-and-cookie-policy/$', View.cookiespage, name='privacy_and_cookie_policy'),
 
     ## Technical
-    url(r'^reference-data/$', View.reference_data, name='reference_data'),
+    url(r'^reference-data/$', View.ReferenceData.as_view(), name='reference_data'),
     url(r'^technical_documentation/$', View.technicalpage, name='technical_documentation'),
 
     ## Cookies

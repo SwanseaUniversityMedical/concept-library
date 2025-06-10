@@ -1703,6 +1703,7 @@ def admin_convert_entity_groups(request):
             .exclude(id=owner_id)
 
         org = Organisation.objects.create(
+            id=entity_group,
             name=current_group.name,
             owner=current_owner
         )

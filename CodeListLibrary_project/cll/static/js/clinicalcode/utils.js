@@ -1387,6 +1387,95 @@ const isStringWhitespace = (value) => typeof value !== 'string' || !value.replac
 const stringHasChars = (value) => typeof value === 'string' && value.length && value.replace(/\s/g, '').length;
 
 /**
+ * @desc det. whether a numeric value is safe
+ * @note
+ * - Determines whether the value is a number, is finite, and is within min/max numeric bounds
+ * - Integers are represented by `fp` values in JS, which are IEEE 754 64-bit `double`s; this means we're getting 53 bits of precision for `int` types, i.e. a min/max value of `pow(2, 53) - 1` (`int53`)
+ * - It follows then that Floats/Doubles have a maximum precision of  15 decimal numerals
+ * 
+ * @param {number} value  the value to evaluate
+ * 
+ * @returns {boolean} specifies whether the value is safe
+ */
+const isSafeNumber = (value) => {
+  if (typeof value !== 'number') {
+    return false;
+  }
+
+  return (
+    !Number.isNaN(value) &&
+    Number.isFinite(value) &&
+    (Number.isSafeInteger(value) || Math.abs(value) < Number.MAX_VALUE)
+  );
+}
+
+/**
+ * @desc det. whether the specified value is within the desired range or, if provided, is approximately within such a range
+ * 
+ * @param {number!} value       some numeric value to evaluate
+ * @param {number!} min         the minimum bounds of the range
+ * @param {number!} max         the maximum bounds of the range
+ * @param {number?} [threshold] optionally specify a threshold in which the value should be considered to be approximately within the bounds of the specified range
+ * 
+ * @returns {boolean} specifies whether the value is within the specified range
+ */
+const isWithinBounds = (value, min, max, threshold = null) => {
+  if (!isSafeNumber(min) || !isSafeNumber(max)) {
+    return false;
+  }
+
+  if (min === max) {
+    return isSafeNumber(threshold)
+      ? approximately(value, max, threshold)
+      : value === max;
+  }
+
+  const tmp = Math.max(min, max);
+  min = Math.min(min, max);
+  max = tmp;
+
+  return (
+    (value >= min && value <= max) ||
+    (
+      isSafeNumber(threshold)
+        ? ((value < min && approximately(value, min, threshold)) || (value > max && approximately(value, max, threshold)))
+        : false
+    )
+  );
+}
+
+/**
+ * @desc attempts to parse a number and to derive its fmt from a string|number
+ * 
+ * @param {number|string} value some number-like object to evaluate
+ *  
+ * @returns {{value: number?, type: ('NaN' | 'int' | 'float')}} an Object describing the resulting value and its fmt type 
+ */
+const tryParseNumber = (value) => {
+  if (stringHasChars(value)) {
+    value = Number(value);
+  }
+
+  if (!isSafeNumber(value)) {
+    return { value: null, type: 'NaN' };
+  }
+
+  const remainder = value - (value | 0);
+  if (remainder < Number.MIN_VALUE || Math.abs(remainder - 1) < Number.MIN_VALUE) {
+    value = Math.trunc(value);
+  }
+
+  let type;
+  if (Number.isInteger(value)) {
+    type = 'int';
+  } else {
+    type = 'float';
+  }
+
+  return { value, type };
+}
+
+/**
  * clearAllChildren
  * @desc removes all children from a node
  * 
@@ -2258,6 +2347,34 @@ const tryNavigateLink = (link, {
 
   window.location = url.href;
   return true;
+}
+
+/**
+ * @desc validates a query selector string
+ * 
+ * @param {any} selector some value to evaluate
+ * 
+ * @returns {boolean} specifies whether the given query selector is valid
+ */
+const isValidSelector = (selector) => {
+  if (!stringHasChars(selector)) {
+    return false;
+  }
+
+  let fragment = globalThis?.__docFrag;
+  if (isNullOrUndefined(fragment)) {
+    fragment = document.createDocumentFragment();
+    globalThis.__docFrag = fragment;
+  }
+
+  let invalid = false;
+  try {
+    fragment.querySelector(selector)
+  } catch {
+    invalid = true;
+  } finally {
+    return !invalid;
+  }
 }
 
 /**

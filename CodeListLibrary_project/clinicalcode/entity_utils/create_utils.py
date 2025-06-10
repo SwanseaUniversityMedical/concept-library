@@ -545,18 +545,18 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
     
     field_info = GenericEntity._meta.get_field(field)
     if not field_info:
-        return
+        return None
     
     field_type = field_info.get_internal_type()
     if field_type != 'ForeignKey':
-        return
+        return None
     
     model = field_info.target_field.model
     if model is not None:
-        field_value = gen_utils.try_value_as_type(value, field_type, validation)
+        field_value = gen_utils.try_value_as_type(value, validation.get('type', field_type), validation)
         if field_value is None:
             return None
-        
+
         instance = model_utils.try_get_instance(model, pk=field_value)
         if instance is None:
             errors.append(f'"{field}" is invalid')
@@ -881,7 +881,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
     if field_behaviour is not None and field_behaviour.get('freeform', False):
         field_value = validate_freeform_field(request, field, field_data, value, errors)
         if field_value is None and field_required:
-            errors.append(f'"{field}" is invalid.')
+            errors.append(f'"{field}" is invalid. 1')
             return field_value, False
         return field_value, True
 
@@ -890,7 +890,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
         field_value = gen_utils.try_value_as_type(value, field_type, validation)
         field_value = try_validate_sourced_value(field, field_data, field_value, request=request)
         if field_value is None and field_required:
-            errors.append(f'"{field}" is invalid')
+            errors.append(f'"{field}" is invalid 2')
             return field_value, False
         return field_value, True
 
@@ -898,7 +898,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
     if field_computed is not None:
         field_value = validate_computed_field(request, field, field_data, value, errors)
         if field_value is None and field_required:
-            errors.append(f'"{field}" is invalid.')
+            errors.append(f'"{field}" is invalid. 3')
             return field_value, False
         return field_value, True
 
@@ -906,7 +906,7 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
     if field_children is not None:
         field_value = validate_related_entities(field, field_data, value, errors)
         if field_value is None and field_required:
-            errors.append(f'"{field}" is invalid.')
+            errors.append(f'"{field}" is invalid. 4')
             return field_value, False
         return field_value, True
     

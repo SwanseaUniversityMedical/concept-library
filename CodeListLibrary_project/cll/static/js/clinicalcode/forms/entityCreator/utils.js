@@ -2,6 +2,8 @@ import Tagify from '../../components/tagify.js';
 import ConceptCreator from '../clinical/conceptCreator.js';
 import GroupedEnum from '../../components/groupedEnumSelector.js';
 import ListEnum from '../../components/listEnumSelector.js';
+import AgeGroupSelector from '../generic/ageGroupSelector.js';
+import SingleSlider from '../../components/singleSlider.js';
 import DoubleRangeSlider from '../../components/doubleRangeSlider.js';
 import ContactListCreator from '../clinical/contactListCreator.js';
 import PublicationCreator from '../clinical/publicationCreator.js';
@@ -28,6 +30,50 @@ import {
  * 
  */
 export const ENTITY_HANDLERS = {
+  // Generates an age group component with a UDF comparator
+  'age-group': (element) => {
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for GroupedEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new AgeGroupSelector(element, packet);
+  },
+
+  // Generates a single numeric slider component context
+  'single-slider': (element) => {
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for GroupedEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new SingleSlider(element, packet);
+  },
+
   // Generates a doublerangeslider component context
   'doublerangeslider': (element) => {
     const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
@@ -274,7 +320,7 @@ export const ENTITY_HANDLERS = {
 
       // Controls
       status: ['lines', 'words', 'cursor'],
-      tabSize: 2,
+      tabSize: 4,
       toolbar: [
         'heading', 'bold', 'italic', 'strikethrough', '|',
         'unordered-list', 'ordered-list', 'code', 'quote', '|',
@@ -284,6 +330,38 @@ export const ENTITY_HANDLERS = {
       toolbarTips: true,
       toolbarButtonClassPrefix: 'mde',
     });
+
+    // mde.codemirror.on("beforeChange", (cm, change) => {
+    //   if(change.origin === 'paste') {
+    //     const newText = change.text
+    //       .join('\n')
+    //       .replace(/(?<!\r?\n)\r?\n(?!\r?\n)/g, (match, index, str) => {
+    //         if (index > 0) {
+    //           switch (str[index - 1]) {
+    //             case '.':
+    //               return '\n';
+
+    //             case '|':
+    //               return '\n';
+
+    //             default:
+    //               break;
+    //           }
+    //         }
+
+    //         if (index + match.length < str.length) {
+    //           if (str.substring(index + match.length).match(/^(\s*[\u{2022}\u{2023}\u{25E6}\u{2043}\u{2219}\*\-]\s*\w+|\d\.|[A-z]\)|[A-z]\.)/iu)) {
+    //             return '\n';
+    //           }
+    //         }
+
+    //         return ' ';
+    //       })
+    //       .split('\n');
+
+    //     change.update(null, null, newText);
+    //   }
+    // });
 
     if (!isStringEmpty(value) && !isStringWhitespace(value)) {
       mde.value(value);
@@ -808,6 +886,73 @@ export const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
+  // Retrieves and validates age-group component(s)
+  'age-group': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    if (isNullOrUndefined(value) || (isObjectType(value) && value?.comparator == 'na')) {
+      return {
+        valid: true,
+        value: null,
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates groupedenum components
+  'single-slider': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
   // Retrieves and validates groupedenum components
   'doublerangeslider': (field, packet) => {
     const handler = packet.handler;
@@ -1145,7 +1290,6 @@ export const ENTITY_FIELD_COLLECTOR = {
     const handler = packet.handler;
 
     let value = handler.editor.value();
-
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(value) || isStringEmpty(value)) {
         return {
@@ -1318,7 +1462,13 @@ export const collectFormData = () => {
   // merge metadata into template's fields for easy access
   if (result?.metadata && result?.template) {
     for (const [key, value] of Object.entries(result.metadata)) {
-      result.template.definition.fields[key] = { is_base_field: true };
+      const prev = result.template.definition.fields[key];
+      result.template.definition.fields[key] = mergeObjects(
+        isObjectType(prev) ? prev : { },
+        { is_base_field: true },
+        true,
+        true
+      );
     }
   }
 
@@ -1455,9 +1605,28 @@ export const parseAsFieldType = (packet, value, modifier) => {
         value = Math.trunc(value);
         valid = !isNaN(value) && Number.isFinite(value) && Number.isSafeInteger(value);
 
-        const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
-        if (valid && range.hasRange) {
-          value = clampNumber(value, range.values.min, range.values.max);
+        let proc;
+        let range = validation?.range;
+        if (!isNullOrUndefined(range)) {
+          range = resolveRangeOpts('int', validation?.range);
+          if (range.hasRange) {
+            proc = true;
+            value = clampNumber(value, range.values.min, range.values.max);
+          }
+        }
+
+        if (!proc) {
+          const props = validation?.properties;
+          if (isObjectType(props)) {
+            if (isSafeNumber(props?.min) || isSafeNumber(props?.max)) {
+              value = clampNumber(value, props.min, props.max);
+            } else {
+              range = resolveRangeOpts('int', validation?.properties?.range);
+              if (range.hasRange) {
+                value = clampNumber(value, range.values.min, range.values.max);
+              }
+            }
+          }
         }
       } else {
         valid = false;
@@ -1589,9 +1758,28 @@ export const parseAsFieldType = (packet, value, modifier) => {
       if (typeof value === 'number') {
         valid = !isNaN(value) && Number.isFinite(value);
 
-        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
-        if (valid && range.hasRange) {
-          value = clampNumber(value, range.values.min, range.values.max);
+        let proc;
+        let range = validation?.range;
+        if (!isNullOrUndefined(range)) {
+          range = resolveRangeOpts(type, validation?.range);
+          if (range.hasRange) {
+            proc = true;
+            value = clampNumber(value, range.values.min, range.values.max);
+          }
+        }
+
+        if (!proc) {
+          const props = validation?.properties;
+          if (isObjectType(props)) {
+            if (isSafeNumber(props?.min) || isSafeNumber(props?.max)) {
+              value = clampNumber(value, props.min, props.max);
+            } else {
+              range = resolveRangeOpts(type, validation?.properties?.range);
+              if (range.hasRange) {
+                value = clampNumber(value, range.values.min, range.values.max);
+              }
+            }
+          }
         }
       } else {
         valid = false;
@@ -1746,9 +1934,28 @@ export const parseAsFieldType = (packet, value, modifier) => {
       if (typeof value === 'number') {
         valid = !isNaN(value) && Number.isFinite(value);
 
-        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
-        if (valid && range.hasRange) {
-          value = clampNumber(value, range.values.min, range.values.max);
+        let proc;
+        let range = validation?.range;
+        if (!isNullOrUndefined(range)) {
+          range = resolveRangeOpts(type, validation?.range);
+          if (range.hasRange) {
+            proc = true;
+            value = clampNumber(value, range.values.min, range.values.max);
+          }
+        }
+
+        if (!proc) {
+          const props = validation?.properties;
+          if (isObjectType(props)) {
+            if (isSafeNumber(props?.min) || isSafeNumber(props?.max)) {
+              value = clampNumber(value, props.min, props.max);
+            } else {
+              range = resolveRangeOpts(type, validation?.properties?.range);
+              if (range.hasRange) {
+                value = clampNumber(value, range.values.min, range.values.max);
+              }
+            }
+          }
         }
       } else {
         valid = false;
@@ -1902,7 +2109,7 @@ export const parseAsFieldType = (packet, value, modifier) => {
       value = !isNullOrUndefined(value) ? String(value) : null;
 
       const pattern = validation?.regex;
-      if (!isNullOrUndefined(pattern)) {
+      if (!isNullOrUndefined(pattern) && typeof value === 'string') {
         try {
           if (typeof pattern === 'string') {
             valid = new RegExp(pattern).test(value);
@@ -2109,6 +2316,49 @@ export const parseAsFieldType = (packet, value, modifier) => {
     case 'related_entities': {
       if (!Array.isArray(value)) {
         valid = false;
+      }
+    } break;
+
+    case 'age_group': {
+      if (!isObjectType(value)) {
+        valid = false;
+        break
+      }
+
+      const range = resolveRangeOpts(
+        'int',
+        isObjectType(validation) && isObjectType(validation?.properties)
+          ? validation?.properties
+          : { }
+      );
+
+      let { value: val, comparator } = value;
+      if (comparator === 'between') {
+        if (!Array.isArray(val)) {
+          valid = false;
+          break;
+        }
+
+        val = parseAsFieldType({ validation: { type: 'int_range', properties: { min: range.values.min, max: range.values.max } } }, val);
+        if (!val || !val?.success) {
+          valid = false;
+          break;
+        }
+
+        value.value = val.value;
+      } else {
+        if (!isSafeNumber(val)) {
+          valid = false;
+          break;
+        }
+
+        val = parseAsFieldType({ validation: { type: 'int', properties: { min: range.values.min, max: range.values.max } } }, val);
+        if (!val || !val?.success) {
+          valid = false;
+          break;
+        }
+
+        value.value = val.value;
       }
     } break;
 

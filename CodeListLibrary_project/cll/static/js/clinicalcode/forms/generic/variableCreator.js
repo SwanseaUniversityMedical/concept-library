@@ -698,7 +698,7 @@ export default class VariableCreator {
 
             const fieldValidation = { validation: { type: data.type } };
             if (!isNullOrUndefined(range.values.min) && !isNullOrUndefined(range.values.max)) {
-              fieldValidation.validation.range = [fmin, fmax];
+              fieldValidation.validation.range = [range.values.min, range.values.max];
             }
 
             const input = elem.querySelector('input');
@@ -881,6 +881,9 @@ export default class VariableCreator {
 
               elem.addEventListener('change', (e) => {
                 let val = ctrls.value.getValue();
+                val = [val.min, val.max].map(x => typeof x !== 'number' || Number.isNaN(x) || !Number.isFinite(x) ? 0 : x);
+                val.sort((a, b) => a < b ? -1 : (a > b ? 1 : 0));
+
                 val = parseAsFieldType({ validation: { type: data.type, range: [fmin, fmax] } }, [val.min, val.max]);
                 if (!!val && val?.success) {
                   data.value = val.value;
@@ -920,14 +923,14 @@ export default class VariableCreator {
               const onChange = (e) => {
                 const trg = e.target.getAttribute('name');
                 const val = parseAsFieldType({ validation: { type: type } }, e.target.value);
-                if (!!val && val?.success) {
-                  data.value[trg === 'min' ? 0 : 1] = val.value;
-                  data.value.sort();
-                  state.isDirty = true;
-  
-                  minElem.value = data.value[0];
-                  maxElem.value = data.value[1];
-                }
+                data.value[trg === 'min' ? 0 : 1] = !!val && val.success ? val.value : 0;
+                data.value = data.value.map(x => typeof x !== 'number' || Number.isNaN(x) || !Number.isFinite(x) ? 0 : x);
+                data.value.sort((a, b) => a < b ? -1 : (a > b ? 1 : 0));
+
+                const [minV, maxV] = data.value;
+                minElem.value = minV;
+                maxElem.value = maxV;
+                state.isDirty = true;
               };
   
               minElem.addEventListener('change', onChange);

@@ -17,6 +17,7 @@
 
   <!-- Dependencies -->
   {% compress js %}
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
     <script type="module" src="{% static 'js/clinicalcode/services/referenceDataService.js' %}"></script>
   {% endcompress %}
 
@@ -93,49 +94,37 @@
   <main class="main-content">
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="reference-collection">
-        {% if tags and tags|length > 0 %}
-          <section class="reference-collection__inner-container" id="tags">
-            {% to_json_script tags data-owner="reference-data-service" name="tags" desc-type="text/json" %}
-            <h3>Tags</h3>
-            <p>Optional keywords helping to categorize this content.</p>
-            <div class="reference-collection__table-container constrained-codelist-table" id="tags-area">
-
-            </div>
-          </section>
+        {% if templates %}
+          <div class="selection-group">
+            <p class="selection-group__title">Template:</p>
+            <select
+              id="template-selector"
+              placeholder-text="Select Template"
+              data-class="option"
+              data-element="dropdown">
+              {% for key, value in templates.items %}
+                {% if forloop.first %}
+                  <option 
+                    value="{{ value.id }}" 
+                    class="dropdown-selection__list-item" 
+                    selected>
+                    {{ key }}
+                  </option>
+                {% else %}
+                  <option 
+                    value="{{ value.id }}" 
+                    class="dropdown-selection__list-item">
+                    {{ key }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
         {% endif %}
 
-        {% if collections and collections|length > 0 %}
-          <section class="reference-collection__inner-container" id="collections">
-            {% to_json_script collections data-owner="reference-data-service" name="collections" desc-type="text/json" %}
-            <h3>Collections</h3>
-            <p>List of content collections this {{ brand_mapping.phenotype }} belongs to.</p>
-            <div class="reference-collection__table-container constrained-codelist-table" id="collections-area">
-
-            </div>
-          </section>
-        {% endif %}
-
-        {% if coding_system and coding_system|length > 0 %}
-          <section class="reference-collection__inner-container" id="coding_system">
-            {% to_json_script coding_system data-owner="reference-data-service" name="coding_system" desc-type="text/json" %}
-            <h3>Coding Systems</h3>
-            <p>Clinical coding system(s) that relate to {{ brand_mapping.phenotype }}s.</p>
-            <div class="reference-collection__table-container constrained-codelist-table" id="coding-systems-area">
-
-            </div>
-          </section>
-        {% endif %}
-
-        {% if data_sources and data_sources|length > 0 %}
-          <section class="reference-collection__inner-container" id="data_sources">
-              {% to_json_script data_sources data-owner="reference-data-service" name="data_sources" desc-type="text/json" %}
-            <h3>Data Sources</h3>
-            <p>Data sources the {{ brand_mapping.phenotype }} creators have run this {{ brand_mapping.phenotype }} against; or view as appropriate to use this {{ brand_mapping.phenotype }} for.</p>
-            <div class="reference-collection__table-container constrained-codelist-table" id="data-sources-area">
-
-            </div>
-          </section>
-        {% endif %}
+        <section class="reference-collection__inner-container" id="template-fields">
+          {% to_json_script default_data data-owner="reference-data-service" name="default-data" desc-type="text/json" %}
+        </section>
 
         {% if ontology_groups %}
           <section class="reference-collection__inner-container" id="ontology">
@@ -159,6 +148,19 @@
 
       </article>
     </div>
+
+    <!-- Templates -->
+    <template data-name="reference-data">
+      <section class="reference-collection__inner-container" id="tags">
+        <h3>${name}</h3>
+        <p>${description}</p>
+        <div 
+          id="ref-container"
+          class="reference-collection__table-container constrained-codelist-table">
+
+        </div>
+      </section>
+    </template>
   </main>
 
 {% endblock container %}

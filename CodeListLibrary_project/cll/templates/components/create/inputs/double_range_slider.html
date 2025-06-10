@@ -28,12 +28,106 @@
       <input type="range" min="0" max="100" value="0" id="min-slider" data-target="min">
       <input type="range" min="0" max="100" value="100" id="max-slider" data-target="max">
     </div>
+
     <div class="double-slider__group">
-      <div class="double-slider__group__input">
-        <input type="number" value="0" id="min-value" data-target="min">
+      <div class="input-field-container number-input">
+        <div class="number-input__group">
+          <div class="number-input__group-inner">
+            <input
+              id="min-value"
+              name="min-value"
+              class="number-input__group-input"
+              type="number"
+              value="0"
+              pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+              step="1"
+              min="0"
+              max="100"
+              tabindex="0"
+              placeholder="..."
+              aria-label="Enter min number value"
+              data-step="1"
+              data-target="min"
+            />
+            <span class="as-icon" aria-hidden="true"></span>
+          </div>
+          <div class="number-input__group-spin">
+            <button
+              class="number-input__group-action"
+              type="button"
+              role="button"
+              tabindex="0"
+              title="Increase number value"
+              aria-label="Increase number value"
+              data-op="increment"
+              data-ref="min-value"
+              data-role="button"
+            >
+            </button>
+            <button
+              class="number-input__group-action"
+              type="button"
+              role="button"
+              tabindex="0"
+              title="Decrease number value"
+              aria-label="Decrease number value"
+              data-op="decrement"
+              data-ref="min-value"
+              data-role="button"
+            >
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="double-slider__group__input">
-        <input type="number" value="100" id="max-value" data-target="max">
+
+      <div class="input-field-container number-input">
+        <div class="number-input__group">
+          <div class="number-input__group-inner">
+            <input
+              id="max-value"
+              name="max-value"
+              class="number-input__group-input"
+              type="number"
+              value="0"
+              pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+              step="1"
+              min="0"
+              max="100"
+              tabindex="0"
+              placeholder="..."
+              aria-label="Enter max number value"
+              data-step="1"
+              data-target="max"
+            />
+            <span class="as-icon" aria-hidden="true"></span>
+          </div>
+          <div class="number-input__group-spin">
+            <button
+              class="number-input__group-action"
+              type="button"
+              role="button"
+              tabindex="0"
+              title="Increase number value"
+              aria-label="Increase number value"
+              data-op="increment"
+              data-ref="max-value"
+              data-role="button"
+            >
+            </button>
+            <button
+              class="number-input__group-action"
+              type="button"
+              role="button"
+              tabindex="0"
+              title="Decrease number value"
+              aria-label="Decrease number value"
+              data-op="decrement"
+              data-ref="max-value"
+              data-role="button"
+            >
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </fieldset>

@@ -1,5 +1,6 @@
 from functools import partial
 from django.conf import settings
+from html_to_markdown import convert_to_markdown
 
 import re
 import bleach
@@ -50,7 +51,7 @@ def sanitise_markdown_html(text):
 	if len(text) < 1 or text.isspace():
 		return text
 
-	text = re.sub(r'(^[^>\n].+[^\|\s])\n(?!\n)', nl_transform, text, flags=re.MULTILINE | re.IGNORECASE)
+	# text = re.sub(r'(^[^>\n].+[^\|\s])\n(?!\n)', nl_transform, text, flags=re.MULTILINE | re.IGNORECASE)
 	text = text.strip()
 
 	markdown_settings = settings.MARKDOWNIFY.get('default')
@@ -78,21 +79,36 @@ def sanitise_markdown_html(text):
 			parse_email=linkify_parse_email
 		)]
 
-	html = markdown.markdown(text, extensions=extensions, extension_configs=extension_configs)
+	html = markdown.markdown(text, extensions=extensions, extension_configs=extension_configs, output_format='html', tab_length=2)
 
 	css_sanitizer = bleach.css_sanitizer.CSSSanitizer(allowed_css_properties=whitelist_styles)
-	cleaner = bleach.Cleaner(tags=whitelist_tags,
+	cleaner = bleach.Cleaner(
+		tags=whitelist_tags,
 		attributes=whitelist_attrs,
 		css_sanitizer=css_sanitizer,
 		protocols=whitelist_protocols,
-		strip=strip,
 		filters=linkify,
+		strip=True
 	)
 
 	# See [!note] above for why we're doing this...
 	text = cleaner.clean(html)
 	if isinstance(text, str) and len(text) > 0 and not text.isspace():
-		text = pyhtml2md.convert(text)
+		# options = pyhtml2md.Options()
+		# options.splitLines = False
+
+		# converter = pyhtml2md.Converter(text, options)
+		# text = converter.convert()
+		text = convert_to_markdown(
+			html,
+			heading_style="atx",
+			strong_em_symbol="*",
+			bullets="-",
+			wrap=False,
+			escape_asterisks=False,
+			escape_underscores=False,
+			autolinks=False
+		)
 	else:
 		text = ''
 

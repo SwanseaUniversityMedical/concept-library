@@ -9,8 +9,9 @@ from django.contrib import messages
 from django.shortcuts import render
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.core.cache import cache
-from django.http.response import Http404
+from django.http.response import Http404, JsonResponse
 from django.core.exceptions import PermissionDenied
+from django.views.generic.base import TemplateView
 
 import sys
 import logging
@@ -23,10 +24,11 @@ from ..models.Brand import Brand
 from ..models.CodingSystem import CodingSystem
 from ..models.DataSource import DataSource
 from ..models.Statistics import Statistics
+from ..models.Template import Template
 
 from ..entity_utils import (
-    gen_utils, template_utils,
-    constants, model_utils, sanitise_utils
+    gen_utils, template_utils, constants, 
+    model_utils, sanitise_utils, create_utils
 )
 
 from ..entity_utils.constants import ONTOLOGY_TYPES
@@ -341,20 +343,151 @@ def check_recaptcha(request):
 
         return False
 
+class ReferenceData(TemplateView):
+    EXCLUDED_FIELDS = ['ontology', 'data_sources', 'brands']
 
-def reference_data(request):
-    """
-        Open page to list Data sources, Coding systems, Tags, Collections, Phenotype types, etc 
-    """
-    tags = template_utils.get_template_sourced_values(constants.metadata, 'tags', request=request, default=[])
-    collections = template_utils.get_template_sourced_values(constants.metadata, 'collections', request=request, default=[])
+    template_name = 'clinicalcode/about/reference_data.html'
 
-    context = {
-        'data_sources': list(DataSource.objects.all().order_by('id').values('id', 'name')),
-        'coding_system': list(CodingSystem.objects.all().order_by('id').values('id', 'name')),
-        'tags': tags,
-        'collections': collections,
-        'ontology_groups': [x.value for x in ONTOLOGY_TYPES]
-    }
+    def get_sourced_values(self, request, template, field):
+        field_info = template_utils.get_template_field_info(template, field)
+        template_field = field_info.get('field')
+        if not template_field:
+            return None
 
-    return render(request, 'clinicalcode/about/reference_data.html', context)
+        is_metadata = field_info.get('is_metadata')
+        will_hydrate = template_field.get('hydrated', False)
+
+        options = None
+        if not will_hydrate:
+            if is_metadata:
+                options = template_utils.get_template_sourced_values(
+                    constants.metadata, field, struct=template_field
+                )
+                if options is None:
+                    options = self.try_get_computed(
+                        field,
+                        struct=template_field
+                    )
+            else:
+                options = template_utils.get_template_sourced_values(
+                    template, field, struct=template_field
+                )
+        return options
+
+    def get_template_data(self, request, template_id, default=None):
+        template = model_utils.try_get_instance(Template, pk=template_id)
+        if template is None:
+            return default
+
+        template_fields = template_utils.try_get_content(
+            template_utils.get_merged_definition(template, default={}),
+            'fields'
+        )
+        if template_fields is None:
+            return default
+
+        result = []
+        for field, definition in template_fields.items():
+            if field in self.EXCLUDED_FIELDS:
+                continue
+
+            is_active = template_utils.try_get_content(definition, 'active')
+            if not is_active:
+                continue
+
+            validation = template_utils.try_get_content(definition, 'validation')
+            if validation is None:
+                continue
+
+            field_type = template_utils.try_get_content(validation, 'type')
+            if field_type is None:
+                continue
+
+            formatted_field = {
+                'name': template_utils.try_get_content(definition, 'title'),
+                'description': template_utils.try_get_content(definition, 'description')
+            }
+
+            is_option = template_utils.try_get_content(validation, 'options')
+            if is_option is not None:
+                if field_type not in ['enum', 'int_array']:
+                    continue
+
+            field_values = template_utils.get_template_sourced_values(
+                template, field
+            )
+            if field_values is not None:
+                formatted_field |= {
+                    'options': field_values
+                }
+                result.append(formatted_field)
+
+        return result
+
+    def get_templates(self, request):
+        templates = create_utils.get_createable_entities(request)
+
+        result = {}
+        for template in templates.get('templates'):
+            template_id = template.get('id')
+            template_name = template.get('name')
+            template_description = template.get('description')
+
+            result[template_name] = {
+                'id': template_id,
+                'description': template_description
+            }
+        
+        return result
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(ReferenceData, self).get_context_data(*args, **kwargs)
+        request = self.request
+
+        templates = self.get_templates(request)
+
+        data = None
+        if templates is not None:
+            default_template = next(iter(templates.values()))
+            data = self.get_template_data(
+                request, default_template.get('id')
+            )
+
+        return context | {
+            'ontology_groups': [x.value for x in ONTOLOGY_TYPES],
+            'templates': templates,
+            'default_data': data
+        }
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(*args, **kwargs)
+        return render(request, self.template_name, context)
+
+    def options(self, request, *args, **kwargs):
+        body = gen_utils.get_request_body(request)
+        if not isinstance(body, dict):
+            return gen_utils.jsonify_response(
+                code=400,
+                message='Invalid, no body included with request'
+            )
+
+        template_id = gen_utils.try_value_as_type(
+            body.get('template_id', None), 'int', default=None
+        )
+        
+        if template_id is None:
+            return gen_utils.jsonify_response(
+                code=400,
+                message='Invalid, expected integer-like `template_id` property'
+            )
+
+        template_data = self.get_template_data(request, template_id)
+        if template_data is None:
+            return gen_utils.jsonify_response(
+                code=404,
+                message='Failed to find template associated with the given `template_id` of `%d`' % template_id
+            )
+
+        return JsonResponse({
+            'data': template_data
+        })

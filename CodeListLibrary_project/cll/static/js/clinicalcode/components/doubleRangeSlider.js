@@ -4,7 +4,7 @@ import { parseAsFieldType } from '../forms/entityCreator/utils.js';
  * @class DoubleRangeSlider
  * @desc handler for DoubleRangeSlider components
  * 
- * @param {string/node} obj  The ID of the input element or the input element itself
+ * @param {string|node} obj  The ID of the input element or the input element itself
  * @param {object}      data Should describe the properties & validation assoc. with this component
  * 
  * @return {object} An interface to control the behaviour of the component

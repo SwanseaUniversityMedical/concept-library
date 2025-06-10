@@ -74,10 +74,12 @@
                 <span class="as-icon phenotype-creation--icn" data-icon="&#xf5b7;" aria-hidden="true"></span>
                 <p><strong>{{ entity.id }} / {{ entity.history_id }}</strong></p>
               </div>
-              <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
-                <span class="as-icon phenotype-creation--icn" data-icon="&#x40;" aria-hidden="true"></span>
-                <p><em>{{ entity.author }}</em></p>
-              </div>
+              {% if not entity.author|is_empty_value %}
+                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                  <span class="as-icon phenotype-creation--icn" data-icon="&#x40;" aria-hidden="true"></span>
+                  <p><em>{{ entity.author }}</em></p>
+                </div>
+              {% endif %}
               <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
                 <span class="as-icon phenotype-creation--icn" data-icon="&#xf0e7;" aria-hidden="true"></span>
                 <p>{{ entity.updated|date:'M j, Y' }}</p>

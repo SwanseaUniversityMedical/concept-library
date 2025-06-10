@@ -395,7 +395,7 @@ export default class EntityCreator {
         if (data.hasOwnProperty(key) || !templateFields.hasOwnProperty(key)) {
           continue;
         }
-        
+
         data[key] = value;
       }
     }
@@ -527,7 +527,11 @@ export default class EntityCreator {
       if (!metadata) {
         return null;
       }
-      
+
+      if (isObjectType(packet?.validation) && isObjectType(metadata[field]?.validation)) {
+        return mergeObjects(packet.validation, metadata[field].validation, true, true);
+      }
+
       return metadata[field]?.validation;
     }
 

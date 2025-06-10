@@ -14,7 +14,7 @@
             id="entity-{{ component.field_name }}" data-class="group-select"
             data-field="{{ component.field_name }}">
       <option value="-1" {% if component.value %} selected {% endif %}>Select Organisation</option>
-      {% for option in component.options %}
+      {% for option in component.options|dictsort:"name" %}
         <option value="{{ option.id }}" {% if component.value and component.value.name == option.name %} selected{% endif %}>{{ option.name }}</option>
       {% endfor %}
     </select>

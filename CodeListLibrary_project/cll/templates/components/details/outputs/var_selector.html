@@ -23,14 +23,40 @@
         </section>
       {% else %}
         <section class="item-display__list slim-scrollbar">
-          {% for item in component.value %}
-            <div class="item-display__item">
-              <div class="item-display__text item-display__text--fill-w">
-                <p><strong>{{ item.name }}</strong> (<em>{{ item.type }}</em>)</p>
-              </div>
-              <div class="item-display__value">
-                <p>{{ item.value }}</p>
-              </div>
+          {% for item in component.value|dictsort:"name" %}
+            <div
+              id="{{ component.field_name }}-{{ forloop.counter }}-root"
+              class="accordion"
+              data-class="checkbox"
+              data-field="{{ item.name }}"
+              role="collapsible"
+              tabindex="0"
+              aria-controls="{{ component.field_name }}-{{ forloop.counter }}"
+              aria-label="Toggle Description: {{ item.name }}"
+              tooltip="Toggle Description"
+              direction="left-inwards"
+            >
+              <input class="accordion__input" id="{{ component.field_name }}-{{ forloop.counter }}" name="{{ component.field_name }}-{{ forloop.counter }}" type="checkbox" />
+              <label class="accordion__label" for="{{ component.field_name }}-{{ forloop.counter }}" aria-describedby="{{ component.field_name }}-{{ forloop.counter }}-root">
+                <div class="item-display__item">
+                  <div class="item-display__text item-display__text--fill-w">
+                    <strong>{{ item.name }}</strong> (<em>{{ item.type }}</em>)
+                  </div>
+                  <div class="item-display__value">
+                    {{ item.value }}
+                  </div>
+                </div>
+              </label>
+              <article class="accordion__container">
+                <div class="item-display__desc-indent">
+                  <h4>Description:</h4>
+                  {% if item.description and item.description|length %}
+                    <p>{{ item.description }}</p>
+                  {% else %}
+                    <p><i>No description provided.</i></p>
+                  {% endif %}
+                </div>
+              </article>
             </div>
           {% endfor %}
         </section>

@@ -134,7 +134,7 @@
           "relative": "name",
           "include": ["abbreviation", "description"]
         },
-        "mandatory": true
+        "mandatory": false
       },
       "search": {
         "filterable": true,
@@ -248,18 +248,17 @@
     },
     "population_age": {
       "title": "Age",
-      "description": "The age range this Concept is applicable to.",
-      "field_type": "double_range_slider",
+      "description": "The age, or age range, this Concept is applicable to.",
+      "field_type": "age_group",
       "active": true,
       "icon": "&#xf133;",
       "validation": {
-        "type": "int_range",
-        "mandatory": true,
+        "type": "age_group",
+        "mandatory": false,
         "properties": {
-          "type": "int",
-          "step": 1,
           "min": 0,
-          "max": 100
+          "max": 120,
+          "step": 1
         }
       }
     },
@@ -271,7 +270,7 @@
       "icon": "&#xf228;",
       "validation": {
         "type": "enum",
-        "mandatory": true,
+        "mandatory": false,
         "options": {
           "1": "Male",
           "2": "Female",
@@ -297,7 +296,7 @@
       "icon": "&#xf007;",
       "validation": {
         "type": "int_array",
-        "mandatory": true,
+        "mandatory": false,
         "options": {
           "1": "Cisgender men",
           "2": "Cisgender women",
@@ -328,28 +327,23 @@
       "icon": "&#xe592;",
       "validation": {
         "type": "int_array",
-        "mandatory": true,
+        "mandatory": false,
         "options": {
-          "1": "White",
-          "2": "Indigenous",
-          "3": "South Asian",
-          "4": "Chinese",
-          "5": "Black",
-          "6": "Filipino",
-          "7": "Arab",
-          "8": "Latin American",
-          "9": "Southeast Asian",
-          "10": "West Asian",
-          "11": "Korean",
-          "12": "Japanese",
-          "13": "Mixed/Other",
-          "14": "N/A"
+          "1": "Black",
+          "2": "East Asian",
+          "3": "Latin American",
+          "4": "Middle Eastern",
+          "5": "South Asian",
+          "6": "Southeast Asian",
+          "7": "White",
+          "8": "Another Race Category",
+          "9": "N/A"
         },
         "properties": {
-          "none_selector": "14",
+          "none_selector": "9",
           "groups": [
             {
-              "when": "14",
+              "when": "9",
               "result": "deselect"
             }
           ]

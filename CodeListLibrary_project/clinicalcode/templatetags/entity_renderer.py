@@ -1188,7 +1188,7 @@ class EntityCreateWizardSections(template.Node):
             return
         
         # append other computed fields if required
-        if field == 'organisation':
+        if field == 'organisation' or field == 'group':
             return permission_utils.get_user_organisations(self.request)
         return
 
@@ -1427,7 +1427,7 @@ def get_template_creation_data(entity, layout, field, request=None, default=None
                         value = str(value)
 
                 typed = typed.replace('_', ' ').title()
-                result.append({ 'name': item.get('name'), 'type': typed, 'value': value })
+                result.append({ 'name': item.get('name'), 'type': typed, 'value': value, 'description': item.get('description') })
             
             return result if len(result) > 0 else None
         return default
