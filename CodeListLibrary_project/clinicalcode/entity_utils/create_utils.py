@@ -563,10 +563,15 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
             return None
 
         if field == 'organisation' or field == 'group':
-            is_member = user.is_superuser or (not user.is_anonymous and user.organisationmembership_set.filter(
-                Q(organisation_id=instance.id) & 
-                Q(role__gte=constants.ORGANISATION_ROLES.EDITOR.value)
-            ).exists())
+            is_member = user.is_superuser or (
+                not user.is_anonymous and (
+                    instance.owner_id == user.id or
+                    user.organisationmembership_set.filter(
+                        Q(organisation_id=instance.id) & 
+                        Q(role__gte=constants.ORGANISATION_ROLES.EDITOR.value)
+                    ).exists()
+                )
+            )
             if not is_member:
                 errors.append(f'Tried to set {field} without being a member of that group.')
                 return None

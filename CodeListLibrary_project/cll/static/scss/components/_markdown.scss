@@ -42,6 +42,10 @@
   max-width: calc(100% - 1rem);
   overflow: auto;
 
+  code {
+    text-wrap: wrap;
+  }
+
   img {
     max-width: 100%;
   }
