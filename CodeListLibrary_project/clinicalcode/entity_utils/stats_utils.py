@@ -124,7 +124,8 @@ def build_statistics(statistics, entity, field, struct, data_cache=None, templat
             
             stats[entity_field]['count'] += 1
     elif field_type == 'int_array':
-        if 'source' in validation:
+        src_field = validation.get('source')
+        if isinstance(src_field, dict) and not src_field.get('trees'):
             for item in entity_field:
                 value = try_get_cached_data(data_cache, entity, template_entity, field, item, validation, struct, brand=brand)
                 if value is None:
