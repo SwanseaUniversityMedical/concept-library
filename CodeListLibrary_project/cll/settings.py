@@ -700,6 +700,9 @@ CELERY_RESULT_BACKEND = 'django-db'
 ## Celery beat settings
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
+## Task queue
+ENABLE_DEMO_TASK_QUEUE = get_env_value('ENABLE_DEMO_TASK_QUEUE', cast='bool', default=False)
+
 ## Swagger settings
 ##     SWAGGER_SETTINGS = { 'JSON_EDITOR': True, }
 SWAGGER_TITLE = 'Concept Library API'
