@@ -99,7 +99,13 @@
             },
             "type": {
               "type": "int_array",
-              "field": "type_id"
+              "field": "type_id",
+              "coerce": [
+                { "compare": "SNOMED", "out": 0 },
+                { "compare": "Clinical Disease Category (SNOMED)", "out": 0 },
+                { "compare": "Clinical Domain", "out": 1 },
+                { "compare": "Functional Anatomy", "out": 2 }
+              ]
             },
             "reference": {
               "type": "int_array",
@@ -228,7 +234,7 @@
       "field_type": "daterange",
       "validation": {
         "type": "string",
-        "regex": "(?:\\d+/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+/|\\d+)+",
+        "regex": "[\\S\\s]*?(\\d+(?:-\\d+)*)[^\\d]*",
         "mandatory": false,
         "sanitise": "strict"
       },
@@ -291,8 +297,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 250],
-        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
+        "length": [0, 500],
+        "regex": "^(https?:\\/\\/)((?!-)(?!.*--)[a-zA-Z\\-0-9]{1,63}(?<!-)\\.)+[a-zA-Z]{2,63}(\\/[^\\s]*)?$"
       },
       "hide_if_empty": true
     },
@@ -364,7 +370,7 @@
       "do_not_show_in_production": true
     },
     {
-      "title": "Clinical Code List",
+      "title": "Clinical Codelist",
       "fields": [
         "concept_information"
       ],

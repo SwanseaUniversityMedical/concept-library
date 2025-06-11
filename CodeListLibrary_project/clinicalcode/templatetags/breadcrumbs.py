@@ -117,7 +117,11 @@ class BreadcrumbsNode(template.Node):
         self.nodelist = nodelist
     
     def __is_brand_token(self, token):
-        return Brand.objects.filter(name__iexact=token).exists()
+        if not isinstance(token, str):
+            return False
+
+        element = next((x for x in Brand.all_instances() if x.name.lower() == token.lower()), None)
+        return element is not None
 
     def __is_valid_token(self, token):
         if self.__is_brand_token(token):

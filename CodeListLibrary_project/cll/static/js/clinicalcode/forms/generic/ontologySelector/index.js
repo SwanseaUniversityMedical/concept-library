@@ -1,6 +1,8 @@
 import * as Constants from './constants.js';
+
+import DebouncedTask from '../../../components/tasks/debouncedTask.js';
+import VirtualisedList from '../../../components/virtualisedList/index.js';
 import OntologySelectionModal from './modal.js';
-import VirtualisedList, { DebouncedTask } from '../../../components/virtualisedList/index.js';
 
 /**
  * @desc constructs a predicate to find an object within an arr
@@ -11,7 +13,7 @@ import VirtualisedList, { DebouncedTask } from '../../../components/virtualisedL
  */
 const hasParentPred = (id) => {
   return (x) => {
-    if (typeof x === 'object' && x?.id === id) {
+    if (!!x && typeof x === 'object' && x?.id === id) {
       return true;
     } else if (typeof x === 'number' && x === id) {
       return true;
@@ -38,11 +40,23 @@ export default class OntologySelectionService {
 
     const hasInitData = !isNullOrUndefined(componentData?.dataset);
     this.dataset = hasInitData ? componentData?.dataset : [];
+    this.allowedTypes = isRecordType(componentData?.validation?.source) && Array.isArray(componentData?.validation?.source?.trees)
+      ? componentData.validation.source.trees
+      : [];
+
     this.#initialise(componentData, options);
 
     if (!hasInitData) {
       this.#fetchComponentData()
         .then(dataset => {
+          let i = 0;
+          while (i < dataset.length) {
+            if (this.allowedTypes.includes(dataset?.[i]?.model?.source)) {
+              i++;
+              continue;
+            }
+            dataset.splice(i, 1);
+          }
           this.dataset.splice(this.dataset.length, 0, ...dataset);
           this.#initialiseTree();
 
@@ -54,8 +68,11 @@ export default class OntologySelectionService {
           if (componentData && componentData?.value) {
             this.#computeComponentValue(componentData?.value, true);
           }
+          this.#renderCreateComponent();
         })
         .catch(console.error);
+    } else {
+      this.#renderCreateComponent();
     }
   }
 
@@ -260,7 +277,6 @@ export default class OntologySelectionService {
       );
     }
     this.templates = templates;
-    this.#renderCreateComponent();
   }
 
   /**
@@ -297,6 +313,8 @@ export default class OntologySelectionService {
         headers: {
           'X-Target': 'get_options',
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     )
@@ -462,6 +480,8 @@ export default class OntologySelectionService {
         headers: {
           'X-Target': 'query_ontology_typeahead',
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     )
@@ -497,6 +517,8 @@ export default class OntologySelectionService {
         headers: {
           'X-Target': 'query_ontology_record',
           'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'max-age=3600',
+          'Pragma': 'max-age=3600',
         }
       }
     )
@@ -511,7 +533,7 @@ export default class OntologySelectionService {
       return response.json();
     })
     .then(response => {
-      if (!typeof response === 'object' || !Array.isArray(response?.ancestors) || !Array.isArray(response?.value)) {
+      if (!isRecordType(response) || !Array.isArray(response?.result)) {
         return null;
       }
 
@@ -536,7 +558,13 @@ export default class OntologySelectionService {
       { host: this.domain, id: id.toString() }
     );
 
-    const response = await fetch(url, { method: 'GET' });
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'max-age=3600',
+        'Pragma': 'max-age=3600',
+      },
+    });
     if (!response.ok) {
       throw new Error(`An error has occurred: ${response.status}`);
     }
@@ -910,7 +938,15 @@ export default class OntologySelectionService {
       this.renderable = renderable;
 
       this.#initialiseDialogue();
-      this.#pushDataset(0);
+
+      const trg = this.dataset.reduce((res, x) => {
+          if (!isNullOrUndefined(res) && typeof x?.model?.source === 'number') {
+            return Math.min(x.model.source, res);
+          }
+          return x?.model?.source
+      }, null);
+
+      this.#pushDataset(typeof trg === 'number' ? trg : 0);
       this.#resolveSelectedItems();
     })
       .then(state => {
@@ -979,7 +1015,7 @@ export default class OntologySelectionService {
       });
 
       let component = parseHTMLFromString(html, true);
-      component = ontologyContainer.appendChild(component.body.children[0]);
+      component = ontologyContainer.appendChild(component[0]);
 
       let active = parseInt(component.getAttribute('data-source')) === activeId;
       if (active) {
@@ -996,6 +1032,7 @@ export default class OntologySelectionService {
     const treeComponent = eleTree({
       el: treeContainer,
       lazy: true,
+      sort: true,
       data: this.activeData,
       showCheckbox: true,
       highlightCurrent: true,
@@ -1048,7 +1085,7 @@ export default class OntologySelectionService {
           });
 
           let component = parseHTMLFromString(html, true);
-          component = component.body.children[0];
+          component = component[0];
           
           const btn = component.querySelector('[data-target="delete"]');
           btn.addEventListener('click', this.#handleDeleteButton.bind(this));
@@ -1143,13 +1180,12 @@ export default class OntologySelectionService {
           });
 
           let component = parseHTMLFromString(html, true);
-          component = ontologyList.appendChild(component.body.children[0]);
+          component = ontologyList.appendChild(component[0]);
         }
 
         let html = interpolateString(this.templates.value, { label: label });
-
         let component = parseHTMLFromString(html, true);
-        component = ontologyList.appendChild(component.body.children[0]);
+        component = ontologyList.appendChild(component[0]);
       }
     }
 

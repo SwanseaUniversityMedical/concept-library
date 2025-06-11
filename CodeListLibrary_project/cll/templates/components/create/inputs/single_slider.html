@@ -1,0 +1,88 @@
+{% load entity_renderer %}
+<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+    <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
+  {% endif %}
+
+  {% if component.properties %}
+    {% to_json_script component.properties data-type="properties" for=component.field_name %}
+  {% endif %}
+
+  {% if component.value %}
+    {% to_json_script component.value data-type="value" for=component.field_name %}
+  {% endif %}
+
+  <fieldset
+    id="entity-{{ component.field_name }}"
+    class="single-slider"
+    data-class="single-slider"
+    data-field="{{ component.field_name }}"
+  >
+    <div class="single-slider__input">
+      <div class="single-slider__input__progress" id="progress-bar"></div>
+      <input type="range" min="0" max="100" value="0" id="slider-input">
+    </div>
+
+  </fieldset>
+
+  <template data-name="number" data-view="inputs">
+    <div class="input-field-container number-input">
+      <div class="number-input__group">
+        <div class="number-input__group-inner">
+          <input
+            id="${id}"
+            name="${ref}"
+            class="number-input__group-input"
+            type="number"
+            value="${value}"
+            pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+            ${step}
+            ${rangemin}
+            ${rangemax}
+            tabindex="0"
+            placeholder="${placeholder}"
+            aria-label="Enter number value"
+            data-step="${btnStep}"
+            data-type="${type}"
+            ${disabled}
+          />
+          <span class="as-icon" aria-hidden="true"></span>
+        </div>
+        <div class="number-input__group-spin">
+          <button
+            class="number-input__group-action"
+            type="button"
+            role="button"
+            tabindex="0"
+            title="Increase number value"
+            aria-label="Increase number value"
+            data-op="increment"
+            data-ref="${ref}"
+            data-role="button"
+            ${disabled}
+          >
+          </button>
+          <button
+            class="number-input__group-action"
+            type="button"
+            role="button"
+            tabindex="0"
+            title="Decrease number value"
+            aria-label="Decrease number value"
+            data-op="decrement"
+            data-ref="${ref}"
+            data-role="button"
+            ${disabled}
+          >
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

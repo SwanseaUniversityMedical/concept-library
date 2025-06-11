@@ -16,12 +16,16 @@
           <p class="detailed-input-group__description">{{ component.description }}</p>
         {% endif %}
 
-        {{ component.value|markdownify }}
+        <div class="markdown-render-container slim-scrollbar">
+          {{ component.value|markdownify }}
+        </div>
       </h3>
     {% else %}
       <h3 class="detailed-input-group__title">Citation Example</h3>
       {% render_citation_block entity request as citation %}
-      {{ citation|markdownify }}
+      <div class="markdown-render-container slim-scrollbar">
+        {{ citation|markdownify }}
+      </div>
     {% endif %}
   </div>
 </div>

@@ -1,18 +1,22 @@
-'''
-    URL Configuration for the Clinical-Code application.
-
-    Pages appear as Working-sets, Concepts and Components within a Concept.
-'''
+"""Static URL Configuration for the Clinical-Code application."""
 
 from django.conf import settings
 from django.urls import re_path as url
-from django.views.generic.base import RedirectView
-from django.contrib.auth import views as auth_views
 
+from clinicalcode.views.dashboard import BrandAdmin
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
-from clinicalcode.views import (View, Admin, adminTemp,
-                                GenericEntity, Profile, Moderation,
-                                Publish, Decline, site)
+
+from clinicalcode.views import (
+    site, View, Admin, adminTemp,
+    GenericEntity, Moderation, Profile, Organisation
+)
+
+from clinicalcode.views.dashboard.targets import (
+  BrandTarget, UserTarget, OrganisationTarget,
+  TemplateTarget, TagTarget, HDRNSiteTarget,
+  HDRNCategoryTarget, HDRNDataAssetTarget, HDRNJurisdictionTarget
+)
+
 
 # Main
 urlpatterns = [
@@ -27,7 +31,7 @@ urlpatterns = [
     url(r'^privacy-and-cookie-policy/$', View.cookiespage, name='privacy_and_cookie_policy'),
 
     ## Technical
-    url(r'^reference-data/$', View.reference_data, name='reference_data'),
+    url(r'^reference-data/$', View.ReferenceData.as_view(), name='reference_data'),
     url(r'^technical_documentation/$', View.technicalpage, name='technical_documentation'),
 
     ## Cookies
@@ -35,32 +39,57 @@ urlpatterns = [
     
     ## About pages
     url(r'^about/(?P<pg_name>([A-Za-z0-9\-\_]+))/$', View.brand_about_index_return, name='about_page'),
-    
-    ## Changing password(s)
-    url(
-        route='^change-password/$',
-        view=auth_views.PasswordChangeView.as_view(),
-        name='password_change',
-        kwargs={ 'post_change_redirect': 'concept_library_home' }
-    ),
 
-    # GenericEnities (Phenotypes)
-    ## Search
-    url(r'^phenotypes/$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
-    # url(r'^phenotypes/(?P<entity_type>([A-Za-z0-9\-]+))/?$', GenericEntity.EntitySearchView.as_view(), name='search_phenotypes'),
-    
-    ## Detail
-    url(r'^phenotypes/(?P<pk>\w+)/$', RedirectView.as_view(pattern_name='entity_detail'), name='entity_detail_shortcut'),
-    url(r'^phenotypes/(?P<pk>\w+)/detail/$', GenericEntity.generic_entity_detail, name='entity_detail'),
-    url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.generic_entity_detail, name='entity_history_detail'),
+    ## Moderation
+    url(r'^moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
 
-    url(r'^phenotypes/(?P<pk>\w+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_latest_version_codes_to_csv'),
-    url(r'^phenotypes/(?P<pk>\w+)/version/(?P<history_id>\d+)/export/codes/$', GenericEntity.export_entity_codes_to_csv, name='export_entity_version_codes_to_csv'),   
+    ## Contact
+    url(r'^contact-us/$', View.contact_us, name='contact_us'),
 
+    # User
     ## Profile
-    url(r'profile/$', Profile.MyCollection.as_view(), name='my_profile'),
-    url(r'profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
+    url(r'^profile/$', Profile.MyCollection.as_view(), name='my_profile'),
+    url(r'^profile/collection/$', Profile.MyCollection.as_view(), name='my_collection'),
+    url(r'^profile/organisations/$', Profile.MyOrganisations.as_view(), name='my_organisations'),
 
+    ## Organisation
+    url(r'^org/view/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationView.as_view(), name='view_organisation'),
+    # url(r'^org/create/?$', Organisation.OrganisationCreateView.as_view(), name='create_organisation'),
+    url(r'^org/manage/(?P<slug>([\w\d\-\_]+))/?$', Organisation.OrganisationManageView.as_view(), name='manage_organisation'),
+    url(r'^org/invite/(?P<uuid>([\w\d\-\_]+))/?$', Organisation.OrganisationInviteView.as_view(), name='view_invite_organisation'),
+
+    # Brand
+    ## Brand Administration
+    ### Endpoints: dashboard view controllers
+    url(r'^dashboard/$', BrandAdmin.BrandDashboardView.as_view(), name=BrandAdmin.BrandDashboardView.reverse_name),
+    url(r'^dashboard/view/overview/$', BrandAdmin.BrandOverviewView.as_view(), name=BrandAdmin.BrandOverviewView.reverse_name),
+    url(r'^dashboard/view/inventory/$', BrandAdmin.BrandInventoryView.as_view(), name=BrandAdmin.BrandInventoryView.reverse_name),
+
+    ### Endpoints: dashboard model administration
+    url(r'^dashboard/target/brand/$', BrandTarget.BrandEndpoint.as_view(), name=BrandTarget.BrandEndpoint.reverse_name_default),
+
+    url(r'^dashboard/target/users/$', UserTarget.UserEndpoint.as_view(), name=UserTarget.UserEndpoint.reverse_name_default),
+    url(r'^dashboard/target/users/(?P<pk>\w+)/$', UserTarget.UserEndpoint.as_view(), name=UserTarget.UserEndpoint.reverse_name_retrieve),
+
+    url(r'^dashboard/target/organisations/$', OrganisationTarget.OrganisationEndpoint.as_view(), name=OrganisationTarget.OrganisationEndpoint.reverse_name_default),
+    url(r'^dashboard/target/organisations/(?P<pk>\w+)/$', OrganisationTarget.OrganisationEndpoint.as_view(), name=OrganisationTarget.OrganisationEndpoint.reverse_name_retrieve),
+
+    url(r'^dashboard/target/template/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_default),
+    url(r'^dashboard/target/template/(?P<pk>\w+)/$', TemplateTarget.TemplateEndpoint.as_view(), name=TemplateTarget.TemplateEndpoint.reverse_name_retrieve),
+
+    url(r'^dashboard/target/tags/$', TagTarget.TagEndpoint.as_view(), name=TagTarget.TagEndpoint.reverse_name_default),
+    url(r'^dashboard/target/tags/(?P<pk>\w+)/$', TagTarget.TagEndpoint.as_view(), name=TagTarget.TagEndpoint.reverse_name_retrieve),
+
+    url(r'^dashboard/target/sites/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_default),
+    url(r'^dashboard/target/sites/(?P<pk>\w+)/$', HDRNSiteTarget.HDRNSiteEndpoint.as_view(), name=HDRNSiteTarget.HDRNSiteEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/jurisdictions/$', HDRNJurisdictionTarget.HDRNJurisdictionEndpoint.as_view(), name=HDRNJurisdictionTarget.HDRNJurisdictionEndpoint.reverse_name_default),
+    url(r'^dashboard/target/jurisdictions/(?P<pk>\w+)/$', HDRNJurisdictionTarget.HDRNJurisdictionEndpoint.as_view(), name=HDRNJurisdictionTarget.HDRNJurisdictionEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/category/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_default),
+    url(r'^dashboard/target/category/(?P<pk>\w+)/$', HDRNCategoryTarget.HDRNCategoryEndpoint.as_view(), name=HDRNCategoryTarget.HDRNCategoryEndpoint.reverse_name_retrieve),
+    url(r'^dashboard/target/data_assets/$', HDRNDataAssetTarget.HDRNDataAssetEndpoint.as_view(), name=HDRNDataAssetTarget.HDRNDataAssetEndpoint.reverse_name_default),
+    url(r'^dashboard/target/data_assets/(?P<pk>\w+)/$', HDRNDataAssetTarget.HDRNDataAssetEndpoint.as_view(), name=HDRNDataAssetTarget.HDRNDataAssetEndpoint.reverse_name_retrieve),
+
+    # GenericEnities (GenericEntity)
     ## Selection service(s)
     url(r'^query/(?P<template_id>\w+)/?$', GenericEntity.EntityDescendantSelection.as_view(), name='entity_descendants'),
 
@@ -71,23 +100,12 @@ urlpatterns = [
     ## Documentation for create
     url(r'^documentation/(?P<documentation>([A-Za-z0-9\-]+))/?$', DocumentationViewer.as_view(), name='documentation_viewer'),
 
-    ## Moderation
-    url(r'moderation/$', Moderation.EntityModeration.as_view(), name='moderation_page'),
-
-    ## Contact
-    url(r'^contact-us/$', View.contact_us, name='contact_us'),
-
-    # GenericEnities (Phenotypes)
     ## Create / Update
     url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
     url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
     url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_phenotype'),
-
-    ## Publication
-    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/publish/$', Publish.Publish.as_view(),name='generic_entity_publish'),
-    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/decline/$', Decline.EntityDecline.as_view(),name='generic_entity_decline'),
-    url(r'^phenotypes/(?P<pk>\w+)/(?P<history_id>\d+)/submit/$', Publish.RequestPublish.as_view(),name='generic_entity_request_publish'),
 ]
+
 
 # Add sitemaps & robots if required (only for HDRUK .org site (or local dev.) -- check is done in site.py)
 urlpatterns += [
@@ -115,9 +133,13 @@ if not settings.CLL_READ_ONLY:
         # url(r'^adminTemp/admin_force_links_dt/$', adminTemp.admin_force_concept_linkage_dt, name='admin_force_links_dt'),
         # url(r'^adminTemp/admin_fix_breathe_dt/$', adminTemp.admin_fix_breathe_dt, name='admin_fix_breathe_dt'),
         # url(r'^adminTemp/admin_fix_malformed_codes/$', adminTemp.admin_fix_malformed_codes, name='admin_fix_malformed_codes'),
+        #url(r'^adminTemp/admin_update_phenoflowids/$', adminTemp.admin_update_phenoflowids, name='admin_update_phenoflowids'),
         url(r'^adminTemp/admin_force_adp_links/$', adminTemp.admin_force_adp_linkage, name='admin_force_adp_links'),
         url(r'^adminTemp/admin_fix_coding_system_linkage/$', adminTemp.admin_fix_coding_system_linkage, name='admin_fix_coding_system_linkage'),
         url(r'^adminTemp/admin_fix_concept_linkage/$', adminTemp.admin_fix_concept_linkage, name='admin_fix_concept_linkage'),
         url(r'^adminTemp/admin_force_brand_links/$', adminTemp.admin_force_brand_links, name='admin_force_brand_links'),
-        url(r'^adminTemp/admin_update_phenoflowids/$', adminTemp.admin_update_phenoflowids, name='admin_update_phenoflowids'),
+        url(r'^adminTemp/admin_update_phenoflow_targets/$', adminTemp.admin_update_phenoflow_targets, name='admin_update_phenoflow_targets'),
+        url(r'^adminTemp/admin_upload_hdrn_assets/$', adminTemp.admin_upload_hdrn_assets, name='admin_upload_hdrn_assets'),
+        url(r'^adminTemp/admin_convert_entity_groups/$', adminTemp.admin_convert_entity_groups, name='admin_convert_entity_groups'),
+        url(r'^adminTemp/admin_fix_icd_ca_cm_codes/$', adminTemp.admin_fix_icd_ca_cm_codes, name='admin_fix_icd_ca_cm_codes'),
     ]

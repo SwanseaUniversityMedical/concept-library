@@ -1,8 +1,10 @@
-from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
+from django.contrib.auth import get_user_model
 
 from clinicalcode.models.TimeStampedModel import TimeStampedModel
+
+User = get_user_model()
 
 class DataSource(TimeStampedModel):
     """
@@ -22,11 +24,10 @@ class DataSource(TimeStampedModel):
                                    on_delete=models.SET_NULL,
                                    null=True,
                                    related_name="data_source_updated")
-    datasource_id = models.IntegerField(unique=True, null=True)
+    datasource_id = models.IntegerField(unique=False, null=True)
+    source = models.CharField(max_length=100, null=True, blank=True)
 
     history = HistoricalRecords()
-
-    source = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.name

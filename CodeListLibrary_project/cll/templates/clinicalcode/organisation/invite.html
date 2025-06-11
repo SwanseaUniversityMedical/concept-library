@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Organisation Invite {% endblock title %}
+
+{% block container %}
+  <!-- Dependencies -->
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/services/organisationService/invite.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/organisations.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">Invitation to join {{instance.name}}</h2>
+        <p class="banner__description">
+          Please accept or reject the invitation
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% url 'view_organisation' instance.slug as redirect_org %}
+    {% url 'concept_library_home' as redirect_home %}
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="organisation-page">
+        <section class="organisation-page__section">
+          <div class="organisation-page__section__invite">
+            <button class="primary-btn text-accent-darkest bold secondary-accent" 
+                    aria-label="Accept invitation" 
+                    id="accept-btn"
+                    data-href="{{ redirect_org }}">
+              Accept
+            </button>
+            <button class="primary-btn text-accent-darkest bold danger-accent" 
+                    aria-label="Reject invitation" 
+                    id="reject-btn"
+                    data-href="{{ redirect_home }}">
+              Reject
+            </button>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+{% endblock container %}

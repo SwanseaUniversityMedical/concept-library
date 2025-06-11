@@ -1,10 +1,12 @@
 from django.conf import settings
 
+from clinicalcode.entity_utils import constants, permission_utils
 from clinicalcode.api.views.View import get_canonical_path
-from clinicalcode.entity_utils import constants
 
 def general_var(request):
     return {
+        'USER_CREATE_CONTEXT': permission_utils.user_has_create_context(request),
+        'IS_BRAND_ADMIN': permission_utils.is_requestor_brand_admin(request),
         'MEDIA_URL': settings.MEDIA_URL,
         'CLL_READ_ONLY': settings.CLL_READ_ONLY,
         'SHOWADMIN': settings.SHOWADMIN,

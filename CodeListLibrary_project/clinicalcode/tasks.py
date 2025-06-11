@@ -20,7 +20,7 @@ def send_review_email(request,data):
 
 @shared_task(bind=True)
 def send_scheduled_email(self):
-    email_subject = 'Weekly email Concept Library'
+    email_subject = 'Weekly Email'
     email_content = email_utils.get_scheduled_email_to_send()
 
     owner_ids = list(set([c['owner_id'] for c in email_content]))

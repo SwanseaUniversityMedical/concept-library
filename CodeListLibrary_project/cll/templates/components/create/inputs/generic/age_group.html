@@ -1,0 +1,227 @@
+{% load entity_renderer %}
+<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+    <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
+  {% endif %}
+
+  {% if component.properties %}
+    {% to_json_script component.properties data-type="properties" for=component.field_name %}
+  {% endif %}
+
+  {% if component.value %}
+    {% to_json_script component.value data-type="value" for=component.field_name %}
+  {% endif %}
+
+  <fieldset
+    id="entity-{{ component.field_name }}"
+    class="age-group"
+    data-class="age-group"
+    data-field="{{ component.field_name }}"
+  >
+    <div class="selection-group">
+      <p class="selection-group__title">Comparator:</p>
+      <select
+        id="comparator-dropdown"
+        placeholder-text="Between"
+        data-class="option"
+        data-element="dropdown"
+        data-target="inequality"
+      >
+        <option value="0" class="dropdown-selection__list-item" data-cls="na" data-rel="na" selected>
+          Not Specified
+        </option>
+        <option value="1" class="dropdown-selection__list-item" data-cls="range" data-rel="between">
+          Between
+        </option>
+        <option value="2" class="dropdown-selection__list-item" data-cls="bounds" data-rel="lte">
+          Less Than Or Equal
+        </option>
+        <option value="3" class="dropdown-selection__list-item" data-cls="bounds" data-rel="gte">
+          Greater Than Or Equal
+        </option>
+      </select>
+    </div>
+
+    <div id="age-container" class="age-group__box">
+
+    </div>
+  </fieldset>
+
+  <template data-name="bounds" data-view="inputs">
+    <div class="single-slider" data-group="input">
+      <div class="single-slider__input">
+        <div class="single-slider__input__progress" id="progress-bar"></div>
+        <input type="range" ${rangemin} ${rangemax} ${step} value="${value}" id="slider-input">
+      </div>
+      <div class="input-field-container number-input">
+        <div class="number-input__group">
+          <div class="number-input__group-inner">
+            <input
+              id="${id}"
+              name="${ref}"
+              class="number-input__group-input"
+              type="number"
+              value="${value}"
+              pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+              ${step}
+              ${rangemin}
+              ${rangemax}
+              tabindex="0"
+              placeholder="${placeholder}"
+              aria-label="Enter number value"
+              data-step="${btnStep}"
+              data-type="${type}"
+            />
+            <span class="as-icon" aria-hidden="true"></span>
+          </div>
+          <div class="number-input__group-spin">
+            <button
+              class="number-input__group-action"
+              type="button"
+              role="button"
+              tabindex="0"
+              title="Increase number value"
+              aria-label="Increase number value"
+              data-op="increment"
+              data-ref="${ref}"
+              data-role="button"
+            >
+            </button>
+            <button
+              class="number-input__group-action"
+              type="button"
+              role="button"
+              tabindex="0"
+              title="Decrease number value"
+              aria-label="Decrease number value"
+              data-op="decrement"
+              data-ref="${ref}"
+              data-role="button"
+            >
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template data-name="range" data-view="inputs">
+    <div class="double-slider">
+      <div class="double-slider__input">
+        <div class="double-slider__input__progress" id="progress-bar"></div>
+        <input type="range" ${rangemin} ${rangemax} ${step} value="${value_min}" id="min-slider" data-target="min">
+        <input type="range" ${rangemin} ${rangemax} ${step} value="${value_max}" id="max-slider" data-target="max">
+      </div>
+
+      <div class="double-slider__group">
+        <div class="input-field-container number-input">
+          <div class="number-input__group">
+            <div class="number-input__group-inner">
+              <input
+                id="min-value"
+                name="min-value"
+                class="number-input__group-input"
+                type="number"
+                value="${value_min}"
+                pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+                ${step}
+                ${rangemin}
+                ${rangemax}
+                tabindex="0"
+                placeholder="..."
+                aria-label="Enter min number value"
+                data-step="${btnStep}"
+                data-type="${type}"
+                data-target="min"
+              />
+              <span class="as-icon" aria-hidden="true"></span>
+            </div>
+            <div class="number-input__group-spin">
+              <button
+                class="number-input__group-action"
+                type="button"
+                role="button"
+                tabindex="0"
+                title="Increase number value"
+                aria-label="Increase number value"
+                data-op="increment"
+                data-ref="min-value"
+                data-role="button"
+              >
+              </button>
+              <button
+                class="number-input__group-action"
+                type="button"
+                role="button"
+                tabindex="0"
+                title="Decrease number value"
+                aria-label="Decrease number value"
+                data-op="decrement"
+                data-ref="min-value"
+                data-role="button"
+              >
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-field-container number-input">
+          <div class="number-input__group">
+            <div class="number-input__group-inner">
+              <input
+                id="max-value"
+                name="max-value"
+                class="number-input__group-input"
+                type="number"
+                value="${value_max}"
+                pattern="(\\-)?(\\d+(\\.\\d{0,})?)|(\\.\\d+)"
+                ${step}
+                ${rangemin}
+                ${rangemax}
+                tabindex="0"
+                placeholder="..."
+                aria-label="Enter max number value"
+                data-step="${btnStep}"
+                data-type="${type}"
+                data-target="max"
+              />
+              <span class="as-icon" aria-hidden="true"></span>
+            </div>
+            <div class="number-input__group-spin">
+              <button
+                class="number-input__group-action"
+                type="button"
+                role="button"
+                tabindex="0"
+                title="Increase number value"
+                aria-label="Increase number value"
+                data-op="increment"
+                data-ref="max-value"
+                data-role="button"
+              >
+              </button>
+              <button
+                class="number-input__group-action"
+                type="button"
+                role="button"
+                tabindex="0"
+                title="Decrease number value"
+                aria-label="Decrease number value"
+                data-op="decrement"
+                data-ref="max-value"
+                data-role="button"
+              >
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

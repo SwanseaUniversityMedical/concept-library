@@ -1,3 +1,5 @@
+from operator import and_
+from functools import reduce
 from django.apps import apps
 from django.db import connection
 from django.db.models import Q
@@ -99,7 +101,7 @@ def get_metadata_filters(request):
             options = get_metadata_stats_by_field(field, brand=current_brand)
 
         if options is None and 'source' in validation:
-            options = get_source_references(packet, default=[])
+            options = get_source_references(packet, default=[], request=request)
         
         filters.append({
             'details': details,
@@ -240,21 +242,24 @@ def validate_query_param(param, template, data, default=None, request=None):
             try:
                 source_info = validation.get('source')
                 model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
-                query = {
-                    'pk__in': data
-                }
+                query = { 'pk__in': data }
 
                 if 'filter' in source_info:
                     filter_query = template_utils.try_get_filter_query(param, source_info.get('filter'), request=request)
-                    query = {**query, **filter_query}
-                
-                queryset = model.objects.filter(Q(**query))
+                    if isinstance(filter_query, list):
+                        query = [Q(**query), *filter_query]
+
+                if isinstance(query, list):
+                    queryset = model.objects.filter(reduce(and_, query))
+                else:
+                    queryset = model.objects.filter(**query)
+
                 queryset = list(queryset.values_list('id', flat=True))
             except:
                 return default
             else:
                 return queryset if len(queryset) > 0 else default
-        elif 'options' in validation:
+        elif 'options' in validation and not validation.get('ugc', False):
             options = validation['options']
             cleaned = [ ]
             for item in data:
@@ -285,7 +290,7 @@ def apply_param_to_query(query, where, params, template, param, data,
         return False
     
     if field_type == 'int' or field_type == 'enum':
-        if 'options' in validation or 'source' in validation:
+        if not validation.get('ugc', False) and ('source' in validation or 'options' in validation):
             data = [int(x) for x in data.split(',') if gen_utils.parse_int(x, default=None) is not None]
             clean = validate_query_param(param, template_data, data, default=None, request=request)
             if clean is None and force_term:
@@ -518,17 +523,14 @@ def try_search_child_concepts(entities, search=None, order_clause=None):
                         cast(regexp_replace(id, '[a-zA-Z]+', '') as integer) as true_id,
                         ts_rank_cd(
                             hge.search_vector,
-                            websearch_to_tsquery('pg_catalog.english', %(searchterm)s)
+                            to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
                         ) as score
                       from public.clinicalcode_historicalgenericentity as hge
                      where id = ANY(%(entity_ids)s)
                        and history_id = ANY(%(history_ids)s)
                        and hge.search_vector @@ to_tsquery(
                             'pg_catalog.english',
-                            replace(
-                                websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*',
-                                '<->', '|'
-                            )
+                            replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')
                        )
                      {0}
                 ),
@@ -888,12 +890,12 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         history_ids = list(entities.values_list('history_id', flat=True))
 
         entities = GenericEntity.history.extra(
-            select={ 'score': '''ts_rank_cd("clinicalcode_historicalgenericentity"."search_vector", websearch_to_tsquery('pg_catalog.english', %s))'''},
+            select={ 'score': '''ts_rank_cd("clinicalcode_historicalgenericentity"."search_vector", to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))'''},
             select_params=[search],
             where=[
                 '''"clinicalcode_historicalgenericentity"."id" = ANY(%s)''',
                 '''"clinicalcode_historicalgenericentity"."history_id" = ANY(%s)''',
-                '''"clinicalcode_historicalgenericentity"."search_vector" @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %s)::text || ':*', '<->', '|'))'''
+                '''"clinicalcode_historicalgenericentity"."search_vector" @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))'''
             ],
             params=[entity_ids, history_ids, search]
         )
@@ -937,7 +939,7 @@ def try_get_paginated_results(request, entities, page=None, page_size=None):
         page_obj = pagination.page(pagination.num_pages)
     return page_obj
 
-def get_source_references(struct, default=None, modifier=None):
+def get_source_references(struct, default=None, modifier=None, request=None):
     """
         Retrieves the refence values from source fields e.g. tags, collections, entity type
     """
@@ -957,7 +959,14 @@ def get_source_references(struct, default=None, modifier=None):
 
     try:
         model = apps.get_model(app_label='clinicalcode', model_name=source)
-        objs = model.objects.all()
+        objs = None
+        if request is not None:
+            recfn = getattr(model, 'get_brand_records_by_request') if hasattr(model, 'get_brand_records_by_request') else None
+            if callable(recfn):
+                objs = model.get_brand_records_by_request(request)
+
+        if objs is None:
+            objs = model.objects.all()
 
         if isinstance(modifier, dict):
             objs = objs.filter(**modifier)

@@ -12,15 +12,6 @@ const FILTER_SCROLL_TOP_ON_PAGE_CHANGE = true;
 const FILTER_DATEPICKER_FORMAT = 'YYYY-MM-DD';
 
 /**
- * FILTER_KEYCODES
- * @desc Describes keycodes for filter related events
- * 
- */
-const FILTER_KEYCODES = {
-  ENTER: 13,
-};
-
-/**
  * FILTER_PAGINATION
  * @desc Describes non-numerical data-value targets for pagination buttons,
  *       e.g. previous and/or next buttons, used as default variables that
@@ -273,7 +264,7 @@ class FilterService {
    */
   #postQuery() {
     let query = this.#cleanQuery();
-    query = mergeObjects(query, {'search_filtered': true});
+    query = mergeObjects(query, { 'search_filtered': true });
 
     const parameters = new URLSearchParams(query);
     fetch(
@@ -549,8 +540,8 @@ class FilterService {
    * @param {event} e the associated event
    */
   #handleSearchbarUpdate(e) {
-    const code = e.keyIdentifier || e.which || e.keyCode;
-    if (code != FILTER_KEYCODES.ENTER) {
+    const code = e.code;
+    if (code !== 'Enter') {
       return;
     }
 
@@ -654,9 +645,10 @@ class FilterService {
    * @param {string} html the html to render to the page
    */
   #renderResponse(html) {
-    const parser = new DOMParser();
-    const response = parser.parseFromString(html, 'text/html');
+    const template = document.createElement('template');
+    template.innerHTML = html;
 
+    const response = template.content;
     const resultsHeader = response.querySelector(FILTER_RESPONSE_CONTENT_IDS.HEADER);
     if (!isNullOrUndefined(resultsHeader)) {
       const header = document.querySelector(FILTER_RESPONSE_CONTENT_IDS.HEADER);

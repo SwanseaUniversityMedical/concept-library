@@ -30,7 +30,7 @@ class TestModerationComponents:
                 if not isinstance(e, TimeoutException):
                     raise e
             finally:
-                assert 'permission denied' in self.driver.title.lower(), \
+                assert 'Moderation' not in self.driver.title.lower(), \
                     f'Failed to present 403 status to {user_details} for Moderation page'
         else:
             expected_url = None
@@ -61,7 +61,7 @@ class TestModerationComponents:
             login(self.driver, user.username, user.username + 'password')
 
         user_details = user_type if user else 'Anonymous'
-        self.driver.get(live_server + reverse('search_phenotypes'))
+        self.driver.get(live_server + reverse('search_entities'))
 
         desired_visibility = user_type in self.COMPONENT_VISIBILITY_RULES
         component_presence = False

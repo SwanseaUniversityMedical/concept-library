@@ -26,7 +26,7 @@ const
 const RDS_REFERENCE_MAP = (item, index) => {
   return [
     index,
-    item.id,
+    item?.id ?? item?.value,
     item.name
   ];
 }
@@ -55,8 +55,13 @@ const getReferenceData = () => {
       }
     }
 
+    let container = data.parentNode.querySelector('.reference-collection__table-container');
+    if (isNullOrUndefined(container)) {
+      container = data.parentNode; 
+    }
+
     result[name] = {
-      container: data.parentNode.querySelector('.reference-collection__table-container'),
+      container: container,
       data: value || [ ]
     }
   }
@@ -163,6 +168,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
     const tree = eleTree({
       el: viewer,
       lazy: true,
+      sort: true,
       data: source.nodes,
       showCheckbox: false,
       highlightCurrent: true,
@@ -211,7 +217,7 @@ const renderTreeViewComponent = async (key, container, _groups) => {
     }
 
     const nodes = item.nodes;
-    const model = typeof item.model === 'object' ? item.model : { };
+    const model = !!item?.model && typeof item.model === 'object' ? item.model : { };
     const sourceId = model?.source;
     const sourceLabel = model?.label;
     if (typeof sourceId !== 'number' || typeof sourceLabel !== 'string' || !Array.isArray(nodes)) {
@@ -228,13 +234,58 @@ const renderTreeViewComponent = async (key, container, _groups) => {
       </button>
     `, true);
 
-    const elem = tabItems.appendChild(doc.body.children[0]);
+    const elem = tabItems.appendChild(doc[0]);
     elem.addEventListener('click', () => {
       createViewer(sourceId);
     });
   }
 
   return createViewer(selectedIndex);
+}
+
+const renderTableViewComponent = (container, data) => {
+  const referenceTemplate = document.querySelector('[data-name="reference-data"]');
+
+  container.innerHTML = "";
+  for (const [index, value] of Object.entries(data)) {
+    const [tableContainer] = composeTemplate(referenceTemplate, {
+      params: {
+        name: value.name,
+        description: value.description,
+      },
+      render: (elem) => {
+        elem = elem.shift();
+        elem = container.appendChild(elem);
+
+        const refContainer = elem.querySelector('#ref-container');
+        const table = refContainer.appendChild(createElement('table', {
+          'id': `reference-datatable-${index}`,
+          'class': 'reference-collection-table__wrapper',
+        }));
+      
+        const datatable = new window.simpleDatatables.DataTable(table, {
+          perPage: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE,
+          perPageSelect: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE_SELECT,
+          fixedColumns: true,
+          classes: {
+            wrapper: 'overflow-table-constraint',
+            container: 'datatable-container slim-scrollbar',
+          },
+          columns: [
+            { select: 0, type: 'number', hidden: true },
+            { select: 1, type: 'number' },
+            { select: 2, type: 'string' }
+          ],
+          data: {
+            headings: RDS_REFERENCE_HEADINGS,
+            data: value.options.map((item, index) => RDS_REFERENCE_MAP(item, index)),
+          },
+        });
+      
+        datatable.columns.sort(1, 'asc');
+      },
+    });
+  }
 }
 
 /**
@@ -260,30 +311,94 @@ const renderReferenceComponent = (key, container, data) => {
   }
 
   // list view
-  const table = container.appendChild(createElement('table', {
-    'id': `reference-datatable-${key}`,
-    'class': 'reference-collection-table__wrapper',
-  }));
+  return renderTableViewComponent(container, data);
+};
 
-  const datatable = new window.simpleDatatables.DataTable(table, {
-    perPage: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE,
-    perPageSelect: RDS_REFERENCE_TABLE_LIMITS.PER_PAGE_SELECT,
-    fixedColumns: false,
-    classes: {
-      wrapper: 'overflow-table-constraint',
-    },
-    columns: [
-      { select: 0, type: 'number', hidden: true },
-      { select: 1, type: 'number' },
-      { select: 2, type: 'string' }
-    ],
-    data: {
-      headings: RDS_REFERENCE_HEADINGS,
-      data: data.map((item, index) => RDS_REFERENCE_MAP(item, index)),
-    },
-  });
+const getTemplateData = async ({ url, req, ctrl, params }) => {
+  const token = getCookie('csrftoken');
 
-  return datatable.columns.sort(1, 'asc');
+  req = mergeObjects(
+    isObjectType(req) ? req : { },
+    {
+      method: 'GET',
+      credentials: 'same-origin',
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': token,
+        'Authorization': `Bearer ${token}`,
+        'Pragma': 'max-age=3600',
+        'Cache-Control': 'max-age=3600',
+      },
+    },
+    false,
+    true
+  );
+
+  ctrl = mergeObjects(
+    isObjectType(ctrl) ? ctrl : { },
+    {
+      retries: 1,
+      backoff: 100,
+      onError: (_err, retryCount, remainingTries) => {
+        if (retryCount > 1 && remainingTries < 1) {
+          window.ToastFactory.push({
+            type: 'danger',
+            message: `We've not been able to connect to the server, please refresh the page and try again.`,
+            duration: 7000,
+          });
+        }
+
+        return true;
+      },
+      beforeAccept: (response, _retryCount, _remainingTries) => response.ok,
+    }
+  );
+
+  if (isObjectType(params)) {
+    params = new URLSearchParams(params);
+  }
+
+  if (!isNullOrUndefined(params) && !params instanceof URLSearchParams) {
+    params = '?' + params;
+  } else {
+    params = '';
+  }
+
+  if (!stringHasChars(url)) {
+    url = getCurrentURL();
+  }
+
+  const response = await fetchWithCtrl(
+    url + params,
+    req,
+    ctrl,
+  );
+
+  if (response instanceof Error) {
+    throw response;
+  }
+
+  if (!response.ok) {
+    let msg;
+    try {
+      msg = await response.json();
+      msg = stringHasChars(msg?.message) ? msg.message : String(response);
+    } catch {
+      msg = String(response);
+    }
+
+    throw new Error(`Failed to retrieve Template data with Err<code: ${response.status}> and message:\n${msg}`);
+  }
+
+  const results = await response.json();
+  if (isNullOrUndefined(results) || !isObjectType(results) || isNullOrUndefined(results?.data)) {
+    const msg = `${typeof results}<data: ${isObjectType(results) ? typeof results?.data : 'null'}>`;
+    throw new Error('Expected response to describe an Object containing a \'data\' key but got result: ' + msg);
+  }
+
+  return results;
 };
 
 /**
@@ -300,4 +415,29 @@ domReady.finally(() => {
 
     renderReferenceComponent(key, value.container, value.data);
   }
+
+  const templateSelector = document.querySelector('#template-selector');
+  templateSelector.addEventListener('change', (e) => {
+    const selected = e.target.value;
+
+    getTemplateData({
+      req: {
+        method: 'OPTIONS',
+        body: JSON.stringify({
+          template_id: selected
+        }),
+      },
+      ctrl: {
+        retries: 2,
+      }
+    })
+      .then(result => {
+        renderReferenceComponent(
+          null,
+          document.querySelector('#template-fields'),
+          result.data
+        )
+      })
+      .catch(console.error);
+  });
 });
