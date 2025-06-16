@@ -698,7 +698,8 @@ metadata = {
         'validation': {
             'type': 'int',
             'mandatory': True,
-            'range': [1, 3]
+            'range': [1, 3],
+            'default': 1
         },
         'is_base_field': True
     },
@@ -710,7 +711,8 @@ metadata = {
         'validation': {
             'type': 'int',
             'mandatory': True,
-            'range': [1, 3]
+            'range': [1, 3],
+            'default': 3
         },
         'is_base_field': True
     },
@@ -722,7 +724,8 @@ metadata = {
         'validation': {
             'type': 'int',
             'mandatory': True,
-            'range': [1, 3]
+            'range': [1, 3],
+            'default': 1
         },
         'is_base_field': True,
         'hide_non_org_managed': True

@@ -74,10 +74,22 @@ class GenericEntity(models.Model):
 
     # TODO: WILL BE DEPRECATED
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
-    owner_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.OWNER_PERMISSIONS], default=constants.OWNER_PERMISSIONS.EDIT)
-    group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
-    world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.WORLD_ACCESS_PERMISSIONS], default=constants.WORLD_ACCESS_PERMISSIONS.NONE)
-    
+    owner_access = models.IntegerField(
+        choices=[(e.value, e.name) for e in constants.OWNER_PERMISSIONS],
+        default=constants.OWNER_PERMISSIONS.EDIT.value,
+        null=True,
+        blank=True
+    )
+    group_access = models.IntegerField(
+        choices=[(e.value, e.name) for e in constants.GROUP_PERMISSIONS],
+        default=constants.GROUP_PERMISSIONS.NONE.value
+    )
+    world_access = models.IntegerField(
+        choices=[(e.value, e.name) for e in constants.WORLD_ACCESS_PERMISSIONS],
+        default=constants.WORLD_ACCESS_PERMISSIONS.NONE.value,
+        null=True,
+        blank=True
+    )
 
     ''' Publish status '''
     publish_status = models.IntegerField(null=True, choices=[(e.name, e.value) for e in constants.APPROVAL_STATUS], default=constants.APPROVAL_STATUS.ANY)

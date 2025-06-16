@@ -807,10 +807,14 @@ def validate_metadata_value(request, field, value, errors=[], field_data=None):
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
         # Exit without error since we haven't included any validation
-        return value, False
+        return value, True
     
     field_required = template_utils.try_get_content(validation, 'mandatory')
     if field_required and value is None:
+        default_value = template_utils.try_get_content(validation, 'default')
+        if 'default' in validation:
+            return default_value, True
+
         errors.append(f'"{field}" is a non-nullable, required field')
         return value, False
 
@@ -875,10 +879,14 @@ def validate_template_value(request, field, form_template, value, errors=[], fie
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
         # Exit without error since we haven't included any validation
-        return value, False
+        return value, True
 
     field_required = template_utils.try_get_content(validation, 'mandatory')
     if field_required and value is None:
+        default_value = template_utils.try_get_content(validation, 'default')
+        if 'default' in validation:
+            return default_value, True
+
         errors.append(f'"{field}" is a non-nullable, required field')
         return value, False
 
@@ -1535,7 +1543,9 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.collections = metadata.get('collections')
                 entity.publications = metadata.get('publications')
                 entity.organisation = org
-                entity.world_access = metadata.get('world_access')
+                entity.owner_access = metadata.get('owner_access', entity.owner_access)
+                entity.world_access = metadata.get('world_access', entity.world_access)
+                entity.group_access = metadata.get('group_access', entity.group_access)
                 entity.template = template_instance
                 entity.template_version = form_template.template_version
                 entity.template_data = template_data
