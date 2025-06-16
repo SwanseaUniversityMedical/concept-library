@@ -1,11 +1,12 @@
 from django.db import models
-from django.db.models.query import QuerySet
 from django.http import HttpRequest
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
-from rest_framework.request import Request
 from django.contrib.auth import get_user_model
+from django.core.paginator import Page, EmptyPage, Paginator
+from django.db.models.query import QuerySet
+from rest_framework.request import Request
 
 import uuid
 import datetime
