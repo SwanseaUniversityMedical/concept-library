@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 import pytest
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True,transaction=True)
 @pytest.mark.usefixtures('setup_webdriver')
 class TestCollectionComponents:
 

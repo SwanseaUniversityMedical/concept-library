@@ -166,7 +166,7 @@ DEBUG = get_env_value('DEBUG', cast='bool')
 # Allowed application hots
 ALLOWED_HOSTS = [i.strip() for i in get_env_value('ALLOWED_HOSTS').split(',')]
 
-ROOT_URLCONF = 'cll.urls'
+ROOT_URLCONF = 'cll.urls_brand'
 DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 # Setup support for proxy headers

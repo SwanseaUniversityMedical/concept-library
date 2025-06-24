@@ -67,6 +67,10 @@ def generate_user(create_groups):
             'edit_group_user': egp_user,
     }
 
+    for uobj in users.values():
+        setattr(uobj, 'BRAND_OBJECT', {})
+        setattr(uobj, 'CURRENT_BRAND', '')
+
     yield users
 
     # Clean up the users after the tests are finished

@@ -84,7 +84,9 @@ class BrandMiddleware(MiddlewareMixin):
 
             settings.BRAND_OBJECT = brand_object
             request.BRAND_OBJECT = brand_object
-            if brand_object is not None and brand_object.site_title is not None and not gen_utils.is_empty_string(brand_object.site_title):
+
+            has_brand = brand_object is not None and not isinstance(brand_object, dict)
+            if has_brand and brand_object.site_title is not None and not gen_utils.is_empty_string(brand_object.site_title):
                 request.SWAGGER_TITLE = brand_object.site_title + " API"
                 settings.SWAGGER_TITLE = brand_object.site_title + " API"
 

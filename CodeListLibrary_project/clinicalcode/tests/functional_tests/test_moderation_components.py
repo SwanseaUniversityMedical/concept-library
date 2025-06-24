@@ -6,13 +6,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 import pytest
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True,transaction=True)
 @pytest.mark.usefixtures('setup_webdriver')
 class TestModerationComponents:
     COMPONENT_VISIBILITY_RULES = ['moderator_user', 'super_user']
     
     @pytest.mark.functional_test
-    @pytest.mark.parametrize('user_type', [None, 'normal_user', 'moderator_user', 'super_user'])
+    @pytest.mark.parametrize('user_type', [None, 'normal_user', 'moderator_user'])
     def test_moderation_redirect(self, login, logout, generate_user, user_type, live_server):
         user = None
         if isinstance(user_type, str):

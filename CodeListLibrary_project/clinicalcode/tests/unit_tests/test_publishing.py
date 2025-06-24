@@ -9,7 +9,7 @@ import pytest
 
 from clinicalcode.views.Publish import Publish, RequestPublish
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True,transaction=True)
 class TestPublishing:
 
     def __build_http_request(self, user, url='', resolver_name='', resolver_kwargs=None, method='GET'):
