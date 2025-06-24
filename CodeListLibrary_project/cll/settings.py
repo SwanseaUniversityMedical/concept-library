@@ -139,7 +139,10 @@ if path_prj not in sys.path:
 
 ''' Application variables '''
 
-# separate settings for different environments
+# Test-related config
+REMOTE_TEST = get_env_value('REMOTE_TEST', cast='bool', default=False)
+
+# Env config
 IS_DEMO = get_env_value('IS_DEMO', cast='bool')
 
 CLINICALCODE_SESSION_ID = 'concept'
@@ -315,7 +318,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django_minify_html',
 ]
 
-if not CLL_READ_ONLY and not IS_GATEWAY_PC:
+if not CLL_READ_ONLY and not IS_GATEWAY_PC and not REMOTE_TEST:
     INSTALLED_APPS += [
         # Engagelens-related
         'easyaudit'
@@ -348,7 +351,7 @@ MIDDLEWARE = [
     'clinicalcode.middleware.exceptions.ExceptionMiddleware',
 ]
 
-if not CLL_READ_ONLY and not IS_GATEWAY_PC:
+if not CLL_READ_ONLY and not IS_GATEWAY_PC and not REMOTE_TEST:
     MIDDLEWARE += [
         # Engagelens-related
         'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
@@ -626,9 +629,6 @@ OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
 ''' Installed application settings '''
 
 # General settings
-
-## Test-related config
-REMOTE_TEST = get_env_value('REMOTE_TEST', cast='bool', default=False)
 
 ## Django auth settings -> Redirect to home URL after login (Default redirects to /accounts/profile/)
 LOGIN_REDIRECT_URL = reverse_lazy('search_entities')
