@@ -51,6 +51,7 @@ class TestPublishing:
         entity_history_id = entity.history.first().history_id
         entity_kwargs = { 'pk': entity_id, 'history_id': entity_history_id }
 
+        print('Test PostPub Ent:', entity, '|', entity.owner, '|', user)
         request = self.__build_http_request(
             user,
             url=live_server,
@@ -118,6 +119,7 @@ class TestPublishing:
         entity_history_id = entity.history.first().history_id
         entity_kwargs = { 'pk': entity_id, 'history_id': entity_history_id }
 
+        print('Test PostPub Ent:', entity, '|', entity.owner, '|', user)
         request = self.__build_http_request(
             user,
             url=live_server,

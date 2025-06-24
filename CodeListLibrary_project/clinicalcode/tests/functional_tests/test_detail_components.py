@@ -38,10 +38,13 @@ class TestDetailComponents:
         entities = generate_entity_session['entities']
         record = entities.get(entity_status)
         entity = record.get('entity')
+        print('Test Pub Ent:', entity, '|', entity.owner, '|', user)
+        historical = entity.history.latest()
 
         login(self.driver, user.username, user.username + 'password')
 
-        self.driver.get(live_server + reverse('entity_detail_shortcut', kwargs={ 'pk' : entity.id }))
+        print(f'Test Pub: PH{entity.id}/V{historical.history_id}')
+        self.driver.get(live_server + reverse('entity_history_detail', kwargs={ 'pk' : entity.id, 'history_id': historical.history_id }))
 
         present = False
         try:
