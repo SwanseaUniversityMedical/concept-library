@@ -627,6 +627,9 @@ OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
 
 # General settings
 
+## Test-related config
+REMOTE_TEST = get_env_value('REMOTE_TEST', cast='bool', default=False)
+
 ## Django auth settings -> Redirect to home URL after login (Default redirects to /accounts/profile/)
 LOGIN_REDIRECT_URL = reverse_lazy('search_entities')
 LOGIN_URL = reverse_lazy('login')

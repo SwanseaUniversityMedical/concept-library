@@ -1,4 +1,5 @@
 """App registry"""
+from django.conf import settings
 from django.apps import AppConfig
 from django.template import base as template_base
 from django.core.signals import request_started
@@ -17,6 +18,9 @@ class ClinicalCodeConfig(AppConfig):
 		"""Initialises signals on app start"""
 
 		# Enable EasyAudit signal override
+		if settings.REMOTE_TEST:
+			return
+
 		from clinicalcode.audit.request_signals import request_started_watchdog
 
 		request_started.connect(
