@@ -770,14 +770,14 @@ def render_entities(parser, token):
 class EntityCardsNode(template.Node):
     """Renders the cards associated with an entity on the search page"""
     def __init__(self, params, nodelist):
-        self.request = template.Variable('request')
+        self.reqvar = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
     
     def render(self, context):
         """Inherited method to render the nodes"""
         user = context.get('user')
-        request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        request = self.reqvar.resolve(context)
         request.user = user
 
         entities = context['page_obj'].object_list
@@ -841,7 +841,7 @@ def render_filters(parser, token):
 class EntityFiltersNode(template.Node):
     """Renders the filters on the search page"""
     def __init__(self, params, nodelist):
-        self.request = template.Variable('request')
+        self.reqvar = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
     
@@ -967,7 +967,7 @@ class EntityFiltersNode(template.Node):
     def render(self, context):
         """Inherited method to render the nodes"""
         self.user = context.get('user')
-        self.request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        self.request = self.reqvar.resolve(context)
         self.request.user = self.user
 
         entity_type = context.get('entity_type', None)
@@ -1028,7 +1028,7 @@ def render_aside_wizard(parser, token):
 class EntityWizardAside(template.Node):
     """Responsible for rendering the aside component of the steps wizard"""
     def __init__(self, params, nodelist):
-        self.request = template.Variable('request')
+        self.reqvar = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
 
@@ -1075,7 +1075,7 @@ class EntityWizardAside(template.Node):
     def render(self, context):
         """Inherited method to render the nodes"""
         self.user = context.get('user')
-        self.request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        self.request = self.reqvar.resolve(context)
         self.request.user = self.user
 
         tmpl = context.get('template', None)
@@ -1136,7 +1136,7 @@ class EntityCreateWizardSections(template.Node):
     SECTION_END = render_to_string(template_name=constants.CREATE_WIZARD_SECTION_END)
 
     def __init__(self, params, nodelist):
-        self.request = template.Variable('request')
+        self.reqvar = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
     
@@ -1310,7 +1310,7 @@ class EntityCreateWizardSections(template.Node):
     def render(self, context):
         """Inherited method to render the nodes"""
         self.user = context.get('user')
-        self.request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        self.request = self.reqvar.resolve(context)
         self.request.user = self.user
         return self.__generate_wizard(context)
 
@@ -1447,7 +1447,7 @@ class EntityDetailWizardSections(template.Node):
 
     def __init__(self, params, nodelist):
         self.user = None
-        self.request = template.Variable('request')
+        self.reqvar = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
 
@@ -1578,6 +1578,6 @@ class EntityDetailWizardSections(template.Node):
     def render(self, context):
         """Inherited method to render the nodes"""
         self.user = context.get('user')
-        self.request = self.request.resolve(context) if isinstance(self.request, template.Variable) else self.request
+        self.request = self.reqvar.resolve(context)
         self.request.user = self.user
         return self.__generate_wizard(context)

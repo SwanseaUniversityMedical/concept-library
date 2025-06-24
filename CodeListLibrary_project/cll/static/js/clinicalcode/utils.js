@@ -1285,16 +1285,17 @@ const getBrandedHost = () => {
 }
 
 /**
- * getBrandTargetURL
- * @desc Returns the brand URL target for management redirect buttons (used in navigation menu)
- * @param {string[]} brandTargets an array of strings containing the brand target names
- * @param {boolean} productionTarget a boolean flag specifying whether this is a production target
- * @param {Node} element the html event node
- * @param {string} oldRoot the path root (excluding brand context)
- * @param {string} path the window's location href
- * @returns {string} the target URL
+ * navigateBrandTargetURL
+ * @desc Sets the browser's current URL to the brand associated with management redirect buttons
+ * @note used in base navigation menu
+ * 
+ * @param {string[]}             brandTargets     an array of strings containing the brand target names
+ * @param {boolean}              productionTarget a boolean flag specifying whether this is a production target
+ * @param {HTMLElement|HTMLNode} element          the html event target node
+ * @param {string}               oldRoot          the path root (excluding brand context)
+ * @param {string}               path             the window's location href
  */
-const getBrandTargetURL = (brandTargets, productionTarget, element, oldRoot, path) =>{
+const navigateBrandTargetURL = (brandTargets, productionTarget, element, oldRoot, path) =>{
   const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
   const pathTarget = path.split('/').slice(pathIndex).join('/');
 

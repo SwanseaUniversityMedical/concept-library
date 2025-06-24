@@ -1670,7 +1670,8 @@ def admin_convert_entity_groups(request):
         2: 32,
         6: 60,
         7: 9,
-        12: 197
+        12: 197,
+        13: 240
     }
 
     entities = GenericEntity.objects \

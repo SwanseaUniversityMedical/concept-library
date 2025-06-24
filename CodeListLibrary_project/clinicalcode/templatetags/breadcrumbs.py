@@ -112,7 +112,7 @@ class BreadcrumbsNode(template.Node):
     DEFAULT_STR = '<section class="breadcrumbs"></section>'
     
     def __init__(self, params, nodelist):
-        self.request = template.Variable('request')
+        self.reqvar = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
     
@@ -188,7 +188,7 @@ class BreadcrumbsNode(template.Node):
             return ''
 
     def render(self, context):
-        rqst = self.request.resolve(context)
+        rqst = self.reqvar.resolve(context)
         path = rqst.path.split('/')
 
         if len(path) > 0:

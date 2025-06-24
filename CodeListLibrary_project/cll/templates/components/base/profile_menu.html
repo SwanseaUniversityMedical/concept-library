@@ -56,10 +56,26 @@
 
         <!-- Brands -->
         {% if request.user.is_superuser and request.session.all_brands %}
-          {% include "components/navigation/dropdown_profile_item.html" with currentBrand="" image="/static/img/brands/SAIL/apple-touch-icon.png" title=base_page_title %}
+          {% get_brand_map_rules False as emap %}
+          {%
+            include "components/navigation/dropdown_profile_item.html"
+            with
+              rules=emap
+              currentBrand=""
+              image="/static/img/brands/SAIL/apple-touch-icon.png"
+              title=base_page_title
+          %}
 
           {% for brand in request.session.all_brands %}
-            {% include "components/navigation/dropdown_profile_item.html" with  currentBrand=brand|upper  image=brand|get_brand_logo  title=brand|upper %}
+            {% get_brand_map_rules brand as bmap %}
+            {%
+              include "components/navigation/dropdown_profile_item.html"
+              with
+                rules=bmap
+                currentBrand=brand|upper
+                image=brand|get_brand_logo
+                title=brand|upper
+            %}
           {% endfor %}
 
           {% to_json_script request.session.all_brands id="brand-target-source" name="brand-targets" desc-type="text/json" host-target=IS_PRODUCTION_SERVER %}

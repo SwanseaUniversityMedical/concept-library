@@ -1514,32 +1514,32 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
 
             entity_org = live_entity.organisation
             if entity_org is not None:
-              if live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
+              if brand and brand.org_user_managed and live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
                 user_orgs = get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.MEMBER)
                 if user_orgs and len(user_orgs) >= 1:
                   is_org_accessible = True
 
-                if entity_org.owner_id == user.id:
+              if entity_org.owner_id == user.id:
+                  is_org_member = True
+              elif not user.is_anonymous:
+                  membership = user.organisationmembership_set \
+                      .filter(organisation__id=entity_org.id)
+
+                  if membership.exists():
+                    membership = membership.first()
+
                     is_org_member = True
-                elif not user.is_anonymous:
-                    membership = user.organisationmembership_set \
-                        .filter(organisation__id=entity_org.id)
+                    is_editable = membership.role >= ORGANISATION_ROLES.EDITOR
 
-                    if membership.exists():
-                      membership = membership.first()
+                    if brand_org_managed:
+                      brand_authority = OrganisationAuthority.objects \
+                        .filter(organisation_id=entity_org.id, brand_id=brand.id)
+                      
+                      if brand_authority.exists():
+                        brand_authority = brand_authority.first()
 
-                      is_org_member = True
-                      is_editable = membership.role >= ORGANISATION_ROLES.EDITOR
-
-                      if brand_org_managed:
-                        brand_authority = OrganisationAuthority.objects \
-                          .filter(organisation_id=entity_org.id, brand_id=brand.id)
-                        
-                        if brand_authority.exists():
-                          brand_authority = brand_authority.first()
-
-                          if brand_authority.can_moderate:
-                            user_is_moderator = user_is_moderator or membership.role >= ORGANISATION_ROLES.MODERATOR
+                        if brand_authority.can_moderate:
+                          user_is_moderator = user_is_moderator or membership.role >= ORGANISATION_ROLES.MODERATOR
 
             if user_is_moderator and historical_entity.publish_status is not None:
                 is_moderatable = historical_entity.publish_status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]

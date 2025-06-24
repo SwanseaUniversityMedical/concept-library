@@ -448,7 +448,9 @@ DETAIL_PAGE_APPENDED_FIELDS = {
 """Default brand ctx content name mapping"""
 DEFAULT_CONTENT_MAPPING = {
     'phenotype': 'Phenotype',
+    'phenotype_url': 'phenotypes',
     'concept': 'Concept',
+    'concept_url': 'concepts',
 }
 
 """
