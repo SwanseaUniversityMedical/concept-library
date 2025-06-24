@@ -138,7 +138,8 @@ def generate_entity_session(template, generate_user, brands=None):
                 template_version=1,
                 template_data=template_data,
                 created_by=user,
-                world_access=WORLD_ACCESS_PERMISSIONS.VIEW
+                world_access=WORLD_ACCESS_PERMISSIONS.VIEW,
+                owner=user
         )
 
         record = {'entity': entity}
