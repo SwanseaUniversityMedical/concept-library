@@ -7,7 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 import pytest
 
-@pytest.mark.django_db(reset_sequences=True,transaction=True)
+@pytest.mark.django_db
 @pytest.mark.usefixtures('setup_webdriver')
 class TestDetailComponents:
 
@@ -47,8 +47,6 @@ class TestDetailComponents:
         try:
             wait = WebDriverWait(self.driver, 5)
             wait.until(expected_conditions.presence_of_element_located((By.ID, 'publish-btn')))
-
-            self.driver.find_element(By.ID, 'publish-btn')
         except Exception as e:
             if not isinstance(e, NoSuchElementException):
                 raise e

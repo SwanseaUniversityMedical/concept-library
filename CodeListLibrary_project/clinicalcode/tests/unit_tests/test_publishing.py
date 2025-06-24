@@ -23,8 +23,8 @@ class TestPublishing:
         request.method = method
         request.session = { }
         request.IS_HDRUK_EXT = '0'
-        setattr(user, 'BRAND_OBJECT', {})
-        setattr(user, 'CURRENT_BRAND', '')
+        setattr(request, 'BRAND_OBJECT', {})
+        setattr(request, 'CURRENT_BRAND', '')
 
         return request
 
