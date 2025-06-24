@@ -93,7 +93,7 @@ class Tag(TimeStampedModel):
             tag_name = 'tags'
 
         records = None
-        if brand is not None:
+        if brand:
             source = constants.metadata.get(tag_name, {}) \
                 .get('validation', {}) \
                 .get('source', {}) \
