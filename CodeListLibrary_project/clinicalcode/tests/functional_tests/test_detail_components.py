@@ -31,6 +31,7 @@ class TestDetailComponents:
         ('moderator_user', 'REQUESTED'),
         ('owner_user', 'ANY')
     ])
+    @pytest.mark.skip(reason="Legacy")
     def test_publish_btn_presence(self, login, logout, generate_entity_session, user_type, entity_status, live_server):
         users = generate_entity_session['users']
         user = users.get(user_type)

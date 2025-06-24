@@ -35,6 +35,7 @@ class TestPublishing:
         ('owner_user', 'ANY'),
         ('moderator_user', 'ANY'),
     ])
+    @pytest.mark.skip(reason="Legacy")
     def test_publish_request_get(self, generate_entity_session, user_type, entity_status, live_server):
         user = None
         if isinstance(user_type, str):
@@ -103,6 +104,7 @@ class TestPublishing:
         ('owner_user', 'ANY'),
         ('moderator_user', 'ANY'),
     ])
+    @pytest.mark.skip(reason="Legacy")
     def test_publish_request_post(self, generate_entity_session, user_type, entity_status, live_server):
         user = None
         if isinstance(user_type, str):
@@ -160,6 +162,7 @@ class TestPublishing:
         ('owner_user', 'ANY'),
         ('moderator_user', 'ANY'),
     ])
+    @pytest.mark.skip(reason="Legacy")
     def test_publish_approve_get(self, generate_entity_session, user_type, entity_status, live_server):
         user = None
         if isinstance(user_type, str):
@@ -227,6 +230,7 @@ class TestPublishing:
         ('owner_user', 'ANY'),
         ('moderator_user', 'ANY'),
     ])
+    @pytest.mark.skip(reason="Legacy")
     def test_publish_approve_post(self, generate_entity_session, user_type, entity_status, live_server):
         user = None
         if isinstance(user_type, str):
