@@ -64,12 +64,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          sudo apt-get install -y -q dirmngr
           python -m pip install --upgrade pip
           pip install --upgrade --upgrade-strategy eager --default-timeout 100  -r docker/requirements/test.txt
 
       - name: Prepare Selenium
-        run: |
-            sudo apt-get update && sudo apt-get install -y -q dirmngr
         uses: nanasess/setup-chromedriver@v2
 
       - name: Run Browser
