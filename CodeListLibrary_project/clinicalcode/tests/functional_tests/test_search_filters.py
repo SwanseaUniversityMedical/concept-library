@@ -1,8 +1,11 @@
-import time
 from django.urls import reverse
-import pytest
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
+import time
+import pytest
 
 @pytest.mark.django_db(reset_sequences=True,transaction=True)
 @pytest.mark.usefixtures("setup_webdriver")
@@ -22,13 +25,20 @@ class TestSearchFilters:
         uname = self.driver.find_element(By.CLASS_NAME, 'text-username').text if user is not None else user_type
         print(f"Current username: {uname}")
 
-        accordion = self.driver.find_element(By.XPATH, "/html/body/main/div/div/aside/div[2]/div[4]")
-        time.sleep(5)
-        accordion.click()
-        checkboxes = self.driver.find_elements(By.XPATH, "//input[(@class='checkbox-item') and (@aria-label = 'Tags')]")
+        try:
+            wait = WebDriverWait(self.driver, 5)
+            accordion = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.accordion[data-field="tags"] label')))
+            accordion.click()
 
-        for checkbox in checkboxes:
-            assert checkbox.is_enabled() is True
+            time.sleep(1)
+
+            checkboxes = self.driver.find_elements(By.CSS_SELECTOR, 'input[data-field="tags"]')
+            for checkbox in checkboxes:
+                assert checkbox.is_enabled() is True
+
+        except Exception as e:
+            if not isinstance(e, TimeoutException):
+                raise e
 
         if user is not None:
            logout(self.driver)

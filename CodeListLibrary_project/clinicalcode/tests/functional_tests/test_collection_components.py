@@ -23,7 +23,7 @@ class TestCollectionComponents:
 
         element = None
         try:
-            element = self.driver.find_element(By.CSS_SELECTOR, '''a.referral-card__title[href='%s']''' % reverse('my_collection'))
+            element = self.driver.find_element(By.CSS_SELECTOR, '''.referral-card[data-target='%s']''' % reverse('my_collection'))
         except Exception as e:
             if not isinstance(e, NoSuchElementException):
                 raise e

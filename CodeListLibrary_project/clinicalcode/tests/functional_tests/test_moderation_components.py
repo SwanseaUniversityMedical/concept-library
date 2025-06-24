@@ -66,7 +66,7 @@ class TestModerationComponents:
         desired_visibility = user_type in self.COMPONENT_VISIBILITY_RULES
         component_presence = False
         try:
-            elem = self.driver.find_element(By.CSS_SELECTOR, '''a.referral-card__title[href='%s']''' % reverse('moderation_page'))
+            elem = self.driver.find_element(By.CSS_SELECTOR, '''.referral-card[data-target='%s']''' % reverse('moderation_page'))
             component_presence = elem is not None
         except Exception as e:
             if not isinstance(e, NoSuchElementException):
