@@ -65,6 +65,7 @@ def send_message(request, pk, data, entity, entity_history_id, checks):
 
 def check_entity_to_publish(request, pk, entity_history_id):
     '''
+    Checks entity to publish and also checks if entity is managed by the organisation 
         Allow to publish if:
         - entity is not deleted
         - user is an owner
@@ -160,6 +161,10 @@ def check_entity_to_publish(request, pk, entity_history_id):
     return checks
 
 def check_organisation_authorities(request, entity):
+    """
+    Perform checks to determine if the user has authority within the organization or if the brand is managed by the organization. 
+    Returns a dictionary of checks to publish the entity.
+    """
     organisation_checks = {}
 
     try:
@@ -171,6 +176,7 @@ def check_organisation_authorities(request, entity):
         organisation_permissions = permission_utils.has_org_authority(request,organisation)
         organisation_user_role = permission_utils.get_organisation_role(request.user,organisation)
     else:
+        #Check if brand exist to allow publish by org user managed flag
         brand = model_utils.try_get_brand(request)
         if brand is not None:
             organisation_checks['org_user_managed'] = brand.org_user_managed
@@ -192,7 +198,7 @@ def check_organisation_authorities(request, entity):
             organisation_checks["is_latest_pending_version"] = False
             organisation_checks["all_are_published"] = False
             
-            
+            #Based on user role make sure assign check as moderator
             if organisation_permissions.get("can_moderate", False):
                 if organisation_user_role.value >= 1:
                     organisation_checks["allowed_to_publish"] = True
@@ -339,10 +345,16 @@ def format_message_and_send_email(request, pk, data, entity, entity_history_id, 
     return data
 
 def get_emails_by_groupname(groupname):
+    """
+    Get email list of users by the legacy group name
+    """
     user_list = User.objects.filter(groups__name=groupname)
     return [i.email for i in user_list]
 
 def get_emails_by_organization(request,entity_id=None):
+    """
+    Get email list by the organisation id 
+    """
     organisation = permission_utils.get_organisation(request,entity_id=entity_id)
     
     if organisation:
