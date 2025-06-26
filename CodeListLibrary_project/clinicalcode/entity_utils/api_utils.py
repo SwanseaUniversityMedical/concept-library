@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models.functions import JSONObject
 from django.db.models import ForeignKey, F
+from django.core.exceptions import FieldDoesNotExist
 from rest_framework.renderers import JSONRenderer
 from django.contrib.auth import get_user_model
 
@@ -938,26 +939,54 @@ def get_entity_detail_from_layout(
         if is_active == False:
             continue
 
-        requires_auth = template_utils.try_get_content(
-            field_definition, 'requires_auth')
+        requires_auth = template_utils.try_get_content(field_definition, 'requires_auth')
         if requires_auth and not user_authed:
             continue
 
         if template_utils.is_metadata(entity, field):
-            validation = template_utils.get_field_item(
-                constants.metadata, field, 'validation', {}
-            )
+            field_info = template_utils.get_layout_field(fields, field)
+            validation = field_info.get('validation')
 
             is_source = validation.get('source')
             if is_source:
-                if template_utils.is_metadata(entity, field=field):
-                    value = template_utils.get_metadata_value_from_source(
-                        entity, field, default=None
-                    )
-                else:
+                value = template_utils.get_metadata_value_from_source(
+                    entity, field, default=None
+                )
+            else:
+                value = None
+                try:
+                    field_ref = entity._meta.get_field(field)
+                    field_type = field_ref.get_internal_type()
+                    if field_type in constants.STRIPPED_FIELDS:
+                        continue
+
+                    if isinstance(field_ref, ForeignKey):
+                        model = field_ref.target_field.model
+                        model_type = str(model)
+                        if model_type in constants.USERDATA_MODELS:
+                            if model_type == str(User):
+                                value = template_utils.get_one_of_field(value, ['username', 'name'])
+                            elif hasattr(model, 'serialise_api') and callable(getattr(model, 'serialise_api')):
+                                value = getattr(entity, field).serialise_api()
+                            else:
+                                value = {
+                                    'id': field.id,
+                                    'name': template_utils.get_one_of_field(field, ['username', 'name'])
+                                }
+                except:
+                    pass
+
+                if value is None:
                     value = template_utils.get_entity_field(entity, field)
 
-                result[field] = value
+            if field in constants.API_MAP_FIELD_NAMES:
+                field_name = constants.API_MAP_FIELD_NAMES.get(field)
+            elif isinstance(field_info.get('shunt'), str):
+                field_name = field_info.get('shunt')
+            else:
+                field_name = field
+
+            result[field_name] = value
             continue
 
         if field == 'concept_information':
@@ -981,13 +1010,14 @@ def get_entity_detail_from_layout(
 
     return result
 
-def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=None):
+def get_entity_detail_from_meta(entity, fields, data, fields_to_ignore=[], target_field=None):
     """
       Retrieves entity detail in the format required for detail API endpoint,
         specifically from metadata fields, e.g. constants
 
       Args:
         entity (GenericEntity): Entity object to get the detail for
+        fields (dict): dict containing layout of the entity
         data (dict): dict containing previously built detail
         fields_to_ignore (list of strings): List of fields to remove from output
         target_field (string): Field to be targeted, i.e. only build the detail
@@ -1003,6 +1033,10 @@ def get_entity_detail_from_meta(entity, data, fields_to_ignore=[], target_field=
             continue
 
         if field_name.lower() in data or field_name.lower() in fields_to_ignore:
+            continue
+
+        field_tmpl = fields.get(field_name)
+        if isinstance(field_tmpl, dict):
             continue
 
         field_type = field.get_internal_type()
@@ -1111,8 +1145,7 @@ def get_entity_detail(
         return layout_response
 
     layout = layout_response
-    layout_definition = template_utils.get_merged_definition(
-        layout, default={})
+    layout_definition = template_utils.get_merged_definition(layout, default={})
     layout_version = layout.template_version
 
     fields = template_utils.try_get_content(layout_definition, 'fields')
@@ -1124,20 +1157,19 @@ def get_entity_detail(
     )
 
     result = result | get_entity_detail_from_meta(
-        entity, result, fields_to_ignore=fields_to_ignore, target_field=target_field
+        entity, fields, result, fields_to_ignore=fields_to_ignore, target_field=target_field
     )
 
     entity_versions = get_entity_version_history(request, entity_id)
     if target_field is None:
-        result = get_ordered_entity_detail(
-            fields, layout, layout_version, entity_versions, result)
+        result = get_ordered_entity_detail(fields, layout, layout_version, entity_versions, result)
 
+    result = {'phenotype_id': entity.id, 'phenotype_version_id': entity.history_id} | result
     if return_data:
         return result
 
     return Response(
-        data=[{'phenotype_id': entity.id,
-               'phenotype_version_id': entity.history_id} | result],
+        data=[result],
         status=status.HTTP_200_OK
     )
 

@@ -95,12 +95,12 @@ class UserSerializer(BaseSerializer):
 			if isinstance(vis_rules, dict):
 				allow_null = vis_rules.get('allow_null')
 				allowed_brands = vis_rules.get('ids')
-				if isinstance(allowed_brands, list) and isinstance(allow_null, bool):
-					records = User.objects.filter(Q(accessible_brands__id__in=allowed_brands) | Q(accessible_brands__id__isnull=allow_null))
+				if isinstance(allowed_brands, list) and isinstance(allow_null, bool) and allow_null:
+					records = User.objects.filter(Q(accessible_brands__id__isnull=True) | Q(accessible_brands__id__in=allowed_brands))
 				elif isinstance(allowed_brands, list):
 					records = User.objects.filter(accessible_brands__id__in=allowed_brands)
 				elif isinstance(allow_null, bool) and allow_null:
-					records = User.objects.filter(accessible_brands__id__isnull=True)
+					records = User.objects.filter(Q(accessible_brands__id__isnull=True) | Q(accessible_brands__id__in=[brand.id]))
 
 			if records is None:
 				records = User.objects.filter(accessible_brands__id=brand.id)
@@ -320,12 +320,12 @@ class UserEndpoint(BaseEndpoint):
 			if isinstance(vis_rules, dict):
 				allow_null = vis_rules.get('allow_null')
 				allowed_brands = vis_rules.get('ids')
-				if isinstance(allowed_brands, list) and isinstance(allow_null, bool):
-					records = User.objects.filter(Q(accessible_brands__id__in=allowed_brands) | Q(accessible_brands__id__isnull=allow_null))
+				if isinstance(allowed_brands, list) and isinstance(allow_null, bool) and allow_null:
+					records = User.objects.filter(Q(accessible_brands__id__isnull=True) | Q(accessible_brands__id__in=allowed_brands))
 				elif isinstance(allowed_brands, list):
 					records = User.objects.filter(accessible_brands__id__in=allowed_brands)
 				elif isinstance(allow_null, bool) and allow_null:
-					records = User.objects.filter(accessible_brands__id__isnull=True)
+					records = User.objects.filter(Q(accessible_brands__id__isnull=True) | Q(accessible_brands__id__in=[brand.id]))
 
 			if records is None:
 				records = User.objects.filter(accessible_brands__id=brand.id)

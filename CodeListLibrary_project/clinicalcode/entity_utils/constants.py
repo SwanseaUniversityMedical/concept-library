@@ -318,6 +318,7 @@ API_MAP_FIELD_NAMES = {
     Describes fields that should be stripped from entity list api response
 """
 ENTITY_LIST_API_HIDDEN_FIELDS = [
+    'deleted', 'created_by', 'updated_by', 'deleted_by', 'brands',
     'concept_information', 'definition', 'implementation'
 ]
 

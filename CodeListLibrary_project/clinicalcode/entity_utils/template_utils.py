@@ -45,6 +45,15 @@ def is_metadata(entity, field):
         data = model._meta.get_field(field)
         return True
     except:
+        pass
+
+    try:
+        template_field = get_layout_field(entity.template, field) if entity.template is not None else None
+        if template_field is not None and template_field.get('is_base_field', False):
+            return True
+    except:
+        pass
+    finally:
         return False
 
 
@@ -92,14 +101,22 @@ def get_layout_field(layout, field, default=None):
     """
         Safely gets a field from a layout's field within its definition
     """
+    result = None
     if is_layout_safe(layout):
         definition = try_get_content(layout, 'definition') if isinstance(layout, dict) else getattr(layout,
                                                                                                     'definition')
         fields = try_get_content(definition, 'fields')
         if fields is not None:
-            return try_get_content(fields, field, default)
+            result = try_get_content(fields, field, default)
 
-    return try_get_content(layout, field, default)
+    if result is None:
+        result = try_get_content(layout, field, default)
+
+    if isinstance(result, dict) and result.get('is_base_field'):
+        merged = copy.deepcopy(constants.metadata.get(field))
+        merged = merged | result
+        return merged
+    return result
 
 
 def get_template_field_info(layout, field_name, copy_field=True):
@@ -112,12 +129,12 @@ def get_template_field_info(layout, field_name, copy_field=True):
             if not field.get('is_base_field'):
                 return result
 
-            merged = copy.deepcopy(constants.metadata.get(field_name)) if copy_field else {}
+            merged = copy.deepcopy(constants.metadata.get(field_name)) if copy_field else constants.metadata.get(field_name)
             merged = merged | field
 
             result |= {
                 'field': merged,
-                'shunt': field.get('shunt') if isinstance(fields.get('shunt'), str) else None,
+                'shunt': field.get('shunt') if isinstance(field.get('shunt'), str) else None,
                 'is_metadata': True,
             }
 
@@ -139,7 +156,7 @@ def get_merged_definition(template, default=None):
 
     fields = {field: packet for field, packet in constants.metadata.items() if not packet.get('ignore')}
     for k, v in definition.get('fields', {}).items():
-        fields.update({ k: fields.get(k, {}) | v })
+        fields.update({ k: copy.deepcopy(fields.get(k, {})) | v })
 
     fields = {
             field: packet

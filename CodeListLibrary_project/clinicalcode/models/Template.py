@@ -62,12 +62,12 @@ class Template(TimeStampedModel):
             if isinstance(vis_rules, dict):
                 allow_null = vis_rules.get('allow_null')
                 allowed_brands = vis_rules.get('ids')
-                if isinstance(allowed_brands, list) and isinstance(allow_null, bool):
-                    records = Template.objects.filter(Q(brands__overlap=allowed_brands) | Q(brands__isnull=allow_null))
+                if isinstance(allowed_brands, list) and isinstance(allow_null, bool) and allow_null:
+                    records = Template.objects.filter((Q(brands__isnull=True) | Q(brands__len__lt=1)) | Q(brands__overlap=allowed_brands))
                 elif isinstance(allowed_brands, list):
                     records = Template.objects.filter(brands__overlap=allowed_brands)
                 elif isinstance(allow_null, bool) and allow_null:
-                    records = Template.objects.filter(brands__isnull=True)
+                    records = Template.objects.filter((Q(brands__isnull=True) | Q(brands__len__lt=1)) | Q(brands__overlap=[brand.id]))
 
             if records is None:
                 records = Template.objects.filter(brands__overlap=[brand.id])

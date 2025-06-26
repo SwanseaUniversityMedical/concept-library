@@ -19,7 +19,7 @@ from ..models.Template import Template
 from ..models.Component import Component
 from ..models.EntityClass import EntityClass
 from ..models.CodingSystem import CodingSystem
-from ..models.Organisation import Organisation
+from ..models.Organisation import Organisation, OrganisationAuthority
 from ..models.GenericEntity import GenericEntity
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 
@@ -535,6 +535,8 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
         errors.append('RequestContext invalid')
         return None
 
+    current_brand = model_utils.try_get_brand(request)
+
     validation = template_utils.try_get_content(field_data, 'validation')
     if validation is None:
         return value
@@ -573,8 +575,19 @@ def validate_computed_field(request, field, field_data, value, errors=[]):
                 )
             )
             if not is_member:
-                errors.append(f'Tried to set {field} without being a member of that group.')
+                errors.append(f'Tried to set {field}<{instance}> without being a member of that group.')
                 return None
+
+            if current_brand and current_brand.org_user_managed:
+                if not isinstance(instance, Organisation):
+                    errors.append(f'You must supply an Organisation.')
+                    return None
+
+                brand_authority = OrganisationAuthority.objects \
+                    .filter(organisation_id=instance.id, brand_id=current_brand.id)
+                if not brand_authority.exists():
+                    errors.append(f'You are trying to use an Organisation that\'s not associated with this Brand, please use another organisation.')
+                    return None
 
         return instance
     

@@ -6,6 +6,8 @@ from drf_yasg.utils import swagger_auto_schema
 from django.conf import settings
 from django.core.exceptions import BadRequest
 
+import logging
+
 from ...models import GenericEntity, Template
 from ...entity_utils import permission_utils
 from ...entity_utils import template_utils
@@ -14,6 +16,10 @@ from ...entity_utils import model_utils
 from ...entity_utils import api_utils
 from ...entity_utils import gen_utils
 from ...entity_utils import constants
+
+
+logger = logging.getLogger(__name__)
+
 
 """ Create/Update GenericEntity """
 
@@ -256,13 +262,31 @@ def get_generic_entities(request):
 
     # Finalise accessibility clause(s)
     user_id = None
-    brand_id = None
+    brand_ids = None
     group_ids = None # [!] Change
 
     brand = model_utils.try_get_brand(request)
     if brand is not None:
-        brand_id = brand.id
-        accessible_clauses.append('''%(brand_id)s = any(entity.brands)''')
+        vis_rules = brand.get_vis_rules()
+        brand_ctx = None
+        if isinstance(vis_rules, dict):
+            allow_null = vis_rules.get('allow_null')
+            allowed_brands = vis_rules.get('ids')
+            if isinstance(allowed_brands, list) and isinstance(allow_null, bool) and allow_null:
+                brand_ids = allowed_brands
+                brand_ctx = '''((entity.brands is null or array_length(entity.brands, 1) < 1) or %(brand_ids)s && entity.brands)'''
+            elif isinstance(allowed_brands, list) and len(allowed_brands):
+                brand_ids = allowed_brands
+                brand_ctx = '''(entity.brands is not null and array_length(entity.brands, 1) > 0 and %(brand_ids)s && entity.brands)'''
+            elif isinstance(allow_null, bool) and allow_null:
+                brand_ids = allowed_brands
+                brand_ctx = '''(entity.brands is null or array_length(entity.brands, 1) < 1)'''
+
+        if brand_ctx is None:
+            brand_ids = [brand.id]
+            brand_ctx = '''(%(brand_ids)s && entity.brands)'''
+
+        accessible_clauses.append(brand_ctx)
 
     user = request.user if request.user and not request.user.is_anonymous else None
     user_clause = '''entity.publish_status = 2'''
@@ -281,7 +305,7 @@ def get_generic_entities(request):
     # Cache base params
     base_params = {
         'user_id': user_id,
-        'brand_id': brand_id,
+        'brand_ids': brand_ids,
         'group_ids': group_ids,
         'template_id': template_id,
         'template_version_id': template_version_id,
@@ -506,7 +530,7 @@ def get_generic_entities(request):
                     on template.id = live_tmpl.id
                  where (live_entity.is_deleted is null or live_entity.is_deleted = false)
                    and (entity.is_deleted is null or entity.is_deleted = false)
-                   and entity.publish_status = 2
+                   {accessible_clauses}
                    {tmpl_clauses}
               ) as t0
               join public.clinicalcode_historicalgenericentity as t1
@@ -594,9 +618,8 @@ def get_generic_entities(request):
             'page_size': page_size,
             'data': formatted_entities
         }
-
     except Exception as e:
-        # log exception?
+        logger.error('Encountered error on Phenotype API Query: \n%s\n' % (str(e)))
         raise BadRequest('Invalid request, failed to perform query')
     else:
         return Response(

@@ -300,9 +300,11 @@ class BrandOverviewView(APIView):
 				query_params.update({ 'brand_ids': allowed_brands if allowed_brands is not None else [brand.id] })
 
 				if allowed_brands and allowed_null_brand:
-					content_visibility = psycopg2.sql.SQL('''and (ge.brands is null or ge.brands && %(brand_ids)s::int[])''')
-				else:
+					content_visibility = psycopg2.sql.SQL('''and (ge.brands is null or array_length(ge.brands, 1) < 1 or ge.brands && %(brand_ids)s::int[])''')
+				elif allowed_brands:
 					content_visibility = psycopg2.sql.SQL('''and (ge.brands is not null and ge.brands && %(brand_ids)s::int[])''')
+				elif allowed_null_brand:
+					content_visibility = psycopg2.sql.SQL('''and (ge.brands is null or array_length(ge.brands, 1) < 1)''')
 			elif brand:
 					query_params.update({ 'brand_ids': [brand.id] })
 					content_visibility = psycopg2.sql.SQL('''and (ge.brands is not null and ge.brands && %(brand_ids)s::int[])''')
