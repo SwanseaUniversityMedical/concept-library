@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 import pytest
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True,transaction=True)
 @pytest.mark.usefixtures('setup_webdriver')
 class TestCollectionComponents:
 
@@ -19,11 +19,11 @@ class TestCollectionComponents:
             login(self.driver, user.username, user.username + 'password')
 
         user_details = user_type if user else 'Anonymous'
-        self.driver.get(live_server + reverse('search_phenotypes'))
+        self.driver.get(live_server + reverse('search_entities'))
 
         element = None
         try:
-            element = self.driver.find_element(By.CSS_SELECTOR, '''a.referral-card__title[href='%s']''' % reverse('my_collection'))
+            element = self.driver.find_element(By.CSS_SELECTOR, '''.referral-card[data-target='%s']''' % reverse('my_collection'))
         except Exception as e:
             if not isinstance(e, NoSuchElementException):
                 raise e

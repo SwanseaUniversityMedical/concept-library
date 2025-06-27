@@ -3,11 +3,175 @@
 @import '../_media';
 @import '../_utils';
 
+/// Popover / Dropdown menu
+/// @desc describes a popover menu, activated on click
+/// @controller see `components/popoverMenu.js`
+/// @example see `dashboard/index.html` for HTML; or `dashboardService/dashboard.js` for JS
+/// 
+.popover-menu {
+  width: fit-content;
+  height: 50px;
+  max-height: 50px;
+  padding: 0 0.5rem;
+  border-radius: 5px;
+  background-color: transparent;
+
+  @include prefix(transition, box-shadow 250ms ease-in-out, webkit moz);
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  & a, button {
+    @include remove-appearance;
+    @include clear-anchor();
+  }
+
+  & a, button {
+    display: block;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    color: $mostly_black;
+    line-height: 50px;
+    text-align: center;
+    text-decoration: none;
+    background: none;
+    background-color: transparent;
+    border: none;
+    font-size: inherit;
+
+    &:disabled,
+    &[disabled] {
+      cursor: pointer;
+      pointer-events: none;
+      color: $light_grey;
+    }
+
+    &:not(:disabled):not([disabled]):hover,
+    &:not(:disabled):not([disabled]):focus-visible {
+      outline: none;
+      color: $dark_grey;
+
+      & .as-icon {
+        color: $dark_grey;
+      }
+    }
+  }
+
+  &:has(.popover-menu__controls:not(:disabled):not([disabled]):not(:focus-visible):hover) {
+    @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px', webkit moz o);
+  }
+
+  &:has(.popover-menu__controls:not(:disabled):not([disabled]):focus-visible) {
+    @include apply-focusable-item;
+  }
+
+  &__popover {
+    display: block;
+    visibility: hidden;
+    position: absolute;
+    right: 0px;
+    width: fit-content;
+    height: 0px;
+    margin-top: 5px;
+    opacity: 0;
+    z-index: 100;
+
+    @include prefix(transition, all 150ms ease-out, webkit moz);
+
+    &:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 20px;
+      width: 8px;
+      height: 8px;
+      margin: -4px 0 0 -4px;
+      background-color: $white;
+      transform: rotate(45deg);
+
+      @include prefix(transform, rotate(45deg), webkit moz o);
+      @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.35) 0px 0px 0px 1px', webkit moz o);
+    }
+
+    &-content {
+      @include flex-col(false, true);
+      width: max-content;
+      height: fit-content;
+      max-height: 25vh;
+      padding: 0.5rem 1rem;
+      z-index: 101;
+      overflow-y: auto;
+      background-color: $white;
+
+      @include prefix(box-shadow, 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px', webkit moz o);
+    }
+
+    & a, button {
+      @include ignore-user();
+      pointer-events: none;
+      width: fit-content;
+
+      & .as-icon {
+        margin-right: 1rem;
+      }
+  
+      &:not(:disabled):not([disabled]):active {
+        @include prefix(transform, scale(0.95), webkit moz o);
+      }
+    }
+
+    &[aria-hidden="false"],
+    &:not([hidden])[aria-hidden=""] {
+      visibility: visible;
+      height: fit-content;
+      opacity: 1;
+
+      & a, button {
+        pointer-events: auto;
+
+        &:focus-visible {
+          @include apply-focusable-item;
+        }
+      }
+    }
+  }
+
+  &__controls {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    gap: 0.25rem;
+    align-content: center;
+    justify-content: flex-end;
+
+    & > span {
+      pointer-events: none;
+    }
+
+    &-user {
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100px;
+    }
+  }
+}
+
 /// Navigation dropdown
 /// @desc describes the dropdown, used exclusively in the navigation component
 .nav-dropdown {
   float: left;
   overflow: hidden;
+
+  &--offset {
+    right: 25%;
+
+    @include media("<desktop", "screen") {
+      right: unset;
+    }
+  }
 
   &__content {
     display: none;
@@ -15,6 +179,11 @@
     padding: 1em 1.5em;
     box-sizing: border-box;
     z-index: 1;
+  }
+
+  &:focus-within,
+  &:focus-visible {
+    outline: 1px solid col(accent-anchor);
   }
 
   &:hover {
@@ -26,7 +195,7 @@
       box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
     }
 
-    @include media("<1250px", "screen") {
+    @include media("<desktop", "screen") {
       .nav-dropdown__content {
         display: none;
       }
@@ -49,7 +218,34 @@
     }
   }
 
-  @include media(">=1250px", "screen") {
+  @include media(">=desktop", "screen") {
+    &:focus-within,
+    &:focus-visible {
+      .nav-dropdown__content {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        -webkit-box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
+        box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
+      }
+  
+      .nav-dropdown__text {
+        a {
+          @include prefix(transform, translateY(-2px), webkit moz o);
+        }
+  
+        &::after {
+          opacity: 1;
+        }
+      }
+  
+      .nav-dropdown__content--target {
+        &::after {
+          opacity: 1;
+        }
+      }
+    }
+
     &__content--target::after {
       content: "";
       top: -10px;
@@ -79,7 +275,7 @@
     z-index: 999;
   }
 
-  @include media("<1250px", "screen") {
+  @include media("<desktop", "screen") {
     .nav-dropdown__content {
       overflow: hidden;
 
@@ -91,7 +287,7 @@
 }
 
 /* Define styles for the mobile version */
-@include media("<1250px", "screen") {
+@include media("<desktop", "screen") {
   .nav-dropdown {
     display: flex;
     justify-content: center;
@@ -178,8 +374,10 @@
 
 .content-container {
   &__nested {
-    @include media(">=1250px", "screen") {
-      &:hover {
+    @include media(">=desktop", "screen") {
+      &:hover,
+      &:focus-within,
+      & .item-dropdown__text:focus-visible {
         .nested-menu {
           display: block;
         }
@@ -208,6 +406,8 @@
   width: fit-content;
   outline: none;
   border: 0px;
+  margin: 0;
+  padding: 0;
 
   &__label {
     cursor: pointer;
@@ -215,7 +415,7 @@
     vertical-align: middle;
     display: inline-block;
     border: 1px solid col(accent-washed);
-    margin: 0 0.5rem 0 0;
+    margin: 0 0 0 0;
     border-radius: 4px;
     padding: 0.5rem 1rem;
     background-color: col(bg);
@@ -261,7 +461,7 @@
     border: 1px solid col(accent-washed);
     border-radius: 2px;
     padding: 0;
-    margin: 2px 0 0 0;
+    margin: 2px 4px 0 0;
     box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
     background-color: col(bg);
     list-style-type: none;
@@ -425,12 +625,17 @@
   }
 }
 
-// Dropdown group
-//  @desc Primarily used for detail page
+/// Dropdown group
+///  @desc Primarily used for detail page
 .dropdown-group {
   display: inline-block;
   position: relative;
+  max-width: 100%;
   margin: 0;
+  text-wrap: wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  box-sizing: border-box;
 
   &__input {
     display: none;
@@ -438,12 +643,14 @@
 
   &__button {
     cursor: pointer;
-    display: inline-block;
+    display: inline-flex;
+    flex-flow: row wrap;
+    gap: 0.5em;
     border: 1px solid col(accent-washed);
     border-radius: 4px;
     padding: 0.5rem 2rem 0.5rem 1rem;
     background-color: col(bg);
-    white-space: nowrap;
+    box-sizing: border-box;
 
     &:hover {
       background-color: col(accent-washed);
@@ -512,6 +719,252 @@
         padding: 0;
         border-bottom: 1px solid col(accent-washed);
       }
+    }
+  }
+
+  &--detail {
+    flex: auto;
+    color: col(text-darkest);
+    font-weight: bold;
+    text-align: center;
+
+    & > .dropdown-group__button {
+      width: 100%;
+      justify-content: center;
+    }
+
+    @include media('<phone', 'screen') {
+      & .as-icon {
+        display: none;
+      }
+    }
+  }
+}
+
+/// autocomplete search selector
+/// @desc Primarily used for organisation management page
+/// @example see `organisation/manage.html` 
+/// 
+.autocomplete {
+  position: relative;
+  padding: 1rem;
+
+  &-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  &-input {
+    width: calc(100% - 2rem);
+    padding: 1rem;
+    line-height: 1.5;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  &-controls {
+    display: block;
+    min-width: 100px;
+    max-width: 100%;
+    max-height: 100%;
+    flex-grow: 1;
+  }
+
+  &-result {
+    cursor: default;
+    padding: 0.5rem 1rem;
+    background-color: col(bg);
+
+    &:active {
+      filter: saturate(0.5);
+    }
+
+    &:hover,
+    &:focus,
+    &:focus-within,
+    &:focus-visible,
+    &__highlighted,
+    &[aria-selected="true"] {
+      outline: 1px solid col(accent-anchor);
+      color: col(text-brightest);
+      background-color: col(accent-highlight);
+    }
+  }
+
+  &-results {
+    position: absolute;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    top: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    list-style: none;
+    transition: none;
+    max-height: 100px;
+    overflow-y: auto;
+    z-index: 999;
+    background-color: col(bg);
+
+    &.hidden {
+      display: none !important;
+    }
+  }
+}
+
+
+/// entity dropdown search selector
+/// @desc Primarily used for create page; specifically for selecting related entities
+/// @example see `related_entities.html` 
+/// 
+.entity-dropdown {
+  display: flex;
+  position: relative;
+  width: 100%;
+  min-width: 100px;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0.5rem 0;
+  box-sizing: border-box;
+
+  &__input {
+    display: block;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    line-height: 1.5em;
+    resize: none;
+    border: 1px solid col(accent-dark);
+    border-radius: 2pt;
+    background-color: col(bg);
+    box-sizing: border-box;
+  }
+
+  &__results {
+    @include flex-col(false, true);
+    position: absolute;
+    width: 100%;
+    height: fit-content;
+    max-width: 100%;
+    max-height: 100px;
+    top: calc(100% - 1px);
+    left: 0;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid col(accent-dark);
+    border-radius: 2pt;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    background-color: col(bg);
+    z-index: 999;
+    box-sizing: border-box;
+  }
+
+  &__infobox {
+    @include flex-col(false, true);
+    width: 100%;
+    max-width: 100%;
+    height: fit-content;
+    background-color: transparent;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    color: col(text-darker);
+    border-bottom: 1px dashed col(accent-highlight);
+    text-wrap: wrap;
+    word-break: break-all;
+    word-wrap: break-word;
+    box-sizing: border-box;
+
+    &:not(.entity-dropdown__infobox--show) {
+      display: none;
+    }
+
+    &-details {
+      @include flex-row(false, false);
+      width: 100%;
+      max-width: 100%;
+      background-color: transparent;
+      box-sizing: border-box;
+    }
+
+    &-label {
+      width: 100%;
+      max-width: 100%;
+      text-align: center;
+    }
+
+    & p,
+    & a {
+      margin: 0;
+    }
+  }
+
+  &__item {
+    @include flex-row(false, false);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.5rem;
+    text-wrap: wrap;
+    word-wrap: break-word;
+    word-break: break-all;
+    text-align: left;
+    box-sizing: border-box;
+    border: 0;
+    outline: 0;
+    color: col(text-darkest);
+    background-color: transparent;
+    box-sizing: border-box;
+
+    &:not(:disabled) {
+      &:active {
+        filter: saturate(0.5);
+      }
+
+      &:hover,
+      &:focus,
+      &:focus-within,
+      &:focus-visible,
+      &[aria-selected="true"] {
+        outline: 1px solid col(accent-anchor);
+        color: col(text-brightest);
+        background-color: col(accent-highlight);
+      }
+    }
+
+    &-label {
+      pointer-events: none;
+      display: -webkit-box;
+      width: max-content;
+      max-width: 100%;
+      margin-top: auto;
+      margin-bottom: auto;
+      line-clamp: 2;
+      -webkit-line-clamp: 2;
+      -moz-box-orient: vertical;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-sizing: border-box;
+    }
+  }
+
+  &[aria-expanded="true"] {
+    & .entity-dropdown__results {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  &[aria-expanded="false"] {
+    & .entity-dropdown__results {
+      display: none;
+      visibility: collapse;
     }
   }
 }

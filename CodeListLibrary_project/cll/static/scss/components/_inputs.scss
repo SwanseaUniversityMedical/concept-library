@@ -9,6 +9,516 @@
  *
  */
 
+  /*
+    Idea:
+      -> Tagbox with autocomplete (doesnt allow non-defined)
+      -> Tagbox has button beside it to allow you to create your own
+      -> Modal with inputs
+  */
+
+/// Data Asset component
+///   @desc handles data asset tagbox & creator
+///   @example see `assetCreator.js`
+.asset-component {
+  --ac-ol-color: var(--color-clear);
+  --ac-bd-color: var(--color-accent-dark);
+
+  @include flex-col(0.5rem, true);
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+
+  &__actions {
+    @include flex-row(1rem, false);
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__create-btn {
+    @include flex-row(0.5rem, false);
+    flex: max-content 0;
+    width: auto;
+    padding: 0.6rem 1rem !important;
+    overflow: visible !important;
+    white-space: collapse !important;
+
+    &:before {
+      display: block;
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: calc(100% - 0.5rem);
+      top: 0.25rem;
+      left: calc(-0.5rem - 1px);
+      opacity: 0.75;
+      background-color: col(accent-washed);
+    }
+  }
+
+  &__field {
+    @include flex-col(0, true);
+
+    flex: auto 1;
+    width: auto;
+    max-width: 100%;
+    min-height: 1rem;
+    justify-content: flex-start;
+    word-wrap: break-word;
+    border: 1px solid var(--ac-bd-color);
+    border-radius: 2px;
+    outline: 1px solid var(--ac-ol-color);
+    transition: border-color 250ms ease;
+    box-sizing: border-box;
+
+    &:has(> input:disabled) {
+      opacity: 0.5;
+    }
+
+    &:has(> input:focus) {
+      --ac-bd-color: var(--color-accent-dark);
+      --ac-ol-color: var(--color-clear);
+    }
+
+    &:has(> input:focus:valid) {
+      --ac-bd-color: var(--color-accent-success);
+    }
+
+    &:has(> input:focus-visible) {
+      --ac-ol-color: var(--color-accent-anchor);
+    }
+
+    &:has(> input:invalid) {
+      --ac-bd-color: var(--color-accent-danger);
+    }
+
+    &-input {
+      @include remove-appearance();
+  
+      resize: none;
+      width: 100%;
+      height: 100%;
+      padding: 0.5rem 2rem 0.5rem 0.5rem;
+      border: none;
+      font-family: inherit;
+      box-sizing: border-box;
+
+      &:not(:disabled) + .asset-component__field-btn {
+        &:focus-visible {
+          outline: 1px solid col(accent-dark);
+          border-radius: 2pt;
+        }
+  
+        &:active {
+          transform: scale(0.9);
+          transition: transform 0.1s ease-in-out;
+        }
+      }
+
+      &:disabled + .asset-component__field-btn:before {
+        color: col(accent-washed) !important;
+      }
+    }
+
+    &-btn {
+      all: unset;
+
+      cursor: pointer;
+      display: flex;
+      position: absolute;
+      flex-flow: column nowrap;
+      height: 2rem;
+      aspect-ratio: 1 / 1;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      top: 0;
+      right: 0;
+      padding: 0;
+      margin: 0;
+      background-color: transparent;
+      outline: 0;
+      border: 0;
+
+      &:before {
+        @include fontawesome-icon();
+        content: '\f055';
+        display: block;
+        margin: auto;
+        font-size: 1em;
+        font-weight: bold;
+        position: absolute;
+        color: col(accent-secondary);
+      }
+    }
+
+    &-suggestions {
+      @include flex-col(false, true);
+
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: -1px;
+      width: 100%;
+      height: auto;
+      max-height: 200px;
+      background-color: col(bg);
+      border: 1px solid col(accent-dark);
+      border-radius: 2px;
+      border-top-left-radius: 0px;
+      border-top-right-radius: 0px;
+      border-top: 0px;
+      overflow-y: auto;
+      z-index: 99;
+
+      &[aria-expanded="true"] {
+        display: flex;
+      }
+
+      &-item {
+        cursor: pointer;
+        pointer-events: all;
+        padding: 0.25rem 0.5rem;
+        margin: 0;
+        height: auto;
+        background-color: col(bg);
+        transition: background-color 250ms ease;
+        text-align: left;
+        border: none;
+        color: col(text-darkest);
+        text-decoration: none;
+
+        &:visited {
+          all: unset;
+        }
+
+        &:hover,
+        &--highlighted {
+          background-color: col(accent-highlight);
+
+          .asset-component__suggestions-title {
+            color: col(text-brightest);
+          }
+        }
+      }
+    }
+  }
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__selection {
+    @include flex-row(0.5rem, false);
+
+    width: 100%;
+    max-width: 100%;
+    height: fit-content;
+    min-height: 1rem;
+    max-height: 100px;
+    justify-items: flex-start;
+    border: 1px dashed col(accent-washed);
+    padding: 0.5rem;
+    word-wrap: break-word;
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-sizing: border-box;
+
+    &:not(.show) {
+      display: none;
+    }
+
+    & .tag {
+      gap: 0.5rem;
+      width: fit-content;
+      height: fit-content;
+      max-width: 140px;
+      max-height: 50px;
+      text-align: left;
+      padding: 0.25rem 1rem;
+      border-radius: 1rem;
+
+      &:not([data-new="true"]) > [data-role="edit"] {
+        display: none;
+      }
+
+      & .as-icon {
+        margin-right: 0;
+        font-weight: bold;
+        color: var(--xcolor);
+        border: none;
+        background-color: transparent;
+
+        &[data-role="edit"]:hover {
+          color: col(accent-bubble);
+        }
+
+        &[data-role="remove"]:hover {
+          color: col(accent-danger);
+        }
+      }
+    }
+  }
+
+  @include media('<tablet', 'screen') {
+    &__actions {
+      flex-wrap: wrap-reverse;
+    }
+
+    &__create-btn {
+      flex: 100%;
+      text-align: center;
+      justify-content: center;
+
+      &:before {
+        width: calc(100% - 0.5rem);
+        height: 2px;
+        top: calc(100% + 0.5rem - 1px);
+        left: 0.25rem;
+      }
+    }
+
+    &__field {
+      flex: 100%;
+    }
+  }
+
+  @include media('<phone', 'screen') {
+    &__field {
+      &-input {
+        padding: 0.5rem;
+      }
+
+      &-btn {
+        display: none;
+      }
+    }
+  }
+}
+
+/// Page layout containing UGC variables
+///   @desc primarily used for create page; specifically `validation_measures` and `variable_list`
+///   @example see `variableCreator.js`
+///
+.var-selection-group {
+  @include flex-col(0.5rem, true);
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: fit-content;
+  margin-bottom: 0.5rem;
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__list {
+    @include flex-col(0.5rem, true);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+
+    &:not(.show) {
+      display: none;
+    }
+
+    &-header {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      border-bottom: 1px solid col(accent-dark);
+
+      h3 {
+        padding: 0;
+      }
+    }
+
+    &-container {
+      @include flex-col(0.5rem, true);
+      position: relative;
+      width: 100%;
+      max-width: calc(100% - 0.5rem);
+      max-height: 200px;
+      padding: 0.5rem;
+      overflow-y: auto;
+      overflow-x: none;
+    }
+  }
+
+  &__interface {
+    @include flex-row(0.5rem, false);
+    height: min-content;
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+
+    @include media('<tablet', 'screen') {
+      flex-wrap: wrap-reverse;
+    }
+
+    & button {
+      font-weight: normal;
+      padding: 0.5rem 1rem;
+      margin: 0;
+
+      & > .as-icon {
+        margin-left: 0.5em;
+      }
+
+      &:last-child {
+        margin-left: auto;
+      }
+    }
+  }
+
+  &__item {
+    @include flex-row(0.5rem, false);
+    max-width: calc(100% - 0.5rem);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+
+    & p {
+      margin: 0;
+    }
+
+    &-text {
+      flex: 1;
+      max-width: 100%;
+
+      & p {
+        text-wrap: wrap;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+
+      & a {
+        text-wrap: wrap;
+        word-wrap: break-word;
+        max-width: 100%;
+      }
+
+      @include media("<tablet", "screen") {
+        flex: 1;
+        min-width: 100%;
+
+        & p {
+          width: fit-content;
+        }
+      }
+    }
+
+    &-btn {
+      @include flex-row();
+      @include prefix(transition, all 250ms ease, webkit moz o ms);
+      cursor: pointer;
+      pointer-events: auto;
+      flex-wrap: nowrap;
+      width: fit-content;
+      height: fit-content;
+      padding: 0.5rem 0.5rem;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+      align-items: center;
+      justify-content: space-evenly;
+      color: col(text-brightest);
+      border-radius: 0.25rem;
+      border: none;
+      outline: none;
+
+      & > .as-icon {
+        pointer-events: none;
+      }
+
+      &[data-action="edit"] {
+        background-color: col(accent-primary);
+      }
+
+      &[data-action="remove"] {
+        background-color: col(accent-danger);
+      }
+
+      & > span {
+        font-weight: bold;
+        pointer-events: none;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+
+      &:focus-visible {
+        outline: 1px solid col(accent-dark);
+        border-radius: 2pt;
+      }
+
+      &:focus {
+        outline: none;
+        border-radius: 0.25rem;
+      }
+
+      &:hover {
+        @include prefix(filter, brightness(80%), webkit moz o ms);
+      }
+
+      &:active {
+        @include prefix(transform, scale(0.95), webkit moz o ms);
+      }
+
+      &:not(:last-child) {
+        margin-left: auto;
+      }
+    }
+
+    &:not(:last-child) {
+      border-bottom: 1px solid col(accent-washed);
+    }
+  }
+
+  &__badge {
+    display: inline-block;
+    height: max-content;
+    min-width: 10px;
+    padding: 3px 7px !important;
+    font-size: 12px;
+    font-weight: 700 !important;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-radius: 10px;
+    color: col(text-darkest);
+    background-color: col(accent-lightest);
+  }
+}
+
 /// publication-list-group
 ///   @desc Defines the publication component controlled by publicationCreator.js
 .publication-list-group {
@@ -32,28 +542,45 @@
       display: flex;
       flex-flow: row wrap;
       align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+
+      &--right {
+        justify-content: flex-end;
+      }
 
       input {
         flex: 1;
-        margin-right: 1rem;
       }
+
       input:first-child {
         flex: 2;
-        margin-right: 0.25rem;
       }
+
       button {
+        margin-bottom: 0.25rem;
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
         font-weight: normal;
-        margin-bottom: 0.25rem;
       }
-    
+
+      & > input.date-range-picker {
+        min-width: 10ch;
+      }
+
       &--references {
         & > button {
           margin-top: 2rem;
 
           @include media('<tablet', 'screen') {
-            margin-top: 1rem;
+            margin-top: 0;
+            flex: 100%;
+          }
+        }
+
+        & input {
+          @include media('<tablet', 'screen') {
+            margin-right: 0 !important;
           }
         }
       }
@@ -77,6 +604,10 @@
         display: flex;
         flex-flow: row wrap;
         align-items: center;
+
+        &--right {
+          justify-content: flex-end;
+        }
 
         input {
           flex: 1;
@@ -153,15 +684,43 @@
     }
 
     &-item {
-      @include flex-row();
+      @include flex-row(0.5rem, false);
+      max-width: calc(100% - 0.5rem);
       align-items: center;
       justify-content: space-between;
       padding: 0.5rem 0;
 
+      & p {
+        margin: 0;
+      }
+
+      &--is-primary {
+        display: inline-block;
+        width: var(--icons-size);
+        height: var(--icons-size);
+        margin-right: 1ch;
+
+        &:before {
+          content: '\f005';
+          cursor: inherit;
+          pointer-events: inherit;
+          position: absolute;
+          height: 100%;
+          aspect-ratio: 1 / 1;
+          font-family: var(--icons-name);
+          font-style: var(--icons-style);
+          font-size: var(--icons-size);
+          text-align: center;
+          color: col(accent-tertiary);
+        }
+      }
+
+      &-id,
       &-url {
         display: flex;
         vertical-align: middle;
-        max-width: 60%;
+        flex: 1;
+        max-width: 100%;
 
         @include media("<desktop", "screen") {
           max-width: 175px;
@@ -174,14 +733,121 @@
         @include media("<=phone", "screen") {
           max-width: 100px;
         }
-        
-        p {
+
+        & p {
+          text-wrap: wrap;
           word-wrap: break-word;
+          max-width: 100%;
         }
-        
-        a {
-          text-align: right;
+
+        & a {
+          text-wrap: wrap;
+          word-wrap: break-word;
+          max-width: 100%;
+
+          &[data-shrinkcontent="true"] {
+            display: block;
+            max-width: 10em;
+
+            &::after {
+              --shrink-replacement: "Link";
+
+              display: -webkit-box;
+              content: attr(href);
+              max-width: 10em;
+              line-clamp: 2;
+              -webkit-line-clamp: 2;
+              -moz-box-orient: vertical;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              text-overflow: ellipsis;
+
+              @include media("<tablet", "screen") {
+                content: var(--shrink-replacement);
+              }
+            }
+
+            &:not([data-shrinkreplace=""])::after {
+              --shrink-replacement: attr(data-shrinkreplace);
+            }
+          }
         }
+      }
+
+      &-primary {
+        flex: 1;
+        max-width: 100%;
+
+        &:empty {
+          flex: 0;
+        }
+      }
+
+      &-names {
+        flex: 1;
+        max-width: 100%;
+
+        & p {
+          text-wrap: wrap;
+          word-wrap: break-word;
+          max-width: 100%;
+        }
+
+        & a {
+          text-wrap: wrap;
+          word-wrap: break-word;
+          max-width: 100%;
+        }
+      }
+
+      &-bhfdate {
+        display: block;
+        flex: 0.5;
+        min-width: fit-content;
+        max-width: 100%;
+
+        & > p {
+          display: block;
+          width: fit-content;
+          max-width: calc(100% - 0.5em);
+          margin: 0;
+          margin-left: auto;
+          margin-right: auto;
+          padding: 0 0.5em;
+          border-bottom: 5px dotted col(accent-tertiary);
+        }
+
+        @include media("<tablet", "screen") {
+          flex: 1;
+          min-width: 100%;
+          text-align: left;
+
+          & > p {
+            width: fit-content;
+            margin: 0;
+          }
+        }
+      }
+
+      &-id,
+      &-url,
+      &-names {
+        @include media("<tablet", "screen") {
+          flex: 1;
+          min-width: 100%;
+
+          & p {
+            width: fit-content;
+          }
+
+          & a:not([data-shrinkcontent]) {
+            width: fit-content;
+          }
+        }
+      }
+
+      &-id {
+        word-break: break-all;
       }
 
       &-btn {
@@ -202,6 +868,10 @@
         border-radius: 0.25rem;
         border: none;
         outline: none;
+
+        @include media("<tablet", "screen") {
+          margin-left: auto;
+        }
 
         & > span {
           font-weight: bold;
@@ -550,21 +1220,43 @@
 
   &__header {
     display: flex;
-    flex-flow: row nowrap;
+    flex-flow: row wrap;
+    width: 100%;
     height: min-content;
+    max-width: 100%;
     justify-content: space-between;
     align-items: flex-end;
 
+    & > p {
+      display: block;
+      flex: 1;
+      max-width: 100%;
+    }
+
     &-actions {
       display: flex;
-      flex-flow: row wrap;
+      flex: 1;
+      flex-flow: row nowrap;
       justify-content: flex-end;
 
       button {
+        font-weight: normal;
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
-        font-weight: normal;
         margin-bottom: 0.25rem;
+        margin-left: auto;
+      }
+    }
+
+    @include media('<tablet', 'screen') {
+      & > p {
+        width: 100%;
+        flex: unset;
+      }
+  
+      &-actions {
+        width: 100%;
+        flex: unset;
       }
     }
   }
@@ -686,13 +1378,14 @@
   }
 }
 
-// detailed-input-group
-//  @desc defines a group of one or more inputs, and allows the addition of other
-//        elements, e.g. a title/description/mandatory status, to communicate its
-//        use to the user
+/// detailed-input-group
+///  @desc defines a group of one or more inputs, and allows the addition of other
+///        elements, e.g. a title/description/mandatory status, to communicate its
+///        use to the user
 .detailed-input-group {
-  @include flex-col();
+  @include flex-col(false, true);
 
+  max-width: 100%;
   font-family: inherit;
   margin: 1rem 0 0 0;
 
@@ -713,9 +1406,14 @@
     float: right;
     color: col(text-danger);
     font-weight: bold;
+
+    &.hidden {
+      display: none;
+    }
   }
 
   &__title {
+    max-width: 100%;
     padding: 0;
     margin: 0 0 0.5rem 0;
     font-size: 18px;
@@ -729,8 +1427,11 @@
   }
 
   &__description {
+    font-family: inherit;
+    max-width: 100%;
     margin: 0 0 0.5rem 0;
     font-size: 14px;
+    text-wrap: wrap;
   }
 
   &__error {
@@ -741,8 +1442,9 @@
 
   &__header {
     @include flex-row();
-    justify-content: space-between;
+    max-width: 100%;
     align-items: center;
+    justify-content: space-between;
 
     &--nowrap {
       flex-wrap: nowrap;
@@ -751,10 +1453,12 @@
 
   &__header-item {
     @include flex-col();
+    max-width: 100%;
   }
 
   &__none-available {
     display: block;
+    max-width: calc(100% - 1rem);
     padding: 1rem;
     border-radius: 0.1rem;
     background-color: col(accent-semi-transparent);
@@ -770,8 +1474,8 @@
   }
 }
 
-// date-range-field
-//  @desc describes a date range field, where each input describes either the start or end of the date
+/// date-range-field
+///  @desc describes a date range field, where each input describes either the start or end of the date
 .date-range-field {
   display: flex;
   flex-flow: row nowrap;
@@ -780,14 +1484,35 @@
   border: 0;
   width: 100%;
 
+  &--padding0_5 {
+    padding: 0 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+
   &--wrapped {
     flex-wrap: wrap;
     max-width: 100%;
-  }
 
-  &--padding0_5 {
-    padding: 0 0.5rem;
-    max-width: calc(100% - 0.5rem);
+    @include media('<tablet', 'screen') {
+      display: grid;
+      grid: 1fr 1fr / 1fr 1fr;
+      gap: 0.5rem 0.25rem;
+      justify-items: safe;
+
+      & > .date-range-field__label {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+    }
+
+    @include media('<phone', 'screen') {
+      @include flex-row(0, false);
+      padding: 0;
+
+      & > input {
+        max-width: calc(100% - 1rem);
+      }
+    }
   }
 
   &__label {
@@ -800,8 +1525,8 @@
   }
 }
 
-// radio-chips-group
-//  @desc describes a group of radio chips
+/// radio-chips-group
+///  @desc describes a group of radio chips
 .radio-chips-group {
   @include flex-row($gap: 0.5rem);
 
@@ -810,8 +1535,8 @@
   list-style-type: none;
 }
 
-// hstack-checkbox-group
-//  @desc defines a horizontal stack of checkboxes
+/// hstack-checkbox-group
+///  @desc defines a horizontal stack of checkboxes
 .hstack-checkbox-group {
   @include flex-row();
   @include remove-appearance();
@@ -836,8 +1561,195 @@
   }
 }
 
-// hstack-radio-group
-//  @desc defines a horizontal stack of radio inputs
+// single-slider
+//  @desc defines styles for a single numeric slider
+.age-group {
+  @include flex-col(0.5rem, true);
+  @include remove-appearance();
+
+  border: none;
+  position: relative;
+
+  & .age-group__container:has(.single-slider) {
+    @include flex-row(0.5rem, true);
+    position: relative;
+
+    @include media('<desktop', 'screen') {
+      flex-wrap: wrap;
+
+      & .single-slider .number-input {
+        margin-left: auto;
+      }
+    }
+  }
+
+  & .age-group__container:has(.double-slider) {
+    @include flex-col(0.5rem, true);
+    position: relative;
+  }
+}
+
+// single-slider
+//  @desc defines styles for a single numeric slider
+.single-slider {
+  @include flex-row(0.5rem, true);
+  @include remove-appearance();
+  
+  border: none;
+  position: relative;
+  align-items: center;
+  justify-content: space-between;
+
+  &__input {
+    position: relative;
+    width: 100%;
+    height: 10px;
+
+    &__progress {
+      position: absolute;
+      width: 100%;
+      height: 10px;
+      margin: auto;
+      top: 2.5px;
+      border-radius: 0.5rem;
+      background: linear-gradient(
+        to right, 
+        var(--color-accent-semi-transparent) 0%, 
+        var(--color-accent-primary) 0%, 
+        var(--color-accent-primary) 100%, 
+        var(--color-accent-semi-transparent) 100%
+      );
+    }
+
+    & > input[type="range"] {
+      position: absolute;
+      pointer-events: none;
+      appearance: none;
+      background-color: transparent;
+      width: 100%;
+      height: 10px;
+      top: 0;
+
+      &::-ms-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+
+      &::-webkit-slider-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+
+      &::-moz-range-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  @include media('<desktop', 'screen') {
+    flex-wrap: wrap;
+
+    & .number-input {
+      margin-left: auto;
+    }
+  }
+}
+
+// double-slider
+//  @desc desfines styles for double range slider
+.double-slider {
+  @include flex-row();
+  @include remove-appearance();
+  
+  border: none;
+  position: relative;
+  align-items: center;
+
+  &__group {
+    @include flex-row();
+    width: 100%;
+    margin-top: 25px;
+    justify-content: space-between;
+    
+    &__progress {
+      
+    }
+  }
+
+  &__input {
+    position: relative;
+    width: 100%;
+
+    &__progress {
+      position: absolute;
+      width: 100%;
+      height: 10px;
+      margin: auto;
+      top: 2.5px;
+      border-radius: 0.5rem;
+      background: linear-gradient(
+        to right, 
+        var(--color-accent-semi-transparent) 0%, 
+        var(--color-accent-primary) 0%, 
+        var(--color-accent-primary) 100%, 
+        var(--color-accent-semi-transparent) 100%
+      );
+    }
+
+    &>input[type=range] {
+      position: absolute;
+      pointer-events: none;
+      appearance: none;
+      background-color: transparent;
+      width: 100%;
+      height: 10px;
+      top: 0;
+
+      &::-ms-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+
+      &::-webkit-slider-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+
+      &::-moz-range-thumb {
+        cursor: pointer;
+        pointer-events: auto;
+        appearance: none;
+        background-color: var(--color-accent-secondary);
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+/// hstack-radio-group
+///  @desc defines a horizontal stack of radio inputs
 .hstack-radio-group {
   @include flex-row();
   @include remove-appearance();
@@ -858,10 +1770,18 @@
       width: 100%;
     }
   }
+
+  &--grid {
+    display: grid;
+    gap: 0.25rem 0.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    align-items: flex-start;
+    justify-items: flex-start;
+  }
 }
 
-// checkbox-item-container
-//  @desc defines a horizontal group of checkbox items
+/// checkbox-item-container
+///  @desc defines a horizontal group of checkbox items
 .checkbox-item-container {
   display: flex;
   flex-flow: row nowrap;
@@ -873,14 +1793,29 @@
     max-width: fit-content;
     margin-right: 0.5rem;
   }
+  
+  &.min-gap {
+    gap: 0.5rem;
+    max-width: fit-content;
+    margin-bottom: 0;
+
+    & > label {
+      margin: 0 !important;
+    }
+  }
 
   &.ignore-overflow {
     overflow: visible;
   }
+
+  &:has(input:focus),
+  &:has(input:focus-visible) {
+    outline: 1px solid col(accent-anchor);
+  }
 }
 
-// search-options
-//  @desc defines a set of search options, example in create/concept.html
+/// search-options
+///  @desc defines a set of search options, example in create/concept.html
 .search-options {
   @include flex-row();
   position: relative;
@@ -1007,8 +1942,8 @@
   }
 }
 
-// search-container
-//  @desc defines a search input field
+/// search-container
+///  @desc defines a search input field
 .search-container {
   @include flex-col();
   position: relative;
@@ -1131,8 +2066,8 @@
   }
 }
 
-// date-range-picker
-//  @desc defines a date range picker for use with lightpick.js
+/// date-range-picker
+///  @desc defines a date range picker for use with lightpick.js
 .date-range-picker {
   @include remove-appearance();
 
@@ -1157,11 +2092,377 @@
   }
 }
 
-// text inputs
-//  @desc defines a set of text inputs
-.code-text-input,
+/// selection panel
+///  @desc defines a panel for the variable selection modal
+///  @example see create frontend, _e.g._ `variableCreator.js`
+.var-selection {
+  @include flex-col(false, true);
+  height: fit-content;
+  max-width: 100%;
+
+  &__none-available {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-message {
+      text-align: center;
+    }
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+
+  &__header {
+    @include flex-row(0.5rem, false);
+    height: min-content;
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+    justify-content: flex-end;
+
+    &-group {
+      @include flex-col(0.5rem, true);
+      height: fit-content;
+      max-width: 100%;
+      align-items: flex-end;
+    }
+
+    &-label {
+      display: inline-block;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0;
+      font-weight: bold;
+      font-family: inherit;
+      line-height: 1em;
+      text-wrap: wrap;
+      color: col(text-darkest);
+    }
+  }
+
+  &__content {
+    @include flex-col(0.5rem, true);
+    height: fit-content;
+    max-width: 100%;
+
+    &:not(.show) {
+      display: none;
+    }
+  }
+}
+
+/// an input group
+///  @desc defines a fielset
+///  @example see create frontend, _e.g._ `variableCreator.js`
+.input-field-container {
+  @include flex-col(0.5rem, true);
+  height: fit-content;
+  max-width: 100%;
+
+  &--fill-w {
+    width: 100% !important;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-gap: 0;
+    height: fit-content;
+    max-width: 100%;
+  }
+
+  &__row {
+    @include flex-row(0.5rem, false);
+    height: fit-content;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  &__label {
+    display: inline-block;
+    width: fit-content;
+    margin: 0;
+    font-family: inherit;
+    line-height: 1.2em;
+    letter-spacing: 2px;
+    text-wrap: wrap;
+    word-wrap: break-word;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    color: col(text-darkest);
+  }
+
+  &__desc {
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0;
+    color: col(text-darker);
+    font-family: inherit;
+    line-height: 1em;
+    text-wrap: wrap;
+    word-wrap: break-word;
+  }
+
+  &__mandatory {
+    float: right;
+    color: col(text-danger);
+    font-weight: bold;
+    font-size: 1.5em;
+
+    &.hidden {
+      display: none;
+    }
+  }
+}
+
+/// number input types
+///  @desc defines a set of number inputs
+///  @example see create frontend, _e.g._ `variableCreator.js`
+.number-input {
+  --num-input-height: 1.5rem;
+  --num-input-icon-sz: 1rem;
+
+  &__group {
+    @include flex-row(false, true);
+    width: fit-content;
+    height: fit-content;
+    max-width: 100%;
+    max-height: 100%;
+
+    &:has(.number-input__group-input:invalid) {
+      outline: 1px solid col(accent-danger) !important;
+    }
+
+    &-action {
+      appearance: none;
+      -webkit-appearance: none;
+
+      cursor: pointer;
+      position: relative;
+      margin: 0;
+      padding: 0;
+      color: col(text-darkest);
+      border: 1px solid col(accent-dark);
+      border-radius: none;
+      background-color: col(bg);
+      height: 100%;
+      width: 100%;
+
+      &:after {
+        content: '\f057';
+        position: absolute;
+        width: var(--num-input-icon-sz);
+        height: var(--num-input-icon-sz);
+        top: calc(50% - var(--num-input-icon-sz)*0.5);
+        left: calc(50% - var(--num-input-icon-sz)*0.5);
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--num-input-icon-sz);
+        color: col(accent-dark);
+        text-align: center;
+        transition: all 0.1s ease-out;
+        transform: scale(1);
+        -webkit-transform: scale(1);
+      }
+
+      &:not(:disabled) {
+        &:active,
+        &:focus {
+          outline: none;
+        }
+
+        &:not(:active):focus-visible {
+          outline: 1px solid col(accent-highlight);
+          z-index: 2;
+        }
+
+        &:hover {
+          border: 1px solid col(accent-dark);
+        }
+
+        &:active:after {
+          transform: scale(0.8);
+          -webkit-transform: scale(0.8);
+        }
+      }
+
+      &:disabled {
+        pointer-events: none;
+        opacity: 0.25;
+      }
+
+      &[data-op="decrement"]:after {
+        content: '\f068';
+      }
+
+      &[data-op="increment"]:after {
+        content: '\2b';
+      }
+    }
+
+    &-inner {
+      @include flex-row(false, false);
+      width: fit-content;
+    }
+
+    &-spin {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+      width: var(--num-input-height);
+    }
+
+    &-input[type="number"] {
+      position: relative;
+      appearance: none;
+      -moz-appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: textfield;
+
+      flex: 1;
+      width: 100%;
+      max-width: calc(10ch + 1rem);
+      height: var(--num-input-height);
+      padding: 0.5rem 1ch;
+      line-height: 1rem;
+      text-align: center;
+      transition: all 0.2s ease-out;
+      border: 1px solid col(accent-dark);
+      border-right: 1px solid rgba(0, 0, 0, 0);
+      border-radius: none;
+      background-color: col(bg);
+      -webkit-border-radius: 0px;
+
+      &:not(:disabled) {
+        &:focus {
+          outline: none;
+          border: 1px solid col(accent-dark);
+        }
+  
+        &:focus-visible {
+          outline: 1px solid col(accent-highlight);
+          z-index: 2;
+        }
+  
+        &:hover {
+          outline: none;
+          border: 1px solid col(accent-washed);
+        }
+      }
+
+      &:disabled {
+        pointer-events: none;
+        opacity: 0.25;
+      }
+
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button {
+        margin: 0;
+        -webkit-appearance: none;
+      }
+
+      & ~ .as-icon {
+        display: none;
+      }
+
+      &[data-type="percentage"] {
+        max-width: calc(15ch + 1rem);
+        padding-right: calc(2ch + var(--icons-size));
+
+        & ~ .as-icon {
+          display: block;
+          position: absolute;
+          right: 1ch;
+          top: 25%;
+        }
+  
+        &:focus-visible ~ .as-icon {
+          z-index: 2;
+        }
+      }
+
+      &[data-type="percentage"] ~ .as-icon:before {
+        content: '\25';
+      }
+    }
+  }
+}
+
+
+.validation-block {
+  --col: var(--color-accent-warning);
+
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  &__container {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    border-left: 0.25em solid transparent;
+    border-left-color: var(--col);
+    color: $mostly_black;
+    box-sizing: border-box;
+  }
+
+  &__title {
+    @include flex-row(0.5rem, false);
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+    justify-content: flex-start;
+    line-height: 1;
+    color: var(--col);
+    font-weight: bold;
+  }
+
+  &__message {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0;
+    margin-bottom: 0;
+    text-wrap: wrap;
+  }
+
+  ul {
+    padding-left: 0.95rem;
+  }
+
+  &--error {
+    --col: var(--color-accent-danger);
+
+    & ~ .validation-block:not(.validation-block--error) {
+      display: none;
+    }
+  }
+
+  &--warning:not(:has(~ input:focus-visible)):not(:has(~ * input:focus-visible)) .validation-block__container {
+    display: none;
+  }
+
+  &--warning {
+    & .validation-block__container {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      margin-bottom: 0;
+    }
+  }
+}
+
+/// text input types
+///  @desc defines a set of text inputs
 .text-input,
-.text-area-input {
+.text-area-input,
+.code-text-input {
   @include remove-appearance();
 
   font-family: inherit;
@@ -1175,6 +2476,10 @@
   max-width: calc(100% - 1rem);
   transition: border-color 250ms ease;
 
+  &--bbox-size {
+    box-sizing: border-box;
+  }
+
   &:focus {
     outline: none;
     border-color: col(accent-dark);
@@ -1183,10 +2488,22 @@
   &:disabled {
     opacity: 0.5;
   }
+
+  &:focus-visible {
+    outline: 1px solid col(accent-anchor);
+  }
+
+  &:focus-visible:valid {
+    border-color: col(accent-success);
+  }
+
+  &:invalid {
+    border-color: col(accent-danger);
+  }
 }
 
-// code inputs
-//  @desc defines a set of input elements for code search
+/// code inputs
+///  @desc defines a set of input elements for code search
 .code-search-group {
   @include flex-col();
   position: relative;
@@ -1237,8 +2554,8 @@
   }
 }
 
-// text-area-input
-//  @desc defines an area for text input
+/// text-area-input
+///  @desc defines an area for text input
 .text-area-input {
   resize: vertical;
 
@@ -1256,8 +2573,8 @@
   }
 }
 
-// selection inputs
-//  @desc defines a group of selection inputs for radio buttons, checkboxes, dropdown etc
+/// selection inputs
+///  @desc defines a group of selection inputs for radio buttons, checkboxes, dropdown etc
 .selection-input {
   font-family: inherit;
   margin-top: 0.25rem;
@@ -1381,11 +2698,10 @@
   padding: 0;
   border: 1px solid var(--border-color, var(--border-accent));
   background: var(--bg-color, var(--background-accent));
-  box-sizing: inherit;
+  box-sizing: border-box;
 
   &:focus-visible + label {
-    outline: 1px solid col(accent-dark);
-    border-radius: 2pt;
+    outline: none;
   }
 
   &:after {
@@ -1399,9 +2715,9 @@
     border: 2px solid var(--icon-accent);
     border-top: 0;
     border-left: 0;
-    left: 6px;
-    top: 2px;
-    box-sizing: inherit;
+    left: calc(50% - 5px*0.5);
+    top: calc(50% - 9px*0.5);
+    box-sizing: border-box;
   }
 
   &:before {
@@ -1518,8 +2834,8 @@
   }
 }
 
-// switch inputs
-//  @desc defines a switch, similar in function to a radiobutton, to describe a binary state
+/// switch inputs
+///  @desc defines a switch, similar in function to a radiobutton, to describe a binary state
 .switch-input {
   display: none;
 
@@ -1688,4 +3004,102 @@
 /* Loading style */
 .eletree_icon-loading1:before {
   content: '\f110';
+}
+
+.item-display {
+  @include flex-col(0.5rem, true);
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: fit-content;
+  margin-bottom: 0.5rem;
+
+  &__none {
+    padding: 1rem;
+    border-radius: 0.1rem;
+    background-color: col(accent-semi-transparent);
+
+    &-label {
+      text-align: center;
+    }
+  }
+
+  &__list {
+    @include flex-col(0.5rem, true);
+    position: relative;
+    width: 100%;
+    max-width: calc(100% - 0.5rem);
+    max-height: 200px;
+    padding: 0.5rem;
+    overflow-y: auto;
+    overflow-x: none;
+  }
+
+  &__item {
+    @include flex-row(0.5rem, false);
+    max-width: calc(100% - 0.5rem);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed col(accent-washed);
+
+    & p {
+      margin: 0;
+    }
+  }
+
+  &__text {
+    flex: 1;
+    max-width: 100%;
+
+    & p {
+      text-wrap: wrap;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+
+    & a {
+      text-wrap: wrap;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+
+    @include media("<tablet", "screen") {
+      flex: 1;
+      min-width: 100%;
+
+      & p {
+        width: fit-content;
+      }
+    }
+  }
+
+  &__value {
+    display: inline-block;
+    flex: 0.5;
+    height: max-content;
+    min-width: 10px;
+    max-width: fit-content;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8em;
+    font-weight: 700 !important;
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: middle;
+    border-radius: 2pt;
+    color: col(text-darkest);
+    background-color: col(accent-lightest);
+    text-wrap: wrap;
+    word-wrap: break-word;
+
+    @include media('<tablet', 'screen') {
+      flex: 1;
+    }
+  }
+
+  &__desc-indent {
+    margin-left: 2em;
+    margin-right: 2em;
+    max-width: calc(100% - 4em);
+  }
 }

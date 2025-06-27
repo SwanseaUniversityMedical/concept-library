@@ -1,0 +1,51 @@
+{% load cl_extras %}
+
+<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+    <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
+  {% endif %}
+  <div 
+    class="tab-group" 
+    data-field="{{ component.field_name }}"
+    data-class="indicator_calculation"
+  >
+    <input type="radio" id="tab1" name="tabGroup1" class="tab" checked>
+    <label for="tab1"><strong>Description</strong></label>
+
+    <input type="radio" id="tab2" name="tabGroup1" class="tab">
+    <label for="tab2"><strong>Numerator</strong></label>
+
+    <input type="radio" id="tab3" name="tabGroup1" class="tab">
+    <label for="tab3"><strong>Denominator</strong></label>
+
+    <div class="tab__content">
+      <textarea
+        id="entity-{{ component.field_name }}-description"
+        class="filter-scrollbar"
+        data-role="description"></textarea>
+      <script type="text/html" data-name="description" aria-hidden="true" for="{{ component.field_name }}">{% if component.value.description %}{{ component.value.description|safe }}{% endif %}</script>
+    </div>
+
+    <div class="tab__content">
+      <textarea
+        id="entity-{{ component.field_name }}-numerator"
+        class="filter-scrollbar"
+        data-role="numerator"></textarea>
+      <script type="text/html" data-name="numerator" aria-hidden="true" for="{{ component.field_name }}">{% if component.value.numerator %}{{ component.value.numerator|safe }}{% endif %}</script>
+    </div>
+
+    <div class="tab__content">
+      <textarea
+        id="entity-{{ component.field_name }}-denominator"
+        class="filter-scrollbar"
+        data-role="denominator"></textarea>
+      <script type="text/html" data-name="denominator" aria-hidden="true" for="{{ component.field_name }}">{% if component.value.denominator %}{{ component.value.denominator|safe }}{% endif %}</script>
+    </div>
+  </div>
+</div>

@@ -1,7 +1,6 @@
 from django.apps import apps
 from django.db import models, transaction, connection
-from django.db.models import F, Count, Max, Case, When, Exists, OuterRef
-from django.db.models.query import QuerySet
+from django.db.models import F, Count, Case, When, Exists, OuterRef
 from django.db.models.functions import JSONObject
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex
@@ -1241,15 +1240,15 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 								node.name,
 								node.type_id,
 								node.properties,
-								ts_rank_cd(node.search_vector, websearch_to_tsquery('pg_catalog.english', %(searchterm)s)) as score
+								ts_rank_cd(node.search_vector, to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))) as score
 						from public.clinicalcode_ontologytag as node
 					 where ((
 								search_vector
-								@@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|'))
+								@@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
 						  )
 							 or (
-								(relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|')))
-								or (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(searchterm)s)::text || ':*', '<->', '|')))
+								(relation_vector @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
+								or (synonyms_vector @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
 						  )
 					   )
 			''')

@@ -1,41 +1,45 @@
-{% load static %}
 {% load i18n %}
+{% load cache %}
+{% load static %}
 {% load cl_extras %}
+{% load entity_renderer %}
 
 {% block content %}
-<div class="footer-links">
-  {% for items in request.BRAND_OBJECT.footer_images %}
-  <div class="footer-links__item">
-    <a href="{{items.url}}" target=_blank class="footer-brand" rel="noopener noreferrer">
-      <img loading="lazy" style="margin-top: -10px;" src="{% static items.image_src %}" height="30px" alt="{{items.brand}} Logo" />
-    </a>
-  </div>
-  {% endfor %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+  {% with request.CURRENT_BRAND|default:"BASE_BRAND" as brand_target %}
+    {% cache 3600 brand_footer_imgs brand_target %}
+      <div class="footer-links">
+        {% for items in request.BRAND_OBJECT.footer_images %}
+          <div class="footer-links__item">
+            <a href="{{items.url}}" target=_blank class="footer-brand" rel="noopener noreferrer">
+              <img loading="lazy" style="margin-top: -10px;" src="{% static items.image_src %}" height="30px" alt="{{ items.brand }} Logo" />
+            </a>
+          </div>
+        {% empty %}
+          <div class="footer-links__item">
+            <a href="https://conceptlibrary.saildatabank.com/" target=_blank class="footer-brand" rel="noopener noreferrer">
+              <img loading="lazy" style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"
+                alt="{{ base_page_title }} Logo" />
+            </a>
+          </div>
+          <div class="footer-links__item">
+            <a href="http://saildatabank.com" target=_blank class="navbar-brand" rel="noopener noreferrer">
+              <img loading="lazy" style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"
+                alt="SAIL Databank Logo" />
+            </a>
+          </div>
+        {% endfor %}
 
-  {% if request.BRAND_OBJECT.footer_images is none %}
-  <div class="footer-links__item">
-    <a href="https://conceptlibrary.saildatabank.com/" target=_blank class="footer-brand" rel="noopener noreferrer">
-      <img loading="lazy" style="margin-top: -10px;" src="{% static 'img/Footer_logos/concept_library_on_white.png' %}" height="30px"
-        alt="Concept Library Logo" />
-    </a>
-  </div>
-  <div class="footer-links__item">
-    <a href="http://saildatabank.com" target=_blank class="navbar-brand" rel="noopener noreferrer">
-      <img loading="lazy" style="margin-top: -10px;" src="{% static 'img/Footer_logos/SAIL_alt_logo_on_white.png' %}" height="30px"
-        alt="SAIL Databank Logo" />
-    </a>
-  </div>
-  {% endif %}
-
-  {% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
-    <span class="footer-alert footer-alert--warning footer-alert--right" role="alert">
-      {% if CLL_READ_ONLY %}
-        <strong>READONLY</strong>
-      {% else %}
-        <strong>{{ DEV_PRODUCTION|safe }}</strong>
-      {% endif %}
-    </span>
-  {% endif %}
-</div>
-
+        {% if DEV_PRODUCTION|length or CLL_READ_ONLY %}
+          <span class="footer-alert footer-alert--warning footer-alert--right" role="alert">
+            {% if CLL_READ_ONLY %}
+              <strong>READONLY</strong>
+            {% else %}
+              <strong>{{ DEV_PRODUCTION|safe }}</strong>
+            {% endif %}
+          </span>
+        {% endif %}
+      </div>
+    {% endcache %}
+  {% endwith %}
 {% endblock content %}

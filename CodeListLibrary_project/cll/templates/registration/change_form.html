@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| {% if form.errors %}Error: {% endif %}Change Password{% endblock %}
+
+{% block container %}
+  <!-- Page Stylesheets -->
+  {% compress css %}
+		<link rel="stylesheet" href="{% sass_src 'scss/pages/login.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  <header class="main-header">
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <div class="account-container">
+        <div class="account-container__info-container">
+          <div class="account-container__info-container__content">
+            <div class="account-container__info-container__section">
+              <h2>Terms and Conditions</h2>
+              <p>
+                Please explore our terms and conditions 
+                <a target=_blank rel="noopener" href="{% url 'terms' %}">
+                  here
+                </a>
+                prior to accessing the site.
+              </p>
+            </div>
+            <div class="account-container__info-container__section">
+              <h2>Privacy & Cookie Policy</h2>
+              <p>
+                Please explore our privacy and cookie policy 
+                <a target=_blank rel="noopener" href="{% url 'privacy_and_cookie_policy' %}">
+                  here
+                </a>
+                prior to accessing the site.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="account-container__form-container">
+          <h1>Change your password</h1>
+          <form method="post">
+            <div class="detailed-input-group constrained">
+              <h3 class="detailed-input-group__title">
+                Current Password:
+                <span class="detailed-input-group__mandatory">*</span>
+              </h3>
+              {% if form.old_password.errors %}
+                <div class="detailed-input-group__error" aria-live="true">
+                  {{ form.old_password.errors }}
+                </div>
+              {% endif %}
+              <p class="detailed-input-group__description account-container--text-wrappable">
+                Please confirm your old password for security purposes.
+              </p>
+              <input
+                  id="id_old_password"
+                  name="old_password"
+                  type="password"
+                  class="text-input"
+                  autocomplete="current-password"
+                  autofocus
+                  required
+                  />
+            </div>
+
+            <div class="detailed-input-group constrained">
+              <h3 class="detailed-input-group__title">
+                New Password:
+                <span class="detailed-input-group__mandatory">*</span>
+              </h3>
+              {% if form.new_password1.errors %}
+                <div class="detailed-input-group__error" aria-live="true">
+                  {{ form.new_password1.errors }}
+                </div>
+              {% endif %}
+              <p class="detailed-input-group__description account-container--text-wrappable">
+                Please enter your new password.
+              </p>
+              <input
+                  id="id_new_password1"
+                  name="new_password1"
+                  type="password"
+                  class="text-input"
+                  autocomplete="new-password"
+                  minlength="8"
+                  required
+                  />
+            </div>
+
+            <div class="detailed-input-group constrained">
+              <h3 class="detailed-input-group__title">
+                Confirm New Password:
+                <span class="detailed-input-group__mandatory">*</span>
+              </h3>
+              {% if form.new_password2.errors %}
+                <div class="detailed-input-group__error" aria-live="true">
+                  {{ form.new_password2.errors }}
+                </div>
+              {% endif %}
+              <p class="detailed-input-group__description account-container--text-wrappable">
+                Please confirm your new password.
+              </p>
+              <input
+                  id="id_new_password2"
+                  name="new_password2"
+                  type="password"
+                  class="text-input"
+                  autocomplete="new-password"
+                  minlength="8"
+                  required
+                  />
+            </div>
+
+            <div class="account-container__form-container__submit-container">
+              {% csrf_token %}
+              <input
+                    id="save-changes"
+                    class="primary-btn text-accent-darkest bold tertiary-accent sweep-left" 
+                    type="submit"
+                    aria-label="Confirm"
+                    value="Confirm">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+{% endblock container %}

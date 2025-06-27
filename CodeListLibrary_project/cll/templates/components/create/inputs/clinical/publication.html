@@ -1,9 +1,14 @@
 {% load entity_renderer %}
 
 <div class="detailed-input-group fill">
-  <h3 class="detailed-input-group__title">Publications {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+      <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
   {% if not component.hide_input_details %}
-    <p class="detailed-input-group__description">Add a publication by providing the reference details and its DOI.</p>
+    <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
 
   <div class="publication-list-group">
@@ -20,10 +25,12 @@
           placeholder="e.g. Doe J. et al. Publication. Publisher"
           minlength="3" pattern="^[a-zA-Z]{1,}.*?"
           id="publication-input-box">
-        <input class="text-input" aria-label="Publication DOI" type="text" placeholder="e.g. DOI 10.111" id="doi-input-box">
+        <input class="text-input" aria-label="Publication DOI" type="text" placeholder="e.g. DOI 10.1000/111" id="doi-input-box">
+      </div>
+      <div class="publication-list-group__interface-children publication-list-group__interface-children--right">
         <div class="checkbox-item-container min-size">
-        <input id="primary-publication-checkbox" aria-label="Primary Publication" type="checkbox" class="checkbox-item" data-value="1" data-name="Primary Publication">
-        <label for="primary-publication-checkbox">Primary Publication</label>
+          <input id="primary-publication-checkbox" aria-label="Primary Publication" type="checkbox" class="checkbox-item" data-value="1" data-name="Primary Publication">
+          <label for="primary-publication-checkbox">Primary Publication</label>
         </div>
         <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Publication" id="add-input-btn">Add</button>
       </div>

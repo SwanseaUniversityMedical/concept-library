@@ -1,9 +1,17 @@
+from operator import and_
+from functools import reduce
 from django.apps import apps
 from django.db.models import Q, ForeignKey
+
+import copy
+import logging
 
 from . import concept_utils
 from . import filter_utils
 from . import constants
+
+
+logger = logging.getLogger(__name__)
 
 
 def try_get_content(body, key, default=None):
@@ -37,6 +45,15 @@ def is_metadata(entity, field):
         data = model._meta.get_field(field)
         return True
     except:
+        pass
+
+    try:
+        template_field = get_layout_field(entity.template, field) if entity.template is not None else None
+        if template_field is not None and template_field.get('is_base_field', False):
+            return True
+    except:
+        pass
+    finally:
         return False
 
 
@@ -84,14 +101,47 @@ def get_layout_field(layout, field, default=None):
     """
         Safely gets a field from a layout's field within its definition
     """
+    result = None
     if is_layout_safe(layout):
         definition = try_get_content(layout, 'definition') if isinstance(layout, dict) else getattr(layout,
                                                                                                     'definition')
         fields = try_get_content(definition, 'fields')
         if fields is not None:
-            return try_get_content(fields, field, default)
+            result = try_get_content(fields, field, default)
 
-    return try_get_content(layout, field, default)
+    if result is None:
+        result = try_get_content(layout, field, default)
+
+    if isinstance(result, dict) and result.get('is_base_field'):
+        merged = copy.deepcopy(constants.metadata.get(field))
+        merged = merged | result
+        return merged
+    return result
+
+
+def get_template_field_info(layout, field_name, copy_field=True):
+    """"""
+    fields = get_layout_fields(layout)
+    if fields:
+        field = fields.get(field_name)
+        if isinstance(field, dict):
+            result = { 'key': field_name, 'field': field, 'is_metadata': False }
+            if not field.get('is_base_field'):
+                return result
+
+            merged = copy.deepcopy(constants.metadata.get(field_name)) if copy_field else constants.metadata.get(field_name)
+            merged = merged | field
+
+            result |= {
+                'field': merged,
+                'shunt': field.get('shunt') if isinstance(field.get('shunt'), str) else None,
+                'is_metadata': True,
+            }
+
+            return result
+
+    field = constants.metadata.get(field_name, None)
+    return { 'key': field_name, 'field': field, 'is_metadata': True }
 
 
 def get_merged_definition(template, default=None):
@@ -105,7 +155,9 @@ def get_merged_definition(template, default=None):
         return default
 
     fields = {field: packet for field, packet in constants.metadata.items() if not packet.get('ignore')}
-    fields.update(definition.get('fields') or {})
+    for k, v in definition.get('fields', {}).items():
+        fields.update({ k: copy.deepcopy(fields.get(k, {})) | v })
+
     fields = {
             field: packet
             for field, packet in fields.items()
@@ -286,9 +338,13 @@ def is_valid_field(entity, field):
     if is_metadata(entity, field):
         return True
 
-    template = entity.template
-    if template is None:
+    try:
+        template = entity.template
+    except:
         return False
+    else:
+        if template is None:
+            return False
 
     if get_layout_field(template, field):
         return True
@@ -373,13 +429,13 @@ def try_get_filter_query(field_name, source, request=None):
             request (RequestContext): the current request context, if available
         
         Returns:
-            The final filter query as a (dict)
+            The final filter query as a (list)
     """
-    output = {}
+    output = []
     for key, value in source.items():
         filter_packet = constants.ENTITY_FILTER_PARAMS.get(key)
         if not isinstance(filter_packet, dict):
-            output[key] = value
+            output.append(Q(**{key: value}))
             continue
 
         filter_name = filter_packet.get('filter')
@@ -400,20 +456,21 @@ def try_get_filter_query(field_name, source, request=None):
         result = None
         try:
             result = filter_utils.DataTypeFilters.try_generate_filter(
-                    desired_filter=filter_name,
-                    expected_params=filter_packet.get('expected_params'),
-                    **filter_props
+                desired_filter=filter_name,
+                expected_params=filter_packet.get('expected_params'),
+                source_value=value,
+                **filter_props
             )
         except Exception as e:
-            pass
+            logger.warning(f'Failed to build filter of field "{field_name}" with err:\n\n{e}')
 
-        if isinstance(result, dict):
-            output = output | result
+        if isinstance(result, list):
+            output = output + result
 
     return output
 
 
-def get_metadata_value_from_source(entity, field, default=None, request=None):
+def get_metadata_value_from_source(entity, field, field_info=None, layout=None, default=None, request=None):
     """
         [!] Note: RequestContext is an optional parameter that can be provided to further filter
             the results based on the request's Brand    
@@ -423,14 +480,32 @@ def get_metadata_value_from_source(entity, field, default=None, request=None):
             to another table
     """
     try:
-        data = getattr(entity, field)
-        if field in constants.metadata:
-            validation = get_field_item(constants.metadata, field, 'validation', {})
-            source_info = validation.get('source')
+        info = None
+        if field_info is not None:
+            info = field_info
+        elif layout is not None:
+            info = get_template_field_info(layout, field)
 
-            model = apps.get_model(
-                    app_label='clinicalcode', model_name=source_info.get('table')
-            )
+        if info:
+            if not info.get('is_metadata'):
+                return default
+            else:
+                info = info.get('field')
+
+        if info is None:
+            info = constants.metadata.get(field)
+
+        if info is not None:
+            data = get_entity_field(entity, field)
+            validation = info.get('validation')
+            if not validation:
+                return default
+
+            source_info = validation.get('source')
+            if not source_info:
+                return default
+
+            model = apps.get_model(app_label='clinicalcode', model_name=source_info.get('table'))
 
             column = 'id'
             if 'query' in source_info:
@@ -439,47 +514,44 @@ def get_metadata_value_from_source(entity, field, default=None, request=None):
             if isinstance(data, model):
                 data = getattr(data, column)
 
-            if isinstance(data, list):
-                query = {
-                        f'{column}__in': data
-                }
-            else:
-                query = {
-                        f'{column}': data
-                }
+            query = { f'{column}__in': data } if isinstance(data, list) else { f'{column}': data }
 
             if 'filter' in source_info:
                 filter_query = try_get_filter_query(field, source_info.get('filter'), request=request)
-                query = {**query, **filter_query}
+                if isinstance(filter_query, list):
+                    query = [Q(**query), *filter_query]
 
-            queryset = model.objects.filter(Q(**query))
+            if isinstance(query, list):
+                queryset = model.objects.filter(reduce(and_, query))
+            else:
+                queryset = model.objects.filter(**query)
+
             if queryset.exists():
                 relative = 'name'
                 if 'relative' in source_info:
                     relative = source_info['relative']
 
-                output = []
-                for instance in queryset:
-                    output.append({
-                            'name': getattr(instance, relative),
-                            'value': getattr(instance, column)
-                    })
+                output = [
+                    { 'name': getattr(instance, relative), 'value': getattr(instance, column) }
+                    for instance in queryset
+                ]
 
                 return output if len(output) > 0 else default
-    except:
-        pass
-    else:
-        return default
+    except Exception as e:
+        logger.warning(f'Failed to build metadata value of field "{field}" with err:\n\n{e}')
+    return default
 
 
-def get_template_sourced_values(template, field, default=None, request=None):
+def get_template_sourced_values(template, field, default=None, request=None, struct=None):
     """
         [!] Note: RequestContext is an optional parameter that can be provided to further filter
             the results based on the request's Brand    
         
         Returns the complete option list of an enum or a sourced field
     """
-    struct = get_layout_field(template, field)
+    if struct is None:
+        struct = get_layout_field(template, field)
+
     if struct is None:
         return default
 
@@ -490,9 +562,16 @@ def get_template_sourced_values(template, field, default=None, request=None):
     if 'options' in validation:
         output = []
         for i, v in validation.get('options').items():
+            if isinstance(v, dict):
+                ref = i
+                val = v
+            else:
+                ref = v
+                val = i
+
             output.append({
-                    'name': v,
-                    'value': i
+                'name': ref,
+                'value': val,
             })
 
         return output
@@ -513,8 +592,7 @@ def get_template_sourced_values(template, field, default=None, request=None):
                     if isinstance(output, list):
                         return output
                 except Exception as e:
-                    # Logging
-                    pass
+                    logger.warning(f'Failed to derive template sourced values of tree, from field "{field}" with err:\n\n{e}')
         elif isinstance(model_name, str):
             try:
                 model = apps.get_model(app_label='clinicalcode', model_name=model_name)
@@ -523,28 +601,43 @@ def get_template_sourced_values(template, field, default=None, request=None):
                 if 'query' in source_info:
                     column = source_info.get('query')
 
+                query = { }
                 if 'filter' in source_info:
                     filter_query = try_get_filter_query(field, source_info.get('filter'), request=request)
-                    query = {**filter_query}
-                else:
-                    query = {}
+                    if isinstance(filter_query, list):
+                        query = [Q(**query), *filter_query]
 
-                queryset = model.objects.filter(Q(**query))
+                if isinstance(query, list):
+                    queryset = model.objects.filter(reduce(and_, query))
+                else:
+                    queryset = model.objects.filter(**query)
+
                 if queryset.exists():
                     relative = 'name'
                     if 'relative' in source_info:
                         relative = source_info.get('relative')
 
+                    include = source_info.get('include')
+                    if isinstance(include, list):
+                        include = [x.strip() for x in include if isinstance(x, str) and len(x.strip()) > 0 and not x.strip().isspace()]
+                        include = include if len(include) > 0 else None
+                    else:
+                        include = None
+
                     output = []
                     for instance in queryset:
-                        output.append({
-                                'name': getattr(instance, relative),
-                                'value': getattr(instance, column)
-                        })
+                        item = {
+                            'name': getattr(instance, relative),
+                            'value': getattr(instance, column),
+                        }
+
+                        if include is not None:
+                            item.update({ k: getattr(instance, k) for k in include if hasattr(instance, k) })
+                        output.append(item)
 
                     return output if len(output) > 0 else default
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f'Failed to derive template sourced values of column, from field "{field}" with err:\n\n{e}')
 
     return default
 
@@ -593,24 +686,16 @@ def get_detailed_sourced_value(data, info, default=None):
         if 'relative' in source_info:
             relative = source_info['relative']
 
-        query = None
-        if 'query' in source_info:
-            query = {
-                    source_info['query']: data
-            }
-        else:
-            query = {
-                    'pk': data
-            }
-
+        query = { source_info['query']: data } if 'query' in source_info else { 'pk': data }
         queryset = model.objects.filter(Q(**query))
         if queryset.exists():
             queryset = queryset.first()
 
             packet = {
-                    'name': try_get_instance_field(queryset, relative, default),
-                    'value': data
+                'name': try_get_instance_field(queryset, relative, default),
+                'value': data
             }
+
             included_fields = source_info.get('include')
             if included_fields:
                 for included_field in included_fields:
@@ -620,12 +705,15 @@ def get_detailed_sourced_value(data, info, default=None):
                     packet[included_field] = value
 
             return packet
+
         return default
-    except:
-        return default
+    except Exception as e:
+        field = info.get('title', 'Unknown Field')
+        logger.warning(f'Failed to build detailed source value of field "{field}" with err:\n\n{e}')
+    return default
 
 
-def get_sourced_value(data, info, default=None):
+def get_sourced_value(data, info, default=None, filter_params=None):
     """
         Tries to get the sourced value of a dynamic field from its layout and/or another model (if sourced)
     """
@@ -640,23 +728,37 @@ def get_sourced_value(data, info, default=None):
         if 'relative' in source_info:
             relative = source_info['relative']
 
-        query = None
-        if 'query' in source_info:
-            query = {
-                    source_info['query']: data
-            }
-        else:
-            query = {
-                    'pk': data
-            }
+        query = { source_info['query']: data } if 'query' in source_info else { 'pk': data }
 
-        queryset = model.objects.filter(Q(**query))
+        if 'filter' in source_info and isinstance(filter_params, dict):
+            filter_query = None
+            try:
+                if 'source_value' not in filter_params:
+                    filter_params.update({ 'source_value': source_info.get('filter') })
+
+                filter_query = filter_utils.DataTypeFilters.try_generate_filter(**filter_params)
+                if isinstance(filter_query, list):
+                    query = [Q(**query), *filter_query]
+
+            except Exception as e:
+                field = info.get('title', 'Unknown Field')
+                logger.warning(f'Failed to build filter of field "{field}" with err:\n\n{e}')
+
+        if isinstance(query, list):
+            queryset = model.objects.filter(reduce(and_, query))
+        else:
+            queryset = model.objects.filter(**query)
+
         if queryset.exists():
             queryset = queryset.first()
             return try_get_instance_field(queryset, relative, default)
+
         return default
-    except:
-        return default
+    except Exception as e:
+        field = info.get('title', 'Unknown Field')
+        logger.warning(f'Failed to build sourced value of field "{field}" with err:\n\n{e}')
+
+    return default
 
 
 def get_template_data_values(entity, layout, field, hide_user_details=False, request=None, default=None):
@@ -678,7 +780,7 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
 
     if field_type == 'enum' or field_type == 'int':
         output = None
-        if 'options' in validation:
+        if 'options' in validation and not validation.get('ugc', False):
             output = get_detailed_options_value(data, info)
         elif 'source' in validation:
             output = get_detailed_sourced_value(data, info)
@@ -686,32 +788,35 @@ def get_template_data_values(entity, layout, field, hide_user_details=False, req
             return [output]
     elif field_type == 'int_array':
         source_info = validation.get('source')
-        if not source_info:
+        options = validation.get('options')
+        if source_info:
+            model_name = source_info.get('table')
+            tree_models = source_info.get('trees')
+
+            if isinstance(tree_models, list):
+                model_source = source_info.get('model')
+                if isinstance(model_source, str):
+                    try:
+                        model = apps.get_model(app_label='clinicalcode', model_name=model_source)
+                        output = model.get_detailed_source_value(data, tree_models, default=default)
+                        if isinstance(output, list):
+                            return output
+                    except Exception as e:
+                        logger.warning(f'Failed to derive template data values of "{field}" with err:\n\n{e}')
+            elif isinstance(model_name, str):
+                values = []
+                for item in data:
+                    value = get_detailed_sourced_value(item, info)
+                    if value is None:
+                        continue
+
+                    values.append(value)
+                return values
+        elif isinstance(options, dict) and isinstance(data, list):
+            values = [{ 'name': options.get(x), 'value': x } for x in data if isinstance(options.get(x), str)]
+            return values if len(values) > 0 else default
+        else:
             return default
-
-        model_name = source_info.get('table')
-        tree_models = source_info.get('trees')
-
-        if isinstance(tree_models, list):
-            model_source = source_info.get('model')
-            if isinstance(model_source, str):
-                try:
-                    model = apps.get_model(app_label='clinicalcode', model_name=model_source)
-                    output = model.get_detailed_source_value(data, tree_models, default=default)
-                    if isinstance(output, list):
-                        return output
-                except Exception as e:
-                    # Logging
-                    pass
-        elif isinstance(model_name, str):
-            values = []
-            for item in data:
-                value = get_detailed_sourced_value(item, info)
-                if value is None:
-                    continue
-
-                values.append(value)
-            return values
     elif field_type == 'concept':
         values = []
         for item in data:

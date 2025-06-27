@@ -1,13 +1,20 @@
-{% load static %}
 {% load i18n %}
-{% load cl_extras %}
+{% load static %}
+{% load entity_renderer %}
 
 {% block content %}
-<li class="content-container">
-  <a href="javascript:void(null);" value="{{currentBrand}}" class="item-dropdown userBrand" >
-    <div class="item-dropdown__icon"><img loading="lazy" alt="{{currentBrand}} Logo" src="{{image}}" /></div>
-
-    <div class="item-dropdown__title">{{title}}</div>
-  </a>
-</li>
+  <li class="content-container">
+    <a
+      class="item-dropdown userBrand"
+      value="{{ currentBrand }}"
+    >
+      {% if rules %}
+        {% to_json_script rules name="brand-mapping" %}
+      {% endif %}
+      <div class="item-dropdown__icon">
+        <img loading="lazy" alt="{{ currentBrand }} Logo" src="{{ image }}" />
+      </div>
+      <div class="item-dropdown__title">{{ title }}</div>
+    </a>
+  </li>
 {% endblock content %}

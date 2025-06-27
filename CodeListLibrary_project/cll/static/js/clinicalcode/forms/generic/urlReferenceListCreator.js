@@ -1,4 +1,4 @@
-import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
+import { TOAST_MSG_DURATION } from '../entityFormConstants.js';
 /**
  * PUBLICATION_NOTIFICATIONS
  * @desc notification text that is used to present information
@@ -89,7 +89,7 @@ export default class UrlReferenceListCreator {
     return `
     <div class="publication-list-group__list-item" data-target="${index}">
       <div class="publication-list-group__list-item-url">
-        <a href="${listItem.url}">${listItem.title}</a>
+        <a href="${listItem.url}" target=_blank rel="noopener">${listItem.title}</a>
       </div>
       <button class="publication-list-group__list-item-btn" data-target="${index}">
         <span class="delete-icon"></span>
@@ -161,11 +161,13 @@ export default class UrlReferenceListCreator {
     e.stopPropagation();
 
     const textItem = strictSanitiseString(this.textInput.value);
+    this.textInput.value = textItem;
+
     if (!this.textInput.checkValidity() || isNullOrUndefined(textItem) || isStringEmpty(textItem)) {
       window.ToastFactory.push({
         type: 'danger',
         message: URL_REF_NOTIFICATIONS.InvalidTitle,
-        duration: PUBLICATION_MIN_MSG_DURATION,
+        duration: TOAST_MSG_DURATION,
       });
       return;
     }
@@ -175,7 +177,7 @@ export default class UrlReferenceListCreator {
       window.ToastFactory.push({
         type: 'danger',
         message: URL_REF_NOTIFICATIONS.InvalidURL,
-        duration: PUBLICATION_MIN_MSG_DURATION,
+        duration: TOAST_MSG_DURATION,
       });
       return;
     }

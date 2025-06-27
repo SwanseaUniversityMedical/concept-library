@@ -49,6 +49,7 @@ const PROMPT_MODAL_SIZES = {
   Small: 'sm',
   Medium: 'md',
   Large: 'lg',
+  XLarge: 'xl',
 };
 
 /**
@@ -60,6 +61,7 @@ const PROMPT_DEFAULT_PARAMS = {
   title: 'Modal',
   content: '',
   showFooter: true,
+  showActionSpinner: true,
   size: PROMPT_MODAL_SIZES.Medium,
   buttons: PROMPT_BUTTONS_DEFAULT,
   onRender: () => { },
@@ -100,7 +102,7 @@ class CancellablePromise {
  * 
  */
 class ModalResult {
-  constructor(name, type, data) {
+  constructor(name, type = PROMPT_BUTTON_TYPES.REJECT, data = null) {
     this.name = name;
     this.type = type;
     this.data = data;
@@ -111,60 +113,58 @@ class ModalResult {
  * @class ModalFactory
  * @desc A window-level instance to create modals
  * 
- * e.g.
-  ```js
-    const ModalFactory = window.ModalFactory;
-    ModalFactory.create({
-      id: 'test-dialog',
-      title: 'Hello',
-      content: '<p>Hello</p>',
-      buttons: [
-        {
-          name: 'Cancel',
-          type: ModalFactory.ButtonTypes.REJECT,
-          html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
-        },
-        {
-          name: 'Reject',
-          type: ModalFactory.ButtonTypes.REJECT,
-          html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="reject-button"></button>`,
-        },
-        {
-          name: 'Confirm',
-          type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="confirm-button"></button>`,
-        },
-        {
-          name: 'Accept',
-          type: ModalFactory.ButtonTypes.CONFIRM,
-          html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="accept-button"></button>`,
-        },
-      ]
-    })
-    .then((result) => {
-      // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
-      const name = result.name;
-      if (name == 'Confirm') {
-        console.log('[success] user confirmed', result);
-      } else if (name == 'Accept') {
-        console.log('[success] user accepted', result);
-      }
-    })
-    .catch((result) => {
-      // An error occurred somewhere (unrelated to button input)
-      if (!(result instanceof ModalFactory.ModalResults)) {
-        return console.error(result);
-      }
-
-      // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.REJECT
-      const name = result.name;
-      if (name == 'Cancel') {
-        console.log('[failure] user cancelled', result);
-      } else if (name == 'Reject') {
-        console.log('[failure] rejected', result);
-      }
-    });
-  ```
+ * @example
+ * const ModalFactory = window.ModalFactory;
+ * ModalFactory.create({
+ *   id: 'test-dialog',
+ *   title: 'Hello',
+ *   content: '<p>Hello</p>',
+ *   buttons: [
+ *     {
+ *       name: 'Cancel',
+ *       type: ModalFactory.ButtonTypes.REJECT,
+ *       html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
+ *     },
+ *     {
+ *       name: 'Reject',
+ *       type: ModalFactory.ButtonTypes.REJECT,
+ *       html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="reject-button"></button>`,
+ *     },
+ *     {
+ *       name: 'Confirm',
+ *       type: ModalFactory.ButtonTypes.CONFIRM,
+ *       html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="confirm-button"></button>`,
+ *     },
+ *     {
+ *       name: 'Accept',
+ *       type: ModalFactory.ButtonTypes.CONFIRM,
+ *       html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="accept-button"></button>`,
+ *     },
+ *   ]
+ * })
+ * .then((result) => {
+ *   // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.CONFIRM
+ *   const name = result.name;
+ *   if (name == 'Confirm') {
+ *     console.log('[success] user confirmed', result);
+ *   } else if (name == 'Accept') {
+ *     console.log('[success] user accepted', result);
+ *   }
+ * })
+ * .catch((result) => {
+ *   // An error occurred somewhere (unrelated to button input)
+ *   if (!(result instanceof ModalFactory.ModalResults)) {
+ *     return console.error(result);
+ *   }
+ * 
+ *   // e.g. user pressed a button that has type=ModalFactory.ButtonTypes.REJECT
+ *   const name = result.name;
+ *   if (name == 'Cancel') {
+ *     console.log('[failure] user cancelled', result);
+ *   } else if (name == 'Reject') {
+ *     console.log('[failure] rejected', result);
+ *   }
+ * });
  * 
  */
 class ModalFactory {
@@ -174,7 +174,42 @@ class ModalFactory {
   ModalResults = ModalResult;
 
   constructor() {
-    this.modal = null;
+    this.modals = { };
+
+    document.addEventListener('keyup', (e) => {
+      let modal = Object.values(this.modals)
+        .filter(x => !!x.escape)
+        .sort((a, b) => {
+          const d0 = a?.timestamp || 0;
+          const d1 = b?.timestamp || 0;
+          return d0 > d1 ? -1 : (d0 < d1 ? 1 : 0);
+        })
+        .shift();
+
+      if (isObjectType(modal)) {
+        modal.escape(e);
+      }
+    });
+  }
+
+  /** 
+   * @param {string|null} [ref=null] optionally specify the modal ref name
+   * 
+   * @returns {object|null} either (a) the base modal descriptor, or (b) the modal by the specified name if provided 
+   */
+  getModal(ref = null) {
+    let state = this.modals;
+    if (typeof ref === 'string') {
+      state = state[ref];
+    } else {
+      state = state.__base;
+    }
+
+    if (!isObjectType(state)) {
+      return null;
+    }
+
+    return state;
   }
 
   /**
@@ -192,25 +227,33 @@ class ModalFactory {
    * 
    */
   create(options) {
-    options = options || { };
-    this.closeCurrentModal();
+    options = isObjectType(options) ? options : { };
+
+    const modalRef = stringHasChars(options.ref) ? options.ref : '__base';
+    this.closeCurrentModal(modalRef);
 
     try {
       options = mergeObjects(options, PROMPT_DEFAULT_PARAMS);
 
       const { id, title, content, showFooter, buttons, size } = options;
-    
-      const html = interpolateString(PROMPT_DEFAULT_CONTAINER, { id: id, title: title, content: content, size: size });
+      const html = interpolateString(PROMPT_DEFAULT_CONTAINER, {
+        id: id,
+        size: size,
+        title: title,
+        content: content,
+      });
+
+      const modalState = { };
       const doc = parseHTMLFromString(html, true);
       const currentHeight = window.scrollY;
-      const modal = document.body.appendChild(doc.body.children[0]);
+      const modal = document.body.appendChild(doc[0]);
       const container = modal.querySelector('.target-modal__container');
 
       let footer;
       if (showFooter) {
         footer = createElement('div', {
-          class: 'target-modal__footer',
           id: 'target-modal-footer',
+          class: 'target-modal__footer',
         });
 
         footer = container.appendChild(footer);
@@ -221,10 +264,10 @@ class ModalFactory {
         for (let i = 0; i < buttons.length; ++i) {
           let button = buttons[i];
           let item = parseHTMLFromString(button.html, true);
-          item = footer.appendChild(item.body.children[0]);
+          item = footer.appendChild(item[0]);
           item.innerText = button.name;
           item.setAttribute('aria-label', button.name);
-  
+
           footerButtons.push({
             name: button.name,
             type: button.type,
@@ -233,12 +276,23 @@ class ModalFactory {
         }
       }
 
-      const closeModal = (method, details) => {
-        document.body.classList.remove('modal-open');
-        window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
-        modal.remove();
-        history.pushState("", document.title, window.location.pathname + window.location.search);
-        this.modal = null;
+      let escapeHnd, closeModal, spinner;
+      closeModal = (method, details) => {
+        delete this.modals[modalRef];
+
+        if (Object.values(this.modals).length > 0) {
+          modal.remove();
+        } else {
+          document.body.classList.remove('modal-open');
+          window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
+          modal.remove();
+          history.pushState('', document.title, window.location.pathname + window.location.search);
+        }
+        modalState.isActioning = false;
+
+        if (!isNullOrUndefined(spinner)) {
+          spinner?.remove?.();
+        }
 
         if (!method) {
           return;
@@ -255,36 +309,94 @@ class ModalFactory {
         for (let i = 0; i < footerButtons.length; ++i) {
           let btn = footerButtons[i];
           btn.element.addEventListener('click', (e) => {
+            if (modalState.isActioning) {
+              return;
+            }
+            modalState.isActioning = true;
+
             switch (btn.type) {
               case this.ButtonTypes.CONFIRM: {
-                let data;
-                if (options.beforeAccept) {
-                  data = options.beforeAccept(modal);
+                let closure;
+                if (!options.beforeAccept) {
+                  closure = Promise.resolve();
+                } else {
+                  if (options.showActionSpinner) {
+                    spinner = document.body.querySelector(':scope > .loading-spinner');
+                    if (isNullOrUndefined(spinner)) {
+                      spinner = startLoadingSpinner();
+                    }
+                  }
+
+                  closure = Promise.resolve(options.beforeAccept(modal));
                 }
-                
-                closeModal(resolve, Object.assign({}, btn, { data: data }));
+
+                closure
+                  .then(data => {
+                    if (!!data && data instanceof ModalResult && data.name === 'Cancel') {
+                      return;
+                    }
+
+                    closeModal(resolve, Object.assign({}, btn, { data }));
+                  })
+                  .catch(e => {
+                    console.error(`[Modal] Failed to confirm modal selection with err:\n\n${e}\n`);
+                  })
+                  .finally(_ => {
+                    const spinElem = spinner;
+                    spinner = null;
+
+                    if (!isNullOrUndefined(spinElem)) {
+                      spinElem?.remove?.();
+                    }
+                    modalState.isActioning = false;
+                  });
               } break;
 
               case this.ButtonTypes.REJECT:
-              default: {
                 closeModal(reject, btn);
-              } break;
+                break;
+
+              default:
+                modalState.isActioning = false;
+                break;
             }
           });
-        }
+        };
 
         const exit = modal.querySelector('#modal-close-btn');
         if (exit) {
           exit.addEventListener('click', (e) => {
             e.preventDefault();
+
+            if (modalState.isActioning) {
+              return;
+            }
+            modalState.isActioning = true;
+
             closeModal(reject);
           });
         }
-        
+
+        escapeHnd = (e) => {
+          if (modalState.isActioning) {
+            return;
+          }
+
+          const activeFocusElem = document.activeElement;
+          if (!!activeFocusElem && activeFocusElem.matches('input, textarea, button, select')) {
+            return;
+          }
+
+          if (e.code === 'Escape') {
+            modalState.isActioning = true;
+            closeModal(reject);
+          }
+        };
+
         // Show the modal
-        createElement('a', { href: `#${id}` }).click();
+        createElement('a', { href: `#${options.id}` }).click();
         window.scrollTo({ top: currentHeight, left: window.scrollX, behaviour: 'instant'});
-    
+
         // Inform screen readers of alert
         modal.setAttribute('aria-hidden', false);
         modal.setAttribute('role', 'alert');
@@ -298,11 +410,13 @@ class ModalFactory {
         }
       });
 
-      this.modal = {
-        element: modal,
-        promise: promise,
-        close: closeModal,
-      };
+      modalState.close = closeModal;
+      modalState.escape = escapeHnd;
+      modalState.element = modal;
+      modalState.promise = promise;
+      modalState.timestamp = Date.now();
+      modalState.isActioning = false;
+      this.modals[modalRef] = modalState;
 
       return promise;
     }
@@ -313,17 +427,30 @@ class ModalFactory {
 
   /**
    * closeCurrentModal
-   * @desc closes the current modal and resolves its associated
-   *       promise
+   * @desc closes the current modal and resolves its associated promise
+   * 
+   * @param {string|null} [ref=null] optionally specify the modal ref name
    * 
    */
-  closeCurrentModal() {
-    if (isNullOrUndefined(this.modal)) {
+  closeCurrentModal(ref = null) {
+    let state = this.modals;
+    if (typeof ref === 'string') {
+      state = state[ref];
+    } else {
+      state = state.__base;
+    }
+
+    if (!isObjectType(state)) {
       return;
     }
 
-    const { modal, promise, close: closeModal } = this.modal;
-    closeModal(promise.cancel);
+    const { promise, close, isActioning } = state;
+    if (isActioning) {
+      return;
+    }
+
+    state.isActioning = true;
+    close(promise.cancel);
   }
 };
 

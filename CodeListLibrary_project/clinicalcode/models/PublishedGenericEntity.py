@@ -1,12 +1,14 @@
-from django.contrib.auth.models import User
 from django.db import models
 from simple_history.models import HistoricalRecords
 from django.db import connection, transaction
+from django.contrib.auth import get_user_model
 
 import enum
 
 from .GenericEntity import GenericEntity
 from ..entity_utils import constants
+
+User = get_user_model()
 
 class PublishedGenericEntity(models.Model):
     entity = models.ForeignKey(GenericEntity, on_delete=models.CASCADE)

@@ -17,4 +17,4 @@ fi
 
 # Install esbuild / other npm deps
 npm install -g config set user root;
-npm install -g "esbuild@0.19.0"
+npm install -g "esbuild@0.25.2"

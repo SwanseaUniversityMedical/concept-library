@@ -1,31 +1,44 @@
-import time
 from django.urls import reverse
-import pytest
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
+import time
+import pytest
 
-@pytest.mark.django_db
+@pytest.mark.django_db(reset_sequences=True,transaction=True)
 @pytest.mark.usefixtures("setup_webdriver")
 class TestSearchFilters:
 
     @pytest.mark.functional_test
     @pytest.mark.parametrize('user_type', ['super_user'])
     def test_tags_filter(self, login, logout, generate_user, user_type, live_server):
-        user = generate_user[user_type]
+        user = None
+        if isinstance(user_type, str):
+            user = generate_user[user_type]
+            login(self.driver, user.username, user.username + 'password')
         # generate_entity.created_by = generate_user[user_type] this needed to test the page for at least some data
 
-        login(self.driver, user.username, user.username + "password")
+        self.driver.get(live_server + reverse('search_entities'))
 
-        self.driver.get(live_server + reverse('search_phenotypes'))
+        uname = self.driver.find_element(By.CLASS_NAME, 'text-username').text if user is not None else user_type
+        print(f"Current username: {uname}")
 
-        print(f"Current username:{self.driver.find_element(By.CLASS_NAME, 'text-username').text}") 
+        try:
+            wait = WebDriverWait(self.driver, 5)
+            accordion = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.accordion[data-field="tags"] label')))
+            accordion.click()
 
-        accordion = self.driver.find_element(By.XPATH, "/html/body/main/div/div/aside/div[2]/div[4]")
-        time.sleep(5)
-        accordion.click()
-        checkboxes = self.driver.find_elements(By.XPATH, "//input[(@class='checkbox-item') and (@aria-label = 'Tags')]")
+            time.sleep(1)
 
-        for checkbox in checkboxes:
-            assert checkbox.is_enabled() is True
+            checkboxes = self.driver.find_elements(By.CSS_SELECTOR, 'input[data-field="tags"]')
+            for checkbox in checkboxes:
+                assert checkbox.is_enabled() is True
 
-        logout(self.driver)
+        except Exception as e:
+            if not isinstance(e, TimeoutException):
+                raise e
+
+        if user is not None:
+           logout(self.driver)

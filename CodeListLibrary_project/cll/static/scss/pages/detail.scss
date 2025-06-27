@@ -21,10 +21,18 @@
 // Top-level container for detail header buttons
 //  @desc defines button layout for detail page header actions, e.g. export/edit/publish
 .action-buttons-container {
-  align-items: flex-end;
+  display: flex;
+  flex-flow: column nowrap;
+  flex: auto;
+  align-items: center;
+  justify-content: flex-end;
 
-  @include media("<=phone", "screen") {
-    align-items: center;
+  @include media("<desktop", "screen") {
+    flex: auto;
+    width: 100%;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -33,13 +41,13 @@
 .detail-actions {
   display: flex;
   flex-flow: row wrap;
-  width: fit-content;
+  width: 100%;
   box-sizing: content-box;
   gap: 0.5rem;
   justify-content: flex-end;
   margin: 0.5rem 0rem 0.5rem 0rem;
 
-  @include media("<=phone", "screen") {
+  @include media("<desktop", "screen") {
     justify-content: center;
   }
 
@@ -83,6 +91,23 @@
     max-width: var(--phenotype-article-lg-size);
   }
 
+  &--icn {
+    display: flex;
+    flex-flow: column nowrap;
+    width: 1.25em;
+    height: 1.25em;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    &:before {
+      display: block;
+      margin: auto;
+      font-size: 1em;
+      font-weight: bold;
+    }
+  }
+
   &__completed {
     @include flex-col();
 
@@ -104,33 +129,126 @@
       }
     }
   }
+
+  &__action-btn {
+    display: flex;
+    flex-flow: row wrap;
+    flex: fit-content;
+    height: fit-content;
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+  }
   
   &__header {
+    @include flex-col(0.5rem, true);
     @include app-font-style();
-    @include bottom-divider(2rem);
-  
     padding: 0.5rem 0.5rem 0.5rem 0.5rem;
-  
-    span {
-      padding-left: 0rem;
+    background-image: linear-gradient(90deg, col(accent-dark) 0%, col(accent-dark) 100%);
+    background-image: -webkit-linear-gradient(90deg, col(accent-dark) 0%, col(accent-dark) 100%);
+    background-repeat: no-repeat;
+    background-position: calc(50% + 0.25rem) 100%;
+    background-size: calc(100% - 0.25rem) 1px, auto;
+
+    span.badge {
       color: col(text-dark);
       font-weight: normal;
       line-height: 1;
-      margin: 0.25rem auto;
+      margin: 0;
     }
   
     p {
       line-height: 1;
-      padding: 0.5rem 0rem 0.2rem 0rem;
-      margin: 0.5rem 0 0.2rem 0;
+      padding: 0;
+      margin: 0;
     }
 
     h1 {
+      flex: auto;
       font-size: var(--phenotype-article-h1-size);
       font-weight: var(--phenotype-article-h1-weight);
       color: col(text-darkest);
       line-height: 1;
       margin: 0 0 0.5rem 0;
+    }
+
+    &--fmax-1 {
+      flex: max-content 1;
+      max-width: 260px;
+
+      & p {
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -moz-box-orient: vertical;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-sizing: border-box;
+      }
+
+      @include media('<550px', 'screen') {
+        flex: 100%;
+      }
+    }
+
+    &--fmin-0 {
+      flex: fit-content 0;
+
+      @include media('<550px', 'screen') {
+        flex: auto;
+      }
+    }
+
+    &--fill {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    &--no-wrap {
+      flex-wrap: nowrap !important;
+    }
+
+    &--ai-fe {
+      align-items: flex-end;
+    }
+
+    &--jc-sb {
+      justify-content: space-between;
+    }
+
+    &--jc-fs {
+      justify-content: flex-start;
+    }
+
+    &--mr-05 {
+      margin-right: 0.5em;
+    }
+
+    &-col {
+      @include flex-col(0.5rem, true);
+    }
+
+    &-row {
+      @include flex-row(0.5rem, false);
+      align-items: center;
+    }
+
+    &-title {
+      @include flex-row(0.5rem, false);
+      width: 100%;
+      max-width: 100%;
+      justify-content: space-between;
+      text-wrap: wrap;
+      word-break: break-word;
+      word-wrap: break-word;
+      box-sizing: border-box;
+
+      & span.badge {
+        margin-left: auto;
+        margin-right: 0;
+      }
 
       & + p {
         position: relative;
@@ -229,12 +347,16 @@
     }
 
     &-container {
-      @include flex-col();
+      @include flex-col(false, true);
       position: relative;
       width: 100%;
       max-width: 100%;
       height: fit-content;
     }
+  }
+
+  @include media('<tablet', 'screen') {
+    padding-left: 0.5rem;
   }
 }
 
@@ -533,8 +655,8 @@
   white-space: nowrap;
   vertical-align: middle;
   border-radius: 10px;
-  color: #3C3C3B;
-  background-color: rgba(208, 211, 212, 0.5);
+  color: col(text-darkest);
+  background-color: col(accent-tertiary);
 }
 
 .label {

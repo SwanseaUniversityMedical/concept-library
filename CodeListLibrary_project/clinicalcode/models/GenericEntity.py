@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import JSONField
 from django.db import models
@@ -6,11 +6,15 @@ from django.db import transaction
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 from simple_history.models import HistoricalRecords
 
 from .Template import Template
 from .EntityClass import EntityClass
+from .Organisation import Organisation
 from ..entity_utils import gen_utils, constants
+
+User = get_user_model()
 
 class GenericEntityManager(models.Manager):
     """
@@ -66,12 +70,27 @@ class GenericEntity(models.Model):
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="entity_deleted")
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="entity_owned")
-    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
+    organisation = models.ForeignKey(Organisation, on_delete=models.SET_NULL, null=True, related_name="entities")
 
-    owner_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.OWNER_PERMISSIONS], default=constants.OWNER_PERMISSIONS.EDIT)
-    group_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.GROUP_PERMISSIONS], default=constants.GROUP_PERMISSIONS.NONE)
-    world_access = models.IntegerField(choices=[(e.name, e.value) for e in constants.WORLD_ACCESS_PERMISSIONS], default=constants.WORLD_ACCESS_PERMISSIONS.NONE)
-    
+    # TODO: WILL BE DEPRECATED
+    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
+    owner_access = models.IntegerField(
+        choices=[(e.value, e.name) for e in constants.OWNER_PERMISSIONS],
+        default=constants.OWNER_PERMISSIONS.EDIT.value,
+        null=True,
+        blank=True
+    )
+    group_access = models.IntegerField(
+        choices=[(e.value, e.name) for e in constants.GROUP_PERMISSIONS],
+        default=constants.GROUP_PERMISSIONS.NONE.value
+    )
+    world_access = models.IntegerField(
+        choices=[(e.value, e.name) for e in constants.WORLD_ACCESS_PERMISSIONS],
+        default=constants.WORLD_ACCESS_PERMISSIONS.NONE.value,
+        null=True,
+        blank=True
+    )
+
     ''' Publish status '''
     publish_status = models.IntegerField(null=True, choices=[(e.name, e.value) for e in constants.APPROVAL_STATUS], default=constants.APPROVAL_STATUS.ANY)
 
