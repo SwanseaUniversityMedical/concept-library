@@ -1,5 +1,96 @@
 "Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
-"skipped","Tue Jul 01 12:21:18 GMT 2025","Tue Jul 01 12:21:18 GMT 2025","0","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_edit_phenotype[super_user]","
+"skipped","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_post[owner_user-ANY]",""
+"skipped","Tue Jul 01 12:36:41 GMT 2025","Tue Jul 01 12:36:41 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_get[moderator_user-ANY]",""
+"passed","Tue Jul 01 12:33:43 GMT 2025","Tue Jul 01 12:33:53 GMT 2025","10004","clinicalcode.tests.functional_tests","test_search_filters","TestSearchFilters","","","test_tags_filter[super_user]",""
+"passed","Tue Jul 01 12:33:31 GMT 2025","Tue Jul 01 12:33:31 GMT 2025","5","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_my_user",""
+"passed","Tue Jul 01 12:34:08 GMT 2025","Tue Jul 01 12:34:11 GMT 2025","3133","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_component_presence[normal_user]",""
+"skipped","Tue Jul 01 12:36:41 GMT 2025","Tue Jul 01 12:36:41 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_post[moderator_user-ANY]",""
+"passed","Tue Jul 01 12:36:51 GMT 2025","Tue Jul 01 12:36:55 GMT 2025","4315","clinicalcode.tests.functional_tests","test_collection_components","TestCollectionComponents","","","test_collection_redirects[normal_user]",""
+"skipped","Tue Jul 01 12:36:41 GMT 2025","Tue Jul 01 12:36:41 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_get[normal_user-ANY]",""
+"passed","Tue Jul 01 12:34:54 GMT 2025","Tue Jul 01 12:34:55 GMT 2025","1245","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_redirect[None]",""
+"skipped","Tue Jul 01 12:36:41 GMT 2025","Tue Jul 01 12:36:41 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_post[None-ANY]",""
+"skipped","Tue Jul 01 12:33:55 GMT 2025","Tue Jul 01 12:33:55 GMT 2025","0","clinicalcode.tests.functional_tests","test_detail_components","TestDetailComponents","","","test_publish_btn_presence[moderator_user-REQUESTED]",""
+"skipped","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_get[None-ANY]",""
+"skipped","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_post[owner_user-ANY]",""
+"passed","Tue Jul 01 12:36:01 GMT 2025","Tue Jul 01 12:36:01 GMT 2025","111","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_api_data_updated[super_user]","
+        Test whether API data is updated correctly after modifying the template version.
+
+        Args:
+            generate_user (dict): Dictionary containing user instances.
+            user_type (str): Type of user for the test.
+            template_v2 (Template): An instance of the Template model with version 2.
+            live_server: Pytest fixture providing the live server URL.
+
+        Returns:
+            None
+        "
+"passed","Tue Jul 01 12:34:21 GMT 2025","Tue Jul 01 12:34:24 GMT 2025","3170","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_component_presence[moderator_user]",""
+"passed","Tue Jul 01 12:33:02 GMT 2025","Tue Jul 01 12:33:02 GMT 2025","9","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_users_to_edit[super_user]",""
+"passed","Tue Jul 01 12:36:30 GMT 2025","Tue Jul 01 12:36:36 GMT 2025","6265","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_user_without_access[super_user]","
+        Test to verify if a user can view phenotypes without group/world access.
+
+        Args:
+            generate_user (dict): Dictionary of generated users.
+            user_type (str): Type of user to test.
+            live_server (LiveServer): Live server instance for testing.
+            generic_entity (GenericEntity): The generic entity fixture.
+        "
+"passed","Tue Jul 01 12:33:21 GMT 2025","Tue Jul 01 12:33:21 GMT 2025","12","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_users_to_edit[owner_user]",""
+"passed","Tue Jul 01 12:33:11 GMT 2025","Tue Jul 01 12:33:11 GMT 2025","4","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_genereic_entity[super_user]",""
+"skipped","Tue Jul 01 12:36:03 GMT 2025","Tue Jul 01 12:36:03 GMT 2025","0","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_entity_published[super_user]","
+        Test if the publishing of a GenericEntity with version 2 reflects in the home page statistics.
+
+        Args:
+            live_server: Pytest fixture providing the live server URL.
+            generate_user (dict): Dictionary containing user instances.
+            login: Pytest fixture providing a login function.
+            logout: Pytest fixture providing a logout function.
+            user_type (str): Type of user for the test.
+            generic_entity_v2 (GenericEntity): An instance of the GenericEntity model with version 2.
+
+       Returns:
+           None
+       "
+"passed","Tue Jul 01 12:36:38 GMT 2025","Tue Jul 01 12:36:39 GMT 2025","360","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_non_authenticated_user_view_published_phenos","
+        Test to verify that non-authenticated users can view published phenotypes.
+        "
+"skipped","Tue Jul 01 12:36:41 GMT 2025","Tue Jul 01 12:36:41 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_get[owner_user-ANY]",""
+"passed","Tue Jul 01 12:35:48 GMT 2025","Tue Jul 01 12:35:51 GMT 2025","3206","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_template_api[super_user]","
+        Test the API endpoint related to template version.
+
+        Args:
+            generate_user (dict): Dictionary containing user instances.
+            user_type (str): Type of user for the test.
+            live_server: Pytest fixture providing the live server URL.
+            template_v2 (Template): An instance of the Template model with version 2.
+
+
+        Returns:
+            None
+        "
+"passed","Tue Jul 01 12:37:06 GMT 2025","Tue Jul 01 12:37:07 GMT 2025","1844","clinicalcode.tests.functional_tests","test_collection_components","TestCollectionComponents","","","test_collection_redirects[None]",""
+"passed","Tue Jul 01 12:33:56 GMT 2025","Tue Jul 01 12:33:57 GMT 2025","1002","clinicalcode.tests.functional_tests","test_detail_components","TestDetailComponents","","","test_anonymous_publication_presence",""
+"passed","Tue Jul 01 12:35:33 GMT 2025","Tue Jul 01 12:35:37 GMT 2025","3967","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_export_json[super_user]","
+        Test exporting entity data in JSON format is reflected for entity created using template version 2.
+
+        Args:
+            live_server: Pytest fixture providing the live server URL.
+            generate_user (dict): Dictionary containing user instances.
+            generic_entity_v2 (GenericEntity): An instance of the GenericEntity model with version 2.
+            user_type (str): Type of user for the test.
+            login: Pytest fixture providing a login function.
+            logout: Pytest fixture providing a logout function.
+
+        Returns:
+            None
+        "
+"passed","Tue Jul 01 12:35:20 GMT 2025","Tue Jul 01 12:35:21 GMT 2025","850","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_component_presence[None]",""
+"skipped","Tue Jul 01 12:36:41 GMT 2025","Tue Jul 01 12:36:41 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_get[normal_user-ANY]",""
+"passed","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","180","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_non_authenticated_user_create_phenos","
+        Test to verify that non-authenticated users can't create phenotypes.
+        "
+"skipped","Tue Jul 01 12:36:41 GMT 2025","Tue Jul 01 12:36:41 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_post[normal_user-ANY]",""
+"skipped","Tue Jul 01 12:36:03 GMT 2025","Tue Jul 01 12:36:03 GMT 2025","0","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_edit_phenotype[super_user]","
         Test if an entity with template version 1 is updated with fields from
         template version 2 on edit.
 
@@ -15,111 +106,11 @@
         Returns:
             None
         "
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_post[moderator_user-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_get[normal_user-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_get[owner_user-ANY]",""
-"passed","Tue Jul 01 12:20:45 GMT 2025","Tue Jul 01 12:20:45 GMT 2025","11","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_users_to_edit[owner_user]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_get[normal_user-ANY]",""
-"passed","Tue Jul 01 12:20:54 GMT 2025","Tue Jul 01 12:20:54 GMT 2025","5","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_my_user",""
-"passed","Tue Jul 01 12:20:00 GMT 2025","Tue Jul 01 12:20:05 GMT 2025","4519","clinicalcode.tests.functional_tests","test_collection_components","TestCollectionComponents","","","test_collection_redirects[normal_user]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_get[None-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.functional_tests","test_detail_components","TestDetailComponents","","","test_publish_btn_presence[moderator_user-REQUESTED]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_post[moderator_user-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_post[None-ANY]",""
-"passed","Tue Jul 01 12:22:49 GMT 2025","Tue Jul 01 12:22:50 GMT 2025","939","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_component_presence[None]",""
-"passed","Tue Jul 01 12:21:40 GMT 2025","Tue Jul 01 12:21:40 GMT 2025","115","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_api_data_updated[super_user]","
-        Test whether API data is updated correctly after modifying the template version.
-
-        Args:
-            generate_user (dict): Dictionary containing user instances.
-            user_type (str): Type of user for the test.
-            template_v2 (Template): An instance of the Template model with version 2.
-            live_server: Pytest fixture providing the live server URL.
-
-        Returns:
-            None
-        "
-"passed","Tue Jul 01 12:19:22 GMT 2025","Tue Jul 01 12:19:22 GMT 2025","202","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_non_authenticated_user_create_phenos","
-        Test to verify that non-authenticated users can't create phenotypes.
-        "
-"broken","Tue Jul 01 12:18:59 GMT 2025","Tue Jul 01 12:18:59 GMT 2025","318","clinicalcode.tests.functional_tests","test_detail_components","TestDetailComponents","","","test_anonymous_publication_presence",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_post[None-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_post[owner_user-ANY]",""
-"passed","Tue Jul 01 12:22:19 GMT 2025","Tue Jul 01 12:22:20 GMT 2025","1257","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_redirect[None]",""
-"passed","Tue Jul 01 12:21:51 GMT 2025","Tue Jul 01 12:21:55 GMT 2025","4023","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_component_presence[moderator_user]",""
-"passed","Tue Jul 01 12:19:14 GMT 2025","Tue Jul 01 12:19:20 GMT 2025","5931","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_user_without_access[super_user]","
-        Test to verify if a user can view phenotypes without group/world access.
-
-        Args:
-            generate_user (dict): Dictionary of generated users.
-            user_type (str): Type of user to test.
-            live_server (LiveServer): Live server instance for testing.
-            generic_entity (GenericEntity): The generic entity fixture.
-        "
-"passed","Tue Jul 01 12:22:05 GMT 2025","Tue Jul 01 12:22:09 GMT 2025","3216","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_component_presence[normal_user]",""
-"passed","Tue Jul 01 12:20:36 GMT 2025","Tue Jul 01 12:20:36 GMT 2025","15","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_users_to_edit[super_user]",""
-"skipped","Tue Jul 01 12:16:23 GMT 2025","Tue Jul 01 12:16:23 GMT 2025","0","clinicalcode.tests.functional_tests","test_detail_components","TestDetailComponents","","","test_publish_btn_presence[owner_user-ANY]",""
-"passed","Tue Jul 01 12:20:16 GMT 2025","Tue Jul 01 12:20:26 GMT 2025","10283","clinicalcode.tests.functional_tests","test_search_filters","TestSearchFilters","","","test_tags_filter[super_user]",""
-"passed","Tue Jul 01 12:19:04 GMT 2025","Tue Jul 01 12:19:04 GMT 2025","436","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_non_authenticated_user_view_published_phenos","
-        Test to verify that non-authenticated users can view published phenotypes.
-        "
-"passed","Tue Jul 01 12:21:13 GMT 2025","Tue Jul 01 12:21:16 GMT 2025","2952","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_template_api[super_user]","
-        Test the API endpoint related to template version.
-
-        Args:
-            generate_user (dict): Dictionary containing user instances.
-            user_type (str): Type of user for the test.
-            live_server: Pytest fixture providing the live server URL.
-            template_v2 (Template): An instance of the Template model with version 2.
-
-
-        Returns:
-            None
-        "
-"skipped","Tue Jul 01 12:21:42 GMT 2025","Tue Jul 01 12:21:42 GMT 2025","0","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_entity_published[super_user]","
-        Test if the publishing of a GenericEntity with version 2 reflects in the home page statistics.
-
-        Args:
-            live_server: Pytest fixture providing the live server URL.
-            generate_user (dict): Dictionary containing user instances.
-            login: Pytest fixture providing a login function.
-            logout: Pytest fixture providing a logout function.
-            user_type (str): Type of user for the test.
-            generic_entity_v2 (GenericEntity): An instance of the GenericEntity model with version 2.
-
-       Returns:
-           None
-       "
-"passed","Tue Jul 01 12:19:05 GMT 2025","Tue Jul 01 12:19:05 GMT 2025","195","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_auth_user_edit","
-        Test to verify that non-authenticated users can't update phenotypes.
-        "
-"passed","Tue Jul 01 12:21:03 GMT 2025","Tue Jul 01 12:21:03 GMT 2025","5","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_genereic_entity[super_user]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_post[normal_user-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_get[moderator_user-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_get[None-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_get[owner_user-ANY]",""
-"passed","Tue Jul 01 12:20:37 GMT 2025","Tue Jul 01 12:20:37 GMT 2025","4","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_user_not_allowed_to_create",""
-"passed","Tue Jul 01 12:22:30 GMT 2025","Tue Jul 01 12:22:39 GMT 2025","8690","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_redirect[normal_user]",""
-"passed","Tue Jul 01 12:21:26 GMT 2025","Tue Jul 01 12:21:30 GMT 2025","4063","clinicalcode.tests.functional_tests","test_template_versions","TestTemplateVersioning","","","test_export_json[super_user]","
-        Test exporting entity data in JSON format is reflected for entity created using template version 2.
-
-        Args:
-            live_server: Pytest fixture providing the live server URL.
-            generate_user (dict): Dictionary containing user instances.
-            generic_entity_v2 (GenericEntity): An instance of the GenericEntity model with version 2.
-            user_type (str): Type of user for the test.
-            login: Pytest fixture providing a login function.
-            logout: Pytest fixture providing a logout function.
-
-        Returns:
-            None
-        "
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_post[owner_user-ANY]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_post[normal_user-ANY]",""
-"passed","Tue Jul 01 12:23:00 GMT 2025","Tue Jul 01 12:23:03 GMT 2025","3097","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_component_presence[super_user]",""
-"skipped","Tue Jul 01 12:19:02 GMT 2025","Tue Jul 01 12:19:02 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_get[moderator_user-ANY]",""
-"passed","Tue Jul 01 12:19:47 GMT 2025","Tue Jul 01 12:19:50 GMT 2025","3062","clinicalcode.tests.functional_tests","test_collection_components","TestCollectionComponents","","","test_collection_redirects[None]",""
-"passed","Tue Jul 01 12:19:31 GMT 2025","Tue Jul 01 12:19:35 GMT 2025","4630","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_user_with_access[super_user]","
+"skipped","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_post[normal_user-ANY]",""
+"skipped","Tue Jul 01 12:33:55 GMT 2025","Tue Jul 01 12:33:55 GMT 2025","0","clinicalcode.tests.functional_tests","test_detail_components","TestDetailComponents","","","test_publish_btn_presence[owner_user-ANY]",""
+"passed","Tue Jul 01 12:33:12 GMT 2025","Tue Jul 01 12:33:12 GMT 2025","5","clinicalcode.tests.unit_tests","test_read_only_permissions","TestReadOnlyPermissions","","","test_user_not_allowed_to_create",""
+"skipped","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_get[moderator_user-ANY]",""
+"passed","Tue Jul 01 12:36:14 GMT 2025","Tue Jul 01 12:36:19 GMT 2025","4982","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_user_with_access[super_user]","
         Test to verify if a user can access unpublished phenotypes with group/world access.
 
         Args:
@@ -128,3 +119,12 @@
             live_server (LiveServer): Live server instance for testing.
             generic_entity (GenericEntity): The generic entity fixture.
         "
+"passed","Tue Jul 01 12:34:35 GMT 2025","Tue Jul 01 12:34:43 GMT 2025","8218","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_redirect[normal_user]",""
+"passed","Tue Jul 01 12:36:05 GMT 2025","Tue Jul 01 12:36:05 GMT 2025","209","clinicalcode.tests.functional_tests","test_auth_user","TestAuthPhenoAccess","","","test_auth_user_edit","
+        Test to verify that non-authenticated users can't update phenotypes.
+        "
+"skipped","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_post[moderator_user-ANY]",""
+"skipped","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_approve_get[owner_user-ANY]",""
+"passed","Tue Jul 01 12:35:06 GMT 2025","Tue Jul 01 12:35:09 GMT 2025","3731","clinicalcode.tests.functional_tests","test_moderation_components","TestModerationComponents","","","test_moderation_component_presence[super_user]",""
+"skipped","Tue Jul 01 12:36:41 GMT 2025","Tue Jul 01 12:36:41 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_get[None-ANY]",""
+"skipped","Tue Jul 01 12:36:40 GMT 2025","Tue Jul 01 12:36:40 GMT 2025","0","clinicalcode.tests.unit_tests","test_publishing","TestPublishing","","","test_publish_request_post[None-ANY]",""
