@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Manage Organisation {% endblock title %}
+
+{% block container %}
+  <!-- Dependencies -->
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/services/organisationService/manage.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/organisations.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">
+          Manage {{ instance.name }}
+        </h2>
+        <p class="banner__description">
+          Customise your organisation's profile and its members.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content" id="root">
+    {% to_json_script members desc-type="value" for="organisation-members" uid=request.user.id %}
+    {% to_json_script invites desc-type="value" for="organisation-invites" %}
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="organisation-page">
+        <form method="post" id="archive-form-area" class="base-form">
+          {% csrf_token %}
+
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              Name
+              <span class="detailed-input-group__mandatory">*</span>
+            </h3>
+            <p class="detailed-input-group__description">Your organisation's name</p>
+            {{ form.name }}
+          </div>
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              Description
+            </h3>
+            <p class="detailed-input-group__description">Describe your organisation</p>
+            {{ form.description }}
+          </div>
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              Email
+            </h3>
+            <p class="detailed-input-group__description">Your organisation's contact email</p>
+            {{ form.email }}
+          </div>
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              Website
+            </h3>
+            <p class="detailed-input-group__description">Your organisation's website</p>
+            {{ form.website }}
+          </div>
+          
+
+          <footer class="organisation-page__submit">
+            <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Save form" id="submit-btn">
+              Save
+            </button>
+          </footer>
+        </form>
+
+        <div class="member-management">
+          <header class="member-management__header">
+            <h3>
+              Manage Access
+            </h3>
+          </header>
+          <section class="member-management__container">
+            <p class="detailed-input-group__description">
+              Manage your organisation members
+            </p>
+            <div class="tab-group">
+              <input type="radio" id="tab1" name="tabGroup1" class="tab" checked>
+              <label for="tab1"><strong>Members</strong></label>
+
+              <input type="radio" id="tab2" name="tabGroup1" class="tab">
+              <label for="tab2"><strong>Invites</strong></label>
+
+              <article class="tab__content">
+                <section class="member-management__none-available show" id="no-members">
+                  <p class="member-management__none-available-message">
+                    Your organisation has no members yet.
+                  </p>
+                </section>
+                
+                <table class="member-management__table">
+                  <thead>
+                    <tr>
+                      <td>User</td>
+                      <td>Role</td>
+                      <td>Actions</td>
+                    </tr>
+                  </thead>
+                  <tbody id="member-role-list">
+                    
+                  </tbody>
+                </table>
+              </article>
+          
+              <article class="tab__content">
+                <section id="member-invite-list">
+                  <form class="autocomplete">
+                    <div class="autocomplete-container"
+                         role="combobox"
+                         aria-expanded="false"
+                         aria-owns="autocomplete-results"
+                         aria-haspopup="listbox">
+                      <div class="autocomplete-controls">
+                        <input class="autocomplete-input"
+                              placeholder="Search for a user"
+                              aria-label="Search for a user"
+                              aria-autocomplete="both"
+                              aria-controls="autocomplete-results" />
+                        <ul class="autocomplete-results" 
+                            id="autocomplete-results"
+                            role="listbox"
+                            aria-label="Search for a user">
+                        </ul>
+                      </div>
+                      <button class="primary-btn text-accent-darkest bold secondary-accent" 
+                              aria-label="Invite user" 
+                              id="invite-btn"
+                              type="button">
+                       Invite user
+                     </button>
+                    </div>
+                  </form>
+                  <hr/>
+                  <section class="member-management__none-available show" id="no-invites">
+                    <p class="member-management__none-available-message">
+                      Your organisation has no active invitations.
+                    </p>
+                  </section>
+
+                  <table class="member-management__table">
+                    <thead>
+                      <tr>
+                        <td>User</td>
+                        <td>Actions</td>
+                      </tr>
+                    </thead>
+                    <tbody id="invite-list-container">
+                      
+                    </tbody>
+                  </table>
+                </section>
+              </article>
+            </div>
+          </section>
+        </div>  
+      </article>
+    </div>
+
+    <!-- Member list -->
+    <template data-name="member" data-owner="management">
+      <tr data-target="${userid}">
+        <td>
+          ${name}
+        </td>
+        <td id="member-role-container">
+
+        </td>
+        <td>
+          <button aria-label="Remove User" 
+                  class="secondary-btn text-accent-darkest bold icon delete-icon outline" 
+                  title="Remove User"
+                  data-target="delete" 
+                  role="button">
+            Remove
+          </button>
+        </td>
+      </tr>
+    </template>
+
+    <template data-name="dropdown" data-owner="management">
+      <select class="selection-input"
+              aria-label="Change role" 
+              name="user-role-${uid}" 
+              id="user-role-${uid}"
+              data-user="${uid}"
+              data-class="dropdown">
+        {% for role in roles %}
+          <option value="{{ role.value }}">{{ role.name }}</option>
+        {% endfor %}
+      </select>
+    </template>
+
+    <!-- Invite list -->
+    <template data-name="invite" data-owner="invite">
+      <tr data-target="${userid}">
+        <td>
+          ${name}
+        </td>
+        <td>
+          <button aria-label="Remove Invite" 
+                  class="secondary-btn text-accent-darkest bold icon delete-icon outline" 
+                  title="Remove User"
+                  data-target="delete" 
+                  role="button">
+            Remove
+          </button>
+        </td>
+      </tr>
+    </template>
+  </main>
+
+{% endblock container %}

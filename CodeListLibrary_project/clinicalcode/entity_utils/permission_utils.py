@@ -1,11 +1,20 @@
+"""Permission-related utilities; defines functions to vary content access & render behaviour."""
+from functools import wraps
 from django.db import connection
+from django.http import HttpRequest
 from django.conf import settings
-from django.db.models import Q, Subquery, OuterRef
+from rest_framework import status as RestHttpStatus
+from django.db.models import Q, Model
+from django.contrib.auth import get_user_model
+from rest_framework.request import Request
 from django.core.exceptions import PermissionDenied
+from rest_framework.exceptions import APIException, MethodNotAllowed, NotAuthenticated
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from django.contrib.auth.models import Group
 
-from functools import wraps
+import inspect
 
+from ..models.Organisation import Organisation, OrganisationAuthority, OrganisationMembership
 from . import model_utils, gen_utils
 from ..models.Brand import Brand
 from ..models.Concept import Concept
@@ -13,42 +22,296 @@ from ..models.Template import Template
 from ..models.GenericEntity import GenericEntity
 from ..models.PublishedConcept import PublishedConcept
 from ..models.PublishedGenericEntity import PublishedGenericEntity
-from .constants import APPROVAL_STATUS, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
+from ..models.Organisation import Organisation, OrganisationAuthority
 
-""" Permission decorators """
+from .constants import (
+    ORGANISATION_ROLES, APPROVAL_STATUS,
+    GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
+)
 
+
+User = get_user_model()
+
+
+'''Permission decorators'''
 def redirect_readonly(fn):
-    """
-      Method decorator to raise 403 if we're on the read only site
-      to avoid insert / update methods via UI
+	"""
+		Method decorator to raise 403 if we're on the read only site to avoid insert / update methods via UI
 
-      e.g. 
+		Args:
+			fn (Callable): the view `Callable` to wrap
 
-      @permission_utils.redirect_readonly
-      def some_view_func(request):
-        # stuff
-    """
-    @wraps(fn)
-    def wrap(request, *args, **kwargs):
-        if settings.CLL_READ_ONLY:
-            raise PermissionDenied("ERR_403_GATEWAY")
-        return fn(request, *args, **kwargs)
+		Returns:
+			A (Callable) decorator
 
-    return wrap
+		Raises:
+			PermissionDenied
+
+		Example:
+			```py
+			from clinicalcode.entity_utils import permission_utils
+
+			@permission_utils.redirect_readonly
+			def some_view_func(request):
+				pass
+			```
+	"""
+	@wraps(fn)
+	def wrap(request, *args, **kwargs):
+		if settings.CLL_READ_ONLY:
+			raise PermissionDenied('ERR_403_GATEWAY')
+		return fn(request, *args, **kwargs)
+
+	return wrap
+
+def brand_admin_required(fn):
+	"""
+		Method decorator to raise a 403 if a view isn't accessed by a Brand Administrator
+
+		.. Note::
+			Brand administration privileges are checked by comparing the user against the current brand (per request middleware).
+
+		Args:
+			fn (Callable): the view `Callable` to wrap
+
+		Returns:
+			A (Callable) decorator
+
+		Raises:
+			PermissionDenied
+
+		Example:
+			```py
+			from django.utils.decorators import method_decorator
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@method_decorator([permission_utils.brand_admin_required, *other_decorators])
+			def some_view_func(request):
+				pass
+
+			# Or...
+			@permission_utils.brand_admin_required
+			def some_view_func(request):
+				pass
+			```
+	"""
+	@wraps(fn)
+	def wrap(request, *args, **kwargs):
+		user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+		brand = request.BRAND_OBJECT if hasattr(request, 'BRAND_OBJECT') else None
+
+		if user is None:
+			raise PermissionDenied
+
+		if not user.is_superuser:
+			if not isinstance(brand, Brand) or brand.id is None:
+				raise PermissionDenied
+
+			administrable = user.administered_brands \
+				.filter(id=brand.id, is_administrable=True) \
+				.exists()
+
+			if not administrable:
+				raise PermissionDenied
+
+		return fn(request, *args, **kwargs)
+
+	return wrap
 
 
-""" Render helpers """
+'''REST Permission Classes'''
+class IsReadOnlyRequest(BasePermission):
+	"""
+		Ensures that a request is one of `GET`, `HEAD`, or `OPTIONS`.
 
+		Raises:
+			MethodNotAllowed (405)
+
+		Example:
+			```py
+			from rest_framework.views import APIView
+			from rest_framework.response import Response
+			from rest_framework.decorators import decorators
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@schema(None)
+			class SomeEndpoint(APIView):
+				permission_classes = [permission_utils.IsReadOnlyRequest]
+
+				def get(self, request):
+					return Response({ 'message': 'Hello, world!' })
+			```
+	"""
+	ERR_STATUS_CODE = RestHttpStatus.HTTP_405_METHOD_NOT_ALLOWED
+	ERR_REQUEST_MSG = (
+		'Method Not Allowed: ' + \
+		'Expected read only method of type `GET`, `HEAD`, `OPTIONS` but got `%s`'
+	)
+
+	def has_permission(self, request, view):
+		method = request.method
+		if not method in SAFE_METHODS:
+			raise MethodNotAllowed(
+				method=method,
+				detail=self.ERR_REQUEST_MSG % method,
+				code=self.ERR_STATUS_CODE
+			)
+
+		return True
+
+class IsReadOnlyOrNotGateway(BasePermission):
+	"""
+		Ensures that a request is either (a) read-only or (b) not being made from a TRE read-only site.
+
+		.. Note::
+			- A request must be one of `GET`, `HEAD`, or `OPTIONS` to be considered `ReadOnly`;
+			- TRE read-only sites are declared as such by the deployment environment variables.
+
+		Raises:
+			MethodNotAllowed (405)
+
+		Example:
+			```py
+			from rest_framework.views import APIView
+			from rest_framework.response import Response
+			from rest_framework.decorators import decorators
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@schema(None)
+			class SomeEndpoint(APIView):
+				permission_classes = [permission_utils.IsReadOnlyOrNotGateway]
+
+				def get(self, request):
+					return Response({ 'message': 'Hello, world!' })
+			```
+	"""
+	ERR_STATUS_CODE = RestHttpStatus.HTTP_405_METHOD_NOT_ALLOWED
+	ERR_REQUEST_MSG = (
+		'Method Not Allowed: ' + \
+		'Only methods of type `GET`, `HEAD`, `OPTIONS` are accessible from the ReadOnly site, ' + \
+        'request of type `%s` is not allowed.'
+	)
+
+	def has_permission(self, request, view):
+		method = request.method
+		if not request.method in SAFE_METHODS and settings.CLL_READ_ONLY:
+			raise MethodNotAllowed(
+				method=method,
+				detail=self.ERR_REQUEST_MSG % method,
+				code=self.ERR_STATUS_CODE
+			)
+
+		return True
+
+class IsNotGateway(BasePermission):
+	"""
+		Ensures that a request is either not being made from a TRE read-only site.
+
+		.. Note::
+			- TRE read-only sites are declared as such by the deployment environment variables.
+
+		Raises:
+			MethodNotAllowed (405)
+
+		Example:
+			```py
+			from rest_framework.views import APIView
+			from rest_framework.response import Response
+			from rest_framework.decorators import decorators
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@schema(None)
+			class SomeEndpoint(APIView):
+				permission_classes = [permission_utils.IsNotGateway]
+
+				def get(self, request):
+					return Response({ 'message': 'Hello, world!' })
+			```
+	"""
+	ERR_STATUS_CODE = RestHttpStatus.HTTP_405_METHOD_NOT_ALLOWED
+	ERR_REQUEST_MSG = (
+		'Method Not Allowed: ' + \
+		'Not accessible from the TRE ReadOnly site, ' + \
+        'request of type `%s` is not allowed.'
+	)
+
+	def has_permission(self, request, view):
+		method = request.method
+		if settings.CLL_READ_ONLY:
+			raise MethodNotAllowed(
+				method=method,
+				detail=self.ERR_REQUEST_MSG % method,
+				code=self.ERR_STATUS_CODE
+			)
+
+		return True
+
+class IsBrandAdmin(BasePermission):
+	"""
+		Ensures that the request user is authorised as a Brand Administrator for the request's Brand context.
+
+		.. Note::
+			Requests made by superusers will always granted regardless of Brand context.
+
+		Raises:
+			| Error          | Status | Reason                                                                         |
+            |----------------|--------|--------------------------------------------------------------------------------|
+            | Unauthorised   |    401 | If the request user is anonymous/hasn't supplied auth token                    |
+            | Forbidden      |    403 | If the request user is _not_ a known Brand Administrator                       |
+            | Not Acceptable |    406 | If the request user is attempting to access the Dashboard for an unknown Brand |
+
+		Example:
+			```py
+			from rest_framework.views import APIView
+			from rest_framework.response import Response
+			from rest_framework.decorators import decorators
+
+			from clinicalcode.entity_utils import permission_utils
+
+			@schema(None)
+			class SomeEndpoint(APIView):
+				permission_classes = [permission_utils.IsBrandAdmin]
+
+				def get(self, request):
+					return Response({ 'message': 'Hello, world!' })
+			```
+	"""
+	def has_permission(self, request, view):
+		user = request.user if hasattr(request, 'user') and not request.user.is_anonymous else None
+		if user is None:
+			raise NotAuthenticated
+
+		if user.is_superuser:
+			return True
+
+		brand = request.BRAND_OBJECT if hasattr(request, 'BRAND_OBJECT') else None
+		if not isinstance(brand, Brand) or brand.id is None:
+			raise APIException(detail='Could not resolve Brand context', code=RestHttpStatus.HTTP_406_NOT_ACCEPTABLE)
+
+		administrable = user.administered_brands \
+			.filter(id=brand.id, is_administrable=True) \
+			.exists()
+
+		if not administrable:
+			raise PermissionDenied
+
+		return True
+
+
+'''Render helpers'''
 def should_render_template(template=None, **kwargs):
     """
-        Method to det. whether a template should be renderable
-        based on its `hide_on_create` property
+        Method to det. whether a template should be renderable based on its `hide_on_create` property.
 
         Args:
             template {model}: optional parameter to check a model instance directly
 
             **kwargs (any): params to use when querying the template model
-        
+
         Returns:
             A boolean reflecting the renderable status of a template model
 
@@ -68,22 +331,170 @@ def should_render_template(template=None, **kwargs):
     return not template.hide_on_create
 
 
-""" Status helpers """  
-
+'''Status helpers'''
 def is_member(user, group_name):
     """
       Checks if a User instance is a member of a group
     """
     return user.groups.filter(name__iexact=group_name).exists()
 
-def has_member_access(user, entity, permissions):
+def is_requestor_brand_admin(request=None):
+	"""Evaluates a request, the brand context, and the assoc. user (if any) to determine whether the user can access the Brand Administration panel"""
+	if not isinstance(request, (Request, HttpRequest)):
+		return False
+
+	user = request.user if hasattr(request, 'user') and not request.user.is_anonymous else None
+	if user is None:
+		return False
+
+	brand = request.BRAND_OBJECT if hasattr(request, 'BRAND_OBJECT') else None
+	if not isinstance(brand, Brand) or brand.id is None or not brand.is_administrable:
+		return False
+
+	if user.is_superuser:
+		return True
+
+	administrable = user.administered_brands \
+		.filter(id=brand.id, is_administrable=True) \
+		.exists()
+
+	return administrable
+
+def get_brand_related_users(req_brand=None):
     """
-      Checks if a user has access to an entity via its group membership
+      Resolves users associated with a specific Brand context
+
+      Args:
+        req_brand (str|int|Brand|Request|HttpRequest): either (a) the name/id of the Brand, (b) the Brand object itself, or (c) the HTTP request assoc. with this operation
+
+      Returns:
+        A (QuerySet) containing the users assoc. with this request/brand context
     """
-    if entity.group_id in user.groups.all().values_list('id', flat=True):
-        return entity.group_access in permissions
+    if isinstance(req_brand, (Request, HttpRequest)):
+        brand = model_utils.try_get_brand(req_brand)
+    elif isinstance(req_brand, str) and not gen_utils.is_empty_string(req_brand):
+        brand = model_utils.try_get_instance(Brand, name__iexact=req_brand)
+    elif isinstance(req_brand, int) and req_brand >= 0:
+        brand = model_utils.try_get_instance(Brand, pk=req_brand)
+    elif isinstance(req_brand, Brand) and (inspect.isclass(req_brand) and issubclass(req_brand, Brand)):
+        brand = req_brand
+
+    records = None
+    if brand is not None:
+        vis_rules = brand.get_vis_rules()
+        if isinstance(vis_rules, dict):
+            allow_null = vis_rules.get('allow_null')
+            allowed_brands = vis_rules.get('ids')
+            if isinstance(allowed_brands, list) and isinstance(allow_null, bool) and allow_null:
+                records = User.objects.filter(Q(accessible_brands__id__isnull=True) | Q(accessible_brands__id__in=allowed_brands))
+            elif isinstance(allowed_brands, list):
+                records = User.objects.filter(accessible_brands__id__in=allowed_brands)
+            elif isinstance(allow_null, bool) and allow_null:
+                records = User.objects.filter(Q(accessible_brands__id__isnull=True) | Q(accessible_brands__id__in=[brand.id]))
+
+        if records is None:
+            records = User.objects.filter(accessible_brands__id=brand.id)
+
+    return records if records is not None else User.objects.all()
+
+def has_member_org_access(user, slug, min_permission):
+    """
+      Checks if a user has access to an organisation. 
+        Min_permissions relates to the organisation role, e.g.
+        min_permission=1 means the user has to be an editor or above.
+    """
+    if user and not user.is_anonymous:
+      if not gen_utils.is_empty_string(slug):
+        organisation = Organisation.objects.filter(slug=slug)
+        if organisation.exists():
+          organisation = organisation.first()
+
+          if organisation.owner == user:
+            return True
+          
+          membership = user.organisationmembership_set \
+            .filter(organisation__id=organisation.id)
+          if membership.exists():
+            return membership.first().role >= min_permission
 
     return False
+
+def has_member_access(user, entity, min_permission):
+    """
+      Checks if a user has access to an entity via its organisation
+        membership. Min_permissions relates to the organisation role, e.g.
+        min_permission=1 means the user has to be an editor or above.
+    """
+    try:
+        org = entity.organisation
+    except Organisation.DoesNotExist:
+        org = None
+
+    if org:
+        if org.owner == user:
+            return True
+
+        if user and not user.is_anonymous:
+            membership = user.organisationmembership_set \
+                .filter(organisation__id=org.id)
+            if membership.exists():
+                return membership.first().role >= min_permission
+
+    return False
+
+def get_organisation_role(user, organisation):
+    if organisation.owner == user:
+        return ORGANISATION_ROLES.ADMIN
+
+    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
+    if org_membership is None:
+        return None
+
+    if org_membership.role in ORGANISATION_ROLES:
+        return ORGANISATION_ROLES(org_membership.role)
+    return -1
+
+def has_org_member(user, organisation):
+    if organisation.owner == user:
+        return True
+
+    org_membership = model_utils.try_get_instance(OrganisationMembership, user_id=user.id, organisation_id=organisation.id)
+    return org_membership is not None and org_membership.role in ORGANISATION_ROLES
+
+def has_org_authority(request, organisation):
+    if not has_org_member(request.user, organisation):
+        return False
+
+    brand = model_utils.try_get_brand(request)
+    authorities = list(OrganisationAuthority.objects.filter(organisation_id=organisation.id).values('can_post','can_moderate','brand_id'))
+    requested_authority = None
+    if brand is not None:
+        requested_authority = next(
+            ({**authority, 'org_user_managed': brand.org_user_managed} for authority in authorities if brand.id == authority['brand_id']),
+            None
+        )
+
+    if requested_authority is None:
+        return {'org_user_managed': False, 'can_moderate': False, 'can_post': False}
+    return requested_authority
+
+def get_organisation(request, entity_id=None, default=None):
+    if entity_id is None:
+        return None
+
+    entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
+    try:
+        org = entity.organisation
+    except Organisation.DoesNotExist:
+        org = default
+    return org
+
+def is_org_managed(request, brand_id=None):
+    if brand_id is not None:
+        brand = model_utils.try_get_instance(Brand, id=brand_id)
+    else:
+        brand = model_utils.try_get_brand(request)
+    return brand.org_user_managed if brand is not None else False
 
 def is_publish_status(entity, status):
     """
@@ -101,8 +512,8 @@ def is_publish_status(entity, status):
         return approval_status in status
     return False
 
-""" General permissions """
 
+'''General permissions'''
 def was_archived(entity_id):
     """
       Checks whether an entity was ever archived:
@@ -135,6 +546,78 @@ def get_user_groups(request):
 
     return list(user.groups.all().exclude(name='ReadOnlyUsers').values('id', 'name'))
 
+def get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.EDITOR):
+    """
+      Get the organisations related to the requesting user
+    """
+    user = request.user
+    if not user or user.is_anonymous:
+        return []
+
+    if user.is_superuser:
+        return list(Organisation.objects.all().values('id', 'name'))
+
+    current_brand = model_utils.try_get_brand(request)
+    current_brand = current_brand if current_brand and current_brand.org_user_managed else None
+
+    with connection.cursor() as cursor:
+      if current_brand is None:
+        cursor.execute(
+          '''
+            select org.id, org.slug, org.name
+              from public.clinicalcode_organisation org
+              join public.clinicalcode_organisationmembership mem
+                on org.id = mem.organisation_id
+            where org.owner_id = %(user_id)s
+               or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s)
+          ''', 
+          params={
+            'user_id': user.id,
+            'role_enum': min_role_permission
+          }
+        )
+      else:
+        cursor.execute(
+          '''
+            select org.id, org.slug, org.name
+              from public.clinicalcode_organisation org
+              join public.clinicalcode_organisationmembership mem
+                on org.id = mem.organisation_id
+              join public.clinicalcode_organisationauthority aut
+                on org.id = aut.organisation_id
+              and aut.brand_id = %(brand)s
+            where (org.owner_id = %(user_id)s or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s))
+              and aut.can_post = true
+          ''', 
+          params={
+            'user_id': user.id,
+            'role_enum': min_role_permission,
+            'brand': current_brand.id
+          }
+        )
+
+      columns = [col[0] for col in cursor.description]
+      results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+      return results
+
+def user_has_create_context(request=None):
+  if request is None or settings.CLL_READ_ONLY:
+    return False
+
+  user = request.user
+  if user is None or user.is_anonymous or user.is_superuser:
+    return True
+
+  brand = model_utils.try_get_brand(request)
+  if brand is not None and brand.org_user_managed:
+    user_orgs = get_user_organisations(
+      request, min_role_permission=ORGANISATION_ROLES.EDITOR
+    )
+    if not user_orgs or len(user_orgs) < 1:
+      return False
+
+  return True
+
 def get_moderation_entities(
     request,
     status=None
@@ -152,8 +635,16 @@ def get_moderation_entities(
     entities = GenericEntity.history.all() \
         .order_by('id', '-history_id') \
         .distinct('id')
+    entities = entities.filter(Q(publish_status__in=status))
 
-    return entities.filter(Q(publish_status__in=status))
+    current_brand = model_utils.try_get_brand(request)
+    current_brand = current_brand if current_brand and current_brand.org_user_managed else None
+    if current_brand is not None:
+      entities = entities.filter(
+        Q(brands__overlap=[current_brand.id])
+      )
+
+    return entities
 
 def get_editable_entities(
     request,
@@ -171,38 +662,69 @@ def get_editable_entities(
         List of all editable entities
     """
     user = request.user
-    entities = GenericEntity.history.all() \
-        .order_by('id', '-history_id') \
-        .distinct('id')
+    if not user or user.is_anonymous:
+        return None
 
-    brand = model_utils.try_get_brand(request)
-    if consider_brand and brand:
-        entities = entities.filter(Q(brands__overlap=[brand.id]))
+    brand = model_utils.try_get_brand(request) if consider_brand else None
+    if brand:
+        brand_sql = 'and %(brand)s = any(live.brands)'
+    else:
+        brand_sql = ''
+    
+    if only_deleted:
+        delete_sql = 'and live.is_deleted = true'
+    else:
+        delete_sql = 'and (live.is_deleted is null or live.is_deleted = false)'
 
-    if user and not user.is_anonymous:
-        query = Q(owner=user.id)
-        query |= Q(
-            group_id__in=user.groups.all(),
-            group_access__in=[GROUP_PERMISSIONS.EDIT]
+    sql = '''
+        with entity as (
+            select distinct on (id) *
+            from public.clinicalcode_historicalgenericentity entity
+            order by id, history_id desc
         )
-
-        entities = entities.filter(query) \
-            .annotate(
-                was_deleted=Subquery(
-                    GenericEntity.objects.filter(
-                        id=OuterRef('id'),
-                        is_deleted=True
-                    ) \
-                    .values('id')
-                )
-            )
-
-        if only_deleted:
-            return entities.exclude(was_deleted__isnull=True)
-        else:
-            return entities.exclude(was_deleted__isnull=False)
-
-    return None
+        select entity.id,
+               entity.name,
+               entity.history_id,
+               entity.updated,
+               entity.publish_status, 
+               live.is_deleted as was_deleted,
+               organisation.name as group_name,
+               uac.username as owner_name
+        from entity
+        join public.clinicalcode_genericentity live
+          on live.id = entity.id
+        join public.auth_user uac
+          on uac.id = entity.owner_id
+        left join public.clinicalcode_organisation organisation
+          on organisation.id = live.organisation_id
+        left join public.clinicalcode_organisationmembership membership
+          on membership.organisation_id = organisation.id
+        where (live.owner_id = %(user_id)s
+           or organisation.owner_id = %(user_id)s
+           or (membership.user_id = %(user_id)s AND membership.role >= %(role_enum)s))
+          {brand}
+          {delete}
+        group by entity.id, entity.name, entity.history_id, 
+                 entity.updated, entity.publish_status, 
+                 live.is_deleted, organisation.name, uac.username
+    '''.format(
+        brand=brand_sql,
+        delete=delete_sql
+    )
+    
+    with connection.cursor() as cursor:
+        cursor.execute(
+            sql, 
+            params={
+                'user_id': user.id,
+                'role_enum': ORGANISATION_ROLES.EDITOR,
+                'brand': brand.id if brand else None
+            }
+        )
+        
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return results
 
 def get_accessible_entity_history(
     request,
@@ -230,7 +752,7 @@ def get_accessible_entity_history(
     brand_clause = ''
     brand = model_utils.try_get_brand(request)
     if brand is not None:
-        brand_clause = 'and t0.brands && %(brand_ids)s'
+        brand_clause = 'and live.brands && %(brand_ids)s'
         query_params.update({ 'brand_ids': [brand.id] })
 
     data = f'''
@@ -313,6 +835,8 @@ def get_accessible_entity_history(
               from public.clinicalcode_historicalgenericentity as t0
 			  join pub_data as pub
 				on t0.history_id = any(pub.published_ids)
+              join public.clinicalcode_genericentity as live
+                on live.id = t0.id
 			  left join public.auth_user as uau
 			    on t0.updated_by_id = uau.id
 			  left join public.auth_user as cau
@@ -330,7 +854,11 @@ def get_accessible_entity_history(
               on true
 			left join (
 			  select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
-			    from historical_entities as t
+			  from (
+				select *, row_number() over(partition by id, history_id) as rn
+				from historical_entities
+			  ) as t
+			  where rn = 1
 			) as t2
 			  on true
         '''
@@ -345,10 +873,24 @@ def get_accessible_entity_history(
     #   i.e. dependent on user role
     clauses = 'true'
     if not is_superuser:
-        clauses = '''t0.world_access = %(world_access)s or t0.owner_id = %(user_id)s'''
+        org_view_clause = ''
+        if brand is not None and brand.org_user_managed:
+          user_orgs = get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.MEMBER)
+          if user_orgs and len(user_orgs) >= 1:
+            org_view_clause = f'''
+              or t0.world_access = {WORLD_ACCESS_PERMISSIONS.VIEW.value}
+            '''
+
+        clauses = f'''
+           (live.owner_id = %(user_id)s
+           or org.owner_id = %(user_id)s
+           or (mem.user_id = %(user_id)s AND mem.role >= %(role_enum)s)
+           {org_view_clause})
+        '''
+
         query_params.update({
             'user_id': user.id,
-            'world_access': WORLD_ACCESS_PERMISSIONS.VIEW.value,
+            'role_enum': ORGANISATION_ROLES.MEMBER
         })
 
         pub_status = [APPROVAL_STATUS.APPROVED.value]
@@ -368,17 +910,6 @@ def get_accessible_entity_history(
             clauses += f'''
             or t0.publish_status = {APPROVAL_STATUS.APPROVED.value}
             '''
-
-        group_ids = [x for x in list(user.groups.all().values_list('id', flat=True))]
-
-        if len(group_ids):
-            clauses += '''
-                or (t0.group_id = any(%(group_ids)s) and t0.group_access = any(%(group_perms)s))
-            '''
-            query_params.update({
-                'group_ids': group_ids,
-                'group_perms': [GROUP_PERMISSIONS.VIEW.value, GROUP_PERMISSIONS.EDIT.value],
-            })
 
     sql = f'''
       {data},
@@ -402,6 +933,12 @@ def get_accessible_entity_history(
 		    on t0.owner_id = oau.id
 		  left join (select json_array_elements(objects::json) as obj from pub_data pd) as pd
 		    on t0.history_id = (pd.obj->>'entity_history_id')::int
+          join public.clinicalcode_genericentity live
+            on live.id = t0.id
+          left join public.clinicalcode_organisation org
+            on org.id = live.organisation_id
+          left join public.clinicalcode_organisationmembership mem
+            on mem.organisation_id = org.id
 		 where t0.id = %(pk)s
            and ({clauses})
            {brand_clause}
@@ -412,7 +949,11 @@ def get_accessible_entity_history(
           on true
 		left join (
 		  select json_agg(row_to_json(t.*) order by t.history_id desc) as entities
-		    from historical_entities as t
+		    from (
+				select *, row_number() over(partition by id, history_id) as rn
+				from historical_entities
+			) as t
+		  where rn = 1
 		) as t2
 		  on true
     '''
@@ -428,7 +969,7 @@ def get_accessible_entities(
     consider_user_perms=True,
     only_deleted=False,
     status=[APPROVAL_STATUS.APPROVED],
-    group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT],
+    min_group_permission=ORGANISATION_ROLES.MEMBER,
     consider_brand=True,
     raw_query=False,
     pk=None
@@ -456,7 +997,7 @@ def get_accessible_entities(
     brand = model_utils.try_get_brand(request) if consider_brand else None
     brand_clause = ''
     if consider_brand and brand is not None:
-        brand_clause = 'and hist_entity.brands && %(brand_ids)s'
+        brand_clause = 'and live_entity.brands && %(brand_ids)s'
         query_params.update({ 'brand_ids': [brand.id] })
 
     # Append pk clause if entity_id is valid
@@ -468,7 +1009,15 @@ def get_accessible_entities(
     # Early exit if we're a superuser and want to consider privileges
     if len(pk_clause) < 1 and consider_user_perms and user and user.is_superuser:
         if brand is not None:
-            results = GenericEntity.history.filter(brands__overlap=[brand.id]).latest_of_each()
+            results = GenericEntity.objects.filter(brands__overlap=[brand.id])
+
+            if only_deleted:
+              results = results.filter(is_deleted=True)
+            else:
+              results = results.exclude(is_deleted=True)
+
+            results = GenericEntity.history \
+                .filter(id__in=list(results.values_list('id', flat=True)))
         else:
             results = GenericEntity.history.all()
         return results.latest_of_each()
@@ -532,10 +1081,21 @@ def get_accessible_entities(
 
     # Non-anon user
     #   i.e. dependent on user role
-    clauses = '''hist_entity.world_access = %(world_access)s or hist_entity.owner_id = %(user_id)s'''
+    org_view_clause = ''
+    if consider_brand and brand is not None and brand.org_user_managed:
+      user_orgs = get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.MEMBER)
+      if user_orgs and len(user_orgs) >= 1:
+        org_view_clause = f'''or live_entity.world_access = {WORLD_ACCESS_PERMISSIONS.VIEW.value}'''
+
+    clauses = f'''
+        (live_entity.owner_id = %(user_id)s
+        or org.owner_id = %(user_id)s
+        or (mem.user_id = %(user_id)s AND mem.role >= %(role_enum)s){org_view_clause})
+    '''
+
     query_params.update({
         'user_id': user.id,
-        'world_access': WORLD_ACCESS_PERMISSIONS.VIEW.value,
+        'role_enum': min_group_permission
     })
 
     if len(pub_status) < 1:
@@ -552,23 +1112,6 @@ def get_accessible_entities(
         '''
         query_params.update({ 'pub_status': pub_status })
 
-    if isinstance(group_permissions, list):
-        group_ids = [x for x in list(user.groups.all().values_list('id', flat=True))]
-        group_perms = [
-            x.value if x in GROUP_PERMISSIONS else gen_utils.parse_int(x, default=None)
-            for x in group_permissions
-                if x in GROUP_PERMISSIONS or gen_utils.parse_int(x, default=None) is not None
-        ]
-
-        if len(group_ids) | len(group_perms):
-            clauses += '''
-              or (hist_entity.group_id = any(%(group_ids)s) and hist_entity.group_access = any(%(group_perms)s))
-            '''
-            query_params.update({
-                'group_ids': group_ids,
-                'group_perms': group_perms,
-            })
-
     conditional = ''
     if only_deleted:
         conditional = '''
@@ -576,7 +1119,7 @@ def get_accessible_entities(
         '''
     else:
         conditional = '''
-             and (live_entity.id is not null and (live_entity.is_deleted is null or live_entity.is_deleted = false))
+             and (live_entity.is_deleted is null or live_entity.is_deleted = false)
              and (hist_entity.is_deleted is null or hist_entity.is_deleted = false)
         '''
 
@@ -591,12 +1134,16 @@ def get_accessible_entities(
                 order by hist_entity.history_id desc
               ) as rn_ref_n
             from public.clinicalcode_historicalgenericentity as hist_entity
-            left join public.clinicalcode_genericentity as live_entity
+            join public.clinicalcode_genericentity as live_entity
               on hist_entity.id = live_entity.id
             join public.clinicalcode_historicaltemplate as hist_tmpl
               on hist_entity.template_id = hist_tmpl.id and hist_entity.template_version = hist_tmpl.template_version
             join public.clinicalcode_template as live_tmpl
               on hist_tmpl.id = live_tmpl.id
+            left join public.clinicalcode_organisation org
+              on org.id = live_entity.organisation_id
+            left join public.clinicalcode_organisationmembership mem
+              on mem.organisation_id = org.id
            where (
                {clauses}
            )
@@ -722,7 +1269,6 @@ def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_vers
                 on pheno.phenotype_id = entity.id
                 and pheno.phenotype_version_id = entity.history_id
              group by phenotype_id;
-
             '''
 
         cursor.execute(sql, params=params)
@@ -739,7 +1285,7 @@ def get_latest_owner_version_from_concept(phenotype_id, concept_id, concept_vers
 
 def get_accessible_concepts(
     request,
-    group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
+    min_group_permission=ORGANISATION_ROLES.MEMBER
 ):
     """
       Tries to get all the concepts that are accessible to a specific user
@@ -781,7 +1327,7 @@ def get_accessible_concepts(
             '''
             cursor.execute(
                 sql,
-                params=[WORLD_ACCESS_PERMISSIONS.VIEW.value]
+                params=[APPROVAL_STATUS.APPROVED.value]
             )
             
             columns = [col[0] for col in cursor.description]
@@ -794,16 +1340,16 @@ def get_accessible_concepts(
         
         return concepts
 
-    group_access = [x.value for x in group_permissions]
     with connection.cursor() as cursor:
         sql = '''
         select distinct on (concept_id)
-               id as phenotype_id,
-               cast(concepts->>'concept_id' as integer) as concept_id,
-               cast(concepts->>'concept_version_id' as integer) as concept_version_id
+               results.id as phenotype_id,
+               cast(results.concepts->>'concept_id' as integer) as concept_id,
+               cast(results.concepts->>'concept_version_id' as integer) as concept_version_id
           from (
             select id,
-                   concepts
+                   concepts,
+                   publish_status
               from public.clinicalcode_historicalgenericentity as entity,
                    json_array_elements(entity.template_data::json->'concept_information') as concepts
               where 
@@ -812,31 +1358,31 @@ def get_accessible_concepts(
                      from public.clinicalcode_genericentity as ge
                     where ge.is_deleted = true and ge.id = entity.id
                  )
-                 and (
-                   entity.publish_status = %s
-                   or (
-                    exists (
-                      select 1
-                        from public.auth_user_groups as t
-                       where t.user_id = %s and t.group_id = entity.group_id
-                    )
-                    and entity.group_access in %s
-                   )
-                   or entity.owner_id = %s
-                   or entity.world_access = %s
-                 )
           ) results
+          join public.clinicalcode_genericentity as live
+            on live.id = results.id
+          left join public.clinicalcode_organisation as org
+            on org.id = live.organisation_id
+          left join public.clinicalcode_organisationmembership as mem
+            on mem.organisation_id = org.id
+         where (
+              results.publish_status = %(publish_status)s
+           or org.owner_id = %(user_id)s
+           or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s)
+           or live.owner_id = %(user_id)s
+         )
          order by concept_id desc, concept_version_id desc
         '''
 
         cursor.execute(
             sql,
-            params=[
-                APPROVAL_STATUS.APPROVED.value, user.id, tuple(group_access),
-                user.id, WORLD_ACCESS_PERMISSIONS.VIEW.value
-            ]
+            params={
+                'publish_status': APPROVAL_STATUS.APPROVED.value, 
+                'user_id': user.id, 
+                'role_enum': min_group_permission,
+            }
         )
-        
+
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
@@ -889,12 +1435,17 @@ def can_user_view_entity(request, entity_id, entity_history_id=None):
     if live_entity.owner == user:
         return check_brand_access(request, is_published, entity_id, entity_history_id)
 
-    if has_member_access(user, live_entity, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
+    if has_member_access(user, live_entity, ORGANISATION_ROLES.MEMBER):
         return check_brand_access(request, is_published, entity_id, entity_history_id)
 
-    if user and not user.is_anonymous:
-        if live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
-            return check_brand_access(request, is_published, entity_id, entity_history_id)
+    brand = model_utils.try_get_brand(request)
+    if brand is not None and brand.org_user_managed:
+      if live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
+        user_orgs = get_user_organisations(
+          request, min_role_permission=ORGANISATION_ROLES.MEMBER
+        )
+        if user_orgs and len(user_orgs) >= 1:
+          return check_brand_access(request, is_published, entity_id, entity_history_id)
 
     return False
 
@@ -908,17 +1459,17 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
         entity_id (number): The entity ID of interest
 
       Returns:
-        Either (a) a dict containing the entity and the user's edit/view access
-           or; (b) a boolean value reflecting the failed state of this func
+        Either tuple in which the first element is either (a) a dict containing the entity and the user's edit/view access or (b) a `None` type value;
+        while the latter element, if unsuccessful, specifies a dict containing a `status_code`, a `title`, and a `message` property describing the failed state of this operation
     """
     live_entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if live_entity is None:
-        return False
+            return None, { 'title': 'Page Not Found - Missing Entity', 'message': 'No entity exists with the ID.', 'status_code': 404 }
 
     if entity_history_id is not None:
         historical_entity = model_utils.try_get_entity_history(live_entity, entity_history_id)
         if historical_entity is None:
-            return False
+            return None, { 'title': 'Page Not Found - Missing Version', 'message': 'No entity version exists with the specified version ID.', 'status_code': 404 }
     else:
         historical_entity = live_entity.history.latest()
         entity_history_id = historical_entity.history_id
@@ -928,19 +1479,19 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
         brand_id = brand.get('id') if isinstance(brand, dict) else getattr(brand, 'id')
         brand_id = gen_utils.parse_int(brand_id, default=None)
 
+    brand_accessible = False
+    brand_org_managed = False
     if brand_id is not None:
         related_brands = live_entity.brands
-        if not isinstance(related_brands, list) or len(related_brands) < 1:
-            brand_accessible = True
-        elif isinstance(related_brands, list):
+        if isinstance(related_brands, list):
             brand_accessible = brand_id in related_brands
+        brand_org_managed = brand.org_user_managed
     else:
         brand_accessible = True
 
     user = request.user if request.user and not request.user.is_anonymous else None
     user_groups = user.groups.all() if user is not None else None
     user_has_groups = user_groups.exists() if user_groups is not None else None
-    user_group_ids = list(user_groups.values_list('id', flat=True)) if user_has_groups else []
 
     user_is_admin = user.is_superuser if user else False
     user_is_moderator = ('Moderators' in list(user_groups.values_list('name', flat=True))) if user_has_groups else False
@@ -948,38 +1499,57 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
     is_viewable = False
     is_editable = False
     is_published = historical_entity.publish_status == APPROVAL_STATUS.APPROVED.value
+    is_org_accessible = False
 
     if user is not None:
         is_owner = live_entity.owner == user
         is_moderatable = False
-        is_group_member = False
-        is_world_accessible = False
+        is_org_member = False
 
         if user_is_admin:
             is_editable = True
         elif brand_accessible:
-            entity_group_id = live_entity.group_id if isinstance(live_entity.group_id, int) else None
             if live_entity.owner == user or live_entity.created_by == user:
                 is_editable = True
 
-            if entity_group_id is not None:
-                is_editable = live_entity.group_access == GROUP_PERMISSIONS.EDIT and entity_group_id in user_group_ids
-                is_group_member = (
-                    live_entity.group_access in [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
-                    and entity_group_id in user_group_ids
-                )
+            entity_org = live_entity.organisation
+            if entity_org is not None:
+              if brand and brand.org_user_managed and live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
+                user_orgs = get_user_organisations(request, min_role_permission=ORGANISATION_ROLES.MEMBER)
+                if user_orgs and len(user_orgs) >= 1:
+                  is_org_accessible = True
+
+              if entity_org.owner_id == user.id:
+                  is_org_member = True
+              elif not user.is_anonymous:
+                  membership = user.organisationmembership_set \
+                      .filter(organisation__id=entity_org.id)
+
+                  if membership.exists():
+                    membership = membership.first()
+
+                    is_org_member = True
+                    is_editable = membership.role >= ORGANISATION_ROLES.EDITOR
+
+                    if brand_org_managed:
+                      brand_authority = OrganisationAuthority.objects \
+                        .filter(organisation_id=entity_org.id, brand_id=brand.id)
+                      
+                      if brand_authority.exists():
+                        brand_authority = brand_authority.first()
+
+                        if brand_authority.can_moderate:
+                          user_is_moderator = user_is_moderator or membership.role >= ORGANISATION_ROLES.MODERATOR
 
             if user_is_moderator and historical_entity.publish_status is not None:
                 is_moderatable = historical_entity.publish_status in [APPROVAL_STATUS.REQUESTED, APPROVAL_STATUS.PENDING, APPROVAL_STATUS.REJECTED]
-
-            is_world_accessible = live_entity.world_access == WORLD_ACCESS_PERMISSIONS.VIEW
 
         is_viewable = brand_accessible and (
             user_is_admin
             or is_published
             or is_moderatable
-            or is_world_accessible
-            or (is_owner or is_group_member or is_world_accessible)
+            or is_org_accessible
+            or (is_owner or is_org_member)
         )
     else:
         is_viewable = brand_accessible and is_published
@@ -990,11 +1560,13 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
         'edit_access': is_editable,
         'view_access': is_viewable,
         'is_published': is_published,
-    }
+    }, None
 
-def can_user_view_concept(request,
-                          historical_concept,
-                          group_permissions=[GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
+def can_user_view_concept(
+    request,
+    historical_concept,
+    min_group_permission=ORGANISATION_ROLES.MEMBER
+):
     """
       Checks whether a user has the permissions to view a concept
 
@@ -1022,13 +1594,6 @@ def can_user_view_concept(request,
 
     if historical_concept.owner == user:
         return True
-
-    if has_member_access(user, historical_concept, [GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]):
-        return True
-
-    if user and not user.is_anonymous:
-        if historical_concept.world_access == WORLD_ACCESS_PERMISSIONS.VIEW:
-            return True
 
     # Check associated phenotypes
     concept = getattr(historical_concept, 'instance')
@@ -1079,49 +1644,63 @@ def can_user_view_concept(request,
                 ]
             )
         else:
-            group_access = [x.value for x in group_permissions]
-            sql = '''
-            select *
+            brand = model_utils.try_get_brand(request)
+
+            org_view_clause = ''
+            if brand is not None and brand.org_user_managed:
+              user_orgs = get_user_organisations(
+                request, min_role_permission=ORGANISATION_ROLES.MEMBER
+              )
+              if user_orgs and len(user_orgs) >= 1:
+                org_view_clause = f'''
+                  or live.world_access = {WORLD_ACCESS_PERMISSIONS.VIEW.value}
+                '''
+
+            sql = f'''
+            select distinct results.concept_id, results.concept_version_id
               from (
                 select distinct on (id)
+                       entity.id,
+                       entity.publish_status,
                        cast(concepts->>'concept_id' as integer) as concept_id,
                        cast(concepts->>'concept_version_id' as integer) as concept_version_id
                   from public.clinicalcode_historicalgenericentity as entity,
                        json_array_elements(entity.template_data::json->'concept_information') as concepts
                  where 
                    (
-                     cast(concepts->>'concept_id' as integer) = %s
-                     and cast(concepts->>'concept_version_id' as integer) = %s
+                     cast(concepts->>'concept_id' as integer) = %(concept_id)s
+                     and cast(concepts->>'concept_version_id' as integer) = %(concept_version_id)s
                    )
                    and not exists (
                      select *
                        from public.clinicalcode_genericentity as ge
                       where ge.is_deleted = true and ge.id = entity.id
                    )
-                   and (
-                     entity.publish_status = %s
-                     or (
-                       exists (
-                         select 1
-                           from public.auth_user_groups as t
-                          where t.user_id = %s and t.group_id = entity.group_id
-                       )
-                       and entity.group_access in %s
-                     )
-                     or entity.owner_id = %s
-                     or entity.world_access = %s
-                   )
               ) results
+              join public.clinicalcode_genericentity as live
+                on live.id = results.id
+              left join public.clinicalcode_organisation as org
+                on org.id = live.organisation_id
+              left join public.clinicalcode_organisationmembership as mem
+                on mem.organisation_id = org.id
+             where (
+                   results.publish_status = %(publish_status)s
+                or org.owner_id = %(user_id)s
+                or (mem.user_id = %(user_id)s and mem.role >= %(role_enum)s)
+                or live.owner_id = %(user_id)s
+                {org_view_clause}
+             )
              limit 1
             '''
             cursor.execute(
                 sql,
-                params=[
-                    historical_concept.id, historical_concept.history_id,
-                    APPROVAL_STATUS.APPROVED.value,
-                    user.id, tuple(group_access),
-                    user.id, WORLD_ACCESS_PERMISSIONS.VIEW.value
-                ]
+                params={
+                    'concept_id': historical_concept.id, 
+                    'concept_version_id': historical_concept.history_id,
+                    'publish_status': APPROVAL_STATUS.APPROVED.value,
+                    'user_id': user.id,
+                    'role_enum': min_group_permission
+                }
             )
         
         row = cursor.fetchone()
@@ -1137,6 +1716,25 @@ def check_brand_access(request, is_published, entity_id, entity_history_id=None)
     """
     if not is_published:
         return is_brand_accessible(request, entity_id, entity_history_id)
+    return True
+
+def can_user_create_entities(request):
+    """
+      Checks whether a user can create entities with its request's Brand context
+
+      Args:
+        request (RequestContext): the HTTPRequest
+
+      Returns:
+        A boolean value reflecting whether the user is able to create entities
+    """
+    current_brand = model_utils.try_get_brand(request)
+    if current_brand is None or not current_brand.org_user_managed:
+        return True
+
+    user_orgs = get_user_organisations(request)
+    if len(user_orgs) < 1:
+        return False
     return True
 
 def can_user_edit_entity(request, entity_id, entity_history_id=None):
@@ -1172,7 +1770,7 @@ def can_user_edit_entity(request, entity_id, entity_history_id=None):
     if live_entity.owner == user or live_entity.created_by == user:
         is_allowed_to_edit = True
 
-    if has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
+    if has_member_access(user, live_entity, ORGANISATION_ROLES.EDITOR):
         is_allowed_to_edit = True
 
     if is_allowed_to_edit:
@@ -1215,7 +1813,7 @@ def has_derived_edit_access(request, entity_id, entity_history_id=None):
 
     if user.is_superuser or live_entity.owner == user or live_entity.created_by == user:
         return False
-    elif has_member_access(user, live_entity, [GROUP_PERMISSIONS.EDIT]):
+    elif has_member_access(user, live_entity, ORGANISATION_ROLES.EDITOR):
         return True
 
     return False
@@ -1307,13 +1905,19 @@ def user_has_concept_ownership(user, concept):
       Returns:
         (boolean) that reflects whether the user has top-level access
     """
+    if user.is_superuser:
+        return True
+
     if user is None or concept is None:
         return False
 
     if concept.owner == user:
         return True
 
-    return user.is_superuser or has_member_access(user, concept, [GROUP_PERMISSIONS.EDIT])
+    owner = concept.phenotype_owner
+    if owner is None:
+        return False
+    return has_member_access(user, owner, ORGANISATION_ROLES.EDITOR)
 
 def validate_access_to_view(request, entity_id, entity_history_id=None):
     """
@@ -1344,7 +1948,7 @@ def is_brand_accessible(request, entity_id, entity_history_id=None):
       Returns:
         A (boolean) that reflects its accessibility to the request context
     """
-    entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
+    entity = model_utils.try_get_instance(GenericEntity, pk=entity_id)
     if entity is None:
         return False
 
@@ -1380,17 +1984,6 @@ def allowed_to_permit(user, entity_id):
 
     return GenericEntity.objects.filter(Q(id=entity_id), Q(owner=user)).exists()
 
-class HasAccessToViewGenericEntityCheckMixin(object):
-  """
-    Mixin to check if user has view access to a working set
-    this mixin is used within class based views and can be overridden
-  """
-  def dispatch(self, request, *args, **kwargs):
-    if not can_user_view_entity(request, self.kwargs['pk']):
-      raise PermissionDenied
-    
-    return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
-
 def get_latest_entity_published(entity_id):
     """
       Gets latest published entity given an entity id
@@ -1404,77 +1997,21 @@ def get_latest_entity_published(entity_id):
     entity = entity.first()
     return entity
 
-def get_latest_entity_historical_id(entity_id, user):
-    """
-      Gets the latest entity history id for a given entity
-      and user, given the user has the permissions to access that
-      particular entity
-    """
-    entity = model_utils.try_get_instance(GenericEntity, id=entity_id)
 
-    if entity:
-        if user.is_superuser:
-            return int(entity.history.latest().history_id)
+'''Permission Mixins'''
+class HasAccessToViewGenericEntityCheckMixin(object):
+  """
+    Mixin to check if user has view access to a working set
+    this mixin is used within class based views and can be overridden
+  """
+  def dispatch(self, request, *args, **kwargs):
+    if not can_user_view_entity(request, self.kwargs['pk']):
+      raise PermissionDenied
+    
+    return super(HasAccessToViewGenericEntityCheckMixin, self).dispatch(request, *args, **kwargs)
 
-        if user and not user.is_anonymous:
-            history = entity.history.filter(
-                Q(owner=user.id) |
-                Q(
-                    group_id__in=user.groups.all(),
-                    group_access__in=[
-                        GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
-                ) |
-                Q(
-                    world_access=WORLD_ACCESS_PERMISSIONS.VIEW
-                )
-            ) \
-                .order_by('-history_id')
 
-            if history.exists():
-                return history.first().history_id
-
-        published = get_latest_entity_published(entity.id)
-        if published:
-            return published.history_id
-
-    return None
-
-def get_latest_concept_historical_id(concept_id, user):
-    """
-      Gets the latest concept history id for a given concept
-      and user, given the user has the permissions to access that
-      particular concept
-    """
-    concept = model_utils.try_get_instance(Concept, pk=concept_id)
-
-    if concept:
-        if user.is_superuser:
-            return int(concept.history.latest().history_id)
-
-        if user and not user.is_anonymous:
-            history = concept.history.filter(
-                Q(owner=user.id) |
-                Q(
-                    group_id__in=user.groups.all(),
-                    group_access__in=[
-                        GROUP_PERMISSIONS.VIEW, GROUP_PERMISSIONS.EDIT]
-                ) |
-                Q(
-                    world_access=WORLD_ACCESS_PERMISSIONS.VIEW
-                )
-            ) \
-                .order_by('-history_id')
-
-            if history.exists():
-                return history.first().history_id
-
-        published = get_latest_publicly_accessible_concept(concept_id)
-        if published:
-            return published.history_id
-
-    return None
-
-""" Legacy methods that require clenaup """
+'''Legacy methods that require cleanup'''
 def get_publish_approval_status(set_class, set_id, set_history_id):
     """
         [!] Note: Legacy method from ./permissions.py
@@ -1515,59 +2052,6 @@ def check_if_published(set_class, set_id, set_history_id):
 
     return False
 
-def get_latest_published_version(set_class, set_id):
-    """
-        [!] Note: Legacy method from ./permissions.py
-        
-            Updated to only check GenericEntity since Phenotype/WorkingSet
-            no longer exists in the current application
-
-        Get latest published version
-    """
-
-    latest_published_version = None 
-    if set_class == GenericEntity:
-        latest_published_version = PublishedGenericEntity.objects.filter(
-            entity_id=set_id,
-            approval_status=2
-        ) \
-        .order_by('-entity_history_id') \
-        .first()
-
-        if latest_published_version is not None:
-            return latest_published_version.entity_history_id
-
-    return latest_published_version
-
-def try_get_valid_history_id(request, set_class, set_id):
-    """
-        [!] Note: Legacy method from ./permissions.py
-        
-        Tries to resolve a valid history id for an entity query.
-        If the entity is accessible (i.e. validate_access_to_view() is TRUE), 
-        then return the most recent version if the user is authenticated,      
-        Otherwise, this method will return the most recently published version, if available.
-
-        Args:
-            request (RequestContext): the request
-            set_class (str): a model
-            set_id (str): the id of the entity
-
-        Returns:
-            int representing history_id
-    """
-    set_history_id = None
-    is_authenticated = request.user.is_authenticated
-
-    if is_authenticated:                   
-        set_history_id = int(set_class.objects.get(pk=set_id).history.latest().history_id)
-
-    if not set_history_id:
-        latest_published_version_id = get_latest_published_version(set_class, set_id)
-        if latest_published_version_id:
-            set_history_id = latest_published_version_id
-
-    return set_history_id
 
 def allowed_to_edit(request, set_class, set_id, user=None):
     """

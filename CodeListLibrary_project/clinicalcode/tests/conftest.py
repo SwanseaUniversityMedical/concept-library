@@ -6,11 +6,12 @@ import pytest
 from datetime import datetime
 from django.db import connection
 from django.utils.timezone import make_aware
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from selenium import webdriver
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
+from django.contrib.auth import get_user_model
 
 from clinicalcode.models import Brand
 from clinicalcode.models import Concept
@@ -23,6 +24,9 @@ from clinicalcode.entity_utils.constants import OWNER_PERMISSIONS, APPROVAL_STAT
 from clinicalcode.tests.constants.constants import ENTITY_CLASS_FIELDS, TEMPLATE_DATA_V2, TEMPLATE_JSON_V1_PATH, TEMPLATE_FIELDS, \
     TEMPLATE_DATA, TEMPLATE_JSON_V2_PATH
 from cll.test_settings import REMOTE_TEST_HOST, REMOTE_TEST, chrome_options
+
+
+User = get_user_model()
 
 
 @pytest.fixture
@@ -43,7 +47,7 @@ def generate_user(create_groups):
                 'view_group_user': View group user instance
                 'edit_group_user': Edit group user instance
     """
-    su_user = User.objects.create_superuser(username='superuser', password='superuserpassword', email=None)
+    su_user = User.objects.create_user(username='superuser', password='superuserpassword', email=None, is_superuser=True, is_staff=True)
     nm_user = User.objects.create_user(username='normaluser', password='normaluserpassword', email=None)
     ow_user = User.objects.create_user(username='owneruser', password='owneruserpassword', email=None)
     gp_user = User.objects.create_user(username='groupuser', password='groupuserpassword', email=None)
@@ -62,6 +66,10 @@ def generate_user(create_groups):
             'view_group_user': vgp_user,
             'edit_group_user': egp_user,
     }
+
+    for uobj in users.values():
+        setattr(uobj, 'BRAND_OBJECT', {})
+        setattr(uobj, 'CURRENT_BRAND', '')
 
     yield users
 
@@ -125,12 +133,13 @@ def generate_entity_session(template, generate_user, brands=None):
                 name='TEST_%s_Entity' % status.name,
                 author=user.username,
                 status=ENTITY_STATUS.DRAFT.value,
-                publish_status=APPROVAL_STATUS.ANY.value,
+                publish_status=status.value,
                 template=template,
                 template_version=1,
                 template_data=template_data,
                 created_by=user,
-                world_access=WORLD_ACCESS_PERMISSIONS.VIEW
+                world_access=WORLD_ACCESS_PERMISSIONS.VIEW,
+                owner=user
         )
 
         record = {'entity': entity}

@@ -1,0 +1,48 @@
+{% load entity_renderer %}
+
+{% if not component.hide_if_empty or component.value %}
+  <div class="detailed-input-group fill">
+    <div class="col-sm-12 shadow-frame">
+      <h3 class="paneltitle">
+        <span id="entity-{{ component.field_name }}"></span>
+        {% if not component.hide_input_title %}
+          <h3 class="detailed-input-group__title">{{ component.field_data.title }}</h3>
+        {% endif %}
+        {% if not component.hide_input_details %}
+          <p class="detailed-input-group__description">{{ component.description }}</p> 
+        {% endif %}
+      </h3>
+    </div>
+
+    <section class="item-display">
+      {% if not component.value %}
+        <section class="item-display__none">
+          <p class="item-display__none-label">
+            No data.
+          </p>
+        </section>
+      {% else %}
+        <section class="item-display__list slim-scrollbar">
+          {% for item in component.value %}
+            <div class="item-display__item">
+              <div class="item-display__text item-display__text--fill-w">
+                {% if item.target %}
+                  <a
+                    target=_blank
+                    rel="noopener"
+                    href="{% url item.anchor pk=item.target %}"
+                    title="View {{ item.label }}"
+                  >
+                    {{ item.label }}
+                  </a>
+                {% else %}
+                  <p><strong>{{ item.name }}</strong></p>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    </section>
+  </div>
+{% endif %}

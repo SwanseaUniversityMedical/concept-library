@@ -8,7 +8,6 @@ const generateTag = (type,configId, parameters) => {
   gtag("js", new Date());
   gtag("consent", type , parameters);
   gtag("config", configId);
-  console.log("gtag", type, configId, parameters);
 };
 
 const removeGATags = () => {

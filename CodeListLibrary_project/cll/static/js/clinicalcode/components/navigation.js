@@ -85,7 +85,7 @@ const initHamburgerMenu = () => {
  */
 const submenuMobile = () => {
   // JavaScript for submenu behavior
-  const navText = document.querySelector('.nav-dropdown__text');
+  const navText = document.querySelector('.nav-dropdown__text a');
   const submenu = document.querySelector('.nav-dropdown__content');
 
   const avataText = document.querySelector('.avatar-content');
@@ -187,8 +187,12 @@ const setNavigation = (navbar) => {
 
     // match by link
     let href = link.getAttribute('href');
+    if (!stringHasChars(href)) {
+      continue;
+    }
+
     href = href.replace(/\/$/, '').toLocaleLowerCase();
-    
+
     const dist = FuzzyQuery.Distance(path, href);
     if (typeof closest === 'undefined' || dist < distance) {
       distance = dist;
@@ -202,7 +206,7 @@ const setNavigation = (navbar) => {
 }
 
 const manageBrandTargets = () => {
-  const elements = document.querySelectorAll('.userBrand');
+  const elements = [...document.querySelectorAll('.userBrand')];
   const brandSource = document.querySelector('script[type="application/json"][name="brand-targets"]');
   if (elements.length < 1 || isNullOrUndefined(brandSource)) {
     return;
@@ -219,7 +223,67 @@ const manageBrandTargets = () => {
     isProductionRoot = ['true', '1'].indexOf(isProductionRoot.toLowerCase()) >= 0;
   }
 
-  const handleBrandTarget = (e) => getBrandUrlTarget(brandTargets, isProductionRoot, e.target, oldRoot, path);
+  const tryGetBrandNavMap = (ref) => {
+    const map = isHtmlObject(ref)
+      ? ref.querySelector('script[type="application/json"][name="brand-mapping"]')
+      : null;
+
+    let parsed = null;
+    if (!isNullOrUndefined(map)) {
+      try {
+        parsed = JSON.parse(map.innerText);
+      }
+      catch { }
+
+      if (!isNullOrUndefined(parsed) && !isObjectType(parsed)) {
+        parsed = null;
+      }
+    }
+
+    return parsed;
+  }
+
+  const handleBrandTarget = (e) => {
+    let current = getCurrentBrandPrefix();
+    if (current.startsWith('/')) {
+      current = current.substring(1);
+    }
+    current = current.toUpperCase();
+
+    const trg = e.target;
+    const ref = elements.find(x => (stringHasChars(x.getAttribute('value')) ? x.getAttribute('value').toUpperCase() : '') === current);
+
+    const m0 = tryGetBrandNavMap(ref);
+    const m1 = tryGetBrandNavMap(trg);
+    if (!isNullOrUndefined(m0) && !isNullOrUndefined(m1)) {
+      const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
+      const pathTarget = path.split('/').slice(pathIndex);
+      const pathRoot = pathTarget?.[0];
+      if (stringHasChars(pathRoot)) {
+        let uRes = Object.entries(m0).find(([k, v]) => k.endsWith('_url') && v === pathRoot);
+        uRes = (Array.isArray(uRes) && uRes.length >= 2)
+          ? m1?.[uRes[0]]
+          : null;
+
+        if (stringHasChars(uRes) && uRes !== pathRoot) {
+          pathTarget[0] = uRes;
+
+          uRes = (
+            pathIndex
+              ? [oldRoot, ...pathTarget]
+              : pathTarget
+          )
+            .join('/');
+
+          navigateBrandTargetURL(brandTargets, isProductionRoot, trg, oldRoot, uRes);
+          return;
+        }
+      }
+    }
+
+    navigateBrandTargetURL(brandTargets, isProductionRoot, trg, oldRoot, path);
+  };
+
   for (const element of elements) {
     element.addEventListener('click', handleBrandTarget);
   }

@@ -1,0 +1,149 @@
+{% load entity_renderer %}
+
+{% get_brand_map_rules as brand_mapping %}
+{% get_template_entity_name template.entity_class template as entity_shortname %}
+<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
+    <h3 class="detailed-input-group__title">
+      {{ component.field_data.title }}
+      {% if component.mandatory %}
+        <span class="detailed-input-group__mandatory">*</span>
+      {% endif %}
+    </h3>
+    <pre class="detailed-input-group__description">{{ component.description }}</pre>
+  {% endif %}
+
+  <section
+    id="entity-{{ component.field_name }}"
+    class="entity-selector-group"
+    data-name="{{ component.field_data.title }}"
+    data-class="related_entities"
+    data-field="{{ component.field_name }}"
+  >
+    {% to_json_script brand_mapping data-type="mapping" for=component.field_name data-shortname=entity_shortname %}
+
+    {% if component.properties %}
+      {% to_json_script component.properties data-type="properties" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="properties" for="{{ component.field_name }}"></script>
+    {% endif %}
+
+    {% if component.value %}
+      {% to_json_script component.value data-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
+
+    <div
+      class="entity-dropdown"
+      role="combobox"
+      aria-owns="entity-input"
+      aria-expanded="false"
+      aria-haspopup="listbox"
+      data-area="search"
+    >
+      <input
+        id="entity-input"
+        name="entity-{{ component.field_name }}"
+        type="text"
+        class="entity-dropdown__input"
+        placeholder="Find {{ component.field_data.title }} to add..."
+        aria-label="Find {{ component.field_data.title }} to add..."
+        aria-controls="entity-results"
+        aria-autocomplete="list"
+        aria-activedescendant=""
+        data-area="inputbox"
+      />
+      <div
+        id="entity-results"
+        name="entity-results"
+        class="entity-dropdown__results slim-scrollbar"
+        aria-role="listbox"
+        data-area="results"
+      >
+        <div class="entity-dropdown__infobox" data-area="infobox">
+          <div class="entity-dropdown__infobox-details" data-area="infolabel">
+
+          </div>
+          <div class="bounce-loader" data-area="loader">
+            <div class="bounce-loader__container">
+              <div class="bounce-loader__dot"></div>
+              <div class="bounce-loader__dot"></div>
+              <div class="bounce-loader__dot"></div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+    <section
+      class="entity-selector-group__none-available"
+      data-area="noneAvailable"
+    >
+      <p class="entity-selector-group__none-available-message">
+        You haven't added any {{ component.field_data.title }} yet.
+      </p>
+    </section>
+
+    <section
+      class="entity-selector-group__list"
+      data-area="contentGroup"
+    >
+      <header class="entity-selector-group__list-header">
+        <h3>
+          {{ component.field_data.title }}
+        </h3>
+      </header>
+      <div
+        class="entity-selector-group__list-container slim-scrollbar"
+        data-area="contentList"
+      >
+        
+      </div>
+    </section>
+
+    <template data-name="item" data-view="results">
+      <button
+        id="entity-result-${ref}"
+        class="entity-dropdown__item"
+        role="option"
+        aria-label="${label}"
+        aria-selected="false"
+        data-ref="${ref}"
+        data-index="${index}"
+        data-action="select"
+      >
+        <span class="entity-dropdown__item-label">
+          ${label}
+        </span>
+      </button>
+    </template>
+
+    <template data-name="item" data-view="content">
+      <div
+        class="entity-selector-group__item"
+        data-area="item"
+        data-ref="${ref}"
+      >
+        <div class="entity-selector-group__item-text">
+          <p>${label}</p>
+        </div>
+        <button
+          class="entity-selector-group__item-btn"
+          role="button"
+          tabindex="0"
+          title="Remove Item"
+          aria-label="Remove Item"
+          data-fn="button"
+          data-ref="${ref}"
+          data-owner="related_entities"
+          data-action="remove"
+        >
+          <span class="as-icon" data-icon="&#xf1f8;"></span>
+        </button>
+      </div>
+    </template>
+  </section>
+</div>

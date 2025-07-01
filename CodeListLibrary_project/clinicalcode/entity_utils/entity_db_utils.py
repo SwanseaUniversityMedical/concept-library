@@ -123,26 +123,6 @@ def get_concept_ids_from_phenotypes(data, return_id_or_history_id="both"):
     return []
 
 
-def getConceptBrands(request, concept_list):
-    '''
-        return concept brands 
-    '''
-    conceptBrands = {}
-    concepts = Concept.objects.filter(id__in=concept_list).values('id', 'name', 'group')
-
-    for c in concepts:
-        conceptBrands[c['id']] = []  
-        if c['group'] != None:
-            g = Group.objects.get(pk=c['group'])
-            for item in request.BRAND_GROUPS:
-                for brand, groups in item.items():
-                    if g.name in groups:
-                        #conceptBrands[c['id']].append('<img src="{% static "img/brands/' + brand + '/logo.png %}" height="10px" title="' + brand + '" alt="' + brand + '" />')
-                        conceptBrands[c['id']].append(brand)
-
-    return conceptBrands
-
-
 
 #=============================================================================
  # TO BE CONVERTED TO THE GENERIC ENTITY  .......
@@ -483,7 +463,7 @@ def get_entity_full_template_data(entity_record, template_id, return_queryset_as
             entity_data_sources = fields_data[field_name]['value']
             if entity_data_sources:
                 if return_queryset_as_list:
-                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('datasource_id', 'name', 'url'))
+                    data_sources = list(DataSource.objects.filter(pk__in=entity_data_sources).values('id', 'name', 'url'))
                 else:
                     data_sources = DataSource.objects.filter(pk__in=entity_data_sources)
                 fields_data[field_name]['value'] = data_sources
@@ -750,10 +730,16 @@ def get_concept_ids_versions_of_historical_phenotype(phenotype_id, phenotype_his
 
     '''
     concept_id_version = []
-    concept_information = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data['concept_information']
+    concept_information = GenericEntity.history.get(id=phenotype_id, history_id=phenotype_history_id).template_data
+    concept_information = concept_information.get('concept_information') if isinstance(concept_information, dict) else None
     if concept_information:
-        for c in concept_information:
-            concept_id_version.append((c['concept_id'], c['concept_version_id']))
+        concept_id_version = [
+            (c['concept_id'], c['concept_version_id'])
+            for c in concept_information
+            if isinstance(c.get('concept_id'), int) and isinstance(c.get('concept_version_id'), int)
+        ]
+    else:
+        concept_id_version = []
 
     return concept_id_version
 

@@ -1,0 +1,33 @@
+<div class="detailed-input-group fill">
+  <div class="box-container">
+    <div class="row{% if component.field_data.icon %} gap-md{% endif %}">
+      {% if component.field_data.icon %}
+        <div class="col-sm-2 row-padding detail-field-title display-flex justify-content-start gap-md">
+          <span class="as-icon phenotype-creation--icn" data-icon="{{ component.field_data.icon|safe }}" aria-hidden="true"></span>
+          {{ component.field_data.title }}
+        </div>
+      {% else %}
+        <div class="col-sm-2 row-padding detail-field-title">
+          {{ component.field_data.title }}
+        </div>
+      {% endif %}
+      <div class="col-sm-{% if component.field_data.icon %}8{% else %}10{% endif %}">
+        <span class="badge wrapped-tspan">
+          {% if component.value %}
+            {% if not component.value.comparator %}
+              {{ component.value.min }} &le; x &le; {{ component.value.max }}
+            {% elif component.value.comparator == 'between' %}
+              {{ component.value.value.0 }} &le; x &le; {{ component.value.value.1 }}
+            {% elif component.value.comparator == 'lte' %}
+              x &le; {{ component.value.value }}
+            {% elif component.value.comparator == 'gte' %}
+              x &ge; {{ component.value.value }}
+            {% endif %}
+          {% else %}
+            N&sol;A
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

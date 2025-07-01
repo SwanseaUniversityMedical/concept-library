@@ -32,10 +32,11 @@
     }
 
     &:after {
-      @include prefix(transition, transform 250ms ease-in-out, webkit moz o);
+      // @include prefix(transition, transform 250ms ease-in-out, webkit moz o);
       content: '\f107';
       display: block;
       position: absolute;
+      box-sizing: border-box;
       font-family: var(--icons-name);
       font-style: var(--icons-style);
       font-size: var(--icons-size);
@@ -46,11 +47,25 @@
       line-height: 2.25em;
       text-align: center;
       background-color: var(--accordion-accent);
+      // -webkit-transform-origin: center center;
+      // -moz-transform-origin: center center;
+      // -ms-transform-origin: center center;
+      // -o-transform-origin: center center;
+      // transform-origin: center center;
+      // transform-box: content-box;
     }
   }
 
   &__input:checked + &__label:after {
-    @include prefix(transform, rotate(180deg), webkit moz o);
+    // @include prefix(transform, rotate(180deg) transformY(50%), webkit moz o);
+    content: '\f106';
+  }
+
+  &[tooltip]:has(.accordion__input:checked) {
+    &:after,
+    &:before {
+      display: none
+    }
   }
 
   &__container {
@@ -75,7 +90,7 @@
 ///   @desc A filled, toggleable accordion with stylistic state. 
 ///         Used to control visibility of content in the phenotype/create page
 .fill-accordion {
-  @include flex-col();
+  @include flex-col(false, true);
   position: relative;
   width: 100%;
   max-width: 100%;
@@ -89,34 +104,33 @@
   }
 
   &__input:checked + &__label {
-    background-color: col(accent-darkish);
     outline: 0;
 
+    &:not(:hover) {
+      background-color: col(accent-grey);
+
+      .fill-accordion__label-icon {
+        background-color: col(accent-grey);
+      }
+    }
+
     .fill-accordion__name-input {
-      --bg-color: var(--color-accent-darkish);
+      --bg-color: var(--color-accent-lightest);
       --dot-color: rgb(0, 0, 0);
     }
 
     .fill-accordion__input-title {
       display: flex;
     }
-  }
 
-  &__input:checked + &__label:after {
-    content: '\f077';
+    .fill-accordion__label-icon:after {
+      content: '\f077';
+    }
   }
 
   &__input:checked ~ &__container {
     opacity: 1;
     height: auto;
-  }
-
-  &__label:hover {
-    background-color: col(accent-darkish);
-
-    .fill-accordion__name-input {
-      --bg-color: var(--color-accent-darkish);
-    }
   }
 
   // Used to define an input field within the accordion, used exclusively for create page
@@ -133,6 +147,18 @@
     text-overflow: initial;
     word-break: break-word;
     max-width: calc(100% - 2.5rem);
+  }
+
+  &__label:hover {
+    background-color: col(accent-washed);
+
+    .fill-accordion__name-input {
+      --bg-color: var(--color-accent-lightest);
+    }
+
+    & .fill-accordion__label-icon {
+      background-color: col(accent-washed);
+    }
   }
 
   &__name-input {
@@ -180,12 +206,13 @@
     flex-flow: row nowrap;
     align-items: center;
     position: relative;
-    padding: 0.5rem 1rem;
+    padding: 0;
     background-color: col(accent-lightest);
     max-width: 100%;
     outline: 1px solid col(accent-washed);
 
-    span {
+    span:not(.fill-accordion__label-icon) {
+      padding: 1rem 1ch;
       position: relative;
       white-space: nowrap;
       overflow: hidden;
@@ -200,21 +227,56 @@
       }
     }
 
-    &:after {
-      @include prefix(transition, background-color 250ms ease-in-out, webkit moz o);
-      content: '\f107';
+    &__delete-icon {
+      background: transparent;
+      border: none;
+    
+      &:after {
+        @include fontawesome-icon();
+        content: '\f1f8';
+        color: col(accent-danger);
+      }
+    }
+
+    & .fill-accordion__label-icon {
       display: block;
-      position: absolute;
-      font-family: var(--icons-name);
-      font-style: var(--icons-style);
-      font-size: var(--icons-size);
-      right: 0;
-      top: 0;
-      width: 2em;
+      position: relative;
+      width: 3em;
       height: 100%;
-      line-height: 2.25em;
-      text-align: center;
+      padding: 1rem 0;
+      margin-left: auto;
       background-color: col(accent-lightest);
+      @include prefix(transition, 'background-color 250ms ease-in-out, border-color 250ms ease-in-out', webkit moz o);
+
+      &:after {
+        content: '\f107';
+        display: block;
+        position: relative;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--icons-size);
+        top: calc(50% - 1em);
+        width: 100%;
+        height: 100%;
+        line-height: 2em;
+        text-align: center;
+        color: transparent;
+        background: inherit;
+        background-clip: text;
+        -webkit-background-clip: text;
+        filter: invert(1) contrast(200%);
+        -webkit-filter: invert(1) contrast(200%);
+      }
+    }
+
+    &--slim {
+      & .fill-accordion__wrap-label {
+        padding: 0.5rem 1ch;
+      }
+
+      & .fill-accordion__label-icon {
+        padding: 0.5rem 0;
+      }
     }
   }
 
@@ -228,5 +290,16 @@
     max-width: 100%;
     overflow: hidden;
     padding: 0rem 0.5rem;
+  }
+
+  &__input:checked + &__label:not(:hover) {
+    & .fill-accordion__wrap-label,
+    & .fill-accordion__wrap-label * {
+      color: col(text-brightest);
+    }
+
+    & .fill-accordion__input-title {
+      color: col(text-brightest);
+    }
   }
 }

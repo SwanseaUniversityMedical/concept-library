@@ -3,17 +3,21 @@
 {% load entity_renderer %}
 {% load entity_publish_renderer %}
 
-<div id="topButtons" class="box-container action-buttons-container">
+{% get_brand_map_rules as brand_mapping %}
+<div id="topButtons" class="action-buttons-container">
   <div class="detail-actions">
-    <label class="dropdown-group">
+    <label class="dropdown-group dropdown-group--detail">
       <div class="dropdown-group__button">
-        Export {{ entity_class }}
+        <span class="as-icon phenotype-creation--icn" data-icon="&#xf56e;" aria-hidden="true"></span>
+        <span>
+          Export {% get_template_entity_name entity_class template %}
+        </span>
       </div>
 
       <input type="checkbox" class="dropdown-group__input" id="dd_1">
     
-      <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export Phenotype">
-        <li aria-label="Export phenotype as JSON" role="button" tabindex="0">
+      <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export {{ brand_mapping.phenotype }}">
+        <li aria-label="Export {{ brand_mapping.phenotype }} as JSON" role="button" tabindex="0">
           <a href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
              target=_blank 
              aria-label="Export as JSON">
@@ -27,22 +31,24 @@
       {% if user_can_edit %}
         {% url 'update_phenotype' entity.id entity.history_id as update_entity_url %}
         <button role="link" 
-                class="primary-btn bold dropdown-btn__label"
-                title="Edit Phenotype"
-                aria-label="Edit Phenotype"
+                class="primary-btn bold dropdown-btn__label phenotype-creation__action-btn"
+                title="Edit {{ brand_mapping.phenotype }}"
+                aria-label="Edit {{ brand_mapping.phenotype }}"
                 onClick="window.location.href='{{ update_entity_url }}';">
-          &nbsp;Edit&nbsp;
+          <span class="as-icon phenotype-creation--icn" data-icon="&#xf304;" aria-hidden="true"></span>
+          <span>Edit</span>
         </button>
       {% endif %}
 
       {% if user_can_edit or user|is_member:"Moderators" or user.is_superuser%}
         {% if is_published and approval_status == APPROVED_STATUS_DICT.APPROVED %}
           <button id="publication-information"
-                  class="primary-btn bold dropdown-btn__label text-success"
+                  class="phenotype-creation__action-btn primary-btn bold dropdown-btn__label text-success"
                   title="This version is already published"
                   aria-disabled="true"
                   disabled>
-            &nbsp;Published&nbsp;
+            <span class="as-icon phenotype-creation--icn" data-icon="&#xf1c4;" aria-hidden="true"></span>
+            <span>Published</span>
           </button>
         {% else %}
           {% render_publish_button %} 

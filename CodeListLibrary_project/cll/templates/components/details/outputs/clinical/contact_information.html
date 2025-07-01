@@ -1,0 +1,27 @@
+{% load static %}
+{% load markdownify %}
+{% load cl_extras %}
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <div class="publication-list-group">
+    <section class="publication-list-group__list show" id="publication-group">
+      <h3 id="pub-header">
+        Contacts
+      </h3>
+      {% if component.value|length %}
+        <ul>
+          {% for p in component.value %}
+            <li aria-label="Email {{ p.name|striptags|escape }} ({{ p.email|striptags|escape }})">
+              <a href="mailto:{{ p.email|striptags|escape }}" aria-label="Send an email">
+                {{ p.name|striptags|escape }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <span class="card-no-data">No known contacts</span>
+      {% endif %}
+    </section>
+  </div>
+</div>

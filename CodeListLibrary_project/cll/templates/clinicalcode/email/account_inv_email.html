@@ -1,0 +1,162 @@
+{% load entity_renderer %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<style type="text/css">
+			body {
+				margin:0;
+				padding: 1em 0 1em 0;
+				font-family: Arial, sans-serif;
+				text-align:left;
+				background-color:#ebebeb;
+			}
+
+			@media (max-width: 600px) {
+				.content {
+					width: 100%;
+					padding: 0;
+				}
+
+				a.card,
+				.footer-icons img,
+				.title-icon {
+					width: 100%;
+					height: auto;
+				}
+			}
+
+			@media only screen and (max-width: 480px) {
+				img.title-icon {
+					height: 40px !important;
+					width: auto !important;
+				}
+				img[src="cid:combined"] {
+					height: 50px !important;
+					width: auto !important;
+				}
+			}
+
+			.mail-content {
+				background-color: #fff;
+				border-radius: 0.625rem;
+				margin: 0 auto;
+				max-width: 38.5rem;
+				padding: 2em;
+			}
+
+			.mail-title {
+				color: #525252;
+			}
+
+			.mail-title__icon {
+				margin-right: 0.625em;
+				vertical-align: middle;
+			}
+
+			.mail-footer p,
+			.mail-footer a {
+				color: #8c8c8c;
+			}
+
+			.mail-footer__icons {
+				display:flex;
+				flex-flow: row wrap;
+				align-items: center;
+				justify-content: flex-start;
+				gap: 1.5rem;
+				margin-top: 1rem;
+			}
+
+			.mail-footer__image {
+				height: 100%;
+				max-width: 100%;
+				max-height: 70px;
+				aspect-ratio: 6 / 1;
+			}
+
+			.status-card {
+				display: block;
+				margin: 1.25em 0;
+				padding: 1.25em;
+				border: 0.0625rem solid #ddd;
+				border-radius: 0.625rem;
+				box-shadow: 0 0.1875rem 1.25rem rgba(0, 0, 0, 0.15);
+				color: black;
+				text-decoration:none;
+			}
+			
+			.status-report {
+				color: #8c8c8c;
+				line-height: 1.70em;
+				margin-bottom: 1.56em;
+			}
+
+			.status-report strong {
+				color: #363636;
+			}
+
+			.status-report--status {
+				display: flex;
+				flex-flow: row wrap;
+				align-items: center;
+			}
+
+			.status-title {
+				color: #4e69c2;
+				margin-bottom: 1.23em;
+			}
+
+			.status-button {
+				border: none;
+				border-radius: 0.3125rem;
+				color: #fff;
+				cursor: pointer;
+				padding: 0.625em;
+				text-decoration:none;
+			}
+
+			.status-button--published {
+				background-color: #13d601;
+			}
+
+			.status-button--pending {
+				background-color: #ffcc00;
+			}
+
+			.status-button--rejected {
+				background-color: #ff0101;
+			}
+		</style>
+	</head>
+	<body>
+		{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+		<div class="mail-content">
+			<h2 class="mail-title">
+				<img class="mail-title__icon" src="cid:mainlogo" alt="{{ base_page_title }}" height="60" valign="middle" />
+				Notification from {{ base_page_title }}
+			</h2>
+
+      <p>You've been invited to join the {{ base_page_title }}.</p>
+      <p>Your username has been set to: {{ username }}</p>
+      <p>
+        Please click 
+        <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'password_reset_confirm' uidb64=uid token=token %}">here</a> 
+        to set up your password.
+      </p>
+
+			<div class="mail-footer">
+				<div class="mail-footer__icons">
+					<img class="mail-footer__image" src="cid:sponsors" alt="Sponsors" />
+				</div>
+				<p>
+					<a href="{{ request.scheme }}://{{ request.get_host }}/contact-us">Contact Us</a>
+					 - Copyright © 2023 - SAIL Databank - Swansea University. All rights reserved.
+				</p>
+			</div>
+		</div>
+	</body>
+</html>
+{% endblock content %}

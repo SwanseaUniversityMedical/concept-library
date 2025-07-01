@@ -1,0 +1,856 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load entity_renderer %}
+
+{% block title %}| Dashboard{% endblock title %}
+
+{% block indexing_robots %}{% endblock indexing_robots %}
+
+{% block htmltag %}class="slim-scrollbar slim-scrollbar--thick"{% endblock htmltag %}
+
+{% block head %}
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/admin/dashboard.scss' %}" type="text/css" />
+  {% endcompress %}
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/tooltipFactory.js' %}"></script>
+  {% endcompress js %}
+{% endblock head %}
+
+{% block navigation_wrapper %}{% endblock navigation_wrapper %}
+
+{% block container %}
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/services/dashboardService/index.js' %}"></script>
+  {% endcompress js %}
+
+  {% get_brand_map_rules as brand_mapping %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+  <main id="app" class="dashboard-layout dashboard-layout--constrained">
+
+    <!-- Navigation Content -->
+    <nav id="app-nav" class="dashboard-nav" data-ref="aside-bar" data-open="true">
+      <header class="dashboard-nav__header">
+        <img
+          class="dashboard-nav__header-logo"
+          loading="lazy"
+          src="{% static logo_path %}" />
+        <h1>
+          Dashboard
+        </h1>
+      </header>
+      <section class="dashboard-nav__targets">
+        <h2 role="heading" aria-level="5">
+          Navigation
+        </h2>
+        <section class="dashboard-nav__targets-list">
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="See Overview"
+            aria-label="See Overview"
+            tabindex="0"
+            role="button"
+            data-ref="overview"
+            data-active="true"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf03a;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="See Overview"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf03a;" aria-hidden="true"></span>
+              Overview
+            </span>
+          </a>
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="Manage Users"
+            aria-label="Manage Users"
+            tabindex="0"
+            role="button"
+            data-ref="users"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf007;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="Manage Users"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf007;" aria-hidden="true"></span>
+              Users
+            </span>
+          </a>
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="Manage Organisations"
+            aria-label="Manage Organisations"
+            tabindex="0"
+            role="button"
+            data-ref="organisations"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf500;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="Manage Organisations"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf500;" aria-hidden="true"></span>
+              Organisations
+            </span>
+          </a>
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="Manage Inventory"
+            aria-label="Manage Inventory"
+            tabindex="0"
+            role="button"
+            data-ref="inventory"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf0ce;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="Manage Inventory"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf0ce;" aria-hidden="true"></span>
+              Inventory
+            </span>
+          </a>
+          <a
+            class="dashboard-nav__targets-list-item"
+            title="Manage Brand Configuration"
+            aria-label="Manage Brand Configuration"
+            tabindex="0"
+            role="button"
+            data-ref="brand-config"
+            data-controlledby="navigation"
+          >
+            <span
+              class="as-icon"
+              data-icon="&#xf013;"
+              data-role="icon"
+              data-plugins="tooltip"
+              data-tipcontent="Manage Brand Configuration"
+              data-tipdirection="right"
+              data-tiptarget="parent"
+            ></span>
+            <span data-role="label">
+              <span class="as-icon" data-icon="&#xf013;" aria-hidden="true"></span>
+              Brand Config
+            </span>
+          </a>
+        </section>
+      </section>
+    </nav>
+
+    <!-- Main View -->
+    <section id="app-main" class="dashboard-view slim-scrollbar">
+
+      <!-- Topbar Navigation -->
+      <header id="app-header" class="dashboard-view__header dashboard-view__header--split-bar">
+        <div id="app-bar" class="dashboard-nav-toggle" data-controlledby="nav-toggle" data-toggle="aside-bar">
+          <img
+            class="dashboard-nav-toggle__logo"
+            loading="lazy"
+            src="{% static logo_path %}"
+          />
+          <a
+            class="dashboard-nav-toggle__btn"
+            title="Toggle Navigation"
+            aria-label="Toggle Navigation Menu"
+            aria-live="off"
+            tabindex="0"
+            role="button"
+            data-role="toggle"
+          >
+          </a>
+        </div>
+        <div class="popover-menu" data-controlledby="popover-menu">
+          <a
+            class="popover-menu__controls"
+            title="Toggle Account Menu"
+            aria-label="Toggle Account Menu"
+            aria-live="off"
+            tabindex="0"
+            role="button"
+            data-role="toggle"
+          >
+            <span class="popover-menu__controls-user">
+              {{ request.user.username }}
+            </span>
+            <span class="as-icon" data-icon="&#xf007;" aria-hidden="true"></span>
+          </a>
+          <div class="popover-menu__popover" aria-live="off" aria-hidden="true" data-role="menu">
+            <div class="popover-menu__popover-content">
+              {% url 'concept_library_home' as home_url %}
+              <button
+                title="Go to Home"
+                aria-label="Go to Home"
+                data-role="button"
+                data-link="{{ home_url }}"
+              >
+                <span class="as-icon" data-icon="&#xf015;" aria-hidden="true"></span>
+                Home
+              </button>
+              <form method="post" action="{% url 'logout' %}?next={% url 'search_entities' %}">
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  title="Sign out"
+                  aria-label="Sign out"
+                  data-role="button"
+                >
+                  <span class="as-icon" data-icon="&#xf2f5;" aria-hidden="true"></span>
+                  Sign out
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Renderable Content -->
+      <section id="app-content" class="dashboard-view__content slim-scrollbar">
+
+      </section>
+
+    </section>
+  </main>
+
+  {% to_json_script brand_mapping data-for="dashboard" data-view="brandMapping" desc-type="text/json" %}
+
+  <template data-name="model" data-for="dashboard">
+    <article class="dashboard-view__content-group ${articleCls}">
+      <header class="dashboard-view__content-header ${headerCls}">
+        <h2 id="${id}" class="dashboard-view__content-title" role="heading" aria-level="${level}">
+          ${title}
+        </h2>
+        <button
+          class="outline-btn outline-btn--icon outline-btn--icon-add"
+          title="Add New ${title}"
+          aria-label="Add New ${title}"
+          role="button"
+          tabindex="0"
+          data-ref="${id}"
+          data-role="create-btn"
+        >
+          Add New
+        </button>
+      </header>
+      <section class="${sectionCls}">
+        ${content}
+      </section>
+    </article>
+  </template>
+
+  <template data-name="group" data-for="dashboard">
+    <article class="dashboard-view__content-group ${articleCls}">
+      <h2 id="${id}" class="dashboard-view__content-heading" role="heading" aria-level="${level}">
+       ${title}
+      </h2>
+      <section class="${sectionCls}">
+        ${content}
+      </section>
+    </article>
+  </template>
+
+  <template data-name="display_card" data-for="dashboard">
+    <article class="card">
+      <header class="card__header">
+        <h3>${name}</h3>
+        <span class="as-icon ${iconCls}" data-icon="${icon}" aria-hidden="true"></span>
+      </header>
+      <p class="card__desc">
+        ${desc}
+      </p>
+      ${content}
+      <footer class="card__footer">
+        ${footer}
+      </footer>
+    </article>
+  </template>
+
+  <template data-name="action_card" data-for="dashboard">
+    <article class="card">
+      <header class="card__header">
+        <h3>${name}</h3>
+        <span class="as-icon ${iconCls}" data-icon="${icon}" aria-hidden="true"></span>
+      </header>
+      <p class="card__desc">
+        ${desc}
+      </p>
+      <footer class="card__footer card__footer--action">
+        <button
+          class="outline-btn outline-btn--icon outline-btn--icon-edit"
+          title="Manage ${name}"
+          aria-label="Manage ${name}"
+          data-ref="${ref}"
+          data-role="action-btn"
+        >
+          ${action}
+        </button>
+      </footer>
+    </article>
+  </template>
+
+  <template data-name="icon" data-for="dashboard">
+    <span class="as-icon ${cls}" data-icon="${icon}" aria-hidden="true"></span>
+  </template>
+
+  <template data-name="time" data-for="dashboard">
+    <time datetime="${timestamp}">
+      <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
+      ${datefmt}
+    </time>
+  </template>
+
+  <template data-name="table" data-for="dashboard">
+    <fieldset class="dash-search search-container" data-controller="filter" data-class="searchbar" data-field="search">
+      <input
+        id="searchbar"
+        class="search-container__field washed-outline"
+        type="text"
+        value="${query}"
+        placeholder="Search..."
+        data-class="searchbar" data-field="search"
+        aria-label="Search {{ brand_mapping.phenotype }}s..."
+      />
+      <button
+        id="searchbar-icon-btn"
+        class="search-container__icon"
+        tabindex="0"
+        aria-label="Search {{ brand_mapping.phenotype }}s">
+      </button>
+    </fieldset>
+    <article class="dash-list">
+      <section class="dash-list__container slim-scrollbar">
+        <table class="dash-list__table">
+          <thead>
+
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+      </section>
+      <footer class="dash-list__footer">
+
+      </footer>
+    </article>
+  </template>
+
+  <template data-name="empty" data-view="pages" data-for="dashboard">
+    <li class="is-active">
+      <a class="no-select" data-value="ignore" target="_blank" disabled>
+        1
+      </a>
+    </li>
+  </template>
+
+  <template data-name="divider" data-view="pages" data-for="dashboard">
+    <li class="divider">
+      <a class="no-select" data-value="ignore" target="_blank" disabled>
+      </a>
+    </li>
+  </template>
+
+  <template data-name="button" data-view="pages" data-for="dashboard">
+    <li class="${cls}">
+      <a
+        class="no-select"
+        aria-label="Go Page ${page}"
+        target="_blank"
+        tabindex="0"
+        data-value="${page}"
+        data-field="page"
+        role="button"
+      >${page}</a>
+    </li>
+  </template>
+
+  <template data-name="controls" data-view="pages" data-for="dashboard">
+    <p class="dash-list__footer-desc">
+      Showing ${startIdx} to ${endIdx} of ${rowCount} entries
+    </p>
+    <section
+      class="pagination-container"
+      data-field="page"
+      data-value="${page}"
+      data-class="pagination"
+      data-controller="filter"
+    >
+      <div class="pagination-container__details">
+        <p class="pagination-container__details-number">
+          Page 
+          <span id="page-number">
+            ${page}
+          </span>
+          of 
+          <span id="page-total">
+            ${totalPages}
+          </span>
+        </p>
+      </div>
+      <ul class="pagination-container__previous">
+        <li class="${ !hasPrevious ? 'disabled' : ''}">
+          <a
+            class="no-select"
+            role="button"
+            target="_blank"
+            tabindex="0"
+            aria-label="Go Previous Page"
+            data-value="previous"
+            data-field="page"
+          >
+            Previous
+          </a>
+        </li>
+      </ul>
+      <ul class="pagination-container__pages" id="page-items">
+        ${content}
+      </ul>
+      <ul class="pagination-container__next">
+        <li class="${ !hasNext ? 'disabled' : ''}">
+          <a
+            class="no-select"
+            role="button"
+            target="_blank"
+            tabindex="0"
+            aria-label="Go Next Page"
+            data-value="next"
+            data-field="page"
+          >
+            Next
+          </a>
+        </li>
+      </ul>
+    </section>
+  </template>
+
+  <template data-name="entity_form" data-view="form" data-for="dashboard">
+    <form method="${method}" action="${action}" class="dashboard-entity-form">
+    </form>
+  </template>
+
+  <template data-name="button" data-view="form" data-for="dashboard">
+    <button
+      class="outline-btn outline-btn--icon outline-btn--icon-${icon} ${style}"
+      title="${title}"
+      aria-label="${title}"
+      role="button"
+      tabindex="0"
+      data-ref="${id}"
+      data-role="${role}"
+    >
+      ${title}
+    </button>
+  </template>
+
+  <template data-name="TextField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <input
+        id="field-${key}"
+        class="text-input ${cls}"
+        placeholder="${placeholder}"
+        type="${inputtype}"
+        value="${value}"
+        ${minLength}
+        ${maxLength}
+        ${required}
+        aria-label="${title}"
+        data-class="inputbox"
+        data-type="string"
+        data-field="${key}"
+        autocomplete="${autocomplete}"
+      />
+    </div>
+  </template>
+
+  <template data-name="TextAreaField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <textarea
+        id="field-${key}"
+        class="${cls}"
+        value="${value}"
+        placeholder="${placeholder}"
+        ${minLength}
+        ${maxLength}
+        ${required}
+        autocorrect="${spellcheck ? 'true' : 'false'}"
+        autocomplete="on"
+        spellcheck="default"
+        wrap="soft"
+        data-class="${useMarkdown ? 'md-editor' : 'textarea'}"
+        data-type="string"
+        data-field="${key}"
+      ></textarea>
+    </div>
+  </template>
+
+  <template data-name="NumericField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <input
+        id="field-${key}"
+        class="text-input ${cls}"
+        placeholder="${placeholder}"
+        type="number"
+        inputmode="${inputmode}"
+        value="${value}"
+        ${minvalue}
+        ${maxvalue}
+        ${required}
+        aria-label="${title}"
+        data-class="inputbox"
+        data-type="number"
+        data-field="${key}"
+        data-rounding="${rounding}"
+        data-decimals="${decimalPlaces}"
+        data-maxdigits="${maxDigits}"
+      />
+    </div>
+  </template>
+
+  <template data-name="BooleanField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <div class="checkbox-item-container">
+        <input
+          id="field-${key}"
+          class="checkbox-item ${cls}"
+          type="checkbox"
+          aria-label="${title}" 
+          data-class="checkbox"
+          data-type="boolean"
+          data-field="${key}"
+          ${required}
+        />
+        <label class="constrained-filter-item" for="field-${key}">
+          ${title}
+        </label>
+      </div>
+    </div>
+  </template>
+
+  <template data-name="ChoiceField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <select
+        id="field-${key}"
+        class="selection-input ${cls}"
+        aria-label="${title}"
+        data-class="dropdown"
+        data-type="choice"
+        data-field="${key}"
+        ${required}
+      >
+      </select>
+    </div>
+  </template>
+
+  <template data-name="DateTimeLikeField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <fieldset class="date-range-field date-range-field--wrapped date-range-field--padding0_5 ${cls}">
+        <input
+          id="field-${key}"
+          type="${datatype}"
+          value="${value}"
+          aria-label="${title}"
+          data-class="datetime"
+          data-type="${datatype}"
+          data-field="${key}"
+          ${required}
+        />
+      </fieldset>
+    </div>
+  </template>
+
+  <template data-name="ForeignKeyField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <select
+        id="field-${key}"
+        class="selection-input ${cls}"
+        aria-label="${title}"
+        data-class="dropdown"
+        data-type="foreign-key"
+        data-field="${key}"
+        ${required}
+      >
+      </select>
+    </div>
+  </template>
+
+  <template data-name="MultiForeignKeyField" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <input
+        id="field-${key}"
+        class="text-input ${cls}"
+        type="text"
+        placeholder=""
+        aria-label="${title}" 
+        data-class="tagify"
+        data-type="multi-foreign-key"
+        data-field="${key}"
+      />
+    </div>
+  </template>
+
+  <template data-name="autocomplete" data-view="form" data-for="dashboard">
+    <div
+        id="${id}"
+        class="autocomplete-container"
+        role="combobox"
+        data-role="autocomplete-container"
+        aria-owns="autocomplete-results"
+        aria-expanded="false"
+        aria-haspopup="listbox"
+    >
+      <div class="autocomplete-controls" data-role="autocomplete-controls">
+        <input
+            class="autocomplete-input"
+            value="${searchValue}"
+            placeholder="${searchPlaceholder}"
+            data-role="autocomplete-input"
+            aria-label="${searchLabel}"
+            aria-controls="autocomplete-results"
+            aria-autocomplete="both"
+        />
+        <ul
+            class="autocomplete-results"
+            role="listbox"
+            data-role="autocomplete-results"
+            aria-label="${searchLabel} results">
+        </ul>
+      </div>
+      <button
+          class="outline-btn outline-btn--icon outline-btn--icon-${btnIcon}"
+          type="button"
+          title="${btnTitle}"
+          aria-label="${btnTitle}"
+          role="button"
+          tabindex="0"
+          data-ref="${btnId}"
+          data-role="autocomplete-button"
+      >
+        ${btnContent}
+      </button>
+    </div>
+  </template>
+
+  <template data-name="selector" data-view="form" data-for="dashboard">
+    <div class="detailed-input-group fill" data-fieldset="${key}">
+      <h3 class="detailed-input-group__title">
+        ${title}
+        <span class="detailed-input-group__mandatory ${required.length ? '' : 'hidden'}">*</span>
+      </h3>
+      <p class="detailed-input-group__description" data-ref="help">
+        ${help}
+      </p>
+      <section class="selector-component" data-owner="${owner}">
+        <header class="selector-component__header" data-identifier="header">
+
+        </header>
+        <div class="selector-component__none-available" data-visible="true" data-identifier="empty">
+          <p>${emptyMessage}</p>
+        </div>
+        <div class="selector-component__content slim-scrollbar" data-visible="false" data-identifier="content">
+          <table class="selector-component__table" data-identifier="table">
+
+          </table>
+        </div>
+      </section>
+    </div>
+  </template>
+
+  <template data-name="table" data-view="OrgMember" data-for="dashboard">
+    <thead>
+      <tr>
+        <td>User</td>
+        <td>Role</td>
+        <td>Actions</td>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </template>
+
+  <template data-name="row" data-view="OrgMember" data-for="dashboard">
+    <tr data-ref="${userPk}">
+      <td>${username}</td>
+      <td>
+        <select
+            class="selection-input"
+            aria-label="Select User Role"
+            data-ref="${userPk}"
+            data-role="user-role-select"
+            data-column="role"
+        >
+        </select>
+      </td>
+      <td>
+        <button
+            class="outline-btn outline-btn--icon outline-btn--icon-user-delete"
+            title="Remove User"
+            aria-label="Remove User"
+            role="button"
+            tabindex="0"
+            data-ref="${userPk}"
+            data-role="user-delete-btn"
+            data-column="action"
+        >
+          Remove
+        </button>
+      </td>
+    </tr>
+  </template>
+
+  <template data-name="table" data-view="OrgAuthority" data-for="dashboard">
+    <thead>
+      <tr>
+        <td>Brand</td>
+        <td>Can Post</td>
+        <td>Can Moderate</td>
+        <td>Actions</td>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </template>
+
+  <template data-name="row" data-view="OrgAuthority" data-for="dashboard">
+    <tr>
+      <td>${brand}</td>
+      <td>
+        <div class="checkbox-item-container">
+          <input
+            id="${brand}-can-post"
+            class="checkbox-item"
+            type="checkbox"
+            title="Can Post"
+            aria-label="Can Post"
+            data-ref="${brandPk}"
+            data-role="brand-post-checkbox"
+            data-column="can_post"
+          />
+        </div>
+      </td>
+      <td>
+        <div class="checkbox-item-container">
+          <input
+            id="${brand}-can-moderate"
+            class="checkbox-item"
+            type="checkbox"
+            title="Can Moderate"
+            aria-label="Can Moderate"
+            data-ref="${brandPk}"
+            data-role="brand-moderate-checkbox"
+            data-column="can_moderate"
+          />
+        </div>
+      </td>
+      <td>
+        <button
+            class="outline-btn outline-btn--icon outline-btn--icon-delete"
+            title="Remove Brand"
+            aria-label="Remove Brand"
+            role="button"
+            tabindex="0"
+            data-ref="${brandPk}"
+            data-role="brand-delete-btn"
+            data-column="action"
+        >
+          Remove
+        </button>
+      </td>
+    </tr>
+  </template>
+
+{% endblock container %}
+
+{% block footer_wrapper %}
+  {% with hide_footer=True %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock footer_wrapper %}
+
+{% block cookie_wrapper %}{% endblock cookie_wrapper %}

@@ -104,7 +104,8 @@ def get_env_value(env_variable, cast=None, default=Symbol('None')):
 ''' Application base '''
 
 APP_TITLE = 'Concept Library'
-APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
+APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical codelists in health research.'
+APP_CITATION = 'Users should cite the {app_title} in all publications, presentations and reports as follows: “<em>{brand_name} {app_title}, website: <a href="{brand_website}" target=_blank>{brand_website}</a>.</em>”'
 APP_LOGO_PATH = 'img/'
 APP_EMBED_ICON = '{logo_path}embed_img.png'
 INDEX_PATH = 'clinicalcode/index.html'
@@ -138,7 +139,10 @@ if path_prj not in sys.path:
 
 ''' Application variables '''
 
-# separate settings for different environments
+# Test-related config
+REMOTE_TEST = get_env_value('REMOTE_TEST', cast='bool', default=False)
+
+# Env config
 IS_DEMO = get_env_value('IS_DEMO', cast='bool')
 
 CLINICALCODE_SESSION_ID = 'concept'
@@ -162,7 +166,7 @@ DEBUG = get_env_value('DEBUG', cast='bool')
 # Allowed application hots
 ALLOWED_HOSTS = [i.strip() for i in get_env_value('ALLOWED_HOSTS').split(',')]
 
-ROOT_URLCONF = 'cll.urls'
+ROOT_URLCONF = 'cll.urls_brand'
 DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 # Setup support for proxy headers
@@ -197,9 +201,23 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'cll.settings'
 
 ## Brand related settings
 IS_HDRUK_EXT = '0'
+BRAND_OBJECT = {}
 CURRENT_BRAND = ''
 CURRENT_BRAND_WITH_SLASH = ''
-BRAND_OBJECT = {}
+
+## Brand variant URL resolver overrides
+BRAND_VAR_REFERENCE = {
+    'default': {
+        'urls': {
+            'phenotypes': 'phenotypes',
+        },
+    },
+    'HDRN': {
+        'urls': {
+            'phenotypes': 'concepts',
+        },
+    }
+}
 
 ## Graph settings
 GRAPH_MODELS = {
@@ -271,24 +289,27 @@ if SHOWADMIN:
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
+    # Base
     'django.contrib.postgres',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Apps
     'clinicalcode',
     'cll',
+    # Extensions
     'simple_history',
-    'rest_framework',
-    # 'mod_wsgi.server',
     'markdownify.apps.MarkdownifyConfig',
     'cookielaw',
+    # API
+    'drf_yasg',
+    'rest_framework',
+    # Site
     'django_celery_results',
     'django_celery_beat',
-    # 'rest_framework_swagger',
-    'drf_yasg',
-    'django.contrib.sitemaps',
+    'django.contrib.sitemaps', # 'mod_wsgi.server',
     # SCSS
     'sass_processor',
     # Compressor
@@ -297,14 +318,13 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django_minify_html',
 ]
 
-if not CLL_READ_ONLY and not IS_GATEWAY_PC:
+if not CLL_READ_ONLY and not IS_GATEWAY_PC and not REMOTE_TEST:
     INSTALLED_APPS += [
         # Engagelens-related
         'easyaudit'
     ]
 
 # ==============================================================================#
-
 
 ''' Middleware '''
 
@@ -327,9 +347,11 @@ MIDDLEWARE = [
     'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
     'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
+    # Handle exceptions
+    'clinicalcode.middleware.exceptions.ExceptionMiddleware',
 ]
 
-if not CLL_READ_ONLY and not IS_GATEWAY_PC:
+if not CLL_READ_ONLY and not IS_GATEWAY_PC and not REMOTE_TEST:
     MIDDLEWARE += [
         # Engagelens-related
         'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
@@ -341,7 +363,7 @@ if not CLL_READ_ONLY and not IS_GATEWAY_PC:
 
 # Keep ModelBackend around for per-user permissions and a local superuser.
 # Don't check AD on development PCs due to network connection
-if IS_DEVELOPMENT_PC or (not ENABLE_LDAP_AUTH):
+if IS_DEVELOPMENT_PC or not ENABLE_LDAP_AUTH:
     AUTHENTICATION_BACKENDS = [
         # 'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend',
@@ -425,7 +447,6 @@ TEMPLATES = [
                 'svg': 'clinicalcode.templatetags.svg',
                 'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
                 'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
-                'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
             }
         },
     },
@@ -521,9 +542,13 @@ if IS_LINUX or IS_DEVELOPMENT_PC:
             },
         },
         'loggers': {
+            '': {
+                'level': 'INFO',
+                'handlers': ['console'],
+            },
             'django': {
                 'handlers': ['console'],
-                'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+                'level': 'INFO',
             },
         },
     }
@@ -567,12 +592,46 @@ else:
 
 # ==============================================================================#
 
+''' Easyaudit settings '''
+
+# Ignores `Request` event signals in favour of custom implementation
+#
+#   Note:
+#     - See custom override setting(s) below, prefixed `OVERIDE_EASY_AUDIT_*``
+#
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+# Overrides `Request` event signal URL registration
+OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
+    # The following URL patterns will be ignored for all branded sites
+    'all_brands': [
+        # Ignore non-consumer usage
+        r'^/admin/',
+        r'^/adminTemp/',
+        r'^/dashboard/',
+
+        # Ignore healthchecks
+        r'^/api/v1/health'
+
+        # Ignore bots & crawlers 
+        r'^/sitemap.xml',
+        r'^/robots.txt',
+
+        # Ignore static file requests
+        r'^/media/',
+        r'^/static/',
+        r'^/favicon.ico',
+    ],
+}
+
+# ==============================================================================#
+
 ''' Installed application settings '''
 
 # General settings
 
 ## Django auth settings -> Redirect to home URL after login (Default redirects to /accounts/profile/)
-LOGIN_REDIRECT_URL = reverse_lazy('search_phenotypes')
+LOGIN_REDIRECT_URL = reverse_lazy('search_entities')
 LOGIN_URL = reverse_lazy('login')
 LOGOUT_URL = reverse_lazy('logout')
 
@@ -643,6 +702,9 @@ CELERY_RESULT_BACKEND = 'django-db'
 
 ## Celery beat settings
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+## Task queue
+ENABLE_DEMO_TASK_QUEUE = get_env_value('ENABLE_DEMO_TASK_QUEUE', cast='bool', default=False)
 
 ## Swagger settings
 ##     SWAGGER_SETTINGS = { 'JSON_EDITOR': True, }

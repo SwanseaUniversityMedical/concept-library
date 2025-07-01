@@ -1,3 +1,7 @@
+/**
+ * @module utils
+ */
+
 /* CONSTANTS */
 const
   /**
@@ -7,7 +11,15 @@ const
   CLU_DOMAINS = {
     ROOT: 'https://conceptlibrary.saildatabank.com',
     HDRUK: 'https://phenotypes.healthdatagateway.org',
-  }
+  },
+  /**
+   * CLU_HOST
+   * @desc Domain host regex
+   */
+  CLU_HOST = {
+    ROOT: /(conceptlibrary\.saildatabank)/i,
+    HDRUK: /(phenotypes\.healthdatagateway)|(web\-phenotypes\-hdr)/i,
+  },
   /**
    * CLU_TRANSITION_METHODS
    * @desc defines the transition methods associated
@@ -21,6 +33,11 @@ const
     'MozTransition': 'mozTransitionEnd',
   },
   /**
+   * CLU_EMAIL_PATTERN
+   * @desc Regex pattern to match emails
+   */
+  CLU_EMAIL_PATTERN = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/,
+  /**
    * CLU_DOI_PATTERN
    * @desc Regex pattern to match DOI
    */
@@ -30,8 +47,7 @@ const
    * @desc Regex pattern to match `[object (.*)]` classname
    * 
    */
-  CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/;
-
+  CLU_OBJ_PATTERN = /^\[object\s(.*)\]$/,
   /**
    * CLU_TRIAL_LINK_PATTERN
    * @desc Regex pattern to match urls
@@ -39,17 +55,220 @@ const
    */
   CLU_TRIAL_LINK_PATTERN = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}(:\d+)?(\/\S*)?$/gm,
   /**
-   * ES_REGEX_URL
+   * CLU_URL_PATTERN
    * @desc Regex pattern matching URLs
    * @type {RegExp}
    */
   CLU_URL_PATTERN = new RegExp(
     /((https?|ftps?):\/\/[^"<\s]+)(?![^<>]*>|[^"]*?<\/a)/,
     'gm'
+  ),
+  /**
+   * CLU_CSS_IMPORTANT
+   * @desc important suffix for DOM styling
+   * @type {string}
+   */
+  CLU_CSS_IMPORTANT = 'important!',
+  /**
+   * CLU_ORIGIN_TYPE
+   * @desc URL origin descriptor enum
+   * @readonly
+   * @enum {string}
+   */
+  CLU_ORIGIN_TYPE = {
+    Unknown   : 'Unknown',
+    Malformed : 'Malformed',
+    Empty     : 'Empty',
+    Internal  : 'Internal',
+    External  : 'External',
+  };
+
+
+/* UTILITIES */
+
+/**
+ * clampNumber
+ * @desc clamps a number within the given range
+ *
+ * @param {number} value some value to clamp
+ * @param {number} min   lower lim of the range
+ * @param {number} max   upper lim of the range
+ *
+ * @return {number} the resultant value clamped within the specified range
+ */
+const clampNumber = (value, min, max) => {
+  return Math.min(Math.max(value, min), max);
+}
+/**
+ * @desc tests whether `a` is approximately `b` within some threshold described by `eps`
+ *
+ * @param {number} a   some number
+ * @param {number} b   some number
+ * @param {number} eps epsilon - defaults to 1e-6 (see `Const.EPS`)
+ *
+ * @returns {number} a boolean reflecting its approximate equality
+ */
+const approximately = (a, b, eps = 1e-4) => {
+  return a === b || Math.abs(a - b) <= eps;
+};
+
+/**
+ * fetchWithCtrl
+ * @desc an async fetch with extended functionality 
+ * 
+ * @example
+ * const params = new URLSearchParams({ someQueryParams: '...' });
+ * fetchwithCtrl(
+ *  '/some/target/url/' + params,
+ *  { method: 'GET', headers: { 'Cache-Control': 'max-age=28800' } },
+ *  {
+ *    timeout: 10,
+ *    retries: 3,
+ *    backoff: 50,
+ *    onRetry: (retryCount, remainingTries) => {
+ *      console.log('Retrying request, on attempt:', retryCount);
+ *    },
+ *    onError: (err, retryCount) => {
+ *      if (!!err && err instanceof Error && err.message == '...') {
+ *        // Ignore the error and continue retrying (if retries are available)
+ *        return true;
+ *      }
+ * 
+ *      // Raise the error
+ *      return false;
+ *    },
+ *    beforeAccept: (response, retryCount) => {
+ *      if (!response.ok) {
+ *        // Ignore this response & continue retrying (if retries are available)
+ *        return false;
+ *      }
+ * 
+ *      // Accept this result
+ *      return true;
+ *    },
+ *  }
+ * )
+ *  .then(res => res.json())
+ *  .then(console.log)
+ *  .catch(console.error);
+ * 
+ * @param {string}      url                   the URL to fetch
+ * @param {RequestInit} opts                  the fetch request init options
+ * @param {object}      param2                optionally specify parameters used to control the fetch request behaviour
+ * @param {number}      [param2.retries=1]    optionally specify the number of times to retry the request; defaults to `1`
+ * @param {number}      [param2.backoff=50]   optionally specify whether to the backoff factor - given a `null` value the backoff will be ignored; defaults to `50`
+ * @param {number}      [param2.timeout]      optionally specify the maximum timeout period in seconds
+ * @param {Function}    [param2.onRetry]      optionally specify a callback to perform an action on each retry attempt
+ * @param {Function}    [param2.onError]      optionally specify a predicate to examine errors between retries where returning a truthy value will continue the request retries
+ * @param {Function}    [param2.beforeAccept] optionally specify a predicate to examine the result of the retry before it is accepted and resolved, returning a truthy value will accept the response
+ * 
+ * @returns {Promise<Response>} a promise containing the request response
+ */
+const fetchWithCtrl = async (
+  url,
+  opts,
+  {
+    retries      = 1,
+    backoff      = 50,
+    timeout      = undefined,
+    onRetry      = undefined,
+    onError      = undefined,
+    beforeAccept = undefined,
+  } = {}
+) => {
+  let ref = null;
+  let response = null;
+  let controller = null;
+  let remainingTries = null;
+
+  const hasTimeout = typeof timeout === 'number' && timeout > 0;
+  const hasBackoff = typeof backoff === 'number' && backoff > 0;
+  retries = (typeof retries === 'number' && retries > 0) ? retries : 1;
+
+  onRetry = typeof onRetry === 'function' ? onRetry : null;
+  onError = typeof onError === 'function' ? onError : null;
+  beforeAccept = typeof beforeAccept === 'function' ? beforeAccept : null;
+
+  const clearAbortTimer = () => {
+    if (ref !== null) {
+      clearTimeout(ref);
+    }
+
+    return ref = null;
+  };
+
+  for (let i = 0; i < retries; ++i) {
+    remainingTries = retries - i - 1;
+
+    if (onRetry) {
+      Promise
+        .try(onRetry, i, remainingTries)
+        .catch(console.error);
+    }
+
+    try {
+      if (hasTimeout) {
+        controller = new AbortController();
+        ref = setTimeout(_ => { controller.abort() }, timeout*1000);
+      }
+
+      response = await fetch(
+        url,
+        hasTimeout
+          ? { ...opts, signal: controller.signal }
+          : opts
+      );
+      ref = clearAbortTimer();
+
+      if (beforeAccept) {
+        const pred = await Promise.resolve(beforeAccept(response, i, remainingTries));
+        if (pred || remainingTries < 1) {
+          return response;
+        }
+      } else {
+        return response;
+      }
+    } catch (err) {
+      ref = clearAbortTimer();
+
+      if (!(err instanceof DOMException)) {
+        if (onError) {
+          const pred = await Promise.resolve(onError(err, i, remainingTries));
+          if (remainingTries < 1) {
+            if (!pred) {
+              throw err;
+            }
+
+            return err;
+          }
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    if (hasBackoff && remainingTries > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 2**retries*backoff));
+    }
+  }
+
+  if (hasTimeout && retries > 1) {
+    throw new Error(
+      `Failed request after ${retries}, none finished within the timeout period of ${timeout}s`,
+      { cause: 'timeout' },
+    );
+  } else if (hasTimeout) {
+    throw new Error(
+      `Failed request as it did not resolve within ${timeout}s`,
+      { cause: 'timeout' },
+    );
+  }
+
+  throw new Error(
+    `Failed to resolve request with no known errors`,
+    { cause: 'unknown' },
   );
-
-
-/* METHODS */
+}
 
 /**
  * getObjectClassName
@@ -65,7 +284,7 @@ const getObjectClassName = (val) => {
   }
 
   try {
-    if (val.constructor == Object && !(typeof val === 'function')) {
+    if (val.constructor == Object && typeof val !== 'function') {
       return 'Object';
     }
   }
@@ -89,6 +308,18 @@ const isObjectType = (val) => {
 
   let className = getObjectClassName(val);
   return className === 'Object' || className === 'Map';
+}
+
+/**
+ * isRecordType
+ * @desc Record (Object) type guard
+ * 
+ * @param {*} obj some object to evaluate
+ * 
+ * @returns {boolean} flagging whether this object is Record-like
+ */
+const isRecordType = (obj) => {
+  return typeof obj === 'object' && obj instanceof Object && obj.constructor === Object;
 }
 
 /**
@@ -126,13 +357,13 @@ const isCloneableType = (val) => {
     case 'Map': {
       return [...val.entries()]
         .every(element => isCloneableType(element[0]) && isCloneableType(element[1]));
-    };
+    }
 
     case 'Array':
     case 'Object': {
       return Object.keys(val)
         .every(key => isCloneableType(val[key]))
-    };
+    }
   }
 
   return false;
@@ -141,16 +372,50 @@ const isCloneableType = (val) => {
 /**
  * cloneObject
  * @desc Simplistic clone of an object/array
+ * 
  * @param {object|array} obj the object to clone
+ * 
  * @returns {array|object} the cloned object
  */
 const cloneObject = (obj) => {
-  let result = { };
-  Object.keys(obj).forEach(key => {
-    result[key] = cloneObject(obj[key]);
-  });
+  const className = getObjectClassName(obj);
+  switch (className) {
+    case 'Set': {
+      if ([...obj].every(isCloneableType)) {
+        return structuredClone(obj);
+      }
 
-  return result;
+    } break;
+
+    case 'Map': {
+      const cloneable =- [...obj.entries()].every(x => isCloneableType(x[0]) && isCloneableType(x[1]));
+      if (cloneable) {
+        return structuredClone(obj);
+      }
+
+    } break;
+
+    case 'Array': {
+      const result = [];
+      Object.keys(obj).forEach(key => {
+        result[key] = cloneObject(obj[key]);
+      });
+
+      return result;
+    }
+
+    case 'Object': {
+      const result = {};
+      Object.keys(obj).forEach(key => {
+        result[key] = cloneObject(obj[key]);
+      });
+
+      return result;
+    }
+
+    default:
+      return obj;
+  }
 }
 
 /**
@@ -161,7 +426,7 @@ const cloneObject = (obj) => {
   */
 const deepCopy = (obj) => {
   let className = getObjectClassName(obj);
-  if (isCloneableType(obj) && typeof structuredClone === 'function') {
+  if (isCloneableType(obj) && window.structuredClone && typeof structuredClone === 'function') {
     let result;
     try {
       result = structuredClone(obj);
@@ -197,29 +462,39 @@ const deepCopy = (obj) => {
   * @param {object} a An object to clone that takes precedence
   * @param {object} b The object to clone and merge into the first object
   * @param {boolean} copy Whether to copy the object(s)
+  * @param {boolean} deepMerge Whether to deep merge objects
   * @returns {object} The merged object
   */
-const mergeObjects = (a, b, copy = false) => {
+const mergeObjects = (a, b, copy = false, deepMerge = false) => {
   if (copy) {
     a = deepCopy(a);
   }
 
   Object.keys(b)
     .forEach(key => {
-      if (key in a) {
-        return;
-      }
-
-      let value = b[key];
-      if (copy) {
-        if (!isCloneableType(value)) {
-          a[key] = value;
+      if (!deepMerge) {
+        if (key in a) {
           return;
         }
   
-        a[key] = deepCopy(value);
+        const value = b[key];
+        if (copy) {
+          a[key] = deepCopy(value);
+        } else {
+          a[key] = value;
+        }
       } else {
-        a[key] = value;
+        const v0 = a?.[key];
+        const v1 = b?.[key];
+        if (isObjectType(v0) && isObjectType(v1)) {
+          a[key] = mergeObjects(v0, v1, copy, deepMerge);
+        } else if (typeof v0 === 'undefined') {
+          if (copy) {
+            a[key] = deepCopy(v1);
+          } else {
+            a[key] = v1;
+          }
+        }
       }
     });
 
@@ -259,21 +534,437 @@ const getTransitionMethod = () => {
 }
 
 /**
+ * fireChangedEvent
+ * @desc attempts to fire the changed event for a particular DOM element
+ * 
+ * @param {HTMLElement} elem
+ */
+const fireChangedEvent = (elem) => {
+  if ('createEvent' in document) {
+    const evt = document.createEvent('HTMLEvents');
+    evt.initEvent('change', false, true);
+    elem.dispatchEvent(evt);
+    return;
+  }
+
+  elem.fireEvent('onchange');
+}
+
+/**
+ * @desc attempts to parse the global listener key
+ * 
+ * @param {string} key the desired global listener key name
+ * 
+ * @returns {object|null} specifying the namespace, name, and type of listener; will return `null` if invalid
+ */
+const parseListenerKey = (key) => {
+  if (typeof key !== 'string' || !stringHasChars(key)) {
+    return null;
+  }
+
+  let target = key.trim().split(':');
+  if (target.length === 2) {
+    key = target[1];
+    target = target[0].split('.');
+    return {
+      name: target?.[1] ?? key,
+      type: key,
+      namespace: target[0],
+    };
+  }
+
+  return {
+    name: target[0],
+    type: target[0],
+    namespace: '__base',
+  };
+}
+
+/**
+ * @param {string|null} namespace optionally specify the global namespace listener key
+ * 
+ * @returns {object} specifying the global listener event(s)
+ */
+const getGlobalListeners = (namespace = null) => {
+  let listeners = window.hasOwnProperty('__globalListeners') ? window.__globalListeners : null;
+  if (!isRecordType(listeners)) {
+    listeners = { };
+    window.__globalListeners = listeners;
+  }
+
+  if (typeof namespace === 'string' && stringHasChars(namespace)) {
+    let group = listeners?.[namespace];
+    if (!group) {
+      group = { };
+      listeners[namespace] = group;
+    }
+
+    return group;
+  }
+
+  return listeners;
+}
+
+/** 
+ * @param {string|object} key either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * 
+ * @returns {boolean} specifying whether a listener exists at the given key
+ */
+const hasGlobalListener = (key) => {
+  let listeners = window.hasOwnProperty('__globalListeners') ? window.__globalListeners : null;
+  if (!isRecordType(listeners)) {
+    return false;
+  }
+
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return false;
+  }
+
+  return !!(listeners?.[key.namespace]?.[key.name]);
+}
+
+/**
+ * @desc utility method to listen to an event relating to a set of elements matched by the given CSS selector
+ * 
+ * @param {string|object}    key      either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * @param {string}           selector a CSS selector to compare against the event target
+ * @param {Function}         callback a callback function to call against each related event target
+ * @param {object}           opts     optionally specify the event listener options; defaults to `undefined`
+ * @param {HTMLElement|null} parent   optionally specify the parent element context; defaults to `document` otherwise
+ * 
+ * @returns {Function} a disposable to cleanup this listener
+ */
+const createGlobalListener = (key, selector, callback, opts = undefined, parent = document) => {
+  if (!stringHasChars(selector) || !isHtmlObject(parent)) {
+    return null;
+  }
+
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return null;
+  }
+
+  let hnd;
+  const listeners = getGlobalListeners(key.namespace);
+
+  const handler = (e) => {
+    const target = e.target;
+    if (!target || !target.matches(selector)) {
+      return;
+    }
+
+    callback(e);
+  };
+
+  const dispose = () => {
+    const prev = listeners?.[key.name];
+    if (!!hnd && prev === hnd) {
+      delete listeners[key.name];
+    }
+
+    parent.removeEventListener(key.type, handler, opts);
+  };
+
+  hnd = { ...key, dispose };
+  listeners[key.name] = hnd;
+
+  parent.addEventListener(key.type, handler, opts);
+  return dispose;
+}
+
+/**
+ * @param {string|object} key either (a) the event key; or (b) a parsed event key per `parseListenerKey()`
+ * 
+ * @returns {boolean} specifying whether a listener was disposed at the given key 
+ */
+const removeGlobalListener = (key) => {
+  if (!isRecordType(key)) {
+    key = parseListenerKey(key);
+  }
+
+  if (!key) {
+    return false;
+  }
+
+  const listeners = getGlobalListeners(key.namespace);
+  const listenerHnd = listeners?.[key.name];
+  if (!listenerHnd) {
+    return false;
+  }
+
+  listenerHnd.dispose();
+  return true;
+}
+
+/**
   * createElement
-  * @desc Creates an element
-  * @param {string} tag The node tag e.g. div
-  * @param {object} attributes The object's attributes
+  * @desc Creates a DOM element
+  * 
+  * @note
+  * If the `behaviour` property is specified as sanitisation behaviour you should note that it expects _three_ key-value pairs, such that:
+  *   1. `key`   - sanitisation behaviour opts for the key component
+  *   2. `value` - sanitisation behaviour opts for the attribute value component
+  *   3. `html`  - specifies how to sanitise HTML string children
+  * 
+  * @param {string}                 tag The node tag e.g. div
+  * @param {object}          attributes The object's attributes
+  * @param {object|boolean}   behaviour Optionally specify the sanitisation behaviour of attributes; supplying a `true` boolean will enable strict sanitisation
+  * @param {...*}              children Optionally specify the children to be appended to this element
+  * 
   * @returns {node} The created element
   */
-const createElement = (tag, attributes) => {
-  let element = document.createElement(tag);
-  if (attributes !== null) {
-    for (var name in attributes) {
-      if (element[name] !== undefined) {
-        element[name] = attributes[name];
-      } else {
-        element.setAttribute(name, attributes[name]);
+const createElement = (tag, attributes = null, behaviour = null, ...children) => {
+  if (!!behaviour && typeof behaviour === 'boolean') {
+    behaviour = { key: { }, value: { }, html: { USE_PROFILES: { html: true, mathMl: false, svg: true, svgFilters: false } } };
+  }
+
+  let udfSanHtml, ustrSanitise;
+  if (!isRecordType(behaviour)) {
+    behaviour = null;
+    udfSanHtml = { USE_PROFILES: { html: true, mathMl: false, svg: true, svgFilters: false } };
+    ustrSanitise = (_type, value) => value;
+  } else {
+    udfSanHtml = isRecordType(behaviour.udfSanHtml) ? behaviour.udfSanHtml : null;
+    ustrSanitise = (type, value) => {
+      const opts = behaviour?.[type];
+      if (opts) {
+        return strictSanitiseString(value, opts);
       }
+
+      return value;
+    };
+  }
+
+  let element = document.createElement(tag);
+  if (isRecordType(attributes)) {
+    let attr, name;
+    name = Object.keys(attributes).find(x => typeof x === 'string' && !!x.match(/\b(html|innerhtml)/i));
+    attr = !!name ? attributes[name] : null;
+    if (name && attr) {
+      let res;
+      if (typeof attr === 'string') {
+        res = parseHTMLFromString(attr.trim(), !udfSanHtml, udfSanHtml);
+      } else if (isRecordType(attr)) {
+        const src = attr.src;
+        if (typeof src === 'string') {
+          const ignore = !!attr.noSanitise;
+          const params = Array.isArray(attr.sanitiseArgs) ? attr.sanitiseArgs : [];
+          res = parseHTMLFromString.apply(null, [src.trim(), ignore, ...params]);
+        }
+      }
+
+      if (Array.isArray(res)) {
+        for (let i = 0; i < res.length; ++i) {
+          if (!isHtmlObject(res[i])) {
+            continue;
+          }
+
+          element.appendChild(res[i]);
+        }
+      }
+    }
+
+    for (const keyName in attributes) {
+      attr = attributes[keyName];
+      name = ustrSanitise('key', keyName);
+      switch (keyName.toLowerCase()) {
+        case 'class':
+        case 'classname':
+        case 'classlist': {
+          if (Array.isArray(attr)) {
+            for (let i = 0; i < attr.length; ++i) {
+              element.classList.add(ustrSanitise('value', attr[i]));
+            }
+          } else {
+            element.className = ustrSanitise('value', attr);
+          }
+        } break;
+
+        case 'aria': {
+          for (const key in attr) {
+            if (typeof key !== 'string' && typeof key !== 'number') {
+              console.error(`[createElement->${name}] Failed to append 'aria-*' attr, expected key as String|Number but got ${typeof key}`);
+              continue;
+            }
+
+            let dataKey = String(key).trim().toLowerCase();
+            if (!dataKey.startsWith('aria-')) {
+              dataKey = `aria-${dataKey}`;
+            }
+            element.setAttribute(dataKey, ustrSanitise('value', attr[key]))
+          }
+        } break;
+
+        case 'data':
+        case 'dataset': {
+          for (const key in attr) {
+            if (typeof key !== 'string' && typeof key !== 'number') {
+              console.error(`[createElement->${name}] Failed to append 'data-*' attr, expected key as String|Number but got ${typeof key}`);
+              continue;
+            }
+
+            let dataKey = String(key).trim().toLowerCase();
+            if (dataKey.startsWith('data-')) {
+              dataKey = dataKey.replace(/^(data\-)/i, '');
+            }
+
+            if (dataKey.length < 1) {
+              console.error(`[createElement->${name}] Failed to append a 'data-*' attr of Key<from: '${key}', to: '${dataKey}'>, expected transformed key to have length of >= 1`);
+              continue;
+            }
+
+            if (dataKey !== key) {
+              console.warn(`[createElement->${name}] A 'data-*' attr was transformed from '${key}' to '${dataKey}'`);
+            }
+            element.dataset[dataKey] = ustrSanitise('value', attr[key]);
+          }
+        } break;
+
+        case 'attr':
+        case 'attributes': {
+          for (const key in attr) {
+            if (typeof key !== 'string' && typeof key !== 'number') {
+              console.error(`[createElement->${name}] Failed to append an attribute, expected key as String|Number but got ${typeof key}`);
+              continue;
+            }
+
+            let dataKey = String(key).trim().toLowerCase();
+            if (dataKey.length < 1) {
+              console.error(`[createElement->${name}] Failed to append an attribute of Key<from: '${key}', to: '${dataKey}'>, expected transformed key to have length of >= 1`);
+              continue;
+            }
+
+            if (dataKey !== key) {
+              console.warn(`[createElement->${name}] An attribute was transformed from '${key}' to '${dataKey}'`);
+            }
+            element.setAttribute(dataKey, ustrSanitise('value', attr[key]));
+          }
+        } break;
+
+        case 'text':
+        case 'innertext':
+        case 'textcontent': {
+          if (Array.isArray(attr)) {
+            for (let i = 0; i < attr.length; ++i) {
+              element.textContent += attr[i];
+            }
+          } else if (isObjectType(attr) && !isNullOrUndefined(attr.text)) {
+            const insert = (typeof attr.insert === 'string' && !!attr.insert.match(/\b(append|prepend)/i))
+              ? attr.insert.trim().toLowerCase()
+              : 'append';
+
+            if (insert === 'prepend') {
+              element.prepend(document.createTextNode(attr.text));
+            } else {
+              element.textContent += attr.text;
+            }
+          } else {
+            element.textContent = attr;
+          }
+        } break;
+
+        case 'style': {
+          let value, priority;
+          if (isRecordType(attr)) {
+            for (let key in attr) {
+              value = ustrSanitise('value', attr[key]);
+              priority = value.indexOf(CLU_CSS_IMPORTANT);
+              if (priority > 0) {
+                value = value.substring(priority, priority + CLU_CSS_IMPORTANT.length - 1);
+                priority = 'important';
+              } else {
+                priority = value?.[3];
+              }
+              element.style.setProperty(key, value, priority);
+            }
+          } else if (Array.isArray(attr) && attr.length >= 2) {
+            value = ustrSanitise('value', attr[0]);
+            priority = value.indexOf(CLU_CSS_IMPORTANT);
+            if (priority > 0) {
+              attr = value.substring(priority, priority + CLU_CSS_IMPORTANT.length - 1);
+              priority = 'important';
+            } else {
+              priority = attr?.[3];
+            }
+
+            element.style.setProperty(value, attr[1], priority);
+          } else if (typeof attr === 'string') {
+            element.style.cssText = ustrSanitise('value', attr);
+          }
+        } break;
+
+        case 'children': 
+        case 'childnodes': {
+          if (Array.isArray(attr)) {
+            for (let i = 0; i < attr.length; ++i) {
+              let res = attr[i];
+              if (typeof res === 'string') {
+                res = parseHTMLFromString(res.trim(), !udfSanHtml, udfSanHtml);
+                res.forEach(x => {
+                  if (isHtmlObject(x)) {
+                    element.appendChild(x);
+                  }
+                });
+              } else {
+                element.appendChild(res);
+              }
+            }
+          } else {
+            element.appendChild(attr);
+          }
+        } break;
+
+        case 'parent': {
+          if (isObjectType(element) && typeof attr.insert === 'string' && !isNullOrUndefined(attr.element)) {
+            const insert = (typeof attr.insert === 'string' && !!attr.insert.match(/\b(append|prepend|insertbefore)/i))
+              ? attr.insert.trim().toLowerCase()
+              : 'append';
+
+            if (insert === 'prepend') {
+              attr.prepend(attr.element);
+            } else if (insert === 'insertbefore') {
+              attr.element.parentElement.insertBefore(element, attr.element);
+            } else if (insert === 'append') {
+              attr.appendChild(attr.element);
+            }
+          } else {
+            attr.appendChild(element);
+          }
+        } break;
+
+        case 'html':
+        case 'innerhtml':
+          break;
+
+        default: {
+          if (name.startsWith('on') && typeof attr === 'function') {
+            element.addEventListener(name.substring(2), attr);
+          } else if ((!element.hasOwnProperty(name) && isNullOrUndefined(element[name])) || name.startsWith('data-')) {
+            element.setAttribute(name, ustrSanitise('value', attr));
+          } else {
+            element[name] = ustrSanitise('value', attr);
+          }
+        } break;
+      }
+    }
+  }
+
+  let child;
+  for (let i = 0; i < children.length; ++i) {
+    child = children[i];
+    if (typeof child === 'string' || typeof child === 'number') {
+      child = document.createTextNode(child);
+    }
+
+    if (isHtmlObject(child)) {
+      element.appendChild(child);
     }
   }
 
@@ -283,36 +974,233 @@ const createElement = (tag, attributes) => {
 /**
   * isScrolledIntoView
   * @desc Checks whether an element is scrolled into view
-  * @param {node} elem The element to examine
-  * @param {number} offset An offset modifier (if required)
+  * @param {HTMLElement}   elem                      The element to examine
+  * @param {HTMLElement}   [container=document.body] The container element to watch
+  * @param {number}        [offset=0]                An offset modifier (if required)
   * @returns {boolean} that reflects the scroll view status of an element
   */
-const isScrolledIntoView = (elem, offset = 0) => {
-  const rect = elem.getBoundingClientRect();
-  const elemTop = rect.top;
-  const elemBottom = rect.bottom - offset;
+const isScrolledIntoView = (elem, container = null, offset = 0) => {
+  if (isNullOrUndefined(container)) {
+    const rect = elem.getBoundingClientRect();
+    const elemTop = rect.top;
+    const elemBottom = rect.bottom - offset;
+    return (elemTop >= 0) && (elemBottom <= window.innerHeight);
+  }
 
-  return (elemTop >= 0) && (elemBottom <= window.innerHeight);
+  let eRect;
+  if (isHtmlObject(elem)) {
+    eRect = elem.getBoundingClientRect();
+  } else {
+    eRect = elem;
+  }
+
+  let pRect;
+  if (isHtmlObject(container) || container === document.body) {
+    pRect = container.getBoundingClientRect();
+  } else {
+    pRect = container;
+  }
+
+  let { height, width } = eRect;
+  height = height - offset > 0 ? height - offset : height;
+  width = width - offset > 0 ? width - offset : width;
+
+  const topVisible = eRect.top <= pRect.top
+    ? pRect.top - eRect.top <= height
+    : eRect.bottom - pRect.bottom <= height;
+
+  const leftVisible = eRect.left <= pRect.left
+    ? pRect.left - eRect.left <= width
+    : eRect.right - pRect.right <= width;
+
+  return (topVisible && leftVisible);
 }
 
 /**
   * elementScrolledIntoView
   * @desc A promise that resolves when an element is scrolled into view
-  * @param {node} elem The element to examine
-  * @param {number} offset An offset modifier (if required)
+  * 
+  * @param {HTMLElement}   elem                      The element to examine
+  * @param {HTMLElement}   [container=document.body] The container element to watch
+  * @param {number}        [offset=0]                An offset modifier (if required)
+  * 
   * @returns {promise} a promise that resolves once the element scrolls into the view
   */
-const elementScrolledIntoView = (elem, offset = 0) => {
+const elementScrolledIntoView = (elem, container = null, offset = 0) => {
+  let rel = container;
+  if (isNullOrUndefined(container)) {
+    rel = null;
+    container = document;
+  }
+
   return new Promise(resolve => {
     const handler = (e) => {
-      if (isScrolledIntoView(elem, offset)) {
-        document.removeEventListener('scroll', handler);
+      if (isScrolledIntoView(elem, rel, offset)) {
+        container.removeEventListener('scroll', handler);
         resolve();
       }
     };
 
-    document.addEventListener('scroll', handler);
+    container.addEventListener('scroll', handler);
   });
+}
+
+/**
+ * getRelativeElementPos
+ * @desc computes the element's relative rect
+ * 
+ * @param {HTMLElement} elem the element of interest
+ * 
+ * @returns {Record<string, number>} relative element rect 
+ */
+const getRelativeElementRect = (elem) => {
+  const pOff = elem.parentNode.scrollTop;
+  const pRect = elem.parentNode.getBoundingClientRect();
+  const eRect = elem.getBoundingClientRect();
+  return {
+       top: eRect.top    - pRect.top + pOff,
+     right: eRect.right  - pRect.right,
+    bottom: eRect.bottom - pRect.bottom,
+      left: eRect.left   - pRect.left,
+  };
+}
+
+/**
+ * scrollContainerTo
+ * @desc scrolls a container towards an element/target rect
+ * 
+ * @param {HTMLElement}               container                    the parent container in which to scroll
+ * @param {HTMLElement}               element                      the descendant HTMLElement to scroll towards
+ * @param {object}                    [param2]                     optionally specify a set of props varying this operation's behaviour
+ * @param {'auto'|'smooth'|'instant'} [param2.behaviour='smooth']  optionally specify the `scrollTo` behaviour; defaults to `smooth`
+ * @param {number}                    [param2.threshold=5]         optionally specify the approximation epsilon; defaults to `5` (i.e. 5 pixel)
+ * @param {number}                    [param2.failureTimeout=1000] optionally specify the time, in milliseconds, before we container the scroll to have failed; defaults to 1000ms/1s
+ * 
+ * @returns {Promise<object>} a promise that resolves an obj describing the both (a) the `target` rect, and (b) the current `scroll` position
+ */
+const scrollContainerTo = (
+  container,
+  element,
+  {
+    behaviour = 'smooth',
+    threshold = 5,
+    failureTimeout = 1000,
+  } = {}
+) => {
+  let _watchdog, _handleScroll, _listening;
+
+  const promise = new Promise((resolve) => {
+    const target = getRelativeElementRect(element);
+    behaviour = behaviour.trim().toLowerCase();
+    behaviour = behaviour.match(/^(auto|smooth|instant)$/gi) ? behaviour : 'smooth';
+
+    threshold = (typeof threshold === 'number' && !Number.isNaN(threshold) && Number.isFinite(threshold) && threshold >= 1e-4)
+      ? threshold
+      : 1e-4;
+
+    let { top, left } = target;
+    top = Math.floor(typeof target.top === 'number' ? target.top : 0);
+    left = Math.floor(typeof target.left === 'number' ? target.left : 0);
+
+    const cleanup = (shouldCancel = true) => {
+      if (shouldCancel && !isNullOrUndefined(_watchdog)) {
+        clearTimeout(_watchdog);
+      }
+      _watchdog = null;
+
+      if (_listening && _handleScroll) {
+        container?.removeEventListener?.('scroll', _handleScroll);
+      }
+      _listening = false;
+
+      resolve({
+        target: { top, left },
+        scroll: { top: container.scrollTop, left: container.scrollLeft },
+      });
+    }
+
+    if (isScrolledIntoView(container, element, threshold)) {
+      cleanup();
+      return;
+    }
+
+    if (typeof failureTimeout === 'number' && !Number.isNaN(failureTimeout) && Number.isFinite(failureTimeout) && failureTimeout > 1e-6) {
+      _watchdog = setTimeout(_ => cleanup(false), failureTimeout);
+    }
+
+    container.scrollTo({ top, left, behavior: behaviour });
+
+    _handleScroll = () => {
+      if (!_listening || (!approximately(container.scrollTop, top, threshold) && !approximately(container.scrollLeft, left, threshold))) {
+        return;
+      }
+
+      cleanup();
+    };
+
+    if (approximately(container.scrollTop, top, threshold) || approximately(container.scrollLeft, left, threshold)) {
+      cleanup();
+      return;
+    }
+
+    _listening = true;
+    container.addEventListener('scroll', _handleScroll);
+  });
+
+  return new Promise((resolve, reject) => {
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(_ => {
+        if (!isNullOrUndefined(_watchdog)) {
+          clearTimeout(_watchdog);
+        }
+
+        if (!isNullOrUndefined(_handleScroll)) {
+          container?.removeEventListener?.('scroll', _handleScroll);
+        }
+      });
+  });
+}
+
+/**
+ * focusNextElement
+ * @desc attempts to tab cycle focusable elements
+ * 
+ * @param {HTMLElement}   [active=null] optionally specify the actively selected item if applicable; defaults to `document.activeElement`
+ * @param {number|string} [dir='next']  optionally specify the tab cycle direction; defaults to `next` | `+1` 
+ * 
+ * @returns {Nullable<HTMLElement>} the newly focused item (if applicable)
+ */
+const focusNextElement = (active = null, dir = 'next') => {
+  const element = !isNullOrUndefined(document?.activeElement?.form) ? document?.activeElement?.form : document;
+  active = !isNullOrUndefined(active) ? active : document?.activeElement;
+
+  dir = typeof dir === 'number'
+    ? clampNumber(dir, -1, 1)
+    : (dir.toLowerCase() === 'previous' ? -1 : 1);
+
+  let elements = [...element.querySelectorAll(
+    'a:not([disabled]):not([aria-hidden="true"]), \
+    button:not([disabled]):not([aria-hidden="true"]), \
+    input[type=text]:not([disabled]):not([aria-hidden="true"]), \
+    [tabindex]:not([disabled]):not([tabindex="-1"]):not([aria-hidden="true"]) \
+  ')]
+  elements = elements.filter(x => x.offsetWidth > 0 || x.offsetHeight > 0 || x === active);
+
+  let elm = elements.indexOf(active);
+  if (elm >= 0) {
+    elm = elm + dir < 0 ? elements.length : (elm + dir > elements.length ? 0 : elm + dir);
+  } else {
+    elm = 0;
+  }
+  elm = elements[elm];
+
+  if (!isNullOrUndefined(elm)) {
+    elm.focus();
+  }
+
+  return elm;
 }
 
 /**
@@ -337,7 +1225,7 @@ const getCookie = (name) => {
   }
 
   return cookieValue;
-};
+}
 
 /**
   * getCurrentHost
@@ -389,7 +1277,7 @@ const getBrandedHost = () => {
   const host = getCurrentHost();
   const brand = document.documentElement.getAttribute('data-brand');
   const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
-  if ((host === CLU_DOMAINS.HDRUK) || isUnbranded) {
+  if (!!host.match(CLU_HOST.HDRUK) || isUnbranded) {
     return host;
   }
 
@@ -397,16 +1285,17 @@ const getBrandedHost = () => {
 }
 
 /**
- * getBrandUrlTarget
- * @desc Returns the brand URL target for management redirect buttons (used in navigation menu)
- * @param {string[]} brandTargets an array of strings containing the brand target names
- * @param {boolean} productionTarget a boolean flag specifying whether this is a production target
- * @param {Node} element the html event node
- * @param {string} oldRoot the path root (excluding brand context)
- * @param {string} path the window's location href
- * @returns {string} the target URL
+ * navigateBrandTargetURL
+ * @desc Sets the browser's current URL to the brand associated with management redirect buttons
+ * @note used in base navigation menu
+ * 
+ * @param {string[]}             brandTargets     an array of strings containing the brand target names
+ * @param {boolean}              productionTarget a boolean flag specifying whether this is a production target
+ * @param {HTMLElement|HTMLNode} element          the html event target node
+ * @param {string}               oldRoot          the path root (excluding brand context)
+ * @param {string}               path             the window's location href
  */
-const getBrandUrlTarget = (brandTargets, productionTarget, element, oldRoot, path) =>{
+const navigateBrandTargetURL = (brandTargets, productionTarget, element, oldRoot, path) =>{
   const pathIndex = brandTargets.indexOf(oldRoot.toUpperCase()) == -1 ? 0 : 1;
   const pathTarget = path.split('/').slice(pathIndex).join('/');
 
@@ -427,10 +1316,7 @@ const getBrandUrlTarget = (brandTargets, productionTarget, element, oldRoot, pat
       } break;
 
       default: {
-        const isHDRUKSubdomain = window.location.href
-          .toLowerCase()
-          .includes('phenotypes.healthdatagateway');
-
+        const isHDRUKSubdomain = !!window.location.href.match(CLU_HOST.HDRUK);
         targetLocation = isHDRUKSubdomain ? CLU_DOMAINS.ROOT : document.location.origin;
         targetLocation = `${targetLocation}/${elementTarget}`;
       } break;
@@ -482,7 +1368,7 @@ const isNullOrUndefined = (value) => typeof value === 'undefined' || value === n
  * @returns {boolean} determines whether the value is (a) undefined; or (b) empty
  * 
  */
-const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
+const isStringEmpty = (value) => typeof value !== 'string' || !value.length;
 
 /**
  * isStringWhitespace
@@ -491,19 +1377,149 @@ const isStringEmpty = (value) => isNullOrUndefined(value) || !value.length;
  * @returns {boolean} reflecting whether the string contains only whitespace
  * 
  */
-const isStringWhitespace = (value) => !value.replace(/\s/g, '').length;
+const isStringWhitespace = (value) => typeof value !== 'string' || !value.replace(/\s/g, '').length;
+
+/**
+ * stringHasChars
+ * @desc checks if a `string` has any number of characters aside from whitespace chars
+ * @param {string} value the value to consider
+ * @returns {boolean} specifying whether the `string` has chars
+ */
+const stringHasChars = (value) => typeof value === 'string' && value.length && value.replace(/\s/g, '').length;
+
+/**
+ * @desc det. whether a numeric value is safe
+ * @note
+ * - Determines whether the value is a number, is finite, and is within min/max numeric bounds
+ * - Integers are represented by `fp` values in JS, which are IEEE 754 64-bit `double`s; this means we're getting 53 bits of precision for `int` types, i.e. a min/max value of `pow(2, 53) - 1` (`int53`)
+ * - It follows then that Floats/Doubles have a maximum precision of  15 decimal numerals
+ * 
+ * @param {number} value  the value to evaluate
+ * 
+ * @returns {boolean} specifies whether the value is safe
+ */
+const isSafeNumber = (value) => {
+  if (typeof value !== 'number') {
+    return false;
+  }
+
+  return (
+    !Number.isNaN(value) &&
+    Number.isFinite(value) &&
+    (Number.isSafeInteger(value) || Math.abs(value) < Number.MAX_VALUE)
+  );
+}
+
+/**
+ * @desc det. whether the specified value is within the desired range or, if provided, is approximately within such a range
+ * 
+ * @param {number!} value       some numeric value to evaluate
+ * @param {number!} min         the minimum bounds of the range
+ * @param {number!} max         the maximum bounds of the range
+ * @param {number?} [threshold] optionally specify a threshold in which the value should be considered to be approximately within the bounds of the specified range
+ * 
+ * @returns {boolean} specifies whether the value is within the specified range
+ */
+const isWithinBounds = (value, min, max, threshold = null) => {
+  if (!isSafeNumber(min) || !isSafeNumber(max)) {
+    return false;
+  }
+
+  if (min === max) {
+    return isSafeNumber(threshold)
+      ? approximately(value, max, threshold)
+      : value === max;
+  }
+
+  const tmp = Math.max(min, max);
+  min = Math.min(min, max);
+  max = tmp;
+
+  return (
+    (value >= min && value <= max) ||
+    (
+      isSafeNumber(threshold)
+        ? ((value < min && approximately(value, min, threshold)) || (value > max && approximately(value, max, threshold)))
+        : false
+    )
+  );
+}
+
+/**
+ * @desc attempts to parse a number and to derive its fmt from a string|number
+ * 
+ * @param {number|string} value some number-like object to evaluate
+ *  
+ * @returns {{value: number?, type: ('NaN' | 'int' | 'float')}} an Object describing the resulting value and its fmt type 
+ */
+const tryParseNumber = (value) => {
+  if (stringHasChars(value)) {
+    value = Number(value);
+  }
+
+  if (!isSafeNumber(value)) {
+    return { value: null, type: 'NaN' };
+  }
+
+  const remainder = value - (value | 0);
+  if (remainder < Number.MIN_VALUE || Math.abs(remainder - 1) < Number.MIN_VALUE) {
+    value = Math.trunc(value);
+  }
+
+  let type;
+  if (Number.isInteger(value)) {
+    type = 'int';
+  } else {
+    type = 'float';
+  }
+
+  return { value, type };
+}
 
 /**
  * clearAllChildren
  * @desc removes all children from a node
- * @param {node} element the node to remove
- * @param {fn} cond conditional to determine fate of elem
+ * 
+ * @param {HTMLElement}     element        the node to remove
+ * @param {Function|string} [cond = null]  optionally specify either (a) a predicate `function`, or (b) a string selector, to determine fate of element
+ * 
+ * @example
+ * // clear all children
+ * clearAllChildren(document.body);
+ * 
+ * // clear using predicate
+ * clearAllChildren(document.body, (x) => x.tagName === 'DIV');
+ * 
+ * // clear all matching selector
+ * clearAllChildren(document.body, 'button[data-attr="some-attr-value"]');
+ * 
  */
-const clearAllChildren = (element, cond) => {
-  for (const [index, child] of Object.entries(element.children)) {
-    if (child.nodeType == 1 && cond && cond(child)) {
+const clearAllChildren = (element, cond = null) => {
+  let child;
+  if (typeof cond === 'string') {
+    const selector = cond;
+    cond = (x) => !x.matches(selector);
+  }
+
+  if (!!cond && typeof cond !== 'function') {
+    cond = null;
+    console.warn(`[utils->clearAllChildren] Condition has been ignored, expected a function but got a "${typeof cond}"`);
+  }
+
+  if (!cond) {
+    while (element.firstChild) {
+      element.removeChild(element.lastChild);
+    }
+  }
+
+  const children = element.children;
+  for (let i = 0; i < children.length; ++i) {
+    child = children[i];
+
+    if (child.nodeType === Node.ELEMENT_NODE && cond(child)) {
       continue;
     }
+
     element.removeChild(child);
   }
 }
@@ -513,13 +1529,35 @@ const clearAllChildren = (element, cond) => {
  * @desc onClick handler for content cards, primarily used for ./search page - referral to detail page
  * @param {node} element the clicked node
  */
-const redirectToTarget = (elem) => {
-  const target = elem.getAttribute('data-target');
-  if (!target) {
+const redirectToTarget = (elem, event) => {
+  if (!elem) {
     return;
   }
-  
-  window.location.href = strictSanitiseString(target);
+
+  let target = elem.getAttribute('data-target');
+  if (!stringHasChars(target) && elem.matches('.referral-card')) {
+    target = elem.querySelector('.referral-card__title[href]');
+    target = !!target ? target.getAttribute('href') : '';
+  }
+
+  target = typeof target === 'string'
+    ? strictSanitiseString(target)
+    : '';
+
+  if (!stringHasChars(target)) {
+    return;
+  }
+
+  const metaActive = !!event && (event.ctrlKey || event.metaKey);
+  if (target === '__blank' || metaActive) {
+    let rel = elem.getAttribute('rel')
+    rel = typeof rel === 'string' ? rel : '';
+
+    window.open(target, '_blank', rel);
+    return true;
+  }
+
+  window.location.href = target;
 }
 
 /**
@@ -531,17 +1569,14 @@ const redirectToTarget = (elem) => {
  *  -> @param {null, list} extensions the expected file extensions (leave null for all file types)
  *  -> @param {null, function(selected[bool], files[list])} callback the callback function for when a file is selected
  * 
- * e.g. usage:
+ * @example
+ * const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
+ *   if (!selected) {
+ *     return;
+ *   }
  * 
-  ```js
-    const files = tryOpenFileDialogue({ extensions: ['.csv', '.tsv'], callback: (selected, files) => {
-      if (!selected) {
-        return;
-      }
-
-      console.log(files); --> [file_1, ..., file_n]
-    }});
-  ```
+ *   console.log(files); --> [file_1, ..., file_n]
+ * }});
  * 
  */
 const tryOpenFileDialogue = ({ allowMultiple = false, extensions = null, callback = null }) => {
@@ -585,6 +1620,26 @@ const transformTitleCase = (str) => {
 }
 
 /**
+ * transformCamelCase
+ * @desc transforms a string to camelCase
+ * @param {string} str the string to transform
+ * @returns {string} the resultant, transformed string
+ */
+const transformCamelCase = (str) => {
+  return str.toLowerCase().replace(/([-_\s][a-z])/g, group => group.toUpperCase()).replace(/[-_\s]/gm, '');
+}
+
+/**
+ * transformSnakeCase
+ * @desc transforms a string to snake_case
+ * @param {string} str the string to transform
+ * @returns {string} the resultant, transformed string
+ */
+const transformSnakeCase = (str) => {
+  return str.toLowerCase().replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/([-_\s])/g, '_');
+}
+
+/**
  * tryGetRootElement
  * @desc Iterates through the parent of an element until it either
  *      (a) lapses by not finding an element that matches the class
@@ -593,18 +1648,18 @@ const transformTitleCase = (str) => {
  * @param {string} expectedClass the expected class name 
  * @return {node|none} the parent element, if found
  */
-const tryGetRootElement = (item, expectedClass) => {
+const tryGetRootElement = (item, selector) => {
   if (isNullOrUndefined(item)) {
     return null;
   }
 
-  if (item.classList.contains(expectedClass)) {
+  if (item.nodeType === Node.ELEMENT_NODE && item.matches(selector)) {
     return item;
   }
 
-  while (!isNullOrUndefined(item.parentNode) && item.parentNode.classList) {
+  while (!isNullOrUndefined(item?.parentNode) && item?.nodeType === Node.ELEMENT_NODE) {
     item = item.parentNode;
-    if (item.classList.contains(expectedClass)) {
+    if (item?.matches?.(selector)) {
       return item;
     }
   }
@@ -655,7 +1710,7 @@ const getDeltaDiff = (lhs, rhs) => {
       if (diff.length > 0) {
         filtered.push(...diff.map(([i, ...val]) => [`${key} ${i}`, ...val]));
       }
-      
+
       return filtered;
     }
 
@@ -663,7 +1718,7 @@ const getDeltaDiff = (lhs, rhs) => {
       filtered.push([key, 'created', rhs[key]]);
       return filtered;
     }
-    
+
     if (key in lhs && !(key in rhs)) {
       filtered.push([key, 'deleted', lhs[key]]);
       return filtered;
@@ -723,7 +1778,6 @@ const waitForElement = (selector) => {
     observer.observe(document.body, { childList: true, subtree: true });
   });
 }
-
 
 /**
  * onElementRemoved
@@ -811,23 +1865,32 @@ const hideLoader = () => {
 /**
  * startLoadingSpinner
  * @desc instantiate a loading spinner, either within an element or at the root <body/>
- * @param {node|null} container the container - if null, uses the <body/>
+ * 
+ * @param {node|null} container   optionally specify the container - if null, uses the <body/>
+ * @param {boolean}   fillContent optionally specify whether to apply the absolute fill style; defaults to `false`
+ * 
  * @returns {node} the spinner element or its container - whichever is topmost
  */
-const startLoadingSpinner = (container) => {
-
+const startLoadingSpinner = (container, fillContent = false) => {
   let spinner;
   if (isNullOrUndefined(container)) {
     container = document.body;
 
     spinner = createElement('div', {
       className: 'loading-spinner',
-      innerHTML: '<div class="loading-spinner__icon"></div>'
+      childNodes: [
+        createElement('div', { className: 'loading-spinner__icon' })
+      ],
+    });
+  } else if (fillContent) {
+    spinner = createElement('div', {
+      className: 'loading-spinner loading-spinner--absolute',
+      childNodes: [
+        createElement('div', { className: 'loading-spinner__icon' })
+      ],
     });
   } else {
-    spinner = createElement('div', {
-      className: 'loading-spinner__icon',
-    });
+    spinner = createElement('div', { className: 'loading-spinner__icon' });
   }
   container.appendChild(spinner)
 
@@ -897,7 +1960,6 @@ const hasFixedElementSize = (element, axes = undefined) => {
 
   return results;
 }
-
 
 /**
  * isElementSizeExplicit
@@ -1102,4 +2164,377 @@ const linkifyText = (
   }
 
   return source;
-};
+}
+
+/**
+ * @desc determines whether the specified URL is malformed or not
+ * 
+ * @param {string|any} url some URL to evaluate
+ * 
+ * @returns {boolean} specifying whether this URL is valid
+ */
+const isValidURL = (url) => {
+  if (!stringHasChars(url)) {
+    return false;
+  }
+
+  try {
+    url = new URL(url);
+  } catch {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @desc determines the origin of the URL, i.e. whether it's external or internal
+ * @note this function may resolve a `CLU_ORIGIN_TYPE.Empty` or `CLU_ORIGIN_TYPE.Malformed` value if the URL is empty/malformed
+ * 
+ * @param {string|any} url some URL to evaluate
+ * 
+ * @returns {enum<string>} a `CLU_ORIGIN_TYPE` descriptor
+ */
+const getOriginTypeURL = (url, forceBrand = true) => {
+  if (!stringHasChars(url)) {
+    return CLU_ORIGIN_TYPE.Empty;
+  }
+
+  let target, malformed;
+  try {
+    target = new URL(url);
+    return target.origin !== window.location.origin ? CLU_ORIGIN_TYPE.External : CLU_ORIGIN_TYPE.Internal;
+  } catch {
+    malformed = true;
+  }
+
+  if (malformed) {
+    try {
+      if (forceBrand) {
+        target = new URL(url, getBrandedHost());
+      } else {
+        target = new URL(url, getCurrentURL())
+      }
+
+      return target.origin !== window.location.origin ? CLU_ORIGIN_TYPE.External : CLU_ORIGIN_TYPE.Internal;
+    }
+    catch {
+      return CLU_ORIGIN_TYPE.Malformed;
+    }
+  }
+
+  return CLU_ORIGIN_TYPE.Internal;
+}
+
+/**
+ * @desc determines whether the given URL is absolute/relative
+ * @note where:
+ *  - relative → _e.g._ `/some/path/` or `some/path`;
+ *  - absolute → _e.g._ `https://some.website/some/path` _etc_.
+ * 
+ * @param {string} url some URL to evaluate
+ * 
+ * @returns {boolean} specifying whether the given URL is absolute
+ */
+const isAbsoluteURL = (url) => {
+  return /^(?:[a-z]+:)?\/\//i.test(url);
+}
+
+/**
+ * @desc opens the specified link on the client
+ * @note attempts to replicate client content navigation via `<a/>` tags
+ * 
+ * @param {HTMLElement|string} link                either (a) some node specifying a `[href] | [data-link]` or (b) a `string` URL
+ * @param {object}             param1              navigation optuions
+ * @param {string|null}        param1.rel          optionally specify the `[rel]` attribute assoc. with this link; defaults to `null`
+ * @param {string|null}        param1.target       optionally specify the `[target]` attribute assoc. with this link; defaults to `null`
+ * @param {boolean}            param1.forceBrand   optionally specify whether to ensure that the Brand target is applied to the final URL; defaults to `true`
+ * @param {boolean}            param1.followEmpty  optionally specify whether empty links (i.e. towards index page) can be followed; defaults to `true`
+ * @param {boolean}            param1.allowNewTab  optionally specify whether `target=__blank` behaviour is allowed; defaults to `true`
+ * @param {boolean}            param1.metaKeyDown  optionally specify whether to navigate as if the meta key is held (_i.e._ ctrl + click); defaults to `false`
+ * @param {Event|null}         param1.relatedEvent optionally specify some DOM `Event` relating to this method (used to derive `ctrlKey` | `metaKey`); defaults to `null`
+ * 
+ * @returns 
+ */
+const tryNavigateLink = (link, {
+  rel = null,
+  target = null,
+  forceBrand = true,
+  followEmpty = true,
+  allowNewTab = true,
+  metaKeyDown = false,
+  relatedEvent = null,
+} = {}) => {
+  let url;
+  if (isHtmlObject(link)) {
+    url = link.getAttribute('href');
+    if (typeof url === 'string') {
+      rel = rel ?? link.getAttribute('rel');
+      target = target ?? link.getAttribute('target');
+    } else {
+      url = link.getAttribute('data-link');
+      if (url) {
+        rel = rel ?? link.getAttribute('data-linkrel');
+        target = target ?? link.getAttribute('data-linktarget');
+      }
+    }
+  } else if (typeof link === 'string') {
+    url = link;
+  }
+
+  if (typeof url !== 'string') {
+    return false;
+  }
+
+  const originType = getOriginTypeURL(url, forceBrand);
+  if (originType === 'Malformed' || (originType === 'Empty' && !followEmpty)) {
+    return false;
+  }
+
+  if (forceBrand && (originType === 'Internal' || originType === 'Empty')) {
+    let brandedHost = getBrandedHost();
+    brandedHost = new URL(brandedHost);
+
+    const absolute = isAbsoluteURL(url);
+    if (!absolute) {
+      const hasSlash = url.startsWith('/');
+      url = new URL(url, brandedHost.origin);
+
+      if (hasSlash || originType === 'Empty') {
+        const prefix = getCurrentBrandPrefix();
+        if (!url.pathname.startsWith(prefix)) {
+          url = new URL(prefix + url.pathname + url.search + url.hash, brandedHost.origin);
+        }
+      } else {
+        let path = getCurrentURL();
+        if (!path.endsWith('/')) {
+          path += '/';
+        }
+
+        url = new URL(path + url.pathname.substring(1) + url.search + url.hash);
+      }
+    } else {
+      url = new URL(url, brandedHost.origin);
+      if (url.origin.match(CLU_DOMAINS.HDRUK) && url.origin !== brandedHost.origin) {
+        url = new URL(url.pathname + url.search + url.hash, brandedHost.origin);
+      }
+    }
+  } else if (originType === 'Internal' || originType === 'Empty') {
+    const absolute = isAbsoluteURL(url);
+    if (!absolute) {
+      if (!url.startsWith('/')) {
+        let path = getCurrentURL();
+        if (!path.endsWith('/')) {
+          path += '/';
+        }
+  
+        url = new URL(url, getCurrentHost());
+        url = new URL(path + url.pathname.substring(1) + url.search + url.hash);
+      } else {
+        url = new URL(url, getCurrentHost());
+      }
+    } else {
+      url = new URL(url);
+    }
+  } else {
+    url = new URL(url);
+  }
+
+  const metaActive = metaKeyDown || (!!relatedEvent && (relatedEvent.ctrlKey || relatedEvent.metaKey));
+  if (allowNewTab && (target === '__blank' || metaActive)) {
+    window.open(url.href, '_blank', rel);
+    return true;
+  }
+
+  window.location = url.href;
+  return true;
+}
+
+/**
+ * @desc validates a query selector string
+ * 
+ * @param {any} selector some value to evaluate
+ * 
+ * @returns {boolean} specifies whether the given query selector is valid
+ */
+const isValidSelector = (selector) => {
+  if (!stringHasChars(selector)) {
+    return false;
+  }
+
+  let fragment = globalThis?.__docFrag;
+  if (isNullOrUndefined(fragment)) {
+    fragment = document.createDocumentFragment();
+    globalThis.__docFrag = fragment;
+  }
+
+  let invalid = false;
+  try {
+    fragment.querySelector(selector)
+  } catch {
+    invalid = true;
+  } finally {
+    return !invalid;
+  }
+}
+
+/**
+ * @desc a type-guard for `HTMLElement` | `HTMLNode` objects
+ * 
+ * @param {*}      obj         some DOM element to consider
+ * @param {string} desiredType optionally specify the type, expects one of `element` | `node` | `any`; defaults to `Any`
+ * 
+ * @returns {boolean} specifies whether the given obj is a `HTMLElement` | `HTMLNode` as specified by the `desiredType` param
+ */
+const isHtmlObject = (obj, desiredType = 'Any') => {
+  if (isNullOrUndefined(obj)) {
+    return false;
+  }
+
+  if (typeof desiredType !== 'string') {
+    desiredType = 'Any';
+  }
+
+  desiredType = desiredType.toLowerCase();
+  if (desiredType.startsWith('html')) {
+    desiredType = desiredType.substring(4);
+  }
+
+  let condition;
+  switch (desiredType) {
+    case 'node': {
+      condition = typeof Node === 'object'
+        ? obj instanceof Node
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && obj.nodeType !== Node.TEXT_NODE && typeof obj.nodeName === 'string';
+    } break;
+
+    case 'element': {
+      condition = typeof HTMLElement === 'object'
+        ? obj instanceof HTMLElement
+        : typeof obj === 'object' && obj.nodeType === Node.ELEMENT_NODE && typeof obj.nodeName === 'string';
+    } break;
+
+    case 'any':
+    default: {
+      condition = (typeof Node === 'object' && typeof HTMLElement === 'object')
+        ? (obj instanceof Node || obj instanceof HTMLElement)
+        : typeof obj === 'object' && typeof obj.nodeType === 'number' && obj.nodeType !== Node.TEXT_NODE && typeof obj.nodeName === 'string';
+    } break;
+  }
+
+  return !!condition;
+}
+
+/**
+ * @desc determines element visibility
+ * @note does not check client window intersection
+ * 
+ * @param {HTMLElement} elem some DOM element to evaluate
+ * 
+ * @returns {boolean} specifies whether the elem is currently rendered
+ */
+const isVisibleObj = (elem) => {
+  if (!isHtmlObject(elem, 'element')) {
+    return false;
+  }
+
+  try {
+    if (window.checkVisibility) {
+      return elem.checkVisibility({
+        opacityProperty: true,
+        visibilityProperty: true,
+        contentVisibilityAuto: true,
+      });
+    }
+
+    const style = document.defaultView.getComputedStyle(elem);
+    return (
+      style.width !== '0' &&
+      style.height !== '0' &&
+      style.display != 'none' &&
+      style.visibility !== 'hidden' &&
+      Number(style.opacity) > 0
+    );
+  }
+  catch {
+    // Default true on failure
+    return true;
+  }
+}
+
+/**
+ * @desc attempts to find any missing components within a `Object|Array`
+ * 
+ * @example 
+ *  const missing = findMissingComponents(
+ *    {
+ *      str: '<p>Hello</p>',
+ *      arr: {
+ *        str: '<p>Hello</p>',
+ *        str1: '<p>Hello</p>',
+ *      },
+ *      obj: {
+ *        str2: '<p>Hello</p>',
+ *        str3: '<p>Hello</p>',
+ *      }
+ *    },
+ *    {
+ *      // ensure that a key with a `string|HTMLElement` exists at this key-value pair
+ *      str: true,
+ *      // ensure that an Object exists at this key-value pair specifying a set of keys to exist
+ *      arr: ['str0', 'str1'],  // Note: former is missing
+ *      // ensure an object exists with the follow key-value pair(s)
+ *      obj: {
+ *        str2: true,
+ *        str4: true, // Note: latter is missing
+ *      }
+ *    }
+ *  );
+ *  console.log('Missing items:', missing); // --> [stdout] Missing items: [ 'str0', 'str4 ] 
+ * 
+ * @param {Record<string, Record<string, string|HTMLElement}      templates    a set of components to evaluate
+ * @param {string|Array<string>|Record<string, any|Record|Array>} expected     the components expected to be present within the object
+ * @param {Array<string>}                                         [missing=[]] a list of missing components (filled by the fn)
+ * 
+ * @returns {Array<string>} an array of missing components (length 0 if none are missing)
+ */
+const findMissingComponents = (templates, expected, missing = []) => {
+  if (isRecordType(expected)) {
+    for (const key in expected) {
+      const desired = expected[key];
+      if (isRecordType(desired) || Array.isArray(desired)) {
+        const relative = templates[key];
+        if (!isRecordType(relative)) {
+          if (Array.isArray(desired)) {
+            missing.push(...desired.filter(x => typeof x === 'string'));
+          } else {
+            missing.push(key);
+          }
+
+          continue;
+        }
+
+        findMissingComponents(relative, desired, missing);
+        continue;
+      }
+
+      findMissingComponents(templates, key, missing);
+    }
+  } else if (Array.isArray(expected)) {
+    for (let i = 0; i < expected.length; ++i) {
+      const desired = expected[i];
+      if (typeof desired !== 'string' || !stringHasChars(desired)) {
+        continue;
+      }
+
+      findMissingComponents(templates, desired, missing);
+    }
+  } else if (typeof expected === 'string') {
+    const obj = templates[expected];
+    if (!isHtmlObject(obj) && (typeof obj !== 'string' || !stringHasChars(obj))) {
+      missing.push(expected);
+    }
+  }
+
+  return missing;
+}

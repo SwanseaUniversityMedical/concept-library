@@ -45,7 +45,7 @@ const tryCleanCodingItem = (val, row, col) => {
     return;
   }
 
-  return strictSanitiseString(val.replace(/^\s+|\s+$/gm, ''));
+  return strictSanitiseString(val.toString().replace(/^\s+|\s+$/gm, ''));
 }
 
 /**
@@ -119,6 +119,14 @@ const tryParseCodingExcelFile = (file) => {
     content = tryCleanCodingFile(content);
     return content;
   })
+  .catch(error => {
+    console.error(`Failed to retrieve codes from file: ${error})`);
+    window.ToastFactory.push({
+      type: 'error',
+      message: `Failed to retrieve codes from file: ${error})`,
+      duration: 4000,
+    });
+  });
 }
 
 /**
@@ -204,15 +212,6 @@ const CONCEPT_CREATOR_SOURCE_TYPES = {
     template: 'concept-rule',
     disabled: true,
   },
-}
-
-/**
- * CONCEPT_CREATOR_KEYCODES
- * @desc Keycodes used by Concept Creator
- */
-const CONCEPT_CREATOR_KEYCODES = {
-  // To modify rule name, apply search term etc
-  ENTER: 13,
 }
 
 /**
@@ -306,17 +305,22 @@ const CONCEPT_CREATOR_TEXT = {
   // Rule deletion prompt
   RULE_DELETION: {
     title: 'Are you sure?',
-    content: '<p>Are you sure you want to delete this Ruleset from your Concept?</p>',
+    content: '<p>Are you sure you want to delete this Ruleset from your ${brandMapping.concept}?</p>',
   },
   // Concept deletion prompt
   CONCEPT_DELETION: {
     title: 'Are you sure?',
-    content: '<p>Are you sure you want to delete this Concept from your Phenotype?</p>',
+    content: '<p>Are you sure you want to delete this ${brandMapping.concept} from your ${brandMapping.phenotype}?</p>',
+  },
+  // Concept deletion prompt
+  CODING_CHANGE: {
+    title: 'Are you sure?',
+    content: '<p>Are you sure you want to change your coding system? Any changes you\'ve made so far will be deleted.</p>',
   },
   // Toast to inform user to close editor
-  REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a Concept.',
+  REQUIRE_EDIT_CLOSURE: 'Please close the editor before trying to delete a ${brandMapping.concept}.',
   // Toast for Concept name validation
-  REQUIRE_CONCEPT_NAME: 'You need to name your Concept before saving',
+  REQUIRE_CONCEPT_NAME: 'You need to name your ${brandMapping.concept} before saving',
   // Toast for Concept CodingSystem validation
   REQUIRE_CODING_SYSTEM: 'You need to select a coding system before saving!',
   // Toast to inform the user that no exclusionary codes were addded since they aren't present in an inclusionary rule
@@ -334,17 +338,17 @@ const CONCEPT_CREATOR_TEXT = {
   // Toast to inform the user there was an error when trying to upload their code file
   NO_CODE_FILE_MATCH: 'Unable to parse uploaded file. Please try again.',
   // Toast to inform the user that the codes from the imported concept(s) were added
-  ADDED_CONCEPT_CODES: 'Added ${code_len} codes via Concept Import',
+  ADDED_CONCEPT_CODES: 'Added ${code_len} codes via ${brandMapping.concept} Import',
   // Toast to inform the user there was an error when trying to upload their code file
-  NO_CONCEPT_MATCH: 'We were unable to add this Concept. Please try again.',
+  NO_CONCEPT_MATCH: 'We were unable to add this ${brandMapping.concept}. Please try again.',
   // Toast to inform the user they tried to import non-distinct top-level concepts
   CONCEPT_IMPORTS_ARE_PRESENT: 'Already imported ${failed}',
   // Toast to inform the user they tried to import non-distinct rule-level concepts
-  CONCEPT_RULE_IS_PRESENT: 'You have already imported this Concept as a rule',
+  CONCEPT_RULE_IS_PRESENT: 'You have already imported this ${brandMapping.concept} as a rule',
   // Toast to inform successful update to new concept version
-  CONCEPT_UPDATE_SUCCESS: 'Updated Concept to Version ${version}',
+  CONCEPT_UPDATE_SUCCESS: 'Updated ${brandMapping.concept} to Version ${version}',
   // Toast to inform failed update to new concept version
-  CONCEPT_UPDATE_FAILED: 'Failed to update Concept, please try again.',
+  CONCEPT_UPDATE_FAILED: 'Failed to update ${brandMapping.concept}, please try again.',
 }
 
 /**
@@ -438,7 +442,7 @@ export default class ConceptCreator {
    * @returns {string|boolean} returns the title of this component if present, otherwise returns false
    */
   getTitle() {
-    const group = tryGetRootElement(this.element, 'phenotype-progress__item');
+    const group = tryGetRootElement(this.element, '.phenotype-progress__item');
     if (!isNullOrUndefined(group)) {
       const title = group.querySelector('.phenotype-progress__item-title');
       if (!isNullOrUndefined(title)) {
@@ -516,12 +520,15 @@ export default class ConceptCreator {
    * @returns {promise} that can be used as a Thenable if required
    */
   tryImportConcepts() {
+    const brandMapping = this.parent.mapping;
     const prompt = new ConceptSelectionService({
-      promptTitle: 'Import Concepts',
+      promptTitle: `Import ${brandMapping.concept}`,
+      mapping: brandMapping,
       template: this.template?.id,
       entity_id: this.entity?.id,
       entity_history_id: this.entity?.history_id,
       allowMultiple: true,
+      noneSelectedMessage: `You haven't selected any ${brandMapping.concept}s yet`,
     });
 
     return prompt.show()
@@ -549,8 +556,9 @@ export default class ConceptCreator {
       return Promise.reject();
     }
 
+    const brandMapping = this.parent.mapping;
     const prompt = new ConceptSelectionService({
-      promptTitle: `Import Concept as Rule (${codingSystemName})`,
+      promptTitle: `Import ${brandMapping.concept} as Rule (${codingSystemName})`,
       template: this.template?.id,
       allowMultiple: false,
       entity_id: this.entity?.id,
@@ -677,10 +685,6 @@ export default class ConceptCreator {
    * @returns {promise} a promise that resolves with the template's option/source data if successful
    */
   tryQueryOptionsParameter(param) {
-    if (!isNullOrUndefined(this.coding_data)) {
-      return Promise.resolve(this.coding_data);
-    }
-
     const parameters = new URLSearchParams({
       parameter: param,
       template: this.template?.id,
@@ -696,11 +700,7 @@ export default class ConceptCreator {
         }
       }
     )
-    .then(response => response.json())
-    .then(response => {
-      this.coding_data = response?.result;
-      return this.coding_data;
-    });
+    .then(response => response.json());
   }
   
   /**
@@ -1145,7 +1145,7 @@ export default class ConceptCreator {
    * @param {boolean} forceUpdate whether to force update the codelist
    */
   #toggleConcept(target, forceUpdate) {
-    const conceptGroup = tryGetRootElement(target, 'concept-list__group');
+    const conceptGroup = tryGetRootElement(target, '.concept-list__group');
     const conceptId = conceptGroup.getAttribute('data-concept-id');
     const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
@@ -1209,9 +1209,14 @@ export default class ConceptCreator {
    * @returns {node} the rendered concept group
    */
   #tryRenderConceptComponent(concept) {
+    let urlTarget = this?.parent?.mapping?.phenotype_url;
+    if (!stringHasChars(urlTarget)) {
+      urlTarget = 'phenotypes';
+    }
+
     const template = this.templates['concept-item'];
     const access = this.#deriveEditAccess(concept);
-    const phenotype_version_url = `${window.location.origin}/phenotypes/${concept.details.phenotype_owner}/version/${concept.details.phenotype_owner_history_id}/detail`;
+    const phenotype_version_url = `${getBrandedHost()}/${urlTarget}/${concept.details.phenotype_owner}/version/${concept.details.phenotype_owner_history_id}/detail`;
   
     const isImportedItem = concept?.details?.phenotype_owner && !!concept?.details?.requested_entity_id && concept?.details?.phenotype_owner !== concept?.details?.requested_entity_id;
     const html = interpolateString(template, {
@@ -1232,7 +1237,7 @@ export default class ConceptCreator {
 
     const containerList = this.element.querySelector('#concept-content-list');
     const doc = parseHTMLFromString(html, true);
-    const conceptItem = containerList.appendChild(doc.body.children[0]);
+    const conceptItem = containerList.appendChild(doc[0]);
     conceptItem.setAttribute('live', true);
 
     const headerButtons = conceptItem.querySelectorAll('#concept-accordion-header span[role="button"]');
@@ -1337,36 +1342,73 @@ export default class ConceptCreator {
    */
   #fetchCodingOptions(dataset) {
     // Fetch coding system from server
-    const promise = this.tryQueryOptionsParameter('coding_system')
-      .then(codingSystems => {
-        // Build <select/> option HTML
-        let options = interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_HIDDEN_OPTION, {
-          'is_unselected': codingSystems.length  < 1,
-        });
+    let promise;
+    if (Array.isArray(this.coding_data) && this.coding_data.length > 0) {
+      promise = Promise.resolve({ result: this.coding_data });
+    } else {
+      promise = this.tryQueryOptionsParameter('coding_system');
+    }
 
-        // Sort alphabetically in desc. order
-        codingSystems.sort((a, b) => {
-          if (a.name < b.name) {
-            return -1;
+    let codingSystems;
+    return new Promise((resolve, reject) => {
+      promise
+        .then((response) => {
+          codingSystems = response?.result;
+          if (!Array.isArray(codingSystems)) {
+            reject(new Error(
+              'Failed to fetch valid Coding Systems from server',
+              { cause: { type: 'fetch', detail: 'coding_system', msg: 'Failed to retrieve coding systems, please try again.' }
+            }));
+
+            return;
+          }
+  
+          // Build <select/> option HTML
+          let options = interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_HIDDEN_OPTION, {
+            'is_unselected': codingSystems.length  < 1,
+          });
+  
+          // Sort alphabetically in desc. order
+          codingSystems.sort((a, b) => {
+            if (a.name < b.name) {
+              return -1;
+            }
+  
+            return (a.name > b.name) ? 1 : 0;
+          });
+      
+          // Build each coding system option
+          for (let i = 0; i < codingSystems.length; ++i) {
+            const item = codingSystems[i];
+            options += interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_ACTIVE_OPTION, {
+              'is_selected': item.value == dataset?.coding_system?.id,
+              'name': item.name,
+              'value': item.value,
+            });
+          }
+  
+          resolve(options);
+        })
+        .catch(e => {
+          if (isNullOrUndefined(e) || !(e instanceof Error)) {
+            e = new Error('Failed to retrieve coding system from server.');
           }
 
-          return (a.name > b.name) ? 1 : 0;
-        });
-    
-        // Build each coding system option
-        for (let i = 0; i < codingSystems.length; ++i) {
-          const item = codingSystems[i];
-          options += interpolateString(CONCEPT_CREATOR_DEFAULTS.CODING_DEFAULT_ACTIVE_OPTION, {
-            'is_selected': item.value == dataset?.coding_system?.id,
-            'name': item.name,
-            'value': item.value,
-          });
-        }
+          if (!isNullOrUndefined(e) && e instanceof Error && !isRecordType(e?.cause)) {
+            e.cause = {
+              type: 'fetch',
+              detail: 'coding_system',
+              msg: 'Failed to fetch coding systems, please try again.'
+            };
+          }
 
+          reject(e);
+        });
+    })
+      .then((options) => {
+        this.coding_data = codingSystems;
         return options;
       });
-
-    return promise;
   }
 
   /**
@@ -1460,20 +1502,8 @@ export default class ConceptCreator {
       }
     }
 
-    // Only disable/enable the coding selector if not updated via the change event
-    if (ignoreSelection) {
-      return;
-    }
-
-    // Don't allow users to reselect the coding system once we've created at least 1 rule + selected a system
-    const selector = editor.querySelector('#coding-system-select')
-    selector.disabled = hasCodingSystem;
-
-    // Only enable to change event if no coding system is present
-    if (hasCodingSystem) {
-      return;
-    }
-    selector.addEventListener('change', this.#handleCodingSelection.bind(this));
+    const selector = editor.querySelector('#coding-system-select');
+    selector.disabled = !this.state.data?.is_new;
   }
 
   /**
@@ -1504,7 +1534,7 @@ export default class ConceptCreator {
     });
 
     const doc = parseHTMLFromString(html, true);
-    const item = ruleList.appendChild(doc.body.children[0]);
+    const item = ruleList.appendChild(doc[0]);
     const input = item.querySelector('input[data-item="rule"]');
 
     // Add handler for each rule type, otherwise disable element
@@ -1683,6 +1713,7 @@ export default class ConceptCreator {
       ],
       classes: {
         wrapper: 'overflow-table-constraint',
+        container: 'datatable-container slim-scrollbar',
       },
       data: {
         headings: [
@@ -1708,11 +1739,12 @@ export default class ConceptCreator {
   /**
    * tryRenderEditor [async]
    * @desc async method to render the editor when a user enters the editor state
-   * @param {node} conceptGroup the concept group node related to the Concept being edited
-   * @param {object} dataset the concept dataset
+   * @param {node}   conceptGroup  the concept group node related to the Concept being edited
+   * @param {object} dataset       the concept dataset
+   * @param {object} codingSystems a set of available coding systems (selected by the concept)
    * @returns {node} the editor element
    */
-  async #tryRenderEditor(conceptGroup, dataset) {
+  async #tryRenderEditor(conceptGroup, dataset, codingSystems) {
     const conceptId = conceptGroup.getAttribute('data-concept-id');
     const historyId = conceptGroup.getAttribute('data-concept-history-id');
     
@@ -1727,23 +1759,22 @@ export default class ConceptCreator {
     accordion.classList.add('is-open');
     conceptGroup.setAttribute('editing', true);
 
-    const systemOptions = await this.#fetchCodingOptions(dataset);
     const template = this.templates['concept-editor'];
     const html = interpolateString(template, {
       'concept_name': strictSanitiseString(dataset?.details?.name),
       'coding_system_id': dataset?.coding_system?.id,
-      'coding_system_options': systemOptions,
+      'coding_system_options': codingSystems,
       'has_inclusions': false,
       'has_exclusions': false,
     });
 
     const doc = parseHTMLFromString(html, true);
-    const editor = conceptGroup.appendChild(doc.body.children[0]);
+    const editor = conceptGroup.appendChild(doc[0]);
     this.state.data = dataset;
     this.state.editor = editor;
     this.state.element = conceptGroup;
     this.state.editing = { id: conceptId, history_id: historyId };
-    this.#applyRulesetState({ id: dataset?.coding_system?.id, editor: editor});
+    this.#applyRulesetState({ id: dataset?.coding_system?.id, editor: editor });
     this.#tryRenderRulesets();
 
     // Handle name changing
@@ -1763,6 +1794,10 @@ export default class ConceptCreator {
 
     const confirmChanges = editor.querySelector('#confirm-changes');
     confirmChanges.addEventListener('click', this.#handleConfirmEditor.bind(this));
+
+    // Handle coding system selector
+    const selector = editor.querySelector('#coding-system-select');
+    selector.addEventListener('change', this.#handleCodingSelection.bind(this));
     
     // Render codelist
     this.#tryRenderAggregatedCodelist();
@@ -1873,7 +1908,13 @@ export default class ConceptCreator {
       }
 
       new Promise((resolve, reject) => {
-        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.RULE_DELETION)
+        window.ModalFactory.create({
+          title: CONCEPT_CREATOR_TEXT.RULE_DELETION.title,
+          content: interpolateString(
+            CONCEPT_CREATOR_TEXT.RULE_DELETION.content,
+            { brandMapping: this.parent.mapping }
+          )
+        })
         .then(resolve)
         .catch(reject);
       })
@@ -1903,14 +1944,89 @@ export default class ConceptCreator {
     }
 
     const target = e.target;
-    const selection = target.options[target.selectedIndex];
-    this.state.data.coding_system = {
-      id: parseInt(selection.value),
-      name: selection.text,
-      description: selection.text,
-    };
+    const dataset = this.state.data;
+    const selectedIndex = target.selectedIndex;
+    const currentSelection = dataset?.coding_system?.id ?? null;
 
-    this.#applyRulesetState({ id: selection.value, editor: this.state.editor, ignoreSelection: true });
+    let selection = target.options[selectedIndex];
+    if (isNullOrUndefined(selection)) {
+      if (isNullOrUndefined(currentSelection)) {
+        selection = selectedIndex;
+      } else {
+        for (let i = 0; i < target.options.length; ++i) {
+          const opt = target.options[i];
+          if (parseInt(opt.value) === currentSelection) {
+            selection = i
+            break;
+          }
+        }
+      }
+
+      target.selectedIndex = selection;
+      return;
+    }
+
+    const codingId = parseInt(selection.value);
+    if (codingId === currentSelection) {
+      return;
+    }
+
+    const hasUnsavedWork = !isNullOrUndefined(dataset) && (dataset?.aggregatedStateView?.length || dataset?.component?.length);
+    const hasCurrentSelection = !isNullOrUndefined(currentSelection);
+
+    let promise;
+    if (hasCurrentSelection && hasUnsavedWork) {
+      promise = window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CODING_CHANGE);
+    } else {
+      promise = new Promise((resolve) => resolve());
+    }
+
+    promise
+      .then(async () => {
+        if (hasCurrentSelection) {
+          dataset?.components?.splice?.(0, dataset?.components?.length);
+          dataset?.aggregatedStateView?.splice(0, dataset?.aggregatedStateView?.length);
+        }
+
+        dataset.coding_system = {
+          id: codingId,
+          name: selection.text,
+          description: selection.text,
+          selectedIndex: selectedIndex,
+        };
+
+        this.#applyRulesetState({ id: codingId, editor: this.state.editor });
+
+        await this.#recalculateExclusionaryRules();
+        this.#tryRenderRulesets();
+        this.#tryRenderAggregatedCodelist(true);
+      })
+      .catch((e) => {
+        if (!(e instanceof ModalFactory.ModalResults)) {
+          window.ToastFactory.push({
+            type: 'error',
+            message: 'Failed to change codelist, please try again.',
+            duration: 4000,
+          });
+
+          return console.error(e);
+        }
+
+        const action = e.name;
+        if (hasCurrentSelection && (action === 'Reject' || action === 'Cancel')) {
+          selection = selectedIndex;
+
+          for (let i = 0; i < target.options.length; ++i) {
+            const opt = target.options[i];
+            if (parseInt(opt.value) === currentSelection) {
+              selection = i;
+              break;
+            }
+          }
+
+          target.selectedIndex = selection;
+        }
+      });
   }
 
   /**
@@ -1927,6 +2043,8 @@ export default class ConceptCreator {
       e.stopPropagation();
 
       const value = strictSanitiseString(input.value);
+      input.value = value;
+
       if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
         input.classList.add('fill-accordion__name-input--invalid');
         return;
@@ -1949,13 +2067,13 @@ export default class ConceptCreator {
     const searchBtn = input.parentNode.querySelector('.code-text-input__icon');
     if (!isNullOrUndefined(searchBtn)) {
       searchBtn.addEventListener('click', (e) => {
-        input.dispatchEvent(new KeyboardEvent('keyup', { keyCode: CONCEPT_CREATOR_KEYCODES.ENTER }));
+        input.dispatchEvent(new KeyboardEvent('keyup', { code: 'Enter', keyCode: 13 }));
       });
     }
 
     input.addEventListener('keyup', (e) => {
-      const code = e.keyIdentifier || e.which || e.keyCode;
-      if (code != CONCEPT_CREATOR_KEYCODES.ENTER) {
+      const code = e.code;
+      if (code !== 'Enter') {
         return;
       }
 
@@ -2154,7 +2272,13 @@ export default class ConceptCreator {
           .then(result => {
             spinner = startLoadingSpinner();
             if (!this.#isConceptRuleImportDistinct(result, logicalType)) {
-              this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT});
+              this.#pushToast({
+                type: 'danger',
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT,
+                  { brandMapping: this.parent.mapping }
+                )
+              });
               return;
             }
 
@@ -2165,9 +2289,10 @@ export default class ConceptCreator {
               this.#tryAddNewRule(logicalType, sourceType, result);
               this.#pushToast({
                 type: 'success',
-                message: interpolateString(CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES, {
-                  code_len: result?.codelist.length.toLocaleString(),
-                })
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.ADDED_CONCEPT_CODES,
+                  { brandMapping: this.parent.mapping, code_len: result?.codelist.length.toLocaleString() }
+                )
               });
 
               return;
@@ -2180,7 +2305,13 @@ export default class ConceptCreator {
           })
           .catch(e => {
             if (!isNullOrUndefined(e)) {
-              this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.NO_CONCEPT_MATCH});
+              this.#pushToast({
+                type: 'danger',
+                message: interpolateString(
+                  CONCEPT_CREATOR_TEXT.NO_CONCEPT_MATCH,
+                  { brandMapping: this.parent.mapping }
+                )
+              });
               console.error(e);
               return;
             }
@@ -2209,6 +2340,8 @@ export default class ConceptCreator {
   #handleConceptNameChange(e) {
     const input = e.target;
     const value = strictSanitiseString(input.value);
+    input.value = value;
+
     if (!input.checkValidity() || isNullOrUndefined(value) || isStringEmpty(value)) {
       return;
     }
@@ -2225,7 +2358,7 @@ export default class ConceptCreator {
    * @param {event} e the associated event
    */
   #handleCancelEditor(e) {
-    const conceptGroup = tryGetRootElement(e.target, 'concept-list__group');
+    const conceptGroup = tryGetRootElement(e.target, '.concept-list__group');
     this.tryCloseEditor()
       .then((res) => {
         this.#toggleConcept(conceptGroup);
@@ -2247,12 +2380,24 @@ export default class ConceptCreator {
 
     // Validate the concept data
     if (isNullOrUndefined(data?.details?.name) || isStringEmpty(data?.details?.name)) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CONCEPT_NAME });
+      this.#pushToast({
+        type: 'danger',
+        message: interpolateString(
+          CONCEPT_CREATOR_TEXT.REQUIRE_CONCEPT_NAME,
+          { brandMapping: this.parent.mapping }
+        ),
+      });
       return;
     }
 
     if (isNullOrUndefined(data?.coding_system)) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM});
+      this.#pushToast({
+        type: 'danger',
+        message: interpolateString(
+          CONCEPT_CREATOR_TEXT.REQUIRE_CODING_SYSTEM,
+          { brandMapping: this.parent.mapping }
+        ),
+      });
       return;
     }
     
@@ -2329,8 +2474,8 @@ export default class ConceptCreator {
         }
       })
       .catch((e) => {
-        if (!isNullOrUndefined(e)) {
-          console.error(e);
+        if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+          console.error(`[ConceptCreator->handleConceptImporting] Failed with err:\n\n${e}\n`);
         }
       })
   }
@@ -2341,8 +2486,11 @@ export default class ConceptCreator {
    * @param {event} e the associated event 
    */
   #handleConceptCreation(e) {
+    let spinner;
     this.tryCloseEditor()
-      .then(() => {
+      .then(async () => {
+        spinner = startLoadingSpinner();
+
         const conceptIncrement = this.#getNextConceptCount();
         const concept = {
           is_new: true,
@@ -2350,16 +2498,60 @@ export default class ConceptCreator {
           concept_version_id: generateUUID(),
           components: [ ],
           details: {
-            name: `Concept ${conceptIncrement}`,
+            name: `Codelist ${conceptIncrement}`,
             has_edit_access: true,
           },
+        };
+
+        const codingRequest = await this.#fetchCodingOptions(concept)
+          .then(r => {
+            return { success: true, result: r };
+          })
+          .catch(e => {
+            if (!isNullOrUndefined(e) && e instanceof Error) {
+              const cause = e?.cause;
+              if (isRecordType(cause) && typeof cause?.message === 'string') {
+                return { success: false, result: e };
+              }
+            }
+
+            return {
+              success: false,
+              result: new Error(
+                'Failed to resolve data from server',
+                { cause: { type: 'fetch', detail: 'coding_system', msg: 'Failed to fetch results from server, please try again.' }}
+              ),
+            };
+          });
+
+        if (!codingRequest?.success) {
+          window.ToastFactory.push({
+            type: 'error',
+            message: codingRequest.result.cause.msg,
+            duration: 4000,
+          });
+
+          throw codingRequest.result;
+        }
+
+        if (!isNullOrUndefined(spinner)) {
+          spinner?.remove?.();
         }
 
         const conceptGroup = this.#tryRenderConceptComponent(concept);
-        this.#tryRenderEditor(conceptGroup, concept);
+        this.#tryRenderEditor(conceptGroup, concept, codingRequest.result);
         this.#toggleNoConceptBox(true);
       })
-      .catch(() => { /* User does not want to lose progress, sink edit request */ })
+      .catch((e) => {
+        if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+          console.error(`[ConceptCreator->handleConceptCreation] Failed with err:\n\n${e}\n`);
+        }
+      })
+      .finally(() => {
+        if (!isNullOrUndefined(spinner)) {
+          spinner?.remove?.();
+        }
+      });
   }
 
   /**
@@ -2369,11 +2561,13 @@ export default class ConceptCreator {
    */
   #handleEditing(target) {
     // If editing, prompt before continuing
+    let spinner, failed;
     return this.tryCloseEditor()
-      .then((res) => {
-        const spinner = startLoadingSpinner();
+      .then(async (res) => {
+        spinner = startLoadingSpinner();
+
         const [id, history_id] = res || [ ];
-        const conceptGroup = tryGetRootElement(target, 'concept-list__group');
+        const conceptGroup = tryGetRootElement(target, '.concept-list__group');
         const conceptId = conceptGroup.getAttribute('data-concept-id');
         const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
@@ -2387,10 +2581,55 @@ export default class ConceptCreator {
         let dataset = this.data.filter(concept => concept.concept_version_id == historyId && concept.concept_id == conceptId);
         dataset = deepCopy(dataset.shift());
 
-        this.#tryRenderEditor(conceptGroup, dataset);
-        spinner.remove();
+        const codingRequest = await this.#fetchCodingOptions(dataset)
+          .then(r => {
+            return { success: true, result: r };
+          })
+          .catch(e => {
+            if (!isNullOrUndefined(e) && e instanceof Error) {
+              const cause = e?.cause;
+              if (isRecordType(cause) && typeof cause?.message === 'string') {
+                return { success: false, result: e };
+              }
+            }
+
+            return {
+              success: false,
+              result: new Error(
+                'Failed to resolve data from server',
+                { cause: { type: 'fetch', detail: 'coding_system', msg: 'Failed to fetch results from server, please try again.' }}
+              ),
+            };
+          });
+
+        if (!codingRequest?.success) {
+          failed = true;
+          window.ToastFactory.push({
+            type: 'error',
+            message: codingRequest.result.cause.msg,
+            duration: 4000,
+          });
+
+          throw codingRequest.result;
+        }
+
+        if (!isNullOrUndefined(spinner)) {
+          spinner?.remove?.();
+        }
+
+        this.#tryRenderEditor(conceptGroup, dataset, codingRequest.result);
       })
-      .catch(() => { /* User does not want to lose progress, sink edit request */ })
+      .catch((e) => {
+        /* User does not want to lose progress, sink edit request */
+        if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+          console.error(`[ConceptCreator->handleEditing] Failed with err:\n\n${e}\n`);
+        }
+      })
+      .finally(() => {
+        if (spinner) {
+          spinner.remove();
+        }
+      });
   }
 
   /**
@@ -2401,15 +2640,24 @@ export default class ConceptCreator {
    */
   #handleDeletion(target) {
     if (this.state.editing) {
-      this.#pushToast({ type: 'danger', message: CONCEPT_CREATOR_TEXT.REQUIRE_EDIT_CLOSURE });
+      this.#pushToast({ type: 'danger', message: interpolateString(
+        CONCEPT_CREATOR_TEXT.REQUIRE_EDIT_CLOSURE,
+        { brandMapping: this.parent.mapping }
+      ) });
       return;
     }
 
     return new Promise((resolve, reject) => {
-        window.ModalFactory.create(CONCEPT_CREATOR_TEXT.CONCEPT_DELETION).then(resolve).catch(reject);
+        window.ModalFactory.create({
+          title: CONCEPT_CREATOR_TEXT.CONCEPT_DELETION.title,
+          content: interpolateString(
+            CONCEPT_CREATOR_TEXT.CONCEPT_DELETION.content,
+            { brandMapping: this.parent.mapping }
+          )
+        }).then(resolve).catch(reject);
       })
       .then(() => {
-        const conceptGroup = tryGetRootElement(target, 'concept-list__group');
+        const conceptGroup = tryGetRootElement(target, '.concept-list__group');
         const conceptId = conceptGroup.getAttribute('data-concept-id');
         const historyId = conceptGroup.getAttribute('data-concept-history-id');
 
@@ -2487,20 +2735,24 @@ export default class ConceptCreator {
         this.#tryUpdateRenderConceptComponents(updatedConcept.concept_id, updatedConcept.concept_version_id, true);
         this.#pushToast({
           type: 'success',
-          message: interpolateString(CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_SUCCESS, {
-            version: updatedConcept.concept_version_id.toString(),
-          })
+          message: interpolateString(
+            CONCEPT_CREATOR_TEXT.CONCEPT_RULE_IS_PRESENT,
+            { brandMapping: this.parent.mapping, version: updatedConcept.concept_version_id.toString() }
+          )
         });
       })
       .catch((e) => {
-        if (!isNullOrUndefined(e)) {
-          console.error(e);
-        }
+        if (!!e && !(e instanceof ModalFactory.ModalResults)) {
+          this.#pushToast({
+            type: 'danger',
+            message: interpolateString(
+              CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED,
+              { brandMapping: this.parent.mapping }
+            )
+          });
 
-        this.#pushToast({
-          type: 'danger',
-          message: CONCEPT_CREATOR_TEXT.CONCEPT_UPDATE_FAILED
-        });
+          console.error(`[ConceptCreator->handleConceptImportUpdate] Failed with err:\n\n${e}\n`);
+        }
       });
   }
 }

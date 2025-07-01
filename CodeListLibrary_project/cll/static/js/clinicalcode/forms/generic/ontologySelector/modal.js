@@ -168,15 +168,35 @@ export default class OntologySelectionModal {
     });
 
     let modal = parseHTMLFromString(html, true);
-    modal = document.body.appendChild(modal.body.children[0]);
+    modal = document.body.appendChild(modal[0]);
 
     let buttons = modal.querySelectorAll('#target-modal-footer > button');
     buttons = Object.fromEntries([...buttons].map(elem => {
       return [elem.getAttribute('id'), elem];
     }));
 
-    buttons.cancel.addEventListener('click', this.#handleCancel.bind(this));
-    buttons.confirm.addEventListener('click', this.#handleConfirm.bind(this));
+    let cancelHnd, escapeHnd;
+    cancelHnd = (e) => {
+      const willClose = this.#handleCancel(e);
+      if (willClose) {
+        document.removeEventListener('keyup', escapeHnd);
+      }
+    };
+
+    escapeHnd = (e) => {
+      const activeFocusElem = document.activeElement;
+      if (!!activeFocusElem && activeFocusElem.matches('input, textarea, button, select')) {
+        return;
+      }
+
+      if (e.code === 'Escape') {
+        cancelHnd(e);
+      }
+    };
+
+    document.addEventListener('keyup', escapeHnd);
+    buttons?.cancel?.addEventListener?.('click', cancelHnd);
+    buttons?.confirm?.addEventListener?.('click', this.#handleConfirm.bind(this));
 
     this.dialogue = {
       // elements
@@ -228,7 +248,7 @@ export default class OntologySelectionModal {
    */
   #handleCancel(e) {
     if (!this.isOpen()) {
-      return;
+      return false;
     }
 
     const event = new CustomEvent(
@@ -240,6 +260,7 @@ export default class OntologySelectionModal {
       }
     );
     this.dialogue?.element.dispatchEvent(event);
+    return true;
   }
   
   /**

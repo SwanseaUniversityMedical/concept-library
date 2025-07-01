@@ -1,7 +1,11 @@
 from django.http.request import HttpRequest
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 
 import enum
+
+
+User = get_user_model()
 
 
 class TypeStatus:
@@ -32,6 +36,27 @@ class IterableMeta(enum.EnumMeta):
             return lhs in cls.__members__.keys()
         else:
             return True
+
+
+class ORGANISATION_ROLES(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Defines organisation roles
+    """
+    MEMBER = 0
+    EDITOR = 1
+    MODERATOR = 2
+    ADMIN = 3
+
+
+class ORGANISATION_INVITE_STATUS(int, enum.Enum, metaclass=IterableMeta):
+    """
+        Defines organisation invite status
+    """
+    EXPIRED = 0
+    ACTIVE = 1
+    SEEN = 2
+    ACCEPTED = 3
+    REJECTED = 4
 
 
 class TAG_TYPE(int, enum.Enum):
@@ -146,6 +171,17 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     CLINICAL_DISEASE = 0
     CLINICAL_DOMAIN = 1
     CLINICAL_FUNCTIONAL_ANATOMY = 2
+    MESH_CODES = 3
+
+"""
+    Number of days before organisation invite expires
+"""
+INVITE_TIMEOUT = 30
+
+"""
+    Describes a set of names representing a float/double-like numeric value
+"""
+NUMERIC_NAMES = ['float', 'numeric', 'decimal', 'percentage']
 
 """
     Used to define the labels for each
@@ -153,6 +189,7 @@ class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
 
 """
 ONTOLOGY_LABELS = {
+    ONTOLOGY_TYPES.MESH_CODES: 'Medical Subject Headings (MeSH)',
     ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
     ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (SNOMED)',
     ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
@@ -252,7 +289,7 @@ DETAIL_WIZARD_OUTPUT_DIR = 'components/details/outputs'
     Used to strip userdata from models when JSONifying them
         e.g. user account, user profile, membership
 """
-USERDATA_MODELS = [str(User), str(Group)]
+USERDATA_MODELS = [str(User), str(Group), "<class 'clinicalcode.models.Organisation.Organisation'>"]
 STRIPPED_FIELDS = ['SearchVectorField']
 
 """
@@ -281,6 +318,7 @@ API_MAP_FIELD_NAMES = {
     Describes fields that should be stripped from entity list api response
 """
 ENTITY_LIST_API_HIDDEN_FIELDS = [
+    'deleted', 'created_by', 'updated_by', 'deleted_by', 'brands',
     'concept_information', 'definition', 'implementation'
 ]
 
@@ -347,7 +385,7 @@ APPENDED_SECTIONS = [
     {
         'title': 'Permissions',
         'description': 'Settings for sharing and collaboration.',
-        'fields': ['group', 'group_access', 'world_access']
+        'fields': ['organisation', 'world_access']
     }
 ]
 
@@ -385,7 +423,8 @@ DETAIL_PAGE_APPENDED_FIELDS = {
         'title': 'Permissions',
         'field_type': 'permissions_section',
         'active': True,
-        'hide_on_create': True
+        'hide_on_create': True,
+        'requires_auth': True
     },
     'api': {
         'title': 'API',
@@ -405,6 +444,14 @@ DETAIL_PAGE_APPENDED_FIELDS = {
         'active': True,
         'hide_on_create': True
     }
+}
+
+"""Default brand ctx content name mapping"""
+DEFAULT_CONTENT_MAPPING = {
+    'phenotype': 'Phenotype',
+    'phenotype_url': 'phenotypes',
+    'concept': 'Concept',
+    'concept_url': 'concepts',
 }
 
 """
@@ -437,7 +484,7 @@ metadata = {
     },
     'brands': {
         'title': 'Brand',
-        'description': 'The brand that this Phenotype is related to.',
+        'description': 'The brand that this entity is related to.',
         'field_type': '???',
         'active': True,
         'validation': {
@@ -571,7 +618,15 @@ metadata = {
                     'tag_type': 2,
 
                     ## Can be added once we det. what we're doing with brands
-                    # 'source_by_brand': None
+                    'source_by_brand': {
+                        'ADP': {
+                            'allowed_brands': [3],
+                            'allow_null': True,
+                        },
+                        'HDRUK': 'allow_null',
+                        'HDRN': True,
+                        'SAIL': False,
+                    },
                 }
             }
         },
@@ -599,7 +654,12 @@ metadata = {
                     'tag_type': 1,
 
                     ## Can be added once we det. what we're doing with brands
-                    # 'source_by_brand': None
+                    'source_by_brand': {
+                        'ADP': 'allow_null',
+                        'HDRUK': 'allow_null',
+                        'HDRN': True,
+                        'SAIL': False,
+                    },
                 }
             }
         },
@@ -609,13 +669,25 @@ metadata = {
         },
         'is_base_field': True
     },
-    'group': {
-        'title': 'Group',
-        'description': "The group that owns this Phenotype for permissions purposes (optional).",
+    'organisation': {
+        'title': 'Organisation',
+        'description': "The organisation that owns this entity for permissions purposes (optional).",
         'field_type': 'group_field',
         'active': True,
         'validation': {
-            'type': 'int',
+            'type': 'organisation',
+            'mandatory': False,
+            'computed': True
+        },
+        'is_base_field': True
+    },
+    'group': {
+        'title': 'Group',
+        'description': "The group that owns this entity for permissions purposes (optional).",
+        'field_type': 'group_field',
+        'active': False,
+        'validation': {
+            'type': 'group',
             'mandatory': False,
             'computed': True
         },
@@ -623,27 +695,43 @@ metadata = {
     },
     'group_access': {
         'title': 'Group Access',
-        'description': 'Optionally enable this Phenotype to be viewed or edited by the group.',
+        'description': 'Optionally enable this entity to be viewed or edited by the group.',
         'field_type': 'access_field_editable',
-        'active': True,
+        'active': False,
         'validation': {
             'type': 'int',
             'mandatory': True,
-            'range': [1, 3]
+            'range': [1, 3],
+            'default': 1
+        },
+        'is_base_field': True
+    },
+    'owner_access': {
+        'title': 'Owner Access',
+        'description': 'Owner permissions',
+        'field_type': 'access_field_editable',
+        'active': False,
+        'validation': {
+            'type': 'int',
+            'mandatory': True,
+            'range': [1, 3],
+            'default': 3
         },
         'is_base_field': True
     },
     'world_access': {
-        'title': 'All authenticated users',
-        'description': "Enables this Phenotype to be viewed by all logged-in users of the Library (does not make it public on the web -- use the Publish action for that).",
+        'title': 'Share with other organisations',
+        'description': "Enables this entity to be viewed by all logged-in users of the Library who are members of an Organisation.",
         'field_type': 'access_field',
         'active': True,
         'validation': {
             'type': 'int',
             'mandatory': True,
-            'range': [1, 3]
+            'range': [1, 3],
+            'default': 1
         },
-        'is_base_field': True
+        'is_base_field': True,
+        'hide_non_org_managed': True
     },
     'updated': {
         'title': 'Updated',
@@ -756,11 +844,40 @@ FIELD_TYPES = {
         'output_type': 'dropdown-list'
     },
 
+    'age_group': {
+        'input_type': 'generic/age_group',
+        'output_type': 'generic/age_group'
+    },
+
+    'single_slider': {
+        'data_type': 'string',
+        'input_type': 'single_slider',
+        'output_type': 'single_slider'
+    },
+
+    'double_range_slider': {
+        'data_type': 'string',
+        'input_type': 'double_range_slider',
+        'output_type': 'double_range'
+    },
+
     'grouped_enum': {
         'data_type': 'int',
         'input_type': 'grouped_enum',
         'output_type': 'radiobutton',
         'apply_badge_style': True
+    },
+
+    'list_enum': {
+        'data_type': 'int_array',
+        'input_type': 'list_enum',
+        'output_type': 'radiobutton',
+        'apply_badge_style': True
+    },
+
+    'contact_information': {
+        'input_type': 'clinical/contact_information',
+        'output_type': 'clinical/contact_information',
     },
 
     'ontology': {
@@ -800,6 +917,10 @@ FIELD_TYPES = {
         'input_type': 'clinical/trial',
         'output_type': 'clinical/trial',
     },
+    'references': {
+        'input_type': 'clinical/references',
+        'output_type': 'clinical/references',
+    },
     'coding_system': {
         'system_defined': True,
         'description': 'list of coding system ids (calculated from Phenotype concepts) (managed by code snippet)',
@@ -810,19 +931,25 @@ FIELD_TYPES = {
         'system_defined': True,
         'description': 'list of tags ids (managed by code snippet)',
         'input_type': 'tagbox',
-        'output_type': 'tagbox'
+        'output_type': 'tagbox',
+        'vis_vary_on_opts': True,
     },
     'collections': {
         'system_defined': True,
         'description': 'list of collections ids (managed by code snippet)',
         'input_type': 'tagbox',
-        'output_type': 'tagbox'
+        'output_type': 'tagbox',
+        'vis_vary_on_opts': True,
     },
     'data_sources': {
         'system_defined': True,
         'description': 'list of data_sources ids (managed by code snippet)',
         'input_type': 'tagbox',
-        'output_type': 'data_source'
+        'output_type': 'data_source',
+    },
+    'data_assets': {
+        'input_type': 'data_assets',
+        'output_type': 'data_assets',
     },
     'phenoflowid': {
         'system_defined': True,
@@ -871,5 +998,53 @@ FIELD_TYPES = {
         'data_type': 'string',
         'input_type': 'inputbox',
         'output_type': 'source_reference'
+    },
+    'model_relations': {
+        'input_type': 'tagbox',
+        'output_type': 'tagbox',
+    },
+    'validation_measures': {
+        'input_type': 'var_selector',
+        'output_type': 'var_selector',
+        'appearance': {
+            'txt': {
+                'single': 'Validation Measure',
+                'plural': 'Validation Measures',
+            },
+            'add_btn': {
+                'label': 'Create new Measure',
+                'icon': '&#xf1ec;',
+            },
+            'clear_btn': {
+                'label': 'Clear all Measures',
+                'icon': '&#xf2ed;',
+            },
+        },
+    },
+    'srv_list': {
+        'input_type': 'var_selector',
+        'output_type': 'var_selector',
+        'appearance': {
+            'txt': {
+                'single': 'Variable',
+                'plural': 'Variables',
+            },
+            'add_btn': {
+                'label': 'Create new Variable',
+                'icon': '&#xf698;',
+            },
+            'clear_btn': {
+                'label': 'Clear all Variables',
+                'icon': '&#xf2ed;',
+            },
+        },
+    },
+    'indicator_calculation': {
+        'input_type': 'indicator_calculation',
+        'output_type': 'indicator_calculation',
+    },
+    'related_entities': {
+        'input_type': 'related_entities',
+        'output_type': 'related_entities',
     },
 }

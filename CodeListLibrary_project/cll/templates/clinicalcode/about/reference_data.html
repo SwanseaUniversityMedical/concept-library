@@ -17,6 +17,7 @@
 
   <!-- Dependencies -->
   {% compress js %}
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
     <script type="module" src="{% static 'js/clinicalcode/services/referenceDataService.js' %}"></script>
   {% endcompress %}
 
@@ -26,40 +27,62 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container">
         <h2 class="banner__title">Reference Data</h2>
         <p class="banner__description">
-          Look up values for phenotype fields.
+          Look up values for {{ brand_mapping.phenotype }} fields.
         </p>
         <div class="banner__cards">
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
             {% url 'api:root' as api_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ api_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                role="button"
+                aria-label="Visit API documentation">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ api_url }}">API Documentation<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
                 <p>View the API documentation.</p>
               </div>
             </article>
             {% url 'create_phenotype' as create_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            {% if USER_CREATE_CONTEXT %}
+              <article
+                  class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                  data-target="{{ create_url }}"
+                  onclick="redirectToTarget(this, event);"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Create a {{ brand_mapping.phenotype }}">
+                <div class="referral-card__header">
+                  <p class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></p>
+                </div>
+                <div class="referral-card__body">
+                  <p>Start here to contribute to the {{ base_page_title }}.</p>
+                </div>
+              </article>
+            {% endif %}
+            {% url 'search_entities' as search_url %}
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ search_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                role="button"
+                aria-label="Visit {{ brand_mapping.phenotype }} Search">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ search_url }}">Search {{ brand_mapping.phenotype }}s<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
-                <p>Start here to contribute to the Library.</p>
-              </div>
-            </article>
-            {% url 'search_phenotypes' as search_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-              <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
-              </div>
-              <div class="referral-card__body">
-                <p>Find Phenotypes within the Library.</p>
+                <p>Find {{ brand_mapping.phenotype }}s within the {{ base_page_title }}.</p>
               </div>
             </article>
           </div>
@@ -71,45 +94,36 @@
   <main class="main-content">
     <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
       <article class="reference-collection">
-        <section class="reference-collection__inner-container" id="tags">
-          {% if tags %}
-            {% to_json_script tags data-owner="reference-data-service" name="tags" desc-type="text/json" %}
-          {% endif %}
-          <h3>Tags</h3>
-          <p>Optional keywords helping to categorize this content.</p>
-          <div class="reference-collection__table-container constrained-codelist-table" id="tags-area">
-
+        {% if templates %}
+          <div class="selection-group">
+            <p class="selection-group__title">Template:</p>
+            <select
+              id="template-selector"
+              placeholder-text="Select Template"
+              data-class="option"
+              data-element="dropdown">
+              {% for key, value in templates.items %}
+                {% if forloop.first %}
+                  <option 
+                    value="{{ value.id }}" 
+                    class="dropdown-selection__list-item" 
+                    selected>
+                    {{ key }}
+                  </option>
+                {% else %}
+                  <option 
+                    value="{{ value.id }}" 
+                    class="dropdown-selection__list-item">
+                    {{ key }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
           </div>
-        </section>
-        <section class="reference-collection__inner-container" id="collections">
-          {% if collections %}
-            {% to_json_script collections data-owner="reference-data-service" name="collections" desc-type="text/json" %}
-          {% endif %}
-          <h3>Collections</h3>
-          <p>List of content collections this phenotype belongs to.</p>
-          <div class="reference-collection__table-container constrained-codelist-table" id="collections-area">
+        {% endif %}
 
-          </div>
-        </section>
-        <section class="reference-collection__inner-container" id="coding_system">
-          {% if coding_system %}
-            {% to_json_script coding_system data-owner="reference-data-service" name="coding_system" desc-type="text/json" %}
-          {% endif %}
-          <h3>Coding Systems</h3>
-          <p>Clinical coding system(s) that relate to Phenotypes.</p>
-          <div class="reference-collection__table-container constrained-codelist-table" id="coding-systems-area">
-
-          </div>
-        </section>
-        <section class="reference-collection__inner-container" id="data_sources">
-          {% if data_sources %}
-            {% to_json_script data_sources data-owner="reference-data-service" name="data_sources" desc-type="text/json" %}
-          {% endif %}
-          <h3>Data Sources</h3>
-          <p>Data sources the phenotype creators have run this phenotype against; or view as appropriate to use this phenotype for.</p>
-          <div class="reference-collection__table-container constrained-codelist-table" id="data-sources-area">
-
-          </div>
+        <section class="reference-collection__inner-container" id="template-fields">
+          {% to_json_script default_data data-owner="reference-data-service" name="default-data" desc-type="text/json" %}
         </section>
 
         {% if ontology_groups %}
@@ -117,7 +131,7 @@
             {% to_json_script ontology_groups data-owner="reference-data-service" name="ontology-groups" desc-type="text/json" %}
 
             <h3>Ontology</h3>
-            <p>A set of taggable categories and concepts that describes a Phenotype.</p>
+            <p>A set of taggable categories and concepts that describes a {{ brand_mapping.phenotype }}.</p>
 
             <div class="reference-collection__table-container constrained-codelist-table" id="ontology-area" type="tree">
               <div class="tab-view" id="tab-view">
@@ -134,6 +148,19 @@
 
       </article>
     </div>
+
+    <!-- Templates -->
+    <template data-name="reference-data">
+      <section class="reference-collection__inner-container" id="tags">
+        <h3>${name}</h3>
+        <p>${description}</p>
+        <div 
+          id="ref-container"
+          class="reference-collection__table-container constrained-codelist-table">
+
+        </div>
+      </section>
+    </template>
   </main>
 
 {% endblock container %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% load static %}
 {% load compress %}
 {% load sass_tags %}
@@ -16,28 +17,30 @@
   <script type="text/javascript" src="{% static 'js/clinicalcode/components/homeCounter.js' %}"></script>
 {% endcompress %}
 
+{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 <header class="main-header main-header--collapse homepage-hero-banner">
+  {% get_brand_map_rules as brand_mapping %}
   <div
     class="main-header__inner-container main-header__inner-container--constrained main-header__inner-container--centred">
     <section class="homepage-hero">
       <div class="homepage-hero__container">
         <div class="homepage-hero__details">
           <h1>
-            Concept Library
+            {{ base_page_title }}
           </h1>
           <h2>
-            The Concept Library is a system for storing, managing, sharing, and documenting clinical code lists in health research.
+            {% get_brand_base_desc request.BRAND_OBJECT %}
           </h2>
           <p>
             Our goal is to create a system that describes research study designs in a machine-readable format to facilitate rapid study development;
             higher quality research; easier replication; and sharing of methods between researchers, institutions, and countries.
           </p>
         </div>
-        <form class="homepage-hero__search" action="{% url 'search_phenotypes' %}" method="GET">
-          <input class="homepage-hero__search-input" aria-label="Search Phenotypes" type="text"
+        <form class="homepage-hero__search" action="{% url 'search_entities' %}" method="GET">
+          <input class="homepage-hero__search-input" aria-label="Search {{ brand_mapping.phenotype }}s" type="text"
             id="data-search" name="search" placeholder="Search..." minlength="3">
           <button class="homepage-hero__search-icon" tabindex="0" 
-            name="page" value="1" aria-label="Go to Phenotype Search">
+            name="page" value="1" aria-label="Go to {{ brand_mapping.phenotype }} Search">
           </button>
         </form>
       </div>
@@ -63,14 +66,14 @@
             <div class="homepage-statistics__card-content">
               <header class="homepage-statistics__card-header">
                 <p>
-                  Phenotypes
+                  {{ brand_mapping.phenotype }}s
                 </p>
                 <p id="entity-counter" x-value="{{ published_phenotype_count }}" x-init="countup">
                   {{ published_phenotype_count|stylise_number }}
                 </p>
               </header>
               <p class="homepage-statistics__card-text">
-                A Phenotype defines how to measure real-world attributes of human health in data
+                A {{ brand_mapping.phenotype }} defines how to measure real-world attributes of human health in data.
               </p>
             </div>
           </div>
@@ -78,14 +81,14 @@
             <div class="homepage-statistics__card-content">
               <header class="homepage-statistics__card-header">
                 <p>
-                  Concepts
+                  {{ brand_mapping.concept }}s
                 </p>
                 <p id="entity-counter" x-value="{{ published_concept_count }}" x-init="countup">
                   {{ published_concept_count|stylise_number }}
                 </p>
               </header>
               <p class="homepage-statistics__card-text">
-                Concepts are individual lists of clinical codes defining a condition, treatment, and so forth
+                {{ brand_mapping.concept }} are individual lists of clinical codes defining a condition, treatment, and so forth.
               </p>
             </div>
           </div>
@@ -100,7 +103,7 @@
                 </p>
               </header>
               <p class="homepage-statistics__card-text">
-                Data sources are datasets against which phenotypes may be defined - for example, 
+                Data sources are datasets against which {{ brand_mapping.phenotype }}s may be defined - for example, 
                 routinely collected health datasets.
               </p>
             </div>
@@ -116,7 +119,7 @@
                 </p>
               </header>
               <p class="homepage-statistics__card-text">
-                Clinical codes are the 'words' in standardized languages used to create electronic health records
+                Clinical codes are the 'words' in standardized languages used to create electronic health records.
               </p>
             </div>
           </div>
@@ -132,7 +135,7 @@
               </header>
               <p class="homepage-statistics__card-text">
                 Clinical Coding Systems are the languages used to capture electronic health records 
-                in a standardized format
+                in a standardized format.
               </p>
             </div>
           </div>
@@ -159,7 +162,7 @@
               </div>
             </div>
             <div class="homepage-about__brand-footer">
-              <a class="homepage-about__brand-anchor" href="/{{ obj.name }}">
+              <a class="homepage-about__brand-anchor" href="{% get_brand_base_website brand=obj %}" target=_blank>
                 View Site 
                 <span class="homepage-about__brand-anchor-icon"></span>
               </a>
@@ -172,20 +175,25 @@
           What do we do?
         </h3>
         <p>
-          The Concept Library is an open source software application enabling researchers to create, 
+          The {{ base_page_title }} is an open source software application enabling researchers to create, 
           document and share definitions and algorithms that are used in health data research.
           This tool serves as a key enabler to the open research agenda, driving efficient, high 
           quality, and repeatable research.  
         </p>
         <p>
-          For example, the <a href="https://www.go-fair.org/fair-principles/">FAIR principles</a> state that 
+          For example, the <a href="https://www.go-fair.org/fair-principles/" target=_blank>FAIR principles</a> state that 
           digital assets used in research should be <em>"Findable, Accessible, Interoperable, and Reusable"</em>.
-          The Library implements a solution to those goals within the electronic phenotype space. 
+          The {{ base_page_title }} implements a solution to those goals within the electronic {{ brand_mapping.phenotype }} space. 
         </p>
         <p>
-          Originally developed by the SAIL Databank team, the Concept Library has been adopted as 
-          a sharing solution by multiple organizations, including Health Data Research UK. 
-          A multi-institutional, interdisciplinary team is responsible for ongoing development.
+          Originally developed by the SAIL Databank team, the {{ base_page_title }} has been adopted as 
+          a sharing solution by multiple organizations, including
+          {% if request.CURRENT_BRAND != '' %}
+            HDRN.
+          {% else %}
+            Health Data Research UK. 
+            A multi-institutional, interdisciplinary team is responsible for ongoing development.
+          {% endif %}
         </p>
 
         <div class="homepage-about__info-buttons">
@@ -220,7 +228,7 @@
                 Build
               </span>
               <span class="homepage-features__details-text">
-                Build codelists from our wide range of coding systems to define your phenotypes and concepts.
+                Build codelists from our wide range of coding systems to define your {{ brand_mapping.phenotype }}s and {{ brand_mapping.concept }}s.
               </span>
             </div>
           </div>
@@ -231,7 +239,7 @@
                 Repository
               </span>
               <span class="homepage-features__details-text">
-                Store code lists along with metadata that captures important information about quality, author, etc.
+                Store codelists along with metadata that captures important information about quality, author, etc.
               </span>
             </div>
           </div>
@@ -242,7 +250,7 @@
                 Versioning
               </span>
               <span class="homepage-features__details-text">
-                Store version history and provide a way to unambiguously reference a particular version of a code list.
+                Store version history and provide a way to unambiguously reference a particular version of a codelist.
               </span>
             </div>
           </div>
@@ -264,7 +272,7 @@
                 Sharing
               </span>
               <span class="homepage-features__details-text">
-                Provide a mechanism for sharing code lists between projects and organizations.
+                Provide a mechanism for sharing codelists between projects and organizations.
               </span>
             </div>
           </div>
@@ -294,28 +302,30 @@
         <div class="homepage-carousel__items">
           <div class="homepage-carousel__item">
             <span class="homepage-carousel__item-subtitle">
-              Explore Phenotypes
+              Explore {{ brand_mapping.phenotype }}s
             </span>
             <span class="homepage-carousel__item-text">
-              View the Library's Phenotypes.
+              View the {{ base_page_title }}'s {{ brand_mapping.phenotype }}s.
             </span>
-            <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Search Phenotypes"
-              id="explore-btn" href="{% url 'search_phenotypes' %}">
+            <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Search {{ brand_mapping.phenotype }}s"
+              id="explore-btn" href="{% url 'search_entities' %}">
               Search
             </a>
           </div>
-          <div class="homepage-carousel__item">
-            <span class="homepage-carousel__item-subtitle">
-              Create a Phenotype
-            </span>
-            <span class="homepage-carousel__item-text">
-              Start here to contribute to the Library.
-            </span>
-            <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a Phenotype" 
-              id="create-btn" href="{% url 'create_phenotype' %}">
-              Create
-            </a>
-          </div>
+          {% if USER_CREATE_CONTEXT %}
+            <div class="homepage-carousel__item">
+              <span class="homepage-carousel__item-subtitle">
+                Create a {{ brand_mapping.phenotype }}
+              </span>
+              <span class="homepage-carousel__item-text">
+                Start here to contribute to the {{ base_page_title }}.
+              </span>
+              <a class="secondary-btn text-accent-darkest bold bubble-accent" aria-label="Create a {{ brand_mapping.phenotype }}" 
+                id="create-btn" href="{% url 'create_phenotype' %}">
+                Create
+              </a>
+            </div>
+          {% endif %}
         </div>
       </div>
     </section>
@@ -334,22 +344,22 @@
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              The Library stores phenotyping algorithms, metadata and tools only. No data is stored in the Library.
+              The {{ base_page_title }} stores phenotyping algorithms, metadata and tools only. No health data is stored in the {{ base_page_title }}.
             </p>
           </div>
         </div>
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              Phenotype definitions will be assigned a unique Digital Object Identifier (DOI) 
-              to facilitate identification of the phenotype.
+              {{ brand_mapping.phenotype }} definitions will be assigned a unique Digital Object Identifier (DOI) 
+              to facilitate identification of the {{ brand_mapping.phenotype }}.
             </p>
           </div>
         </div>
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              Ideally, phenotypes that are deposited in the Library will have undergone some form of 
+              Ideally, {{ brand_mapping.phenotype }}s that are deposited in the {{ base_page_title }} will have undergone some form of 
               peer-review to assess validity and quality either through peer-reviewed publication or 
               some other means of sharing the definition(s).
             </p>
@@ -357,16 +367,13 @@
         </div>
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
-            <p class="homepage-principles__details-text">
-              Users should cite the Phenotype Library in all publications,
-              presentations and reports as follows: “HDR UK CALIBER Phenotype Library https://portal.caliberresearch.org/”.
-            </p>
+            <pre class="homepage-principles__details-text">{% get_brand_citation_req as citation_block %}{{ citation_block|safe }}</pre>
           </div>
         </div>
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              All material deposited in the Library remain the intellectual property of the research group who created the phenotype(s)
+              All material deposited in the {{ base_page_title }} remain the intellectual property of the research group who created the {{ brand_mapping.phenotype }}(s)
               &#8208; the default licensing agreement that information is available under is the Creative Commons Attribution 4.0 (CC-A).
             </p>
           </div>
@@ -374,9 +381,9 @@
         <div class="homepage-principles__principle">
           <div class="homepage-principles__details">
             <p class="homepage-principles__details-text">
-              The aim of the Library is not to standardize or harmonize disease definitions,
-              therefore several phenotypes may be stored for the same condition and the onus is on
-              individual researchers to explore which phenotypes they wish to use.
+              The aim of the {{ base_page_title }} is not to standardize or harmonize disease definitions,
+              therefore several {{ brand_mapping.phenotype }}s may be stored for the same condition and the onus is on
+              individual researchers to explore which {{ brand_mapping.phenotype }}s they wish to use.
             </p>
           </div>
         </div>

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| {{instance.name}} {% endblock title %}
+
+{% block container %}
+  <!-- Vendor -->
+  <script src="{% static 'js/lib/moment.min.js' %}"></script>
+  <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
+
+  <!-- Dependencies -->
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/services/organisationService/view.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/organisations.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
+  <header class="main-header banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">{{instance.name}}</h2>
+        <p class="banner__description">
+          {{instance.description}}
+        </p>
+        <div class="banner__footer-items" tabindex="0" aria-label="Organisation email" >
+          {% if instance.email|length %}
+            {% if user.is_authenticated %}
+            <p>
+              <span class="email-icon"></span>
+              <a href="mailto:{{instance.email}}" aria-label="Contact email">
+                Contact us
+              </a>
+            </p>
+            {% else %}
+              <p>
+                <span class="email-icon"></span>
+                Sign in to see our e-mail
+              </p>
+            {% endif %}
+          {% endif %}
+          {% if instance.website|length %}
+            <p>
+              <span class="website-icon" tabindex="0" aria-label="Organisation website" ></span>
+              <a href="{{instance.website}}" rel="noopener" target="_blank" aria-label="View {{ instance.name}}'s website">
+                Find out more about us here
+              </a>
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="organisation-page">
+        <section class="organisation-page__section">
+          <article class="organisation-page__section__title">
+            <h3>Members</h3>
+            <div class="organisation-page__section__title__buttons">
+              {% if is_owner or is_admin %}
+                {% url 'manage_organisation' instance.slug as manage_url %}
+                <button role="link" 
+                        class="primary-btn bold dropdown-btn__label" 
+                        aria-label="Manage Organisation" 
+                        id="manage-btn"
+                        onClick="window.location.href='{{ manage_url }}';">
+                  Manage
+                </button>
+              {% endif %}
+              {% if is_member %}
+                <button role="link" 
+                        class="primary-btn bold dropdown-btn__label text-danger" 
+                        aria-label="Leave Organisation" 
+                        id="leave-btn"
+                        onClick="">
+                  Leave
+                </button>
+              {% endif %}
+            </div>
+          </article>
+          <article class="organisation-page__section__body row organisation-page__section--constrained slim-scrollbar">
+            <div class="organisation-page__section__body__collaborator">
+              {{instance.owner.username}}
+            </div>
+            {% for member in members %}
+              <div class="organisation-page__section__body__collaborator">
+                {{member.user.username}}
+              </div>
+            {% endfor %}
+          </article>
+        </section>
+        <section class="organisation-page__section">
+          <article class="organisation-page__section__title">
+            <h3>Published {{ brand_mapping.phenotype }}s</h3>
+          </article>
+          <article class="organisation-page__section__body">
+            {% to_json_script published data-owner="organisation-service" page-type="PUBLISHED_COLLECTIONS" name="published" desc-type="text/json" %}
+            <section class="organisation-collection__none-available show" id="empty-collection">
+              <p class="organisation-collection__none-available-message">
+                This organisation hasn't published anything yet.
+              </p>
+            </section>
+            <div class="organisation-collection__table-container" id="published-area">
+  
+            </div>
+          </article>
+        </section>
+        {% if draft is not None %}
+          <section class="organisation-page__section">
+            <article class="organisation-page__section__title">
+              <h3>Draft {{ brand_mapping.phenotype }}s</h3>
+            </article>
+            <article class="organisation-page__section__body">
+              {% to_json_script draft data-owner="organisation-service" page-type="DRAFT_COLLECTIONS" name="draft" desc-type="text/json" %}
+              <div class="organisation-collection__table-container" id="draft-area">
+  
+              </div>
+            </article>
+          </section>
+        {% endif %}
+        {% if moderated is not None %}
+          <section class="organisation-page__section">
+            <article class="organisation-page__section__title">
+              <h3>{{ brand_mapping.phenotype }}s Awaiting Review</h3>
+            </article>
+            <article class="organisation-page__section__body">
+              {% to_json_script moderated data-owner="organisation-service" page-type="MODERATION_COLLECTIONS" name="moderated" desc-type="text/json" %}
+              <div class="organisation-collection__table-container" id="moderated-area">
+  
+              </div>
+            </article>
+          </section>
+        {% endif %}
+      </article>
+    </div>
+
+    {% to_json_script brand_mapping data-owner="organisation-service" id="mapping-data" name="mapping" desc-type="text/json" %}
+  </main>
+
+{% endblock container %}

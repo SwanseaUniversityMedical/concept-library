@@ -1,32 +1,68 @@
 from datetime import datetime
-from django.db.models import Q
-from django.utils.timezone import make_aware
-from django.db import connection, transaction
+from operator import is_not
+from difflib import SequenceMatcher as SM
+from functools import partial
+from django.db import transaction, connection
 from django.conf import settings
-from django.contrib import messages
 from django.urls import reverse
-from django.core.exceptions import BadRequest, PermissionDenied
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.shortcuts import render
+from django.utils.timezone import make_aware
 from rest_framework.reverse import reverse
+from django.core.exceptions import BadRequest, PermissionDenied
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.decorators import login_required
 
 import re
 import json
 import logging
+import dateutil
 
-from clinicalcode.entity_utils import permission_utils, gen_utils, create_utils
+from clinicalcode.entity_utils import permission_utils, gen_utils
+
 from clinicalcode.models.Tag import Tag
+from clinicalcode.models.Brand import Brand
 from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
 from clinicalcode.models.Phenotype import Phenotype
-from clinicalcode.models.WorkingSet import WorkingSet
 from clinicalcode.models.GenericEntity import GenericEntity
 from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
+from clinicalcode.models.Organisation import Organisation, OrganisationMembership
+
+from clinicalcode.models.HDRNSite import HDRNSite
+from clinicalcode.models.HDRNJurisdiction import HDRNJurisdiction
+from clinicalcode.models.HDRNDataAsset import HDRNDataAsset
+from clinicalcode.models.HDRNDataCategory import HDRNDataCategory
 
 logger = logging.getLogger(__name__)
 
+####       Const       ####
+BASE_LINKAGE_TEMPLATE = {
+    # all sex is '3' unless specified by user
+    'sex': '3',
+    # all PhenotypeType is 'Disease or syndrome' unless specified by user
+    'type': '2',
+    # all version is '1' for migration
+    'version': '1',
+}
+
 #### Dynamic Template  ####
+def try_parse_hdrn_datetime(obj, default=None):
+    if not isinstance(obj, dict):
+        return default
+
+    typed = obj.get('type')
+    value = obj.get('value')
+    if typed != 'datetime' or not isinstance(value, str) or gen_utils.is_empty_string(value):
+        return default
+
+    try:
+        result = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f')
+    except:
+        return default
+    else:
+        return make_aware(result)
+
 def sort_pk_list(a, b):
     pk1 = int(a.replace('PH', ''))
     pk2 = int(b.replace('PH', ''))
@@ -71,15 +107,6 @@ def compute_related_brands(pheno, default=''):
     
     related_brands = ','.join([str(x) for x in list(related_brands)])
     return "brands='{%s}' " % related_brands
-
-BASE_LINKAGE_TEMPLATE = {
-    # all sex is '3' unless specified by user
-    'sex': '3',
-    # all PhenotypeType is 'Disease or syndrome' unless specified by user
-    'type': '2',
-    # all version is '1' for migration
-    'version': '1',
-}
 
 def get_publications(concept):
     publication_doi = concept.publication_doi
@@ -733,6 +760,298 @@ def admin_update_phenoflowids(request):
     )
 
 @login_required
+def admin_upload_hdrn_assets(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_upload_hdrn_assets'),
+                'action_title': 'Upload HDRN Assets',
+                'hide_phenotype_options': False,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    try:
+        input_data = request.POST.get('input_data')
+        input_data = json.loads(input_data)
+    except:
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html',
+            {
+                'pk': -10,
+                'errorMsg': { 'message': 'Unable to read data provided' },
+                'action_title': 'Upload HDRN Assets',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    overrides = {
+        # Dashboard statistics retrieval
+        "stats_context": "^/HDRN.*$",
+        # Dashboard renderable / manageable assets
+        "asset_rules": {
+            # Global assets
+            "template": {"model": "Template", "target": "TemplateTarget", "endpoint": "TemplateEndpoint"},
+            "tags": {"model": "Tag", "target": "TagTarget", "subtype": "all", "endpoint": "TagEndpoint"},
+            # HDRN specific assets
+            "sites": {"model": "HDRNSite", "target": "HDRNSiteTarget", "endpoint": "HDRNSiteEndpoint"},
+            "category": {"model": "HDRNDataCategory", "target": "HDRNDataCategoryTarget", "endpoint": "HDRNDataCategoryEndpoint"},
+            "data_assets": {"model": "HDRNDataAsset", "target": "HDRNDataAssetTarget", "endpoint": "HDRNDataAssetEndpoint"},
+            "jurisdictions": {"model": "HDRNJurisdiction", "target": "HDRNJurisdictionTarget", "endpoint": "HDRNJurisdictionEndpoint"}
+        },
+        # Controls how Brand ctx is computed for entities on creation
+        "ignore_collection_ctx": True,
+        # Controls the visibility of Templates and related content (e.g. Collections, Tags, etc)
+        "content_visibility": None,
+        # Controls entity name mapping
+        "content_mapping": {
+            "phenotype": "Concept",
+            "phenotype_url": "concepts",
+            "concept": "Codelist",
+            "concept_url": "codelists",
+        },
+    }
+
+    brand_data = {
+        'name': 'HDRN',
+        'site_title': 'Concept Dictionary',
+        'description': (
+            'Health Data Research Network Canada (HDRN Canada) is a pan-Canadian network of member '
+            'organizations that either hold linkable health and health-related data for entire populations '
+            'and/or have mandates and roles relating directly to access or use of those data. '
+        ),
+        'website': 'https://www.hdrn.ca',
+        'logo_path': 'img/brands/HDRN/',
+        'index_path': 'clinicalcode/index.html',
+        'footer_images': [
+            {"url": "https://www.hdrn.ca", "brand": "HDRN",
+                "image_src": "img/Footer_logos/HDRN_logo.png"},
+            {"url": "https://conceptlibrary.saildatabank.com/", "brand": "Concept Library",
+                "image_src": "img/Footer_logos/concept_library_on_white.png"},
+            {"url": "http://saildatabank.com", "brand": "SAIL Databank ",
+                "image_src": "img/Footer_logos/SAIL_alt_logo_on_white.png"}
+        ],
+        'overrides': overrides,
+        'org_user_managed': True,
+        'is_administrable': True,
+    }
+
+    with transaction.atomic():
+        brand = Brand.objects.filter(name__iexact='HDRN')
+        if brand.exists():
+            brand = brand.first()
+            brand.__dict__.update(**brand_data)
+            brand.save()
+        else:
+            brand = Brand.objects.create(**brand_data)
+
+        models = {}
+        metadata = input_data.get('metadata')
+        for key, data in metadata.items():
+            result = None
+            match key:
+                case 'site':
+                    '''HDRNSite'''
+                    result = HDRNSite.objects.bulk_create([
+                        HDRNSite(name=v.get('name'), abbreviation=v.get('abbreviation'))
+                        for v in data
+                    ])
+                case 'jurisdictions':
+                    '''HDRNJurisdiction'''
+                    result = HDRNJurisdiction.objects.bulk_create([
+                        HDRNJurisdiction(name=v.get('name'), abbreviation=v.get('abbreviation'))
+                        for v in data
+                    ])
+                case 'categories':
+                    '''HDRNDataCategory'''
+                    result = HDRNDataCategory.objects.bulk_create([HDRNDataCategory(name=v) for v in data])
+                case 'tags':
+                    '''Tag (tag_type=1)'''
+                    result = Tag.objects.bulk_create([Tag(description=v, tag_type=1, collection_brand=brand) for v in data])
+                case 'collections':
+                    '''Tag (tag_type=2)'''
+                    result = Tag.objects.bulk_create([Tag(description=v, tag_type=2, collection_brand=brand) for v in data])
+                case _:
+                    pass
+
+            if result is not None:
+                models.update({ key: result })
+
+        now = make_aware(datetime.now())
+        assets = input_data.get('assets')
+        to_create = []
+        to_regions = []
+
+        for data in assets:
+            site = data.get('site')
+            cats = data.get('data_categories')
+            regions = data.get('region')
+
+            if isinstance(cats, list):
+                cats = [models.get('tags')[v - 1].id for v in cats if models.get('tags')[v - 1] is not None]
+
+            if isinstance(regions, str):
+                rlkup = models.get('jurisdictions')
+
+                reg = []
+                regions = regions.split(',')
+                for region in regions:
+                    match = [{ 'item': x, 'score': SM(None, region.strip(), x.name).ratio() } for x in rlkup]
+                    match.sort(key=lambda x:x.get('score'), reverse=True)
+
+                    match = match[0] if len(match) > 0 else None
+                    if match and match.get('item') is not None:
+                        reg.append(match.get('item'))
+
+                if len(reg) > 0:
+                    regions = reg
+            else:
+                regions = None
+            to_regions.append(regions)
+
+            site = next((x for x in models.get('site') if x.id == site), None) if isinstance(site, int) else None
+            created_date = try_parse_hdrn_datetime(data.get('created_date', None), default=now)
+            modified_date = try_parse_hdrn_datetime(data.get('modified_date', None), default=now)
+
+            to_create.append(HDRNDataAsset(
+                name=data.get('name'),
+                description=data.get('description'),
+                hdrn_id=data.get('hdrn_id'),
+                hdrn_uuid=data.get('hdrn_uuid'),
+                site=site,
+                link=data.get('link'),
+                years=data.get('years'),
+                scope=data.get('scope'),
+                purpose=data.get('purpose'),
+                collection_period=data.get('collection_period'),
+                data_level=data.get('data_level'),
+                data_categories=cats,
+                created=created_date,
+                modified=modified_date
+            ))
+
+        models.update({ 'assets': HDRNDataAsset.objects.bulk_create(to_create) })
+
+        for i, asset in enumerate(models.get('assets')):
+            regions = to_regions[i]
+            if not isinstance(regions, list):
+                continue
+            asset.regions.set(regions)
+
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html',
+            {
+                'pk': -10,
+                'rowsAffected' : { k: len(v) for k, v in models.items() },
+                'action_title': 'Upload HDRN Assets',
+                'hide_phenotype_options': True,
+            }
+        )
+
+@login_required
+def admin_update_phenoflow_targets(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_update_phenoflow_targets'),
+                'action_title': 'Update Phenoflow Targets',
+                'hide_phenotype_options': False,
+            }
+        )
+
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    try:
+        input_data = request.POST.get('input_data')
+        input_data = json.loads(input_data)
+    except:
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html',
+            {
+                'pk': -10,
+                'errorMsg': { 'message': 'Unable to read data provided' },
+                'action_title': 'Update Phenoflow Targets',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    with connection.cursor() as cursor:
+        sql = f'''
+        update public.clinicalcode_genericentity as trg
+           set template_data['phenoflowid'] = to_jsonb(src.target)
+          from (
+            select *
+            from jsonb_to_recordset(
+                '{json.dumps(input_data)}'::jsonb
+            ) as x(id varchar, source int, target varchar)
+          ) as src
+         where trg.id = src.id
+           and trg.template_data::jsonb ? 'phenoflowid';
+        '''
+        cursor.execute(sql)
+        entity_updates = cursor.rowcount
+
+        sql = f'''
+        update public.clinicalcode_historicalgenericentity as trg
+           set template_data['phenoflowid'] = to_jsonb(src.target)
+          from (
+            select *
+            from jsonb_to_recordset(
+                '{json.dumps(input_data)}'::jsonb
+            ) as x(id varchar, source int, target varchar)
+          ) as src
+         where trg.id = src.id
+           and trg.template_data::jsonb ? 'phenoflowid';
+        '''
+        cursor.execute(sql)
+        historical_updates = cursor.rowcount
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { 
+                '1': f'entities: {entity_updates}, historical: {historical_updates}' 
+            },
+            'action_title': 'Update Phenoflow Targets',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
 def admin_force_concept_linkage_dt(request):
     """
         Bulk updates unlinked Concepts such that they have a phenotype owner by creating
@@ -968,10 +1287,6 @@ def admin_mig_phenotypes_dt(request):
     
     elif request.method == 'POST':
         if not settings.CLL_READ_ONLY: 
-            code = request.POST.get('code')
-            if code.strip() != "6)r&9hpr_a0_4g(xan5p@=kaz2q_cd(v5n^!#ru*_(+d)#_0-i":
-                raise PermissionDenied
-    
             phenotype_ids = request.POST.get('phenotype_ids')
             phenotype_ids = phenotype_ids.strip().upper()
 
@@ -1323,6 +1638,173 @@ def admin_fix_breathe_dt(request):
                 'action_title': 'Fix Breathe',
             }
         )
+
+@login_required
+def admin_convert_entity_groups(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_convert_entity_groups'),
+                'action_title': 'Convert groups to organisations',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    GROUP_LOOKUP = {
+        2: 32,
+        6: 60,
+        7: 9,
+        12: 197,
+        13: 240
+    }
+
+    entities = GenericEntity.objects \
+        .filter(group_id__isnull=False)
+
+    entity_groups = entities \
+        .order_by('group_id') \
+        .distinct('group_id') \
+        .values_list('group_id', flat=True)
+
+    groups = Group.objects \
+        .filter(id__in=list(entity_groups))
+
+    for entity_group in entity_groups:
+        owner_id = GROUP_LOOKUP.get(entity_group)
+        if not owner_id:
+            continue
+
+        current_owner = User.objects.filter(id=owner_id)
+        if not current_owner.exists():
+            continue
+        current_owner = current_owner.first()
+
+        current_group = Group.objects.filter(id=entity_group)
+        if not current_group.exists():
+            continue
+        current_group = current_group.first()
+
+        current_members = User.objects.filter(groups=current_group) \
+            .exclude(id=owner_id)
+
+        org = Organisation.objects.create(
+            id=entity_group,
+            name=current_group.name,
+            owner=current_owner
+        )
+        for current_member in current_members:
+            member = OrganisationMembership.objects.create(
+                user_id=current_member.id,
+                organisation_id=org.id
+            )
+
+        current_entities = entities.filter(group_id=entity_group)
+        for entity in current_entities:
+            entity.organisation = org
+            entity.save()
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Convert groups to organisations',
+            'hide_phenotype_options': True,
+        }
+    )
+
+@login_required
+def admin_fix_icd_ca_cm_codes(request):
+    if settings.CLL_READ_ONLY: 
+        raise PermissionDenied
+    
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+    
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_fix_icd_ca_cm_codes'),
+                'action_title': 'Fix ICD-10 CA/CM codes',
+                'hide_phenotype_options': True,
+            }
+        )
+    
+    # post
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    with connection.cursor() as cursor:
+        cursor.execute('''
+            insert into public.clinicalcode_icd10cm_codes
+                select (select max("id") from public.clinicalcode_icd10cm_codes) + row_number() over (order by code) as id,
+                    code, description,
+                    CURRENT_TIMESTAMP as created_date
+                from (
+                    select replace(src.code, '.', '') as code, 
+                           src.description
+                    from public.clinicalcode_icd10_codes_and_titles_and_metadata as src
+                    left join public.clinicalcode_icd10cm_codes as trg
+                    on lower(replace(src.code, '.', '')) = lower(replace(trg.code, '.', ''))
+                    where length(replace(src.code, '.', '')) = 3
+                      and trg.code is null
+                    group by src.code, src.description
+                )
+                order by code;
+        ''')
+
+        cursor.execute('''
+            insert into public.clinicalcode_icd10ca_codes
+                select (select max("id") from public.clinicalcode_icd10ca_codes) + row_number() over (order by code) as id,
+                    code, description, long_desc,
+                    CURRENT_TIMESTAMP as created_date
+                from (
+                    select replace(src.code, '.', '') as code, 
+                           left(src.description, 128) as description,
+                           src.description as long_desc
+                    from public.clinicalcode_icd10_codes_and_titles_and_metadata as src
+                    left join public.clinicalcode_icd10ca_codes as trg
+                    on lower(replace(src.code, '.', '')) = lower(replace(trg.code, '.', ''))
+                    where length(replace(src.code, '.', '')) = 3
+                      and trg.code is null
+                    group by src.code, left(src.description, 128), src.description
+                )
+                order by code;
+        ''')
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'rowsAffected' : { '1': 'ALL'},
+            'action_title': 'Fix ICD-10 CA/CM codes',
+            'hide_phenotype_options': True,
+        }
+    )
 
 def get_serial_id():
     count_all = GenericEntity.objects.count()

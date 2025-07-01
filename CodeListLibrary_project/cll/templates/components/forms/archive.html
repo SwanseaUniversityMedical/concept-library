@@ -1,17 +1,21 @@
+{% load entity_renderer %}
+
+{% get_brand_map_rules as brand_mapping %}
 <form method="post" id="archive-form-area" class="base-form">
   {% csrf_token %}
   {{ form.entity_id }}
   <div class="detailed-input-group fill">
     <h3 class="detailed-input-group__title">
-      Please explain why you are deleting this Phenotype
+      Please explain why you are deleting this {{ brand_mapping.phenotype }}
       <span class="detailed-input-group__mandatory">*</span>
     </h3>
-    <p class="detailed-input-group__description">This will only be visible to the Concept Library team</p>
+    {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+    <p class="detailed-input-group__description">This will only be visible to the {{ base_page_title }} team</p>
     {{ form.comments }}
   </div>
   <div class="detailed-input-group fill">
     <h3 class="detailed-input-group__title">
-      Please re-enter the Phenotype ID to confirm deletion
+      Please re-enter the {{ brand_mapping.phenotype }} ID to confirm deletion
       <span class="detailed-input-group__mandatory">*</span>
     </h3>
     <p class="detailed-input-group__description">e.g. if you are deleting PH000, please enter 'PH000'</p>
