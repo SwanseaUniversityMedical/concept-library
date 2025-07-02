@@ -31,7 +31,7 @@ class UserSerializer(BaseSerializer):
 	"""Responsible for serialising the `User` model and to handle PUT/POST validation"""
 
 	# Const
-	MODERATOR_GROUP = Group.objects.get(name__iexact='Moderators')
+	_MOD_GROUP = None
 	EMAIL_PATTERN = _lazy_re_compile(r'\b([^\s\/@:"]+)(?<=[\w])@(\S+)\.([\w]+)\b', re.MULTILINE | re.IGNORECASE)
 
 	# Fields
@@ -73,6 +73,13 @@ class UserSerializer(BaseSerializer):
 			# RO | WO
 			'email': { 'required': True },
 		}
+
+	# Props
+	@property
+	def MODERATOR_GROUP(self):
+		if not hasattr(self, '_MOD_GROUP') or getattr(self, '_MOD_GROUP', None) is None:
+			setattr(self, '_MOD_GROUP', Group.objects.get(name__iexact='Moderators'))
+		return self._MOD_GROUP
 
 	# GET
 	def to_representation(self, instance):
