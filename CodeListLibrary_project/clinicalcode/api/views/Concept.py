@@ -106,7 +106,7 @@ def get_concepts(request):
             query_clauses.append(psycopg2.sql.SQL('''(org.id is not null and (org.id = any(%(org_ids)s::int[]) or lower(org.name) = any(%(org_names)s) or lower(org.slug) = any(%(org_names)s)))'''))
         elif len(org_ids) > 0:
             query_targets.update({ 'org_ids': org_ids })
-            query_clauses.append(psycopg2.sql.SQL('''entity.group_id = any(%(org_ids)s::int[])'''))
+            query_clauses.append(psycopg2.sql.SQL('''(org.id is not null and org.id = any(%(org_ids)s::int[]))'''))
         elif len(org_names) > 0:
             query_targets.update({ 'org_names': org_names })
             query_clauses.append(psycopg2.sql.SQL('''(org.id is not null and lower(org.name) = any(%(org_names)s) or lower(org.slug) = any(%(org_names)s))'''))

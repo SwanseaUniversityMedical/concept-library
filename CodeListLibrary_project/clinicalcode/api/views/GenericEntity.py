@@ -263,7 +263,7 @@ def get_generic_entities(request):
     # Finalise accessibility clause(s)
     user_id = None
     brand_ids = None
-    group_ids = None # [!] Change
+    group_ids = None
 
     brand = model_utils.try_get_brand(request)
     if brand is not None:
@@ -293,12 +293,13 @@ def get_generic_entities(request):
     if user:
         user_id = user.id
         user_clause = f'''{user_clause} or entity.owner_id = %(user_id)s'''
-
-        # [!] Change
-        groups = list(user.groups.all().values_list('id', flat=True))
+        groups = list(
+            set(user.owned_organisations.all().values_list('id', flat=True)) | \
+            set(user.organisationmembership_set.all().values_list('organisation__id', flat=True))
+        )
         if len(groups) > 0:
             group_ids = [ int(group) for group in groups if gen_utils.parse_int(group, default=None) ]
-            user_clause = f'''{user_clause} or (entity.group_id = any(%(group_ids)s) and entity.group_access = any(array[2, 3]))'''
+            user_clause = f'''{user_clause} or entity.organisation_id = any(%(group_ids)s)'''
 
     accessible_clauses.append(f'({user_clause})')
 
