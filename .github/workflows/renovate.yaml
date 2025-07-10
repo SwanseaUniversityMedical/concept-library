@@ -1,0 +1,23 @@
+name: Renovate
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [renovate]
+  schedule:
+    - cron: '50 * * * 1-5'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on:
+      labels: [self-hosted, linux, x64]
+      group: heavy
+
+    steps:
+      - uses: SwanseaUniversityMedical/workflows/.github/actions/renovate@v1.0.12-renovate-action
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+          config: '.github/renovate.js'

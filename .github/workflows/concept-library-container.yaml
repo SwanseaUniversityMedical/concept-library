@@ -1,0 +1,46 @@
+name: Build Concept Library Container
+
+on:
+  pull_request:
+    # Only consider PRs that change files for this asset, including ci scripts
+    paths:
+      - '.github/workflows/concept-library-container.yaml'
+      - './CodeListLibrary_project/**'
+      - './engagelens/**'
+      - './docker/**'
+  push:
+    # Only release off of release and maintenance branches for this asset
+    branches:
+      - 'master'
+    # Only consider pushes that change files for this asset, including ci scripts
+    paths:
+      - '.github/workflows/concept-library-container.yaml'
+      - './CodeListLibrary_project/**'
+      - './engagelens/**'
+      - './docker/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Needed to generate releases safely
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  concept-library-container:
+    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-container.yaml@v3.1.0-containers
+    with:
+      job-name: concept-library-container
+      registry: ${{ vars.HARBOR_REGISTRY }}
+      registry-user: ${{ vars.HARBOR_USER }}
+      registry-repo: ${{ vars.HARBOR_PROJECT }}/concept-library
+      release-tag-format: 'Concept-Library-${version}'
+      cosign-public-key: ${{ vars.COSIGN_PUBLIC_KEY }}
+      build-file: docker/app/app.Dockerfile
+    secrets:
+      cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+      registry-token: ${{ secrets.HARBOR_TOKEN }}

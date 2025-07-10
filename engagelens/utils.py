@@ -10,8 +10,20 @@ from sqlalchemy import create_engine
 
 from constants import BRAND_ENCODING
 
+def read_data_df(conn):
+    """
 
-def read_request_df(cursor):
+    @param conn:
+    @return:
+    """
+    phenotype_df = read_phenotype_df(conn)
+    request_df = read_request_df(conn)
+
+    return phenotype_df, request_df
+
+
+
+def read_request_df(conn):
     """Read request event data from the database.
 
         Args:
@@ -20,33 +32,28 @@ def read_request_df(cursor):
         Returns:
             DataFrame: A pandas DataFrame containing the request events.
     """
-    # Start building the CASE WHEN SQL string
-    case_when_statement = "CASE\n"
 
-    # Loop through the dictionary and create the WHEN conditions
-    for brand, value in BRAND_ENCODING.items():
-        case_when_statement += "    WHEN t.url LIKE '%{}%' THEN {}\n".format(brand, value)
-    # Add the ELSE 0 statement at the end
-    case_when_statement += "    ELSE 0\nEND AS brand"
     sql_query = f"""
                     SELECT 
                         t.user_id,  
                         t.query_string,
                         t.remote_ip,
                         t.url,
-                        CAST(t.datetime as DATE)  as date,  -- Convert datetime to date
-                        {case_when_statement}
+                        CAST(t.datetime as DATE)  as date
                     FROM 
-                        easyaudit_requestevent t;
+                        easyaudit_requestevent t
+                    WHERE 
+                        method = 'GET'
+                        
+                        
     """
-    cursor.execute(sql_query)
-    # Fetch the results as a list of dictionaries
-    results = cursor.fetchall()
+    request_df = pd.read_sql(sql_query, conn)
+    request_df['brand'] = request_df['url'].apply(lambda x: next((value for brand, value in BRAND_ENCODING.items() if brand in x), 0))
 
-    return results
+    return request_df
 
 
-def read_phenotype_df(cursor):
+def read_phenotype_df(conn):
     """Read phenotype data from the database.
 
         Args:
@@ -83,11 +90,9 @@ def read_phenotype_df(cursor):
             t.id = f.id;
         """
 
-    cursor.execute(sql_query)
-    # Fetch the results as a list of dictionaries
-    results = cursor.fetchall()
+    phenotype_df = pd.read_sql(sql_query, conn)
 
-    return results
+    return phenotype_df
 
 def read_data_from_store(data, schema):
     """
@@ -123,6 +128,8 @@ def get_filtered_phenotype_dfs(phenotype_df, start_date, end_date, brand):
         Returns:
             tuple: Filtered DataFrames for new phenotypes, edited phenotypes, and published phenotypes.
     """
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
     new_phenotype_df = phenotype_df[['date', 'id', 'brands', 'publish_status', 'history_id', 'publish_date']].copy()
 
@@ -151,13 +158,16 @@ def get_filtered_users_df(request_df, start_date, end_date, brand):
         Returns:
             DataFrame: Filtered DataFrame of users.
     """
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
     tot_users_df = request_df[['date', 'user_id', 'remote_ip', 'brand']]
     tot_users_df = tot_users_df[(tot_users_df.brand == brand) & (tot_users_df.date >= start_date) &
                                 (tot_users_df.date <= end_date)]
     return tot_users_df
 
 
-def get_conn(use_engine=False):
+def get_conn():
     """
     Function to get a PostgreSQL connection or SQLAlchemy engine.
 
@@ -176,11 +186,6 @@ def get_conn(use_engine=False):
         'port': os.getenv('POSTGRES_PORT')
     }
 
-    if use_engine:
-        db_url = f"postgresql://{config_params['user']}:{quote(config_params['password'])}@{config_params['host']}:{config_params['port']}/{config_params['dbname']}"
-        engine = create_engine(db_url)
-        return engine
-
-    conn = psycopg2.connect(**config_params)
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    return conn, cursor
+    db_url = f"postgresql://{config_params['user']}:{config_params['password']}@{config_params['host']}:{config_params['port']}/{config_params['dbname']}"
+    engine = create_engine(db_url)
+    return engine
