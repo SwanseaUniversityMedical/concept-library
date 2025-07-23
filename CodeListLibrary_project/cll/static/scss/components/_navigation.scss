@@ -182,18 +182,20 @@
 /// @desc ...
 .about-row {
   @include grid-template(false, 2, 1fr);
+  position: absolute;
+  top: 0;
+  right: -25vw;
+  max-width: 630px;
+  max-height: 75vh;
+  box-sizing: border-box;
   background-color: white;
   border-radius: 1em;
   padding: 1.5em;
   margin: 0 5em 0 -5em;
-  position: absolute;
-  top: 0;
-  box-sizing: border-box;
   -webkit-box-shadow: var(--panel-shadow);
   box-shadow: var(--panel-shadow);
   word-break: break-all;
   word-wrap: break-word;
-  max-height: 75vh;
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -313,6 +315,7 @@
     padding: 0.25rem 0.5rem;
     position: relative;
     top: 0;
+    right: 0;
     box-sizing: border-box;
     margin: auto;
     box-shadow: none;
