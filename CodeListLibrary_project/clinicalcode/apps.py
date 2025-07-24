@@ -18,7 +18,7 @@ class ClinicalCodeConfig(AppConfig):
 		"""Initialises signals on app start"""
 
 		# Enable EasyAudit signal override
-		if settings.REMOTE_TEST:
+		if settings.REMOTE_TEST or settings.IS_INSIDE_GATEWAY:
 			return
 
 		from clinicalcode.audit.request_signals import request_started_watchdog
