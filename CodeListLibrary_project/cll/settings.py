@@ -318,7 +318,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django_minify_html',
 ]
 
-if not CLL_READ_ONLY and not IS_GATEWAY_PC and not REMOTE_TEST:
+if not CLL_READ_ONLY and not IS_INSIDE_GATEWAY and not REMOTE_TEST:
     INSTALLED_APPS += [
         # Engagelens-related
         'easyaudit'
@@ -351,7 +351,7 @@ MIDDLEWARE = [
     'clinicalcode.middleware.exceptions.ExceptionMiddleware',
 ]
 
-if not CLL_READ_ONLY and not IS_GATEWAY_PC and not REMOTE_TEST:
+if not CLL_READ_ONLY and not IS_INSIDE_GATEWAY and not REMOTE_TEST:
     MIDDLEWARE += [
         # Engagelens-related
         'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
@@ -476,7 +476,7 @@ if not IS_DEMO and (not IS_DEVELOPMENT_PC):
 
 ''' Caching '''
 
-if DEBUG:
+if DEBUG or IS_INSIDE_GATEWAY:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.dummy.DummyCache',

@@ -173,10 +173,14 @@ if not settings.CLL_READ_ONLY:
 
 # Variant URL resolvers
 try:
-    brands = apps.get_model(app_label='clinicalcode', model_name='Brand')
-    brands = brands.all_instances()
+    if settings.IS_HDRUK_EXT != '1':
+        brands = apps.get_model(app_label='clinicalcode', model_name='Brand')
+        brands = brands.all_instances()
 
-    target = next((x for x in brands if x.name == settings.CURRENT_BRAND), None)
+        target = next((x for x in brands if x.name == settings.CURRENT_BRAND), None)
+    else:
+        target = None
+
     append_branded_urls(brand=target, variants=URL_VARIANTS, patterns=urlpatterns)
 except Exception as e:
-	logging.exception(f'Failed to create branded URL variants with err:\n\n{str(e)}')
+    logging.exception(f'Failed to create branded URL variants with err:\n\n{str(e)}')
