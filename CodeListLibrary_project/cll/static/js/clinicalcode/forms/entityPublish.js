@@ -75,13 +75,17 @@ class PublishModal {
       })
         .then(async (result) => {
           const name = result.name;
+          const redir = data?.is_moderator && !data?.org_user_managed
+            ? `${getBrandedHost()}/moderation/`
+            : strictSanitiseString(this.redirect_url+'?eraseCache=true');
+
           if (name == "Decline") {
             await this.postData(data, this.decline_url);
-            window.location.href = strictSanitiseString(this.redirect_url+'?eraseCache=true');
           } else {
             await this.postData(data, this.publish_url);
-            window.location.href = strictSanitiseString(this.redirect_url+'?eraseCache=true');
           }
+
+          window.location.href = redir;
         })
         .catch((result) => {
           if (!!result && !(result instanceof ModalFactory.ModalResults)) {
