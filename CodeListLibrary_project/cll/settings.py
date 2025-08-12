@@ -663,7 +663,7 @@ DOI_REFERRER = get_env_value('DOI_REFERRER', default=None)
 DOI_RELATION = get_env_value('DOI_RELATION', default=None)
 
 DOI_ACTIVE = (
-    (not IS_DEMO and not CLL_READ_ONLY and not IS_INSIDE_GATEWAY)
+    (not REMOTE_TEST and not IS_DEMO and not CLL_READ_ONLY and not IS_INSIDE_GATEWAY)
     and (
         DOI_PREFIX is not None
         and DOI_USERNAME is not None
