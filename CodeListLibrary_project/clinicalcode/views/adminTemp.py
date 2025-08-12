@@ -38,7 +38,6 @@ from clinicalcode.models.HDRNDataCategory import HDRNDataCategory
 
 from clinicalcode.models.QueuedDOI import QueuedDOI
 
-
 logger = logging.getLogger(__name__)
 
 
