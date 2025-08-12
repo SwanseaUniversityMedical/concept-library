@@ -2,8 +2,6 @@ from django import template
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
-
-
 from ..entity_utils import permission_utils, publish_utils, constants
 from .entity_renderer import get_template_entity_name
 
@@ -12,27 +10,26 @@ register = template.Library()
 @register.inclusion_tag('components/publish_request/show_errors_approval.html', takes_context=True, name='render_errors_approval')
 def render_errors_approval(context, *args, **kwargs):
     errors = []
-    if  context['entity_is_deleted']:
+    if context['entity_is_deleted']:
         message = "This entity has been deleted and cannot be approved."
         errors.append(message)
-        
-    
-    if  not context['is_entity_user'] and not context['is_moderator']:
+
+    if not context['is_entity_user'] and not context['is_moderator']:
         message = 'You must be the owner or have organisation permissions to publish.'
         errors.append(message)
-    
+
     if not context['entity_has_data']:
         message = 'This entity has no data and cannot be approved.'
         errors.append(message)
     else:
-        if  not context['is_allowed_view_children']:
+        if not context['is_allowed_view_children']:
             message = 'You must have view access to all children of this entity to publish.'
             errors.append(message)
-        
+
         if not context['all_not_deleted']:
             message = 'All entities must not be deleted.'
             errors.append(message)
-        
+
         if not context['all_are_published']:
             message = 'All entities must be published.'
             errors.append(message)
@@ -52,7 +49,10 @@ def render_publish_button(context, *args, **kwargs):
     user_is_publisher = publish_checks['is_publisher']
     user_allowed_publish = publish_checks['allowed_to_publish']
     user_entity_access = permission_utils.can_user_edit_entity(request, entity.id) #entity.owner == request.user
-    
+
+    pub_status = publish_checks["approval_status"]
+    not_pubbed = pub_status is None or (isinstance(pub_status, bool) and not pub_status)
+
     button_context = {
         'url_decline': reverse('generic_entity_decline', kwargs={'pk': entity.id, 'history_id': entity.history_id}),
         'url_redirect': reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity.history_id}),
@@ -94,7 +94,7 @@ def render_publish_button(context, *args, **kwargs):
                                })
         return button_context
     elif user_allowed_publish:
-        if not publish_checks["is_lastapproved"] and (publish_checks["approval_status"] is None or publish_checks["approval_status"] == constants.APPROVAL_STATUS.ANY) and user_entity_access and not context["live_ver_is_deleted"]:
+        if not publish_checks["is_lastapproved"] and (not_pubbed or pub_status == constants.APPROVAL_STATUS.ANY) and user_entity_access and not context["live_ver_is_deleted"]:
             if user_is_publisher:
                 button_context.update({'class_modal':"primary-btn bold dropdown-btn__label",
                             'url': reverse('generic_entity_publish', kwargs={'pk': entity.id, 'history_id': entity.history_id}),

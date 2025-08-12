@@ -48,7 +48,10 @@ class GenericEntity(models.Model):
     collections = ArrayField(models.IntegerField(), blank=True, null=True)
     citation_requirements = models.TextField(null=True, blank=True)
     brands = ArrayField(models.IntegerField(), blank=True, null=True)
-    
+
+    ''' DOI-related '''
+    doi = models.URLField(null=True, blank=True)
+
     ''' Search vector fields '''
     search_vector = SearchVectorField(null=True)
 

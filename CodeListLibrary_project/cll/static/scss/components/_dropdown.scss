@@ -166,7 +166,7 @@
   overflow: hidden;
 
   &--offset {
-    right: 25%;
+    right: unset; // 25%
 
     @include media("<desktop", "screen") {
       right: unset;

@@ -25,6 +25,7 @@ class PublishModal {
           "Cache-Control": "no-cache",
         },
       });
+
       const data = await response.json();
       spinner?.remove?.();
 
@@ -96,15 +97,11 @@ class PublishModal {
   async postData(data, url) {
     const spinner = startLoadingSpinner();
     try {
-      const csrfToken = document.querySelector(
-        "[name=csrfmiddlewaretoken]"
-      ).value;
-
-      const response = await fetch(url, {
+      await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
+          "X-CSRFToken": getCookie('csrftoken'),
           "Cache-Control": "no-cache",
         },
         body: JSON.stringify(data),
@@ -116,7 +113,6 @@ class PublishModal {
       }).finally(() => {
         spinner?.remove?.();
       });
-
     } catch (error) {
       spinner?.remove?.();
       console.error(error);
@@ -194,12 +190,12 @@ class PublishModal {
 }
 
 domReady.finally(() => {
-  const url_publish = document.querySelector('script[id="publish-url"]');
-  const url_decline = document.querySelector('script[id="decline-url"]');
+  const publish_url = document.querySelector('script[id="publish-url"]');
+  const decline_url = document.querySelector('script[id="decline-url"]');
   const redirect_url = document.querySelector('script[id="redirect-url"]');
   window.entityForm = new PublishModal(
-    strictSanitiseString(url_publish.innerText.trim()),
-    strictSanitiseString(url_decline.innerText.trim()),
+    strictSanitiseString(publish_url.innerText.trim()),
+    strictSanitiseString(decline_url.innerText.trim()),
     strictSanitiseString(redirect_url.innerText.trim())
   );
 });
