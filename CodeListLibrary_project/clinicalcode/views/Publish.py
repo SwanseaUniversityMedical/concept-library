@@ -325,6 +325,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             data['form_is_valid'] = True
             data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
             data['entity_name_requested'] = historical_entity.name
+
             # Update client info
             publish_utils.form_validation(request, data, pk, history_id, entity, conditions)
 
