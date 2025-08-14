@@ -41,7 +41,7 @@ class QueuedDOI(models.Model):
 		Returns:
 			(bool): describing whether the provided `entity` is a valid :model:`HistoricalGenericEntity`
 		"""
-		if entity is None or not isinstance(entity, HistoricalGenericEntity) and not (inspect.isclass(entity) and issubclass(entity, HistoricalGenericEntity)):
+		if entity is None or (not isinstance(entity, HistoricalGenericEntity) and not (inspect.isclass(entity) and issubclass(entity, HistoricalGenericEntity))):
 			return False
 		return isinstance(getattr(entity, 'id', None), str) and isinstance(getattr(entity, 'history_id', None), int)
 

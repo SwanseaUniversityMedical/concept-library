@@ -1,21 +1,21 @@
 """
-    CLL URL Configuration for Brands
+	CLL URL Configuration for Brands
 
-    The `urlpatterns` list routes URLs to views. For more information please see:
-        - https://docs.djangoproject.com/en/1.10/topics/http/urls/
-    
-    Examples:
-        Function views
-            1. Add an import:  from my_app import views
-            2. Add a URL to urlpatterns:  url(r'^$', views.home, name='home')
-        
-        Class-based views
-            1. Add an import:  from other_app.views import Home
-            2. Add a URL to urlpatterns:  url(r'^$', Home.as_view(), name='home')
-        
-        Including another URLconf
-            1. Import the include() function: from django.conf.urls import url, include
-            2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
+	The `urlpatterns` list routes URLs to views. For more information please see:
+		- https://docs.djangoproject.com/en/1.10/topics/http/urls/
+	
+	Examples:
+		Function views
+			1. Add an import:  from my_app import views
+			2. Add a URL to urlpatterns:  url(r'^$', views.home, name='home')
+		
+		Class-based views
+			1. Add an import:  from other_app.views import Home
+			2. Add a URL to urlpatterns:  url(r'^$', Home.as_view(), name='home')
+		
+		Including another URLconf
+			1. Import the include() function: from django.conf.urls import url, include
+			2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 
 """
 from django.apps import apps
@@ -44,6 +44,10 @@ URL_VARIANTS = [
 	# GenericEntity/Phenotype variants
 	## Search
 	{ 'route': r'%(base)s{phenotypes}/$', 'view': GenericEntity.EntitySearchView.as_view(), 'name': 'search_entities' },
+
+	## Support legacy Concept redirects
+	{ 'route': r'%(base)s{concepts}/C(?P<pk>\d+)/detail/$', 'view': GenericEntity.RedirectConceptView.as_view(), 'name': 'redirect_concept_detail' },
+	{ 'route': r'%(base)s{concepts}/C(?P<pk>\d+)/version/(?P<history_id>\d+)/detail/$', 'view': GenericEntity.RedirectConceptView.as_view(), 'name': 'redirect_concept_detail_with_version' },
 
 	## Detail
 	{ 'route': r'%(base)s{phenotypes}/(?P<pk>\w+)/$', 'view': RedirectView.as_view(pattern_name='entity_detail'), 'name': 'entity_detail_shortcut' },
@@ -143,19 +147,19 @@ def append_branded_urls(brand=None, variants=[], patterns=[]):
 # Brands
 current_brand = f'{settings.CURRENT_BRAND}/' if isinstance(settings.CURRENT_BRAND, str) and settings.CURRENT_BRAND != '' else ''
 if settings.IS_HDRUK_EXT == '1':
-    current_brand = ''
+	current_brand = ''
 
 #--------------------------------------------------------------------
 # Urls
 urlpatterns += [
-    # api
-    url(r'^' + current_brand + 'api/v1/', include(('clinicalcode.api.urls', 'cll'), namespace='api')),
+	# api
+	url(r'^' + current_brand + 'api/v1/', include(('clinicalcode.api.urls', 'cll'), namespace='api')),
 
-    # account management
-    url(r'^' + current_brand + 'account/', include('clinicalcode.urls_account')),
+	# account management
+	url(r'^' + current_brand + 'account/', include('clinicalcode.urls_account')),
 
-    # app urls
-    url(r'^' + current_brand + '', include('clinicalcode.urls')),
+	# app urls
+	url(r'^' + current_brand + '', include('clinicalcode.urls')),
 ]
 
 # Media files
@@ -163,24 +167,24 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Static files
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, view=cache_control(no_cache=True, must_revalidate=True)(serve))
+	urlpatterns += static(settings.STATIC_URL, view=cache_control(no_cache=True, must_revalidate=True)(serve))
 
 # Admin system
 if not settings.CLL_READ_ONLY:
-    urlpatterns += [
-        url(r'^' + current_brand + 'admin/', admin.site.urls),
-    ]
+	urlpatterns += [
+		url(r'^' + current_brand + 'admin/', admin.site.urls),
+	]
 
 # Variant URL resolvers
 try:
-    if settings.IS_HDRUK_EXT != '1':
-        brands = apps.get_model(app_label='clinicalcode', model_name='Brand')
-        brands = brands.all_instances()
+	if settings.IS_HDRUK_EXT != '1':
+		brands = apps.get_model(app_label='clinicalcode', model_name='Brand')
+		brands = brands.all_instances()
 
-        target = next((x for x in brands if x.name == settings.CURRENT_BRAND), None)
-    else:
-        target = None
+		target = next((x for x in brands if x.name == settings.CURRENT_BRAND), None)
+	else:
+		target = None
 
-    append_branded_urls(brand=target, variants=URL_VARIANTS, patterns=urlpatterns)
+	append_branded_urls(brand=target, variants=URL_VARIANTS, patterns=urlpatterns)
 except Exception as e:
-    logging.exception(f'Failed to create branded URL variants with err:\n\n{str(e)}')
+	logging.exception(f'Failed to create branded URL variants with err:\n\n{str(e)}')

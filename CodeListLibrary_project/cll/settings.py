@@ -214,11 +214,13 @@ CURRENT_BRAND_WITH_SLASH = ''
 BRAND_VAR_REFERENCE = {
     'default': {
         'urls': {
+            'concepts': 'concepts',
             'phenotypes': 'phenotypes',
         },
     },
     'HDRN': {
         'urls': {
+            'concepts': 'codelists',
             'phenotypes': 'concepts',
         },
     }
@@ -662,16 +664,17 @@ DOI_PASSWORD = get_env_value('DOI_PASSWORD', default=None)
 DOI_REFERRER = get_env_value('DOI_REFERRER', default=None)
 DOI_RELATION = get_env_value('DOI_RELATION', default=None)
 
-DOI_ACTIVE = (
-    (not REMOTE_TEST and not IS_DEMO and not CLL_READ_ONLY and not IS_INSIDE_GATEWAY)
-    and (
-        DOI_PREFIX is not None
-        and DOI_USERNAME is not None
-        and DOI_PASSWORD is not None
-        and DOI_REFERRER is not None
-        and DOI_RELATION is not None
-    )
-)
+DOI_ACTIVE = ((
+    not REMOTE_TEST
+    and not CLL_READ_ONLY
+    and not IS_INSIDE_GATEWAY
+) and (
+    DOI_PREFIX is not None
+    and DOI_USERNAME is not None
+    and DOI_PASSWORD is not None
+    and DOI_REFERRER is not None
+    and DOI_RELATION is not None
+))
 
 ## CAPTCHA
 ### To ignore captcha during debug builds

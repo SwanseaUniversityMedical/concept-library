@@ -175,14 +175,14 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
 
                     # Show state message to the client side and send email
                     if send_review_mail:
-                        data = publish_utils.form_validation(request, data, pk, history_id, entity, checks)
+                        publish_utils.form_validation(request, data, pk, history_id, entity, checks)
 
                 # Check if moderator and current entity is in pending state
-                elif checks['approval_status'] == constants.APPROVAL_STATUS.PENDING and is_moderator:
+                elif approval_status == constants.APPROVAL_STATUS.PENDING and is_moderator:
                     self.moderator_publish(request, pk, history_id, checks, data)
 
                 # Check if entity declined and user is moderator to review again
-                elif checks['approval_status'] == constants.APPROVAL_STATUS.REJECTED and is_moderator:
+                elif approval_status == constants.APPROVAL_STATUS.REJECTED and is_moderator:
                     self.moderator_publish(request, pk, history_id, checks, data)
 
         except Exception as e:
@@ -192,7 +192,12 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             data['form_is_valid'] = False
 
         finally:
-            if data.get('form_is_valid'):
+            registrable = doi_utils.is_publish_target_registrable(
+                form_valid=data.get('form_is_valid', False),
+                approval_status=data.get('approval_status', -1)
+            )
+
+            if registrable:
                 doi_utils.publish_doi_task(historical_entity, timeout=0.5)
 
         return JsonResponse(data)
@@ -320,6 +325,7 @@ class Publish(LoginRequiredMixin, permission_utils.HasAccessToViewGenericEntityC
             data['form_is_valid'] = True
             data['approval_status'] = constants.APPROVAL_STATUS.APPROVED
             data['entity_name_requested'] = historical_entity.name
+
             # Update client info
             publish_utils.form_validation(request, data, pk, history_id, entity, conditions)
 
