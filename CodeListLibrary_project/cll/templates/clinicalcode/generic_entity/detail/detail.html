@@ -84,6 +84,19 @@
                 <span class="as-icon phenotype-creation--icn" data-icon="&#xf0e7;" aria-hidden="true"></span>
                 <p>{{ entity.updated|date:'M j, Y' }}</p>
               </div>
+              {% if not entity.doi|is_empty_value %}
+                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                  <span class="as-icon phenotype-creation--icn" data-icon="&#xf0c1;" aria-hidden="true"></span>
+                  <a href="{{ entity.doi }}" target=_blank rel="noopener noreferrer">{{ entity.doi }}</a>
+                </div>
+              {% elif is_published %}
+                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                  <span class="as-icon phenotype-creation--icn" data-icon="&#xf0c1;" aria-hidden="true">
+                    <span class="phenotype-creation--loading"></span>
+                  </span>
+                  <p><span class="badge wrapped-tspan">REGISTERING DOI...</span></p>
+                </div>
+              {% endif %}
             </div>
             <div class="phenotype-creation__header-col phenotype-creation__header--ai-fe phenotype-creation__header--fmin-0">
               <span class="tag tag--detail tag--success">

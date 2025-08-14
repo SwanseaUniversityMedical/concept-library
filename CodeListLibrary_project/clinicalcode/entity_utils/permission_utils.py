@@ -2042,12 +2042,12 @@ def check_if_published(set_class, set_id, set_history_id):
         
         @desc Check if an entity version is published
     """
-    
+
     if set_class == GenericEntity:
         return PublishedGenericEntity.objects.filter(
             entity_id=set_id,
             entity_history_id=set_history_id,
-            approval_status=2
+            approval_status=APPROVAL_STATUS.APPROVED.value
         ).exists()
 
     return False

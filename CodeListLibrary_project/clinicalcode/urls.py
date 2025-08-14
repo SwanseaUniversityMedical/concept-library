@@ -7,8 +7,8 @@ from clinicalcode.views.dashboard import BrandAdmin
 from clinicalcode.views.DocumentationViewer import DocumentationViewer
 
 from clinicalcode.views import (
-    site, View, Admin, adminTemp,
-    GenericEntity, Moderation, Profile, Organisation
+    site, View, Admin, adminTemp, GenericEntity,
+    Moderation, Profile, Organisation, Redirects
 )
 
 from clinicalcode.views.dashboard.targets import (
@@ -93,10 +93,6 @@ urlpatterns = [
     ## Selection service(s)
     url(r'^query/(?P<template_id>\w+)/?$', GenericEntity.EntityDescendantSelection.as_view(), name='entity_descendants'),
 
-    ## Support legacy Concept redirects
-    url(r'^concepts/C(?P<pk>\d+)/detail/$', GenericEntity.RedirectConceptView.as_view(), name='redirect_concept_detail'),
-    url(r'^concepts/C(?P<pk>\d+)/version/(?P<history_id>\d+)/detail/$', GenericEntity.RedirectConceptView.as_view(), name='redirect_concept_detail_with_version'),
-
     ## Documentation for create
     url(r'^documentation/(?P<documentation>([A-Za-z0-9\-]+))/?$', DocumentationViewer.as_view(), name='documentation_viewer'),
 
@@ -104,6 +100,34 @@ urlpatterns = [
     url(r'^create/$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
     url(r'^create/(?P<template_id>[\d]+)/?$', GenericEntity.CreateEntityView.as_view(), name='create_phenotype'),
     url(r'^update/(?P<entity_id>\w+)/(?P<entity_history_id>\d+)/?$', GenericEntity.CreateEntityView.as_view(), name='update_phenotype'),
+
+	# DOI
+    ## Relation target
+    url(
+        route=r'^rel/(?P<pk>\w+)/$',
+        view=Redirects.ResourceRedirectView.as_view(),
+        kwargs={ 'target': 'rel' },
+        name='redir_relation'
+	),
+    url(
+        route=r'^rel/(?P<brand>([\w\d\-]+))/(?P<pk>\w+)/$',
+        view=Redirects.ResourceRedirectView.as_view(),
+        kwargs={ 'target': 'rel' },
+        name='redir_branded_relation'
+	),
+    ## Resource target
+    url(
+        route=r'^doi/(?P<pk>\w+)/(?P<history_id>\d+)/$',
+        view=Redirects.ResourceRedirectView.as_view(),
+        kwargs={ 'target': 'doi' },
+        name='redir_object'
+	),
+    url(
+        route=r'^doi/(?P<brand>([\w\d\-]+))/(?P<pk>\w+)/(?P<history_id>\d+)/$',
+        view=Redirects.ResourceRedirectView.as_view(),
+        kwargs={ 'target': 'doi' },
+        name='redir_branded_object'
+	),
 ]
 
 

@@ -39,19 +39,26 @@ services:
     container_name: redis
     restart: always
     stop_grace_period: ${cll_grace_period:-3s}
+    command: >
+      redis-server --requirepass ${redis_password:-someRedisPassword}
+                   --appendonly no
+                   --protected-mode no
+                   --maxmemory 1gb
+                   --maxmemory-policy allkeys-lru
     environment:
-      REDIS_HOST: redis
-      REDIS_PORT: ${redis_port:-6379}
+      REDIS_HOST: ${redis_host:-${REDIS_HOST:-redis}}
+      REDIS_PORT: ${redis_port:-${REDIS_PORT:-6379}}
+      REDIS_PASSWORD: ${redis_password:-someRedisPassword}
     ports:
-      - ${redis_port:-6379}:${redis_port:-6379}
+      - ${redis_port:-${REDIS_PORT:-6379}}:${redis_port:-${REDIS_PORT:-6379}}
     expose:
-      - ${redis_port:-6379}
+      - ${redis_port:-${REDIS_PORT:-6379}}:${redis_port:-${REDIS_PORT:-6379}}
     networks:
       - backend
     profiles:
       - live
     healthcheck:
-      test: redis-cli ping | grep PONG
+      test: redis-cli -u redis://default:${redis_password:-someRedisPassword}@${redis_host:-${REDIS_HOST:-redis}}:${redis_port:-${REDIS_PORT:-6379}}/0 ping | grep PONG
       retries: 5
       timeout: 10s
       interval: 10s

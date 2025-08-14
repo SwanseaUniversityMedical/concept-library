@@ -165,22 +165,53 @@ services:
     container_name: redis
     restart: unless-stopped
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    command: >
+      redis-server --requirepass ${REDIS_PASSWORD:-someRedisPassword}
+                   --appendonly no
+                   --protected-mode no
+                   --maxmemory-policy allkeys-lru
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-someRedisPassword}
+    ports:
+      - ${REDIS_PORT:-6379}:${REDIS_PORT:-6379}
     expose:
-      - 6379
+      - ${REDIS_PORT:-6379}
     networks:
       - backend
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
     profiles:
       - live
+      - redis
     healthcheck:
-      test: redis-cli ping | grep PONG
+      test: redis-cli -u redis://default:${REDIS_PASSWORD:-someRedisPassword}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}/0 ping | grep PONG
       retries: 5
       timeout: 5s
       interval: 1m
       start_period: 120s
       start_interval: 10s
+
+  # Profile<`tooling`> dependencies
+  redisinsights:
+    image: redis/redisinsight:latest
+    restart: unless-stopped
+    profiles:
+      - tooling
+    ports:
+      - 6380:5540
+    networks:
+      - backend
+    environment:
+      RI_REDIS_HOST: ${REDIS_HOST:-redis}
+      RI_REDIS_PORT: ${REDIS_PORT:-6379}
+      RI_REDIS_PASSWORD: ${REDIS_PASSWORD:-someRedisPassword}
+    volumes:
+      - type: volume
+        source: riadmin-data
+        target: /data
+    depends_on:
+      redis:
+        condition: service_healthy
 
   # Profile<`test`> dependencies
   selenium-hub:
@@ -306,18 +337,12 @@ networks:
 
 # Mounted volumes
 volumes:
+  # Profile<all>
   app-data:
     driver: local
     driver_opts:
       type: none
       device: ../CodeListLibrary_project
-      o: bind
-
-  engagelens-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../engagelens
       o: bind
 
   db-data:
@@ -327,6 +352,7 @@ volumes:
       device: ./development/db
       o: bind
 
+  # Profile<`live`>
   app-logs:
     driver: local
     driver_opts:
@@ -334,6 +360,18 @@ volumes:
       device: ./cl_log
       o: bind
 
+  engagelens-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ../engagelens
+      o: bind
+
+  # Profile<`tooling`>
+  riadmin-data:
+    driver: local
+
+  # Profile<`test`>
   allure-results:
     driver: local
     driver_opts:

@@ -1427,7 +1427,16 @@ def compute_brand_context(request, form_data, form_entity=None):
             if len(collections) > 0:
                 related_brands.update(collections)
 
-    return list(related_brands)
+    related_brands = list(related_brands)
+
+    # Ensure brand is first in list (for referral)
+    if brand is not None:
+        idx = next((i for i, x in enumerate(related_brands) if x == brand.id), None)
+        if idx is not None and idx != 0:
+            related_brands[idx] = related_brands[0]
+            related_brands[0] = brand.id
+
+    return related_brands
 
 @transaction.atomic
 def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
