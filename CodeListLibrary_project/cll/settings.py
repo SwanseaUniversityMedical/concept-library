@@ -666,6 +666,7 @@ DOI_RELATION = get_env_value('DOI_RELATION', default=None)
 
 DOI_ACTIVE = ((
     not REMOTE_TEST
+    and not IS_DEMO
     and not CLL_READ_ONLY
     and not IS_INSIDE_GATEWAY
 ) and (

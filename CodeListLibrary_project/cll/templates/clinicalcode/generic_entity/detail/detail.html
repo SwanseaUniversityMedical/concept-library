@@ -89,7 +89,7 @@
                   <span class="as-icon phenotype-creation--icn" data-icon="&#xf0c1;" aria-hidden="true"></span>
                   <a href="{{ entity.doi }}" target=_blank rel="noopener noreferrer">{{ entity.doi }}</a>
                 </div>
-              {% elif is_published %}
+              {% elif is_published and not DOI_ACTIVE %}
                 <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
                   <span class="as-icon phenotype-creation--icn" data-icon="&#xf0c1;" aria-hidden="true">
                     <span class="phenotype-creation--loading"></span>
