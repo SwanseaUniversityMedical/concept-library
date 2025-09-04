@@ -58,7 +58,7 @@ def get_datasource_internal_detail(request, datasource_id):
     """
     query = None
     if gen_utils.parse_int(datasource_id, default=None) is not None:
-        query = { 'id': int(datasource_id) }
+        query = { 'datasource_id': int(datasource_id) }
     
     if not query:
         return Response(
