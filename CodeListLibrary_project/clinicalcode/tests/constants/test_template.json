@@ -152,7 +152,8 @@
           "table": "DataSource",
           "include": [
             "uid",
-            "url"
+            "url",
+            "datasource_id"
           ],
           "relative": "name"
         },
