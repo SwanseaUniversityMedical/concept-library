@@ -68,16 +68,16 @@
             <h1>{{ entity.name }}</h1>
             {% include './detail_buttons.html' %}
           </div>
-          <div class="phenotype-creation__header-row phenotype-creation__header--fill phenotype-creation__header--jc-sb">
-            <div class="phenotype-creation__header-col phenotype-creation__header--fmax-1">
+          <div class="phenotype-creation__header-row phenotype-creation__header--fill phenotype-creation__header--jc-sb phenotype-creation__header-detail-root">
+            <div class="phenotype-creation__header-col phenotype-creation__header--fmax-1 phenotype-creation__header-detail-item">
               <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
                 <span class="as-icon phenotype-creation--icn" data-icon="&#xf5b7;" aria-hidden="true"></span>
                 <p><strong>{{ entity.id }} / {{ entity.history_id }}</strong></p>
               </div>
               {% if not entity.author|is_empty_value %}
-                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap phenotype-creation__header-detail-item">
                   <span class="as-icon phenotype-creation--icn" data-icon="&#x40;" aria-hidden="true"></span>
-                  <p><em>{{ entity.author }}</em></p>
+                  <p class="phenotype-creation__header-detail-item"><em>{{ entity.author }}</em></p>
                 </div>
               {% endif %}
               <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
@@ -85,12 +85,12 @@
                 <p>{{ entity.updated|date:'M j, Y' }}</p>
               </div>
               {% if not entity.doi|is_empty_value %}
-                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap phenotype-creation__header-detail-item">
                   <span class="as-icon phenotype-creation--icn" data-icon="&#xf0c1;" aria-hidden="true"></span>
-                  <a href="{{ entity.doi }}" target=_blank rel="noopener noreferrer">{{ entity.doi }}</a>
+                  <a href="{{ entity.doi }}" target=_blank rel="noopener noreferrer" class="phenotype-creation__header-detail-item">{{ entity.doi }}</a>
                 </div>
               {% elif is_published and not DOI_ACTIVE %}
-                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap phenotype-creation__header-detail-item">
                   <span class="as-icon phenotype-creation--icn" data-icon="&#xf0c1;" aria-hidden="true">
                     <span class="phenotype-creation--loading"></span>
                   </span>
@@ -98,7 +98,7 @@
                 </div>
               {% endif %}
             </div>
-            <div class="phenotype-creation__header-col phenotype-creation__header--ai-fe phenotype-creation__header--fmin-0">
+            <div class="phenotype-creation__header-col phenotype-creation__header--ai-fe phenotype-creation__header--fmin-0 phenotype-creation__header-detail-item">
               <span class="tag tag--detail tag--success">
                 <strong>
                   <span class="as-icon phenotype-creation__header--mr-05" data-icon="&#xf15b;" aria-hidden="true"></span>

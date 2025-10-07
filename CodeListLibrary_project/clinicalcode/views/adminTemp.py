@@ -1881,7 +1881,7 @@ def get_custom_fields_key_value(phenotype):
 @login_required
 def admin_reg_published(request):
     """Register previously published Phenotypes"""
-    if settings.CLL_READ_ONLY: 
+    if settings.CLL_READ_ONLY or not settings.DOI_ACTIVE: 
         raise PermissionDenied
 
     if not request.user.is_superuser:
@@ -1930,7 +1930,7 @@ def admin_reg_published(request):
         publishable = publishable[0] if len(publishable) > 0 and isinstance(publishable[0], dict) else {}
         publishable = publishable.get('res') if isinstance(publishable.get('res'), list) else []
 
-        publishable, errs = QueuedDOI.resolve_targets(*publishable[:2])
+        publishable, errs = QueuedDOI.resolve_targets(*publishable)
 
     if isinstance(errs, dict):
         result = {

@@ -275,6 +275,19 @@
         margin: 0;
       }
     }
+
+    @include media('<desktop', 'screen') {
+      &-detail-root {
+        flex-flow: column nowrap;
+        align-items: flex-start;
+        max-width: 100%;
+      }
+
+      &-detail-item {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
   }
 }
 
