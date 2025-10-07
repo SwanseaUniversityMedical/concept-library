@@ -623,7 +623,10 @@ metadata = {
                             'allowed_brands': [3],
                             'allow_null': True,
                         },
-                        'HDRUK': 'allow_null',
+                        'HDRUK': {
+                            'allowed_brands': [1, 2, 3],
+                            'allow_null': True,
+                        },
                         'HDRN': True,
                         'SAIL': False,
                     },

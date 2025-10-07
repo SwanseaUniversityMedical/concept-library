@@ -195,6 +195,7 @@ def apply_anchor_props(attrs, new=False):
 			# Apply rel attributes if external URL
 			if url.get('is_external'):
 				attrs[(None, u'rel')] = u'noopener noreferrer'
+				attrs[(None, u'data-ba-hook')] = u'interaction'
 
 			# Open in new window
 			attrs[(None, u'target')] = u'_blank'

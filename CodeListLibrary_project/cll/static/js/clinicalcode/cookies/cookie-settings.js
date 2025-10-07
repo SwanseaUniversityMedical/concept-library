@@ -9,7 +9,7 @@ const cookieSettings = (privacyurl) => {
       <p>
       </p>
         We use the additional cookies to perform analyses of website usage and to check marketing measures for their efficiency.
-        These analyses are carried out to provide you with a better user experience on the website.
+        These analyses are carried out to provide you with a better user experience on this website.
       <p>
         Please note that you are free to give, deny, or withdraw your consent at any time by using the <em>"cookie settings"</em> link at the bottom of each page.
         Otherwise, you can consent to our use of cookies by clicking <em>"Save selection"</em>.
@@ -34,7 +34,7 @@ const cookieSettings = (privacyurl) => {
         html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
       },
       {
-        name: 'Save selection',
+        name: 'Confirm',
         type: ModalFactory.ButtonTypes.CONFIRM,
         html: `<button class="primary-btn text-accent-darkest bold secondary-accent" id="save-button"></button>`,
       },

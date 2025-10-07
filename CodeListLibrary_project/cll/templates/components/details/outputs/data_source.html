@@ -1,4 +1,7 @@
+{% load cl_extras %}
 {% load entity_renderer %}
+
+{% fmtstr "%s/%d" entity.id entity.history_id as entity_ref %}
 <div class="detailed-input-group fill">
   <div class="box-container">
     <div class="row">
@@ -9,25 +12,55 @@
           {% for ds in component.value %}
             {% if ds.url|length %}
               <div class="chip bold primary-accent text-accent-darkest">
-                <a href="{{ ds.url }}" target="_blank" rel="noopener" class="chip-text no-icon">
+                <a
+                  class="chip-text no-icon"
+                  rel="noopener"
+                  href="{{ ds.url }}"
+                  target="_blank"
+                  data-ba-hook="interaction"
+                  data-ba-source="{{ entity_ref }}"
+                  data-ba-resource="datasource"
+                >
                   {{ ds.name }}
                 </a>
               </div>
             {% elif ds.link|length %}
               <div class="chip bold primary-accent text-accent-darkest">
-                <a href="{{ ds.link }}" target="_blank" rel="noopener" class="chip-text no-icon">
+                <a
+                  class="chip-text no-icon"
+                  rel="noopener"
+                  href="{{ ds.link }}"
+                  target="_blank"
+                  data-ba-hook="interaction"
+                  data-ba-source="{{ entity_ref }}"
+                  data-ba-resource="datasource"
+                >
                   {{ ds.name }}
                 </a>
               </div>
             {% elif component.field_data.target %}
               <div class="chip bold primary-accent text-accent-darkest">
-                <a href="{% url 'api:'|add:component.field_data.target c.value %}" target="_blank" rel="noopener" class="chip-text no-icon">
+                <a
+                  class="chip-text no-icon"
+                  rel="noopener"
+                  href="{% url 'api:'|add:component.field_data.target c.value %}"
+                  target="_blank"
+                  data-ba-hook="interaction"
+                  data-ba-source="{{ entity_ref }}"
+                  data-ba-resource="datasource"
+                >
                   {{ ds.name }}
                 </a>
               </div>
             {% else %}
               <div class="chip bold primary-accent text-accent-darkest" disabled>
-                <a target="_blank" rel="noopener noreferrer" class="chip-text no-icon" aria-disabled="true" disabled>
+                <a
+                  class="chip-text no-icon"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  aria-disabled="true"
+                  disabled
+                >
                   {{ ds.name }}
                 </a>
               </div>
@@ -40,3 +73,4 @@
     </div>
   </div>
 </div>
+

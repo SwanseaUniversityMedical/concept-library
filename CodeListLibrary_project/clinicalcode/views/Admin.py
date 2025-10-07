@@ -1,26 +1,27 @@
 from http import HTTPStatus
 from celery import shared_task
 from django.conf import settings
-from django.test import RequestFactory
 from django.db.models import Q
 from django.shortcuts import render
 from django.views.generic import TemplateView
+from django.db.models.query import QuerySet
 from django.core.exceptions import BadRequest
 from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
-from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.decorators import login_required
 
 import time
+import math
 import logging
+import numbers
 import requests
 
-from clinicalcode.entity_utils import gen_utils
+from clinicalcode.entity_utils import gen_utils, permission_utils, stats_utils
 from clinicalcode.models.DataSource import DataSource
 
-from ..entity_utils import permission_utils, stats_utils
 
 logger = logging.getLogger(__name__)
+
 
 ### Entity Statistics
 class EntityStatisticsView(TemplateView):
@@ -32,8 +33,8 @@ class EntityStatisticsView(TemplateView):
 
         stat = stats_utils.collect_statistics(request)
         return render(request, 'clinicalcode/admin/run_statistics.html', {
-            'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
             'stat': stat,
+            'successMsg': ['Filter statistics for Concepts/Phenotypes saved'],
         })
 
 
@@ -51,8 +52,8 @@ def run_homepage_statistics(request):
             request,
             'clinicalcode/admin/run_statistics.html', 
             {
-                'successMsg': ['Homepage statistics saved'],
                 'stat': stat,
+                'successMsg': ['Homepage statistics saved'],
             }
         )
 
@@ -62,6 +63,7 @@ def run_homepage_statistics(request):
 ##### Datasources
 def query_hdruk_datasource(
     page=1,
+    per_page=20,
     req_timeout=30,
     retry_attempts=3,
     retry_delay=2,
@@ -71,6 +73,7 @@ def query_hdruk_datasource(
         HTTPStatus.BAD_GATEWAY.value,
         HTTPStatus.SERVICE_UNAVAILABLE.value,
         HTTPStatus.GATEWAY_TIMEOUT.value,
+        HTTPStatus.INTERNAL_SERVER_ERROR.value,
     ]
 ):
     """
@@ -86,22 +89,29 @@ def query_hdruk_datasource(
       Returns:
         A dict containing the assoc. data and page bounds, if applicable
     """
-    url = f'https://api.healthdatagateway.org/api/v1/datasets/?page={page}'
     proxy = {
         'http': '' if settings.IS_DEVELOPMENT_PC else 'http://proxy:8080/',
         'https': '' if settings.IS_DEVELOPMENT_PC else 'http://proxy:8080/'
     }
+
+    url = f'https://api.healthdatagateway.org/api/v1/datasets/?page={page}'
+    if isinstance(per_page, numbers.Number) and math.isfinite(per_page) and not math.isnan(per_page):
+        url += f'&per_page={per_page}'
 
     response = None
     retry_attempts = max(retry_attempts, 0) + 1
     for attempts in range(0, retry_attempts, 1):
         try:
             response = requests.get(url, req_timeout, proxies=proxy)
-            if retry_attempts - attempts > 0 and (not retry_codes or response.status_code in retry_codes):
-                time.sleep(retry_delay*pow(2, attempts - 1))
-                continue
         except requests.exceptions.ConnectionError:
-            pass
+            response = None
+
+        if retry_attempts - attempts > 0 and (not response or (retry_codes and response.status_code in retry_codes)):
+            time.sleep(retry_delay*pow(2, attempts - 1))
+            continue
+
+        if response:
+            break
 
     if not response or response.status_code != 200:
         status = response.status_code if response else 'INT_ERR'
@@ -134,11 +144,15 @@ def collect_datasources(data):
     """
     sources = {}
     for ds in data:
+        pid = ds.get('pid')
+        if not isinstance(pid, str):
+            continue
+
         meta = ds.get('latest_metadata')
         idnt = ds.get('id')
-        uuid = ds.get('pid')
-
-        if not isinstance(meta, dict) or not isinstance(idnt, int) or not isinstance(uuid, str):
+        uuid = ds.get('mongo_pid')
+        status = ds.get('status')
+        if not isinstance(meta, dict) or not isinstance(idnt, int):
             continue
 
         meta = meta.get('metadata').get('metadata') if isinstance(meta.get('metadata'), dict) else None
@@ -150,15 +164,18 @@ def collect_datasources(data):
         if not isinstance(name, str) or gen_utils.is_empty_string(name):
             continue
 
-        sources[uuid] = {
+        sources[pid] = {
             'id': idnt,
+            'pid': pid,
             'uuid': uuid,
             'name': name[:500].strip(),
-            'description': meta.get('description').strip()[:500] if isinstance(meta.get('description'), str) else None,
+            'description': meta.get('description').strip() if isinstance(meta.get('description'), str) else None,
             'url': f'https://healthdatagateway.org/en/dataset/{idnt}',
+            'status': status,
         }
 
     return sources
+
 
 def get_hdruk_datasources():
     """
@@ -168,7 +185,7 @@ def get_hdruk_datasources():
         A tuple variant specifying the resulting datasources, specified as a dict, and an optional err message, defined as a string, if an err occurs
     """
     try:
-        result = query_hdruk_datasource(page=1)
+        result = query_hdruk_datasource(page=1, per_page=5)
     except Exception as e:
         msg = f'Unable to sync HDRUK datasources, failed to reach api with err:\n\n{str(e)}'
         logger.warning(msg)
@@ -178,7 +195,7 @@ def get_hdruk_datasources():
     datasources = collect_datasources(result.get('data'))
     for page in range(2, result.get('last_page') + 1, 1):
         try:
-            result = query_hdruk_datasource(page=page)
+            result = query_hdruk_datasource(page=page, per_page=5)
             datasources |= collect_datasources(result.get('data'))
         except Exception as e:
             logger.warning(f'Failed to retrieve HDRUK DataSource @ Page[{page}] with err:\n\n{str(e)}')
@@ -197,76 +214,100 @@ def create_or_update_internal_datasources():
     if error_message:
         return error_message
 
-    results = {
-        'created': [],
-        'updated': []
-    }
-
-    for uid, datasource in hdruk_datasources.items():
+    to_create = []
+    to_update = []
+    for pid, datasource in hdruk_datasources.items():
+        uid = datasource.get('uuid')
         idnt = datasource.get('id')
         name = datasource.get('name')
+        status = datasource.get('status')
+
+        if not isinstance(status, str):
+            status = 'UNKNOWN'
+            is_active = False
+        else:
+            is_active = status.lower() == 'active'
+
+        if not is_active:
+            continue
 
         try:
-            internal_datasource = DataSource.objects.filter(
-                Q(uid__iexact=uid) | \
-                Q(name__iexact=name) | \
-                Q(datasource_id=idnt)
-            )
+            if isinstance(uid, str):
+                qry = Q(uid__iexact=uid)
+            else:
+                qry = Q(name__iexact=name) & (Q(uid__isnull=True) | Q(uid=''))
+
+            internal_datasource = DataSource.objects.filter(qry)
         except DataSource.DoesNotExist:
-            internal_datasource = False
-        
-        if internal_datasource and internal_datasource.exists():
-            for internal in internal_datasource.all():
-                if internal.source != 'HDRUK':
-                    continue
+            internal_datasource = None
 
-                desc = datasource['description'] if isinstance(datasource['description'], str) else internal.description
-
-                update_id = internal.datasource_id != idnt
-                update_uid = internal.uid != uid
-                update_url = internal.url != datasource['url']
-                update_name = internal.name != name
-                update_description = internal.description != desc
-
-                if update_id or update_uid or update_url or update_name or update_description:
-                    internal.uid = uid
-                    internal.url = datasource['url']
-                    internal.name = name
-                    internal.description = desc
-                    internal.datasource_id = idnt
-                    internal.save()
-                    results['updated'].append({ 'id': idnt, 'name': name })
-        else:
+        if not isinstance(internal_datasource, QuerySet) or not internal_datasource.exists():
             new_datasource = DataSource()
-            new_datasource.uid = uid
+            new_datasource.uid = uid if isinstance(uid, str) else None
             new_datasource.url = datasource['url']
             new_datasource.name = name
             new_datasource.description = datasource['description'] if datasource['description'] else ''
             new_datasource.datasource_id = idnt
             new_datasource.source = 'HDRUK'
-            new_datasource.save()
-            results['created'].append({ 'id': idnt, 'name': name })
+            to_create.append(new_datasource)
+            continue
 
-    return results
+        for internal in internal_datasource.all():
+            if internal.source != 'HDRUK':
+                continue
+
+            desc = datasource['description'] if isinstance(datasource['description'], str) else internal.description
+
+            update_id = str(internal.datasource_id) != str(idnt)
+            update_uid = isinstance(uid, str) and internal.uid != uid
+            update_url = internal.url != datasource['url']
+            update_name = internal.name != name
+            update_desc = internal.description != desc
+
+            if update_id or update_uid or update_url or update_name or update_desc:
+                internal.uid = uid
+                internal.url = datasource['url']
+                internal.name = name
+                internal.description = desc
+                internal.datasource_id = idnt
+                to_update.append(internal)
+
+    if len(to_update) > 0:
+        DataSource.objects.bulk_update(to_update, ['uid', 'url', 'name', 'description', 'datasource_id'])
+        to_update = [{ 'id': x.id, 'ds_id': x.datasource_id, 'name': x.name } for x in to_update]
+
+    if len(to_create) > 0:
+        to_create = DataSource.objects.bulk_create(to_create)
+        to_create = [{ 'id': x.id, 'ds_id': x.datasource_id, 'name': x.name } for x in to_create]
+
+    return {
+        'created': to_create,
+        'updated': to_update,
+    }
 
 
+@login_required
 def run_datasource_sync(request):
     """Manual run of the DataSource sync"""
     if settings.CLL_READ_ONLY:
         raise PermissionDenied
-    
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
     if request.method == 'GET':
         results = create_or_update_internal_datasources()
         
         message = {
+            'result': results,
             'successMsg': ['HDR-UK datasources synced'],
-            'result': results
         }
 
         if isinstance(results, str):
-            message = {
-                'errorMsg': [results]
-            }
+            message = { 'errorMsg': [results] }
 
         return render(
             request, 
@@ -278,12 +319,5 @@ def run_datasource_sync(request):
 @shared_task(bind=True)
 def run_celery_datasource(self):
     """Celery cron task, used to synchronise DataSources on a schedule"""
-    request_factory = RequestFactory()
-    my_url = r'^admin/run-datasource-sync/$'
-    request = request_factory.get(my_url)
-    request.user = AnonymousUser()
-
-    request.CURRENT_BRAND = ''
-    if request.method == 'GET':
-        results = create_or_update_internal_datasources()
-        return True, results
+    results = create_or_update_internal_datasources()
+    return True, results

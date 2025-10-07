@@ -10,11 +10,21 @@
     </h3>
     <section class="publication-list-group__list show" id="reference-group">
       {% if component.value|length %}
+        {% fmtstr "%s/%d" entity.id entity.history_id as entity_ref %}
         <ul>
           {% for p in component.value %}
             <li>
               {% if p.url %}
-                <a target=_blank rel="noopener" href="{{ p.url }}" target="_blank" rel="noopener noreferrer">{{ p.title }}</a>
+                <a
+                  rel="noopener"
+                  href="{{ p.url }}"
+                  target="_blank"
+                  data-ba-hook="interaction"
+                  data-ba-source="{{ entity_ref }}"
+                  data-ba-resource="references"
+                >
+                  {{ p.title }}
+                </a>
               {% else %}
                 {{ p.title }}
               {% endif %}

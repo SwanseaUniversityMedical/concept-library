@@ -166,4 +166,5 @@ if not settings.CLL_READ_ONLY:
         url(r'^adminTemp/admin_upload_hdrn_assets/$', adminTemp.admin_upload_hdrn_assets, name='admin_upload_hdrn_assets'),
         url(r'^adminTemp/admin_convert_entity_groups/$', adminTemp.admin_convert_entity_groups, name='admin_convert_entity_groups'),
         url(r'^adminTemp/admin_fix_icd_ca_cm_codes/$', adminTemp.admin_fix_icd_ca_cm_codes, name='admin_fix_icd_ca_cm_codes'),
+        url(r'^adminTemp/admin_reg_published/$', adminTemp.admin_reg_published, name='admin_reg_published'),
     ]

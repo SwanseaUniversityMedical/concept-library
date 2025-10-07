@@ -1,13 +1,23 @@
-{% load i18n static %}
 {% load compress %}
+{% load cl_extras %}
+{% load i18n static %}
 
 <div class="cookie-container">
   {% include "components/cookies/cookie_component.html" %}
   {% include "components/cookies/cookie_card.html" %}
 </div>
 
+<script
+  type="text/json"
+  data-src="cookies"
+  data-uid="{{ request|get_request_uid|default_if_none:'' }}"
+  data-privacyurl="{% url 'privacy_and_cookie_policy' %}"
+></script>
+
 {% compress js %}
-<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/cookiealert.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/cookie-settings.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/clinicalcode/cookies/generateGtag.js' %}"></script>
+  <script type="text/javascript" src="{% static "js/clinicalcode/cookies/analytics.js" %}"></script>
 {% endcompress %}
+
+{% if not IS_DEVELOPMENT_PC %}
+
+{% endif %}

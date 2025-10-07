@@ -1,8 +1,10 @@
 from django import template
 from django.conf import settings
+from django.http import HttpRequest
 from django.utils.safestring import mark_safe
 
 import os
+import urllib
 
 from ..entity_utils import gen_utils
 from ..entity_utils.constants import TypeStatus
@@ -162,3 +164,37 @@ def concat_doi(details, doi):
         return details
 
     return '%s (DOI: %s)' % (details, str(doi))
+
+@register.filter
+def get_request_uid(request):
+    """resolve(s) the user's ID if applicable"""
+    if request is None or not isinstance(request, HttpRequest) or not hasattr(request, 'user'):
+        return None
+
+    user = getattr(request, 'user', None)
+    if user is None or user.is_anonymous:
+        return None
+
+    return user.id
+
+@register.simple_tag(name="fmtstr")
+def fmtstr(tmpl, *args, escape=False, urlsafe=True):
+    """
+        Format string using `str.format()`
+
+        See: https://docs.python.org/3/library/string.html#format-examples
+    """
+    if not isinstance(tmpl, str):
+        tmpl = str(tmpl)
+
+    if gen_utils.is_empty_string(tmpl):
+        return tmpl
+
+    res = tmpl % args
+    if escape:
+        res = escape(res)
+
+    if urlsafe:
+        res = urllib.parse.quote_plus(res)
+    
+    return res

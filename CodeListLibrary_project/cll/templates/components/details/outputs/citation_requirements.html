@@ -3,7 +3,13 @@
 {% load cl_extras %}
 {% load entity_renderer %}
 
-<div class="detailed-input-group fill gap-xl">
+{% fmtstr "%s/%d" entity.id entity.history_id as entity_ref %}
+<div
+  class="detailed-input-group fill gap-xl"
+  data-ba-origin="citationrequirements"
+  data-ba-source="{{ entity_ref }}"
+  data-ba-resource="ugc"
+>
   <div class="col-sm-12 shadow-frame">
     {% if not component.value|is_empty_value %}
       <h3 class="paneltitle">

@@ -96,7 +96,7 @@ services:
       args: *app-dev-args
       target: dev
     command: *app-py-cmd
-    env_file: ./.env/web/dev.compose.env
+    env_file: ./env/web/dev.compose.env
 
   web-test:
     <<: *app-base
@@ -106,7 +106,7 @@ services:
       args: *app-test-args
       target: dev
     command: *app-py-cmd
-    env_file: ./.env/web/test.compose.env
+    env_file: ./env/web/test.compose.env
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -119,7 +119,7 @@ services:
       args: *app-live-args
       target: prod
     command: *app-supervisord-cmd
-    env_file: ./.env/web/live.compose.env
+    env_file: ./env/web/live.compose.env
     ports:
       - 8005:80
     expose:
@@ -144,7 +144,7 @@ services:
   postgres-test:
     <<: *app-database
     profiles: ['test']
-    env_file: ./.env/web/test.compose.env
+    env_file: ./env/web/test.compose.env
 
   # Profile<`live` | `test`> dependencies
   mailhog:

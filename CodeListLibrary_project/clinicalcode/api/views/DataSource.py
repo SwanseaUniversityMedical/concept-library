@@ -22,7 +22,7 @@ def get_datasources(request):
         | id            | `int/list[int]` | `NULL`  | Match by a single `int` _id_ field, or match by array overlap |
         | name          | `str`           | `NULL`  | Case insensitive direct match of _name_ field                 |
         | uid           | `str/uuid`      | `NULL`  | Case insensitive direct match of _uid_ field                  |
-        | datasource_id | `int`           | `NULL`  | Match by exact _datasource_id_                                |
+        | datasource_id | `int`           | `NULL`  | Match by exact _datasource_id_ (HDRUK ID)                     |
         | url           | `str`           | `NULL`  | Case insensitive direct match of _url_ field                  |
         | source        | `str`           | `NULL`  | Case insensitive direct match of _source_ field               |
     """
@@ -54,11 +54,11 @@ def get_datasources(request):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_datasource_internal_detail(request, datasource_id):
     """
-        Get detail of specified datasource by by its internal Id
+        Get detail of specified datasource by by its internal `id`
     """
     query = None
     if gen_utils.parse_int(datasource_id, default=None) is not None:
-        query = { 'datasource_id': int(datasource_id) }
+        query = { 'id': int(datasource_id) }
     
     if not query:
         return Response(
@@ -148,13 +148,13 @@ def get_datasource_internal_detail(request, datasource_id):
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_datasource_detail(request, datasource_id):
     """
-        Get detail of specified datasource by `datasource_id`, _i.e._ the HDRUK DataSource `pid` or its `UUID` for linkage between applications, including associated published entities.
+        Get detail of specified datasource by its internal `id` or its `UUID` for linkage between applications (see HDRUK HealthDataGateway), including associated published entities.
     """
     query = None
     if gen_utils.is_valid_uuid(datasource_id):
         query = { 'uid': datasource_id }
     elif gen_utils.parse_int(datasource_id, default=None) is not None:
-        query = { 'datasource_id': int(datasource_id) }
+        query = { 'id': int(datasource_id) }
     
     if not query:
         return Response(

@@ -3,9 +3,16 @@
 {% load cl_extras %}
 {% load entity_renderer %}
 
+{% fmtstr "%s/%d" entity.id entity.history_id as entity_ref %}
 <div class="detailed-input-group fill">
   <div class="publication-list-group">
-    <section class="publication-list-group__list show" id="publication-group">
+    <section
+      id="publication-group"
+      class="publication-list-group__list show"
+      data-ba-origin="publication"
+      data-ba-source="{{ entity_ref }}"
+      data-ba-resource="ugc"
+    >
       <h3 class="publication-list-group__list-detail-title" id="pub-header">
         Related publications
       </h3>
@@ -22,7 +29,7 @@
               {% endif %}
               {{ p.details|markdownify }}
               {% if p.doi %}
-                (DOI: <a target=_blank rel="noopener" href="https://doi.org/{{ p.doi }}" aria-label="Visit Publication DOI page">{{ p.doi|striptags|escape }}</a>)
+                (DOI: <a target=_blank rel="noopener" href="https://doi.org/{{ p.doi }}" aria-label="Visit Publication DOI page" data-ba-hook="interaction" data-ba-source="{{ entity_ref }}" data-ba-resource="publication">{{ p.doi|striptags|escape }}</a>)
               {% endif %}
             </li>
           {% endfor %}

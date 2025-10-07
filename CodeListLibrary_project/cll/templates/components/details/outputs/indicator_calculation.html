@@ -3,7 +3,13 @@
 {% load cl_extras %}
 
 {% if not component.hide_if_empty or component.value %}
-  <div class="detailed-input-group fill">
+  {% fmtstr "%s/%d" entity.id entity.history_id as entity_ref %}
+  <div
+    class="detailed-input-group fill"
+    data-ba-origin="indicatorcalculation"
+    data-ba-source="{{ entity_ref }}"
+    data-ba-resource="ugc"
+  >
     <div class="col-sm-12 shadow-frame">
       <h3 class="paneltitle">
         <span id="entity-{{ component.field_name }}"></span>
@@ -93,4 +99,5 @@
         </article>
       </div>
     {% endif %}
+  </div>
 {% endif %}

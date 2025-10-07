@@ -302,7 +302,7 @@ const getObjectClassName = (val) => {
  * @returns {boolean} a boolean describing whether the value is an Object 
  */
 const isObjectType = (val) => {
-  if (typeof val !== 'object' || val === null) {
+  if (val === null || typeof val !== 'object') {
     return false;
   }
 
@@ -2537,4 +2537,32 @@ const findMissingComponents = (templates, expected, missing = []) => {
   }
 
   return missing;
+}
+
+/**
+ * @desc analytics manager wrapper
+ * 
+ * @param {(manager: Function) => any} fn some function apply if the manager can be resolved
+ * 
+ * @returns {Promise<any>} a promise that resolves any return value of the specified function
+ */
+const tryAnalytics = (fn) => {
+  if (typeof fn !== 'function') {
+    return Promise.reject(`Expected \`function\` as argument to \`::tryAnalytics()\` but got \`${typeof fn}\``);
+  }
+
+  const manager = window?.gtag ?? null;
+  if (typeof manager !== 'function') {
+    return Promise.reject(`Failed to resolve analytics manager`);
+  }
+
+  return new Promise((resolve, reject) => {
+    try {
+      const res = fn(manager);
+      resolve(res);
+    }
+    catch (e) {
+      reject(e);
+    }
+  });
 }
