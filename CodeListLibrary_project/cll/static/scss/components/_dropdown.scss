@@ -168,7 +168,7 @@
   &--offset {
     right: unset; // 25%
 
-    @include media("<desktop", "screen") {
+    @include media("<tablet", "screen") {
       right: unset;
     }
   }
@@ -181,9 +181,11 @@
     z-index: 1;
   }
 
-  &:focus-within,
-  &:focus-visible {
-    outline: 1px solid col(accent-anchor);
+  @include media('>=tablet', 'screen') {
+    &:focus-within,
+    &:focus-visible {
+      outline: 1px solid col(accent-anchor);
+    }
   }
 
   &:hover {
@@ -195,16 +197,14 @@
       box-shadow: 0px 10px 70px rgba(0, 0, 0, 0.15);
     }
 
-    @include media("<desktop", "screen") {
+    @include media("<tablet", "screen") {
       .nav-dropdown__content {
         display: none;
       }
     }
 
     .nav-dropdown__text {
-      a {
-        @include prefix(transform, translateY(-2px), webkit moz o);
-      }
+      @include prefix(transform, translateY(-2px), webkit moz o);
 
       &::after {
         opacity: 1;
@@ -218,9 +218,9 @@
     }
   }
 
-  @include media(">=desktop", "screen") {
-    &:focus-within,
-    &:focus-visible {
+  @include media(">=tablet", "screen") {
+    &:not(:has(.nav-dropdown__text:focus)):focus-within,
+    &:not(:has(.nav-dropdown__text:focus)):focus-visible {
       .nav-dropdown__content {
         display: flex;
         justify-content: center;
@@ -230,9 +230,7 @@
       }
   
       .nav-dropdown__text {
-        a {
-          @include prefix(transform, translateY(-2px), webkit moz o);
-        }
+        @include prefix(transform, translateY(-2px), webkit moz o);
   
         &::after {
           opacity: 1;
@@ -275,7 +273,7 @@
     z-index: 999;
   }
 
-  @include media("<desktop", "screen") {
+  @include media("<tablet", "screen") {
     .nav-dropdown__content {
       overflow: hidden;
 
@@ -287,7 +285,7 @@
 }
 
 /* Define styles for the mobile version */
-@include media("<desktop", "screen") {
+@include media("<tablet", "screen") {
   .nav-dropdown {
     display: flex;
     justify-content: center;
@@ -295,18 +293,27 @@
     padding: 0.3rem;
     flex-direction: column;
 
-    &__text::after {
-      @include prefix(transition, all 250ms ease-in, webkit moz o);
+    &__text {
+      display: block !important;
+      width: fit-content;
+      word-wrap: break-word;
+      word-break: break-all;
+      white-space: wrap;
+      max-width: 100%;
 
-      content: '\f107';
-      cursor: pointer;
-      opacity: 1;
-      display: inline-flex;
-      aspect-ratio: 1 / 1;
-      font-family: var(--icons-name);
-      font-style: var(--icons-style);
-      font-size: var(--icons-size);
-      color: var(--color-accent-dark);
+      &::after {
+        @include prefix(transition, all 250ms ease-in, webkit moz o);
+
+        content: '\f107';
+        cursor: pointer;
+        opacity: 1;
+        display: inline-flex;
+        aspect-ratio: 1 / 1;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--icons-size);
+        color: var(--color-accent-dark);
+      }
     }
   }
 
@@ -374,7 +381,7 @@
 
 .content-container {
   &__nested {
-    @include media(">=desktop", "screen") {
+    @include media(">=tablet", "screen") {
       &:hover,
       &:focus-within,
       & .item-dropdown__text:focus-visible {

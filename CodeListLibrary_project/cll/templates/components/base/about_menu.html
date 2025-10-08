@@ -6,11 +6,11 @@
 {% block content %}
   <!-- about tab -->
   <div class="nav-dropdown">
-    <div class="nav-dropdown__text">
-      <a href="#"  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="About">About</a>
-    </div>
+    <a class="nav-dropdown__text" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="About">
+      About
+    </a>
 
-    <div class="nav-dropdown__content{% if not request.user or not request.user.is_authenticated %}{% if request.BRAND_OBJECT.about_menu is not none %} nav-dropdown--offset{% endif %}{% endif %}">
+    <div class="nav-dropdown__content nav-dropdown__content--target{% if not request.user or not request.user.is_authenticated %}{% if request.BRAND_OBJECT.about_menu is not none %} nav-dropdown--offset{% endif %}{% endif %}">
       <ul class="about-row slim-scrollbar">
         {% if request.BRAND_OBJECT.about_menu is not none %}
           {% for lnk in request.BRAND_OBJECT.about_menu %}

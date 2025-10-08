@@ -204,7 +204,7 @@
         box-sizing: border-box;
       }
 
-      @include media('<550px', 'screen') {
+      @include media('<tablet', 'screen') {
         flex: 100%;
       }
     }
@@ -212,7 +212,7 @@
     &--fmin-0 {
       flex: fit-content 0;
 
-      @include media('<550px', 'screen') {
+      @include media('<tablet', 'screen') {
         flex: auto;
       }
     }

@@ -5,6 +5,7 @@
 
 .search-navigation {
   &__search {
+    display: none;
     position: relative;
     padding: 0;
     margin: 0;
@@ -78,7 +79,13 @@
   }
 }
 
-@include media("<desktop", "screen") {
+@include media(">=desktop", "screen") {
+  .search-navigation__search {
+    display: block;
+  }
+}
+
+@include media("<tablet", "screen") {
   .search-navigation {
     &__search {
       position: relative;
