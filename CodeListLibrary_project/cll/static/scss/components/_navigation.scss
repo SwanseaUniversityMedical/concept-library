@@ -28,23 +28,27 @@
 /// Profile row
 /// @desc ...
 .profile-row {
-  list-style: none;
-  z-index: 999;
-  background-color: white;
-  border-radius: 1em;
-  padding: 1.5em;
-  left: calc(5% - 10px);
-  margin: 0 5em 0 -5em;
   position: absolute;
   top: 0;
+  left: calc(5% - 45px);
+  max-height: 75vh;
+  padding: 1.5em;
+  margin: 0 5em 0 -5em;
   box-sizing: border-box;
-  -webkit-box-shadow: var(--panel-shadow);
+  list-style: none;
+  border-radius: 1em;
+  background-color: white;
   box-shadow: var(--panel-shadow);
+  -webkit-box-shadow: var(--panel-shadow);
   word-break: break-all;
   word-wrap: break-word;
-  max-height: 75vh;
   overflow-y: auto;
   overflow-x: hidden;
+  z-index: 999;
+
+  @include media('>=desktop', 'screen') {
+    left: calc(5% - 10px);
+  }
 
   .content-container {
     .item-dropdown {
@@ -184,7 +188,7 @@
   @include grid-template(false, 2, 1fr);
   position: absolute;
   top: 0;
-  right: -25vw;
+  right: -150px;
   max-width: 630px;
   max-height: 75vh;
   box-sizing: border-box;
@@ -286,7 +290,7 @@
       font-weight: 400;
     }
 
-    @include media("<=desktop", "screen") {
+    @include media("<tablet", "screen") {
       &__icon {
         display: none;
       }
@@ -307,7 +311,7 @@
   }
 }
 
-@include media("<desktop", "screen") {
+@include media("<tablet", "screen") {
   .about-row {
     display: block;
     background-color:var(--phenotype-banner-bg-color);
@@ -367,7 +371,7 @@
   }
 }
 
-@include media("<desktop", "screen") {
+@include media("<tablet", "screen") {
   .avatar-content {
     display: inline-flex;
     align-items: center;
@@ -628,7 +632,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     background-size: contain;
     background-position-y: 50%;
 
-    @include media(">=tablet", "screen") {
+    @include media(">=desktop", "screen") {
       aspect-ratio: 8 / 1;
     }
   }
@@ -655,7 +659,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     visibility: hidden;
     z-index: 1;
 
-    @include media("<desktop", "screen") {
+    @include media("<tablet", "screen") {
       & {
         visibility: visible;
       }
@@ -681,7 +685,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media(">=desktop", "screen") {
+  @include media(">=tablet", "screen") {
     &__items {
       @include flex-row($gap: 1rem);
       height: var(--navigation-height);
@@ -701,7 +705,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
     }
   }
 
-  @include media("<desktop", "screen") {
+  @include media("<tablet", "screen") {
     &__items {
       @include flex-col();
 
@@ -733,7 +737,7 @@ $navigation_transparent_gradient: 90deg col(bg) 0%, col(bg) 100%;
         right: 1rem;
         visibility: visible;
 
-        @include media("<desktop", "screen") {
+        @include media("<tablet", "screen") {
           top: -2rem;
           max-width: 100%;
         }

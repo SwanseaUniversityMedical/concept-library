@@ -221,7 +221,7 @@
           "table": "DataSource",
           "query": "id",
           "relative": "name",
-          "include": ["uid", "url"]
+          "include": ["uid", "url", "datasource_id"]
         }
       },
       "search": {

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from operator import is_not
 from difflib import SequenceMatcher as SM
 from functools import partial
@@ -18,7 +18,7 @@ import json
 import logging
 import dateutil
 
-from clinicalcode.entity_utils import permission_utils, gen_utils
+from clinicalcode.entity_utils import permission_utils, gen_utils, doi_utils, constants
 
 from clinicalcode.models.Tag import Tag
 from clinicalcode.models.Brand import Brand
@@ -26,15 +26,21 @@ from clinicalcode.models.Concept import Concept
 from clinicalcode.models.Template import Template
 from clinicalcode.models.Phenotype import Phenotype
 from clinicalcode.models.GenericEntity import GenericEntity
-from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
 from clinicalcode.models.Organisation import Organisation, OrganisationMembership
+
+from clinicalcode.models.PublishedPhenotype import PublishedPhenotype
+from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 
 from clinicalcode.models.HDRNSite import HDRNSite
 from clinicalcode.models.HDRNJurisdiction import HDRNJurisdiction
 from clinicalcode.models.HDRNDataAsset import HDRNDataAsset
 from clinicalcode.models.HDRNDataCategory import HDRNDataCategory
 
+from clinicalcode.models.QueuedDOI import QueuedDOI
+
+
 logger = logging.getLogger(__name__)
+
 
 ####       Const       ####
 BASE_LINKAGE_TEMPLATE = {
@@ -1869,3 +1875,94 @@ def get_custom_fields_key_value(phenotype):
     """
     
     return get_custom_fields(phenotype)
+
+
+##### DOI
+@login_required
+def admin_reg_published(request):
+    """Register previously published Phenotypes"""
+    if settings.CLL_READ_ONLY or not settings.DOI_ACTIVE: 
+        raise PermissionDenied
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if not permission_utils.is_member(request.user, 'system developers'):
+        raise PermissionDenied
+
+    # get
+    if request.method == 'GET':
+        return render(
+            request,
+            'clinicalcode/adminTemp/admin_temp_tool.html', 
+            {
+                'url': reverse('admin_reg_published'),
+                'action_title': 'Register Pre-Published Phenotypes',
+                'hide_phenotype_options': True,
+            }
+        )
+
+    if request.method != 'POST':
+        raise BadRequest('Invalid')
+
+    errs = None
+    result = { 'rowsAffected': { '1': 'ALL' } }
+    publishable = None
+    with connection.cursor() as cursor:
+        cursor.execute('''
+        select
+            json_agg(
+              json_build_object(
+                'id', trg.entity_id,
+                'history_id', trg.entity_history_id
+              )
+              order by cast(regexp_replace(trg.entity_id, '[a-zA-Z]+', '') as integer) asc
+            ) as res
+          from public.clinicalcode_publishedgenericentity as trg
+          left join public.clinicalcode_historicalgenericentity as ref
+            on trg.entity_id = ref.id and trg.entity_history_id = ref.history_id
+         where trg.approval_status = 2
+           and ref.doi is null;
+        ''')
+
+        columns = [col[0] for col in cursor.description]
+        publishable = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        publishable = publishable[0] if len(publishable) > 0 and isinstance(publishable[0], dict) else {}
+        publishable = publishable.get('res') if isinstance(publishable.get('res'), list) else []
+
+        publishable, errs = QueuedDOI.resolve_targets(*publishable)
+
+    if isinstance(errs, dict):
+        result = {
+            'errorMsg': {
+                'msg': 'Errors encountered when registering:\n' + '\n'.join(['  - ' + x for x in errs.values()])
+            }
+        }
+    else:
+        success = []
+        failures = []
+        for pub in publishable:
+            ref = '%s/%s' % (pub.get('id'), pub.get('history_id'))
+            try:
+                doi_utils.publish_doi_task(pub)
+                success.append(ref)
+            except Exception as err:
+                logger.warning('Failed to Pub<%s> with err:\n{%s}\n' % (ref, err))
+                failures.append(ref)
+
+        result = {
+            'rowsAffected': {
+                f'Success ({len(success)})': '<ul>' + '\n'.join([f'<li>{x}</li>' for x in success]) + '</ul>',
+                f'Failures ({len(failures)})': '<ul>' + '\n'.join([f'<li>{x}</li>' for x in failures]) + '</ul>',
+            }
+        }
+
+    return render(
+        request,
+        'clinicalcode/adminTemp/admin_temp_tool.html',
+        {
+            'pk': -10,
+            'action_title': 'Register Pre-Published Phenotypes',
+            'hide_phenotype_options': True,
+        } | result
+    )

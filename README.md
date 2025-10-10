@@ -222,7 +222,7 @@ c. *OR;* to prune your docker, enter `docker system prune -a`
 To build a local, pre-production build:
 1. Open a terminal
 2. Navigate to the `concept-library/docker/` folder
-3. Set up the environment variables within `./.env/live.compose.env`
+3. Set up the environment variables within `./env/live.compose.env`
 4. Finally, run `docker-compose -p cll -f docker-compose.dev.yaml --profile live up --build` (append `-d` as an argument to run in background)
 5. Open a browser and navigate to `localhost:8005` to access the application
 
@@ -231,7 +231,7 @@ To build a local, pre-production build:
 1. Open a terminal
 2. Follow the steps above if you have not already built the images
 3. Navigate to the `concept-library/docker/` folder
-4. Set up the environment variables within `./.env/live.compose.env`
+4. Set up the environment variables within `./env/live.compose.env`
 5. In the terminal, run `docker build -f ./development/dockerfiles/web/live.Dockerfile -t cll/app --build-arg server_name=localhost ..`
 6. Finally, run `docker-compose -p cll -f docker-compose.dev.yaml --profile live up` (append `-d` as an argument to run in background)
 7. Open a browser and navigate to `localhost:8005` to access the application
@@ -245,7 +245,7 @@ If you would like to learn more about Mailhog, please visit this [site](https://
 ### 2.3.7. Impact of Environment Variables
 
 > [!TIP]  
-> To modify the environment variables, please navigate to `./.env/{profile}.compose.env` (or the appropriate name for the profile you are building)  
+> To modify the environment variables, please navigate to `./env/{profile}.compose.env` (or the appropriate name for the profile you are building)  
 
 #### Impact on Application Behaviour
 Some environment variables modify the behaviour of the application.

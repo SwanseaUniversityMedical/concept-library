@@ -42,7 +42,7 @@
 						<br>
 						<ul>
 							{% for key, error in errorMsg.items %}
-								{% if not key == 'children' %}
+								{% if key != 'children' %}
 									<li>{{ error|safe }}</li>
 								{% else %}
 									<li>Errors:</li>

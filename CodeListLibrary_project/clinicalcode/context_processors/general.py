@@ -19,5 +19,6 @@ def general_var(request):
         'SHOW_COOKIE_ALERT': settings.SHOW_COOKIE_ALERT,
         'IS_HDRUK_EXT': settings.IS_HDRUK_EXT,
         'CANONICAL_PATH': get_canonical_path(request),
-        'APPROVED_STATUS_DICT': {e.name: e.value for e in constants.APPROVAL_STATUS}
+        'APPROVED_STATUS_DICT': {e.name: e.value for e in constants.APPROVAL_STATUS},
+        'DOI_ACTIVE': settings.DOI_ACTIVE,
     }

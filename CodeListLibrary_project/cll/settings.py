@@ -139,6 +139,11 @@ if path_prj not in sys.path:
 
 ''' Application variables '''
 
+# Redis
+REDIS_HOST = get_env_value('REDIS_HOST', default='redis')
+REDIS_PORT = get_env_value('REDIS_PORT', cast='int', default=6379)
+REDIS_PASSWORD = get_env_value('REDIS_PASSWORD', default=None)
+
 # Test-related config
 REMOTE_TEST = get_env_value('REMOTE_TEST', cast='bool', default=False)
 
@@ -209,11 +214,13 @@ CURRENT_BRAND_WITH_SLASH = ''
 BRAND_VAR_REFERENCE = {
     'default': {
         'urls': {
+            'concepts': 'concepts',
             'phenotypes': 'phenotypes',
         },
     },
     'HDRN': {
         'urls': {
+            'concepts': 'codelists',
             'phenotypes': 'concepts',
         },
     }
@@ -474,28 +481,6 @@ if not IS_DEMO and (not IS_DEVELOPMENT_PC):
 
 # ==============================================================================#
 
-''' Caching '''
-
-if DEBUG or IS_INSIDE_GATEWAY:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-        },
-    }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': 'redis://redis:6379/0',
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient'
-            },
-            'KEY_PREFIX': 'cll',
-        }
-    }
-
-# ==============================================================================#
-
 ''' Static file handling & serving '''
 
 # Static files (CSS, JavaScript, Images)
@@ -671,6 +656,28 @@ SASS_PROCESSOR_AUTO_INCLUDE = True
 SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
 SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
 
+## DOI registration
+###     Datacite config
+DOI_PREFIX = get_env_value('DOI_PREFIX', default=None)
+DOI_USERNAME = get_env_value('DOI_USERNAME', default=None)
+DOI_PASSWORD = get_env_value('DOI_PASSWORD', default=None)
+DOI_REFERRER = get_env_value('DOI_REFERRER', default=None)
+DOI_RELATION = get_env_value('DOI_RELATION', default=None)
+
+DOI_ACTIVE = ((
+    not REMOTE_TEST
+    and not IS_DEMO
+    and not CLL_READ_ONLY
+    and not IS_DEVELOPMENT_PC
+    and not IS_INSIDE_GATEWAY
+) and (
+    DOI_PREFIX is not None
+    and DOI_USERNAME is not None
+    and DOI_PASSWORD is not None
+    and DOI_REFERRER is not None
+    and DOI_RELATION is not None
+))
+
 ## CAPTCHA
 ### To ignore captcha during debug builds
 try:
@@ -691,14 +698,22 @@ EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
 HELPDESK_EMAIL = get_env_value('HELPDESK_EMAIL')
 
 ## Redis settings
-REDIS_BROKER_URL = 'redis://redis:6379/0'
+if REDIS_PASSWORD:
+    REDIS_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0'
+else:
+    REDIS_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
 
 ## Celery settings
-CELERY_BROKER_URL = 'redis://redis:6379/0'
+if REDIS_PASSWORD:
+    CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0'
+    CELERY_BROKER_PASSWORD = REDIS_PASSWORD
+else:
+    CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+
 CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 ## Celery beat settings
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
@@ -780,5 +795,28 @@ MARKDOWNIFY = {
         ],
     }
 }
+
+# ==============================================================================#
+
+''' Caching '''
+
+if DEBUG or IS_INSIDE_GATEWAY:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        },
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://redis:6379/0',
+            'OPTIONS': {
+                'PASSWORD': REDIS_PASSWORD,
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+            },
+            'KEY_PREFIX': 'cll',
+        }
+    }
 
 # ==============================================================================#

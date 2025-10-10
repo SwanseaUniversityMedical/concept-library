@@ -120,7 +120,20 @@ def get_layout_field(layout, field, default=None):
 
 
 def get_template_field_info(layout, field_name, copy_field=True):
-    """"""
+    """
+        Retrieves a field definition by the specified `field_name` from either (a) its template or (b) the _const._ metadata,
+        and merges - prioritising template redefinitions - it with any upstream definitions, _e.g._ its _const._ metadata definition;
+        this includes resolving its `display` and `shunt` field names.
+
+        Args:
+            layout     (Dict[str, Any]|:model:`Template`): either (a) the `template_definition` field of a :model:`Template` or (b) the :model:`Template` instance itself
+            field_name                              (str): specifies the name of the field to lookup in the layout / metadata
+            copy_fields                            (bool): optionally specify whether to copy the object before merging fields; defaults to `True`
+
+        Returns:
+            (Dict[str,Any]): specifies the field's info, if applicable, describing the following keys: `Dict[{'key':str, 'field': Dict[str, Any]|None, 'is_metadata': bool, 'shunt': str|None}]`
+
+    """
     fields = get_layout_fields(layout)
     if fields:
         field = fields.get(field_name)

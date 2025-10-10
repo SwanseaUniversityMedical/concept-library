@@ -60,11 +60,11 @@
 					<div class="tool-panel__form">
 						<div class="row">
 							<div class="col-md-12">	
-								{% if result and result.created %}
+								{% if result and result.created and result.created|length %}
 									<div class="bs-example"> 
 											<div class="alert alert-success fade in">
 													<a href="#" class="close" data-dismiss="alert">&times;</a>
-													<strong>Created:</strong>
+													<strong>Created ({{ result.created|length }}):</strong>
 													<br>
 													<ul>
 															{% for created in result.created %}
@@ -75,11 +75,11 @@
 									</div>
 								{% endif %}	
 							
-								{% if result and result.updated %}
+								{% if result and result.updated and result.updated|length %}
 									<div class="bs-example"> 
 											<div class="alert alert-success fade in">
 													<a href="#" class="close" data-dismiss="alert">&times;</a>
-													<strong>Updated:</strong>
+													<strong>Updated ({{ result.updated|length }}):</strong>
 													<br>
 													<ul>
 															{% for updated in result.updated %}

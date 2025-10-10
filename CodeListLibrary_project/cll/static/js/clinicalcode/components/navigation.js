@@ -27,11 +27,12 @@ const updateNavBarStyle = (navbar) => {
   * computeBurgerProperty
   * @desc Computes the --as-burger CSS property, see SCSS for further information
   * @param {node} burger The hamburger element
-  * @returns {value} The value of the computed property
+  * @returns {boolean} The value of the computed property
   * 
   */
 const computeBurgerProperty = (burger) => {
-  return window.getComputedStyle(burger, ':after').getPropertyValue('--as-burger').replace(/[^\w!?]/g, '');
+  const value = window.getComputedStyle(burger, ':after').getPropertyValue('--as-burger').replace(/[^\w!?]/g, '');
+  return /^\s*(true|1|on)\s*$/i.test(value);
 }
 
 /**
@@ -40,42 +41,59 @@ const computeBurgerProperty = (burger) => {
   * 
   */
 const initHamburgerMenu = () => {
+  const nav = document.querySelector('.page-navigation');
   const burger = document.querySelector('.page-navigation__buttons');
   const panel = document.querySelector('.page-navigation__items');
   const overlay = document.querySelector('.page-navigation__overlay');
   const avatarMenu = document.querySelector('#dropdown-account');
   const submenu = document.querySelector('.nav-dropdown__content');
   const nestedMenu = document.querySelector('.nested-menu');
-  
+
+  const closeItems = () => {
+    panel?.classList?.remove?.('open');
+    submenu?.classList?.remove?.('open');
+    avatarMenu?.classList?.remove?.('open');
+    nestedMenu?.classList?.remove?.('open');
+    overlay.style.display = 'none';
+  }
+
   burger.addEventListener('click', e => {
-    if (panel.classList.contains('open')) {
-      panel.classList.remove('open');
-      avatarMenu?.classList.remove('open');
-      submenu?.classList.remove('open');
-      nestedMenu?.classList.remove('open');
-      overlay.style.display = 'none'; 
-    } else {
-      const isBurger = computeBurgerProperty(burger);
-      if (isBurger === 'true') {
-        panel.classList.add('open');
-        overlay.style.display = 'block';
-        return;
-      }
+    if (panel?.classList?.contains?.('open')) {
+      closeItems();
+      return;
+    }
+
+    const isBurger = computeBurgerProperty(burger);
+    if (isBurger) {
+      panel.classList.add('open');
+      overlay.style.display = 'block';
+      return;
     }
   });
 
   document.addEventListener('click', e => {
     const element = e.target;
-
     if (burger.contains(element) || panel.contains(element)) {
       return;
     }
-    panel.classList.remove('open');
-    avatarMenu?.classList.remove('open');
-    submenu?.classList.remove('open');
-    nestedMenu?.classList.remove('open');
-    overlay.style.display = 'none'; 
+
+    closeItems();
   })
+
+  let isInMobileView = computeBurgerProperty(burger);
+  const resizeObserver = new ResizeObserver(() => {
+    const newValue = computeBurgerProperty(burger);
+    if (isInMobileView && !newValue) {
+      closeItems();
+
+      const focusedItem = document.activeElement;
+      if (isHtmlObject(focusedItem) && nav.contains(focusedItem)) {
+        focusedItem.blur();
+      }
+    }
+    isInMobileView = newValue;
+  });
+  resizeObserver.observe(burger);
 }
 
 /**
@@ -84,33 +102,95 @@ const initHamburgerMenu = () => {
  * 
  */
 const submenuMobile = () => {
-  // JavaScript for submenu behavior
-  const navText = document.querySelector('.nav-dropdown__text a');
-  const submenu = document.querySelector('.nav-dropdown__content');
+  const burger = document.querySelector('.page-navigation__buttons');
 
-  const avataText = document.querySelector('.avatar-content');
-  const avatarMenu = document.querySelector('#dropdown-account');
+  const aboutText = document.querySelector('.nav-dropdown__text#About');
+  const aboutMenu = aboutText?.parentElement?.querySelector?.('.nav-dropdown__content');
 
-  // Function to toggle submenu visibility
-  function toggleSubmenu() {
-    submenu.classList.toggle('open');
-    avatarMenu?.classList.remove('open');
+  const avatarText = document.querySelector('.avatar-content');
+  const avatarMenu = avatarText?.parentElement?.querySelector?.('.nav-dropdown__content');
+
+  const menus = {
+    about  : { valid:  aboutText &&  aboutMenu, btn:  aboutText, smu:  aboutMenu },
+    avatar : { valid: avatarText && avatarMenu, btn: avatarText, smu: avatarMenu },
   }
 
-  // Add click event listener to the "About" link
-  navText.addEventListener('click', (e) => {
-    e.preventDefault(); // Prevent the default link behavior
-    toggleSubmenu();
+  // Hnd submenu visibility
+  const toggleSubmenu = (trg) => {
+    const elems = stringHasChars(trg)
+      ? menus[trg]
+      : null;
+
+    if (!isObjectType(elems) || !elems.valid) {
+      return;
+    }
+
+    const { btn, smu } = elems;
+    if (smu.classList.contains('open')) {
+      btn.classList.remove('open');
+      smu.classList.remove('open');
+      return;
+    }
+
+    let objs;
+    for (const key in menus) {
+      objs = menus[key];
+      if (key === trg || !objs.valid) {
+        continue;
+      }
+
+      objs.btn.classList.remove('open');
+      objs.smu.classList.remove('open');
+    }
+
+    btn.classList.add('open');
+    smu.classList.add('open');
+  };
+
+  const submenuHnd = (e) => {
+    if (!computeBurgerProperty(burger)) {
+      return true;
+    }
+
+    const elem = e.target;
+    if (!isHtmlObject(elem)) {
+      return true;
+    }
+
+    let trg;
+    if (aboutText === elem || aboutText.contains(elem)) {
+      trg = 'about';
+    } else if (avatarText === elem || avatarText.contains(elem)) {
+      trg = 'avatar';
+    }
+
+    if (isNullOrUndefined(trg)) {
+      return;
+    }
+
+    e.preventDefault();
+    toggleSubmenu(trg);
+  };
+
+  aboutText?.addEventListener?.('click', submenuHnd, { capture: true, passive: false });
+  avatarText?.addEventListener?.('click', submenuHnd, { capture: true, passive: false });
+
+  // Hnd nested visibility
+  const nestedContainer = document.querySelector('.content-container__nested > a');
+  const nestedMenu = nestedContainer?.parentElement?.querySelector?.('.nested-menu');
+  nestedContainer?.addEventListener?.('click', (e) => {
+    if (!computeBurgerProperty(burger) || isNullOrUndefined(nestedMenu)) {
+      return true;
+    }
+
+    e.preventDefault();
+
+    const method = nestedMenu.classList.contains('open')
+      ? nestedMenu.classList.remove
+      : nestedMenu.classList.add;
+
+    method?.call?.(nestedMenu.classList, 'open');
   });
-
-  if (avatarMenu) {
-    avataText.addEventListener('click', (e) => {
-      e.preventDefault(); // Prevent the default link behavior
-
-      avatarMenu.classList.toggle('open');
-      submenu.classList.remove('open');
-    });
-  }
 }
 
 /**
@@ -132,23 +212,6 @@ const searchBar = () => {
 
     searchInput.blur();
   });
-}
-
-/**
- * nestedMenu
- * @desc ...?
- * 
- */
-const nestedMenu = () => {
-  const nestedContainer = document.querySelector('.content-container__nested > a');
-  const nestedMenu = document.querySelector('.nested-menu');
-
-  if (nestedContainer && nestedMenu) {
-    nestedContainer.addEventListener('click', (e) => {
-      e.preventDefault();
-      nestedMenu.classList.toggle('open');
-    });
-  }
 }
 
 /**
@@ -298,7 +361,6 @@ domReady.finally(() => {
   const navbar = document.querySelector('.page-navigation');
   updateNavBarStyle(navbar);
   submenuMobile();
-  nestedMenu();
   searchBar();
 
   document.addEventListener('scroll', e => {

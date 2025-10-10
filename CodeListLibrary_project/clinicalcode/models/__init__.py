@@ -49,6 +49,7 @@ from .Organisation import (
   OrganisationAuthority, 
   OrganisationInvite
 )
+from .QueuedDOI import QueuedDOI
 
 from .CCI_CODES import CCI_CODES
 from .PHYSICIAN_FEE_CODES import PHYSICIAN_FEE_CODES

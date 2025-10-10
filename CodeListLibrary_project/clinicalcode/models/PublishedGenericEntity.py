@@ -14,7 +14,7 @@ class PublishedGenericEntity(models.Model):
     entity = models.ForeignKey(GenericEntity, on_delete=models.CASCADE)
     entity_history_id = models.IntegerField(null=False)
     code_count = models.IntegerField(null=True) # used for statistics
-    
+
     created = models.DateTimeField(auto_now_add=True)  # date of publication
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="published_entity_created_by")
     modified = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -45,10 +45,9 @@ class PublishedGenericEntity(models.Model):
                     'entityid': str(self.entity.id),
                     'entityhxid': self.entity_history_id,
                 })
-                
-            ''' if latest version, then update live record '''
-            if self.entity_history_id == self.entity.history.latest().history_id:
-                with connection.cursor() as cursor:
+
+                ''' if latest version, then update live record '''
+                if self.entity_history_id == self.entity.history.latest().history_id:
                     sql_publish_status_2 = """
                                         UPDATE public.clinicalcode_genericentity 
                                         SET publish_status = %(approval)s

@@ -324,7 +324,7 @@ Well-documented test code is essential for ensuring that team members can unders
 
 ## 8. Continuous Integration
 
-Our Continuous Integration (CI) pipeline triggers with every Pull Request (PR) into the master branch, running Pytest tests and providing code coverage insights directly in the PR. Additionally, Allure reports are generated to showcase detailed test results and statistics. These reports are published on GitHub Pages, ensuring quick access to essential information during the review process. Concept Library has integrated pipline for the tests but it is advisable to not change the `docker/.env/remote.test.env` file.
+Our Continuous Integration (CI) pipeline triggers with every Pull Request (PR) into the master branch, running Pytest tests and providing code coverage insights directly in the PR. Additionally, Allure reports are generated to showcase detailed test results and statistics. These reports are published on GitHub Pages, ensuring quick access to essential information during the review process. Concept Library has integrated pipline for the tests but it is advisable to not change the `docker/env/remote.test.env` file.
 
 After succesfull run of CI you can go to this URL to check test results remotely - https://meek-florentine-a03d43.netlify.app/ 
 
