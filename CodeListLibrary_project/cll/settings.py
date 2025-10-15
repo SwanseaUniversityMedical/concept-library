@@ -678,6 +678,33 @@ DOI_ACTIVE = ((
     and DOI_RELATION is not None
 ))
 
+## GA4 info
+GA4_INFO = {
+    'scopes': get_env_value('GA4_SCOPES', default=None),
+    'property_id': get_env_value('GA4_PROP_ID', default=None),
+    'client': {
+        'type': get_env_value('GA4_ACC', default=None),
+        'project_id': get_env_value('GA4_PID', default=None),
+        'private_key': get_env_value('GA4_PKEY', default=None),
+        'private_key_id': get_env_value('GA4_PKID', default=None),
+        'client_id': get_env_value('GA4_CID', default=None),
+        'client_email': get_env_value('GA4_EMAIL', default=None),
+        'auth_uri': get_env_value('GA4_AUTH_URI', default=None),
+        'token_uri': get_env_value('GA4_TOKEN_URI', default=None),
+        'auth_provider_x509_cert_url': get_env_value('GA4_PAUTH_CERT_URL', default=None),
+        'client_x509_cert_url': get_env_value('GA4_CAUTH_CERT_URL', default=None),
+        'universe_domain': get_env_value('GA4_UNIVERSE_DOMAIN', default=None),
+    },
+}
+
+GA4_ACTIVE = (
+    not REMOTE_TEST
+    and not IS_DEMO
+    and not CLL_READ_ONLY
+    and not IS_INSIDE_GATEWAY
+    # and not IS_DEVELOPMENT_PC
+)
+
 ## CAPTCHA
 ### To ignore captcha during debug builds
 try:

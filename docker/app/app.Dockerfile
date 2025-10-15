@@ -23,7 +23,7 @@ RUN apt-get update -y -q && \
     apt-get upgrade -y -q && \
     apt-get install -y -q --no-install-recommends \
       wget curl ca-certificates apt-utils  `# Base deps`           \
-      cmake build-essential python3-pip git dos2unix               \
+      cmake build-essential python3-pip git                        \
       ssh apache2 apache2-dev supervisor   `# Apache & Supervisor` \
       libsasl2-dev libldap2-dev libssl-dev `# LDAP deps`           \
       software-properties-common npm       `# Npm deps`
@@ -48,11 +48,15 @@ COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_pro
 RUN chown -R www-data:www-data /var/www /home/config_cll && \
     chmod -R 750 /home/config_cll
 
-RUN find /bin/scripts -type f -iname "*.sh" -exec chmod a+x {} \; -exec dos2unix {} \; && \
-    find /home/config_cll -type f -iname "*.sh" -exec chmod a+x {} \; -exec dos2unix {} \;
+RUN find /bin/scripts -type f -iname "*.sh" -exec chmod a+x {} \; && \
+    find /home/config_cll -type f -iname "*.sh" -exec chmod a+x {} \;
 
 # Config & install dependencies
 RUN /bin/scripts/dependencies.sh /var/www/concept_lib_sites/v1/requirements/${dependency_target:-production.txt}
+
+# Cleanup
+RUN apt-get autoremove -y -q && \
+    apt-get clean -y -q
 
 
 ####################################
