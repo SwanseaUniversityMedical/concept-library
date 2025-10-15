@@ -29,3 +29,5 @@ python-decouple==3.8
 pyhtml2md==1.6.6
 django-easy-audit==1.3.7
 html-to-markdown==1.3.3
+# GAPI
+google-auth==2.41.1

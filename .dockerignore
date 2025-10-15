@@ -1,0 +1,11 @@
+docs
+.git
+.github
+LICENSE
+README.md
+renovate.json
+**/staticroot
+**/__pycache__
+**/.pytest_cache
+**/.gitkeep
+**/.gitignore

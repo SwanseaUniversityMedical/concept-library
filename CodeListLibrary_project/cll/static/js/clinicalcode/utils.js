@@ -2540,6 +2540,33 @@ const findMissingComponents = (templates, expected, missing = []) => {
 }
 
 /**
+ * @desc resolves the analytics manager's brand context and target config ID
+ * 
+ * @returns {{ brand: string, configId: string }} the resulting analytics target info
+ */
+const getAnalyticsTarget = () => {
+  const host = getCurrentHost();
+  const brand = document.documentElement.getAttribute('data-brand');
+  const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
+  if (!!host.match(CLU_HOST.HDRUK)) {
+    return {
+      brand: 'HDRUK',
+      configId: 'G-W6XK339B16',
+    };
+  } else if (!isUnbranded && brand.toLowerCase() === 'HDRUK') {
+    return {
+      brand: 'HDRUK',
+      configId: 'G-QE37B9J5WK',
+    }
+  }
+
+  return {
+    brand: isUnbranded ? 'none' : brand,
+    configId: 'G-KLBS2646W1',
+  }
+};
+
+/**
  * @desc analytics manager wrapper
  * 
  * @param {(manager: Function) => any} fn some function apply if the manager can be resolved
@@ -2565,4 +2592,36 @@ const tryAnalytics = (fn) => {
       reject(e);
     }
   });
+}
+
+/**
+ * @desc attempts to resolve the profile associated with this client
+ * 
+ * @returns {{ active: boolean, client_id: string, session_id: string }} GA4 user analytics profile data
+ */
+const getAnalyticsProfile = () => {
+  const res = { active: false };
+  const mngr = window?.gtag ?? null;
+  if (typeof mngr !== 'function') {
+    return Promise.resolve(result);
+  }
+
+  const conf = getAnalyticsTarget();
+  const wrap = (key, resolver) => (value) => resolver({ name: key, result: value });
+  return Promise.allSettled([
+    new Promise((resolve) => mngr('get', conf.configId, 'client_id', wrap('client_id', resolve))),
+    new Promise((resolve) => mngr('get', conf.configId, 'session_id', wrap('session_id', resolve))),
+  ])
+    .then(result => {
+      res.active = true;
+
+      return result.reduce((out, data) => {
+        if (data.status !== 'fulfilled') {
+          return;
+        }
+
+        out[data.value.name] = data.value.result;
+        return out;
+      }, res);
+    });
 }

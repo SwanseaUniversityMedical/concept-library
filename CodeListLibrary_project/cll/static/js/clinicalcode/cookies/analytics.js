@@ -117,28 +117,6 @@ const setAnalyticsEnv = (config, consent = null) => {
   }
 }
 
-const getAnalyticsTarget = () => {
-  const host = getCurrentHost();
-  const brand = document.documentElement.getAttribute('data-brand');
-  const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
-  if (!!host.match(CLU_HOST.HDRUK)) {
-    return {
-      brand: 'HDRUK',
-      configId: 'G-W6XK339B16',
-    };
-  } else if (!isUnbranded && brand.toLowerCase() === 'HDRUK') {
-    return {
-      brand: 'HDRUK',
-      configId: 'G-QE37B9J5WK',
-    }
-  }
-
-  return {
-    brand: isUnbranded ? 'none' : brand,
-    configId: 'G-KLBS2646W1',
-  }
-};
-
 domReady.finally(() => {
   const cookieSrc = document.querySelector('script[data-src="cookies"]');
   if (!cookieSrc) {
