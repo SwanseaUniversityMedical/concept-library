@@ -705,6 +705,8 @@ GA4_ACTIVE = (
     and not IS_DEVELOPMENT_PC
 )
 
+GA4_STUDIO_LINK = get_env_value('GA4_STUDIO_LINK', default=None)
+
 ## CAPTCHA
 ### To ignore captcha during debug builds
 try:

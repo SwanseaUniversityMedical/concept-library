@@ -297,7 +297,7 @@ class BrandOverviewView(APIView):
 			query_params.update({ 'stats_ctx': stats_context })
 
 		result = {
-			'data': { 'dau': 0, 'mau': 0 },
+			'data': { },
 			'timestamp': datetime.now().isoformat()
 		}
 

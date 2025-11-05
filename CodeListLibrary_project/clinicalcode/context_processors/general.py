@@ -7,6 +7,7 @@ def general_var(request):
     return {
         'USER_CREATE_CONTEXT': permission_utils.user_has_create_context(request),
         'IS_BRAND_ADMIN': permission_utils.is_requestor_brand_admin(request),
+        'GA4_STUDIO_LINK': settings.GA4_STUDIO_LINK,
         'MEDIA_URL': settings.MEDIA_URL,
         'CLL_READ_ONLY': settings.CLL_READ_ONLY,
         'SHOWADMIN': settings.SHOWADMIN,
