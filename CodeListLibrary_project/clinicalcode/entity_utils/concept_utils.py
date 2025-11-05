@@ -279,7 +279,11 @@ def get_concept_headers(concept_information, default=None):
             end as is_published,
             concept.phenotype_owner_id,
             codingsystem.id as coding_system_id,
-            codingsystem.name as coding_system_name
+            codingsystem.name as coding_system_name,
+            case
+                when concept.is_deleted is null then false
+                else concept.is_deleted
+            end as is_deleted
         from concept_information as info,
              json_array_elements(info.doc) as obj
         join public.clinicalcode_concept as concept
@@ -909,10 +913,11 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         if not latest_version:
             latest_version = historical_concept
 
+        ph_owner_id = concept.phenotype_owner.id if concept.phenotype_owner is not None else None
         concept_data['latest_version'] = {
             'id': latest_version.id,
             'history_id': latest_version.history_id,
-            'is_out_of_date': historical_concept.history_id < latest_version.history_id,
+            'is_out_of_date': (requested_entity_id is None or requested_entity_id != ph_owner_id) and historical_concept.history_id < latest_version.history_id,
         }
 
         concept_data['is_published'] = is_concept_published(concept_id, concept_history_id)

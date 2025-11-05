@@ -702,7 +702,7 @@ GA4_ACTIVE = (
     and not IS_DEMO
     and not CLL_READ_ONLY
     and not IS_INSIDE_GATEWAY
-    # and not IS_DEVELOPMENT_PC
+    and not IS_DEVELOPMENT_PC
 )
 
 ## CAPTCHA

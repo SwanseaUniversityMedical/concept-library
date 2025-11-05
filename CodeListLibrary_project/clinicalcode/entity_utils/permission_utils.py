@@ -25,8 +25,8 @@ from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.Organisation import Organisation, OrganisationAuthority
 
 from .constants import (
-    ORGANISATION_ROLES, APPROVAL_STATUS,
-    GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
+    APPROVAL_STATUS, DELETION_QUERY,
+    ORGANISATION_ROLES, GROUP_PERMISSIONS, WORLD_ACCESS_PERMISSIONS
 )
 
 
@@ -967,7 +967,7 @@ def get_accessible_entity_history(
 def get_accessible_entities(
     request,
     consider_user_perms=True,
-    only_deleted=False,
+    deletion_query=DELETION_QUERY.ACTIVE,
     status=[APPROVAL_STATUS.APPROVED],
     min_group_permission=ORGANISATION_ROLES.MEMBER,
     consider_brand=True,
@@ -980,7 +980,7 @@ def get_accessible_entities(
       Args:
         request (RequestContext): the HTTPRequest
         consider_user_perms (boolean): Whether to consider user perms i.e. superuser, moderation status etc
-        only_deleted (boolean): Whether to incl/excl deleted entities
+        deletion_query (enum): Specifies how deleted entities should be handled
         status (list): A list of publication statuses to consider
         group_permissions (list): A list of which group permissions to consider
         consider_brand (boolean): Whether to consider the request Brand (only applies to Moderators, Non-Auth'd and Auth'd accounts)
@@ -1011,15 +1011,16 @@ def get_accessible_entities(
         if brand is not None:
             results = GenericEntity.objects.filter(brands__overlap=[brand.id])
 
-            if only_deleted:
-              results = results.filter(is_deleted=True)
-            else:
-              results = results.exclude(is_deleted=True)
-
             results = GenericEntity.history \
                 .filter(id__in=list(results.values_list('id', flat=True)))
         else:
             results = GenericEntity.history.all()
+
+        if deletion_query == DELETION_QUERY.ACTIVE:
+          results = results.exclude(is_deleted=True)
+        elif deletion_query == DELETION_QUERY.DELETED:
+          results = results.filter(is_deleted=True)
+
         return results.latest_of_each()
 
     # Anon user query
@@ -1063,22 +1064,6 @@ def get_accessible_entities(
             cursor.execute(sql, query_params)
             return GenericEntity.history.filter(history_id__in=[row[1] for row in cursor.fetchall()])
 
-    # Clean publication status
-    pub_status = status.copy() if isinstance(status, list) else []
-    if consider_user_perms and is_member(user, 'Moderators'):
-        pub_status += [
-            APPROVAL_STATUS.REQUESTED,
-            APPROVAL_STATUS.PENDING, 
-            APPROVAL_STATUS.REJECTED
-        ]
-
-    if len(pub_status) > 0:
-        pub_status = [
-            x.value if x in APPROVAL_STATUS else gen_utils.parse_int(x, default=None)
-            for x in pub_status
-                if x in APPROVAL_STATUS or gen_utils.parse_int(x, default=None) is not None
-        ]
-
     # Non-anon user
     #   i.e. dependent on user role
     org_view_clause = ''
@@ -1098,30 +1083,61 @@ def get_accessible_entities(
         'role_enum': min_group_permission
     })
 
-    if len(pub_status) < 1:
-        clauses += f'''
-          or hist_entity.publish_status != {APPROVAL_STATUS.PENDING.value}
-        '''
-    elif APPROVAL_STATUS.ANY in pub_status or APPROVAL_STATUS.ANY.value in pub_status:
-        clauses += f'''
-          or hist_entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
-        '''
-    else:
-        clauses += '''
-          or hist_entity.publish_status = any(%(pub_status)s)
-        '''
-        query_params.update({ 'pub_status': pub_status })
+    # Clean publication status
+    pub_status = status.copy() if isinstance(status, list) else []
+    if consider_user_perms:
+        if user.is_superuser:
+          pub_status += [
+            APPROVAL_STATUS.ANY,
+            APPROVAL_STATUS.REQUESTED,
+            APPROVAL_STATUS.PENDING,
+            APPROVAL_STATUS.REJECTED
+          ]
+        elif is_member(user, 'Moderators'):
+          pub_status += [
+            APPROVAL_STATUS.REQUESTED,
+            APPROVAL_STATUS.PENDING, 
+            APPROVAL_STATUS.REJECTED
+          ]
 
-    conditional = ''
-    if only_deleted:
-        conditional = '''
-             and live_entity.id is not null and live_entity.is_deleted = true
-        '''
+    if len(pub_status) > 0:
+        pub_status = [
+            x.value if x in APPROVAL_STATUS else gen_utils.parse_int(x, default=None)
+            for x in pub_status
+                if x in APPROVAL_STATUS or gen_utils.parse_int(x, default=None) is not None
+        ]
+
+    if not consider_user_perms or not user.is_superuser or not is_member(user, 'Moderators'):
+      if len(pub_status) < 1:
+          clauses += f'''
+            or hist_entity.publish_status != {APPROVAL_STATUS.PENDING.value}
+          '''
+      elif APPROVAL_STATUS.ANY in pub_status or APPROVAL_STATUS.ANY.value in pub_status:
+          clauses += f'''
+            or hist_entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
+          '''
+      else:
+          clauses += '''
+            or hist_entity.publish_status = any(%(pub_status)s)
+          '''
+          query_params.update({ 'pub_status': pub_status })
     else:
-        conditional = '''
-             and (live_entity.is_deleted is null or live_entity.is_deleted = false)
-             and (hist_entity.is_deleted is null or hist_entity.is_deleted = false)
-        '''
+      clauses += '''
+        or hist_entity.publish_status = any(%(pub_status)s)
+      '''
+      query_params.update({ 'pub_status': pub_status })
+
+    # Deletion status
+    conditional = ''
+    if deletion_query == DELETION_QUERY.ACTIVE:
+      conditional = '''
+            and (live_entity.is_deleted is null or live_entity.is_deleted = false)
+            and (hist_entity.is_deleted is null or hist_entity.is_deleted = false)
+      '''
+    elif deletion_query == DELETION_QUERY.DELETED:
+      conditional = '''
+            and live_entity.id is not null and live_entity.is_deleted = true
+      '''
 
     sql = f'''
     select t0.id, t0.history_id
@@ -1498,8 +1514,14 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
 
     is_viewable = False
     is_editable = False
-    is_published = historical_entity.publish_status == APPROVAL_STATUS.APPROVED.value
     is_org_accessible = False
+
+    pub_ent = None
+    if historical_entity.publish_status == APPROVAL_STATUS.APPROVED.value:
+        pub_ent = PublishedGenericEntity.objects.filter(entity_id=entity_id, entity_history_id=entity_history_id)
+        pub_ent = pub_ent.first() if pub_ent.exists() and pub_ent.first().approval_status == APPROVAL_STATUS.APPROVED.value else None
+
+    is_published = pub_ent is not None
 
     if user is not None:
         is_owner = live_entity.owner == user

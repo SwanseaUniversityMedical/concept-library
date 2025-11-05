@@ -606,7 +606,7 @@ def generic_entity_detail(request, pk, history_id=None):
     # find latest accessible entity for given pk if historical id not specified
     history_id = gen_utils.parse_int(history_id, default=None)
     if not isinstance(history_id, int):
-        entities = permission_utils.get_accessible_entities(request, pk=pk)
+        entities = permission_utils.get_accessible_entities(request, pk=pk, deletion_query=constants.DELETION_QUERY.ANY)
 
         if not entities.exists():
             return View.notify_err(
@@ -735,7 +735,7 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
 
     # get the latest version/ or latest published version
     if not isinstance(history_id, int):
-        entities = permission_utils.get_accessible_entities(request, pk=pk)
+        entities = permission_utils.get_accessible_entities(request, pk=pk, deletion_query=constants.DELETION_QUERY.ANY)
 
         if not entities.exists():
             return View.notify_err(
@@ -748,32 +748,31 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
             history_id = entities.first().history_id
         
     # validate access for login and public site
-    permission_utils.validate_access_to_view(request, pk, history_id)
+    accessibility, err = permission_utils.get_accessible_detail_entity(request, pk, history_id)
+    if err is not None:
+        return View.notify_err(
+            request,
+            title=err.get('title'),
+            status_code=err.get('status_code'),
+            details=[err.get('message')]
+        )
+    elif not accessibility or not accessibility.get('view_access'):
+        return View.notify_err(
+            request,
+            title='Forbidden - Permission Denied',
+            status_code=403,
+            details=[f'Sorry but it looks like this {pk} hasn\'t been made accessible to you yet. Please contact the author of this {pk} to grant you access.']
+        )
 
-    is_published = permission_utils.check_if_published(GenericEntity, pk, history_id)
-
-    # ----------------------------------------------------------------------
-
-    # exclude(is_deleted=True)
-    if GenericEntity.objects.filter(id=pk).count() == 0:
-        return HttpResponseNotFound("Not found.")
-        # raise permission_denied # although 404 is more relevant
-
-    # exclude(is_deleted=True)
-    if GenericEntity.history.filter(id=pk, history_id=history_id).count() == 0:
-        return HttpResponseNotFound("Not found.")
-        # raise permission_denied # although 404 is more relevant
-
-    # here, check live version
+    # check live version
     current_ph = GenericEntity.objects.get(pk=pk)
-
-    # if not is_published:
-    #     children_permitted_and_not_deleted, error_dict = db_utils.chk_children_permission_and_deletion(request, GenericEntity, pk, set_history_id=history_id)
-    #     if not children_permitted_and_not_deleted:
-    #         raise PermissionDenied
-
     if current_ph.is_deleted == True:
-        raise PermissionDenied
+        return View.notify_err(
+            request,
+            title=f'Page Not Found - Missing {pk}',
+            status_code=403,
+            details=[f'Sorry but it looks like this {pk} has been archived by its creator and is no longer available.']
+        )
 
     current_ph_version = GenericEntity.history.get(id=pk, history_id=history_id)
 
@@ -794,7 +793,7 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
         'code', 'description', 'coding_system', 
         'concept_id', 'concept_version_id', 'concept_name',
         'phenotype_id', 'phenotype_version_id', 'phenotype_name'
-        ])
+    ])
     
     # if the phenotype contains only one concept, write titles in the loop below
     final_titles = final_titles + ["code_attributes"]
