@@ -1041,13 +1041,15 @@ def get_accessible_entities(
               from public.clinicalcode_historicalgenericentity as hist_entity
               join public.clinicalcode_genericentity as live_entity
                 on hist_entity.id = live_entity.id
+              join public.clinicalcode_publishedgenericentity as pub_entity
+                on pub_entity.entity_id = hist_entity.id and pub_entity.entity_history_id = hist_entity.history_id
               join public.clinicalcode_historicaltemplate as hist_tmpl
                 on hist_entity.template_id = hist_tmpl.id and hist_entity.template_version = hist_tmpl.template_version
               join public.clinicalcode_template as live_tmpl
                 on hist_tmpl.id = live_tmpl.id
              where (live_entity.is_deleted is null or live_entity.is_deleted = false)
                and (hist_entity.is_deleted is null or hist_entity.is_deleted = false)
-               and hist_entity.publish_status = {APPROVAL_STATUS.APPROVED.value}
+               and pub_entity.approval_status = {APPROVAL_STATUS.APPROVED.value}
                {brand_clause}
                {pk_clause}
           ) as t0
@@ -1516,10 +1518,8 @@ def get_accessible_detail_entity(request, entity_id, entity_history_id=None):
     is_editable = False
     is_org_accessible = False
 
-    pub_ent = None
-    if historical_entity.publish_status == APPROVAL_STATUS.APPROVED.value:
-        pub_ent = PublishedGenericEntity.objects.filter(entity_id=entity_id, entity_history_id=entity_history_id)
-        pub_ent = pub_ent.first() if pub_ent.exists() and pub_ent.first().approval_status == APPROVAL_STATUS.APPROVED.value else None
+    pub_ent = PublishedGenericEntity.objects.filter(entity_id=entity_id, entity_history_id=entity_history_id)
+    pub_ent = pub_ent.first() if pub_ent.exists() and pub_ent.first().approval_status == APPROVAL_STATUS.APPROVED.value else None
 
     is_published = pub_ent is not None
 
