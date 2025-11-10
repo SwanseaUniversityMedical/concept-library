@@ -161,7 +161,7 @@ services:
       - live
 
   redis:
-    image: redis:7.0-bullseye
+    image: redis:7.4-bookworm
     container_name: redis
     restart: unless-stopped
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}

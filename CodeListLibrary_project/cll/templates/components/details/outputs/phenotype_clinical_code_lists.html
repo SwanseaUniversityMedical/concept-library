@@ -80,10 +80,16 @@
             aria-label="Toggle Accordion: {{ c.name }} ({{ c.coding_system_name }})"
             title="{{ c.name }} ({{ c.coding_system_name }})">
           <span aria-label="{{ c.name }} ({{ c.coding_system_name }})" class="fill-accordion__wrap-label">
-            <a target=_blank rel="noopener" href="{% url 'entity_detail' pk=c.phenotype_owner_id %}"
-                  title="Visit Linked {{ brand_mapping.phenotype }}: {{c.phenotype_owner_id}} / C{{ c.concept_id }}">
-              {{c.phenotype_owner_id}} / C{{ c.concept_id }}
-            </a>
+            {% if not c.is_deleted %}
+              <a target=_blank rel="noopener" href="{% url 'entity_detail' pk=c.phenotype_owner_id %}"
+                    title="Visit Linked {{ brand_mapping.phenotype }}: {{c.phenotype_owner_id}} / C{{ c.concept_id }}">
+                {{c.phenotype_owner_id}} / C{{ c.concept_id }}
+              </a>
+            {% else %}
+              <a target=_blank rel="noopener" title="Deleted resource of {{ brand_mapping.phenotype }}: {{c.phenotype_owner_id}} / C{{ c.concept_id }}">
+                {{c.phenotype_owner_id}} / C{{ c.concept_id }}
+              </a>
+            {% endif %}
             &nbsp;-&nbsp;<span>{{ c.name }}</span>&nbsp;|&nbsp;
             <em>{{ c.coding_system_name }}</em>
             <span id="ood-{{ c.concept_id }}-{{ c.concept_version_id }}"

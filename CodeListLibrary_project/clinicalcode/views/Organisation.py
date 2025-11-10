@@ -379,6 +379,9 @@ class OrganisationManageView(UpdateView):
 ''' View Organisation '''
 
 class OrganisationView(TemplateView):
+  # Specify how many items to return when computing popular entities
+  MAX_POPULAR_ITEMS = 5
+
   template_name = 'clinicalcode/organisation/view.html'
   fetch_methods = [
     'leave_organisation'
@@ -391,183 +394,26 @@ class OrganisationView(TemplateView):
     context = super(OrganisationView, self).get_context_data(*args, **kwargs)
     request = self.request
 
+    slug = kwargs.get('slug')
     user = request.user if request.user and not request.user.is_anonymous else None
 
     current_brand = model_utils.try_get_brand(request)
     current_brand = current_brand if current_brand and current_brand.org_user_managed else None
-        
-    slug = kwargs.get('slug')
-    if not gen_utils.is_empty_string(slug):
-      organisation = Organisation.objects.filter(slug=slug)
-      if organisation.exists():
-        organisation = organisation.first()
-        
-        members = organisation.members.through.objects \
-          .filter(organisation_id=organisation.id) \
-          .annotate(
-            role_name=Case(
-              *[When(role=v.value, then=Value(v.name)) for v in constants.ORGANISATION_ROLES],
-              default=Value(constants.ORGANISATION_ROLES.MEMBER.name),
-              output_field=models.CharField()
-            )
-          ) \
-          .distinct('user_id')
-        
-        is_owner = False
-        is_member = False
-        is_admin = False
-        if user:
-          is_owner = organisation.owner_id == user.id
-          
-          membership = organisation.organisationmembership_set.filter(user_id=user.id)
-          if membership.exists():
-            membership = membership.first()
 
-            is_member = True
-            is_admin = membership.role >= constants.ORGANISATION_ROLES.ADMIN
+    organisation = Organisation.objects.filter(slug=slug) if isinstance(slug, str) and not gen_utils.is_empty_string(slug) else None
+    if organisation is None or not organisation.exists():
+      raise Http404('No organisation found')
 
-        entity_brand_clause = ''
-        user_perms_sql = f'''
-          select memb.user_id, memb.organisation_id, memb.role
-          from public.auth_user as uau
-          join public.clinicalcode_organisationmembership as memb
-            on uau.id = memb.user_id
-          join public.clinicalcode_organisation as org
-            on memb.organisation_id = org.id
-          where memb.organisation_id = {organisation.id}
-            and memb.user_id = {user.id if user else 'null'}
-          union
-          select uau.id as user_id, org.id as organisation_id, 3 as role
-            from public.auth_user as uau
-            join public.clinicalcode_organisation as org
-              on org.owner_id = uau.id
-           where uau.id = {user.id if user else 'null'}
-        '''
-        if current_brand is not None:
-          entity_brand_clause = f'and ge.brands && array[{current_brand.id}]'
+    organisation = organisation.first()
 
-          user_perms_sql = f'''
-            select memb.user_id, memb.organisation_id, memb.role
-            from public.auth_user as uau
-            join public.clinicalcode_organisationmembership as memb
-              on uau.id = memb.user_id
-            join public.clinicalcode_organisation as org
-              on memb.organisation_id = org.id
-            join public.clinicalcode_organisationauthority as auth
-              on auth.organisation_id = org.id
-            where memb.organisation_id = {organisation.id}
-              and memb.user_id = {user.id if user else 'null'}
-              and auth.brand_id = {current_brand.id}
-            union
-            select uau.id as user_id, org.id as organisation_id, 3 as role
-              from public.auth_user as uau
-              join public.clinicalcode_organisation as org
-                on org.owner_id = uau.id
-             where uau.id = {user.id if user else 'null'}
-          '''
-        
-        sql = f'''
-        with user_perms as (
-          {user_perms_sql}
-        ),
-        entities as (
-          select hge.id, hge.history_id, hge.name, hge.updated, 
-                 hge.publish_status, ge.organisation_id, ge.is_deleted,
-                 row_number() over (partition by hge.id order by hge.history_id desc) as rn
-          from public.clinicalcode_historicalgenericentity as hge
-          join public.clinicalcode_genericentity as ge
-            on hge.id = ge.id
-          where ge.organisation_id = {organisation.id}
-            {entity_brand_clause}
-        ),
-        published as (
-          select id, history_id, name, updated, publish_status
-          from (
-            select *,
-                   min(rn) over (partition by entities.id) as min_rn
-            from entities
-            where publish_status = {constants.APPROVAL_STATUS.APPROVED}
-          ) as sq
-          where rn = min_rn
-        ),
-        draft as (
-          select id, history_id, name, updated, publish_status
-          from (
-              select entities.*,
-                     min(entities.rn) over (partition by entities.id) as min_rn
-              from entities
-            join user_perms
-              on entities.organisation_id = user_perms.organisation_id
-            left join published
-              on entities.id = published.id
-             and published.history_id > entities.history_id
-            where entities.publish_status != {constants.APPROVAL_STATUS.APPROVED}
-              and published.id is null
-              and entities.is_deleted is null or entities.is_deleted = false
-          ) as sq
-          where rn = min_rn
-        ),
-        moderated as (
-          select entities.id, entities.history_id, entities.name, 
-              entities.updated, entities.publish_status
-          from entities
-          join user_perms
-            on entities.organisation_id = user_perms.organisation_id
-          where user_perms.role >= 2
-            and entities.publish_status in (
-              {constants.APPROVAL_STATUS.REQUESTED}, {constants.APPROVAL_STATUS.PENDING}
-            )
-        )
-        select json_build_object(
-          'published', (
-            select json_agg(json_build_object(
-              'id', id, 
-              'history_id', history_id, 
-              'name', name, 
-              'updated', updated, 
-              'publish_status', publish_status
-            )) from published
-          ),
-          'draft', (
-            select json_agg(json_build_object(
-              'id', id, 
-              'history_id', history_id, 
-              'name', name, 
-              'updated', updated, 
-              'publish_status', publish_status
-            )) from draft
-          ),
-          'moderated', (
-            select json_agg(json_build_object(
-              'id', id, 
-              'history_id', history_id, 
-              'name', name, 
-              'updated', updated, 
-              'publish_status', publish_status
-            )) from moderated
-          )
-        ) as "data"
-        '''
-        entities = None
-        with connection.cursor() as cursor:
-          cursor.execute(sql)
+    org_data = self.__resolve_org_context(organisation, user, current_brand)
 
-          columns = [col[0] for col in cursor.description]
-          entities = [dict(zip(columns, row)) for row in cursor.fetchall()][0]
-          entities = entities.get('data')
+    if org_data.get('has_entities', False) and (org_data.get('is_owner') or org_data.get('is_member')):
+      org_data.update({
+        'org_stats': self.__resolve_org_stats(organisation),
+      })
 
-        return context | {
-          'instance': organisation,
-          'is_owner': is_owner,
-          'is_member': is_member,
-          'is_admin': is_admin,
-          'members': members,
-          'published': entities.get('published'),
-          'draft': entities.get('draft'),
-          'moderated': entities.get('moderated')
-        }
-
-    raise Http404('No organisation found')
+    return context | org_data
 
   def get(self, request, *args, **kwargs):
     context = self.get_context_data(*args, **kwargs)
@@ -607,6 +453,269 @@ class OrganisationView(TemplateView):
       return gen_utils.jsonify_response(code=400)
 
     return gen_utils.jsonify_response(code=200, status='true')
+
+  def __resolve_org_stats(self, organisation):
+    sql = '''
+    with
+      const_org_id as (values ({org_id})),
+      const_max_popular as (values ({pop_limit})),
+      ge_vis as (
+        select ge.*
+          from public.clinicalcode_genericentity as ge
+          join public.clinicalcode_organisation as org
+            on ge.organisation_id = org.id
+        where ge.organisation_id = (table const_org_id)::bigint
+      ),
+      hge_vis as (
+        select hge.*
+          from ge_vis as ge
+          join public.clinicalcode_historicalgenericentity as hge
+            using (id)
+      ),
+      ent_total as (
+        select count(ge.*) as cnt
+          from ge_vis as ge
+      ),
+      ent_created as (
+        select count(ge.*) as cnt
+          from ge_vis as ge
+          where ge.created >= date_trunc('day', now()) - interval '30 day'
+      ),
+      ent_updated as (
+        select count(hge.*) as cnt
+          from hge_vis as hge
+          where hge.updated >= date_trunc('day', now()) - interval '30 day'
+      ),
+      ent_views as (
+        select count(req.*) as cnt
+          from ge_vis as ge
+          join public.easyaudit_requestevent as req
+            on req.url like concat('%%', ge.id::text, '%%')
+        where req.datetime >= date_trunc('day', now()) - interval '30 day'
+      ),
+      ent_downloads as (
+        select count(req.*) as cnt
+          from ge_vis as ge
+          join public.easyaudit_requestevent as req
+            on req.url ~ concat('api.*', ge.id, '|', ge.id, '.*export')
+        where req.datetime >= date_trunc('day', now()) - interval '30 day'
+      ),
+      ent_popular as (
+        select
+            json_agg(
+              json_build_object(
+                'id', ge.id,
+                'name', ge.name,
+                'view_count', req.cnt
+              )
+              order by req.cnt desc
+            ) as cnt
+          from (
+            select t0.id, count(t1.*) as cnt
+              from ge_vis as t0
+              join public.easyaudit_requestevent as t1
+                on t1.url like concat('%%', t0.id::text, '%%')
+            group by t0.id
+            order by cnt desc
+            limit (table const_max_popular)::int
+          ) as req
+          join ge_vis as ge
+            on req.id = ge.id
+      )
+    select
+        (select cnt from ent_total)     as total,
+        (select cnt from ent_created)   as created,
+        (select cnt from ent_updated)   as edited,
+        (select cnt from ent_views)     as views,
+        (select cnt from ent_downloads) as downloads,
+        (select cnt from ent_popular)   as popular
+    ''' \
+      .format(
+        org_id=organisation.id,
+        pop_limit=self.MAX_POPULAR_ITEMS
+      )
+
+    with connection.cursor() as cursor:
+      cursor.execute(sql)
+
+      columns = [col[0] for col in cursor.description]
+      return dict(zip(columns, cursor.fetchone()))
+
+  def __resolve_org_context(self, organisation, user, current_brand):
+    members = organisation.members.through.objects \
+      .filter(organisation_id=organisation.id) \
+      .annotate(
+        role_name=Case(
+          *[When(role=v.value, then=Value(v.name)) for v in constants.ORGANISATION_ROLES],
+          default=Value(constants.ORGANISATION_ROLES.MEMBER.name),
+          output_field=models.CharField()
+        )
+      ) \
+      .distinct('user_id')
+    
+    is_owner = False
+    is_member = False
+    is_admin = False
+    if user:
+      is_owner = organisation.owner_id == user.id
+      
+      membership = organisation.organisationmembership_set.filter(user_id=user.id)
+      if membership.exists():
+        membership = membership.first()
+
+        is_member = True
+        is_admin = membership.role >= constants.ORGANISATION_ROLES.ADMIN
+
+    entity_brand_clause = ''
+    user_perms_sql = f'''
+      select memb.user_id, memb.organisation_id, memb.role
+        from public.auth_user as uau
+        join public.clinicalcode_organisationmembership as memb
+          on uau.id = memb.user_id
+        join public.clinicalcode_organisation as org
+          on memb.organisation_id = org.id
+       where memb.organisation_id = {organisation.id}
+         and memb.user_id = {user.id if user else 'null'}
+       union
+      select uau.id as user_id, org.id as organisation_id, 3 as role
+        from public.auth_user as uau
+        join public.clinicalcode_organisation as org
+          on org.owner_id = uau.id
+        where uau.id = {user.id if user else 'null'}
+    '''
+    if current_brand is not None:
+      entity_brand_clause = f'and ge.brands && array[{current_brand.id}]'
+
+      user_perms_sql = f'''
+        select memb.user_id, memb.organisation_id, memb.role
+          from public.auth_user as uau
+          join public.clinicalcode_organisationmembership as memb
+            on uau.id = memb.user_id
+          join public.clinicalcode_organisation as org
+            on memb.organisation_id = org.id
+          join public.clinicalcode_organisationauthority as auth
+            on auth.organisation_id = org.id
+         where memb.organisation_id = {organisation.id}
+           and memb.user_id = {user.id if user else 'null'}
+           and auth.brand_id = {current_brand.id}
+         union
+        select uau.id as user_id, org.id as organisation_id, 3 as role
+          from public.auth_user as uau
+          join public.clinicalcode_organisation as org
+            on org.owner_id = uau.id
+          where uau.id = {user.id if user else 'null'}
+      '''
+    
+    sql = f'''
+    with user_perms as (
+      {user_perms_sql}
+    ),
+    entities as (
+      select hge.id, hge.history_id, hge.name, hge.updated, 
+              hge.publish_status, ge.organisation_id, ge.is_deleted,
+              row_number() over (partition by hge.id order by hge.history_id desc) as rn
+        from public.clinicalcode_historicalgenericentity as hge
+        join public.clinicalcode_genericentity as ge
+          on hge.id = ge.id
+       where ge.organisation_id = {organisation.id}
+        {entity_brand_clause}
+    ),
+    published as (
+      select id, history_id, name, updated, publish_status
+        from (
+          select *,
+                min(rn) over (partition by entities.id) as min_rn
+            from entities
+           where publish_status = {constants.APPROVAL_STATUS.APPROVED}
+        ) as sq
+       where rn = min_rn
+    ),
+    draft as (
+      select id, history_id, name, updated, publish_status
+      from (
+          select entities.*,
+                  min(entities.rn) over (partition by entities.id) as min_rn
+          from entities
+        join user_perms
+          on entities.organisation_id = user_perms.organisation_id
+        left join published
+          on entities.id = published.id
+         and published.history_id > entities.history_id
+       where entities.publish_status != {constants.APPROVAL_STATUS.APPROVED}
+         and published.id is null
+         and entities.is_deleted is null or entities.is_deleted = false
+      ) as sq
+      where rn = min_rn
+    ),
+    moderated as (
+      select entities.id, entities.history_id, entities.name, 
+          entities.updated, entities.publish_status
+      from entities
+      join user_perms
+        on entities.organisation_id = user_perms.organisation_id
+     where user_perms.role >= 2
+       and entities.publish_status in (
+          {constants.APPROVAL_STATUS.REQUESTED}, {constants.APPROVAL_STATUS.PENDING}
+        )
+    )
+    select json_build_object(
+      'published', (
+        select json_agg(json_build_object(
+          'id', id, 
+          'history_id', history_id, 
+          'name', name, 
+          'updated', updated, 
+          'publish_status', publish_status
+        )) from published
+      ),
+      'draft', (
+        select json_agg(json_build_object(
+          'id', id, 
+          'history_id', history_id, 
+          'name', name, 
+          'updated', updated, 
+          'publish_status', publish_status
+        )) from draft
+      ),
+      'moderated', (
+        select json_agg(json_build_object(
+          'id', id, 
+          'history_id', history_id, 
+          'name', name, 
+          'updated', updated, 
+          'publish_status', publish_status
+        )) from moderated
+      )
+    ) as "data"
+    '''
+    entities = None
+    with connection.cursor() as cursor:
+      cursor.execute(sql)
+
+      columns = [col[0] for col in cursor.description]
+      entities = [dict(zip(columns, row)) for row in cursor.fetchall()][0]
+      entities = entities.get('data')
+
+    entities = entities if isinstance(entities, dict) else {}
+    drafts = entities.get('draft')
+    published = entities.get('published')
+
+    has_entities = (
+      (isinstance(drafts, list) and len(drafts) > 0)
+      or (isinstance(published, list) and len(published) > 0)
+    )
+
+    return {
+      'instance': organisation,
+      'is_owner': is_owner,
+      'is_member': is_member,
+      'is_admin': is_admin,
+      'members': members,
+      'published': published,
+      'draft': drafts,
+      'moderated': entities.get('moderated'),
+      'has_entities': has_entities,
+    }
 
 ''' View Invite '''
 

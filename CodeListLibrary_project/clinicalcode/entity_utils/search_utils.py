@@ -708,7 +708,8 @@ def get_template_entities(request, template_id, method='GET', force_term=True, f
 
     entities = permission_utils.get_accessible_entities(
         request,
-        status=[constants.APPROVAL_STATUS.ANY]
+        status=[constants.APPROVAL_STATUS.APPROVED],
+        deletion_query=constants.DELETION_QUERY.ACTIVE,
     )
 
     metadata_filters = [key for key, value in constants.metadata.items() if 'search' in value and 'filterable' in value.get('search')]
@@ -815,7 +816,8 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
     # Get entities relating to the user
     entities = permission_utils.get_accessible_entities(
         request,
-        status=[constants.APPROVAL_STATUS.ANY]
+        status=[constants.APPROVAL_STATUS.APPROVED],
+        deletion_query=constants.DELETION_QUERY.ACTIVE,
     )
 
     if isinstance(entity_types, list) and len(entity_types) > 0:

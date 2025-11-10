@@ -23,12 +23,14 @@
               <div class="item-dropdown__title">Admin</div> 
             </a>
             <!--Analytics Dash-->
-            <a href="/dash" target=_blank class="item-dropdown">
-              <div class="item-dropdown__icon profile-row--stylised-icon" id="admin_icon">
-                {% svg "bar_chart_icon" %}
-              </div>
-              <div class="item-dropdown__title">Analytics</div> 
-            </a>
+            {% if GA4_STUDIO_LINK %}
+              <a href="{{ GA4_STUDIO_LINK }}" target=_blank class="item-dropdown">
+                <div class="item-dropdown__icon profile-row--stylised-icon" id="admin_icon">
+                  {% svg "bar_chart_icon" %}
+                </div>
+                <div class="item-dropdown__title">Analytics</div> 
+              </a>
+            {% endif %}
           {% endif %}
           {% if IS_BRAND_ADMIN and not CLL_READ_ONLY %}
             <!--Dashboard-->

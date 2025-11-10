@@ -217,6 +217,17 @@
                 <span class="as-icon" data-icon="&#xf015;" aria-hidden="true"></span>
                 Home
               </button>
+              {% if IS_HDRUK_EXT and GA4_STUDIO_LINK and not IS_DEMO %}
+                <button
+                  title="Go to Analytics"
+                  aria-label="Go to Analytics"
+                  data-role="button"
+                  data-link="{{ GA4_STUDIO_LINK }}"
+                >
+                  <span class="as-icon" data-icon="&#xf56c;" aria-hidden="true"></span>
+                  Analytics
+                </button>
+              {% endif %}
               <form method="post" action="{% url 'logout' %}?next={% url 'search_entities' %}">
                 {% csrf_token %}
                 <button

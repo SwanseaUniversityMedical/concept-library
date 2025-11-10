@@ -102,6 +102,19 @@
             {% endfor %}
           </article>
         </section>
+        {% if org_stats is not None %}
+          <section class="organisation-page__section">
+            <article class="organisation-page__section__title">
+              <h3>Metrics</h3>
+            </article>
+            <article class="organisation-page__section__group slim-scrollbar">
+              {% to_json_script org_stats data-owner="organisation-service" page-type="STATS" name="stats" desc-type="text/json" %}
+              <div class="organisation-page__section__grid" id="stats-area" data-cx="container">
+
+              </div>
+            </article>
+          </section>
+        {% endif %}
         <section class="organisation-page__section">
           <article class="organisation-page__section__title">
             <h3>Published {{ brand_mapping.phenotype }}s</h3>
@@ -113,7 +126,7 @@
                 This organisation hasn't published anything yet.
               </p>
             </section>
-            <div class="organisation-collection__table-container" id="published-area">
+            <div class="organisation-collection__table-container" id="published-area" data-cx="container">
   
             </div>
           </article>
@@ -125,7 +138,7 @@
             </article>
             <article class="organisation-page__section__body">
               {% to_json_script draft data-owner="organisation-service" page-type="DRAFT_COLLECTIONS" name="draft" desc-type="text/json" %}
-              <div class="organisation-collection__table-container" id="draft-area">
+              <div class="organisation-collection__table-container" id="draft-area" data-cx="container">
   
               </div>
             </article>
@@ -138,7 +151,7 @@
             </article>
             <article class="organisation-page__section__body">
               {% to_json_script moderated data-owner="organisation-service" page-type="MODERATION_COLLECTIONS" name="moderated" desc-type="text/json" %}
-              <div class="organisation-collection__table-container" id="moderated-area">
+              <div class="organisation-collection__table-container" id="moderated-area" data-cx="container">
   
               </div>
             </article>

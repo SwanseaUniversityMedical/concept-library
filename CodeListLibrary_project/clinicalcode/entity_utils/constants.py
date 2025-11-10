@@ -105,6 +105,15 @@ class ENTITY_STATUS(int, enum.Enum):
     FINAL = 2
 
 
+class DELETION_QUERY(int, enum.Enum):
+    """
+        Used to alter query parameters examining the status of UGC
+    """
+    ANY = 0
+    ACTIVE = 1
+    DELETED = 2
+
+
 class APPROVAL_STATUS(int, enum.Enum):
     """
         Approval status of a published entity

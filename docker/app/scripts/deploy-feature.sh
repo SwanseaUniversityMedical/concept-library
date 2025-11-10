@@ -33,7 +33,7 @@ export cll_log_path;
 redis_port=6379
 export redis_image;
 
-redis_image='redis:7.0-bullseye';
+redis_image='redis:7.4-bookworm';
 export redis_image;
 
 

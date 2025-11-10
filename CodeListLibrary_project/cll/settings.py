@@ -76,19 +76,20 @@ def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
     return IP
 
 
-def get_env_value(env_variable, cast=None, default=Symbol('None')):
+def get_env_value(env_variable, cast=None, default=Symbol('None'), strip_empty=False):
     """
         Attempts to get env variable from OS
     """
     try:
-        if cast == None:
-            return os.environ[env_variable]
-        elif cast == 'int':
+        if cast == 'int':
             return int(os.environ[env_variable])
         elif cast == 'bool':
             return bool(strtobool(os.environ[env_variable]))
         else:
-            return os.environ[env_variable]
+            value = os.environ[env_variable]
+            if strip_empty and len(value) < 1:
+                return default
+            return value
     except KeyError:
         if isinstance(default, Symbol):
             error_msg = 'Expected environment variable "{}" of type<{}>, please set a valid "{}" environment variable' \
@@ -677,6 +678,35 @@ DOI_ACTIVE = ((
     and DOI_REFERRER is not None
     and DOI_RELATION is not None
 ))
+
+## GA4 info
+GA4_INFO = {
+    'scopes': get_env_value('GA4_SCOPES', default=None, strip_empty=True),
+    'property_id': get_env_value('GA4_PROP_ID', default=None, strip_empty=True),
+    'client': {
+        'type': get_env_value('GA4_ACC', default=None, strip_empty=True),
+        'project_id': get_env_value('GA4_PID', default=None, strip_empty=True),
+        'private_key': get_env_value('GA4_PKEY', default=None, strip_empty=True),
+        'private_key_id': get_env_value('GA4_PKID', default=None, strip_empty=True),
+        'client_id': get_env_value('GA4_CID', default=None, strip_empty=True),
+        'client_email': get_env_value('GA4_EMAIL', default=None, strip_empty=True),
+        'auth_uri': get_env_value('GA4_AUTH_URI', default=None, strip_empty=True),
+        'token_uri': get_env_value('GA4_TOKEN_URI', default=None, strip_empty=True),
+        'auth_provider_x509_cert_url': get_env_value('GA4_PAUTH_CERT_URL', default=None, strip_empty=True),
+        'client_x509_cert_url': get_env_value('GA4_CAUTH_CERT_URL', default=None, strip_empty=True),
+        'universe_domain': get_env_value('GA4_UNIVERSE_DOMAIN', default=None, strip_empty=True),
+    },
+}
+
+GA4_ACTIVE = (
+    not REMOTE_TEST
+    and not IS_DEMO
+    and not CLL_READ_ONLY
+    and not IS_INSIDE_GATEWAY
+    and not IS_DEVELOPMENT_PC
+)
+
+GA4_STUDIO_LINK = get_env_value('GA4_STUDIO_LINK', default=None, strip_empty=True)
 
 ## CAPTCHA
 ### To ignore captcha during debug builds

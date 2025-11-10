@@ -35,7 +35,7 @@ services:
         required: false
 
   redis:
-    image: ${redis_image:-redis:7.0-bullseye}
+    image: ${redis_image:-redis:7.4-bookworm}
     container_name: redis
     restart: always
     stop_grace_period: ${cll_grace_period:-3s}

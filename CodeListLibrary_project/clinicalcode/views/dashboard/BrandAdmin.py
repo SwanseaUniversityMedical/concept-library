@@ -12,9 +12,13 @@ from django.utils.decorators import method_decorator
 from rest_framework.decorators import schema
 from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.storage import staticfiles_storage
+from google.oauth2 import service_account
+from google.auth.transport.requests import Request
 
 import os
 import math
+import json
+import codecs
 import logging
 import psycopg2
 
@@ -292,6 +296,59 @@ class BrandOverviewView(APIView):
 				stats_context = '^\/%s.*$' % brand.name
 			query_params.update({ 'stats_ctx': stats_context })
 
+		result = {
+			'data': { },
+			'timestamp': datetime.now().isoformat()
+		}
+
+		if settings.GA4_ACTIVE:
+			try:
+				scopes = settings.GA4_INFO.get('scopes')
+				property_id = settings.GA4_INFO.get('property_id')
+				client_info = settings.GA4_INFO.get('client')
+
+				client_info['private_key'] = codecs.decode(client_info.get('private_key'), 'unicode_escape')
+
+				credentials = service_account.Credentials.from_service_account_info(
+					client_info,
+					scopes=scopes.split(',')
+				)
+
+				request = Request()
+				credentials.refresh(request)
+
+				response = request(
+					url=f'https://analyticsdata.googleapis.com/v1beta/properties/{property_id}:runReport',
+					method='POST',
+					body=json.dumps({
+						'dateRanges': [
+							{ 'startDate': 'today', 'endDate': 'today' },
+							{ 'startDate': '28daysAgo', 'endDate': 'yesterday' },
+							# { 'startDate': '7daysAgo', 'endDate': 'yesterday' },
+						],
+						'metrics': [
+							{ 'name': 'activeUsers' },
+							# { 'name': 'newUsers' },
+						]
+					}),
+					headers={
+						'Authorization': f'Bearer {credentials.token}',
+						'Content-Type': 'application/json'
+					},
+					timeout=5
+				)
+
+				if response.status == 200:
+					report_data = json.loads(response.data)
+					report_rows = report_data.get('rows')
+
+					monthly_users = report_rows[0].get('metricValues')[0].get('value')
+					daily_users = report_rows[1].get('metricValues')[0].get('value')
+
+					result['data'] |= { 'mau': monthly_users, 'dau': daily_users }
+			except Exception as e:
+				logger.error(f'Failed to retrieve GA4 API report w/ err:\n{e}\n')
+
 		with connection.cursor() as cursor:
 			if isinstance(content_visibility, dict):
 				allowed_brands = content_visibility.get('ids')
@@ -411,6 +468,8 @@ class BrandOverviewView(APIView):
 
 			cursor.execute(sql, params=query_params)
 			columns = [col[0] for col in cursor.description]
+			resultset = dict(zip(columns, cursor.fetchone()))
 
-			result = { 'data': dict(zip(columns, row)) for row in cursor.fetchall() }
-			return result | { 'timestamp': datetime.now().isoformat() }
+			result['data'] = resultset | result['data']
+
+		return result
