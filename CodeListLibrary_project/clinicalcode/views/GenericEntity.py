@@ -4,8 +4,9 @@
     ---------------------------------------------------------------------------
 """
 from django.urls import reverse
-from django.http import HttpResponseNotFound, HttpResponseBadRequest
+from django.http import HttpResponseBadRequest
 from collections import OrderedDict
+from collections.abc import Iterable
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from rest_framework.views import APIView
@@ -798,7 +799,7 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
     # if the phenotype contains only one concept, write titles in the loop below
     final_titles = final_titles + ["code_attributes"]
     writer.writerow(final_titles)
-        
+
     for concept in concept_ids_historyIDs:
         concept_id = concept[0]
         concept_version_id = concept[1]
@@ -815,25 +816,36 @@ def export_entity_codes_to_csv(request, pk, history_id=None):
                                                       include_reviewed_codes=True)
             
         #---------------------------------------------
-        
-        for cc in concept_data['codelist']:
+        codelist = []
+        if isinstance(concept_data, dict) and isinstance(concept_data.get('codelist'), list):
+            codelist = concept_data.get('codelist')
+
+        for cc in codelist:
+            code = cc.get('code', None)
+            if code is None:
+                continue
+
             rows_no += 1
-                         
+
             #---------------------------------------------   
             code_attributes = []
             code_attributes_dict = OrderedDict([])
             if code_attribute_header:
-                code_attributes_dict = OrderedDict(zip(code_attribute_header, cc['attributes']))
+                code_attr_values = cc.get('attributes', None)
+                if code_attr_values is None or not isinstance(cc.get('attributes'), Iterable):
+                    code_attr_values = ['']*len(code_attribute_header)
+
+                code_attributes_dict = OrderedDict(zip(code_attribute_header, code_attr_values))
                 code_attributes.append(dict(code_attributes_dict))
                 
             if code_attributes:
                 code_attributes = [json.dumps(code_attributes)]
             #---------------------------------------------
             
-            
+            desc = cc.get('description', '')
             writer.writerow([
-                cc['code'], 
-                cc['description'].encode('ascii', 'ignore').decode('ascii'), 
+                code, 
+                desc.encode('ascii', 'ignore').decode('ascii'), 
                 concept_coding_system, 
                 'C' + str(concept_id), 
                 concept_version_id,
