@@ -4,6 +4,11 @@ let ARCHIVE_TEMPLATE;
 
 const
   /**
+   * ENTITY_URL
+   * @desc specifies the URL(s) associated with the "Popular" card
+   */
+  ENTITY_URL = '/${url_target}/${id}/detail/',
+  /**
    * DETAIL_URL
    * @desc describes the URL(s) associated with the action button(s)
    * 
@@ -146,14 +151,23 @@ const getCollectionData = () => {
     let value = data.innerText.trim();
     if (!isNullOrUndefined(value) && !isStringEmpty(value.trim())) {
       if (type == 'text/json') {
-        value = JSON.parse(value);
+        try {
+          value = JSON.parse(value);
+        } catch (e) {
+          console.error(`Failed to parse data<index: ${i}, name: ${name}> w/ err:\n${e}`);
+          value = null;
+        }
       }
+    }
+
+    if (isNullOrUndefined(value) || !(Array.isArray(value) || isObjectType(value))) {
+      value = null;
     }
 
     result[name] = {
       pageType: pageType,
-      container: data.parentNode.querySelector('.organisation-collection__table-container'),
-      data: value || [ ],
+      container: data.parentNode.querySelector('[data-cx="container"]'),
+      data: value,
     }
   }
 
@@ -353,7 +367,32 @@ domReady.finally(() => {
   delete data.mapping;
 
   for (let [key, value] of Object.entries(data)) {
-    if (value.data.length < 1) {
+    if (isNullOrUndefined(value.data) || (Array.isArray(value.data) && value.data.length < 1)) {
+      continue;
+    }
+
+    if (value.pageType === 'STATS') {
+      if (!isObjectType(value.data)) {
+        continue;
+      }
+
+      let entityResolver = (id) => {
+        let urlTarget = mapping?.phenotype_url;
+        if (!stringHasChars(urlTarget)) {
+          urlTarget = 'phenotypes';
+        }
+
+        const brand = getBrandedHost();
+        return interpolateString(brand + ENTITY_URL, {
+          id: id,
+          url_target: urlTarget,
+        });
+      }
+
+      for (const key in value.data) {
+        console.log(key, value.data[key], value.container)
+        orgUtils.composeStatsCard(value.container, key, value.data[key], entityResolver)
+      }
       continue;
     }
 
