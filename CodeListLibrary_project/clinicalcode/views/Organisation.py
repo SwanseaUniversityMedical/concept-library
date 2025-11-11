@@ -1,24 +1,23 @@
-from datetime import datetime
-from django.utils.timezone import make_aware
-from django.views.generic import TemplateView, CreateView, UpdateView
-from django.shortcuts import render, redirect
-from django.conf import settings
-from django.db.models import F, When, Case, Value, Subquery, OuterRef
-from django.db import transaction, IntegrityError
-from django.contrib.auth.models import Group
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.http.response import JsonResponse, Http404
+"""Organisation view controller(s)"""
+from django.db import models, connection, transaction, IntegrityError
 from django.urls import reverse_lazy
-from django.db import models, connection
-from django.core.exceptions import BadRequest, PermissionDenied
+from django.shortcuts import render
+from django.db.models import When, Case, Value, Subquery, OuterRef
+from django.core.cache import cache
+from django.utils.http import http_date
 from django.contrib.auth import get_user_model
+from django.views.generic import TemplateView, CreateView, UpdateView
+from django.http.response import JsonResponse, Http404
+from django.core.exceptions import BadRequest, PermissionDenied
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
 import logging
+import datetime
+import traceback
 
-from ..models.GenericEntity import GenericEntity
 from ..models.Brand import Brand
-from ..models.Organisation import Organisation, OrganisationMembership, OrganisationAuthority, OrganisationInvite
+from ..models.Organisation import Organisation, OrganisationMembership, OrganisationInvite
 from ..forms.OrganisationForms import OrganisationCreateForm, OrganisationManageForm
 from ..entity_utils import permission_utils, model_utils, gen_utils, constants, email_utils
 
@@ -383,9 +382,8 @@ class OrganisationView(TemplateView):
   MAX_POPULAR_ITEMS = 5
 
   template_name = 'clinicalcode/organisation/view.html'
-  fetch_methods = [
-    'leave_organisation'
-  ]
+  get_methods = ['get_metrics']
+  post_methods = ['leave_organisation']
 
   def dispatch(self, request, *args, **kwargs):
     return super(OrganisationView, self).dispatch(request, *args, **kwargs)
@@ -408,14 +406,19 @@ class OrganisationView(TemplateView):
 
     org_data = self.__resolve_org_context(organisation, user, current_brand)
 
-    if org_data.get('has_entities', False) and (org_data.get('is_owner') or org_data.get('is_member')):
-      org_data.update({
-        'org_stats': self.__resolve_org_stats(organisation),
-      })
+    # org_data.update({
+    #   'org_stats': self.__resolve_org_metrics(organisation),
+    # })
 
     return context | org_data
 
   def get(self, request, *args, **kwargs):
+    if gen_utils.is_fetch_request(request):
+      target = request.headers.get('X-Target', None)
+      if target is not None and target in self.get_methods:
+        target = getattr(self, target)
+        return target(request, *args, **kwargs)
+  
     context = self.get_context_data(*args, **kwargs)
     return render(request, self.template_name, context)
 
@@ -423,18 +426,20 @@ class OrganisationView(TemplateView):
   def post(self, request, *args, **kwargs):
     if gen_utils.is_fetch_request(request):
       target = request.headers.get('X-Target', None)
-      if target is not None and target in self.fetch_methods:
+      if target is not None and target in self.post_methods:
         target = getattr(self, target)
         return target(request, *args, **kwargs)
   
     return super().post(request, *args, **kwargs)
 
   def leave_organisation(self, request, *args, **kwargs):
-    context = self.get_context_data(*args, **kwargs)
     user = request.user if request.user and not request.user.is_anonymous else None
+    if user is None:
+      return gen_utils.jsonify_response(code=401)
 
+    context = self.get_context_data(*args, **kwargs)
     if context.get('is_owner') or context.get('is_member') == False:
-      return gen_utils.jsonify_response(code=400)
+      return gen_utils.jsonify_response(code=403)
 
     slug = context.get('slug')
     membership = OrganisationMembership.objects.filter(
@@ -450,17 +455,64 @@ class OrganisationView(TemplateView):
       logger.warning(
         f'Integrity error when attempting to remove user from organisation: {slug}> with err: {e}'
       )
-      return gen_utils.jsonify_response(code=400)
+      return gen_utils.jsonify_response(code=500)
 
     return gen_utils.jsonify_response(code=200, status='true')
 
-  def __resolve_org_stats(self, organisation):
+  def get_metrics(self, request, *args, **kwargs):
+    user = request.user if request.user and not request.user.is_anonymous else None
+    if user is None:
+      return gen_utils.jsonify_response(code=401, message='Invalid credentials')
+
+    context = self.get_context_data(*args, **kwargs)
+    if not context.get('is_owner') and not context.get('is_member'):
+      return gen_utils.jsonify_response(code=403, message='Insufficient permission')
+
+    organisation = context.get('instance')
+    if not isinstance(organisation, Organisation):
+      return gen_utils.jsonify_response(code=500, message='Failed to resolve metrics')
+
+    cachekey = 'metrics_org_%d' % (organisation.id)
+    resultset = cache.get(cachekey)
+    if not isinstance(resultset, dict):
+      try:
+        metrics = self.__resolve_org_metrics(organisation)
+      except Exception as e:
+        logger.error(
+          '[Organisation<id: %d>::get_metrics] Failed to resolve metrics:\n\t- Caller: User<id: %d>\n\t- Trace:\n%s' % (
+            organisation.id,
+            user.id,
+            ''.join(traceback.format_exception(type(e), e, e.__traceback__)),
+          )
+        )
+        return gen_utils.jsonify_response(code=500, message='Failed to resolve metrics')
+      else:
+        resultset = {
+          'key': cachekey,
+          'data': metrics,
+          'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+
+        cache.set(cachekey, resultset, 3600)
+
+    timestamp = datetime.datetime.fromisoformat(resultset.get('timestamp'))
+
+    response = gen_utils.jsonify_response(code=200, status=True, message=resultset)
+    response['Expires'] = http_date((timestamp + datetime.timedelta(seconds=3600)).timestamp())
+    response['Cache-Control'] = 'private, max-age=3600'
+    response['Last-Modified'] = http_date(timestamp.timestamp())
+
+    return response
+
+  def __resolve_org_metrics(self, organisation):
     sql = '''
     with
       const_org_id as (values ({org_id})),
       const_max_popular as (values ({pop_limit})),
       ge_vis as (
-        select ge.*
+        select
+              ge.*,
+              concat('%', ge.id::text, '%') as ent_query
           from public.clinicalcode_genericentity as ge
           join public.clinicalcode_organisation as org
             on ge.organisation_id = org.id
@@ -486,41 +538,46 @@ class OrganisationView(TemplateView):
           from hge_vis as hge
           where hge.updated >= date_trunc('day', now()) - interval '30 day'
       ),
-      ent_views as (
-        select count(req.*) as cnt
+      ent_reqs as (
+        select *
+          from public.easyaudit_requestevent as req
+         where req.datetime >= date_trunc('day', now()) - interval '30 day'
+      ),
+      ent_visited as (
+        select
+              req.*,
+              ge.id as ref_id
           from ge_vis as ge
-          join public.easyaudit_requestevent as req
-            on req.url like concat('%%', ge.id::text, '%%')
-        where req.datetime >= date_trunc('day', now()) - interval '30 day'
+          join ent_reqs as req
+            on req.url like ge.ent_query
+      ),
+      ent_views as (
+        select count(*) as cnt
+          from ent_visited
       ),
       ent_downloads as (
         select count(req.*) as cnt
           from ge_vis as ge
-          join public.easyaudit_requestevent as req
-            on req.url ~ concat('api.*', ge.id, '|', ge.id, '.*export')
-        where req.datetime >= date_trunc('day', now()) - interval '30 day'
+          join ent_visited as req
+            on req.url like '%api%' or req.url like '%export%'
+      ),
+      ent_viewcount as (
+        select t0.ref_id, count(t0.*) as cnt
+          from ent_visited as t0
+         group by t0.ref_id
+         order by cnt desc
+      ),
+      ent_topview as (
+        select json_build_object(
+                'id', req.ref_id,
+                'view_count', req.cnt
+              ) as dt
+          from ent_viewcount as req
+         limit (table const_max_popular)::int
       ),
       ent_popular as (
-        select
-            json_agg(
-              json_build_object(
-                'id', ge.id,
-                'name', ge.name,
-                'view_count', req.cnt
-              )
-              order by req.cnt desc
-            ) as cnt
-          from (
-            select t0.id, count(t1.*) as cnt
-              from ge_vis as t0
-              join public.easyaudit_requestevent as t1
-                on t1.url like concat('%%', t0.id::text, '%%')
-            group by t0.id
-            order by cnt desc
-            limit (table const_max_popular)::int
-          ) as req
-          join ge_vis as ge
-            on req.id = ge.id
+        select json_agg(req.dt) as cnt
+          from ent_topview as req
       )
     select
         (select cnt from ent_total)     as total,
@@ -659,6 +716,13 @@ class OrganisationView(TemplateView):
         )
     )
     select json_build_object(
+      'has_entities', (
+        case
+          when (select true from draft     limit 1) then true
+          when (select true from published limit 1) then true
+          else false
+        end
+      ),
       'published', (
         select json_agg(json_build_object(
           'id', id, 
@@ -697,24 +761,19 @@ class OrganisationView(TemplateView):
       entities = entities.get('data')
 
     entities = entities if isinstance(entities, dict) else {}
-    drafts = entities.get('draft')
-    published = entities.get('published')
-
-    has_entities = (
-      (isinstance(drafts, list) and len(drafts) > 0)
-      or (isinstance(published, list) and len(published) > 0)
-    )
-
+    has_entities = entities.get('has_entities') if isinstance(entities.get('has_entities'), bool) else False
+    can_view_metrics = has_entities and (is_owner or is_member)
     return {
       'instance': organisation,
       'is_owner': is_owner,
       'is_member': is_member,
       'is_admin': is_admin,
       'members': members,
-      'published': published,
-      'draft': drafts,
+      'published': entities.get('published'),
+      'draft': entities.get('draft'),
       'moderated': entities.get('moderated'),
       'has_entities': has_entities,
+      'can_view_metrics': can_view_metrics,
     }
 
 ''' View Invite '''

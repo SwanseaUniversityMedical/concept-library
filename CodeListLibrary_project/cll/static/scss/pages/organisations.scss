@@ -3,6 +3,91 @@
 @import '../_media';
 @import '../_utils';
 
+/// Accordion
+///   @desc modifiers for organisation metrics accordion
+.org-accordion {
+  padding: 1rem 0 0.5rem 0;
+
+  &__label {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    padding: 0.5rem;
+    border: dashed 2px $blackish-grey;
+
+    & > h3 {
+      @include ignore-user();
+
+      width: fit-content;
+      margin: 0;
+      color: $blackish-grey;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      box-sizing: content-box;
+    }
+
+    & > time {
+      margin-right: 2em;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      box-sizing: content-box;
+    }
+
+    &:after {
+      top: calc(50% - 0.5rem);
+      width: 2em;
+      height: fit-content;
+      line-height: 1;
+    }
+  }
+
+  // &:has(.accordion__input:checked) &__label {
+
+  // }
+
+  &__group {
+    @include apply-bbox();
+    @include flex-col(false, true);
+    overflow: auto;
+    width: fit-content;
+    height: fit-content;
+    width: 100%;
+    max-width: 100%;
+    height: fit-content;
+    max-height: 500px;
+    margin-top: 0.5rem;
+  }
+
+  &__grid {
+    @include apply-bbox();
+    // @include flex-row(1rem, true);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-gap: 20px;
+    width: 100%;
+    height: fit-content;
+    max-width: 100%;
+    padding: 5px 10px;
+    align-items: stretch;
+    justify-content: space-evenly;
+
+    &:has(> :last-child:nth-child(1)) {
+      justify-content: flex-start;
+    }
+
+    .org-stats-card {
+      width: calc(100% - 40px);
+    }
+
+    @include media('<tablet', 'screen') {
+      height: calc(max-content + 40px);
+      padding-right: 2px;
+    }
+  }
+}
+
 /// Organisation card
 ///   @desc Used to display organisation metrics
 .org-stats-card {
@@ -199,45 +284,6 @@
         &:not(.show) {
           display: none;
         }
-      }
-    }
-
-    &__group {
-      @include apply-bbox();
-      @include flex-col(false, true);
-      overflow: auto;
-      width: fit-content;
-      height: fit-content;
-      width: 100%;
-      max-width: 100%;
-      height: fit-content;
-      max-height: 210px;
-    }
-
-    &__grid {
-      @include apply-bbox();
-      // @include flex-row(1rem, true);
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      grid-gap: 20px;
-      width: 100%;
-      height: fit-content;
-      max-width: 100%;
-      padding: 5px 10px;
-      align-items: stretch;
-      justify-content: space-evenly;
-
-      &:has(> :last-child:nth-child(1)) {
-        justify-content: flex-start;
-      }
-
-      .org-stats-card {
-        width: calc(100% - 40px);
-      }
-
-      @include media('<tablet', 'screen') {
-        height: calc(max-content + 40px);
-        padding-right: 2px;
       }
     }
   }

@@ -34,7 +34,7 @@
         <p class="banner__description">
           {{instance.description}}
         </p>
-        <div class="banner__footer-items" tabindex="0" aria-label="Organisation email" >
+        <div class="banner__footer-items" aria-label="Organisation email" >
           {% if instance.email|length %}
             {% if user.is_authenticated %}
             <p>
@@ -102,18 +102,44 @@
             {% endfor %}
           </article>
         </section>
-        {% if org_stats is not None %}
-          <section class="organisation-page__section">
-            <article class="organisation-page__section__title">
+        {% if can_view_metrics %}
+          <div
+            id="org-metrics"
+            name="org-metrics"
+            class="accordion org-accordion"
+            role="collapsible"
+            data-ct="metrics"
+            aria-label="View Metrics"
+            aria-controls="org-metrics-panel"
+            aria-expanded="false"
+          >
+            <input
+              id="org-metrics-ctrl"
+              name="org-metrics-ctrl"
+              type="checkbox"
+              class="accordion__input"
+              autocomplete="off"
+              data-simchange="true"
+            />
+            <label
+              id="org-metrics-label"
+              for="org-metrics-ctrl"
+              class="accordion__label org-accordion__label"
+              tabindex="0"
+              role="collapsible"
+              data-cparent="#org-metrics"
+              aria-label="View Metrics"
+            >
               <h3>Metrics</h3>
-            </article>
-            <article class="organisation-page__section__group slim-scrollbar">
-              {% to_json_script org_stats data-owner="organisation-service" page-type="STATS" name="stats" desc-type="text/json" %}
-              <div class="organisation-page__section__grid" id="stats-area" data-cx="container">
+            </label>
+            <article class="accordion__container" id="org-metrics-panel" aria-labelledby="org-metrics">
+              <article class="org-accordion__group slim-scrollbar">
+                <div class="org-accordion__grid" data-cx="container">
 
-              </div>
+                </div>
+              </article>
             </article>
-          </section>
+          </div>
         {% endif %}
         <section class="organisation-page__section">
           <article class="organisation-page__section__title">

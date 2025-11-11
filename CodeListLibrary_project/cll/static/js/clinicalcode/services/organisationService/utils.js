@@ -31,13 +31,13 @@ export const confirmationPrompt = ({
     });
 }
 
-export const getStatsIcon = (key) => {
+export const getStatsInfo = (key) => {
   switch (key) {
     case 'total':
       return {
         title: 'Content',
         icon: '&#xe473;',
-        desc: 'No. of owned Phenotypes',
+        desc: 'No. of owned ${entity_name}',
       }
     case 'created':
       return {
@@ -53,7 +53,7 @@ export const getStatsIcon = (key) => {
       }
     case 'views':
       return {
-        title: 'Phenotypes',
+        title: '${entity_name}',
         icon: '&#xf06e;',
         desc: 'View count in the last 30 days',
       }
@@ -67,7 +67,7 @@ export const getStatsIcon = (key) => {
       return {
         title: 'Popular',
         icon: '&#xf06d;',
-        desc: 'Top 5 Phenotypes',
+        desc: 'Top 5 ${entity_name}',
       }
     default:
       // '&#xf56c';
@@ -75,13 +75,13 @@ export const getStatsIcon = (key) => {
   }
 }
 
-export const composeStatsCard = (parent, key, data, entityResolver) => {
+export const composeStatsCard = (parent, key, data, contentResolver) => {
   if (typeof data === 'undefined' || data === null) {
     console.warn(`Failed to compose StatsCard<keyof "${key}"> w/ err:\nInvalid data`);
     return null;
   }
 
-  const info = getStatsIcon(key);
+  const info = getStatsInfo(key);
   if (typeof info === 'undefined' || info === null) {
     console.warn(`Failed to compose StatsCard<keyof "${key}"> w/ err:\nUnknown key type`);
     return null;
@@ -109,7 +109,7 @@ export const composeStatsCard = (parent, key, data, entityResolver) => {
 
       data = data
         .reduce((out, x) => {
-          const url = entityResolver(x.id);
+          const url = contentResolver('url', x.id);
           out.push(`<div class="org-stats-card__items-elem">
             <a href="${url}">${x.id}</a>
             <span>${x.view_count}</span>
@@ -136,6 +136,9 @@ export const composeStatsCard = (parent, key, data, entityResolver) => {
       console.warn(`Failed to compose StatsCard<keyof "${key}"> w/ err:\nUnknown datatype for case Data<class: ${className}>`)
       return null;
   }
+
+  info.title = contentResolver('text', info.title)
+  info.desc = contentResolver('text', info.desc)
 
   return composeTemplate(template, {
     params: Object.assign(info, { 'data': data }),

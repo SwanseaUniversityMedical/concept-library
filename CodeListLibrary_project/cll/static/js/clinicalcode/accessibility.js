@@ -33,9 +33,29 @@ domReady.finally(() => {
     } else if (elem.matches('[type="checkbox"]')) {
       elem.click();
     } else if (elem.matches('[role="collapsible"]')) {
-      const collapsible = elem.querySelector('input[type="checkbox"]');
+      let ref, parent, collapsible;
+      ref = elem.getAttribute('data-cparent');
+
+      if (stringHasChars(ref)) {
+        parent = tryGetRootElement(elem, ref);
+
+        if (isHtmlObject(parent)) {
+          collapsible = parent.querySelector('input[type="checkbox"]')
+        }
+      }
+
+      if (!isHtmlObject(collapsible)) {
+        parent = elem;
+        collapsible = elem.querySelector('input[type="checkbox"]');
+      }
+
       if (collapsible && !collapsible.disabled) {
+        parent.setAttribute('aria-expanded', !collapsible.checked);
         collapsible.checked = !collapsible.checked;
+
+        if (collapsible?.dataset?.simchange?.toLowerCase?.() === 'true') {
+          collapsible.dispatchEvent(new Event('change'));
+        }
       }
     }
   });

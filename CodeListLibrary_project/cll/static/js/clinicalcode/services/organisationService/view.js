@@ -354,6 +354,137 @@ const renderCollectionComponent = (pageType, key, container, data, mapping) => {
   datatable.columns.sort(2, 'desc');
 };
 
+const composeMetrics = (metrics, container, label, mapping) => {
+  if (!isObjectType(metrics)) {
+    return;
+  }
+
+  const { data, timestamp } = metrics;
+
+  let contentResolver = (ctype, value) => {
+    switch (ctype) {
+      case 'url': {
+        let urlTarget = mapping?.phenotype_url;
+        if (!stringHasChars(urlTarget)) {
+          urlTarget = 'phenotypes';
+        }
+
+        const brand = getBrandedHost();
+        return interpolateString(brand + ENTITY_URL, {
+          id: value,
+          url_target: urlTarget,
+        });
+      }
+
+      case 'text': {
+        let entityName = mapping?.phenotype;
+        if (!stringHasChars(entityName)) {
+          entityName = 'Phenotype';
+        }
+
+        return interpolateString(value, { entity_name: `${entityName}s` });
+      }
+
+      default:
+        return value;
+    }
+  }
+
+  for (const key in data) {
+    orgUtils.composeStatsCard(container, key, data[key], contentResolver)
+  }
+
+  const metricsTimestamp = new Date(Date.parse(timestamp));
+  if (isHtmlObject(label)) {
+    return composeTemplate('<time datetime="${timestamp}">As of ${datefmt}</time>', {
+      params: {
+        datefmt: metricsTimestamp.toLocaleString(),
+        timestamp: metricsTimestamp.toISOString(),
+      },
+      parent: label,
+    });
+  }
+}
+
+const initMetrics = (accordion, mapping) => {
+  const input = accordion.querySelector('input[type="checkbox"]');
+  const label = accordion.querySelector('input[type="checkbox"] ~ label');
+  const container = accordion.querySelector('[data-cx="container"]');
+  if (!input || !container) {
+    let missing = [];
+    if (!input) {
+      missing.push('<input/>');
+    }
+
+    if (!container) {
+      missing.push('<container/>');
+    }
+    missing = missing.join(' and ');
+
+    console.warn(`Failed to init metrics, missing ${missing} elem(s)`);
+    return;
+  }
+
+  const token = getCookie('csrftoken');
+  const dataset = { };
+  const isResolved = async (promise) => {
+    return await Promise.race([
+      new Promise(resolve => setTimeout((() => resolve(false)), 0)),
+      promise.then(() => true, () => false)
+    ]);
+  };
+
+  input.addEventListener('change', (e) => {
+    const isOpen = input.checked;
+    if (!isOpen) {
+      return;
+    }
+
+    if (dataset.metrics) {
+      if (dataset.rendered) {
+        return;
+      }
+
+      dataset.rendered = true;
+      composeMetrics(dataset.metrics, container, label, mapping);
+      return;
+    }
+
+    if (isNullOrUndefined(dataset.promise) || isResolved(dataset.promise)) {
+      dataset.promise = fetch(
+        getCurrentURL(),
+        {
+          method: 'GET',
+          cache: 'default',
+          credentials: 'same-origin',
+          withCredentials: true,
+          headers: {
+            'X-Target': 'get_metrics',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': token,
+            'Authorization': `Bearer ${token}`
+          }
+        })
+          .then(response => response.json())
+          .then(response => {
+            if (!response.status) {
+              console.warn(`Failed to retrieve metrics w/ err:\n${response.message}`);
+              return;
+            }
+
+            if (!dataset.rendered && !dataset.metrics) {
+              dataset.metrics = response.message;
+              dataset.rendered = true;
+              composeMetrics(dataset.metrics, container, label, mapping);
+            }
+          })
+          .catch((e) => {
+            console.error(`Failed to resolve metrics w/ err:\n${e}`);
+          })
+    }
+  })
+};
+
 /**
  * Main thread
  * @desc initialises the component(s) once the DOM resolves
@@ -371,32 +502,12 @@ domReady.finally(() => {
       continue;
     }
 
-    if (value.pageType === 'STATS') {
-      if (!isObjectType(value.data)) {
-        continue;
-      }
-
-      let entityResolver = (id) => {
-        let urlTarget = mapping?.phenotype_url;
-        if (!stringHasChars(urlTarget)) {
-          urlTarget = 'phenotypes';
-        }
-
-        const brand = getBrandedHost();
-        return interpolateString(brand + ENTITY_URL, {
-          id: id,
-          url_target: urlTarget,
-        });
-      }
-
-      for (const key in value.data) {
-        console.log(key, value.data[key], value.container)
-        orgUtils.composeStatsCard(value.container, key, value.data[key], entityResolver)
-      }
-      continue;
-    }
-
     renderCollectionComponent(value.pageType, key, value.container, value.data, mapping);
+  }
+
+  const metricsAccordion = document.querySelector('[data-ct="metrics"]');
+  if (metricsAccordion) {
+    initMetrics(metricsAccordion, mapping);
   }
 
   const leaveButton = document.querySelector('#leave-btn');
