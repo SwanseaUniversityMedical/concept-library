@@ -10,6 +10,7 @@ from django.views.generic import TemplateView, CreateView, UpdateView
 from django.http.response import JsonResponse, Http404
 from django.core.exceptions import BadRequest, PermissionDenied
 from django.utils.decorators import method_decorator
+from django.views.decorators.vary import vary_on_headers
 from django.contrib.auth.decorators import login_required
 
 import logging
@@ -376,7 +377,6 @@ class OrganisationManageView(UpdateView):
     return gen_utils.jsonify_response(code=200)
 
 ''' View Organisation '''
-
 class OrganisationView(TemplateView):
   # Specify how many items to return when computing popular entities
   MAX_POPULAR_ITEMS = 5
@@ -412,17 +412,28 @@ class OrganisationView(TemplateView):
 
     return context | org_data
 
+  @method_decorator(vary_on_headers(
+    'Cookie', 'Accept-Encoding',
+    'X-Target', 'X-Requested-With'
+  ))
   def get(self, request, *args, **kwargs):
     if gen_utils.is_fetch_request(request):
       target = request.headers.get('X-Target', None)
       if target is not None and target in self.get_methods:
         target = getattr(self, target)
         return target(request, *args, **kwargs)
-  
+
     context = self.get_context_data(*args, **kwargs)
     return render(request, self.template_name, context)
 
-  @method_decorator([login_required, permission_utils.redirect_readonly])
+  @method_decorator([
+    login_required,
+    permission_utils.redirect_readonly,
+    vary_on_headers(
+      'Cookie', 'Accept-Encoding',
+      'X-Target', 'X-Requested-With'
+    )
+  ])
   def post(self, request, *args, **kwargs):
     if gen_utils.is_fetch_request(request):
       target = request.headers.get('X-Target', None)
