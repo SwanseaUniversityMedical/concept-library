@@ -223,11 +223,11 @@ def jsonify_response(**kwargs):
             A JSONResponse that matches the kwargs
     """
     code = kwargs.get('code', 400)
-    status = kwargs.get('status', 'false')
+    status = kwargs.get('status', False)
     message = kwargs.get('message', '')
     return JsonResponse({
-            'status': status,
-            'message': message
+        'status': status,
+        'message': message
     }, status=code)
 
 
