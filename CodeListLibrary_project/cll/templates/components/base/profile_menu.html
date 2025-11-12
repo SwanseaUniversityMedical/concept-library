@@ -23,7 +23,7 @@
               <div class="item-dropdown__title">Admin</div> 
             </a>
           {% endif %}
-          {% if GA4_STUDIO_LINK %}
+          {% if GA4_STUDIO_LINK and not IS_DEMO %}
             {% if IS_BRAND_ADMIN or request.user.is_superuser %}
               <!--Analytics Dash-->
               <a href="{{ GA4_STUDIO_LINK }}" target=_blank class="item-dropdown">
