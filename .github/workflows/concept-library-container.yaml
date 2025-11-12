@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   concept-library-container:
-    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-container.yaml@v3.4.0-containers
+    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-container.yaml@v3.4.2-containers
     with:
       job-name: concept-library-container
       registry: ${{ vars.HARBOR_REGISTRY }}
