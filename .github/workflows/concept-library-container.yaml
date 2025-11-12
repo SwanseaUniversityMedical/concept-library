@@ -5,8 +5,8 @@ on:
     # Only consider PRs that change files for this asset, including ci scripts
     paths:
       - '.github/workflows/concept-library-container.yaml'
-      - './CodeListLibrary_project/**'
-      - './docker/**'
+      - 'CodeListLibrary_project/**'
+      - 'docker/**'
   push:
     # Only release off of release and maintenance branches for this asset
     branches:
@@ -14,8 +14,8 @@ on:
     # Only consider pushes that change files for this asset, including ci scripts
     paths:
       - '.github/workflows/concept-library-container.yaml'
-      - './CodeListLibrary_project/**'
-      - './docker/**'
+      - 'CodeListLibrary_project/**'
+      - 'docker/**'
 
 permissions:
   contents: write

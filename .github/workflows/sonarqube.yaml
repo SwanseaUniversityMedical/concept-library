@@ -18,7 +18,6 @@ on:
       - '.github/workflows/sonarqube.yaml'
       - 'CodeListLibrary_project/**'
       - 'docker/**'
-      - 'docs/**'
 
 jobs:
   scan-code:
