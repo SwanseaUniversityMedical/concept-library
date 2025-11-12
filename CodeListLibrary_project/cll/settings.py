@@ -172,7 +172,7 @@ DEBUG = get_env_value('DEBUG', cast='bool')
 # Allowed application hots
 ALLOWED_HOSTS = [i.strip() for i in get_env_value('ALLOWED_HOSTS').split(',')]
 
-ROOT_URLCONF = 'cll.urls_brand'
+ROOT_URLCONF = 'cll.urls'
 DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 # Setup support for proxy headers
@@ -587,26 +587,35 @@ else:
 #
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
 
+# Ignore auth & model events
+# 
+#   Note:
+#     - `auth` event isn't required as we're measuring analytics elsewhere
+#     - `model` event can be ignored in favour of `simple-history`
+# 
+DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
+DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = False
+
 # Overrides `Request` event signal URL registration
 OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
     # The following URL patterns will be ignored for all branded sites
     'all_brands': [
         # Ignore non-consumer usage
-        r'^/admin/',
-        r'^/adminTemp/',
-        r'^/dashboard/',
+        r'^(/admin)/?',
+        r'^(/adminTemp)/?',
+        r'^(/dashboard)/?',
 
         # Ignore healthchecks
-        r'^/api/v1/health'
+        r'^(/api/v1/health)/?',
 
         # Ignore bots & crawlers 
-        r'^/sitemap.xml',
-        r'^/robots.txt',
+        r'^(/sitemap.xml)/?',
+        r'^(/robots.txt)/?',
 
         # Ignore static file requests
-        r'^/media/',
-        r'^/static/',
-        r'^/favicon.ico',
+        r'^(/media/)?',
+        r'^(/static/)?',
+        r'^(/favicon.ico)/?',
     ],
 }
 

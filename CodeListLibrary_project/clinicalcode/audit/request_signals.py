@@ -165,8 +165,8 @@ def get_request_info(sender, params):
 		protocol = info.get('wsgi.url_scheme', 'http')
 
 	# Resolve raw port
-	if AppSettings.USE_X_FORWARDED_PORT and 'HTTP_X_FORWARDED_HOST' in info:
-		rport = str(info.get('HTTP_X_FORWARDED_HOST'))
+	if AppSettings.USE_X_FORWARDED_PORT and 'HTTP_X_FORWARDED_PORT' in info:
+		rport = str(info.get('HTTP_X_FORWARDED_PORT'))
 	else:
 		rport = str(info.get('SERVER_PORT'))
 

@@ -17,10 +17,10 @@ from clinicalcode.models import Brand
 from clinicalcode.entity_utils import gen_utils
 
 class BrandMiddleware(MiddlewareMixin):
-    '''
+    """
         Brand related middleware
             [ ...needs docs? ]
-    '''
+    """
     def process_request(self, request):
         #---------------------------------
         # if the user is a member of  'ReadOnlyUsers' group, make READ-ONLY True
@@ -30,8 +30,8 @@ class BrandMiddleware(MiddlewareMixin):
 
             if not settings.CLL_READ_ONLY:
                 if (request.user.groups.filter(name='ReadOnlyUsers').exists()):
-                    msg1 = "You are assigned as a Read-Only-User."
-                    if request.session.get('read_only_msg', "") == "":
+                    msg1 = 'You are assigned as a Read-Only-User.'
+                    if request.session.get('read_only_msg', '') == '':
                         request.session['read_only_msg'] = msg1
                         messages.error(request, msg1)
                     settings.CLL_READ_ONLY = True
@@ -41,33 +41,34 @@ class BrandMiddleware(MiddlewareMixin):
         is_live_hdruk = re.search(r'(phenotypes\.healthdatagateway)|(web\-phenotypes\-hdr)', request.get_host(), flags=re.IGNORECASE)
         current_page_url = request.path_info.lstrip('/')
 
-        request.IS_HDRUK_EXT = "0"
-        settings.IS_HDRUK_EXT = "0"
+        request.IS_HDRUK_EXT = '0'
+        settings.IS_HDRUK_EXT = '0'
 
         root = current_page_url.split('/')[0]
         if is_live_hdruk:
             root = 'HDRUK'
-            request.IS_HDRUK_EXT = "1"
-            settings.IS_HDRUK_EXT = "1"
+            request.IS_HDRUK_EXT = '1'
+            settings.IS_HDRUK_EXT = '1'
 
         root = root.upper()
 
-        request.CURRENT_BRAND = ""
-        settings.CURRENT_BRAND = ""
+        request.CURRENT_BRAND = ''
+        settings.CURRENT_BRAND = ''
 
-        request.CURRENT_BRAND_WITH_SLASH = ""
-        settings.CURRENT_BRAND_WITH_SLASH = ""
+        request.CURRENT_BRAND_WITH_SLASH = ''
+        settings.CURRENT_BRAND_WITH_SLASH = ''
 
         request.BRAND_OBJECT = {}
         settings.BRAND_OBJECT = {}
         
-        request.SWAGGER_TITLE = "Concept Library API"
-        settings.SWAGGER_TITLE = "Concept Library API"
+        request.SWAGGER_TITLE = 'Concept Library API'
+        settings.SWAGGER_TITLE = 'Concept Library API'
 
         set_urlconf(None)
         request.urlconf = None
         urlconf = None
         urlconf = settings.ROOT_URLCONF
+        clear_url_caches()
 
         request.session['all_brands'] = brands_list
         request.session['current_brand'] = root
@@ -77,8 +78,8 @@ class BrandMiddleware(MiddlewareMixin):
             settings.CURRENT_BRAND = root
             request.CURRENT_BRAND = root
 
-            settings.CURRENT_BRAND_WITH_SLASH = "/" + root
-            request.CURRENT_BRAND_WITH_SLASH = "/" + root
+            settings.CURRENT_BRAND_WITH_SLASH = '/' + root
+            request.CURRENT_BRAND_WITH_SLASH = '/' + root
 
             brand_object = next((x for x in Brand.all_instances() if x.name.upper() == root.upper()), {})
 
@@ -87,8 +88,8 @@ class BrandMiddleware(MiddlewareMixin):
 
             has_brand = brand_object is not None and not isinstance(brand_object, dict)
             if has_brand and brand_object.site_title is not None and not gen_utils.is_empty_string(brand_object.site_title):
-                request.SWAGGER_TITLE = brand_object.site_title + " API"
-                settings.SWAGGER_TITLE = brand_object.site_title + " API"
+                request.SWAGGER_TITLE = brand_object.site_title + ' API'
+                settings.SWAGGER_TITLE = brand_object.site_title + ' API'
 
             if not current_page_url.strip().endswith('/'):
                 current_page_url = current_page_url.strip() + '/'
@@ -96,7 +97,7 @@ class BrandMiddleware(MiddlewareMixin):
             if not is_live_hdruk:
                 request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
 
-        urlconf = "cll.urls_brand"
+        urlconf = 'cll.urls'
         set_urlconf(urlconf)
         request.urlconf = urlconf
 
@@ -106,11 +107,9 @@ class BrandMiddleware(MiddlewareMixin):
             current_page_url = current_page_url.strip().rstrip('/') + '/v1/'
 
         if urlconf in sys.modules:
-            clear_url_caches()
             importlib.reload(sys.modules[urlconf])
-            importlib.reload(import_module(urlconf))
-            importlib.reload(sys.modules["clinicalcode.api.urls"])
-            importlib.reload(import_module("clinicalcode.api.urls"))
+        importlib.reload(import_module(urlconf))
+        clear_url_caches()
 
         if settings.DEBUG:
             print(f'Brand Ctx: {settings.CURRENT_BRAND} | Route: {str(request.get_full_path())} | Info: {request.path_info}')
@@ -123,17 +122,17 @@ class BrandMiddleware(MiddlewareMixin):
     def chkReadOnlyUsers(self, request):
         if not settings.CLL_READ_ONLY:
             if (request.user.groups.filter(name='ReadOnlyUsers').exists()):
-                messages.error(request, "You are assigned as a Read-Only-User. You can access only the ReadOnly website.")
+                messages.error(request, 'You are assigned as a Read-Only-User. You can access only the ReadOnly website.')
                 auth.logout(request)
 
         return None
 
     def strtobool(self, val):
-        '''
+        """
             Converts str() to bool()
             [!] Required as distutil.util.strtobool no longer
                 supported in Python v3.10+ and removed in v3.12+
-        '''
+        """
         if isinstance(val, bool):
             return val
 

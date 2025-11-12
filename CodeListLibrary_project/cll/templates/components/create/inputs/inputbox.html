@@ -29,7 +29,7 @@
           {% endif %}
           {% if str_val.has_range %}
             {% if component.field_data.validation.length.0 < 1 %}
-              <li><pre class="validation-block__message">Must have a minimum of a maximum length of {{ component.field_data.validation.length.1 }} characters.</pre></li>
+              <li><pre class="validation-block__message">Must have a maximum length of {{ component.field_data.validation.length.1 }} characters.</pre></li>
             {% else %}
               <li><pre class="validation-block__message">Must have a length between {{ component.field_data.validation.length.0 }} and {{ component.field_data.validation.length.1 }} characters.</pre></li>
             {% endif %}
