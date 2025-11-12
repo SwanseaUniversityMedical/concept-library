@@ -451,6 +451,10 @@ const initMetrics = (accordion, mapping) => {
     }
 
     if (isNullOrUndefined(dataset.promise) || isResolved(dataset.promise)) {
+      const spinner = startLoadingSpinner(container, true);
+      dataset?.spinner?.remove?.();
+
+      dataset.spinner = spinner;
       dataset.promise = fetch(
         getCurrentURL(),
         {
@@ -480,6 +484,12 @@ const initMetrics = (accordion, mapping) => {
           })
           .catch((e) => {
             console.error(`Failed to resolve metrics w/ err:\n${e}`);
+          })
+          .finally(() => {
+            spinner?.remove?.();
+            if (dataset.spinner === spinner) {
+              dataset.spinner = null;
+            }
           })
     }
   })
