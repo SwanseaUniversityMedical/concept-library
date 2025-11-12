@@ -51,7 +51,8 @@ CodeListLibrary_project/staticroot/*
 
 # Platform / OS files
 .idea
-.DS_Stores
+**/Thumbs.db
+**/.DS_Store
 
 # Misc. files
 docs/~$plication Guide.docx
