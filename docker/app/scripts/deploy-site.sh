@@ -14,9 +14,6 @@ export https_proxy;
 app_port='80';
 export app_port;
 
-start_engagelens='True';
-export start_engagelens;
-
 cll_healthcheck_addr='fullaccess-app';
 export cll_healthcheck_addr;
 

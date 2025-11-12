@@ -9,7 +9,6 @@ on:
       - 'CodeListLibrary_project/**'
       - 'docker/**'
       - 'docs/**'
-      - 'engagelens/**'
   push:
     branches:
       # We're using the free version of Sonarqube so we can only scan a single branch and not PRs
@@ -20,7 +19,6 @@ on:
       - 'CodeListLibrary_project/**'
       - 'docker/**'
       - 'docs/**'
-      - 'engagelens/**'
 
 jobs:
   scan-code:

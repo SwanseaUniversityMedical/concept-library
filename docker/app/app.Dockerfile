@@ -41,7 +41,6 @@ COPY ./docker/app/scripts/health /home/config_cll/health
 COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 
 # Copy app volume(s)
-COPY ./engagelens /var/www/concept_lib_sites/v1/engagelens
 COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
 # Set perms

@@ -38,11 +38,22 @@ def try_get_entity_history(entity, history_id):
 
 def try_get_brand(request, default=None):
     """Safely get the Brand instance from the RequestContext"""
-    current_brand = request.BRAND_OBJECT
+    if request is None:
+        return default
+
+    if isinstance(request, dict):
+        current_brand = request.get('BRAND_OBJECT', None)
+    else:
+        current_brand = getattr(request, 'BRAND_OBJECT') if hasattr(request, 'BRAND_OBJECT') else None
+
     if inspect.isclass(current_brand) and issubclass(current_brand, Model):
         return current_brand
 
-    current_brand = request.CURRENT_BRAND
+    if isinstance(request, dict):
+        current_brand = request.get('CURRENT_BRAND', None)
+    else:
+        current_brand = getattr(request, 'CURRENT_BRAND') if hasattr(request, 'CURRENT_BRAND') else None
+
     if gen_utils.is_empty_string(current_brand) or current_brand.lower() == 'ALL':
         return default
     return try_get_instance(apps.get_model(app_label='clinicalcode', model_name='Brand'), name=current_brand)

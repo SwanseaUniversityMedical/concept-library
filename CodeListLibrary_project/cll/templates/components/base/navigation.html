@@ -22,37 +22,33 @@
     {% endwith %}
 
     <div class="page-navigation__items slim-scrollbar">
-      {% with request.CURRENT_BRAND|default:"BASE_BRAND" as brand_target %}
-        {% cache 3600 brand_nav_tabs brand_target %}
-          {% block search_bar %}
-            {% include "components/navigation/search_navigation.html" %}
-          {% endblock search_bar %}
+      {% block search_bar %}
+        {% include "components/navigation/search_navigation.html" %}
+      {% endblock search_bar %}
 
-          {% if request.BRAND_OBJECT.allowed_tabs is none or 'home' in request.BRAND_OBJECT.allowed_tabs %}
-            {% url 'concept_library_home' as home_url %}
-            <a href="{{ home_url }}" id="Home">Home</a>
-          {% endif %}
+      {% if request.BRAND_OBJECT.allowed_tabs is none or 'home' in request.BRAND_OBJECT.allowed_tabs %}
+        {% url 'concept_library_home' as home_url %}
+        <a href="{{ home_url }}" id="Home">Home</a>
+      {% endif %}
 
-          {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}
-            {% if request.BRAND_OBJECT.allowed_tabs.phenotypes|get_type == 'dict' %}
-              <a href="{% url 'search_entities' %}" id="{{ request.BRAND_OBJECT.allowed_tabs.phenotypes.id|default:'Phenotypes' }}" data-root="search,update,create">
-                {{ request.BRAND_OBJECT.allowed_tabs.phenotypes.title|default:'Phenotypes' }}
-              </a>
-            {% else %}
-              <a href="{% url 'search_entities' %}" id="Phenotypes" data-root="search,update,create">Phenotypes</a>
-            {% endif %}
-          {% endif %}
+      {% if request.BRAND_OBJECT.allowed_tabs is none or 'phenotypes' in request.BRAND_OBJECT.allowed_tabs %}
+        {% if request.BRAND_OBJECT.allowed_tabs.phenotypes|get_type == 'dict' %}
+          <a href="{% url 'search_entities' %}" id="{{ request.BRAND_OBJECT.allowed_tabs.phenotypes.id|default:'Phenotypes' }}" data-root="search,update,create">
+            {{ request.BRAND_OBJECT.allowed_tabs.phenotypes.title|default:'Phenotypes' }}
+          </a>
+        {% else %}
+          <a href="{% url 'search_entities' %}" id="Phenotypes" data-root="search,update,create">Phenotypes</a>
+        {% endif %}
+      {% endif %}
 
-          {% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}
-            {% url 'api:root' as api_url %}
-            <a href="{{ api_url }}" id="API" data-root="api">API</a>
-          {% endif %}
+      {% if request.BRAND_OBJECT.allowed_tabs is none or 'api' in request.BRAND_OBJECT.allowed_tabs %}
+        {% url 'api:root' as api_url %}
+        <a href="{{ api_url }}" id="API" data-root="api">API</a>
+      {% endif %}
 
-          {% block about_wrapper %}
-            {% include "components/base/about_menu.html" %}
-          {% endblock about_wrapper %}
-        {% endcache %}
-      {% endwith %}
+      {% block about_wrapper %}
+        {% include "components/base/about_menu.html" %}
+      {% endblock about_wrapper %}
 
       {% url 'login' as login_url %}
       {% if not user.is_authenticated %}
