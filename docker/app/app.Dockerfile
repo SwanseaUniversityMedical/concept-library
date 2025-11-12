@@ -32,6 +32,21 @@ RUN apt-get update -y -q && \
 RUN mkdir -p /var/www/concept_lib_sites/v1 && \
     mkdir -p /home/config_cll/cll_srvr_logs
 
+# Set perms
+RUN chown -R www-data:www-data /var/www /home/config_cll && \
+    chmod -R 750 /home/config_cll
+
+# Cleanup
+RUN apt-get autoremove -y -q && \
+    apt-get clean -y -q
+
+
+####################################
+##                                ##
+##             Build              ##
+##                                ##
+####################################
+FROM base AS builder
 # Copy script volume(s)
 COPY ./docker/app/scripts/build /bin/scripts
 COPY ./docker/app/scripts/init /home/config_cll/init
@@ -43,19 +58,11 @@ COPY ./docker/requirements /var/www/concept_lib_sites/v1/requirements
 # Copy app volume(s)
 COPY ./CodeListLibrary_project /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
-# Set perms
-RUN chown -R www-data:www-data /var/www /home/config_cll && \
-    chmod -R 750 /home/config_cll
-
 RUN find /bin/scripts -type f -iname "*.sh" -exec chmod a+x {} \; && \
     find /home/config_cll -type f -iname "*.sh" -exec chmod a+x {} \;
 
 # Config & install dependencies
 RUN /bin/scripts/dependencies.sh /var/www/concept_lib_sites/v1/requirements/${dependency_target:-production.txt}
-
-# Cleanup
-RUN apt-get autoremove -y -q && \
-    apt-get clean -y -q
 
 
 ####################################
@@ -63,7 +70,7 @@ RUN apt-get autoremove -y -q && \
 ##              Dev               ##
 ##                                ##
 ####################################
-FROM base AS dev
+FROM builder AS dev
 WORKDIR /var/www/concept_lib_sites/v1/CodeListLibrary_project
 
 
@@ -72,7 +79,7 @@ WORKDIR /var/www/concept_lib_sites/v1/CodeListLibrary_project
 ##              Prod              ##
 ##                                ##
 ####################################
-FROM base AS prod
+FROM builder AS prod
 
 # Config supervisord
 ADD ./docker/app/config/cll.supervisord.conf /etc/supervisord.conf
