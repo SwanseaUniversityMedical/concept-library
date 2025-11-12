@@ -1,8 +1,5 @@
 # Include the base.txt requirements file
 -r base.txt
 
-# Incl. engagelens
--r engagelens.txt
-
 # Production requirements
 mod-wsgi==5.0.2

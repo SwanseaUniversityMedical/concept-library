@@ -360,13 +360,6 @@ volumes:
       device: ./cl_log
       o: bind
 
-  engagelens-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../engagelens
-      o: bind
-
   # Profile<`tooling`>
   riadmin-data:
     driver: local

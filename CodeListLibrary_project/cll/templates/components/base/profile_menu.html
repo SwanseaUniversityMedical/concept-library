@@ -22,8 +22,10 @@
               </div>
               <div class="item-dropdown__title">Admin</div> 
             </a>
-            <!--Analytics Dash-->
-            {% if GA4_STUDIO_LINK %}
+          {% endif %}
+          {% if GA4_STUDIO_LINK %}
+            {% if IS_BRAND_ADMIN or request.user.is_superuser %}
+              <!--Analytics Dash-->
               <a href="{{ GA4_STUDIO_LINK }}" target=_blank class="item-dropdown">
                 <div class="item-dropdown__icon profile-row--stylised-icon" id="admin_icon">
                   {% svg "bar_chart_icon" %}

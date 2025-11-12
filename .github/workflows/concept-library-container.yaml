@@ -6,7 +6,6 @@ on:
     paths:
       - '.github/workflows/concept-library-container.yaml'
       - './CodeListLibrary_project/**'
-      - './engagelens/**'
       - './docker/**'
   push:
     # Only release off of release and maintenance branches for this asset
@@ -16,7 +15,6 @@ on:
     paths:
       - '.github/workflows/concept-library-container.yaml'
       - './CodeListLibrary_project/**'
-      - './engagelens/**'
       - './docker/**'
 
 permissions:
