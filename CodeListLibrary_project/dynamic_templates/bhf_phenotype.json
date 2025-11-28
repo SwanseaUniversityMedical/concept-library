@@ -127,6 +127,16 @@
         "api": true
       }
     },
+    "project_name": {
+      "title": "Project Name",
+      "active": true,
+      "field_type": "string_inputbox",
+      "validation": {
+        "type": "string",
+        "mandatory": false
+      },
+      "description": "The BHF project this Phenotype is associated with."
+    },
     "corresp_email": {
       "title": "Email Address",
       "active": true,
@@ -331,6 +341,7 @@
     {
       "title": "Overview",
       "fields": [
+        "project_name",
         "type",
         "phenotype_uuid",
         "sex",
@@ -391,7 +402,7 @@
   "template_details": {
     "name": "BHF Data Science Centre Phenotype",
     "version": 1,
-    "card_type": "clinical",
+    "card_type": "bhf",
     "description": "BHF Data Science Centre Phenotype definitions that describe a list of clinical codes, algorithms using clinical codes, or set of clinical trials. Visit the BHF Data Science Centre website to learn more: https://bhfdatasciencecentre.org"
   }
 }

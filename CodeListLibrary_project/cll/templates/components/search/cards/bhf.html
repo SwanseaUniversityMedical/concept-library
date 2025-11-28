@@ -1,0 +1,64 @@
+{% load static %}
+{% load entity_renderer %}
+
+<article class="entity-card" data-target="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}"
+  data-entity-id="{{ entity.id }}" data-entity-version-id="{{ entity.history_id }}" data-layout-id="{{ layout.id }}"
+  aria-label="View {{ entity.name }}">
+  
+  <a class="entity-card__click" href="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}">
+    <div class="entity-card__header">
+      <div class="entity-card__header-item">
+        <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
+        <p class="entity-card__author">{{ entity.author }}</p>
+      </div>
+      {% render_field_value entity layout "project_name" None as type_value %}
+      {% if project_name and project_name|length %}
+        <div class="entity-card__header-item">
+          <span tooltip="This is yet to be moderated" direction="left">
+            <div class="chip bold washed-accent text-accent-darkest draft-icon icon-accent-highlight">
+              <span class="chip-text" href="#">{{ project_name }}</span>
+            </div>
+          </span>
+        </div>
+      {% elif entity.publish_status != 2 %}
+        <div class="entity-card__header-item">
+          <span tooltip="This is yet to be moderated" direction="left">
+            <div class="chip bold washed-accent text-accent-darkest draft-icon icon-accent-highlight">
+              <span class="chip-text" href="#">UNPUBLISHED</span>
+            </div>
+          </span>
+        </div>
+      {% endif %}
+    </div>
+    <div class="entity-card__snippet">
+      <div class="entity-card__snippet-metadata">
+        {% render_field_value entity layout "type" None as type_value %}
+        {% if not type_value %}
+          <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
+        {% else %}
+          <span class="entity-card__snippet-metadata-type">{{ type_value }}</span>
+          <span class="entity-card__snippet-metadata-divider"></span>
+          <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
+        {% endif %}
+      </div>
+      <div class="entity-card__snippet-tags">
+        <div class="entity-card__snippet-tags-group">
+          {% renderable_field_values entity layout "coding_system" as coding_systems %}
+          {% for code in coding_systems %}
+            <div class="meta-chip meta-chip-washed-accent">
+              <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ code.name }}</span>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="entity-card__snippet-tags-group">
+          {% renderable_field_values entity layout "collections" as collections %}
+          {% for collection in collections %}
+            <div class="meta-chip meta-chip-tertiary-accent">
+              <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ collection.name }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </a>
+</article>
