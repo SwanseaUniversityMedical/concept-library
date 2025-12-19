@@ -373,29 +373,6 @@ export class DashboardService {
     const brandMapping = this.#templates.brandMapping;
     this.#clearContent();
 
-    /*
-      fetch(
-        getBrandedHost() + '/' + DashboardService.#UrlPath` + parameters,
-        {
-          method: 'GET',
-          headers: {
-            'X-Target': 'import_rule',
-            'X-Requested-With': 'XMLHttpRequest',
-          }
-        }
-      )
-
-      <button
-        class="outline-btn outline-btn--icon outline-btn--icon-edit"
-        title="Manage ${name}"
-        aria-label="Manage ${name}"
-        data-ref="${ref}"
-        data-role="action-btn"
-          >
-            ${action}
-      </button>
-    */
-
     const [activity] = composeTemplate(this.#templates.base.group, {
       params: {
         id: 'activity',
