@@ -306,6 +306,29 @@
     </article>
   </template>
 
+  <template data-name="subview_card" data-for="dashboard">
+    <article class="card">
+      <header class="card__header">
+        <h3>${name}</h3>
+        <span class="as-icon ${iconCls}" data-icon="${icon}" aria-hidden="true"></span>
+      </header>
+      <p class="card__desc">
+        ${desc}
+      </p>
+      ${content}
+      <footer class="card__footer card__footer--subview">
+        ${footer}
+        <button
+          class="outline-btn outline-btn--icon outline-btn--icon-rarrow"
+          aria-label="${action}"
+          data-role="subview-btn"
+        >
+          ${action}
+        </button>
+      </footer>
+    </article>
+  </template>
+
   <template data-name="action_card" data-for="dashboard">
     <article class="card">
       <header class="card__header">
@@ -334,7 +357,7 @@
   </template>
 
   <template data-name="time" data-for="dashboard">
-    <time datetime="${timestamp}">
+    <time datetime="${timestamp}" title="${datefmt}">
       <span class="as-icon" data-icon="&#xf017;" aria-hidden="true"></span>
       ${datefmt}
     </time>

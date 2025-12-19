@@ -373,6 +373,29 @@ export class DashboardService {
     const brandMapping = this.#templates.brandMapping;
     this.#clearContent();
 
+    /*
+      fetch(
+        getBrandedHost() + '/' + DashboardService.#UrlPath` + parameters,
+        {
+          method: 'GET',
+          headers: {
+            'X-Target': 'import_rule',
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        }
+      )
+
+      <button
+        class="outline-btn outline-btn--icon outline-btn--icon-edit"
+        title="Manage ${name}"
+        aria-label="Manage ${name}"
+        data-ref="${ref}"
+        data-role="action-btn"
+          >
+            ${action}
+      </button>
+    */
+
     const [activity] = composeTemplate(this.#templates.base.group, {
       params: {
         id: 'activity',
@@ -416,6 +439,7 @@ export class DashboardService {
       })
       .then(res => {
         const stats = res.summary.data;
+        const subviews = res.subviews;
         const statsTimestamp = new Date(Date.parse(res.summary.timestamp));
 
         const [statsDatetime] = composeTemplate(this.#templates.base.time, {
@@ -427,22 +451,41 @@ export class DashboardService {
 
         const activityContent = activity.querySelector('section');
         for (let key in stats) {
+          const subview = subviews?.[key];
           const details = Const.CLU_ACTIVITY_CARDS.find(x => x.key === key);
           if (!details) {
             continue;
           }
 
-          composeTemplate(this.#templates.base.display_card, {
+          let cardType = 'display_card';
+          let cardParams = { footer: statsDatetime.outerHTML };
+          if (!isNullOrUndefined(subview)) {
+            cardType = 'subview_card';
+            cardParams = { ...cardParams, action: subview.display };
+          }
+
+          const [card] = composeTemplate(this.#templates.base[cardType], {
             params: {
               name: interpolateString(details.name, { brandMapping }),
               desc: interpolateString(details.desc, { brandMapping }),
               icon: details.icon,
               iconCls: details.iconCls,
               content: `<figure class="card__data">${stats[key].toLocaleString()}</figure>`,
-              footer: statsDatetime.outerHTML,
+              ...cardParams,
             },
             parent: activityContent,
           });
+
+          const btn = card.querySelector('button[data-role="subview-btn"]');
+          if (!isNullOrUndefined(btn) && !isNullOrUndefined(subview)) {
+            btn.addEventListener('click', (e) => {
+              this.#renderDashboardSubview({
+                key,
+                subview,
+                details,
+              });
+            });
+          }
         }
         spinners?.activity?.remove?.();
 
@@ -471,6 +514,144 @@ export class DashboardService {
           duration: 4000,
         });
       });
+  }
+
+  #renderDashboardSubview({ key, subview, details }) {
+    const brandMapping = this.#templates.brandMapping;
+
+    const name = interpolateString(subview.name, { brandMapping });
+    const desc = interpolateString(subview.desc, { brandMapping });
+
+    const renderResultset = async (dashCol, dashBody, filters) => {
+      const params = new URLSearchParams({ subview: key, ...(isObjectType(filters) ? filters : {}) })
+      return fetch(
+        getBrandedHost() + '/' + DashboardService.#UrlPath + '/view/overview/?' + params,
+        {
+          method: 'GET',
+          headers: {
+            'X-Target': subview.method,
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        }
+      )
+        .then((result) => result.json())
+        .then((result) => {
+          dashCol.replaceChildren();
+          for (let i = 0; i < result.columns.length; ++i) {
+            dashCol.appendChild(createElement('td', { textContent: result.columns[i] }));
+          }
+
+          dashBody.replaceChildren();
+          for (let i = 0; i < result.data.length; ++i) {
+            const row = createElement('tr', {
+              childNodes: result.data[i].map(x => createElement('td', { textContent: x }))
+            })
+            dashBody.appendChild(row);
+          }
+        })
+    }
+
+    let spinner;
+    ModalFactory.create({
+      id: 'subview-modal',
+      title: `${subview.display}: ${name}<p style="font-weight:normal;margin:0.25rem 0;padding:0rem;font-size:0.75em;">${desc}</p>`,
+      size: window.ModalFactory.ModalSizes.Large,
+      content: `
+      <article class="dash-list">
+        <section class="dash-list__container slim-scrollbar">
+          <table class="dash-list__table">
+            <thead>
+              <tr id="tbl-col">
+
+              </tr>
+            </thead>
+            <tbody id="tbl-body">
+
+            </tbody>
+          </table>
+        </section>
+      </article>
+      `,
+      buttons: [
+        {
+          name: 'Close',
+          type: ModalFactory.ButtonTypes.REJECT,
+          html: `<button class="secondary-btn text-accent-darkest bold washed-accent" id="cancel-button"></button>`,
+        },
+      ],
+      onRender: (container) => {
+        const modal = container.querySelector('.target-modal__container');
+        const footer = container.querySelector('#target-modal-footer');
+        if (!modal || !footer) {
+          throw new Error('Failed to resolve modal base');
+        }
+
+        const content = modal.querySelector('#target-modal-content');
+        const dashCol = modal.querySelector('#tbl-col');
+        const dashBody = modal.querySelector('#tbl-body');
+        if (!content || !dashCol || !dashBody) {
+          throw new Error('Failed to resolve modal elements');
+        }
+
+        spinner = startLoadingSpinner(content);
+        renderResultset(dashCol, dashBody)
+          .catch((e) => {
+            ModalFactory.closeCurrentModal();
+            console.error(`Failed to open subview w/ err:\n${e}`);
+          })
+          .finally(() => {
+            if (!isNullOrUndefined(spinner)) {
+              spinner?.remove?.();
+            }
+          });
+
+        const filters = subview.filters;
+        if (!isNullOrUndefined(filters) && Array.isArray(filters)) {
+          for (let filter of filters) {
+            const dropdown = createElement('select', {
+              className: 'selection-input',
+              style: filters.length === 1 ? 'margin-right:auto;' : '',
+              childNodes: [
+                createElement('option', {
+                  value: "",
+                  textContent: `All ${filter.name}`,
+                  selected: true,
+                }),
+                ...filter.options.map(x => createElement('option', {
+                  value: x.id,
+                  textContent: x.name,
+                })),
+              ]
+            });
+            footer.prepend(dropdown);
+
+            footer.addEventListener('change', (e) => {
+              const trg = e.target;
+              const sel = trg.selectedIndex !== 0 ? trg.options[trg.selectedIndex] : null;
+              renderResultset(
+                dashCol,
+                dashBody,
+                !isNullOrUndefined(sel) ? { [filter.type]: sel.value } : null
+              )
+                .catch((e) => {
+                  ModalFactory.closeCurrentModal();
+                  console.error(`Failed to open subview w/ err:\n${e}`);
+                });
+            })
+          }
+        }
+      }
+    })
+      .catch(res => {
+        if (!isNullOrUndefined(spinner)) {
+          spinner?.remove?.();
+        }
+
+        if (!!res && !(res instanceof ModalFactory.ModalResults)) {
+          ModalFactory.closeCurrentModal();
+          return console.error(`Subview failure w/ err:\n${res}`);
+        }
+      })
   }
 
   #renderModelView() {

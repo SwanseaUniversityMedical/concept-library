@@ -3,6 +3,143 @@
 @import '../_media';
 @import '../_utils';
 
+/// Copy text button
+///   @desc used for copying links / text to clipboard, see @ ./detail page
+.copy-area {
+  --copy-btn-scale: 1;
+
+	display: flex;
+	position: relative;
+	flex-flow: row nowrap;
+	align-items: center;
+	min-width: 0px;
+	max-width: 100%;
+  border: 1px solid col(accent-washed);
+  border-radius: 0.25rem;
+
+  &:has(input[readonly]:focus-visible) {
+    outline: 2px solid col(accent-dark);
+    outline-offset: -2px;
+  }
+
+	&__input {
+		@include remove-appearance();
+
+		flex: 1;
+		width: 100%;
+		min-width: 0px;
+		max-width: 100%;
+		font-family: inherit;
+		resize: none;
+    outline: none;
+		margin: 0;
+		padding: 0.25rem 0.5rem;
+		width: auto;
+		border: transparent;
+		background: transparent;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+	}
+
+	&__button {
+		@include app-font-style();
+
+		cursor: pointer;
+		pointer-events: auto;
+		display: flex;
+    height: 1.75rem;
+    width: 1.75rem;
+		position: relative;
+		flex-flow: row nowrap;
+		align-items: center;
+		justify-content: center;
+		margin: 0;
+		padding: 0.5rem 0.5rem;
+		background: transparent;
+    border: 1px solid col(accent-transparent);
+		border-radius: 0;
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+
+		&:disabled {
+			pointer-events: none;
+			opacity: 0.5;
+		}
+
+		&:not(:disabled):focus-visible {
+      outline: 2px solid col(accent-highlight);
+		}
+
+		&:not(:disabled):hover {
+      --copy-btn-scale: 1.1;
+
+			background: col(accent-secondary);
+      border: 1px solid col(accent-dark);
+		}
+
+    &:not(:disabled):active {
+      --copy-btn-scale: 0.9;
+    }
+
+    &__icon {
+      @include prefix(transition, 'opacity 350ms ease-in-out', webkit moz o);
+
+      display: flex;
+      pointer-events: none;
+      position: absolute;
+      flex-flow: column nowrap;
+      height: 1.25rem;
+      width: 1.25rem;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      text-align: center;
+      text-align: center;
+      vertical-align: middle;
+
+      &:before {
+        @include prefix(transition, 'transform 250ms ease-in-out', webkit moz o);
+
+        content: '';
+        display: block;
+        pointer-events: none;
+        margin: auto;
+        font-size: 1em;
+        font-weight: bold;
+        font-size: var(--icons-size);
+        font-style: var(--icons-style);
+        font-family: var(--icons-name);
+        transform: scale(var(--copy-btn-scale));
+      }
+    }
+	}
+
+  &[data-state="copyable"] .copy-area__button__icon[data-name="copy"] {
+    opacity: 1;
+    &:before {
+      content: '\f0c5';
+      color: var(--color-text-dark);
+    }
+  }
+
+  &[data-state="success"] .copy-area__button__icon[data-name="check"] {
+    opacity: 1;
+    &:before {
+      content: '\f00c';
+      color: var(--color-accent-success);
+    }
+  }
+
+  &[data-state="failure"] .copy-area__button__icon[data-name="cross"] {
+    opacity: 1;
+    &:before {
+      content: '\f057';
+      color: var(--color-accent-danger);
+    }
+  }
+}
+
 /// Quit icon button
 ///   @desc i.e. used for single tap action to exit a behaviour, action or event
 .quit-button {

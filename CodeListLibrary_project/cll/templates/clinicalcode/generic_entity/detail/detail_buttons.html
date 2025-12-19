@@ -6,26 +6,26 @@
 {% get_brand_map_rules as brand_mapping %}
 <div id="topButtons" class="action-buttons-container">
   <div class="detail-actions">
-    <label class="dropdown-group dropdown-group--detail">
-      <div class="dropdown-group__button">
+    <div class="dropdown-group dropdown-group--detail">
+      <label class="dropdown-group__button" for="dd_1" role="button" tabindex="0" aria-label="Export Phenotype">
         <span class="as-icon phenotype-creation--icn" data-icon="&#xf56e;" aria-hidden="true"></span>
         <span>
           Export {% get_template_entity_name entity_class template %}
         </span>
-      </div>
+      </label>
 
-      <input type="checkbox" class="dropdown-group__input" id="dd_1">
+      <input type="checkbox" class="dropdown-group__input" id="dd_1" name="dd_1">
     
       <ul class="dropdown-group__menu dropdown-group__menu--fall-right" title="Export {{ brand_mapping.phenotype }}">
-        <li aria-label="Export {{ brand_mapping.phenotype }} as JSON" role="button" tabindex="0">
+        <li>
           <a href="{% url 'api:get_generic_entity_detail_by_version' entity.id entity.history_id %}?format=json"
              target=_blank 
-             aria-label="Export as JSON">
+             aria-label="Export {{ brand_mapping.phenotype }} as JSON">
             JSON
           </a>
         </li>
       </ul>
-    </label>
+    </div>
     
     {% if user.is_authenticated and not CLL_READ_ONLY %}
       {% if user_can_edit %}
