@@ -322,6 +322,7 @@ class BrandOverviewView(APIView):
 					join public.clinicalcode_historicalgenericentity as hge
 						on pge.entity_id = hge.id
 					 and pge.entity_history_id = hge.history_id
+				 where pge.approval_status = 2
 			''')
 		else:
 			query = psycopg2.sql.SQL('''select * from public.{view}''')
