@@ -11,7 +11,7 @@ cur_time = str(datetime.now().date())
 
 @require_GET
 def robots_txt(request):
-    if settings.IS_HDRUK_EXT != "1" or not settings.IS_DEVELOPMENT_PC:
+    if settings.IS_HDRUK_EXT != "1" or settings.CLL_READ_ONLY or settings.IS_DEMO or settings.IS_INSIDE_GATEWAY:
         raise PermissionDenied
 
     lines = [
@@ -24,7 +24,8 @@ def robots_txt(request):
 
 @require_GET
 def get_sitemap(request):
-    if settings.IS_HDRUK_EXT != "1" or not settings.IS_DEVELOPMENT_PC:
+    is_demo = settings.CLL_READ_ONLY or settings.IS_DEMO or settings.IS_DEVELOPMENT_PC
+    if settings.IS_HDRUK_EXT != "1" or is_demo:
         raise PermissionDenied    
 
     links = [
@@ -37,7 +38,7 @@ def get_sitemap(request):
 
     # About pages
     # brand/main about pages
-    if settings.IS_HDRUK_EXT == "1" or settings.IS_DEVELOPMENT_PC:
+    if settings.IS_HDRUK_EXT == "1":
         links += [
             ('https://phenotypes.healthdatagateway.org/about/hdruk_about_the_project/', cur_time, "0.80"),
             ('https://phenotypes.healthdatagateway.org/about/hdruk_about_team/', cur_time, "0.80"),
@@ -50,10 +51,9 @@ def get_sitemap(request):
         ]
 
     # contact us page
-    if not settings.CLL_READ_ONLY:
-        links += [
-            (request.build_absolute_uri(reverse('contact_us')), cur_time, "1.00"), 
-        ]
+    links += [
+        (request.build_absolute_uri(reverse('contact_us')), cur_time, "1.00"), 
+    ]
 
     # API
     links += [
@@ -129,7 +129,7 @@ def get_published_phenotypes_and_concepts(request):
 
 def url_http_replace(url1):
     url = url1
-    if settings.IS_DEVELOPMENT_PC or settings.IS_INSIDE_GATEWAY:
+    if settings.IS_INSIDE_GATEWAY:
         url = url1.replace('https://' , 'http://')
     else:
         url = url1.replace('http://' , 'https://')
