@@ -64,3 +64,18 @@ do \$bd\$
       raise;
   end
 \$bd\$;" | /usr/bin/psql -U $POSTGRES_USER -d $POSTGRES_DB;
+
+echo "====================================";
+echo "==       Forcing extensions       ==";
+echo "====================================";
+
+echo "
+do \$bd\$
+  begin
+    create extension if not exists pg_trgm;
+    create extension if not exists btree_gin;
+    create extension if not exists fuzzystrmatch;
+
+    raise notice '[ SUCCESS ] Forced pg_trgm, btree_gin & fuzzystrmatch';
+  end
+\$bd\$;" | /usr/bin/psql -U $POSTGRES_USER -d $POSTGRES_DB;
