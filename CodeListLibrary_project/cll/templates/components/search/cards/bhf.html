@@ -11,14 +11,11 @@
         <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
         <p class="entity-card__author">{{ entity.author }}</p>
       </div>
-      {% render_field_value entity layout "project_name" None as type_value %}
-      {% if project_name and project_name|length %}
+      {% if entity.template_data and entity.template_data.project_name and entity.template_data.project_name|length %}
         <div class="entity-card__header-item">
-          <span tooltip="This is yet to be moderated" direction="left">
-            <div class="chip bold washed-accent text-accent-darkest draft-icon icon-accent-highlight">
-              <span class="chip-text" href="#">{{ project_name }}</span>
-            </div>
-          </span>
+          <div class="chip bold washed-accent text-accent-darkest">
+            <span href="#">{{ entity.template_data.project_name }}</span>
+          </div>
         </div>
       {% elif entity.publish_status != 2 %}
         <div class="entity-card__header-item">
