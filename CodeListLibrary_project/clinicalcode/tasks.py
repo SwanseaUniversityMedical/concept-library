@@ -5,7 +5,7 @@ from django.core import management
 from django.core.mail import EmailMultiAlternatives, BadHeaderError
 from django.test.client import RequestFactory
 
-from clinicalcode.entity_utils import stats_utils, email_utils, gen_utils
+from clinicalcode.entity_utils import stats_utils, email_utils, gen_utils, oc_utils
 
 @shared_task(bind=True)
 def send_message_test(self):
@@ -83,4 +83,12 @@ def run_weekly_cleanup(self):
         Runs the clear_session.py management command
     '''
     management.call_command('clear_sessions')
+    return True
+
+@shared_task(bind=True)
+def run_opencodelist_sync(self):
+    """
+      Attempts to sync the OpenCodelist phenotypes with those found through the OpenCodelist phenotypes API
+    """
+    oc_utils.sync_opencodelist_phenotypes()
     return True

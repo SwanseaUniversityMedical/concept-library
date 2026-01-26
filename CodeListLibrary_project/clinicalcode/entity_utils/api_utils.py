@@ -1353,13 +1353,14 @@ def validate_api_create_update_form(request, method):
 
     return form
 
-def create_update_from_api_form(request, form):
+def create_update_from_api_form(request, form, publish_immediately=False):
     """
       Create or updates an entity from an entity form dict
 
       Args:
         request (HTTPContext): Request context
         form (dict): Dict containing entity information
+        publish_immediately (bool): Whether to publish instantly, note that you need to perform permission checks beforehand
 
       Returns:
         Created/Updated entity if validation succeeds, otherwise returns
@@ -1367,7 +1368,11 @@ def create_update_from_api_form(request, form):
     """
     form_errors = []
     entity = create_utils.create_or_update_entity_from_form(
-        request, form, form_errors)
+        request, 
+        form, 
+        form_errors,
+        publish_immediately=publish_immediately
+    )
     if entity is None:
         return Response(
             data={

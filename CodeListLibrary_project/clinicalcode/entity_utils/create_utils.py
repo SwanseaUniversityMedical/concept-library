@@ -21,6 +21,7 @@ from ..models.EntityClass import EntityClass
 from ..models.CodingSystem import CodingSystem
 from ..models.Organisation import Organisation, OrganisationAuthority
 from ..models.GenericEntity import GenericEntity
+from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 
 from . import (
@@ -1439,7 +1440,13 @@ def compute_brand_context(request, form_data, form_entity=None):
     return related_brands
 
 @transaction.atomic
-def create_or_update_entity_from_form(request, form, errors=[], override_dirty=False):
+def create_or_update_entity_from_form(
+    request, 
+    form, 
+    errors=[], 
+    override_dirty=False,
+    publish_immediately=False
+):
     """
         Used to create or update entities - this method assumes you have
         previously validated the content of the form using the validate_entity_form method
@@ -1448,7 +1455,8 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             request (RequestContext): the request context of the form
             form (dict): a dict containing the validate_entity_form method result
             override_dirty (boolean): overrides the is_dirty check for child entity creation
-        
+            publish_immediately (boolean): Whether to publish instantly, note that you need to perform permission checks beforehand
+
         Returns:
             (GenericEntity|null) - null value is returned if this method fails
 
@@ -1456,7 +1464,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
     user = request.user
     if user is None:
         return
-    
+
     form_method = form.get('method')
     form_template = form.get('template')
     form_data = form.get('data')
@@ -1534,6 +1542,9 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
             # Create or update the entity
             template_data['version'] = form_template.template_version
             if form_method == constants.FORM_METHODS.CREATE:
+                if publish_immediately:
+                    metadata['publish_status'] = constants.APPROVAL_STATUS.APPROVED.value
+
                 entity = GenericEntity.objects.create(
                     **metadata,
                     template=template_instance,
@@ -1572,7 +1583,7 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 entity.template_version = form_template.template_version
                 entity.template_data = template_data
                 entity.updated = make_aware(datetime.now())
-                entity.publish_status = constants.APPROVAL_STATUS.ANY.value
+                entity.publish_status = constants.APPROVAL_STATUS.ANY.value if not publish_immediately else constants.APPROVAL_STATUS.APPROVED.value
                 entity.updated_by = user
                 entity.brands = related_brands
                 entity.save()
@@ -1584,6 +1595,22 @@ def create_or_update_entity_from_form(request, form, errors=[], override_dirty=F
                 for instance in instances:
                     setattr(instance, field, entity)
                     instance.save_without_historical_record()
+            
+            if publish_immediately:
+                PublishedGenericEntity.objects.update_or_create(
+                    entity_id=entity.id,
+                    entity_history_id=entity.history.latest().history_id,
+                    defaults={
+                        'moderator_id': 1, 
+                        'approval_status': constants.APPROVAL_STATUS.APPROVED.value,
+                    },
+                    create_defaults={
+                        'moderator_id': 1, 
+                        'created_by_id': entity.created_by.id,
+                        'approval_status': constants.APPROVAL_STATUS.APPROVED.value,
+                    }
+                )
+
     except IntegrityError as e:
         msg = 'Data integrity error when submitting form'
         errors.append(msg)
