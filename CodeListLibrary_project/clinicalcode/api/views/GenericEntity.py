@@ -26,12 +26,23 @@ logger = logging.getLogger(__name__)
 @swagger_auto_schema(method='post', auto_schema=None)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def create_generic_entity(request):
+def create_generic_entity(request): 
     """
         Create a generic entity from request body, must be formatted in terms
           of a specific layout and is validated against it
     """
     if permission_utils.is_member(request.user, 'ReadOnlyUsers') or settings.CLL_READ_ONLY:
+        return Response(
+            data={
+                'message': 'Permission denied'
+            },
+            content_type='json',
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    params = { key: value for key, value in request.query_params.items() }
+    publish_immediately = params.pop('publish', False)
+    if publish_immediately and not request.user.is_superuser:
         return Response(
             data={
                 'message': 'Permission denied'
@@ -46,7 +57,11 @@ def create_generic_entity(request):
     if isinstance(form, Response):
         return form
 
-    entity = api_utils.create_update_from_api_form(request, form)
+    entity = api_utils.create_update_from_api_form(
+        request, 
+        form,
+        publish_immediately=publish_immediately
+    )
     if isinstance(entity, Response):
         return entity
 
@@ -87,6 +102,17 @@ def update_generic_entity(request):
             content_type='json',
             status=status.HTTP_403_FORBIDDEN
         )
+
+    params = { key: value for key, value in request.query_params.items() }
+    publish_immediately = params.pop('publish', False)
+    if publish_immediately and not request.user.is_superuser:
+        return Response(
+            data={
+                'message': 'Permission denied'
+            },
+            content_type='json',
+            status=status.HTTP_403_FORBIDDEN
+        )
     
     form = api_utils.validate_api_create_update_form(
         request, method=constants.FORM_METHODS.UPDATE.value
@@ -94,7 +120,11 @@ def update_generic_entity(request):
     if isinstance(form, Response):
         return form
 
-    entity = api_utils.create_update_from_api_form(request, form)
+    entity = api_utils.create_update_from_api_form(
+        request, 
+        form,
+        publish_immediately=publish_immediately
+    )
     if isinstance(entity, Response):
         return entity
     
