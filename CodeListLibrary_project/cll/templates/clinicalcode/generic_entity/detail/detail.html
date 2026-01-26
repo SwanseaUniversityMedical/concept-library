@@ -28,6 +28,8 @@
   <script src="{% static 'js/lib/simple-datatables/simple-datatables.min.js' %}"></script>
 
   {% compress js %}
+    <script type="text/javascript" src="{% static 'js/clinicalcode/components/copyButton.js' %}"></script>
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
     <script type="module" src="{% static 'js/clinicalcode/components/stepsWizard.js' %}"></script>
   {% endcompress %}
 
@@ -87,7 +89,16 @@
               {% if not entity.doi|is_empty_value %}
                 <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap phenotype-creation__header-detail-item">
                   <span class="as-icon phenotype-creation--icn" data-icon="&#xf0c1;" aria-hidden="true"></span>
-                  <a href="{{ entity.doi }}" target=_blank rel="noopener noreferrer" class="phenotype-creation__header-detail-item">{{ entity.doi }}</a>
+                  <div href="{{ entity.doi }}" target=_blank rel="noopener noreferrer" class="phenotype-creation__header-detail-item">
+                    <div class="copy-area" data-state="copyable">
+                      <input class="copy-area__input" value="{{ entity.doi }}" readonly></input>
+                      <button class="copy-area__button" aria-label="Copy DOI Link" title="Copy DOI link">
+                        <span class="copy-area__button__icon" data-name="copy" aria-hidden="true"></span>
+                        <span class="copy-area__button__icon" data-name="check" aria-hidden="true"></span>
+                        <span class="copy-area__button__icon" data-name="cross" aria-hidden="true"></span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               {% elif is_published and DOI_ACTIVE %}
                 <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap phenotype-creation__header-detail-item">

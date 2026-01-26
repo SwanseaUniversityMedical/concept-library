@@ -161,6 +161,10 @@
     }
   }
 
+  &__label:focus-visible {
+    outline: 1px solid col(accent-dark);
+  }
+
   &__name-input {
     @include remove-appearance();
     @include prefix(transition, 'background-color 250ms ease-in-out, border-color 250ms ease-in-out', webkit moz o);

@@ -1329,15 +1329,137 @@ const navigateBrandTargetURL = (brandTargets, productionTarget, element, oldRoot
 /**
   * domReady
   * @desc A promise that resolves when the DOM is ready
-  * @returns {promise}
+  * 
+  * @returns {Promise<void>} a promise that resolves when the DOM is ready to be manipulated.
   */
 const domReady = new Promise(resolve => {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', resolve);
-  } else {
+  let hnd;
+  hnd = (e) => {
+    const isReadyState = e !== null && e instanceof Event && 'type' in e && e.type === 'readystatechange';
+    if (isReadyState && (document.readyState !== 'complete' || document.readyState !== 'loaded')) {
+      return;
+    }
+
+    document.removeEventListener('readystatechange', hnd);
+    document.removeEventListener('DOMContentLoaded', hnd);
     resolve();
   }
+
+  if (document.readyState === 'complete' || document.readyState === 'loaded') {
+    resolve();
+    return;
+  }
+
+  document.addEventListener('readystatechange', hnd)
+  document.addEventListener('DOMContentLoaded', hnd);
 });
+
+/**
+  * @typedef {('loading'|'interactive'|'loaded'|'complete')} DomStates
+  * 
+  * onEnterDomState
+  * @desc A promise that resolves on DOM state change.
+  * @see {@link DomStates}
+  * @note
+  * | State         | Origin             | Summary                                                                                                                                            |
+  * |:--------------|:-------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------|
+  * | `loading`     | `readyState`       | Occurs while the DOM is still being parsed.                                                                                                        |
+  * | `interactive` | `readyState`       | Occurs after the DOM has finished loading, fires before occurs after `interactive`, before `script[defer]` and `script[type="module"]` are loaded. |
+  * | `loaded`      | `DOMContentLoaded` | Occurs after `script[defer]` and `script[type="module"]` are executed.                                                                             |
+  * | `complete`    | `readyState`       | Occurs after both critical and non-critical resources have been loaded.                                                                            |
+  * 
+  * @param {DomStates} [state='interactive'] optionally specify the desired loading state of the document, defaults to `interactive` .
+  * 
+  * @returns {Promise<void>} a promise that resolves when the DOM reaches the desired state.
+  */
+const onEnterDomState = async (state = 'interactive') => {
+  const cleanup = (disposables) => {
+    if (!Array.isArray(disposables)) {
+      return;
+    }
+
+    for (let i = 0; i < disposables; ++i) {
+      disposables[i]();
+    }
+  }
+
+  const listen = (root, eventName, resolver, filter = null) => {
+    const hasFilter = typeof filter === 'function';
+
+    const hnd = (e) => {
+      if (hasFilter && filter(e)) {
+        return;
+      }
+
+      resolver();
+    }
+
+    const dispose = () => root.removeEventListener(eventName, hnd);
+
+    root.addEventListener(eventName, hnd);
+    return dispose;
+  }
+
+  state = (typeof state === 'string' && /^(loading|interactive|loaded|complete)$/gi.test(state))
+    ? state
+    : 'loaded';
+
+  let promise;
+  let disposables = [];
+  switch (state) {
+    case 'loading':
+      return Promise.resolve();
+
+    case 'interactive': {
+      if (document.readyState !== 'loading') {
+        return Promise.resolve();
+      }
+
+      promise = Promise.race([
+        new Promise(resolve => {
+          disposables.push(listen(document, 'DOMContentLoaded', resolve));
+        }),
+        new Promise(resolve => {
+          disposables.push(listen(document, 'readystatechange', resolve, (e) => document.readyState === 'loading'));
+        }),
+      ]);
+    }
+
+    case 'loaded': {
+      if (document.readyState === 'complete' || document.readyState === 'loaded') {
+        return Promise.resolve();
+      }
+
+      promise = Promise.race([
+        new Promise(resolve => {
+          disposables.push(listen(document, 'DOMContentLoaded', resolve));
+        }),
+        new Promise(resolve => {
+          disposables.push(listen(document, 'readystatechange', resolve, (e) => document.readyState !== 'complete' && document.readyState !== 'loaded'));
+        }),
+      ]);
+    }
+
+    case 'complete': {
+      if (document.readyState === 'complete') {
+        return Promise.resolve();
+      }
+
+      promise = Promise.race([
+        new Promise(resolve => {
+          disposables.push(listen(document, 'readystatechange', resolve, (e) => document.readyState !== 'complete'));
+        }),
+        new Promise(resolve => {
+          disposables.push(listen(window, 'load', resolve));
+        })
+      ]);
+    }
+  }
+
+  return promise.then(() => {
+    cleanup(disposables);
+  })
+}
 
 /**
   * assert
@@ -2540,30 +2662,79 @@ const findMissingComponents = (templates, expected, missing = []) => {
 }
 
 /**
- * @desc resolves the analytics manager's brand context and target config ID
+ * @desc resolves the state of the client's privacy flag
+ * @note See:
+ *   - [`doNotTrack`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/doNotTrack)
+ *   - [`globalPrivacyControl`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/globalPrivacyControl)
  * 
- * @returns {{ brand: string, configId: string }} the resulting analytics target info
+ * @param {string}  key                  the name of the privacy flag to inspect (see attached note)
+ * @param {boolean} [defaultState=false] the default boolean state to return if either (a) the key is not found or (b) the value is not coercible
+ * 
+ * @returns {boolean} the state of the given privacy flag
+ */
+const getClientPrivacyFlagState = (key, defaultState = false) => {
+  let flag = key in navigator
+    ? navigator[key]
+    : ('key' in window
+        ? window[key]
+        : null);
+
+  if (flag === null) {
+    return defaultState;
+  }
+
+  const type = typeof flag;
+  if (type === 'boolean') {
+    return flag;
+  } else if (type === 'number') {
+    return !!flag;
+  } else if (type === 'string') {
+    return ['1', 'y', 'yes', 'true'].includes(flag.toLowerCase());
+  }
+
+  return defaultState;
+};
+
+/**
+ * @desc resolves the client's privacy options, specifically its GPC and DNT flags.
+ * @note See:
+ *   - [`doNotTrack`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/doNotTrack)
+ *   - [`globalPrivacyControl`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/globalPrivacyControl)
+ * 
+ * @returns {{ [key: string]: boolean }} an object describing the state of the client's privacy flags
+ */
+const getClientPrivacyFlags = () => ({
+  doNotTrack: getClientPrivacyFlagState('doNotTrack'),
+  globalPrivacyControl: getClientPrivacyFlagState('globalPrivacyControl'),
+});
+
+/**
+ * @desc resolves the analytics manager's brand context, target config ID, and the client's privacy flags
+ * 
+ * @returns {{ brand: string, configId: string, prviacyFlags: Object.<string, boolean> }} the resulting analytics target info
  */
 const getAnalyticsTarget = () => {
   const host = getCurrentHost();
-  const brand = document.documentElement.getAttribute('data-brand');
-  const isUnbranded = isNullOrUndefined(brand) || isStringEmpty(brand) || brand === 'none';
+  const dataBrand = document.documentElement.getAttribute('data-brand');
+  const isUnbranded = isNullOrUndefined(dataBrand) || isStringEmpty(dataBrand) || dataBrand === 'none';
+
+  let brand, configId;
   if (!!host.match(CLU_HOST.HDRUK)) {
-    return {
-      brand: 'HDRUK',
-      configId: 'G-W6XK339B16',
-    };
-  } else if (!isUnbranded && brand.toLowerCase() === 'HDRUK') {
-    return {
-      brand: 'HDRUK',
-      configId: 'G-QE37B9J5WK',
-    }
+    brand = 'HDRUK';
+    configId = 'G-W6XK339B16';
+  } else if (!isUnbranded && dataBrand.toLowerCase() === 'HDRUK') {
+    brand = 'HDRUK';
+    configId = 'G-QE37B9J5WK';
+  } else {
+    brand = isUnbranded ? 'none' : dataBrand;
+    configId = 'G-KLBS2646W1';
   }
 
   return {
-    brand: isUnbranded ? 'none' : brand,
-    configId: 'G-KLBS2646W1',
-  }
+    brand,
+    configId,
+    privacyFlags: getClientPrivacyFlags(),
+  };
 };
 
 /**

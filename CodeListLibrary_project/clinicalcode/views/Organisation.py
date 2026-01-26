@@ -504,13 +504,13 @@ class OrganisationView(TemplateView):
           'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
 
-        cache.set(cachekey, resultset, 3600)
+        cache.set(cachekey, resultset, 86400)
 
     timestamp = datetime.datetime.fromisoformat(resultset.get('timestamp'))
 
     response = gen_utils.jsonify_response(code=200, status=True, message=resultset)
-    response['Expires'] = http_date((timestamp + datetime.timedelta(seconds=3600)).timestamp())
-    response['Cache-Control'] = 'private, max-age=3600'
+    response['Expires'] = http_date((timestamp + datetime.timedelta(seconds=86400)).timestamp())
+    response['Cache-Control'] = 'private, max-age=86400'
     response['Last-Modified'] = http_date(timestamp.timestamp())
 
     return response

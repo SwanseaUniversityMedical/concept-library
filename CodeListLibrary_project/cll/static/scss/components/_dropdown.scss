@@ -659,6 +659,10 @@
     background-color: col(bg);
     box-sizing: border-box;
 
+    &:focus-visible {
+      outline: 1px solid col(accent-dark);
+    }
+
     &:hover {
       background-color: col(accent-washed);
     }
@@ -706,20 +710,24 @@
     }
 
     & > li {
-      cursor: pointer;
       padding: 10px 20px;
       white-space: nowrap;
 
-      &:hover {
-        background-color: col(accent-washed);
-      }
-
       & > a {
+        cursor: pointer;
         display: block;
         margin: -10px -20px;
         padding: 10px 20px;
         text-decoration: none;
         color: col(text-dark);
+
+        &:hover {
+          background-color: col(accent-washed);
+        }
+
+        &:focus-visible {
+          outline: 1px solid col(accent-dark);
+        }
       }
 
       &.divider {

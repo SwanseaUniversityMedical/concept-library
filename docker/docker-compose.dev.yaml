@@ -337,7 +337,7 @@ networks:
 
 # Mounted volumes
 volumes:
-  # Profile<all>
+  # Profile<*>
   app-data:
     driver: local
     driver_opts:

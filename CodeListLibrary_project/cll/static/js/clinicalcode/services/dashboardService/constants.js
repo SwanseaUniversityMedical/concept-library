@@ -63,6 +63,20 @@ export const
       icon: '&#xf02d;',
       iconCls: 'as-icon--warning',
     },
+    {
+      key: 'phenoflow',
+      name: 'Phenoflow Associations',
+      desc: '% of ${brandMapping.phenotype}s associated with Phenoflow',
+      icon: '&#xf6ff;',
+      iconCls: 'as-icon--warning',
+    },
+    {
+      key: 'datasources',
+      name: 'Data Source Use',
+      desc: 'No. unique HDRUK Data Sources associated with ${brandMapping.phenotype}s',
+      icon: '&#xf1c0;',
+      iconCls: 'as-icon--warning',
+    },
   ],
   /**
    * CLU_DASH_TARGETS

@@ -1,8 +1,10 @@
 """Brand Administration View(s) & Request Handling."""
+from copy import deepcopy
 from datetime import datetime
 from django.db import connection
 from django.apps import apps
 from django.conf import settings
+from rest_framework import status
 from django.shortcuts import render
 from django.core.cache import cache
 from rest_framework.views import APIView
@@ -23,7 +25,7 @@ import logging
 import psycopg2
 
 from clinicalcode.views import View
-from clinicalcode.models import Brand
+from clinicalcode.models import Brand, Tag
 from clinicalcode.entity_utils import gen_utils, model_utils, permission_utils
 
 
@@ -226,18 +228,199 @@ class BrandOverviewView(APIView):
 	reverse_name = 'brand_dashboard_overview'
 	permission_classes = [permission_utils.IsReadOnlyRequest & permission_utils.IsNotGateway & permission_utils.IsBrandAdmin]
 
+	# Subview methods
+	fetch_methods = ['compute_history']
+
+	# Config for stats view(s)
+	exclusions = {
+		'HDRN': ['phenoflow', 'datasources'],
+	}
+	filters = {
+		'collections': {
+			'name': 'Collections',
+			'type': 'collections',
+			'model': 'Tag',
+		}
+	}
+	subviews = {
+		'created': {
+			'key': 'created',
+			'name': 'Created',
+			'desc': 'See no. of ${brandMapping.phenotype}s created',
+			'display': 'More',
+			'view': 'clinicalcode_genericentity',
+			'target': 'id',
+			'comparator': 'created',
+			'method': 'compute_history',
+			'filters': ['collections'],
+		},
+		'edited': {
+			'key': 'edited',
+			'name': 'Edits',
+			'desc': 'See no. of ${brandMapping.phenotype}s edited',
+			'display': 'More',
+			'view': 'clinicalcode_historicalgenericentity',
+			'target': 'history_id',
+			'comparator': 'updated',
+			'method': 'compute_history',
+			'filters': ['collections'],
+		},
+		'published': {
+			'key': 'published',
+			'name': 'Published',
+			'desc': 'See no. of ${brandMapping.phenotype}s published',
+			'display': 'More',
+			'view': 'clinicalcode_publishedgenericentity',
+			'target': 'entity_history_id',
+			'comparator': 'modified',
+			'method': 'compute_history',
+			'filters': ['collections'],
+		}
+	}
+
 	# Statistics summary cache duration (in seconds)
 	CACHE_TIMEOUT = 3600
 
-	def get(self, request):
+	def get(self, request, *args, **kwargs):
 		"""GET request handler for BrandOverviewView"""
 		brand = model_utils.try_get_brand(request)
-		summary = self.__get_or_compute_summary(brand)
+		
+		if gen_utils.is_fetch_request(request):
+			method = gen_utils.handle_fetch_request(request, self, *args, **kwargs)
+			return method(request, *args, **kwargs)
 
+		summary = self.__get_or_compute_summary(brand)
 		return Response({
 			'assets': get_or_resolve_assets(brand),
 			'summary': summary,
+			'subviews': self.__get_or_compute_subviews(brand),
 		})
+
+	def compute_history(self, request, *args, **kwargs):
+		params = { key: value for key, value in request.query_params.items() }
+
+		subview = self.subviews.get(params.pop('subview', ''))
+		if not isinstance(subview, dict):
+			raise Response(status=status.HTTP_400_BAD_REQUEST)
+
+		clauses = []
+		filters = {}
+		for key, value in params.items():
+			if not isinstance(subview.get('filters'), list) or key not in subview.get('filters'):
+				continue
+
+			selected = gen_utils.parse_as_int_list(value)
+			if not isinstance(selected, list) or len(selected) < 1:
+				continue
+			filters[key] = selected
+			clauses.append(psycopg2.sql.SQL(f'''and (ge.{key} is not null and ge.{key} && %({key})s::int[])'''))
+
+		if subview.get('key') == 'published':
+			query = psycopg2.sql.SQL('''
+				select pge.*, hge.collections
+					from public.{view} as pge
+					join public.clinicalcode_historicalgenericentity as hge
+						on pge.entity_id = hge.id
+					 and pge.entity_history_id = hge.history_id
+				 where pge.approval_status = 2
+			''')
+		else:
+			query = psycopg2.sql.SQL('''select * from public.{view}''')
+
+		query = query \
+				.format(view=psycopg2.sql.Identifier(subview.get('view')))
+
+		clauses = psycopg2.sql.Composed(clauses)
+		with connection.cursor() as cursor:
+			sql = psycopg2.sql.Composed([
+				psycopg2.sql.SQL('''
+					with
+						entities as (
+							{query}								
+						),
+						selected as (
+							select
+										to_char(i, 'YYYY')::int as "Year",
+										regexp_replace(to_char(i, 'MM'), '(^)0*', '', 'g')::int as "M",
+										trim(to_char(i, 'Month')) as "Month",
+										count(ge.{target}) as "Count"
+								from generate_series(now() - interval '1 year', now(), '1 month') as i
+						  	left join entities as ge
+									on (
+										to_char(i, 'YY') = to_char(ge.{comparator}, 'YY') 
+								    and to_char(i, 'MM') = to_char(ge.{comparator}, 'MM')
+								 		{clauses}
+									)
+							{grouping}
+						)
+					select "Year", "Month", "Count"
+						from selected;
+				''') \
+					.format(
+						query=query,
+						clauses=clauses,
+						target=psycopg2.sql.Identifier(subview.get('target')),
+						comparator=psycopg2.sql.Identifier(subview.get('comparator')),
+						grouping=psycopg2.sql.SQL('''
+							group by 1, 2, 3
+							order by 1 desc, 2 desc
+						''')
+					)
+			])
+			cursor.execute(sql, params=filters)
+			columns = [col[0] for col in cursor.description]
+			results = [row for row in cursor.fetchall()]
+
+			return Response({
+				'columns': columns,
+				'data': results,
+			})
+
+	def __get_or_compute_subviews(self, brand=None):
+		"""
+		Resolves subview data
+
+		Args:
+			brand (:model:`Brand`|None): the Request-specified Brand context
+
+		Returns:
+			A (dict) describing the computed subviews
+		"""
+		cache_key = brand.name if isinstance(brand, Brand) else 'all'
+		cache_key = f'dashboard-stat-subview__{cache_key}__cache'
+
+		result = cache.get(cache_key)
+		if result is not None:
+			return result
+
+		result = deepcopy(self.subviews)
+		cacheset = {}
+		for view in result.values():
+			filters = view.get('filters')
+			if not isinstance(filters, list):
+				continue
+
+			replacement = []
+			for fname in filters:
+				f = self.filters.get(fname)
+				if not isinstance(f, dict):
+					continue
+
+				f = f.copy()
+				model = f.get('model')
+				items = cacheset.get(model)
+				if model not in cacheset:
+					if model == 'Tag':
+						items = Tag.get_brand_assoc_queryset(brand, f.get('type'))
+						items = [{ 'id': x.id, 'name': x.description } for x in items] if items is not None and items.exists() else None
+
+				cacheset.update({ model: items })
+				f.update({ 'options': items })
+				replacement.append(f)
+			view.update({ 'filters': replacement })
+
+		cache.set(cache_key, result, self.CACHE_TIMEOUT)
+		return result
 
 	def __get_or_compute_summary(self, brand=None):
 		"""
@@ -452,6 +635,29 @@ class BrandOverviewView(APIView):
 					  select count(*) as cnt
 							from request_vis as req
 						 where req.datetime >= date_trunc('day', now()) - interval '7 day'
+					),
+				'''),
+				# Measure Phenoflow usage
+				psycopg2.sql.SQL('''
+				  phenoflow_assoc as (
+					  select round(t.cnt::decimal, 2)::text || '%%' as cnt
+					    from (
+					      select count(*) filter (
+					               where ge.template_data::jsonb ? 'phenoflowid'
+					                 and length((ge.template_data::jsonb->'phenoflowid')::text) > 2
+					             )::float / count(*) * 100 as cnt
+					        from pheno_vis as ge
+					    ) as t
+					),
+				'''),
+				# Measure of DataSource usage
+				psycopg2.sql.SQL('''
+				  datasource_assoc as (
+						select count(*) as cnt
+							from public.clinicalcode_genericentity as ge,
+									 json_array_elements(ge.template_data::json->'data_sources') as ds
+						 where ge.template_data::jsonb ? 'data_sources'
+							 and json_typeof(ge.template_data::json->'data_sources') = 'array'
 					)
 				'''),
 				# Collect summary
@@ -462,13 +668,22 @@ class BrandOverviewView(APIView):
 						(select cnt from pheno_pubs) as published,
 						(select cnt from unq_dau) as dau,
 						(select cnt from unq_mau) as mau,
-						(select cnt from page_hits) as hits
+						(select cnt from page_hits) as hits,
+						(select cnt from phenoflow_assoc) as phenoflow,
+						(select cnt from datasource_assoc) as datasources
 				''')
 			])
 
 			cursor.execute(sql, params=query_params)
 			columns = [col[0] for col in cursor.description]
 			resultset = dict(zip(columns, cursor.fetchone()))
+
+			exclusions = self.exclusions.get(brand.name) if brand else None
+			if isinstance(exclusions, list):
+				for excl in exclusions:
+					if excl not in resultset:
+						continue
+					resultset.pop(excl)
 
 			result['data'] = resultset | result['data']
 
