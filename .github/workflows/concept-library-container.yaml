@@ -32,6 +32,8 @@ jobs:
     uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-container.yaml@v3.4.2-containers
     with:
       job-name: concept-library-container
+      comment-pr: true
+      comment-release: true
       registry: ${{ vars.HARBOR_REGISTRY }}
       registry-user: ${{ vars.HARBOR_USER }}
       registry-repo: ${{ vars.HARBOR_PROJECT }}/concept-library
