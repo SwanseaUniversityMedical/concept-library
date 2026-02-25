@@ -7,7 +7,7 @@ libsass==0.23.0
 psycopg2-binary==2.9.11
 redis==7.2.0
 celery==5.6.2
-Django==5.2.1
+Django==5.2.11
 Jinja2==3.1.6
 django-auth-ldap==5.3.0
 djangorestframework==3.16.1
