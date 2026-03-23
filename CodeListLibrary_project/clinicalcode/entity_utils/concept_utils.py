@@ -567,7 +567,10 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                 component_data['codes'] = codes
 
             if aggregate_codes:
-                map(lambda obj: seen_codes.add(obj.get('code')) if obj.get('code') else None, codes)
+                for obj in codes:
+                    if obj.get('code'):
+                        seen_codes.add(obj.get('code'))
+
 
             components_data.append(component_data)
 
@@ -645,7 +648,14 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
                 on codes.code_list_id = codelist.id
                and codes.history_date <= concept.history_date
                and codes.history_type <> '-'
+              left join public.clinicalcode_historicalcode as deletedcode
+                on deletedcode.id = codes.id
+               and deletedcode.code_list_id = codelist.id
+               and deletedcode.history_date <= concept.history_date
+               and deletedcode.history_type = '-'
              where deletedcomponent.id is null
+               and codes.history_type <> '-'
+               and deletedcode.id is null
              group by concept.id,
                       concept.history_id,
                       concept.history_date, 
