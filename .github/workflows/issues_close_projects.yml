@@ -5,9 +5,9 @@ on:
     types: [created, edited, moved]
 
 permissions:
-  repository-projects: read
   issues: write
   pull-requests: write
+  repository-projects: read
 
 jobs:
   action:

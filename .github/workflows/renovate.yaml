@@ -10,6 +10,11 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
+permissions:
+  issues: write
+  contents: write
+  pull-requests: write
+
 jobs:
   renovate:
     runs-on:

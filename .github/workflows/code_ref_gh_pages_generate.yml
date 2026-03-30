@@ -4,6 +4,12 @@ on:
   push:
     branches: [ gh-pages ]
 
+permissions:
+  pages: write
+  actions: read
+  contents: write
+  pull-requests: write
+
 jobs:
   build_docs_job:
     name: Code Reference Generator
