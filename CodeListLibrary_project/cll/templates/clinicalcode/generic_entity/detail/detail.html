@@ -86,7 +86,7 @@
                 <span class="as-icon phenotype-creation--icn" data-icon="&#xf0e7;" aria-hidden="true"></span>
                 <p>{{ entity.updated|date:'M j, Y' }}</p>
               </div>
-              {% if not entity.doi|is_empty_value %}
+              {% if not entity.doi|is_empty_value and entity.doi|get_type == 'str' %}
                 <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap phenotype-creation__header-detail-item">
                   <span class="as-icon phenotype-creation--icn" data-icon="&#xf0c1;" aria-hidden="true"></span>
                   <div href="{{ entity.doi }}" target=_blank rel="noopener noreferrer" class="phenotype-creation__header-detail-item">

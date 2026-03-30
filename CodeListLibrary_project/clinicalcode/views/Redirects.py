@@ -104,8 +104,8 @@ class ResourceRedirectView(RedirectView):
 		if isinstance(brand, Brand):
 			if not is_demo and not is_readonly:
 				match brand.name.upper():
-					case 'HDRUK':
-						url = 'https://phenotypes.healthdatagateway.org'
+					case settings.PROD_SITE_BRAND:
+						url = settings.PROD_SITE_HOST
 					case _:
 						url = '%s/%s' % (host, brand.name)
 			else:

@@ -146,7 +146,7 @@ def append_branded_urls(brand=None, variants=[], patterns=[]):
 #--------------------------------------------------------------------
 # Brands
 current_brand = f'{settings.CURRENT_BRAND}/' if isinstance(settings.CURRENT_BRAND, str) and settings.CURRENT_BRAND != '' else ''
-if settings.IS_HDRUK_EXT == '1':
+if settings.IS_PROD_SITE:
 	current_brand = ''
 
 #--------------------------------------------------------------------
@@ -177,7 +177,7 @@ if not settings.CLL_READ_ONLY:
 
 # Variant URL resolvers
 try:
-	if settings.IS_HDRUK_EXT != '1':
+	if not settings.IS_PROD_SITE:
 		brands = apps.get_model(app_label='clinicalcode', model_name='Brand')
 		brands = brands.all_instances()
 

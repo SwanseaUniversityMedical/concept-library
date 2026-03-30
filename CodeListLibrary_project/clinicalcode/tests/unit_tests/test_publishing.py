@@ -22,7 +22,7 @@ class TestPublishing:
         request.path = url + reverse(resolver_name, kwargs=resolver_kwargs)
         request.method = method
         request.session = { }
-        request.IS_HDRUK_EXT = '0'
+        request.IS_PROD_SITE = False
         setattr(request, 'BRAND_OBJECT', {})
         setattr(request, 'CURRENT_BRAND', '')
 

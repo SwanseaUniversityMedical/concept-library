@@ -38,17 +38,17 @@ class BrandMiddleware(MiddlewareMixin):
 
         #---------------------------------
         brands_list = Brand.all_names()
-        is_live_hdruk = re.search(r'(phenotypes\.healthdatagateway)|(web\-phenotypes\-hdr)', request.get_host(), flags=re.IGNORECASE)
+        is_live_site = re.search(settings.PROD_SITE_REGEX, request.get_host(), flags=re.IGNORECASE)
         current_page_url = request.path_info.lstrip('/')
 
-        request.IS_HDRUK_EXT = '0'
-        settings.IS_HDRUK_EXT = '0'
+        request.IS_PROD_SITE = False
+        settings.IS_PROD_SITE = False
 
         root = current_page_url.split('/')[0]
-        if is_live_hdruk:
-            root = 'HDRUK'
-            request.IS_HDRUK_EXT = '1'
-            settings.IS_HDRUK_EXT = '1'
+        if is_live_site:
+            root = settings.PROD_SITE_BRAND
+            request.IS_PROD_SITE = True
+            settings.IS_PROD_SITE = True
 
         root = root.upper()
 
@@ -94,7 +94,7 @@ class BrandMiddleware(MiddlewareMixin):
             if not current_page_url.strip().endswith('/'):
                 current_page_url = current_page_url.strip() + '/'
 
-            if not is_live_hdruk:
+            if not is_live_site:
                 request.path_info = '/' + '/'.join([root.upper()] + current_page_url.split('/')[1:])
 
         urlconf = 'cll.urls'
