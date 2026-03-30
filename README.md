@@ -145,7 +145,7 @@ Within the `concept-library/docker/` directory you will find the following docke
     - This is the development docker container used to iterate on the Concept Library.
     - You are required to provide a `--profile {name}` parameter when starting these containers; you can do this by running the following command:
         ```sh
-        docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build
+        docker compose -p cll -f docker-compose.dev.yaml --profile dev up --build
         ```
     - The following profiles are available:
         | Profile name | Summary                                  | Accessible at...                        |
@@ -166,7 +166,7 @@ Within the `concept-library/docker/` directory you will find the following docke
 To perform the initial build and run of the application:
 1. Open a terminal
 2. Navgiate to the `concept-library/docker/` folder
-3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build`
+3. In the terminal, run `docker compose -p cll -f docker-compose.dev.yaml --profile dev up --build`
 
 The application and database will be available at:
  - Application: `127.0.0.1:8000`
@@ -181,18 +181,18 @@ To stop the docker container:
 2. If you do not have a terminal open which is running the containers:  
 a. Open a terminal  
 b. Navigate to the `concept-library/docker/` folder  
-c. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml --profile dev down`  
+c. In the terminal, run `docker compose -p cll -f docker-compose.dev.yaml --profile dev down`  
 
 To start the docker container (if it has already been built and has stopped for any reason):
 1. Open a terminal
 2. Navigate to the `concept-library/docker/` folder
-3. In the terminal, run `docker-compose -p cll -f docker-compose.dev.yaml --profile dev start`
+3. In the terminal, run `docker compose -p cll -f docker-compose.dev.yaml --profile dev start`
 
 ### 2.3.4. Live Development
 Whilst working on the codebase, any changes should be automatically applied to the codebase stored in the app container after saving the file. 
 
 If you make any changes to the models you will need to:  
-1. Stop and start the containers again with `docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build`, the migrations will be automatically applied
+1. Stop and start the containers again with `docker compose -p cll -f docker-compose.dev.yaml --profile dev up --build`, the migrations will be automatically applied
 2. *OR*; execute the migration code from within the app container (see: https://docs.docker.com/engine/reference/commandline/exec/)
 
 ### 2.3.5. Removing the Containers
@@ -201,7 +201,7 @@ To remove the containers:
 2. Navigate to the `concept-library/docker/` folder
 3. In the terminal, run:  
 a. `docker compose down`: removes networks and containers.  
-b. *OR;* `docker-compose -p cll -f docker-compose.dev.yaml --profile dev down --rmi all -v`: removes networks, containers, images and volumes.  
+b. *OR;* `docker compose -p cll -f docker-compose.dev.yaml --profile dev down --rmi all -v`: removes networks, containers, images and volumes.  
 c. *OR;* to prune your docker, enter `docker system prune -a`  
 
 ### 2.3.6. Local Pre-production Builds
@@ -223,7 +223,7 @@ To build a local, pre-production build:
 1. Open a terminal
 2. Navigate to the `concept-library/docker/` folder
 3. Set up the environment variables within `./env/live.compose.env`
-4. Finally, run `docker-compose -p cll -f docker-compose.dev.yaml --profile live up --build` (append `-d` as an argument to run in background)
+4. Finally, run `docker compose -p cll -f docker-compose.dev.yaml --profile live up --build` (append `-d` as an argument to run in background)
 5. Open a browser and navigate to `localhost:8005` to access the application
 
 #### Running the Container using `docker build`
@@ -232,8 +232,8 @@ To build a local, pre-production build:
 2. Follow the steps above if you have not already built the images
 3. Navigate to the `concept-library/docker/` folder
 4. Set up the environment variables within `./env/live.compose.env`
-5. In the terminal, run `docker build -f ./development/dockerfiles/web/live.Dockerfile -t cll/app --build-arg server_name=localhost ..`
-6. Finally, run `docker-compose -p cll -f docker-compose.dev.yaml --profile live up` (append `-d` as an argument to run in background)
+5. In the terminal, run `docker build -f ./docker/app/Dockerfile -t cll/app --build-arg server_name=localhost ..`
+6. Finally, run `docker compose -p cll -f docker-compose.dev.yaml --profile live up` (append `-d` as an argument to run in background)
 7. Open a browser and navigate to `localhost:8005` to access the application
 
 #### Using Mailhog
@@ -353,7 +353,7 @@ Create a run configuration for the project:
 ```
 
 Now you're ready to start debugging:
-1. Build the container `docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build` and ensure it is running
+1. Build the container `docker compose -p cll -f docker-compose.dev.yaml --profile dev up --build` and ensure it is running
 2. Add a breakpoint to the file that you are debugging
 3. In Visual Studio Code, open the `Run and Debug Menu` by clicking the icon on the left-hand side of the screen or using the hotkey `CTRL + SHIFT + D`
 4. At the top of the debug menu, select the `Debug Application` option
@@ -404,7 +404,7 @@ To set up your first debug task, configure your `tasks.json` file such that:
       "label": "Build Debug",
       "detail": "Builds the development container",
       "type": "shell",
-      "command": "docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build",
+      "command": "docker compose -p cll -f docker-compose.dev.yaml --profile dev up --build",
       "options": {
         "cwd": "${workspaceFolder}/docker/"
       },
@@ -429,7 +429,7 @@ To set up a task for the `docker-compose.dev.yaml --profile live` container, you
   "label": "Build Test",
   "detail": "Builds the test container",
   "type": "shell",
-  "command": "docker-compose -p cll -f docker-compose.dev.yaml --profile up --build",
+  "command": "docker compose -p cll -f docker-compose.dev.yaml --profile up --build",
   "options": {
     "cwd": "${workspaceFolder}/docker/"
   },
@@ -477,7 +477,7 @@ Using [Compound Tasks](https://code.visualstudio.com/docs/editor/tasks#_compound
   "label": "Build Debug",
   "detail": "Builds the development container",
   "type": "shell",
-  "command": "docker-compose -p cll -f docker-compose.dev.yaml --profile dev up --build",
+  "command": "docker compose -p cll -f docker-compose.dev.yaml --profile dev up --build",
   "options": {
     "cwd": "${workspaceFolder}/docker/"
   },
