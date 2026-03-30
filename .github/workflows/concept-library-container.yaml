@@ -37,7 +37,10 @@ jobs:
       registry-repo: ${{ vars.HARBOR_PROJECT }}/concept-library
       release-tag-format: 'Concept-Library-${version}'
       cosign-public-key: ${{ vars.COSIGN_PUBLIC_KEY }}
-      build-file: docker/app/app.Dockerfile
+      build-file: docker/app/Dockerfile
+      build-args: |
+        server_name=conceptlibrary.saildatabank.com
+        dependency_target=production.txt
     secrets:
       cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
       cosign-password: ${{ secrets.COSIGN_PASSWORD }}

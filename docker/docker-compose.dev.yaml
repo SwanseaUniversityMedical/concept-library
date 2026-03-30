@@ -26,7 +26,7 @@ x-app: &app-base
   image: cll/app
   build: &app-build
     context: ..
-    dockerfile: ./docker/app/app.Dockerfile
+    dockerfile: ./docker/app/Dockerfile
   restart: unless-stopped
   stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
   tty: true
@@ -58,7 +58,8 @@ x-app: &app-base
 x-database: &app-database
   build:
     context: ..
-    dockerfile: ./docker/development/dockerfiles/postgres.Dockerfile
+    dockerfile: ./docker/app/Dockerfile
+    target: pgdev
   container_name: postgres
   restart: unless-stopped
   stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
@@ -96,7 +97,7 @@ services:
       args: *app-dev-args
       target: dev
     command: *app-py-cmd
-    env_file: ./env/web/dev.compose.env
+    env_file: ./env/dev.compose.env
 
   web-test:
     <<: *app-base
@@ -106,7 +107,7 @@ services:
       args: *app-test-args
       target: dev
     command: *app-py-cmd
-    env_file: ./env/web/test.compose.env
+    env_file: ./env/test.compose.env
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -119,7 +120,7 @@ services:
       args: *app-live-args
       target: prod
     command: *app-supervisord-cmd
-    env_file: ./env/web/live.compose.env
+    env_file: ./env/live.compose.env
     ports:
       - 8005:80
     expose:
@@ -139,12 +140,12 @@ services:
   postgres:
     <<: *app-database
     profiles: ['dev', 'live']
-    env_file: ./development/env/postgres.compose.env
+    env_file: ./env/postgres.compose.env
 
   postgres-test:
     <<: *app-database
     profiles: ['test']
-    env_file: ./env/web/test.compose.env
+    env_file: ./env/test.compose.env
 
   # Profile<`live` | `test`> dependencies
   mailhog:

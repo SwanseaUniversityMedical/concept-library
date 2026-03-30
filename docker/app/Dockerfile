@@ -9,12 +9,29 @@ ARG https_proxy
 
 # Image config
 ARG TZ_PREF='Europe/London' \
+    PG_VERSION='17' \
     PY_VERSION='3.10' \
     DEB_RELEASE='bookworm'
 
 # App config
 ARG server_name='conceptlibrary.saildatabank.com' \
     dependency_target='production.txt'
+
+
+####################################
+##                                ##
+##          Dev Targets           ##
+##                                ##
+####################################
+FROM postgres:${PG_VERSION} AS pgdev
+
+# Install and upgrade packages
+RUN apt-get update -y -q && \
+    apt-get install git -y -q
+
+COPY ./docker/development/scripts/init-db.sh /docker-entrypoint-initdb.d/init-db.sh
+
+RUN chmod u+x /docker-entrypoint-initdb.d/init-db.sh
 
 
 ####################################
