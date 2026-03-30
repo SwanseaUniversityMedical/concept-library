@@ -10,21 +10,21 @@ from functools import wraps
 from django.conf import settings
 
 
-def get_canonical_path(request, force_HDRUK_rel=False):
-    # refer HDRUK branded pages to phenotypes.healthdatagateway.org 
+def get_canonical_path(request, force_prod_rel=False):
+    # Refer Prod site (HDRUK-branded in this case) to its correct domain (e.g. phenotypes.healthdatagateway.org)
     CANONICAL_PATH = request.build_absolute_uri(request.path)
     cp = CANONICAL_PATH
-    if (settings.IS_HDRUK_EXT == '0' and settings.CURRENT_BRAND == 'HDRUK') or force_HDRUK_rel:
+    if settings.IS_PROD_SITE or force_prod_rel:
         url_list = CANONICAL_PATH.split('/')
         if len(url_list) > 4:
             start_index = 4
-            if url_list[3].upper() == 'HDRUK':
+            if url_list[3].upper() == settings.PROD_SITE_BRAND:
                 start_index = 4
             else:
                 start_index = 3
-            cp = 'https://phenotypes.healthdatagateway.org/' + '/'.join(url_list[start_index:])
+            cp = '%s/%s' % (settings.PROD_SITE_HOST, '/'.join(url_list[start_index:]))
         else:
-            cp = 'https://phenotypes.healthdatagateway.org' 
+            cp = settings.PROD_SITE_HOST
  
     # manage protocol
     if settings.IS_DEVELOPMENT_PC or settings.IS_INSIDE_GATEWAY:
@@ -48,28 +48,6 @@ def get_canonical_path_by_brand(request,
             set canonical link to phenotypes.healthdatagateway.org"
 
     """
-    # if set_class == Concept:
-    #     ver = getHistoryConcept(history_id)
-    # elif set_class == Phenotype:
-    #     ver = getHistoryPhenotype(history_id)
-    # else:
-    #     return get_canonical_path(request)
-
-    # if ver['tags'] is None:
-    #     return get_canonical_path(request)
-        
-    # set_collections = Tag.objects.filter(id__in=ver['tags'], tag_type=2)
-    
-    # # check if any collection is related to HDRUK
-    # HDRUK_collections =  get_brand_associated_collections(request
-    #                                                     , concept_or_phenotype = ['phenotype', 'concept'][set_class == Concept]
-    #                                                     , brand = 'HDRUK'
-    #                                                     )
-    
-    # if any(c in set_collections for c in HDRUK_collections):
-    #     return get_canonical_path(request, force_HDRUK_rel=True)
-    # else:
-    #     return get_canonical_path(request)
     return get_canonical_path(request)
     
 
@@ -83,7 +61,7 @@ def robots(content="all"):
         def wrap(request, *args, **kwargs):
             response = func(request, *args, **kwargs)
 
-            if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or settings.IS_HDRUK_EXT == "0":
+            if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or not settings.IS_PROD_SITE:
                 content="noindex, nofollow"
                 response['X-Robots-Tag'] = content
 
@@ -104,7 +82,7 @@ def robots2(content="all"):
         def wrap(request, *args, **kwargs):
             response = func(request, *args, **kwargs)
             
-            if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or settings.IS_HDRUK_EXT == "0":
+            if settings.IS_DEMO or settings.IS_DEVELOPMENT_PC or not settings.IS_PROD_SITE:
                 content="noindex, nofollow"
                 response['X-Robots-Tag'] = content
                 

@@ -220,9 +220,9 @@ def get_brand_from_request_info(info):
 
 	domain = info.get('domain')
 	if isinstance(domain, str):
-		pattern = _lazy_re_compile(r'^(phenotypes\.healthdatagateway|web\-phenotypes\-hdr)', flags=re.MULTILINE | re.IGNORECASE)
+		pattern = _lazy_re_compile(AppSettings.PROD_SITE_REGEX, flags=re.MULTILINE | re.IGNORECASE)
 		if pattern.match(domain):
-			return 'HDRUK'
+			return AppSettings.PROD_SITE_BRAND
 
 	url = info.get('path')
 	root = url.lstrip('/').split('/')[0].upper().rstrip('/')

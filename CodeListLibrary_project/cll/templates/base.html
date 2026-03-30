@@ -23,7 +23,7 @@
     <meta name="keywords" content="Concept Library{% if request.CURRENT_BRAND|length %}, {{ base_page_title }}{% endif %}{% block keywords %}{% endblock keywords %}">
 
     {% block indexing_robots %}
-      {% if IS_DEMO or IS_DEVELOPMENT_PC or IS_HDRUK_EXT == '0' or stop_robot_indexing %}
+      {% if IS_DEMO or IS_DEVELOPMENT_PC or not IS_PROD_SITE or stop_robot_indexing %}
         <meta name="robots" content="noindex, nofollow">
         <meta name="googlebot" content="noindex, nofollow">
       {% endif %}
@@ -32,7 +32,7 @@
     {% block cache_tags %}
     {% endblock cache_tags %}
 
-    {% if IS_HDRUK_EXT == '1' %}
+    {% if IS_PROD_SITE %}
       <meta name="google-site-verification" content="biC6kLWuhP7ueREgE_hr5cRrNySiBakPwmHvEe0L2Xs" />
     {% endif %} 
 
