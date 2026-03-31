@@ -65,7 +65,9 @@ jobs:
 
       - name: Install LDAP files
         run: |
-          sudo apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev libpq-dev
+          sudo apt-get install -y -q --no-install-recommends \
+                  ca-certificates apt-utils cmake build-essential \
+                  libsasl2-dev libldap2-dev libssl-dev libpq-dev
 
       - name: Install Dependencies
         run: |
