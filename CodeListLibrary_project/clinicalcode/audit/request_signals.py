@@ -254,13 +254,11 @@ def is_blacklisted_url(url, brand_name=None):
 
 	all_override = override.get('all_brands') if override is not None else None
 	brand_override = override.get(brand_name) if override is not None and isinstance(brand_name, str) else None
-	if all_override or brand_override:
-		if all_override and match_url_patterns(url, all_override):
-			return True
-
-		if brand_override and match_url_patterns(url, brand_override):
-			return True
-
+	if all_override and match_url_patterns(url, all_override):
+		return True
+	elif brand_override and match_url_patterns(url, brand_override):
+		return True
+	elif all_override or brand_override:
 		return False
 
 	# Otherwise, default to EasyAudit rules if not found

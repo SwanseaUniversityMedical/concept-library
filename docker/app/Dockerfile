@@ -11,7 +11,7 @@ ARG https_proxy
 ARG TZ_PREF='Europe/London' \
     PG_VERSION='17' \
     PY_VERSION='3.10' \
-    DEB_RELEASE='bookworm'
+    DEB_RELEASE='trixie'
 
 # App config
 ARG server_name='conceptlibrary.saildatabank.com' \
@@ -63,7 +63,7 @@ RUN apt-get update -y -q && \
       cmake build-essential python3-pip git                        \
       ssh apache2 apache2-dev supervisor   `# Apache & Supervisor` \
       libsasl2-dev libldap2-dev libssl-dev `# LDAP deps`           \
-      software-properties-common npm       `# Npm deps`
+      npm                                  `# Npm deps`
 
 # Create dir(s)
 RUN mkdir -p /var/www/concept_lib_sites/v1 && \
