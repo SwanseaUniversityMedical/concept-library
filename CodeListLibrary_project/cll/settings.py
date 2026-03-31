@@ -618,12 +618,12 @@ OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
         r'^(/api/v1/health)/?',
 
         # Ignore bots & crawlers 
-        r'^(/sitemap.xml)/?',
         r'^(/robots.txt)/?',
+        r'^(/sitemap.xml)/?',
 
         # Ignore static file requests
-        r'^(/media/)?',
-        r'^(/static/)?',
+        r'^(/media/?).*',
+        r'^(/static/?).*',
         r'^(/favicon.ico)/?',
     ],
 }

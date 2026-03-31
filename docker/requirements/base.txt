@@ -9,6 +9,7 @@ redis==7.2.0
 celery==5.6.2
 Django==5.2.12
 Jinja2==3.1.6
+python-ldap==3.4.4
 django-auth-ldap==5.3.0
 djangorestframework==3.16.1
 djangorestframework-xml==2.0.0
