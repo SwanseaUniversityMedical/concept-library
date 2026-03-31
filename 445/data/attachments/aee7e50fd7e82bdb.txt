@@ -1,0 +1,2 @@
+WARNING  django.request:log.py:253 Not Found: /favicon.ico
+WARNING  django.request:log.py:253 Method Not Allowed (GET): /account/logout/
