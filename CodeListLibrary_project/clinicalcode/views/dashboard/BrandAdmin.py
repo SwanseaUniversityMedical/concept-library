@@ -645,7 +645,7 @@ class BrandOverviewView(APIView):
 					      select count(*) filter (
 					               where ge.template_data::jsonb ? 'phenoflowid'
 					                 and length((ge.template_data::jsonb->'phenoflowid')::text) > 2
-					             )::float / count(*) * 100 as cnt
+					             )::float / (case when count(*) > 0 then count(*) else 1 end) * 100 as cnt
 					        from pheno_vis as ge
 					    ) as t
 					),
