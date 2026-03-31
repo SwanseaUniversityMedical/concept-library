@@ -13,11 +13,6 @@ on:
     paths:
       - "CodeListLibrary_project/**"
 
-permissions:
-  actions: read
-  contents: write
-  pull-requests: write
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -33,6 +28,10 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.11]
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
 
     services:
       db:
