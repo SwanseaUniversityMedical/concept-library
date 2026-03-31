@@ -29,9 +29,16 @@ jobs:
       matrix:
         python-version: [3.11]
     permissions:
+      pages: write
+      issues: write
+      checks: write
       actions: read
+      statuses: write
       contents: write
+      deployments: write
+      attestations: write
       pull-requests: write
+      artifact-metadata: write
 
     services:
       db:
