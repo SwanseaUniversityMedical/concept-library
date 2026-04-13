@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Password Reset {% endblock title %}
+
+{% block container %}
+  <!-- Page Stylesheets -->
+  {% compress css %}
+		<link rel="stylesheet" href="{% sass_src 'scss/pages/login.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  <header class="main-header">
+	</header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <div class="account-container">
+        <div class="account-container__info-container">
+          <div class="account-container__info-container__content">
+            <div class="account-container__info-container__section">
+              <h2>Request an Account</h2>
+							<p>
+								We're registering users by request at the moment. If you would like to
+								request an account, please use the 
+								<a target=_blank rel="noopener" href="{% url 'contact_us' %}">
+									contact form.
+								</a>
+							</p>
+            </div>
+            <div class="account-container__info-container__section">
+              <h2>Terms and Conditions</h2>
+							<p>
+								Please explore our terms and conditions 
+                <a target=_blank rel="noopener" href="{% url 'terms' %}">
+                  here
+                </a>
+								prior to accessing the site.
+							</p>
+            </div>
+            <div class="account-container__info-container__section">
+              <h2>Privacy & Cookie Policy</h2>
+							<p>
+								Please explore our privacy and cookie policy 
+								<a target=_blank rel="noopener" href="{% url 'privacy_and_cookie_policy' %}">
+									here
+								</a>
+								prior to accessing the site.
+							</p>
+            </div>
+          </div>
+        </div>
+        <div class="account-container__form-container">
+					<h1>Password Reset</h1>
+          <form method="post" action="{% url 'password_reset' %}">
+            <div class="detailed-input-group constrained">
+              <h3 class="detailed-input-group__title">
+                E-mail
+                <span class="detailed-input-group__mandatory">*</span>
+              </h3>
+							<p class="detailed-input-group__description account-container--text-wrappable">
+								Please 
+								<a target="_blank" href="{% url 'contact_us' %}">contact us</a> 
+								for assistance if you are unable to recall the e-mail associated with your account. 
+							</p>
+							<input
+								id="id_email"
+								class="text-input"
+								name="email"
+								type="email"
+								maxlength="254"
+								placeholder="your.account.email@email.com"
+								autocomplete="email"
+								autofocus
+								required 
+							/>
+            </div>
+
+            <div class="account-container__form-container__submit-container">
+							{% csrf_token %}
+              <button id="save-changes"
+											class="primary-btn text-accent-darkest bold tertiary-accent sweep-left" 
+											type="submit"
+                      aria-label="Log in to account">
+                Reset Password
+              </button>
+            </div>
+					</form>
+        </div>
+      </div>
+    </div>
+	</main>
+{% endblock container %}

@@ -99,7 +99,13 @@
             },
             "type": {
               "type": "int_array",
-              "field": "type_id"
+              "field": "type_id",
+              "coerce": [
+                { "compare": "SNOMED", "out": 0 },
+                { "compare": "Clinical Disease Category (SNOMED)", "out": 0 },
+                { "compare": "Clinical Domain", "out": 1 },
+                { "compare": "Functional Anatomy", "out": 2 }
+              ]
             },
             "reference": {
               "type": "int_array",
@@ -120,6 +126,16 @@
         "filterable": true,
         "api": true
       }
+    },
+    "project_name": {
+      "title": "Project Name",
+      "active": true,
+      "field_type": "string_inputbox",
+      "validation": {
+        "type": "string",
+        "mandatory": false
+      },
+      "description": "The BHF project this Phenotype is associated with."
     },
     "corresp_email": {
       "title": "Email Address",
@@ -214,7 +230,8 @@
           "table": "DataSource",
           "include": [
             "uid",
-            "url"
+            "url",
+            "datasource_id"
           ],
           "relative": "name"
         },
@@ -228,7 +245,7 @@
       "field_type": "daterange",
       "validation": {
         "type": "string",
-        "regex": "(?:\\d+/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+/|\\d+)+",
+        "regex": "[\\S\\s]*?(\\d+(?:-\\d+)*)[^\\d]*",
         "mandatory": false,
         "sanitise": "strict"
       },
@@ -291,8 +308,8 @@
       "validation": {
         "type": "string",
         "mandatory": false,
-        "length": [0, 250],
-        "regex": "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
+        "length": [0, 500],
+        "regex": "^(https?:\\/\\/)((?!-)[a-zA-Z\\-0-9]{1,63}(?<!-)\\.)+[a-zA-Z]{2,63}(\\/[^\\s]*)?$"
       },
       "hide_if_empty": true
     },
@@ -324,6 +341,7 @@
     {
       "title": "Overview",
       "fields": [
+        "project_name",
         "type",
         "phenotype_uuid",
         "sex",
@@ -364,7 +382,7 @@
       "do_not_show_in_production": true
     },
     {
-      "title": "Clinical Code List",
+      "title": "Clinical Codelist",
       "fields": [
         "concept_information"
       ],
@@ -384,7 +402,7 @@
   "template_details": {
     "name": "BHF Data Science Centre Phenotype",
     "version": 1,
-    "card_type": "clinical",
+    "card_type": "bhf",
     "description": "BHF Data Science Centre Phenotype definitions that describe a list of clinical codes, algorithms using clinical codes, or set of clinical trials. Visit the BHF Data Science Centre website to learn more: https://bhfdatasciencecentre.org"
   }
 }

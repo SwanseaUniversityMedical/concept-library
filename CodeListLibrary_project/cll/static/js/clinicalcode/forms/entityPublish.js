@@ -7,7 +7,7 @@
  * 
  */
 class PublishModal {
-  constructor(publish_url, decline_url,redirect_url) {
+  constructor(publish_url, decline_url, redirect_url) {
     this.publish_url = publish_url;
     this.decline_url = decline_url;
     this.redirect_url = redirect_url;
@@ -25,8 +25,9 @@ class PublishModal {
           "Cache-Control": "no-cache",
         },
       });
+
       const data = await response.json();
-      spinner.remove();
+      spinner?.remove?.();
 
       const publishButton = [
         {
@@ -74,36 +75,37 @@ class PublishModal {
       })
         .then(async (result) => {
           const name = result.name;
+          const redir = data?.is_moderator && !data?.org_user_managed
+            ? `${getBrandedHost()}/moderation/`
+            : strictSanitiseString(this.redirect_url+'?eraseCache=true');
+
           if (name == "Decline") {
             await this.postData(data, this.decline_url);
-            window.location.href = strictSanitiseString(this.redirect_url+'?eraseCache=true');
           } else {
             await this.postData(data, this.publish_url);
-            window.location.href = strictSanitiseString(this.redirect_url+'?eraseCache=true');
           }
+
+          window.location.href = redir;
         })
         .catch((result) => {
-          if (!(result instanceof ModalFactory.ModalResults)) {
+          if (!!result && !(result instanceof ModalFactory.ModalResults)) {
             return console.error(result);
           }
         });
     } catch (error) {
       console.error(error);
+      spinner?.remove?.();
     }
   }
 
   async postData(data, url) {
     const spinner = startLoadingSpinner();
     try {
-      const csrfToken = document.querySelector(
-        "[name=csrfmiddlewaretoken]"
-      ).value;
-
-      const response = await fetch(url, {
+      await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
+          "X-CSRFToken": getCookie('csrftoken'),
           "Cache-Control": "no-cache",
         },
         body: JSON.stringify(data),
@@ -113,11 +115,10 @@ class PublishModal {
         }
         return response.json();
       }).finally(() => {
-        spinner.remove();
+        spinner?.remove?.();
       });
-
     } catch (error) {
-      spinner.remove();
+      spinner?.remove?.();
       console.error(error);
     }
   }
@@ -126,26 +127,27 @@ class PublishModal {
     let paragraph;
     switch (data.approval_status) {
       case 1:
-        paragraph = `<p>Are you sure you want to approve this version of "${data.name}"?</p>
-        <p>Publishing a ${data.entity_type} cannot be undone.</p>`;
+        paragraph =
+          `<p>Are you sure you want to approve this version of "${data.name}"?</p>` +
+          `<p>Publishing a ${data.branded_entity_cls} cannot be undone.</p>`;
         break;
+
       case 3:
-        paragraph = `<p>Are you sure you want to approve previously declined version of "${data.name}"?</p>
-        <p>Changes made to this ${data.entity_type} cannot be undone.</p>`;
+        paragraph =
+          `<p>Are you sure you want to approve a previously declined version of "${data.name}"?</p>` +
+          `<p>Changes made to this ${data.branded_entity_cls} cannot be undone.</p>`;
         break;
-      case null:
-        if (data.is_moderator || data.is_lastapproved) {
-          paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
-        <p>Publishing a ${data.entity_type} cannot be undone.</p>`;
-        } else {
-          paragraph = `<p>Are you sure you want submit to publish this version of "${data.name}"?</p>
-          <p>Changes made to this ${data.entity_type} cannot be undone.</p>
-          <p>This ${data.entity_type} is going to be reviewed by the moderator and you will be notified when is published</p>`;
-        }
-        break;
+
       default:
-        paragraph = `<p>Are you sure you want to publish this version of "${data.name}"?</p>
-        <p>Publishing a ${data.entity_type} cannot be undone.</p>`;
+        if (data.is_moderator || data.is_lastapproved) {
+          paragraph =
+            `<p>Are you sure you want to publish this version of "${data.name}"?</p>` +
+            `<p>Publishing a ${data.branded_entity_cls} cannot be undone.</p>`;
+        } else {
+          paragraph = 
+            `<p>Are you sure you want to publish this version of "${data.name}"?</p>` +
+            `<p>This ${data.branded_entity_cls} is going to be reviewed by the moderator; you will be notified via e-mail when they have decided to publish your work.</p>`;
+        }
         break;
     }
     return paragraph;
@@ -178,13 +180,13 @@ class PublishModal {
     let title;
     switch (data.approval_status) {
       case 1:
-        title = `Approve - ${data.entity_id} ${data.entity_type} - ${data.name}`;
+        title = `Approve - ${data.entity_id} ${data.branded_entity_cls} - ${data.name}`;
         break;
       case 3:
-        title = `Publish declined - ${data.entity_id} ${data.entity_type} - ${data.name}`;
+        title = `Publish declined - ${data.entity_id} ${data.branded_entity_cls} - ${data.name}`;
         break;
       default:
-        title = `Publish - ${data.entity_id} ${data.entity_type} - ${data.name}`;
+        title = `Publish - ${data.entity_id} ${data.branded_entity_cls} - ${data.name}`;
         break;
     }
     return title;
@@ -192,12 +194,12 @@ class PublishModal {
 }
 
 domReady.finally(() => {
-  const url_publish = document.querySelector('script[id="publish-url"]');
-  const url_decline = document.querySelector('script[id="decline-url"]');
+  const publish_url = document.querySelector('script[id="publish-url"]');
+  const decline_url = document.querySelector('script[id="decline-url"]');
   const redirect_url = document.querySelector('script[id="redirect-url"]');
   window.entityForm = new PublishModal(
-    strictSanitiseString(url_publish.innerText.trim()),
-    strictSanitiseString(url_decline.innerText.trim()),
+    strictSanitiseString(publish_url.innerText.trim()),
+    strictSanitiseString(decline_url.innerText.trim()),
     strictSanitiseString(redirect_url.innerText.trim())
   );
 });

@@ -7,7 +7,7 @@
 {% load breadcrumbs %}
 {% load entity_renderer %}
 
-{% block title %}| My Collection {% endblock title %}
+{% block title %}| My Collection{% endblock title %}
 
 {% block container %}
   <!-- Vendor -->
@@ -26,6 +26,8 @@
   {% endcompress %}
 
   <!-- Main -->
+  {% get_brand_map_rules as brand_mapping %}
+  {% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
   <header class="main-header banner">
     <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
       <div class="banner__container">
@@ -35,24 +37,51 @@
         </p>
         <div class="banner__cards">
           <div class="hstack-cards-banner hstack-cards-banner-justify-content-space-evenly slim-scrollbar">
-            {% if not CLL_READ_ONLY %}
-              {% url 'create_phenotype' as create_url %}
-              <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            {% url 'create_phenotype' as create_url %}
+            {% if USER_CREATE_CONTEXT %}
+              <article
+                  class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                  data-target="{{ create_url }}"
+                  onclick="redirectToTarget(this, event);"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Create a {{ brand_mapping.phenotype }}">
                 <div class="referral-card__header">
-                  <a class="referral-card__title" href="{{ create_url }}">Create a Phenotype<span class="referral-card__title-icon"></span></a>
+                  <p class="referral-card__title" href="{{ create_url }}">Create a {{ brand_mapping.phenotype }}<span class="referral-card__title-icon"></span></p>
                 </div>
                 <div class="referral-card__body">
-                  <p>Start here to contribute to the Library.</p>
+                  <p>Start here to contribute to the {{ base_page_title }}.</p>
                 </div>
               </article>
             {% endif %}
-            {% url 'search_phenotypes' as search_url %}
-            <article class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            {% url 'search_entities' as search_url %}
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ search_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                role="button"
+                aria-label="Go to {{ brand_mapping.phenotype }} Search">
               <div class="referral-card__header">
-                <a class="referral-card__title" href="{{ search_url }}">Search Phenotypes<span class="referral-card__title-icon"></span></a>
+                <p class="referral-card__title" href="{{ search_url }}">Search {{ brand_mapping.phenotype }}s<span class="referral-card__title-icon"></span></p>
               </div>
               <div class="referral-card__body">
-                <p>Find Phenotypes within the Library.</p>
+                <p>Find {{ brand_mapping.phenotype }}s within the {{ base_page_title }}.</p>
+              </div>
+            </article>
+            {% url 'my_organisations' as organisations_url %}
+            <article
+                class="referral-card referral-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin"
+                data-target="{{ organisations_url }}"
+                onclick="redirectToTarget(this, event);"
+                tabindex="0"
+                role="button"
+                aria-label="View Organisations">
+              <div class="referral-card__header">
+                <p class="referral-card__title" href="{{ organisations_url }}">My Organisations<span class="referral-card__title-icon"></span></p>
+              </div>
+              <div class="referral-card__body">
+                <p>View organisations you're associated with.</p>
               </div>
             </article>
           </div>
@@ -68,8 +97,8 @@
           {% if content %}
             {% to_json_script content data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="content" desc-type="text/json" %}
           {% endif %}
-          <h3>1. My Phenotypes</h3>
-          <p>Phenotypes that you own or have access to.</p>
+          <h3>1. My {{ brand_mapping.phenotype }}s</h3>
+          <p>{{ brand_mapping.phenotype }}s that you own or have access to.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
               You haven't published anything yet.
@@ -83,7 +112,7 @@
           {% if archived_content %}
             {% to_json_script archived_content data-owner="collection-service" page-type="PROFILE_COLLECTIONS" name="archived" desc-type="text/json" %}
           {% endif %}
-          <h3>2. Archived Phenotypes</h3>
+          <h3>2. Archived {{ brand_mapping.phenotype }}s</h3>
           <p>Content that has been marked as archived is still present on the system but is hidden by default.</p>
           <section class="profile-collection__none-available show" id="empty-collection">
             <p class="profile-collection__none-available-message">
@@ -97,6 +126,8 @@
       </article>
     </div>
   </main>
+
+  {% to_json_script brand_mapping data-owner="collection-service" id="mapping-data" name="mapping" desc-type="text/json" %}
 
   {% if not CLL_READ_ONLY %}
     <template id="archive-form">

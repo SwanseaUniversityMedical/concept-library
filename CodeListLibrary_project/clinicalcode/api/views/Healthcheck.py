@@ -40,7 +40,7 @@ class HealthcheckReport(APIView):
 		pg_connected = self.__ping_db()
 
 		is_readonly = not settings.IS_DEVELOPMENT_PC and (settings.IS_DEMO or settings.CLL_READ_ONLY or settings.IS_INSIDE_GATEWAY)
-		if settings.DEBUG or (not settings.DEBUG and is_readonly):
+		if settings.DEBUG or (not settings.DEBUG and is_readonly and not settings.ENABLE_DEMO_TASK_QUEUE):
 			return Response(
 				data={
 					'healthcheck_mode': HealthcheckMode.DEBUG.value,

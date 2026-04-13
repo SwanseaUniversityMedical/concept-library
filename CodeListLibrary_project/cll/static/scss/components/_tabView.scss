@@ -76,3 +76,94 @@
     border-top: 1px solid col(accent-washed);
   }
 }
+
+// tab group 
+//  @desc describes a scss-driven tab-based view
+//  @TODO temp tab group
+.tab-group {
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  max-width: 100%;
+  padding: 0;
+  margin: 0.5rem 0;
+  border-radius: 0.1rem;
+  background-color: col(bg);
+  list-style: none;
+
+  .tab {
+    display: none;
+
+    @for $i from 1 through 5 {
+      &:checked:nth-of-type(#{$i}) ~ .tab__content:nth-of-type(#{$i}) {
+        opacity: 1;
+        position: relative;
+        top: 0;
+        z-index: 100;
+        transform: translateY(0px);
+        text-shadow: 0 0 0;
+      }
+    }
+
+    &:first-of-type:not(:last-of-type) + label {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    &:not(:first-of-type):not(:last-of-type) + label {
+      border-radius: 0;
+    }
+
+    &:last-of-type:not(:first-of-type) + label {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    &:checked + label {
+      background-color: col(bg);
+      cursor: default;
+      border-bottom: 0;
+
+      &:hover {
+        background-color: col(bg);
+      }
+    }
+    
+    + label {
+      flex-grow: 3;
+      display: block;
+      height: 50px;
+      padding: 15px;
+      border: 1px solid col(accent-washed);
+      border-radius: 0.1rem 0.1rem 0 0;
+      text-decoration: none;
+      color: col(text-darker);
+      background-color: col(accent-washed);
+      text-align: center;
+      user-select: none;
+      text-align: center;
+      box-sizing: border-box;
+      cursor: pointer;
+
+      &:hover {
+        background-color: col(accent-lightest);
+      }
+    }
+
+    &__content {
+      display: flex;
+      flex-flow: column nowrap;
+      position: absolute;
+      width: 100%;
+      padding: 0.5rem 0;
+      z-index: -1;
+      left: 0;
+      opacity: 0;
+      border-radius: 0 0 0.1rem 0.1rem;
+      border: 1px solid col(accent-washed);
+      border-top: 0;
+      background-color: transparent;
+      transform: translateY(-3px);
+    }
+  }
+}

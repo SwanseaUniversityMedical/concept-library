@@ -1,11 +1,13 @@
-{% load static %}
 {% load i18n %}
+{% load static %}
 {% load cl_extras %}
+{% load entity_renderer %}
 
 {% block content %}
-<form action="{% url 'search_phenotypes' %}" class="search-navigation__search" method="GET">
+{% get_brand_map_rules as brand_mapping %}
+<form action="{% url 'search_entities' %}" class="search-navigation__search" method="GET">
     <input
-      aria-label="Search Phenotypes"
+      aria-label="Search {{ brand_mapping.phenotype }}s"
       class="search-navigation__search-input"
       id="data-search"
       minlength="3"
@@ -20,6 +22,4 @@
       value="1"
     ></button>
   </form>
-
-  {% endblock content %}
-  
+{% endblock content %}

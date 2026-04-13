@@ -1,4 +1,4 @@
-import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
+import { TOAST_MSG_DURATION } from '../entityFormConstants.js';
 
 /**
  * PUBLICATION_OPTIONS
@@ -7,7 +7,7 @@ import { PUBLICATION_MIN_MSG_DURATION } from '../entityFormConstants.js';
  */
 const PUBLICATION_OPTIONS = {
   // The minimum message duration for toast notif popups
-  notificationDuration: PUBLICATION_MIN_MSG_DURATION,
+  notificationDuration: TOAST_MSG_DURATION,
 
   /* Attribute name(s) */
   //  - dataAttribute: defines the attribute that's used to retrieve contextual data
@@ -39,12 +39,12 @@ const PUBLICATION_OPTIONS = {
  * 
  */
 const PUBLICATION_ITEM_ELEMENT = '<div class="publication-list-group__list-item" data-target="${index}"> \
-  <div class="publication-list-group__list-item-url"> \
-    <p>${publication}${doiElement}</p> \
+  <div class="publication-list-group__list-item-names"> \
+    <p> \
+      ${primary === 1 ? \'<span class="publication-list-group__list-item--is-primary"></span>\' : \'\'} \
+      ${publication}${doiElement} \
+    </p> \
   </div> \
-  <div class="publication-list-group__list-item-primary" style="flex: 1; text-align: center">\
-  \${primary === 1 ? \'<p><strong>Primary</strong></p>\' : \'\'}\
-  </div>\
   <button class="publication-list-group__list-item-btn" data-target="${index}"> \
     <span class="delete-icon"></span> \
     <span>Remove</span> \
@@ -58,7 +58,7 @@ const PUBLICATION_ITEM_ELEMENT = '<div class="publication-list-group__list-item"
  *       and its interpolable targets
  * 
  */
-const PUBLICATION_DOI_ELEMENT = '<br/><br/><a href="https://doi.org/${doi}">${doi}</a>';
+const PUBLICATION_DOI_ELEMENT = '<br/><br/><a href="https://doi.org/${doi}" target=_blank rel="noopener">${doi}</a>';
 
 
 /**
@@ -201,10 +201,40 @@ export default class PublicationCreator {
   #redrawPublications() {
     this.dataResult.innerText = JSON.stringify(this.data);
     this.renderables.list.innerHTML = '';
-    
+
     if (this.data.length > 0) {
       this.renderables.group.classList.add('show');
       this.renderables.none.classList.remove('show');
+
+      this.data.sort((a, b) => {
+        let { details: t0, primary: p0 } = a;
+        p0 = typeof p0 === 'boolean' ? Number(p0) : p0;
+
+        let { details: t1, primary: p1 } = b;
+        p1 = typeof p1 === 'boolean' ? Number(p1) : p1;
+
+        const twoPrimary = typeof p0 === 'number' && typeof p1 === 'number';
+        const equalPrimary = p0 === p1;
+        if (twoPrimary && !equalPrimary) {
+          return p0 > p1 ? -1 : 1;
+        } else if (!twoPrimary || (twoPrimary && !equalPrimary)) {
+          if (typeof p0 === 'number') {
+            return -1;
+          } else if (typeof p1 === 'number') {
+            return 1;
+          }
+        }
+
+        if (typeof t0 === 'string' && typeof t1 === 'string') {
+          return t0 < t1 ? -1 : (t0 > t1 ? 1 : 0);
+        } else if (typeof t0 === 'string') {
+          return -1;
+        } else if (typeof t1 === 'string') {
+          return 1;
+        }
+
+        return 0;
+      });
 
       for (let i = 0; i < this.data.length; ++i) {
         const node = this.#drawItem(i, this.data[i]?.doi, this.data[i]?.details,  this.data[i]?.primary);
@@ -238,7 +268,7 @@ export default class PublicationCreator {
       none: noneAvailable,
       group: publicationGroup,
       list: publicationList,
-    }
+    };
 
     const attr = this.element.getAttribute(this.options.dataAttribute);
     this.dataResult = this.element.parentNode.querySelector(`[for="${attr}"]`);
@@ -258,14 +288,22 @@ export default class PublicationCreator {
     e.preventDefault();
     e.stopPropagation();
 
-    const publication = strictSanitiseString(this.publicationInput.value);
     const doi = strictSanitiseString(this.doiInput.value);
-    const primary= Number(this.primaryPubCheckbox.checked ? this.primaryPubCheckbox.dataset.value: '0');
+    const publication = strictSanitiseString(this.publicationInput.value);
 
     if (!this.publicationInput.checkValidity() || isNullOrUndefined(publication) || isStringEmpty(publication)) {
+      window.ToastFactory.push({
+        type: 'danger',
+        message: 'Cannot add a publication without adding the publication details.',
+        duration: this.options.notificationDuration,
+      });
+
+      this.doiInput.value = doi;
+      this.publicationInput.value = publication;
       return;
     }
 
+    const primary = Number(this.primaryPubCheckbox.checked ? this.primaryPubCheckbox.dataset.value: '0');
     const matches = parseString(doi, CLU_DOI_PATTERN);
     if (!matches?.[0]) {
       window.ToastFactory.push({
@@ -283,8 +321,8 @@ export default class PublicationCreator {
       doi: matches?.[0],
       primary: primary
     });
+
     this.makeDirty();
-    
     this.#redrawPublications();
   }
 

@@ -152,7 +152,8 @@
           "table": "DataSource",
           "include": [
             "uid",
-            "url"
+            "url",
+            "datasource_id"
           ],
           "relative": "name"
         },
@@ -166,7 +167,7 @@
       "field_type": "daterange",
       "validation": {
         "type": "string",
-        "regex": "(?:\\d+/|\\d+)+[\\s+]?-[\\s+]?(?:\\d+/|\\d+)+",
+        "regex": "[\\S\\s]*?(\\d+(?:-\\d+)*)[^\\d]*",
         "mandatory": false
       },
       "description": "If this Phenotype is only applicable within a limited time period, please specify that here (optional)."
@@ -339,7 +340,7 @@
       "do_not_show_in_production": true
     },
     {
-      "title": "Clinical Code List",
+      "title": "Clinical Codelist",
       "fields": [
         "concept_information"
       ],

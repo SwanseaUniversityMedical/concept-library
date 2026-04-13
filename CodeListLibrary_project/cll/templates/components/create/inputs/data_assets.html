@@ -1,0 +1,191 @@
+{% load cl_extras %}
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  {% if not component.hide_input_details %}
+  <h3 class="detailed-input-group__title">
+    {{ component.field_data.title }}
+    {% if component.mandatory %}
+      <span class="detailed-input-group__mandatory">*</span>
+    {% endif %}
+  </h3>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
+  {% endif %}
+
+  {% if component.options %}
+    {% to_json_script component.options data-name="options" data-type="text/json" for=component.field_name %}
+  {% endif %}
+
+  {% if component.value %}
+    {% to_json_script component.value data-name="value" data-type="text/json" for=component.field_name %}
+  {% else %}
+    <script type="application/json" data-name="value" data-type="text/json" for="{{ component.field_name }}"></script>
+  {% endif %}
+
+  {% if component.field_data.behaviour and component.field_data.behaviour|get_type == "dict" %}
+    {% to_json_script component.field_data.behaviour data-name="behaviour" data-type="text/json" for=component.field_name %}
+  {% endif %}
+
+  {% if component.mandatory or component.field_data.hint %}
+    <div class="validation-block validation-block--warning">
+      <div class="validation-block__container">
+        <div class="validation-block__title">
+          <span class="as-icon" data-icon="&#xf0eb;" aria-hidden="true"></span>
+          <p>Note:</p>
+        </div>
+        <ul>
+          {% if component.mandatory %}
+            <li><pre class="validation-block__message">This field is mandatory.</pre></li>
+          {% endif %}
+          {% if component.field_data.hint %}
+            <li><pre class="validation-block__message">{{ component.field_data.hint }}</pre></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+  <section
+    id="entity-{{ component.field_name }}"
+    name="entity-{{ component.field_name }}"
+    class="asset-component"
+    data-vis="{% if component.vis_vary_on_opts %}1{% else %}0{% endif %}"
+    data-class="data-assets"
+    data-field="{{ component.field_name }}"
+  >
+    <header class="asset-component__actions">
+      <section
+        class="asset-component__field"
+        role="combobox"
+        aria-owns="asset-input"
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        data-area="field"
+      >
+        <input
+          id="asset-input"
+          name="asset-input"
+          type="text"
+          class="asset-component__field-input"
+          placeholder="Add {{ component.field_data.title }} by name..."
+          aria-label="Add {{ component.field_data.title }} by name"
+          data-area="input"
+        />
+        <button
+          class="asset-component__field-btn"
+          title="Add Item"
+          aria-label="Add Item"
+          data-area="add-btn"
+        >
+        </button>
+        <section
+          id="asset-results"
+          name="asset-results"
+          class="asset-component__field-suggestions"
+          role="listbox"
+          aria-role="listbox"
+          aria-expanded="false"
+          data-area="suggestions"
+        >
+
+        </section>
+      </section>
+      <button
+        class="asset-component__create-btn primary-btn text-accent-darkest bold secondary-accent"
+        aria-label="Create {{ component.field_data.title }}"
+        data-area="create-btn"
+      >
+        Create {{ component.field_data.title }}
+      </button>
+    </header>
+
+    <section class="asset-component__none-available" data-area="none-available">
+      <p class="asset-component__none-available-message">
+        No {{ component.field_data.title }} selected.
+      </p>
+    </section>
+
+    <section class="asset-component__selection slim-scrollbar" data-area="selection">
+
+    </section>
+
+    <template data-name="item" data-view="selection">
+      <div class="tag tag--highlight" data-new="${new}" data-area="asset">
+        <span class="tag__name">${label}</span>
+        <button class="as-icon" data-icon="&#xf304;" aria-label="Edit Item" data-role="edit"></button>
+        <button class="as-icon" data-icon="&#xf00d;" aria-label="Remove Item" data-role="remove"></button>
+      </div>
+    </template>
+
+    <template data-name="suggestion" data-view="builder">
+      <a
+        class="asset-component__field-suggestions-item"
+        href="#"
+        role="option"
+        aria-role="option"
+        aria-label="${label}"
+        aria-selected="${selected}"
+        data-ref="${ref}"
+        data-area="item"
+      >
+        ${label}
+      </a>
+    </template>
+
+    <template data-name="tags" data-view="builder">
+      <div class="input-field-container" data-ctrl="string" data-ref="${ref}">
+        <p class="input-field-container__label input-field-container--fill-w">
+          ${label}
+          <span class="input-field-container__mandatory ${required ? '' : 'hidden'}">*</span>
+        </p>
+        <input
+          class="text-input input-field-container__input"
+          class="text-input"
+          placeholder=""
+          aria-label="${label}"
+          data-ref="${ref}"
+        />
+      </div>
+    </template>
+
+    <template data-name="string" data-view="builder">
+      <div class="input-field-container" data-ctrl="string" data-ref="${ref}">
+        <p class="input-field-container__label input-field-container--fill-w">
+          ${label}
+          <span class="input-field-container__mandatory ${required ? '' : 'hidden'}">*</span>
+        </p>
+        <input
+          class="text-input input-field-container__input"
+          type="text"
+          value="${value}"
+          ${minlength}
+          ${maxlength}
+          placeholder=""
+          aria-label="${label}"
+          data-ref="${ref}"
+          ${required}
+        />
+      </div>
+    </template>
+
+    <template data-name="text" data-view="builder">
+      <div class="input-field-container" data-ctrl="text" data-ref="${ref}">
+        <p class="input-field-container__label input-field-container--fill-w">
+          ${label}
+          <span class="input-field-container__mandatory ${required ? '' : 'hidden'}">*</span>
+        </p>
+        <textarea
+          class="text-area-input input-field-container__input"
+          rows="2"
+          autocorrect="on"
+          autocomplete="off"
+          spellcheck="default"
+          wrap="soft"
+          aria-label="${label}"
+          data-class="textarea"
+          data-field="{{ component.field_name }}"
+          ${required}
+        >${value}</textarea>
+      </div>
+    </template>
+  </section>
+</div>

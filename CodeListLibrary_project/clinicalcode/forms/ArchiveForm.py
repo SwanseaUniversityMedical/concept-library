@@ -25,7 +25,7 @@ class ArchiveForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 'class': 'text-input',
-                'aria-label': 'Enter the Phenotype ID to confirm',
+                'aria-label': 'Enter the entity ID to confirm',
                 'autocomplete': 'off',
                 'autocorrect': 'off',
             }
@@ -38,7 +38,7 @@ class ArchiveForm(forms.Form):
             attrs={
                 'class': 'text-area-input',
                 'style': 'resize: none;',
-                'aria-label': 'Enter the reason you\'re archiving this Phenotype',
+                'aria-label': 'Enter the reason you\'re archiving this entity',
                 'rows': '4',
                 'autocomplete': 'off',
                 'autocorrect': 'on',

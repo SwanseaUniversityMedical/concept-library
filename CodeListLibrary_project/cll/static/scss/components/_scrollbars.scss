@@ -5,61 +5,101 @@
 
 /// Slim scrollbar 
 ///   @desc used for table content
-.slim-scrollbar {
-  /* Webkit */
-  &::-webkit-scrollbar {
-    width: var(--slim-scrollbar-width);
-    height: var(--slim-scrollbar-width);
-  }
-  
-  &::-webkit-scrollbar-track {
-    border-radius: var(--slim-scrollbar-radius);
-    -webkit-border-radius: var(--slim-scrollbar-radius);
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: var(--slim-scrollbar-inactive-color);
-    border-radius: var(--slim-scrollbar-radius);
-    -webkit-border-radius: var(--slim-scrollbar-radius);
-  }
 
-  &::-webkit-scrollbar-thumb:hover {
-    background: var(--slim-scrollbar-active-color);
-  }
-  
-  &::-webkit-scrollbar-thumb:window-inactive {
-    background: col(clear);
-  }
+/* Webkit rules, see {@link "Slim scrollbar"} */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  .slim-scrollbar {
+    &:not(.slim-scrollbar--thick)::-webkit-scrollbar {
+      width: var(--slim-scrollbar-width);
+      height: var(--slim-scrollbar-height);
+    }
 
-  /* Firefox */
-  scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
-  scrollbar-width: thin !important;
+    &--thick::-webkit-scrollbar {
+      width: auto;
+      height: auto;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--slim-scrollbar-track-color);
+      border-radius: var(--slim-scrollbar-radius);
+      -webkit-border-radius: var(--slim-scrollbar-radius);
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: var(--slim-scrollbar-inactive-color);
+      border-radius: var(--slim-scrollbar-radius);
+      -webkit-border-radius: var(--slim-scrollbar-radius);
+    }
+  
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--slim-scrollbar-active-color);
+    }
+
+    &::-webkit-scrollbar-thumb:window-inactive {
+      background-color: col(clear);
+    }
+  }
+}
+
+/* Moz rules, see {@link "Slim scrollbar"} */
+@-moz-document url-prefix() {
+  .slim-scrollbar {
+    scrollbar-color: var(--slim-scrollbar-active-color) transparent !important;
+
+    &:not(.slim-scrollbar--thick) {
+      scrollbar-width: thin !important;
+    }
+
+    &--thick {
+      scrollbar-width: auto;
+    }
+  }
 }
 
 /// Filter scrollbar
 ///   @desc vertical scrollbar used for filters on search pages
-.filter-scrollbar {
-  /* Webkit */
-  &::-webkit-scrollbar {
-    width: 6px;
-    height: 12px;
-  }
 
-  &::-webkit-scrollbar-track {
-    background: col(accent-transparent);
-    border-radius: 10px;
-  }
+/* Webkit rules, see {@link "Filter scrollbar"} */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  .filter-scrollbar {
+    &:not(.slim-scrollbar--thick)::-webkit-scrollbar {
+      width: 6px;
+      height: 12px;
+    }
 
-  &::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    background: var(--slim-scrollbar-inactive-color);
-  }
+    &--thick::-webkit-scrollbar {
+      width: auto;
+      height: auto;
+    }
 
-  &::-webkit-scrollbar-thumb:hover {
-    background: var(--slim-scrollbar-active-color);
-  }
+    &::-webkit-scrollbar-track {
+      background: col(accent-transparent);
+      border-radius: 10px;
+    }
 
-  /* Firefox */
-  scrollbar-color: var(--slim-scrollbar-active-color) col(clear) !important;
-  scrollbar-width: thin !important;
+    &::-webkit-scrollbar-thumb {
+      border-radius: 10px;
+      background: var(--slim-scrollbar-inactive-color);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--slim-scrollbar-active-color);
+    }
+  }
 }
+
+/* Moz rules, see {@link "Filter scrollbar"} */
+@-moz-document url-prefix() {
+  .filter-scrollbar {
+    scrollbar-color: var(--slim-scrollbar-active-color) transparent !important;
+
+    &:not(.filter-scrollbar--thick) {
+      scrollbar-width: thin !important;
+    }
+
+    &--thick {
+      scrollbar-width: auto;
+    }
+  }
+}
+

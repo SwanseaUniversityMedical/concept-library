@@ -6,9 +6,7 @@
     <span class="detailed-input-group__mandatory">*</span>
     {% endif %}
   </h3>
-  <p class="detailed-input-group__description">
-    {{ component.description }}
-  </p>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
   <fieldset class="hstack-radio-group" id="entity-{{ component.field_name }}" data-class="radiobutton" data-field="{{ component.field_name }}">
     {% for option in component.options %}

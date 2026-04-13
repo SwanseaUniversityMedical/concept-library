@@ -23,9 +23,14 @@
     </div>
     <div class="entity-card__snippet">
       <div class="entity-card__snippet-metadata">
-        <span class="entity-card__snippet-metadata-type">{% render_field_value entity layout "type" %}</span>
-        <span class="entity-card__snippet-metadata-divider"></span>
-        <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
+        {% render_field_value entity layout "type" None as type_value %}
+        {% if not type_value %}
+          <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
+        {% else %}
+          <span class="entity-card__snippet-metadata-type">{{ type_value }}</span>
+          <span class="entity-card__snippet-metadata-divider"></span>
+          <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
+        {% endif %}
       </div>
       <div class="entity-card__snippet-tags">
         <div class="entity-card__snippet-tags-group">

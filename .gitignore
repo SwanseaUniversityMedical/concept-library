@@ -4,7 +4,6 @@ __pycache__
 
 # Py env
 **/env/
-**/.env/
 **/venv/
 **/.venv/
 
@@ -47,12 +46,13 @@ CodeListLibrary_project/staticroot/*
 **/engagelens/.env
 
 # Allow docker env directory
-!**/docker/.env/
+!**/docker/env/
 !**/docker/**/env/
 
 # Platform / OS files
 .idea
-.DS_Stores
+**/Thumbs.db
+**/.DS_Store
 
 # Misc. files
 docs/~$plication Guide.docx

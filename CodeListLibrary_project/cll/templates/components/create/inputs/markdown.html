@@ -7,14 +7,12 @@
     <span class="detailed-input-group__mandatory">*</span>
     {% endif %}
   </h3>
-  <p class="detailed-input-group__description">
-    {{ component.description }}
-  </p>
+  <pre class="detailed-input-group__description">{{ component.description }}</pre>
   {% endif %}
 
   <textarea
       id="entity-{{ component.field_name }}" class="filter-scrollbar"
       data-class="md-editor" data-field="{{ component.field_name }}"
   ></textarea>
-  <script type="text/html" aria-hidden="true" for="{{ component.field_name }}">{% if component.value %}{{ component.value|safe }}{% endif %}</script>
+  <script type="text/plain" aria-hidden="true" for="{{ component.field_name }}">{% if component.value %}{{ component.value|safe }}{% endif %}</script>
 </div>

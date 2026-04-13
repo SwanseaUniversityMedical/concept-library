@@ -5,7 +5,9 @@
 {% load cl_extras %}
 {% load breadcrumbs %}
 {% load entity_renderer %}
+
 {% block title %}| HDRUK Home {% endblock title %}
+
 {% block container %}
 
 <!-- Page Stylesheets -->
@@ -14,21 +16,22 @@
 {% endcompress %}
 
 <!-- Main -->
+{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 <header class="main-header banner banner-image banner-image--transparent">
   <div
     class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred banner--background">
     <div class="banner__container__left-landing-page">
       <h3 class="banner__description__landing-page ">
-        The HDR UK Phenotype Library is a comprehensive, open access resource providing the research community with
+        The HDR UK {{ base_page_title }} is a comprehensive, open access resource providing the research community with
         information, tools and phenotyping algorithms for UK electronic health records.
       </h3>
     </div>
     <div class="search-banner__container-landing">
       <form class="search-container" data-controller="filter" data-class="searchbar" data-field="search"
-        action="{% url 'search_phenotypes' %}" method="GET">
-        <input type="text" placeholder="Search our Phenotype Library" id="searchbar"
+        action="{% url 'search_entities' %}" method="GET">
+        <input type="text" placeholder="Search our {{ base_page_title }}" id="searchbar"
           class="search-container__field washed-outline" data-class="searchbar" data-field="search" name="search"
-          value="{{ search|default_if_none:'' }}" aria-label="Search our Phenotype Library" />
+          value="{{ search|default_if_none:'' }}" aria-label="Search our {{ base_page_title }}" />
 
         <button class="search-container__icon-landing" name="page" value="1" aria-label="Search Phenotypes"
           tabindex="0">
@@ -93,14 +96,14 @@
         <div class="headline__section">
           <p>
             <strong>Connected.</strong>
-            The Phenotype Library is accessible via an API to support interoperability, is integrated with health dataset information in HDR-UK's Innovation Gateway, 
+            The {{ base_page_title }} is accessible via an API to support interoperability, is integrated with health dataset information in HDR-UK's Innovation Gateway, 
             and hosts content from numerous contributing organisations. 
           </p>
         </div>
         <div class="headline__section">
           <p>
             <strong>Patient-focused.</strong>
-            The Library is enabling important research to improve patient health and well-being. Content spans major disease areas, including heart disease, cancer, 
+            The {{ base_page_title }} is enabling important research to improve patient health and well-being. Content spans major disease areas, including heart disease, cancer, 
             COVID-19 and other common and rare human health conditions.
             Curated collections from contributors such as the HDR UK BREATHE Hub for respiratory health share clinical expertise to tackle critical research questions. 
           </p>
@@ -109,7 +112,7 @@
           <p>
             <strong>Cutting-edge.</strong>
             Built with a focus on computability, this resource aims to drive the next generation of research methods. Integration with Phenoflow enables executable 
-            implementations of the phenotypes in our collection, while the API and R package client facilitate integration of the Library content directly into 
+            implementations of the phenotypes in our collection, while the API and R package client facilitate integration of the {{ base_page_title }} content directly into 
             other analysis workflows. 
           </p>
         </div>
@@ -132,7 +135,7 @@
     <div class="headline__section__general headline--margin-bottom-2rem">
       <h3>How are we enabling this work?</h3>
       <p>
-        The <strong>HDR UK Phenotype Library</strong> is a platform to host phenotyping algorithms and harness their power for research.
+        The <strong>HDR UK {{ base_page_title }}</strong> is a platform to host phenotyping algorithms and harness their power for research.
         Our aim is to provide researchers with the “GitHub of phenotyping”: an open platform for <strong>creation, storage,
         dissemination, re-use, evaluation, and citation</strong> of curated algorithms and metadata. Our goal is for this to be a
         place where researchers can share their own work, benefit from what others have shared, and even build new
@@ -153,39 +156,40 @@
             <p class="referral-card__title referral-card__title--align-centre">Search</p>
           </div>
           <div class="referral-card__body referral-card__body--hide-overflow">
-            <a class="referral-card__anchor" href="{% url 'search_phenotypes' %}">
+            <a class="referral-card__anchor" href="{% url 'search_entities' %}">
               <p>Start here to explore phenotypes in our library.</p>
             </a>
           </div>
         </article>
-        <article
-          class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
-          <div class="referral-card__header referral-card__header--icon-column">
-            <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
-            <p class="referral-card__title referral-card__title--align-centre">Submit a phenotype</p>
-          </div>
-          <div class="referral-card__body referral-card__body--hide-overflow">
-
-            <a class="referral-card__anchor" href="{% url 'create_phenotype' %}">
-              <p>Learn how you contribute your phenotypes to our library.</p>
-            </a>
-          </div>
-        </article>
+        {% if USER_CREATE_CONTEXT %}
+          <article
+            class="referral-card referral-card--landing-card referral-card-fill-area-evenly bright-accent referral-card-shadow referral-card-border-radius referral-card-no-margin">
+            <div class="referral-card__header referral-card__header--icon-column">
+              <div class="referral-card__icon-before referral-card__icon-before__plus"></div>
+              <p class="referral-card__title referral-card__title--align-centre">Submit a phenotype</p>
+            </div>
+            <div class="referral-card__body referral-card__body--hide-overflow">
+              <a class="referral-card__anchor" href="{% url 'create_phenotype' %}">
+                <p>Learn how you contribute your phenotypes to our library.</p>
+              </a>
+            </div>
+          </article>
+        {% endif %}
       </div>
     </div>
     <section class="key-section">
       <h2 class="key-section__title">Key Principles</h2>
       <div class="key-section__columns">
         <div class="key-section__column">
-          <p>The Library stores phenotyping algorithms, metadata and tools only. No data are stored in the Library.</p>
+          <p>The {{ base_page_title }} stores phenotyping algorithms, metadata and tools only. No data are stored in the {{ base_page_title }}.</p>
         </div>
         <div class="key-section__column">
-          <p>Ideally, phenotypes that are deposited in the Library will have undergone some form of peer-review to
+          <p>Ideally, phenotypes that are deposited in the {{ base_page_title }} will have undergone some form of peer-review to
             assess validity and quality either through peer-reviewed publication or some other means of sharing the
             definition(s)</p>
         </div>
         <div class="key-section__column">
-          <p>All material deposited in the Library remain the intellectual property of the research group who created
+          <p>All material deposited in the {{ base_page_title }} remain the intellectual property of the research group who created
             the phenotype(s) – the default licensing agreement that information is available under is the Creative
             Commons Attribution 4.0 (CC-A)</p>
         </div>
@@ -194,11 +198,11 @@
             identification of the phenotype</p>
         </div>
         <div class="key-section__column">
-          <p>Users should cite the Phenotype Library in all publications, presentations and reports as follows: "HDR UK
+          <p>Users should cite the {{ base_page_title }} in all publications, presentations and reports as follows: "HDR UK
             CALIBER Phenotype Library https://portal.caliberresearch.org/"</p>
         </div>
         <div class="key-section__column">
-          <p>The aim of the Library is not to standardize or harmonize disease definitions, therefore several phenotypes
+          <p>The aim of the {{ base_page_title }} is not to standardize or harmonize disease definitions, therefore several phenotypes
             may be stored for the same condition and the onus is on individual researchers to explore which phenotypes
             they wish to use</p>
         </div>
@@ -207,7 +211,7 @@
     <div class="headline__section__general headline__section__general--align-items-center">
       <h2 class="headline--text-align-center">How to contribute?</h2>
       <p>
-        To submit an EHR phenotyping algorithm to the Phenotype Library please read <a href="{% url 'about_page' 'hdruk_about_technical_details' %}" rel="noopener noreferrer">our documentation pages</a>.
+        To submit an EHR phenotyping algorithm to the {{ base_page_title }} please read <a href="{% url 'about_page' 'hdruk_about_technical_details' %}" rel="noopener noreferrer">our documentation pages</a>.
       </p>
     </div>
   </div>

@@ -14,9 +14,6 @@ export https_proxy;
 app_port='80';
 export app_port;
 
-start_engagelens='True';
-export start_engagelens;
-
 cll_healthcheck_addr='fullaccess-app';
 export cll_healthcheck_addr;
 
@@ -36,7 +33,7 @@ export cll_log_path;
 redis_port=6379
 export redis_image;
 
-redis_image='redis:7.0-bullseye';
+redis_image='redis:7.4-bookworm';
 export redis_image;
 
 

@@ -3,7 +3,13 @@
 {% load cl_extras %}
 {% load entity_renderer %}
 
-<div class="detailed-input-group fill gap-xl">
+{% fmtstr "%s/%d" entity.id entity.history_id as entity_ref %}
+<div
+  class="detailed-input-group fill gap-xl"
+  data-ba-origin="citationrequirements"
+  data-ba-source="{{ entity_ref }}"
+  data-ba-resource="ugc"
+>
   <div class="col-sm-12 shadow-frame">
     {% if not component.value|is_empty_value %}
       <h3 class="paneltitle">
@@ -16,12 +22,16 @@
           <p class="detailed-input-group__description">{{ component.description }}</p>
         {% endif %}
 
-        {{ component.value|markdownify }}
+        <div class="markdown-render-container slim-scrollbar">
+          {{ component.value|markdownify }}
+        </div>
       </h3>
     {% else %}
       <h3 class="detailed-input-group__title">Citation Example</h3>
       {% render_citation_block entity request as citation %}
-      {{ citation|markdownify }}
+      <div class="markdown-render-container slim-scrollbar">
+        {{ citation|markdownify }}
+      </div>
     {% endif %}
   </div>
 </div>

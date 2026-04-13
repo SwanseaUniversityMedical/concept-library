@@ -28,6 +28,17 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.11]
+    permissions:
+      pages: write
+      issues: write
+      checks: write
+      actions: read
+      statuses: write
+      contents: write
+      deployments: write
+      attestations: write
+      pull-requests: write
+      artifact-metadata: write
 
     services:
       db:
@@ -43,9 +54,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
-          sudo apt-get update
-          sudo apt-get install -y libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev libasound2 
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+            sudo apt-get update
+            sudo apt-get install -y libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev libasound2-dev
       - uses: browser-actions/setup-chrome@v1
       - uses: actions/cache@v3
         with:
@@ -61,10 +71,13 @@ jobs:
 
       - name: Install LDAP files
         run: |
-          sudo apt-get install -y -q libsasl2-dev libldap2-dev libssl-dev libpq-dev
+          sudo apt-get install -y -q --no-install-recommends \
+                  ca-certificates apt-utils cmake build-essential \
+                  libsasl2-dev libldap2-dev libssl-dev libpq-dev
 
       - name: Install Dependencies
         run: |
+          sudo apt-get install -y -q dirmngr
           python -m pip install --upgrade pip
           pip install --upgrade --upgrade-strategy eager --default-timeout 100  -r docker/requirements/test.txt
 
@@ -82,13 +95,13 @@ jobs:
 
       - name: Run application
         run: |
-          export $(grep -v '^#' docker/.env/remote.test.env | xargs)
+          export $(grep -v '^#' docker/env/remote.test.env | xargs)
           cd CodeListLibrary_project
           python manage.py runserver 0.0.0.0:8000 > /dev/null &
 
       - name: Run tests
         run: |
-          export $(grep -v '^#' docker/.env/remote.test.env | xargs)
+          export $(grep -v '^#' docker/env/remote.test.env | xargs)
           cd CodeListLibrary_project
           pytest -vv -s --random-order --cov-report xml --cov . --html=report.html --self-contained-html --alluredir=./clinicalcode/tests/allure-results
         env:
@@ -119,7 +132,7 @@ jobs:
 
       - name: Allure report action # Step to generate Allure report
         if: (success() || failure()) && github.event_name != 'pull_request'
-        uses: simple-elf/allure-report-action@v1.7
+        uses: simple-elf/allure-report-action@v1.13
         with:
           allure_results: CodeListLibrary_project/clinicalcode/tests/allure-results
           allure_report: CodeListLibrary_project/clinicalcode/tests/allure-report

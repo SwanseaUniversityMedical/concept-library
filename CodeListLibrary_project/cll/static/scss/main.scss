@@ -45,6 +45,7 @@ html {
 
 *:not(body) {
   position: relative;
+  -webkit-font-smoothing: antialiased;
 
   &.hide {
     display: none;
@@ -61,6 +62,17 @@ body {
   padding: 0;
   background-color: col(bg);
   flex-wrap: nowrap;
+
+  // Font anti-aliasing
+  font-smooth: auto;
+  -webkit-font-smoothing: antialiased;
+
+  // Disable zooming via touble tap on safari
+  touch-action: manipulation;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font, inherit);
 }
 
 data {
@@ -105,12 +117,12 @@ data {
     }
 
     &--constrained {
-      max-width: 2160px;
       width: calc(100% - var(--main-gutter) - var(--main-gutter));
+      max-width: 2160px;
 
       @include media("<desktop", "screen") {
-        max-width: 2160px;
         width: calc(100% - var(--main-mobile-gutter) - var(--main-mobile-gutter));
+        max-width: 2160px;
       }
     }
 
@@ -122,6 +134,28 @@ data {
 
     &--centred {
       align-self: center;
+
+      @include media('<tablet', 'screen') {
+        padding-left: 0;
+        padding-right: 0;
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+
+    &--centred-constrained {
+      width: calc(100% - var(--main-gutter) - var(--main-gutter));
+      max-width: 2160px;
+      align-self: center;
+
+      @include media("<desktop", "screen") {
+        width: calc(100% - var(--main-mobile-gutter) - var(--main-mobile-gutter));
+        max-width: 2160px;
+        padding-left: 0;
+        padding-right: 0;
+        width: 100%;
+        max-width: 100%;
+      }
     }
   }
 }

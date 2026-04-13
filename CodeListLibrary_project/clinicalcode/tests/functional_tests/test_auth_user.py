@@ -26,7 +26,8 @@ class TestAuthPhenoAccess:
         user = generate_user[user_type]
 
         client = Client(
-            username=user.username, password=user.username + "password",
+            username=user.username,
+            password=user.username + "password",
             url=live_server.url
         )
 
@@ -40,13 +41,14 @@ class TestAuthPhenoAccess:
         normal_user = generate_user[normal_user_type]
 
         normal_user_client = Client(
-            username=normal_user.username, password=normal_user.username + "password",
+            username=normal_user.username,
+            password=normal_user.username + "password",
             url=live_server.url
         )
 
         pheno_ver_normal_user = normal_user_client.phenotypes.get_versions('PH2')
-        print("Phenotype PH2 with group/world access:", pheno_ver_normal_user)
-        assert pheno_ver_normal_user != []  
+        print("Inaccessible to other user (non-group):", pheno_ver_normal_user)
+        assert pheno_ver_normal_user == []
 
         non_auth_client = Client(public=True, url=live_server.url)
         non_auth_user = non_auth_client.phenotypes.get_versions('PH2')

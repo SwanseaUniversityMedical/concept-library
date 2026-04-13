@@ -1,29 +1,26 @@
 /**
-  * @class FuzzyQuery
-  * @desc A static class that uses Levenshtein distance to search a haystack.
-  * 
-  * e.g.
-  ```js
-    import FuzzyQuery from '../components/fuzzyQuery.js';
-
-    // i.e. some haystack of item(s)
-    const haystack = [
-      'some_item1',
-      'some_item2',
-      'another_thing',
-      'another_thing_1',
-    ];
-
-    // e.g. some search string
-    const query = 'some_item';
-
-    // ...attempt to search haystack
-    const results = FuzzyQuery.Search(haystack, query, FuzzyQuery.Results.Sort, FuzzyQuery.Transformers.IgnoreCase);
-    console.log(results); // --> Of result: ['some_item1', 'some_item2']
-
-  ```
-  * 
-  */
+ * @class FuzzyQuery
+ * @desc A static class that uses Levenshtein distance to search a haystack.
+ * 
+ * @example
+ * import FuzzyQuery from '../components/fuzzyQuery.js';
+ * 
+ * // i.e. some haystack of item(s)
+ * const haystack = [
+ *   'some_item1',
+ *   'some_item2',
+ *   'another_thing',
+ *   'another_thing_1',
+ * ];
+ * 
+ * // e.g. some search string
+ * const query = 'some_item';
+ * 
+ * // ...attempt to search haystack
+ * const results = FuzzyQuery.Search(haystack, query, FuzzyQuery.Results.Sort, FuzzyQuery.Transformers.IgnoreCase);
+ * console.log(results); // --> Of result: ['some_item1', 'some_item2']
+ * 
+ */
 export default class FuzzyQuery {
   /**
    * @desc transformers are preprocessors that modify both the haystack and the needle prior to fuzzy matching
@@ -147,13 +144,14 @@ export default class FuzzyQuery {
     let results = [];
     for (let i = 0; i < haystack.length; i++) {
       let item = String(haystack[i]);
+      let comp = item;
       if (typeof transformer === 'function') {
-        item = transformer(item);
+        comp = transformer(comp);
       }
-      
-      if (FuzzyQuery.Match(item, query)) {
+
+      if (FuzzyQuery.Match(comp, query)) {
         if (sort) {
-          results.push({ item: item, score: FuzzyQuery.Distance(item, query) });
+          results.push({ item: item, score: FuzzyQuery.Distance(comp, query) });
         } else {
           results.push({ item: item });
         }

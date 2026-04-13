@@ -1,4 +1,5 @@
 {% load compress %}
+{% load entity_renderer %}
 
 <!--   API   -->
 <div class="col-sm-12 no-print shadow-frame">
@@ -9,8 +10,10 @@
 	</h3>
   {% endcomment %}
 
+  {% get_brand_map_rules as brand_mapping %}
+  {% get_template_entity_name entity_class=entity_class template=template as entity_tmpl_name %}
 	<span id="api_id" entity_id="{{ entity.id }}">
-		<p> To Export {{ entity_class }} Details: </p>
+		<p> To Export {{ entity_tmpl_name }} Details: </p>
 
 		<table class="table table-striped table-responsive-md table-flex-rows">
 		  <tr>
@@ -54,10 +57,10 @@
             </p>
             <br>
             <p class="code-comment-highlight">
-              # Get details of phenotype
+              # Get details of {{ brand_mapping.phenotype }}
             </p>
             <p class="code-general-highlight">
-              phenotype_details = client$phenotypes$get_detail(<br/>
+              {{ brand_mapping.phenotype|lower }}_details = client$phenotypes$get_detail(<br/>
                 &nbsp;<span class="code-text-highlight">'{{ entity.id }}'</span>,<br/>
                 &nbsp;version_id=<span class="code-value-highlight">{{ entity.history_id }}</span><br/>
               )
@@ -85,10 +88,10 @@
             </p>
             <br>
             <p class="code-comment-highlight">
-              # Get codelist of phenotype
+              # Get details of {{ brand_mapping.phenotype }}
             </p>
             <p class="code-general-highlight">
-              phenotype_codelist = client.phenotypes.get_detail(<br/>
+              {{ brand_mapping.phenotype|lower }}_detail = client.phenotypes.get_detail(<br/>
                 &nbsp;<span class="code-text-highlight">'{{ entity.id }}'</span>,<br/>
                 &nbsp;version_id=<span class="code-value-highlight">{{ entity.history_id }}</span><br/>
               )
@@ -98,7 +101,7 @@
       </tr>
 		</table>
 		
-		<p> To Export {{ entity_class }} Code List:</p>
+		<p> To Export {{ entity_tmpl_name }} Code List:</p>
 		<table class="table table-striped table-responsive-md table-flex-rows">
 		  <tr>
         <th>Format</th>
@@ -146,10 +149,10 @@
             </p>
             <br>
             <p class="code-comment-highlight">
-              # Get codelist of phenotype
+              # Get codelist of {{ brand_mapping.phenotype }}
             </p>
             <p class="code-general-highlight">
-              phenotype_codelist = client$phenotypes$get_codelist(<br/>
+              {{ brand_mapping.phenotype|lower }}_codelist = client$phenotypes$get_codelist(<br/>
                 &nbsp;<span class="code-text-highlight">'{{ entity.id }}'</span>,<br/>
                 &nbsp;version_id=<span class="code-value-highlight">{{ entity.history_id }}</span><br/>
               )
@@ -177,10 +180,10 @@
             </p>
             <br>
             <p class="code-comment-highlight">
-              # Get codelist of phenotype
+              # Get codelist of {{ brand_mapping.phenotype }}
             </p>
             <p class="code-general-highlight">
-              phenotype_codelist = client.phenotypes.get_codelist(<br/>
+              {{ brand_mapping.phenotype|lower }}_codelist = client.phenotypes.get_codelist(<br/>
                 &nbsp;<span class="code-text-highlight">'{{ entity.id }}'</span>,<br/>
                 &nbsp;version_id=<span class="code-value-highlight">{{ entity.history_id }}</span><br/>
               )

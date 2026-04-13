@@ -1,0 +1,5 @@
+# Ensure all files always have LF line endings across all environments, incl. Windows.
+* text=auto eol=lf
+
+# Prevent GH from raising errors for JSON files with comments.
+*.json linguist-language=JSON-with-Comments

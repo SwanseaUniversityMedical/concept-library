@@ -54,10 +54,22 @@
     h2 {
       color: var(--color-text-dark);
       font-weight: 500;
+      max-width: 100%;
     }
 
     svg {
-      fill:var(--color-text-dark);
+      fill: var(--color-text-dark);
+    }
+
+    @include media('<phone', 'screen') {
+      h2 {
+        white-space: normal;
+        word-wrap: break-word;
+      }
+
+      svg {
+        display: none;
+      }
     }
   }
 

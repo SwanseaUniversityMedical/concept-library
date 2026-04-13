@@ -112,12 +112,16 @@ class BreadcrumbsNode(template.Node):
     DEFAULT_STR = '<section class="breadcrumbs"></section>'
     
     def __init__(self, params, nodelist):
-        self.request = template.Variable('request')
+        self.reqvar = template.Variable('request')
         self.params = params
         self.nodelist = nodelist
     
     def __is_brand_token(self, token):
-        return Brand.objects.filter(name__iexact=token).exists()
+        if not isinstance(token, str):
+            return False
+
+        element = next((x for x in Brand.all_instances() if x.name.lower() == token.lower()), None)
+        return element is not None
 
     def __is_valid_token(self, token):
         if self.__is_brand_token(token):
@@ -184,7 +188,7 @@ class BreadcrumbsNode(template.Node):
             return ''
 
     def render(self, context):
-        rqst = self.request.resolve(context)
+        rqst = self.reqvar.resolve(context)
         path = rqst.path.split('/')
 
         if len(path) > 0:

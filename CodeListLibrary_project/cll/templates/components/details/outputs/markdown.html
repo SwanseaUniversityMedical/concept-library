@@ -18,7 +18,13 @@
     {% endif %}
   </div>
   {% if component.value|length %}
-    <div class="markdown-render-container slim-scrollbar">
+    {% fmtstr "%s/%d" entity.id entity.history_id as entity_ref %}
+    <div
+      class="markdown-render-container slim-scrollbar"
+      data-ba-origin="markdown"
+      data-ba-source="{{ entity_ref }}"
+      data-ba-resource="ugc"
+    >
       {{ component.value|markdownify }}
     </div>
   {% endif %}

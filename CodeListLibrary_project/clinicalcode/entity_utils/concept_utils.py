@@ -279,7 +279,11 @@ def get_concept_headers(concept_information, default=None):
             end as is_published,
             concept.phenotype_owner_id,
             codingsystem.id as coding_system_id,
-            codingsystem.name as coding_system_name
+            codingsystem.name as coding_system_name,
+            case
+                when concept.is_deleted is null then false
+                else concept.is_deleted
+            end as is_deleted
         from concept_information as info,
              json_array_elements(info.doc) as obj
         join public.clinicalcode_concept as concept
@@ -563,7 +567,10 @@ def get_concept_component_details(concept_id, concept_history_id, aggregate_code
                 component_data['codes'] = codes
 
             if aggregate_codes:
-                map(lambda obj: seen_codes.add(obj.get('code')) if obj.get('code') else None, codes)
+                for obj in codes:
+                    if obj.get('code'):
+                        seen_codes.add(obj.get('code'))
+
 
             components_data.append(component_data)
 
@@ -641,7 +648,14 @@ def get_concept_codelist(concept_id, concept_history_id, incl_attributes=False):
                 on codes.code_list_id = codelist.id
                and codes.history_date <= concept.history_date
                and codes.history_type <> '-'
+              left join public.clinicalcode_historicalcode as deletedcode
+                on deletedcode.id = codes.id
+               and deletedcode.code_list_id = codelist.id
+               and deletedcode.history_date <= concept.history_date
+               and deletedcode.history_type = '-'
              where deletedcomponent.id is null
+               and codes.history_type <> '-'
+               and deletedcode.id is null
              group by concept.id,
                       concept.history_id,
                       concept.history_date, 
@@ -909,10 +923,11 @@ def get_clinical_concept_data(concept_id, concept_history_id, include_reviewed_c
         if not latest_version:
             latest_version = historical_concept
 
+        ph_owner_id = concept.phenotype_owner.id if concept.phenotype_owner is not None else None
         concept_data['latest_version'] = {
             'id': latest_version.id,
             'history_id': latest_version.history_id,
-            'is_out_of_date': historical_concept.history_id < latest_version.history_id,
+            'is_out_of_date': (requested_entity_id is None or requested_entity_id != ph_owner_id) and historical_concept.history_id < latest_version.history_id,
         }
 
         concept_data['is_published'] = is_concept_published(concept_id, concept_history_id)

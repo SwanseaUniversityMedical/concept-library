@@ -58,11 +58,13 @@ export default class GroupedEnum {
       for (let i = 0; i < checked.length; ++i) {
         checked[i].checked = false;
       }
+
       return this;
     }
+
+    const matchedGroup = this.data?.properties.find(x => x.result === value);
     this.value = value;
 
-    let matchedGroup = this.data?.properties.find(x => x.result === value);
     if (!isNullOrUndefined(matchedGroup)) {
       const inputs = this.element.querySelectorAll('input');
       for (let i = 0; i < inputs.length; ++i) {
@@ -99,9 +101,12 @@ export default class GroupedEnum {
     // Build renderables
     for (let i = 0; i < this.data?.options.length; ++i) {
       const option = this.data?.options[i];
-      const group = this.data?.properties.find(x => x.result == option.value);
-      if (!isNullOrUndefined(group)) {
-        continue
+      const properties = this.data?.properties
+      if (!isNullOrUndefined(properties)) {
+        const group = properties.find(x => x.result == option.value);   
+        if (!isNullOrUndefined(group)) {
+          continue
+        }
       }
 
       const item = this.#createCheckbox(
@@ -110,7 +115,7 @@ export default class GroupedEnum {
         option.value
       );
 
-      // assign changed behaviour
+      // Assign changed behaviour
       const checkbox = item.querySelector('input');
       checkbox.addEventListener('change', this.#onChangeCallback.bind(this));
     }
@@ -119,11 +124,12 @@ export default class GroupedEnum {
     let value = this.data?.value?.[0]?.value;
     if (!isNullOrUndefined(value)) {
       this.setValue(value);
-    } else {
-      const defaultValue = this.element.getAttribute('data-default');
-      if (!isNullOrUndefined(defaultValue)) {
-        this.setValue(defaultValue);
-      }
+      return this;
+    }
+
+    const defaultValue = this.element.getAttribute('data-default');
+    if (!isNullOrUndefined(defaultValue)) {
+      this.setValue(defaultValue);
     }
   }
 
@@ -138,27 +144,53 @@ export default class GroupedEnum {
    * @param {event} e the change event of an element
    */
   #onChangeCallback(e) {
-    const checked = this.element.querySelectorAll('input:checked')
-    const selected = Array.prototype.slice.call(checked)
-      .map(node => {
-        return this.data?.options.find(x => x.value == node.getAttribute('data-value'))
-      });
+    const checked = this.element.querySelectorAll('input:checked');
+    const selectedValues = Array.prototype.slice.call(checked)
+      .reduce((res, node) => {
+        const item = this.data?.options?.find?.(x => x.value == node.getAttribute('data-value'));
+        if (isNullOrUndefined(item)) {
+          node.checked = false;
+          return res;
+        }
 
-    // Select a group if a match is found
+        res.push(item.value);
+        return res;
+      }, []);
+
+    // Det. groups, if any
     let matchedGroup;
-    let selectedValues = selected.map(x => x?.value);
-    for (let i = 0; i < this.data?.properties.length; ++i) {
-      let group = this.data?.properties[i];
-      if (isNullOrUndefined(group?.when)) {
-        continue;
-      }
-      
-      if (isArrayEqual(selectedValues, group?.when)) {
-        matchedGroup = group;
-        break
+    let selectedGroup;
+
+    const target = e.target;
+    const properties = this.data?.properties;
+    const singleSelected = selectedValues.length === 1;
+    if (!isNullOrUndefined(properties)) {
+      for (let i = 0; i < properties.length; ++i) {
+        let group = properties[i];
+        if (isNullOrUndefined(group?.when)) {
+          continue;
+        }
+
+        if (isArrayEqual(selectedValues, group?.when)) {
+          matchedGroup = group;
+          break;
+        }
+
+        if (!target.checked) {
+          const test = [...selectedValues];
+          const indx = target.getAttribute('data-value');
+          if (!test.includes(indx)) {
+            test.push(indx);
+          }
+
+          if (isArrayEqual(test, group.when)) {
+            selectedGroup = group;
+          }
+        }
       }
     }
 
+    // Select a group if a match is found
     if (!isNullOrUndefined(matchedGroup)) {
       for (let i = 0; i < checked.length; ++i) {
         let checkbox = checked[i];
@@ -175,21 +207,32 @@ export default class GroupedEnum {
     }
 
     // None found, clear current selection & apply state of our current checkbox
-    const target = e.currentTarget;
+    let desiredValue;
+    if (target.checked) {
+      desiredValue = target.getAttribute('data-value');
+    } else if (singleSelected && selectedGroup) {
+      desiredValue = selectedValues.shift();
+    } else {
+      desiredValue = null;
+    }
+
     for (let i = 0; i < checked.length; ++i) {
       let checkbox = checked[i];
-      if (target == checkbox) {
+      if (!isNullOrUndefined(desiredValue) && singleSelected && selectedGroup) {
+        if (target !== checkbox && !selectedGroup.when.includes(checkbox.getAttribute('data-value'))) {
+          checkbox.checked = false;
+        }
+
+        continue;
+      }
+
+      if (target === checkbox) {
         continue;
       }
 
       checkbox.checked = false;
     }
-    
-    if (target.checked) {
-      this.value = target.getAttribute('data-value');
-    } else {
-      this.value = null;
-    }
+    this.value = desiredValue;
   }
 
   /*************************************
@@ -212,6 +255,6 @@ export default class GroupedEnum {
     </div>`
 
     const doc = parseHTMLFromString(html, true);
-    return this.element.appendChild(doc.body.children[0]);
+    return this.element.appendChild(doc[0]);
   }
 }

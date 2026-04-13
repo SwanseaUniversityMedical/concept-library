@@ -1,0 +1,13 @@
+docs
+.git
+.github
+LICENSE
+README.md
+renovate.json
+**/Thumbs.db
+**/.DS_Store
+**/staticroot
+**/__pycache__
+**/.pytest_cache
+**/.gitkeep
+**/.gitignore

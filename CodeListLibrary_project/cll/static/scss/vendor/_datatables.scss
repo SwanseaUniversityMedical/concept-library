@@ -98,7 +98,10 @@
   visibility: hidden;
 }
 
-.datatable-pagination a {
+.datatable-pagination button {
+  padding: 0;
+  border: none;
+  background: none;
   cursor: pointer;
   border: 1px solid transparent;
   float: left;
@@ -109,33 +112,33 @@
   color: col(text-darkest);
 }
 
-.datatable-pagination a:hover {
+.datatable-pagination button:hover {
   background-color: col(accent-washed);
 }
 
-.datatable-pagination .datatable-active a,
-.datatable-pagination .datatable-active a:focus,
-.datatable-pagination .datatable-active a:hover {
+.datatable-pagination .datatable-active button,
+.datatable-pagination .datatable-active button:focus,
+.datatable-pagination .datatable-active button:hover {
   cursor: default;
   background-color: col(accent-washed);
 }
 
-.datatable-pagination .datatable-ellipsis a,
-.datatable-pagination .datatable-disabled a,
-.datatable-pagination .datatable-disabled a:focus,
-.datatable-pagination .datatable-disabled a:hover {
+.datatable-pagination .datatable-ellipsis button,
+.datatable-pagination .datatable-disabled button,
+.datatable-pagination .datatable-disabled button:focus,
+.datatable-pagination .datatable-disabled button:hover {
   cursor: default;
   pointer-events: none;
 }
 
-.datatable-pagination .datatable-disabled a,
-.datatable-pagination .datatable-disabled a:focus,
-.datatable-pagination .datatable-disabled a:hover {
+.datatable-pagination .datatable-disabled button,
+.datatable-pagination .datatable-disabled button:focus,
+.datatable-pagination .datatable-disabled button:hover {
   cursor: not-allowed;
   opacity: 0.4;
 }
 
-.datatable-pagination .datatable-pagination a {
+.datatable-pagination .datatable-pagination button {
   font-weight: bold;
 }
 
@@ -184,8 +187,12 @@
   text-align: left;
 }
 
-.datatable-table th a {
+.datatable-table th button {
+  padding: 0;
+  border: none;
+  background: none;
   text-decoration: none;
+  text-align: left;
   color: inherit;
 }
 

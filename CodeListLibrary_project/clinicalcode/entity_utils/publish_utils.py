@@ -1,253 +1,243 @@
 from django.urls import reverse
+from django.contrib.auth import get_user_model
+from clinicalcode.entity_utils import model_utils
 
 import re
-from django.contrib.auth.models import  User
-from django.urls import reverse, reverse_lazy
-from django.template.loader import render_to_string
-from clinicalcode.tasks import send_review_email
-from clinicalcode.entity_utils import constants, permission_utils, entity_db_utils
 
-from clinicalcode.models.Concept import Concept
+from clinicalcode.tasks import send_review_email
+from clinicalcode.entity_utils import constants, permission_utils
+from clinicalcode.models.Organisation import Organisation, OrganisationMembership
 from clinicalcode.models.GenericEntity import GenericEntity
+from clinicalcode.templatetags.entity_renderer import get_template_entity_name
 from clinicalcode.models.PublishedGenericEntity import PublishedGenericEntity
 
-def form_validation(request, data, entity_history_id, pk, entity,checks):
+User = get_user_model()
+
+def form_validation(request, data, pk, history_id, entity, checks):
     """
-    Update correct historical table and send email message, and success message to screen
-    @param request: user request object
-    @param data: from any current operations with publish
-    @param entity_history_id: entity historical id
-    @param pk: entity id for database query
-    @param entity: object
-    @param checks: additional utils checks  before approval
-    @return: updated data dictionary to update historical table and request message
-    """
-    data['form_is_valid'] = True
-    data['latest_history_ID'] = entity_history_id  # entity.history.latest().pk
-    #send email message state and client side message
-    data['message'] = send_message(request, pk, data, entity, entity_history_id, checks)['message']
-
-    return data
-
-def send_message(request, pk, data, entity, entity_history_id, checks):
-    """
-    Send email message with variational decisions approved/pending/declined and show message to the  client side
-    @param pk: entity id
-    @param data: dictionary data of approval stage
-    @param entity: entity object
-    @param entity_history_id: entity history id
-    @param checks: additional checks of entity
-    @return: updated data dictionary with client side message
-    """
-    # Message templates
-    approved_template = """The {entity_type} version has been successfully published.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
-    rejected_template = """The {entity_type} version has been rejected .<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
-    pending_template = """The {entity_type} version is going to be reviewed by the moderator.<a href='{url}' class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history} )</a>"""
-
-    # Determine the appropriate message template and send email
-    approval_status = data['approval_status']
-    if approval_status == constants.APPROVAL_STATUS.APPROVED:
-        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, approved_template)
-    elif approval_status == constants.APPROVAL_STATUS.REJECTED:
-        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, rejected_template)
-    elif approval_status == constants.APPROVAL_STATUS.PENDING:
-        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, pending_template)
-    elif approval_status is None and checks['is_moderator']:
-        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, approved_template)
-    elif len(PublishedGenericEntity.objects.filter(
-            entity=GenericEntity.objects.get(pk=pk).id, 
-            approval_status=constants.APPROVAL_STATUS.APPROVED)) > 0 and approval_status != constants.APPROVAL_STATUS.REJECTED:
-        return format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, approved_template)
-
-
-def check_entity_to_publish(request, pk, entity_history_id):
-    '''
-        Allow to publish if:
-        - entity is not deleted
-        - user is an owner
-        - Workingset contains codes
-        - all conceots are published
-        @param request: user request object
-        @param pk: entity id
-        @param entity_history_id: historical id of entity
-        @return: dictionary containing all conditions to publish
-    '''
-    # Fetch the required objects from the database only once
-    generic_entity = GenericEntity.objects.get(id=pk)
-    user_is_moderator = request.user.groups.filter(name="Moderators").exists()
-    user_entity_access = permission_utils.can_user_edit_entity(request, generic_entity.id) #generic_entity.owner == request.user
-
-    latest_pending_version_exists = PublishedGenericEntity.objects.filter(
-        entity_id=pk, 
-        entity_history_id=entity_history_id, 
-        approval_status=constants.APPROVAL_STATUS.PENDING
-    ).exists()
-
-    # Determine the status of the entity
-    entity_is_deleted = generic_entity.is_deleted
-    is_entity_user = not entity_is_deleted and user_entity_access
-    is_publisher = not entity_is_deleted and generic_entity.owner == request.user and request.user.groups.filter(name="publishers").exists()
-    is_moderator = not entity_is_deleted and user_is_moderator
-    is_latest_pending_version = not entity_is_deleted and latest_pending_version_exists
-
-    # Determine the final permission to publish
-    allow_to_publish = is_entity_user or is_moderator or is_publisher
-
-    generic_entity = GenericEntity.objects.get(pk=pk)
-    published_entity_approved = PublishedGenericEntity.objects.filter(
-        entity=generic_entity.id, 
-        approval_status=constants.APPROVAL_STATUS.APPROVED
-    )
-    published_entity_pending = PublishedGenericEntity.objects.filter(
-        entity=generic_entity.id, 
-        approval_status=constants.APPROVAL_STATUS.PENDING
-    )
-
-    # Initialize the status variables based on the fetched data
-    entity_ver = GenericEntity.history.get(id=pk, history_id=entity_history_id)
-    is_published = permission_utils.check_if_published(GenericEntity, pk, entity_history_id)
-    approval_status = permission_utils.get_publish_approval_status(GenericEntity, pk, entity_history_id)
-    is_lastapproved = published_entity_approved.exists()
-    other_pending = published_entity_pending.exists()
-
-    # Get historical version
-    highlight_result = entity_db_utils.is_referred_from_search_page(request)
-    q_highlight = entity_db_utils.get_q_highlight(request, request.session.get('generic_entity_search', ''))
-    entity = entity_db_utils.get_historical_entity(pk, entity_history_id, highlight_result, q_highlight)
-
-    # Entity class
-    entity_class = entity.template.entity_class.name 
-
-    # Check children
-    if is_valid_entity_class(entity_class):
-        is_ok, all_not_deleted, all_are_published, errors = check_child_validity(request,entity,get_entity_class(entity_class))
-
-        if not is_ok:
-            allow_to_publish = False
-
-    entity_has_data = bool(GenericEntity.history.get(id=pk, history_id=entity_history_id).template_data[get_table_of_entity(entity_class)])
-
-    # Check entity data and class
-    if not entity_has_data and entity_class == "Workingset":
-        allow_to_publish = False
+    Update correct historical table and send email message, and success message to screen.
     
-    checks = {
-        'entity_type': entity_class,
-        'name': entity_ver.name,
-        'errors': errors or None,
-        'allowed_to_publish': allow_to_publish,
-        'entity_is_deleted': entity_is_deleted,
-        'is_entity_user': is_entity_user,
-        'is_moderator': is_moderator,
-        'is_publisher': is_publisher,
-        'approval_status': approval_status,
-        'is_lastapproved': is_lastapproved,
-        'other_pending': other_pending,
-        'entity_has_data': entity_has_data,
-        'is_published': is_published,
-        'is_latest_pending_version': is_latest_pending_version,
-        'all_are_published': all_are_published,
-        'all_not_deleted': all_not_deleted
-    }
-    return checks
-
-def check_child_validity(request, entity, entity_class, check_publication_validity=False):
-    """
-    Wrapper for 'check_children' method authored by @zinnurov
-    to optionally test publication & deletion status
-
-    [!] Implementation required until we can discuss how to handle the issues
-    surrounding legacy Phenotypes / Concepts that have imported entities from
-    archived and/or unpublished entities.
+    Important:
+        - Code owner @zinnurova has moved teams so we should clean this up at some point given the significant changes that have been made to perms.
 
     Args:
-        request {RequestContext}: the request context of the form
-        entity {instance}: an instance of an entity
-        entity_class {Model()}: the model entity class
-    
+        request   (HttpRequest): the request context
+        data    (Dict[Str,Any]): computed client & email data _assoc._ with this request
+        pk                (str): the ID of the entity to publish
+        history_id        (int): the history ID of the entity to publish
+        entity          (Model): the entity to be published
+        checks  (Dict[Str,Any]): conditional checks computed for the entity of interest
+
     Returns:
-        {boolean} - a boolean that describes the validity of the child entity
-        {boolean} - a boolean that describes whether the entity passed the deleted test
-        {boolean} - a boolean that describes whether the entity passed the publication check
-        {list} - a list of any errors that may have been encountered when testing each entity
+        (Dict[Str,Any]): a `dict` updated by ref to _incl._ the historical table and request message(s)
     """
+    data['form_is_valid'] = True
+    data['latest_history_ID'] = history_id
 
-    if check_publication_validity:
-        return check_children(request, entity, entity_class)
+    # Send email message state and client side message
+    data['message'] = send_message(request, data, pk, history_id, entity, checks)['message']
+    return data
+
+def send_message(request, data, pk, history_id, entity, checks):
+    """
+    Send email message with variational decisions approved/pending/declined and show message to the client side.
     
-    # defaults to true
-    return True, True, True, []
+    Important:
+        - Code owner @zinnurova has moved teams so we should clean this up at some point given the significant changes that have been made to perms.
 
-def check_children(request, entity, entity_class):
-        """
-        Check if entity child data is validated
-        @param request: user request object
-        @param entity: historical entity object
-        @return: collection of boolean conditions
-        """         
-        if entity_class == "Phenotype":
-            name_table = 'concept_information'
-            child_id = 'concept_id'
-            child_version_id = 'concept_version_id'
-            name_child = 'concept'
-        elif entity_class == "Workingset":
-            name_table = 'workingset_concept_information'
-            child_id = 'phenotype_id'
-            child_version_id = 'phenotype_version_id'
-            name_child = 'phenotype'
-        
-        if entity.template_data[name_table] is None or len(entity.template_data[name_table]) == 0:
-            child_entitys_versions = ''
-        else:
-            child_entitys_versions = [(x[child_id], x[child_version_id]) for x in entity.template_data[name_table]]
+    Args:
+        request   (HttpRequest): the request context
+        data    (Dict[Str,Any]): computed client & email data _assoc._ with this request
+        pk                (str): the ID of the entity to publish
+        history_id        (int): the history ID of the entity to publish
+        entity          (Model): the entity to be published
+        checks  (Dict[Str,Any]): conditional checks computed for the entity of interest
 
-        # Now check all the child concepts for deletion(from live version) and Publish(from historical version)
-        # we check access(from live version) here.
-        errors = []
-        all_not_deleted = True
-        all_are_published = True
+    Returns:
+        (Dict[Str,Any]): a `dict` updated by ref to _incl._ the historical table and request message(s)
+    """
+    # Message templates
+    approved_template = '''The {entity_type} version has been successfully published.<a href="{url}" class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history})</a>'''
+    rejected_template = '''The {entity_type} version has been rejected .<a href="{url}" class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history})</a>'''
+    pending_template = '''The {entity_type} version is going to be reviewed by the moderator.<a href="{url}" class="alert-link">({entity_type} ID: {pk}, VERSION ID:{history})</a>'''
 
-        # Collect all ids from child_entitys_versions
-        ids = [p[0] for p in child_entitys_versions]
+    # Determine the appropriate message template and send email
+    pub_status = data.get('approval_status', None)
+    not_pubbed = pub_status is None or (isinstance(pub_status, bool) and not pub_status)
 
-        # Query the database once for each model
-        deleted_objects = Concept.objects.filter(id__in=ids, is_deleted=True) if entity_class == "Phenotype" else GenericEntity.objects.filter(id__in=ids, is_deleted=True)
+    if pub_status == constants.APPROVAL_STATUS.APPROVED:
+        return format_message_and_send_email(request, data, pk, history_id, entity, checks, approved_template)
+    elif pub_status == constants.APPROVAL_STATUS.REJECTED:
+        return format_message_and_send_email(request, data, pk, history_id, entity, checks, rejected_template)
+    elif pub_status == constants.APPROVAL_STATUS.PENDING:
+        return format_message_and_send_email(request, data, pk, history_id, entity, checks, pending_template)
+    elif not_pubbed and checks['is_moderator']:
+        return format_message_and_send_email(request, data, pk, history_id, entity, checks, approved_template)
+    elif (
+        PublishedGenericEntity.objects.filter(entity=pk, approval_status=constants.APPROVAL_STATUS.APPROVED.value).count() > 0
+        and pub_status != constants.APPROVAL_STATUS.REJECTED
+    ):
+        return format_message_and_send_email(request, data, pk, history_id, entity, checks, approved_template)
 
-        # Iterate through deleted objects and update errors dictionary
-        errors = [{obj.id: f'Child {name_child}({obj.id}) is deleted',"url_parent":None} for obj in deleted_objects]
-        # Check if all objects are not deleted
-        all_not_deleted = not bool(errors)
+def check_entity_to_publish(request, pk, history_id):
+    """
+    Computes permissions, properties, and statuses assoc. with a publication request and the _assoc._ `entity` such that:
+        - The user has permissions to both edit and publish the entity (or has a role that allows publication outside of these cases, _e.g._ moderator _etc_);
+        - The entity is confirmed to be live, _i.e._ not deleted, and all of its descendants are valid;
+        - The characteristics of historical publication requests have been taken into account.
 
-        for entity_child in child_entitys_versions:
-            entity_child_id = entity_child[0]
-            entity_child_version = entity_child[1]
+    Important:
+        - Code owner @zinnurova has moved teams so we should clean this up at some point given the significant changes that have been made to perms.
 
-            concept_owner_id = Concept.objects.get(id=entity_child_id).phenotype_owner_id
-            if concept_owner_id != entity.id:
-                entity_from_concept = GenericEntity.history.filter(
-                    id=concept_owner_id,
-                    publish_status=constants.APPROVAL_STATUS.APPROVED.value
-                )
+    Args:
+        request (HttpRequest): the request context
+        pk              (str): the ID of the entity to publish
+        history_id      (int): the history ID of the entity to publish
 
-                if entity_from_concept.exists():
-                    inheritated_childs = [(i[child_id],i[child_version_id]) for i in entity_from_concept.values_list("template_data", flat=True)[0][name_table]]
-                    is_published = (entity_child_id,entity_child_version) in inheritated_childs
-                else:
-                    is_published = False
-            else:
-                is_published = True
-            if not is_published:
-                errors.append({str(entity_child_id) + '/' + str(entity_child_version):"""{name}({id}/{version}) is not published""".format(
-                    name=name_child.capitalize(),
-                    id=str(entity_child_id),
-                    version=str(entity_child_version)
-                ),"url_parent": reverse('entity_detail', kwargs={'pk': concept_owner_id})})
-                all_are_published = False
+    Returns:
+        (Dict[Str,Any]): A `dict` specifying all conditions, statuses and properties to be considered when publishing the entity
+    """
+    # Fetch the required objects from the database only once
+    entity = GenericEntity.objects.get(id=pk)
+    entity_ver = entity.history.get(history_id=history_id)
+    user_is_moderator = request.user.groups.filter(name='Moderators').exists()
+    user_entity_access = permission_utils.can_user_edit_entity(request, pk)
+    published_entities = PublishedGenericEntity.objects.filter(entity_id=pk)
 
-        return all_not_deleted and all_are_published, all_not_deleted, all_are_published, errors
+    # Resolve publication requests
+    recent_requests = sorted([x for x in published_entities if x.entity_history_id == history_id], key=lambda x: x.modified, reverse=True)
+
+    any_pending_request = next((x for x in published_entities if x.approval_status == constants.APPROVAL_STATUS.PENDING), None)
+    any_approved_request = next((x for x in published_entities if x.approval_status == constants.APPROVAL_STATUS.APPROVED), None)
+
+    versioned_pending_request = next((x for x in published_entities if x.entity_history_id == history_id and x.approval_status == constants.APPROVAL_STATUS.PENDING), None)
+    verioned_approved_request = next((x for x in published_entities if x.entity_history_id == history_id and x.approval_status == constants.APPROVAL_STATUS.APPROVED), None)
+
+    other_pending = any_pending_request is not None
+    is_lastapproved = any_approved_request is not None
+    latest_pending_version_exists = versioned_pending_request is not None
+
+    # Determine the status of the request user and the specified entity
+    is_deleted = entity.is_deleted
+    is_publisher = not is_deleted and entity.owner == request.user and request.user.groups.filter(name='publishers').exists()
+    is_moderator = not is_deleted and user_is_moderator
+    is_entity_user = not is_deleted and user_entity_access
+    is_latest_pending_version = not is_deleted and latest_pending_version_exists
+
+    # Compute permission to publish, current publication status & descendant validity by entity cls
+    entity_type = entity.template.entity_class.name if entity.template is not None and entity.template.entity_class is not None else None
+    can_publish = is_entity_user or is_moderator or is_publisher
+    is_published = verioned_approved_request is not None
+    approval_status = recent_requests.pop(0).approval_status if len(recent_requests) > 0 else False
+
+    # NOTE:
+    # - The following is legacy behaviour that we may not need; leaving this as a note until we reimplement
+    #
+    validity_err = None
+    all_children_live = True
+    all_children_published = True
+    # if is_valid_entity_class(entity_type):
+    #     is_ok, all_not_deleted, all_are_published, errors = check_child_validity(request, entity, get_entity_class(entity_type))
+    #     if not is_ok:
+    #         can_publish = False
+    #         validity_err = errors
+    #         all_children_live = all_not_deleted
+    #         all_children_published = all_are_published
+
+    data_name = get_table_of_entity(entity_type)
+    has_dataset = entity_ver.template_data.get(data_name, None) is not None
+
+    checks = {
+        'name': entity_ver.name,
+        'errors': validity_err,
+        'entity_type': entity_type,
+        'is_moderator': is_moderator,
+        'is_publisher': is_publisher,
+        'is_published': is_published,
+        'other_pending': other_pending,
+        'is_entity_user': is_entity_user,
+        'approval_status': approval_status,
+        'is_lastapproved': is_lastapproved,
+        'entity_has_data': has_dataset,
+        'all_not_deleted': all_children_live,
+        'all_are_published': all_children_published,
+        'entity_is_deleted': is_deleted,
+        'branded_entity_cls': get_template_entity_name(entity.template.entity_class, entity.template),
+        'allowed_to_publish': can_publish,
+        'is_latest_pending_version': is_latest_pending_version,
+    } 
+
+    # Compute organisation authority and vary the publication conditions
+    checks |= check_organisation_authorities(request, entity)
+
+    return checks
+
+def check_organisation_authorities(request, entity):
+    """
+    Computes permissions, properties, and statuses assoc. with a publication request and the _assoc._ `entity` in the context of:
+        1. The desired behaviour of publication as specified by the `HttpRequest`'s `Brand`;
+        2. The permissions afforded to the user _assoc._ with this request by the organisation whom shares ownership of the `entity`.
+
+    Important:
+        - Code owner @zinnurova has moved teams so we should clean this up at some point given the significant changes that have been made to perms.
+
+    Args:
+        request (HttpRequest): the request context
+        entity        (Model): the entity to inspect
+
+    Returns:
+        (Dict[Str,Any]): A `dict` specifying all conditions, statuses and properties to be considered when publishing the entity in this `Brand`'s organisation ctx
+    """
+    organisation_checks = { }
+
+    try:
+        organisation = entity.organisation
+    except Organisation.DoesNotExist:
+        organisation = None
+
+    if organisation is None:
+        brand = model_utils.try_get_brand(request)
+        if brand is not None:
+            org_user_managed = permission_utils.is_org_managed(request)
+            organisation_checks |= {
+                'org_user_managed': org_user_managed,
+                'allowed_to_publish': not org_user_managed
+            }
+
+        return organisation_checks
+
+    organisation_user_role = permission_utils.get_organisation_role(request.user, organisation)
+    organisation_permissions = permission_utils.has_org_authority(request, organisation)
+
+    if isinstance(organisation_permissions, dict) and organisation_user_role is not None:
+        if organisation_permissions['org_user_managed']:
+            # Reset & derive publication conditions
+            org_user_managed = organisation_permissions['org_user_managed']
+            can_moderate_org = organisation_permissions.get('can_moderate', False)
+
+            allowed_to_publish = can_moderate_org and organisation_user_role.value >= 1
+            allowed_to_moderate = can_moderate_org and organisation_user_role.value >= 2
+
+            organisation_checks |= {
+                'is_published': False,
+                'is_moderator': allowed_to_moderate,
+                'is_publisher': False,
+                'other_pending': False,
+                'is_lastapproved': False,
+                'org_user_managed': org_user_managed,
+                'all_are_published': False,
+                'allowed_to_publish': allowed_to_publish,
+                'is_latest_pending_version': False,
+            }
+    elif permission_utils.is_org_managed(request):
+        organisation_checks |= { 'allowed_to_publish': False }
+
+    return organisation_checks
 
 def is_valid_entity_class(entity_class):
     """
+    [!] LEGACY
+
     Regex function to check entity class name
     @param entity_class: entity class to check
     """
@@ -255,6 +245,8 @@ def is_valid_entity_class(entity_class):
 
 def get_entity_class(entity_class):
     """
+    [!] LEGACY
+
     Decide either phenotype or workingset is present so that we can use only one word
     @param entity_class: entity class to check
     """
@@ -263,49 +255,98 @@ def get_entity_class(entity_class):
 
 def get_table_of_entity(entity_class):
     """
+    [!] LEGACY
+
     Decide either table data from phenotype or workingset
     @param entity_class: entity class to check
     """
     return 'concept_information' if entity_class == "Phenotype" else 'workingset_concept_information'
 
 
-def format_message_and_send_email(request, pk, data, entity, entity_history_id, checks, message_template):
+def format_message_and_send_email(request, data, pk, history_id, entity, checks, message_template):
     """
-    Format the message, send an email, and update data with the new message
+    Format the message, send an email, and update data with the new message.
+    
+    Important:
+        - Code owner @zinnurova has moved teams so we should clean this up at some point given the significant changes that have been made to perms.
+
+    Args:
+        request   (HttpRequest): the request context
+        data    (Dict[Str,Any]): computed client & email data _assoc._ with this request
+        pk                (str): the ID of the entity to publish
+        history_id        (int): the history ID of the entity to publish
+        entity          (Model): the entity to be published
+        checks  (Dict[Str,Any]): conditional checks computed for the entity of interest
+        message_template  (str): the message to be formatted for this entity's publication e-mail
+
+    Returns:
+        (Dict[Str,Any]): a `dict` updated by ref to _incl._ the formatted request message(s)
     """
     data['message'] = message_template.format(
-        entity_type=checks['entity_type'], 
-        url=reverse('entity_history_detail', args=(pk, entity_history_id)), 
+        entity_type=checks.get('branded_entity_cls'),
+        url=reverse('entity_history_detail', args=(pk, history_id)), 
         pk=pk,
-        history=entity_history_id
+        history=history_id
     )
-    send_email_decision_entity(request,entity, entity_history_id, checks['entity_type'], data)
+    send_email_decision_entity(request, entity, history_id, checks, data)
     return data
 
 def get_emails_by_groupname(groupname):
     user_list = User.objects.filter(groups__name=groupname)
     return [i.email for i in user_list]
 
-def send_email_decision_entity(request, entity, entity_history_id, entity_type,data):
+def get_emails_by_organization(request, entity_id=None):
+    organisation = permission_utils.get_organisation(request, entity_id=entity_id)
+    if organisation:
+        user_list = OrganisationMembership.objects.filter(organisation_id=organisation.id)
+        email_list = []
+        for membership in user_list:
+            if membership.role >= 2:
+                email_list.append(membership.user.email)
+        return email_list
+
+    return None
+
+def send_email_decision_entity(request, entity, history_id, checks, data):
     """
-    Call util function to send email decision
-    @param workingset: workingset object
-    @param approved: approved status flag
+    Calls async function to send decision email.
+
+    Important:
+        - Code owner @zinnurova has moved teams so we should clean this up at some point given the significant changes that have been made to perms.
+
+    Args:
+        request   (HttpRequest): the request context
+        entity          (Model): the entity to be published
+        history_id        (int): the history ID of the entity to publish
+        checks  (Dict[Str,Any]): conditional checks computed for the entity of interest
+        data    (Dict[Str,Any]): computed client & email data _assoc._ with this request
     """
-    url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': entity_history_id})
-    context = {"id":entity.id,"history_id":entity_history_id, "entity_name":data['entity_name_requested'], "entity_user_id": entity.owner_id,"url_redirect":url_redirect}
+    url_redirect = reverse('entity_history_detail', kwargs={'pk': entity.id, 'history_id': history_id})
+
+    requested_userid = entity.created_by.id
+  
+    context = {
+        'id': entity.id,
+        'history_id': history_id,
+        'entity_name': data['entity_name_requested'],
+        'entity_user_id': requested_userid,
+        'url_redirect': url_redirect,
+    }
+
     if data['approval_status'].value == constants.APPROVAL_STATUS.PENDING:
-        context["status"] = "Pending"
-        context["message"] = "Your Phenotype has been submitted and is under review"
-        context["staff_emails"] = get_emails_by_groupname("Moderators")
+        context['status'] = 'Pending'
+        context['message'] = 'Your work has been submitted and is under review.'
+        context['staff_emails'] = get_emails_by_groupname('Moderators')
+        if checks.get('org_user_managed', False):
+            context['staff_emails'] = get_emails_by_organization(request, entity.id)
         send_review_email(request, context)
     elif data['approval_status'].value == constants.APPROVAL_STATUS.APPROVED:
         # This line for the case when user want to get notification of same workingset id but different version
-        context["status"] = "Published"
-        context["message"] = "Your Phenotype has been approved and successfully published"
+        context['status'] = 'Published'
+        context['message'] = 'The work you submitted has been approved and successfully published.'
         send_review_email(request, context)
     elif data['approval_status'].value == constants.APPROVAL_STATUS.REJECTED:
-        context["status"] = "Rejected"
-        context["message"] = "Your Phenotype submission has been rejected by the moderator"
-        context["custom_message"] = "We welcome you to try again but please address these concerns with your Phenotype first" #TODO add custom message logic
+        context['status'] = 'Rejected'
+        context['message'] = 'The work you submitted has been rejected by the moderator'
+        context['custom_message'] = 'We welcome you to try again but please address the moderator\'s concerns with your work first.'
         send_review_email(request, context)

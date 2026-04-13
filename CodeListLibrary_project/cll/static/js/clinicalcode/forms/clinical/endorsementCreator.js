@@ -36,23 +36,23 @@ import {
 } from '../entityFormConstants.js';
 
 /**
- * endorsement_ITEM_ELEMENT
+ * ENDORSEMENT_ITEM_ELEMENT
  * @desc describes the endorsement item element and its interpolable targets
  *
  */
-const endorsement_ITEM_ELEMENT =
-  '<div class="publication-list-group__list-item" data-target="${index}" style="display: flex; justify-content: space-between; align-items: center;"> \
-  <div class="publication-list-group__list-item-url" style="flex: 1;">\
-    <p style="margin: 0;">${date}</p> \
-  </div>\
-  <div class="publication-list-group__list-item-date" style="flex: 1; text-align: center;">\
-    <p style="margin: 0;">${endorsement_organisation}</p> \
-  </div>\
-  <button class="publication-list-group__list-item-btn" data-target="${index}" style="margin-left: 10px;"> \
-    <span class="delete-icon"></span> \
-    <span>Remove</span> \
-  </button> \
-</div>';
+const ENDORSEMENT_ITEM_ELEMENT = '\
+  <div class="publication-list-group__list-item" data-target="${index}"> \
+    <div class="publication-list-group__list-item-names">\
+      <p>${endorsement_organisation}</p> \
+    </div>\
+    <div class="publication-list-group__list-item-bhfdate">\
+      <p>${date}</p> \
+    </div>\
+    <button class="publication-list-group__list-item-btn" data-target="${index}"> \
+      <span class="delete-icon"></span> \
+      <span>Remove</span> \
+    </button> \
+  </div>';
 
 /**
  * @class endorsementCreator
@@ -94,7 +94,7 @@ export default class endorsementCreator {
 
     // init
     this.#setUp();
-    this.#redrawendorsements();
+    this.#redrawEndorsements();
   }
 
   /*************************************
@@ -150,24 +150,25 @@ export default class endorsementCreator {
    *************************************/
   /**
    * drawItem
-   * @param {integer} index the index of the endorsement in our data
+   * @param {number} index       the index of the endorsement in our data
    * @param {string} endorsement the endorsement name
+   * @param {string} date        the endorsement date
+   * 
    * @returns {string} html string representing the element
    */
-  #drawItem(index, endorsement_organisation,date) {
-
-    return interpolateString(endorsement_ITEM_ELEMENT, {
+  #drawItem(index, endorsement, date) {
+    return interpolateString(ENDORSEMENT_ITEM_ELEMENT, {
       index: index,
       date: date,
-      endorsement_organisation: endorsement_organisation
+      endorsement_organisation: endorsement,
     });
   }
 
   /**
-   * redrawendorsements
+   * redrawEndorsements
    * @desc redraws the entire endorsement list
    */
-  #redrawendorsements() {
+  #redrawEndorsements() {
     this.dataResult.innerText = JSON.stringify(this.data);
     this.renderables.list.innerHTML = "";
 
@@ -177,8 +178,8 @@ export default class endorsementCreator {
       for (let i = 0; i < this.data.length; ++i) {
         const node = this.#drawItem(
           i,
+          this.data[i]?.endorsement_organisation,
           this.data[i]?.date,
-          this.data[i]?.endorsement_organisation
         );
         this.renderables.list.insertAdjacentHTML("beforeend", node);
       }
@@ -196,30 +197,23 @@ export default class endorsementCreator {
    */
   #setUp() {
     this.endorsementInput = this.element.querySelector(this.options.textInputId);
+    this.datepickerElement = this.element.querySelector(this.options.endorsementDatepickerId);
 
-    this.datepicker = ENTITY_HANDLERS['datepicker'](this.element.querySelector(this.options.endorsementDatepickerId), [])
+    this.datepicker = ENTITY_HANDLERS['datepicker'](this.datepickerElement, []);
 
-    let initialDate = moment(this.element.querySelector(this.options.endorsementDatepickerId).getAttribute('data-value'), ENTITY_ACCEPTABLE_DATE_FORMAT);
+    let initialDate = moment(this.datepickerElement.getAttribute('data-value'), ENTITY_ACCEPTABLE_DATE_FORMAT);
     initialDate = initialDate.isValid() ? initialDate : moment();
     initialDate = initialDate.format('DD/MM/YYYY');
     this.datepicker.setDate(initialDate,true);
-
-    this.element.querySelector(this.options.endorsementDatepickerId).setAttribute('data-value',initialDate);
-
+    this.datepickerElement.setAttribute('data-value', initialDate);
 
     this.addButton = this.element.querySelector(this.options.addButtonId);
     this.addButton.addEventListener("click", this.#handleInput.bind(this));
     window.addEventListener("click", this.#handleClick.bind(this));
 
-    const noneAvailable = this.element.parentNode.querySelector(
-      this.options.availabilityId
-    );
-    const endorsementGroup = this.element.parentNode.querySelector(
-      this.options.endorsementGroupId
-    );
-    const endorsementList = this.element.parentNode.querySelector(
-      this.options.endorsementListId
-    );
+    const noneAvailable = this.element.parentNode.querySelector(this.options.availabilityId);
+    const endorsementGroup = this.element.parentNode.querySelector(this.options.endorsementGroupId);
+    const endorsementList = this.element.parentNode.querySelector(this.options.endorsementListId);
     this.renderables = {
       none: noneAvailable,
       group: endorsementGroup,
@@ -245,30 +239,39 @@ export default class endorsementCreator {
     e.stopPropagation();
 
     const endorsement = strictSanitiseString(this.endorsementInput.value);
-    const date = this.element.querySelector(this.options.endorsementDatepickerId);
     if (!this.endorsementInput.checkValidity() || isNullOrUndefined(endorsement) || isStringEmpty(endorsement)) {
       window.ToastFactory.push({
         type: 'danger',
-        message: "Incorrect endorsement details provided",
+        message: 'Incorrect endorsement details provided',
         duration: this.options.notificationDuration,
       });
+      this.endorsementInput.value = endorsement;
+
       return;
     }
 
-    if (!date.getAttribute('data-value')) {
+    const picker = this.datepickerElement;
+    const dateValue = picker ? picker.getAttribute('data-value') : null;
+    if (!dateValue) {
+      window.ToastFactory.push({
+        type: 'danger',
+        message: 'Date is required for endorsement',
+        duration: this.options.notificationDuration,
+      });
+
       return;
     }
 
-    this.endorsementInput.value = "";
-    let filteredDate = moment(date.getAttribute('data-value'), ENTITY_ACCEPTABLE_DATE_FORMAT);
+    let filteredDate = moment(dateValue, ENTITY_ACCEPTABLE_DATE_FORMAT);
     filteredDate = filteredDate.isValid() ? filteredDate : moment();
     filteredDate = filteredDate.format('DD/MM/YYYY');
-    this.element.querySelector(this.options.endorsementDatepickerId).setAttribute('data-value',filteredDate);
-    
-    this.data.push({ endorsement_organisation: endorsement, date: date.getAttribute('data-value')});
-    this.makeDirty();
+    picker.setAttribute('data-value', filteredDate);
 
-    this.#redrawendorsements();
+    this.endorsementInput.value = '';
+    this.data.push({ endorsement_organisation: endorsement, date: filteredDate });
+
+    this.makeDirty();
+    this.#redrawEndorsements();
   }
 
   /**
@@ -292,7 +295,7 @@ export default class endorsementCreator {
     }
 
     this.data.splice(parseInt(index), 1);
-    this.#redrawendorsements();
+    this.#redrawEndorsements();
     this.makeDirty();
   }
 }

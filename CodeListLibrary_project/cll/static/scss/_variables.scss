@@ -6,12 +6,14 @@ $off_white: rgb(251, 251, 250);
 $off_white02: rgb(247, 247, 247);
 $white_smoke: rgb(245, 245, 245);
 $black: rgb(0, 0, 0);
+$mostly_black: rgb(31, 28, 46);
 $near-black: rgb(40, 40, 40);
 $blackish-grey: rgb(82, 82, 82);
 $lightblack-grey:rgb(110,109,122);
 $dark_grey: rgb(140, 140, 140);
 $light_grey: rgb(170, 170, 170);
 $lightest_grey: rgb(220, 220, 220);
+$lightest_grey_02: rgba(220, 220, 220, 0.2);
 $pastel_red: rgb(255, 135, 135);
 $light_red:rgb(242,242,242);
 $bright_blue: rgb(0, 0, 255);
@@ -34,6 +36,8 @@ $indigo: rgb(90, 103, 216);
 $cornflower_blue: rgb(102, 126, 234);
 $san_juan_blue: rgb(55, 72, 113);
 $pickled_bluewood: rgb(51, 65, 85);
+$dark_mod_lime_green: rgb(52, 125, 57);
+$light_mod_lime_green: rgb(87, 171, 90);
 $pixie_green: rgb(196, 223, 170);
 $light_grey_green: rgb(182, 226, 161);
 $yellow_green: rgb(185, 217, 129);
@@ -46,6 +50,7 @@ $lavender_mist: rgb(225, 230, 249);
 $zircon: rgb(246, 248, 255);
 $wax_flower: rgb(254, 190, 140);
 $debian_red: rgb(214, 19, 85);
+$strong_red: rgb(214, 50, 19);
 
 /* ADP COLOURS */
 // Legacy
@@ -71,6 +76,18 @@ $debian_red: rgb(214, 19, 85);
   $mostly_blue: rgb(0,185,255);
   $bright_orange: rgb(229,157,35);
   $bright_cyan: rgb(221, 250, 255);
+
+/* HDRN colours */
+$hdrn_darker_blue: rgb(0, 22, 39);
+$hdrn_dark_blue: rgb(0, 39, 72);
+$hdrn_darkish_blue: rgb(0, 67, 123);
+$hdrn_steel_blue: rgb(0, 106, 120);
+$hdrn_light_blue: rgb(186, 216, 220);
+$hdrn_pale_aqua: rgb(154, 234, 206);
+$hdrn_sky_mint: rgb(209, 255, 246);
+$hdrn_gray: rgb(87, 87, 87);
+$hdrn_light_gray: rgb(167, 165, 167);
+$hdrn_lighter_gray: rgb(199, 199, 199);
 
 /* Layout definitions */
 $column-min: 1;
@@ -256,7 +273,7 @@ $modifiers: (
     )
   ),
   'margin-bottom': (
-    property: margin-left,
+    property: margin-bottom,
     values: (
       sm: 0.2rem,
       md: 0.5rem,
@@ -265,7 +282,7 @@ $modifiers: (
     )
   ),
   'margin-left': (
-    property: margin-bottom,
+    property: margin-left,
     values: (
       sm: 0.2rem,
       md: 0.5rem,

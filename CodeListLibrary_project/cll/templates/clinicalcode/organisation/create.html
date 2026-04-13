@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load sass_tags %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Create Organisation {% endblock title %}
+
+{% block container %}
+  <!-- Dependencies -->
+  {% compress js %}
+    <script type="module" src="{% static 'js/clinicalcode/components/toastNotification.js' %}"></script>
+  {% endcompress %}
+
+  <!-- Page Stylesheets -->
+  {% compress css %}
+    <link rel="stylesheet" href="{% sass_src 'scss/pages/organisations.scss' %}" type="text/css" />
+  {% endcompress %}
+
+  <!-- Main -->
+  <header class="main-header banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="banner__container">
+        <h2 class="banner__title">Create Organisation</h2>
+        <p class="banner__description">
+          Set up your organisation.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <article class="organisation-page">
+        <form method="post" id="archive-form-area" class="base-form">
+          {% csrf_token %}
+
+          {% for field in form.visible_fields %}
+          <div class="detailed-input-group fill">
+            <h3 class="detailed-input-group__title">
+              {{ field.label_tag }}
+              {% if field.field.required %}
+                <span class="detailed-input-group__mandatory">*</span>
+              {% endif %}
+            </h3>
+            <p class="detailed-input-group__description">Your organisation's {{ field.label_tag|lower }}</p>
+            {{ field }}
+            {% if field.errors %}
+              <small class="error">{{ field.errors|striptags  }}</small> 
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          <footer class="organisation-page__submit">
+            <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Create" type="submit" id="submit-btn">
+              Create
+            </button>
+          </footer>
+        </form>
+      </article>
+    </div>
+  </main>
+
+{% endblock container %}

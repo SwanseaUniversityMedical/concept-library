@@ -1,4 +1,7 @@
+{% load entity_renderer %}
+
 {% block content %}
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -129,10 +132,11 @@
 		</style>
 	</head>
 	<body>
+		{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
 		<div class="mail-content">
 			<h2 class="mail-title">
-				<img class="mail-title__icon" src="cid:mainlogo" alt="Concept Library" height="60" valign="middle" />
-				Notification from Concept Library
+				<img class="mail-title__icon" src="cid:mainlogo" alt="{{ base_page_title }}" height="60" valign="middle" />
+				Notification from {{ base_page_title }}
 			</h2>
 
 			{% include "clinicalcode/email/email_card.html" %}

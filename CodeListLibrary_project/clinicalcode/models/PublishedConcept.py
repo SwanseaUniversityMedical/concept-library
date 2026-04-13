@@ -1,8 +1,11 @@
-from django.contrib.auth.models import User
+
 from django.db import models
 from simple_history.models import HistoricalRecords
+from django.contrib.auth import get_user_model
 
 from .Concept import Concept
+
+User = get_user_model()
 
 class PublishedConcept(models.Model):
     concept = models.ForeignKey(Concept, on_delete=models.CASCADE)

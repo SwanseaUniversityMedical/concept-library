@@ -84,6 +84,7 @@ const applyCodelistsFromConcepts = (conceptData, options) => {
     fixedColumns: false,
     classes: {
       wrapper: 'overflow-table-constraint',
+      container: 'datatable-container slim-scrollbar',
     },
     data: {
       headings: headings,

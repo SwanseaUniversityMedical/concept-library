@@ -1,0 +1,41 @@
+{% load entity_renderer %}
+
+<div class="detailed-input-group fill">
+  <h3 class="detailed-input-group__title">Related References {% if component.mandatory %}<span class="detailed-input-group__mandatory">*</span>{% endif %}</h3>
+  {% if not component.hide_input_details %}
+    <p class="detailed-input-group__description">A list of third party references related to this Concept.</p>
+  {% endif %}
+
+  <div class="publication-list-group">
+    {% if component.value %}
+      {% to_json_script component.value desc-type="value" for=component.field_name %}
+    {% else %}
+      <script type="application/json" data-type="value" for="{{ component.field_name }}"></script>
+    {% endif %}
+
+    <div class="publication-list-group__interface" data-class="clinical-references" data-field="{{ component.field_name }}">
+      <p>Add References</p>
+      <div class="publication-list-group__interface-children">
+        <input class="text-input" aria-label="Reference Title" type="text"
+          placeholder="Enter Title"
+          minlength="3" pattern="^[a-zA-Z]{1,}.*?"
+          id="reference-title-input-box">
+        <input class="text-input" aria-label="Reference Link" type="text" placeholder="Enter URL" id="url-input-box">
+        <button class="primary-btn text-accent-darkest bold secondary-accent" aria-label="Add Reference" id="add-input-btn">Add</button>
+      </div>
+    </div>
+
+    <section class="publication-list-group__none-available" id="no-available-references">
+      <p class="publication-list-group__none-available-message">You haven't added any references yet.</p>
+    </section>
+
+    <section class="publication-list-group__list show" id="reference-group">
+      <div class="publication-list-group__list-header" id="pub-header">
+        <h3>Your references</h3>
+      </div>
+      <div class="publication-list-group__list-container slim-scrollbar" id="reference-list">
+        
+      </div>
+    </section>
+  </div>
+</div>

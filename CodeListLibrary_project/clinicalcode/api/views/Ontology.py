@@ -150,8 +150,8 @@ def get_ontology_nodes(request):
         if 'exact_codes' not in request.query_params.keys():
             # Fuzzy across every code mapping
             clauses.append('''(
-                (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', array_to_string(%(codes)s, '|'))::text || ':*', '<->', '|')))
-                or (relation_vector @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', array_to_string(%(alt_codes)s, '|'))::text || ':*', '<->', '|')))
+                (relation_vector @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(array_to_string(%(codes)s, '|')), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
+                or (relation_vector @@ to_tsquery('pg_catalog.english',replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(array_to_string(%(alt_codes)s, '|')), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
             )''')
         else:
             # Direct search for snomed
@@ -169,10 +169,10 @@ def get_ontology_nodes(request):
         # Fuzzy across code / desc / synonyms / relation
         clauses.append('''(
             node.search_vector
-            @@ to_tsquery('pg_catalog.english', replace(websearch_to_tsquery('pg_catalog.english', %(search)s)::text || ':*', '<->', '|'))
+            @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
         )''')
 
-        search_rank = '''ts_rank_cd(node.search_vector, websearch_to_tsquery('pg_catalog.english', %(search)s))'''
+        search_rank = '''ts_rank_cd(node.search_vector, to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))'''
         row_clause = '''row_number() over (order by %s) as rn,''' % search_rank
 
         search_rank = search_rank + ' as score,'

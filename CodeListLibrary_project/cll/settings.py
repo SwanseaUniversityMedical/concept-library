@@ -14,14 +14,16 @@ from django_auth_ldap.config import (LDAPSearch,
                                      NestedActiveDirectoryGroupType)
 
 import os
-import socket
 import sys
 import ldap
+import socket
 import numbers
 
 from clinicalcode.entity_utils import sanitise_utils
 
-''' Utilities '''
+
+#!> Utilities
+
 class Symbol:
     """
         Used as a primitive to describe an optional argument.
@@ -76,19 +78,20 @@ def GET_SERVER_IP(TARGET_IP='10.255.255.255', PORT=1):
     return IP
 
 
-def get_env_value(env_variable, cast=None, default=Symbol('None')):
+def get_env_value(env_variable, cast=None, default=Symbol('None'), strip_empty=False):
     """
         Attempts to get env variable from OS
     """
     try:
-        if cast == None:
-            return os.environ[env_variable]
-        elif cast == 'int':
+        if cast == 'int':
             return int(os.environ[env_variable])
         elif cast == 'bool':
             return bool(strtobool(os.environ[env_variable]))
         else:
-            return os.environ[env_variable]
+            value = os.environ[env_variable]
+            if strip_empty and len(value) < 1:
+                return default
+            return value
     except KeyError:
         if isinstance(default, Symbol):
             error_msg = 'Expected environment variable "{}" of type<{}>, please set a valid "{}" environment variable' \
@@ -101,10 +104,11 @@ def get_env_value(env_variable, cast=None, default=Symbol('None')):
 
 # ==============================================================================#
 
-''' Application base '''
+#!> Application base
 
 APP_TITLE = 'Concept Library'
-APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical code lists in health research.'
+APP_DESC = 'The {app_title} is a system for storing, managing, sharing, and documenting clinical codelists in health research.'
+APP_CITATION = 'Users should cite the {app_title} in all publications, presentations and reports as follows: “<em>{brand_name} {app_title}, website: <a href="{brand_website}" target=_blank>{brand_website}</a>.</em>”'
 APP_LOGO_PATH = 'img/'
 APP_EMBED_ICON = '{logo_path}embed_img.png'
 INDEX_PATH = 'clinicalcode/index.html'
@@ -114,9 +118,10 @@ ADMIN = [
     ('Dan', 'd.s.thayer@swansea.ac.uk')
 ]
 
+
 # ==============================================================================#
 
-''' Application settings '''
+#!> Application settings
 
 SRV_IP = GET_SERVER_IP()
 
@@ -134,11 +139,20 @@ else:
 if path_prj not in sys.path:
     sys.path.append(path_prj)
 
+
 # ==============================================================================#
 
-''' Application variables '''
+#!> Application variables
 
-# separate settings for different environments
+# Redis
+REDIS_HOST = get_env_value('REDIS_HOST', default='redis')
+REDIS_PORT = get_env_value('REDIS_PORT', cast='int', default=6379)
+REDIS_PASSWORD = get_env_value('REDIS_PASSWORD', default=None)
+
+# Test-related config
+REMOTE_TEST = get_env_value('REMOTE_TEST', cast='bool', default=False)
+
+# Env config
 IS_DEMO = get_env_value('IS_DEMO', cast='bool')
 
 CLINICALCODE_SESSION_ID = 'concept'
@@ -169,17 +183,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = None
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.saildatabank.com',
-    'https://phenotypes.healthdatagateway.org',
-    'http://conceptlibrary.serp.ac.uk',
-    'http://conceptlibrary.sail.ukserp.ac.uk'
-]
-
-# This variable was used for dev/admin and no longer maintained
-# ENABLE_PUBLISH = True   # get_env_value('ENABLE_PUBLISH', cast='bool')
-SHOWADMIN = get_env_value('SHOWADMIN', cast='bool')
-BROWSABLEAPI = get_env_value('BROWSABLEAPI', cast='bool')
+CSRF_TRUSTED_ORIGINS = [i.strip() for i in get_env_value('CSRF_TRUSTED_ORIGINS').split(',')]
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -191,15 +195,38 @@ USE_TZ = True
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'cll.settings'
 
+
 # ==============================================================================#
 
-''' Site related variables '''
+#!> Site related variables
+
+## Prod site information (HDRUK prod-related)
+PROD_SITE_HOST = get_env_value('PROD_SITE_HOST', cast='str')
+PROD_SITE_BRAND = get_env_value('PROD_SITE_BRAND', cast='str')
+PROD_SITE_REGEX = get_env_value('PROD_SITE_REGEX', cast='str')
 
 ## Brand related settings
-IS_HDRUK_EXT = '0'
+IS_PROD_SITE = False
+
+BRAND_OBJECT = {}
 CURRENT_BRAND = ''
 CURRENT_BRAND_WITH_SLASH = ''
-BRAND_OBJECT = {}
+
+## Brand variant URL resolver overrides
+BRAND_VAR_REFERENCE = {
+    'default': {
+        'urls': {
+            'concepts': 'concepts',
+            'phenotypes': 'phenotypes',
+        },
+    },
+    'HDRN': {
+        'urls': {
+            'concepts': 'codelists',
+            'phenotypes': 'concepts',
+        },
+    }
+}
 
 ## Graph settings
 GRAPH_MODELS = {
@@ -219,9 +246,10 @@ if IS_DEMO:
 
 SHOW_COOKIE_ALERT = get_env_value('SHOW_COOKIE_ALERT', cast='bool', default=False)
 
+
 # ==============================================================================#
 
-''' LDAP authentication '''
+#!> LDAP authentication
 
 # Binding and connection options
 ENABLE_LDAP_AUTH = get_env_value('ENABLE_LDAP_AUTH', cast='bool')
@@ -233,7 +261,6 @@ AUTH_LDAP_BIND_DN = get_env_value('AUTH_LDAP_BIND_DN')
 AUTH_LDAP_BIND_PASSWORD = get_env_value('AUTH_LDAP_BIND_PASSWORD')
 
 AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(get_env_value('AUTH_LDAP_USER_SEARCH'), ldap.SCOPE_SUBTREE, '(sAMAccountName=%(user)s)'), )
-
 
 # Set up the basic group parameters.
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(get_env_value('AUTH_LDAP_GROUP_SEARCH'), ldap.SCOPE_SUBTREE, '(objectClass=group)')
@@ -260,35 +287,39 @@ AUTH_LDAP_FIND_GROUP_PERMS = True
 AUTH_LDAP_CACHE_GROUPS = True
 AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 
+
 # ==============================================================================#
 
-''' Installed applications '''
+#!> Installed applications
 
 INSTALLED_APPS = []
-if SHOWADMIN:
+if not CLL_READ_ONLY:
     INSTALLED_APPS = INSTALLED_APPS + [
         'django.contrib.admin',
     ]
 
 INSTALLED_APPS = INSTALLED_APPS + [
+    # Base
     'django.contrib.postgres',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Apps
     'clinicalcode',
     'cll',
+    # Extensions
     'simple_history',
-    'rest_framework',
-    # 'mod_wsgi.server',
     'markdownify.apps.MarkdownifyConfig',
     'cookielaw',
+    # API
+    'drf_yasg',
+    'rest_framework',
+    # Site
     'django_celery_results',
     'django_celery_beat',
-    # 'rest_framework_swagger',
-    'drf_yasg',
-    'django.contrib.sitemaps',
+    'django.contrib.sitemaps', # 'mod_wsgi.server',
     # SCSS
     'sass_processor',
     # Compressor
@@ -297,16 +328,16 @@ INSTALLED_APPS = INSTALLED_APPS + [
     'django_minify_html',
 ]
 
-if not CLL_READ_ONLY and not IS_GATEWAY_PC:
+if not CLL_READ_ONLY and not IS_INSIDE_GATEWAY and not REMOTE_TEST:
     INSTALLED_APPS += [
         # Engagelens-related
         'easyaudit'
     ]
 
+
 # ==============================================================================#
 
-
-''' Middleware '''
+#!> Middleware
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -327,21 +358,24 @@ MIDDLEWARE = [
     'clinicalcode.middleware.brands.BrandMiddleware',
     # Handle user session expiry
     'clinicalcode.middleware.sessions.SessionExpiryMiddleware',
+    # Handle exceptions
+    'clinicalcode.middleware.exceptions.ExceptionMiddleware',
 ]
 
-if not CLL_READ_ONLY and not IS_GATEWAY_PC:
+if not CLL_READ_ONLY and not IS_INSIDE_GATEWAY and not REMOTE_TEST:
     MIDDLEWARE += [
         # Engagelens-related
         'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
     ]
 
+
 # ==============================================================================#
 
-''' Authentication backends '''
+#!> Authentication backends
 
 # Keep ModelBackend around for per-user permissions and a local superuser.
 # Don't check AD on development PCs due to network connection
-if IS_DEVELOPMENT_PC or (not ENABLE_LDAP_AUTH):
+if IS_DEVELOPMENT_PC or not ENABLE_LDAP_AUTH:
     AUTHENTICATION_BACKENDS = [
         # 'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend',
@@ -372,16 +406,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # ==============================================================================#
 
-''' REST framework settings '''
+#!> REST framework settings
 
 REST_FRAMEWORK = {
-    #     'DEFAULT_RENDERER_CLASSES': (
-    #         'rest_framework.renderers.JSONRenderer',
-    #         'rest_framework_xml.renderers.XMLRenderer',
-    #         'rest_framework.renderers.BrowsableAPIRenderer',
-    #     ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'clinicalcode.entity_utils.api_utils.PrettyJsonRenderer',
+    ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
@@ -390,6 +423,12 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    # LEGACY
+    # 'DEFAULT_RENDERER_CLASSES': (
+    #     'rest_framework.renderers.JSONRenderer',
+    #     'rest_framework_xml.renderers.XMLRenderer',
+    #     'rest_framework.renderers.BrowsableAPIRenderer',
+    # ),
     # 'DEFAULT_PARSER_CLASSES': (
     #     'rest_framework.parsers.FileUploadParser',
     #     'rest_framework.parsers.JSONParser',
@@ -398,14 +437,10 @@ REST_FRAMEWORK = {
     # ),
 }
 
-if not BROWSABLEAPI:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
-        'clinicalcode.entity_utils.api_utils.PrettyJsonRenderer',
-    )
 
 # ==============================================================================#
 
-''' Templating settings '''
+#!> Templating settings
 
 TEMPLATES = [
     {
@@ -425,15 +460,15 @@ TEMPLATES = [
                 'svg': 'clinicalcode.templatetags.svg',
                 'breadcrumbs': 'clinicalcode.templatetags.breadcrumbs',
                 'entity_renderer': 'clinicalcode.templatetags.entity_renderer',
-                'detail_pg_renderer': 'clinicalcode.templatetags.detail_pg_renderer',
             }
         },
     },
 ]
 
+
 # ==============================================================================#
 
-''' Database settings '''
+#!> Database settings
 
 # Databases, ref @ https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 DATABASES = {
@@ -451,31 +486,10 @@ DATABASES = {
 if not IS_DEMO and (not IS_DEVELOPMENT_PC):
     DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
-# ==============================================================================#
-
-''' Caching '''
-
-if DEBUG:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-        },
-    }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': 'redis://redis:6379/0',
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient'
-            },
-            'KEY_PREFIX': 'cll',
-        }
-    }
 
 # ==============================================================================#
 
-''' Static file handling & serving '''
+#!> Static file handling & serving
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
@@ -502,14 +516,15 @@ STATICFILES_DIRS = [
 
 # ==============================================================================#
 
-''' Media file handling '''
+#!> Media file handling
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
+
 # ==============================================================================#
 
-''' Application logging settings '''
+#!>  Application logging settings
 
 if IS_LINUX or IS_DEVELOPMENT_PC:
     LOGGING = {
@@ -521,9 +536,13 @@ if IS_LINUX or IS_DEVELOPMENT_PC:
             },
         },
         'loggers': {
+            '': {
+                'level': 'INFO',
+                'handlers': ['console'],
+            },
             'django': {
                 'handlers': ['console'],
-                'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+                'level': 'INFO',
             },
         },
     }
@@ -565,14 +584,58 @@ else:
         },
     }
 
+
 # ==============================================================================#
 
-''' Installed application settings '''
+#!>  Easyaudit settings
+
+# Ignores `Request` event signals in favour of custom implementation
+#
+#   Note:
+#     - See custom override setting(s) below, prefixed `OVERIDE_EASY_AUDIT_*``
+#
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+# Ignore auth & model events
+# 
+#   Note:
+#     - `auth` event isn't required as we're measuring analytics elsewhere
+#     - `model` event can be ignored in favour of `simple-history`
+# 
+DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
+DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = False
+
+# Overrides `Request` event signal URL registration
+OVERRIDE_EASY_AUDIT_IGNORE_URLS = {
+    # The following URL patterns will be ignored for all branded sites
+    'all_brands': [
+        # Ignore non-consumer usage
+        r'^(/admin)/?',
+        r'^(/adminTemp)/?',
+        r'^(/dashboard)/?',
+
+        # Ignore healthchecks
+        r'^(/api/v1/health)/?',
+
+        # Ignore bots & crawlers 
+        r'^(/robots.txt)/?',
+        r'^(/sitemap.xml)/?',
+
+        # Ignore static file requests
+        r'^(/media/?).*',
+        r'^(/static/?).*',
+        r'^(/favicon.ico)/?',
+    ],
+}
+
+
+# ==============================================================================#
+
+#!> Installed application settings
 
 # General settings
-
 ## Django auth settings -> Redirect to home URL after login (Default redirects to /accounts/profile/)
-LOGIN_REDIRECT_URL = reverse_lazy('search_phenotypes')
+LOGIN_REDIRECT_URL = reverse_lazy('search_entities')
 LOGIN_URL = reverse_lazy('login')
 LOGOUT_URL = reverse_lazy('logout')
 
@@ -612,6 +675,58 @@ SASS_PROCESSOR_AUTO_INCLUDE = True
 SASS_PROCESSOR_INCLUDE_FILE_PATTERN = r'^.+\.scss$'
 SASS_OUTPUT_STYLE = 'expanded' if DEBUG else 'compressed'
 
+## DOI registration
+###     Datacite config
+DOI_PREFIX = get_env_value('DOI_PREFIX', default=None)
+DOI_USERNAME = get_env_value('DOI_USERNAME', default=None)
+DOI_PASSWORD = get_env_value('DOI_PASSWORD', default=None)
+DOI_REFERRER = get_env_value('DOI_REFERRER', default=None)
+DOI_RELATION = get_env_value('DOI_RELATION', default=None)
+
+DOI_ACTIVE = ((
+    not REMOTE_TEST
+    and not IS_DEMO
+    and not CLL_READ_ONLY
+    and not IS_DEVELOPMENT_PC
+    and not IS_INSIDE_GATEWAY
+) and (
+    DOI_PREFIX is not None
+    and DOI_USERNAME is not None
+    and DOI_PASSWORD is not None
+    and DOI_REFERRER is not None
+    and DOI_RELATION is not None
+))
+
+## GA4 info
+GA4_INFO = {
+    'scopes': get_env_value('GA4_SCOPES', default=None, strip_empty=True),
+    'property_id': get_env_value('GA4_PROP_ID', default=None, strip_empty=True),
+    'client': {
+        'type': get_env_value('GA4_ACC', default=None, strip_empty=True),
+        'project_id': get_env_value('GA4_PID', default=None, strip_empty=True),
+        'private_key': get_env_value('GA4_PKEY', default=None, strip_empty=True),
+        'private_key_id': get_env_value('GA4_PKID', default=None, strip_empty=True),
+        'client_id': get_env_value('GA4_CID', default=None, strip_empty=True),
+        'client_email': get_env_value('GA4_EMAIL', default=None, strip_empty=True),
+        'auth_uri': get_env_value('GA4_AUTH_URI', default=None, strip_empty=True),
+        'token_uri': get_env_value('GA4_TOKEN_URI', default=None, strip_empty=True),
+        'auth_provider_x509_cert_url': get_env_value('GA4_PAUTH_CERT_URL', default=None, strip_empty=True),
+        'client_x509_cert_url': get_env_value('GA4_CAUTH_CERT_URL', default=None, strip_empty=True),
+        'universe_domain': get_env_value('GA4_UNIVERSE_DOMAIN', default=None, strip_empty=True),
+    },
+}
+
+GA4_STUDIO_LINK = get_env_value('GA4_STUDIO_LINK', default=None, strip_empty=True)
+
+GA4_ACTIVE = GA4_STUDIO_LINK is not None and (
+    not REMOTE_TEST
+    and not IS_DEMO
+    and not CLL_READ_ONLY
+    and not IS_INSIDE_GATEWAY
+    and not IS_DEVELOPMENT_PC
+)
+
+
 ## CAPTCHA
 ### To ignore captcha during debug builds
 try:
@@ -632,17 +747,28 @@ EMAIL_HOST_USER = get_env_value('EMAIL_HOST_USER')
 HELPDESK_EMAIL = get_env_value('HELPDESK_EMAIL')
 
 ## Redis settings
-REDIS_BROKER_URL = 'redis://redis:6379/0'
+if REDIS_PASSWORD:
+    REDIS_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0'
+else:
+    REDIS_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
 
 ## Celery settings
-CELERY_BROKER_URL = 'redis://redis:6379/0'
+if REDIS_PASSWORD:
+    CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0'
+    CELERY_BROKER_PASSWORD = REDIS_PASSWORD
+else:
+    CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+
 CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 ## Celery beat settings
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+## Task queue
+ENABLE_DEMO_TASK_QUEUE = get_env_value('ENABLE_DEMO_TASK_QUEUE', cast='bool', default=False)
 
 ## Swagger settings
 ##     SWAGGER_SETTINGS = { 'JSON_EDITOR': True, }
@@ -718,5 +844,29 @@ MARKDOWNIFY = {
         ],
     }
 }
+
+
+# ==============================================================================#
+
+#!> Caching
+
+if DEBUG or IS_INSIDE_GATEWAY:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        },
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://redis:6379/0',
+            'OPTIONS': {
+                'PASSWORD': REDIS_PASSWORD,
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient'
+            },
+            'KEY_PREFIX': 'cll',
+        }
+    }
 
 # ==============================================================================#

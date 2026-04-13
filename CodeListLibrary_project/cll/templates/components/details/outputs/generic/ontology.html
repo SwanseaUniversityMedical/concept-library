@@ -14,7 +14,7 @@
             {% for item in component.value %}
               <span class="ontology-group__item" style="--type: {{ item.type_id }};">
                 {% url 'api:ontology_node_by_id' node_id=item.id as node_api %}
-                <a class="chip-text" target="_blank"
+                <a target=_blank rel="noopener" class="chip-text" target="_blank"
                     href="{{ node_api }}" title="'{{ item.label }}' {{ item.full_names }}">
                   {{ item.label }}
                 </a>

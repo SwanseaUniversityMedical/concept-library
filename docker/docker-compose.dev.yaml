@@ -26,7 +26,7 @@ x-app: &app-base
   image: cll/app
   build: &app-build
     context: ..
-    dockerfile: ./docker/app/app.Dockerfile
+    dockerfile: ./docker/app/Dockerfile
   restart: unless-stopped
   stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
   tty: true
@@ -58,7 +58,8 @@ x-app: &app-base
 x-database: &app-database
   build:
     context: ..
-    dockerfile: ./docker/development/dockerfiles/postgres.Dockerfile
+    dockerfile: ./docker/app/Dockerfile
+    target: pgdev
   container_name: postgres
   restart: unless-stopped
   stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
@@ -96,7 +97,7 @@ services:
       args: *app-dev-args
       target: dev
     command: *app-py-cmd
-    env_file: ./.env/web/dev.compose.env
+    env_file: ./env/dev.compose.env
 
   web-test:
     <<: *app-base
@@ -106,7 +107,7 @@ services:
       args: *app-test-args
       target: dev
     command: *app-py-cmd
-    env_file: ./.env/web/test.compose.env
+    env_file: ./env/test.compose.env
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -119,7 +120,7 @@ services:
       args: *app-live-args
       target: prod
     command: *app-supervisord-cmd
-    env_file: ./.env/web/live.compose.env
+    env_file: ./env/live.compose.env
     ports:
       - 8005:80
     expose:
@@ -139,12 +140,12 @@ services:
   postgres:
     <<: *app-database
     profiles: ['dev', 'live']
-    env_file: ./development/env/postgres.compose.env
+    env_file: ./env/postgres.compose.env
 
   postgres-test:
     <<: *app-database
     profiles: ['test']
-    env_file: ./.env/web/test.compose.env
+    env_file: ./env/test.compose.env
 
   # Profile<`live` | `test`> dependencies
   mailhog:
@@ -161,26 +162,57 @@ services:
       - live
 
   redis:
-    image: redis:7.0-bullseye
+    image: redis:7.4-bookworm
     container_name: redis
     restart: unless-stopped
     stop_grace_period: ${CLL_GRACE_PERIOD:-3s}
+    command: >
+      redis-server --requirepass ${REDIS_PASSWORD:-someRedisPassword}
+                   --appendonly no
+                   --protected-mode no
+                   --maxmemory-policy allkeys-lru
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-someRedisPassword}
+    ports:
+      - ${REDIS_PORT:-6379}:${REDIS_PORT:-6379}
     expose:
-      - 6379
+      - ${REDIS_PORT:-6379}
     networks:
       - backend
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
     profiles:
       - live
+      - redis
     healthcheck:
-      test: redis-cli ping | grep PONG
+      test: redis-cli -u redis://default:${REDIS_PASSWORD:-someRedisPassword}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}/0 ping | grep PONG
       retries: 5
       timeout: 5s
       interval: 1m
       start_period: 120s
       start_interval: 10s
+
+  # Profile<`tooling`> dependencies
+  redisinsights:
+    image: redis/redisinsight:latest
+    restart: unless-stopped
+    profiles:
+      - tooling
+    ports:
+      - 6380:5540
+    networks:
+      - backend
+    environment:
+      RI_REDIS_HOST: ${REDIS_HOST:-redis}
+      RI_REDIS_PORT: ${REDIS_PORT:-6379}
+      RI_REDIS_PASSWORD: ${REDIS_PASSWORD:-someRedisPassword}
+    volumes:
+      - type: volume
+        source: riadmin-data
+        target: /data
+    depends_on:
+      redis:
+        condition: service_healthy
 
   # Profile<`test`> dependencies
   selenium-hub:
@@ -306,18 +338,12 @@ networks:
 
 # Mounted volumes
 volumes:
+  # Profile<*>
   app-data:
     driver: local
     driver_opts:
       type: none
       device: ../CodeListLibrary_project
-      o: bind
-
-  engagelens-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../engagelens
       o: bind
 
   db-data:
@@ -327,6 +353,7 @@ volumes:
       device: ./development/db
       o: bind
 
+  # Profile<`live`>
   app-logs:
     driver: local
     driver_opts:
@@ -334,6 +361,11 @@ volumes:
       device: ./cl_log
       o: bind
 
+  # Profile<`tooling`>
+  riadmin-data:
+    driver: local
+
+  # Profile<`test`>
   allure-results:
     driver: local
     driver_opts:

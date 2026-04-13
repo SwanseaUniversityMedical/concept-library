@@ -1,12 +1,21 @@
 import Tagify from '../../components/tagify.js';
 import ConceptCreator from '../clinical/conceptCreator.js';
 import GroupedEnum from '../../components/groupedEnumSelector.js';
+import ListEnum from '../../components/listEnumSelector.js';
+import AgeGroupSelector from '../generic/ageGroupSelector.js';
+import SingleSlider from '../../components/singleSlider.js';
+import DoubleRangeSlider from '../../components/doubleRangeSlider.js';
+import ContactListCreator from '../clinical/contactListCreator.js';
 import PublicationCreator from '../clinical/publicationCreator.js';
 import TrialCreator from '../clinical/trialCreator.js';
 import EndorsementCreator from '../clinical/endorsementCreator.js';
+import ReferenceCreator from '../clinical/referenceCreator.js';
 import StringInputListCreator from '../stringInputListCreator.js';
 import UrlReferenceListCreator from '../generic/urlReferenceListCreator.js';
 import OntologySelectionService from '../generic/ontologySelector/index.js';
+import VariableCreator from '../generic/variableCreator.js';
+import RelationSelector from '../generic/relationSelector.js';
+import IndicatorCalculationCreator from '../generic/indicatorCalculationCreator.js';
 
 import {
   ENTITY_DATEPICKER_FORMAT,
@@ -21,10 +30,75 @@ import {
  * 
  */
 export const ENTITY_HANDLERS = {
+  // Generates an age group component with a UDF comparator
+  'age-group': (element) => {
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for GroupedEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new AgeGroupSelector(element, packet);
+  },
+
+  // Generates a single numeric slider component context
+  'single-slider': (element) => {
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for GroupedEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new SingleSlider(element, packet);
+  },
+
+  // Generates a doublerangeslider component context
+  'doublerangeslider': (element) => {
+    const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    const packet = { };
+    for (let i = 0; i < data.length; ++i) {
+      let datafield = data[i];
+      if (!datafield.innerText.trim().length) {
+        continue;
+      }
+
+      let type = datafield.getAttribute('data-type');
+      try {
+        packet[type] = JSON.parse(datafield.innerText);
+      }
+      catch (e) {
+        console.warn(`Unable to parse datafield for GroupedEnum element with target field: ${datafield.getAttribute('for')}`);
+      }
+    }
+
+    return new DoubleRangeSlider(element, packet);
+  },
+
   // Generates a groupedenum component context
   'groupedenum': (element) => {
     const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
-    
     const packet = { };
     for (let i = 0; i < data.length; ++i) {
       let datafield = data[i];
@@ -44,52 +118,94 @@ export const ENTITY_HANDLERS = {
     return new GroupedEnum(element, packet);
   },
 
-  // Generates a tagify component for an element
-  'tagify': (element, dataset) => {
+  // Generates a listenum component context
+  'listenum': (element) => {
     const data = element.parentNode.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
-    
-    let value = [];
-    let options = [];
+    const packet = { };
     for (let i = 0; i < data.length; ++i) {
-      const datafield = data[i];
-      const type = datafield.getAttribute('desc-type');
+      let datafield = data[i];
       if (!datafield.innerText.trim().length) {
         continue;
       }
 
+      let type = datafield.getAttribute('data-type');
       try {
-        switch (type) {
-          case 'options': {
-            options = JSON.parse(datafield.innerText);
-          } break;
-
-          case 'value': {
-            value = JSON.parse(datafield.innerText);
-          } break;
-        }
+        packet[type] = JSON.parse(datafield.innerText);
       }
-      catch(e) {
-        console.warn(`Unable to parse datafield for Tagify element with target field: ${datafield.getAttribute('for')}`);
+      catch (e) {
+        console.warn(`Unable to parse datafield for ListEnum element with target field: ${datafield.getAttribute('for')}`);
       }
     }
 
-    const tagbox = new Tagify(element, {
-      'autocomplete': true,
-      'useValue': true,
-      'allowDuplicates': false,
-      'restricted': true,
-      'items': options,
-      'onLoad': (box) => {
-        for (let i = 0; i < value.length; ++i) {
-          const item = value[i];
-          if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
-            continue;
-          }
+    return new ListEnum(element, packet);
+  },
 
-          box.addTag(item.name, item.value);
+  // Generates a tagify component for an element
+  'tagify': (element, dataset, validation, pkg) => {
+    const elem = element.parentElement;
+    const data = elem.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    let varyDataVis = parseInt(element.getAttribute('data-vis') ?? '0');
+    varyDataVis = !Number.isNaN(varyDataVis) && Boolean(varyDataVis);
+
+    const opts = { };
+    for (let i = 0; i < data.length; ++i) {
+      const datafield = data[i];
+      const name = datafield.getAttribute('data-name');
+      const type = datafield.getAttribute('data-type');
+      if (!stringHasChars(name) || !stringHasChars(type)) {
+        continue;
+      }
+
+      if (type === 'text/json' && stringHasChars(datafield.innerText)) {
+        try {
+          const dataValue = JSON.parse(datafield.innerText);
+          opts[name] = dataValue;
+        }
+        catch (e) {
+          console.warn(`Unable to parse datafield for Tagify element with target field: ${datafield.getAttribute('for')}`);
         }
       }
-    }, dataset);
+    }
+    opts.value = Array.isArray(opts?.value) ? opts.value : [];
+    opts.options = Array.isArray(opts?.options) ? opts.options : [];
+    opts.behaviour = isRecordType(opts?.behaviour) ? opts.behaviour : { };
+
+    const tagbox = new Tagify(
+      element,
+      {
+        items: opts.options,
+        useValue: true,
+        behaviour: opts.behaviour,
+        restricted: true,
+        autocomplete: true,
+        allowDuplicates: false,
+        onLoad: (box) => {
+          for (let i = 0; i < opts.value.length; ++i) {
+            const item = opts.value[i];
+            if (typeof item !== 'object' || !item.hasOwnProperty('name') || !item.hasOwnProperty('value')) {
+              continue;
+            }
+
+            box.addTag(item.name, item.value);
+          }
+          pkg.value = tagbox.getDataValue();
+
+          return () => {
+            if (!varyDataVis) {
+              return;
+            }
+
+            const choices = box?.options?.items?.length ?? 0;
+            if (choices < 1) {
+              elem.style.setProperty('display', 'none');
+            }
+
+          }
+        }
+      },
+      dataset
+    );
 
     return tagbox;
   },
@@ -184,8 +300,8 @@ export const ENTITY_HANDLERS = {
     const mde = new EasyMDE({
       // Elem
       element: element,
-      maxHeight: '500px',
-      minHeight: '300px',
+      maxHeight: '300px',
+      minHeight: '200px',
 
       // Behaviour
       autofocus: false,
@@ -204,7 +320,7 @@ export const ENTITY_HANDLERS = {
 
       // Controls
       status: ['lines', 'words', 'cursor'],
-      tabSize: 2,
+      tabSize: 4,
       toolbar: [
         'heading', 'bold', 'italic', 'strikethrough', '|',
         'unordered-list', 'ordered-list', 'code', 'quote', '|',
@@ -214,6 +330,38 @@ export const ENTITY_HANDLERS = {
       toolbarTips: true,
       toolbarButtonClassPrefix: 'mde',
     });
+
+    // mde.codemirror.on("beforeChange", (cm, change) => {
+    //   if(change.origin === 'paste') {
+    //     const newText = change.text
+    //       .join('\n')
+    //       .replace(/(?<!\r?\n)\r?\n(?!\r?\n)/g, (match, index, str) => {
+    //         if (index > 0) {
+    //           switch (str[index - 1]) {
+    //             case '.':
+    //               return '\n';
+
+    //             case '|':
+    //               return '\n';
+
+    //             default:
+    //               break;
+    //           }
+    //         }
+
+    //         if (index + match.length < str.length) {
+    //           if (str.substring(index + match.length).match(/^(\s*[\u{2022}\u{2023}\u{25E6}\u{2043}\u{2219}\*\-]\s*\w+|\d\.|[A-z]\)|[A-z]\.)/iu)) {
+    //             return '\n';
+    //           }
+    //         }
+
+    //         return ' ';
+    //       })
+    //       .split('\n');
+
+    //     change.update(null, null, newText);
+    //   }
+    // });
 
     if (!isStringEmpty(value) && !isStringWhitespace(value)) {
       mde.value(value);
@@ -252,6 +400,20 @@ export const ENTITY_HANDLERS = {
     }
 
     return new UrlReferenceListCreator(element, parsed)
+  },
+
+  'contact-list': (element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new ContactListCreator(element, parsed)
   },
 
   // Generates a clinical publication list component for an element
@@ -294,6 +456,21 @@ export const ENTITY_HANDLERS = {
     }
 
     return new EndorsementCreator(element, parsed)
+
+  },
+
+  'clinical-references':(element) => {
+    const data = element.parentNode.querySelector(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(data.innerText);
+    }
+    catch (e) {
+      parsed = [];
+    }
+
+    return new ReferenceCreator(element, parsed)
 
   },
 
@@ -340,7 +517,102 @@ export const ENTITY_HANDLERS = {
     }
 
     return new OntologySelectionService(element, dataset, data);
-  }
+  },
+
+  // HDRN-related
+  'related_entities': (element, dataset) => {
+    const nodes = element.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    const data = { };
+    for (let i = 0; i < nodes.length; ++i) {
+      let node = nodes[i];
+
+      const datatype = node.getAttribute('data-type');
+      if (isStringEmpty(datatype)) {
+        continue;
+      }
+
+      let innerText = node.innerText;
+      if (isStringEmpty(innerText) || isStringWhitespace(innerText)) {
+        continue;
+      }
+
+      try {
+        innerText = JSON.parse(innerText);
+        data[datatype] = innerText;
+      }
+      catch (e) {
+        console.warn(`Failed to parse relation selector attr "${datatype}" data:`, e)
+      }
+    }
+
+    return new RelationSelector(element, data, {
+      method: dataset.method,
+      object: dataset.object,
+      templateId: dataset.template.id,
+    });
+  },
+
+  'var_data': (element) => {
+    const nodes = element.querySelectorAll(`script[type="application/json"][for="${element.getAttribute('data-field')}"]`);
+
+    const data = { };
+    for (let i = 0; i < nodes.length; ++i) {
+      let node = nodes[i];
+
+      const datatype = node.getAttribute('data-type');
+      if (isStringEmpty(datatype)) {
+        continue;
+      }
+
+      let innerText = node.innerText;
+      if (isStringEmpty(innerText) || isStringWhitespace(innerText)) {
+        continue;
+      }
+
+      try {
+        innerText = JSON.parse(innerText);
+        data[datatype] = innerText;
+      }
+      catch (e) {
+        console.warn(`Failed to parse validation measures attr "${datatype}" data:`, e)
+      }
+    }
+
+    return new VariableCreator(element, data);
+  },
+
+  'indicator_calculation': (element) => {
+    const nodes = element.querySelectorAll(`script[for="${element.getAttribute('data-field')}"]`);
+
+    const data = { };
+    for (let i = 0; i < nodes.length; ++i) {
+      let node = nodes[i];
+
+      const datatype = node.getAttribute('type');
+      const dataname = node.getAttribute('data-name');
+      if (isStringEmpty(datatype) || isStringEmpty(dataname)) {
+        continue;
+      }
+
+      let innerText = node.innerText;
+      if (isStringEmpty(innerText) || isStringWhitespace(innerText)) {
+        continue;
+      }
+
+      try {
+        if (datatype === 'application/json') {
+          innerText = JSON.parse(innerText);
+        }
+        data[dataname] = innerText;
+      }
+      catch (e) {
+        console.warn(`Failed to parse indicator calculations attr "${datatype}" data:`, e)
+      }
+    }
+
+    return new IndicatorCalculationCreator(element, data);
+  },
 };
 
 /**
@@ -483,7 +755,7 @@ export const ENTITY_FIELD_COLLECTOR = {
     const endDateInput = element.querySelector(`#${id}-enddate`);
 
     const validation = packet?.validation;
-    const dateClosureOptional = typeof validation === 'object' && validation?.date_closure_optional;
+    const dateClosureOptional = !!validation && typeof validation === 'object' && validation?.closure_optional;
 
     const startValid = startDateInput.checkValidity(),
           endValid   = endDateInput.checkValidity();
@@ -614,7 +886,104 @@ export const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
-  // Retrieves and validates groupedenum compoonents
+  // Retrieves and validates age-group component(s)
+  'age-group': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    if (isNullOrUndefined(value) || (isObjectType(value) && value?.comparator == 'na')) {
+      return {
+        valid: true,
+        value: null,
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates groupedenum components
+  'single-slider': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates groupedenum components
+  'doublerangeslider': (field, packet) => {
+    const handler = packet.handler;
+    const value = handler.getValue();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(value)) {
+        return {
+          valid: false,
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, value);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: value,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+    
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates groupedenum components
   'groupedenum': (field, packet) => {
     const handler = packet.handler;
     const value = handler.getValue();
@@ -644,34 +1013,69 @@ export const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
-  // Retrieves and validates tagify components
-  'tagify': (field, packet) => {
+  // Retrieves and validates listenum compoonents
+  'listenum': (field, packet) => {
     const handler = packet.handler;
-    const tags = handler.getActiveTags().map(item => item.value);
-    
+    const value = handler.getValue();
+
     if (isMandatoryField(packet)) {
-      if (isNullOrUndefined(tags) || tags.length < 1) {
+      if (isNullOrUndefined(value)) {
         return {
           valid: false,
-          value: tags,
-          message: (isNullOrUndefined(tags) || tags.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+          value: value,
+          message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
         }
       }
     }
 
-    const parsedValue = parseAsFieldType(packet, tags);
+    const parsedValue = parseAsFieldType(packet, value);
     if (!parsedValue || !parsedValue?.success) {
       return {
         valid: false,
-        value: tags,
+        value: value,
         message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
-    
+
     return {
       valid: true,
       value: parsedValue?.value
     }
+  },
+
+  // Retrieves and validates tagify components
+  'tagify': (field, packet, creator, isInit) => {
+    const handler = packet.handler;
+    if (!isInit) {
+      const dataValue = handler.getDataValue();
+      if (isMandatoryField(packet)) {
+        if (isNullOrUndefined(dataValue) || dataValue.length < 1) {
+          return {
+            valid: false,
+            value: dataValue,
+            message: (isNullOrUndefined(dataValue) || dataValue.length < 1)
+              ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+              : ENTITY_TEXT_PROMPTS.INVALID_FIELD,
+          };
+        }
+      }
+  
+      const parsedValue = parseAsFieldType(packet, dataValue, handler?.options?.behaviour);
+      if (!parsedValue || !parsedValue?.success) {
+        return {
+          valid: false,
+          value: dataValue,
+          message: ENTITY_TEXT_PROMPTS.INVALID_FIELD,
+        };
+      }
+  
+      return {
+        valid: true,
+        value: parsedValue?.value
+      };
+    }
+
+    return { valid: true, value: Array.isArray(packet?.value) ? packet.value : [] };
   },
 
   // Retrieves and validates list components
@@ -724,6 +1128,36 @@ export const ENTITY_FIELD_COLLECTOR = {
       return {
         valid: false,
         value: listItems,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
+  // Retrieves and validates contact list components
+  'contact-list': (field, packet) => {
+    const handler = packet.handler;
+    const contacts = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(contacts) || contacts.length < 1) {
+        return {
+          valid: false,
+          value: contacts,
+          message: (isNullOrUndefined(contacts) || contacts.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, contacts);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: contacts,
         message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
       }
     }
@@ -822,11 +1256,40 @@ export const ENTITY_FIELD_COLLECTOR = {
     }
   },
 
+  'clinical-references': (field, packet) => {
+    const handler = packet.handler;
+    const endorsements = handler.getData();
+
+    if (isMandatoryField(packet)) {
+      if (isNullOrUndefined(endorsements) || endorsements.length < 1) {
+        return {
+          valid: false,
+          value: endorsements,
+          message: (isNullOrUndefined(endorsements) || endorsements.length < 1) ? ENTITY_TEXT_PROMPTS.REQUIRED_FIELD : ENTITY_TEXT_PROMPTS.INVALID_FIELD
+        }
+      }
+    }
+
+    const parsedValue = parseAsFieldType(packet, endorsements);
+    if (!parsedValue || !parsedValue?.success) {
+      return {
+        valid: false,
+        value: endorsements,
+        message: ENTITY_TEXT_PROMPTS.INVALID_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: parsedValue?.value
+    }
+  },
+
   // Retrieves and validates MDE components
   'md-editor': (field, packet) => {
     const handler = packet.handler;
-    const value = handler.editor.value();
-    
+
+    let value = handler.editor.value();
     if (isMandatoryField(packet)) {
       if (isNullOrUndefined(value) || isStringEmpty(value)) {
         return {
@@ -894,6 +1357,66 @@ export const ENTITY_FIELD_COLLECTOR = {
       valid: true,
       value: data,
     }
+  },
+
+  // HDRN-related
+  'related_entities': (field, packet) => {
+    const handler = packet.handler;
+    const data = handler.getData();
+    if (isMandatoryField(packet) && (!Array.isArray(data) || data.length < 1)) {
+      return {
+        valid: false,
+        value: data,
+        message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: data,
+    }
+  },
+
+  'var_data': (field, packet) => {
+    const handler = packet.handler;
+    const data = handler.getData();
+    if (isMandatoryField(packet) && (!isObjectType(data) || Object.values(data).length < 1)) {
+      return {
+        valid: false,
+        value: data,
+        message: ENTITY_TEXT_PROMPTS.REQUIRED_FIELD
+      }
+    }
+
+    return {
+      valid: true,
+      value: data,
+    }
+  },
+
+  'indicator_calculation': (field, packet, creator, isInit) => {
+    const handler = packet.handler;
+
+    let values = { },
+        length = 0;
+    Object.entries(handler.elements).forEach(([role, editor]) => {
+      values[role] = editor.value()
+
+      if (!isInit && IndicatorCalculationCreator.IsDefaultValue(role, values[role])) {
+        values[role] = '';
+      }
+
+      length += values[role].length;
+    });
+
+    if (length === 0) {
+      values = null;
+    }
+
+    return {
+      valid: true,
+      value: values,
+    }
   }
 };
 
@@ -939,7 +1462,13 @@ export const collectFormData = () => {
   // merge metadata into template's fields for easy access
   if (result?.metadata && result?.template) {
     for (const [key, value] of Object.entries(result.metadata)) {
-      result.template.definition.fields[key] = { is_base_field: true };
+      const prev = result.template.definition.fields[key];
+      result.template.definition.fields[key] = mergeObjects(
+        isObjectType(prev) ? prev : { },
+        { is_base_field: true },
+        true,
+        true
+      );
     }
   }
 
@@ -963,12 +1492,12 @@ export const getTemplateFields = (template) => {
  * @param {string} cls The data-class attribute value of that particular element
  * @return {object} An interface to control the behaviour of the component
  */
-export const createFormHandler = (element, cls, data, validation = undefined) => {
+export const createFormHandler = (element, cls, data, validation = undefined, pkg = undefined) => {
   if (!ENTITY_HANDLERS.hasOwnProperty(cls)) {
     return;
   }
 
-  return ENTITY_HANDLERS[cls](element, data, validation);
+  return ENTITY_HANDLERS[cls](element, data, validation, pkg);
 }
 
 /**
@@ -987,13 +1516,63 @@ export const isMandatoryField = (packet) => {
 }
 
 /**
+ * resolveRangeOpts
+ * @desc resolves the range assoc. with some component's properties (if available)
+ * 
+ * @param {string}              type             the name of the type assoc. with this range
+ * @param {Record<string, any>} opts             the properties assoc. with the component containing this value/range
+ * @param {boolean}             [forceStep=true] optionally specify whether to resolve a step interval regardless of range availability; defaults to `true`
+ * 
+ * @returns {Record<string, Record<string, string|number>>} the range values (if applicable)
+ */
+export const resolveRangeOpts = (type, opts, forceStep = true) => {
+  let fmin = null;
+  let fmax = null;
+  let fstep = null;
+  if (isObjectType(opts)) {
+    fmin = typeof opts.min === 'number' ? opts.min : null;
+    fmax = typeof opts.max === 'number' ? opts.max : null;
+    fstep = typeof opts.step === 'number' ? opts.step : null;
+  } else if (Array.isArray(opts) && opts.length >= 2) {
+    fmin = typeof opts[0] === 'number' ? opts[0] : null;
+    fmax = typeof opts[1] === 'number' ? opts[1] : null;
+    fstep = null;
+  }
+
+  if (typeof fmin == 'number' && typeof fmax === 'number') {
+    let tmp = Math.max(fmin, fmax);
+    fmin = Math.min(fmin, fmax);
+    fmax = tmp;
+  }
+
+  if (fstep === null && forceStep) {
+    fstep = type.startsWith('int') ? 1 : 0.001;
+  }
+
+  return {
+    hasStep: fstep !== null,
+    hasRange: fmin !== null && fmax !== null,
+    attr: {
+      min: fmin !== null ? `min="${fmin}"` : '',
+      max: fmax !== null ? `max="${fmax}"` : '',
+      step: fstep !== null ? `step="${fstep}"` : '',
+    },
+    values: {
+      min: fmin,
+      max: fmax,
+      step: fstep,
+    },
+  };
+}
+
+/**
  * parseAsFieldType
  * @desc parses the field as its type, returns true if no validation or type field
  * @param {object} packet the field data
  * @param {*} value the value retrieved from the form
  * @returns {object} that returns the success state of the parsing & the parsed value, if applicable
  */
-export const parseAsFieldType = (packet, value) => {
+export const parseAsFieldType = (packet, value, modifier) => {
   const validation = packet?.validation;
   if (isNullOrUndefined(validation)) {
     return {
@@ -1002,7 +1581,11 @@ export const parseAsFieldType = (packet, value) => {
     }
   }
 
-  const type = validation?.type;
+  let type = validation?.type;
+  if (isObjectType(modifier) && modifier?.type) {
+    type = modifier.type;
+  }
+
   if (isNullOrUndefined(type)) {
     return {
       success: true,
@@ -1014,42 +1597,590 @@ export const parseAsFieldType = (packet, value) => {
   switch (type) {
     case 'int':
     case 'enum': {
-      value = parseInt(value);
-      valid = !isNaN(value);
-    } break;
-
-    case 'string': {
-      value = String(value);
-
-      const pattern = validation?.regex;
-      if (isNullOrUndefined(pattern)) {
-        valid = true;
-        break;
+      if (typeof value === 'string') {
+        value = parseInt(value.trim());
       }
 
-      try {
-        if (typeof pattern === 'string') {
-          valid = new RegExp(pattern).test(value);
-        } else if (Array.isArray(pattern)) {
-          let test = undefined, i = 0;
-          while (i < pattern.length) {
-            test = pattern[i];
-            if (typeof test !== 'string') {
-              continue;
-            }
+      if (typeof value === 'number') {
+        value = Math.trunc(value);
+        valid = !isNaN(value) && Number.isFinite(value) && Number.isSafeInteger(value);
 
-            valid = new RegExp(test).test(value);
-            if (valid) {
-              break;
+        let proc;
+        let range = validation?.range;
+        if (!isNullOrUndefined(range)) {
+          range = resolveRangeOpts('int', validation?.range);
+          if (range.hasRange) {
+            proc = true;
+            value = clampNumber(value, range.values.min, range.values.max);
+          }
+        }
+
+        if (!proc) {
+          const props = validation?.properties;
+          if (isObjectType(props)) {
+            if (isSafeNumber(props?.min) || isSafeNumber(props?.max)) {
+              value = clampNumber(value, props.min, props.max);
+            } else {
+              range = resolveRangeOpts('int', validation?.properties?.range);
+              if (range.hasRange) {
+                value = clampNumber(value, range.values.min, range.values.max);
+              }
             }
           }
         }
-      }
-      catch (e) {
-        console.error(`Failed to test String<value: ${value}> with err: ${e}`);
+      } else {
         valid = false;
       }
+    } break;
 
+    case 'int_range': {
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
+
+          const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            value = clampNumber(value, range.values.min, range.values.max);
+          }
+
+          value = { min: Math.trunc(min), max: Math.trunc(max) };
+          break;
+        }
+
+        valid = false;
+      } else if (!isNullOrUndefined(value)) {
+        const output = [];
+        if (typeof value === 'string') {
+          value = value.trim().split(',');
+        } else if (typeof value === 'number') {
+          value = [value];
+        }
+
+        if (!Array.isArray(value)) {
+          return false;
+        }
+
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            item = parseInt(item.trim());
+          }
+
+          if (typeof item !== 'number') {
+            continue;
+          }
+
+          item = Math.trunc(item);
+          valid = !isNaN(item) && Number.isFinite(item) && Number.isSafeInteger(item);
+
+          if (!valid) {
+            break;
+          }
+
+          output.push(item);
+        }
+        value = output;
+
+        if (value.length === 1 && validation?.closure_optional) {
+          const num = Math.trunc(value.shift());
+          valid = !isNaN(num) && Number.isFinite(num) && Number.isSafeInteger(num);
+          value = [num];
+        } else if (value.length < 2 && !validation?.closure_optional) {
+          valid = false;
+        } else {
+          const lower = Math.min(value[0], value[1]);
+          const upper = Math.max(value[0], value[1]);
+          value[0] = lower;
+          value[1] = upper;
+        }
+
+        const range = resolveRangeOpts('int', validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
+        }
+      }
+    } break;
+
+    case 'int_array': {
+      const output = [];
+      if (typeof value === 'string') {
+        value = value.trim().split(',');
+      } else if (typeof value === 'number') {
+        value = [value];
+      }
+
+      if (!Array.isArray(value)) {
+        break;
+      }
+
+      if (isNullOrUndefined(modifier) || !modifier.freeform) {
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            item = parseInt(item.trim());
+          }
+    
+          if (typeof item !== 'number') {
+            continue;
+          }
+  
+          item = Math.trunc(item);
+          valid = !isNaN(item) && Number.isFinite(item) && Number.isSafeInteger(item);
+  
+          if (!valid) {
+            break;
+          }
+          output.push(item);
+        }
+      } else {
+        output.splice(0, value.length, ...value);
+      }
+
+      if (!valid) {
+        break;
+      }
+      value = output;
+    } break;
+
+    case 'float':
+    case 'decimal':
+    case 'numeric': {
+      if (typeof value === 'string') {
+        const matches = value.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+        if (!isNullOrUndefined(matches)) {
+          value = parseFloat(matches.shift().trim().replaceAll(/,/g, ''));
+        }
+      }
+
+      if (typeof value === 'number') {
+        valid = !isNaN(value) && Number.isFinite(value);
+
+        let proc;
+        let range = validation?.range;
+        if (!isNullOrUndefined(range)) {
+          range = resolveRangeOpts(type, validation?.range);
+          if (range.hasRange) {
+            proc = true;
+            value = clampNumber(value, range.values.min, range.values.max);
+          }
+        }
+
+        if (!proc) {
+          const props = validation?.properties;
+          if (isObjectType(props)) {
+            if (isSafeNumber(props?.min) || isSafeNumber(props?.max)) {
+              value = clampNumber(value, props.min, props.max);
+            } else {
+              range = resolveRangeOpts(type, validation?.properties?.range);
+              if (range.hasRange) {
+                value = clampNumber(value, range.values.min, range.values.max);
+              }
+            }
+          }
+        }
+      } else {
+        valid = false;
+      }
+    } break;
+
+    case 'float_range':
+    case 'decimal_range':
+    case 'numeric_range': {
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
+
+          const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            min = clampNumber(min, range.values.min, range.values.max);
+            max = clampNumber(max, range.values.min, range.values.max);
+          }
+
+          value = { min, max };
+          break;
+        }
+      } else {
+        const output = [];
+        if (typeof value === 'string') {
+          value = value.trim().split(',');
+        } else if (typeof value === 'number') {
+          value = [value];
+        }
+  
+        if (!Array.isArray(value)) {
+          return false;
+        }
+  
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+            if (isNullOrUndefined(matches)) {
+              valid = false;
+              break;
+            }
+  
+            item = parseFloat(matches.shift().trim());
+          }
+  
+          if (typeof item !== 'number') {
+            continue;
+          }
+  
+          valid = !isNaN(item) && Number.isFinite(item);
+  
+          if (!valid) {
+            break;
+          }
+  
+          output.push(item);
+        }
+        value = output;
+  
+        if (value.length === 1 && validation?.closure_optional) {
+          const num = value.shift();
+          valid = !isNaN(num) && Number.isFinite(num);
+          value = [num];
+        } else if (value.length < 2 && !validation?.closure_optional) {
+          valid = false;
+        } else {
+          const lower = Math.min(value[0], value[1]);
+          const upper = Math.max(value[0], value[1]);
+          value[0] = lower;
+          value[1] = upper;
+        }
+
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
+        }
+      }
+    } break;
+
+    case 'float_array':
+    case 'decimal_array':
+    case 'numeric_array': {
+      const output = [];
+      if (typeof value === 'string') {
+        value = value.trim().split(',');
+      } else if (typeof value === 'number') {
+        value = [value];
+      }
+
+      if (!Array.isArray(value)) {
+        break;
+      }
+
+      for (let i = 0; i < value.length; ++i) {
+        let item = value[i];
+        if (typeof item === 'string') {
+          const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))/m);
+          if (isNullOrUndefined(matches)) {
+            valid = false;
+            break;
+          }
+
+          item = parseFloat(matches.shift().trim());
+        }
+
+        if (typeof item !== 'number') {
+          continue;
+        }
+
+        valid = !isNaN(item) && Number.isFinite(item);
+
+        if (!valid) {
+          break;
+        }
+
+        output.push(item);
+      }
+
+      if (!valid) {
+        break;
+      }
+      value = output;
+    } break;
+
+    case 'percentage': {
+      if (typeof value === 'string') {
+        const matches = value.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
+        if (!isNullOrUndefined(matches)) {
+          value = parseFloat(matches.shift().trim());
+
+          let coercion = (isObjectType(modifier) && !isNullOrUndefined(modifier?.coercion))
+            ? modifier.coercion
+            : null;
+
+          if (isNullOrUndefined(coercion)) {
+            coercion = validation?.coercion;
+          }
+
+          const hasPercentageSymbol = !isNullOrUndefined(matches) ? (matches[matches.length - 1] === '%') : false;
+          if (coercion === 'normalised' && hasPercentageSymbol) {
+            value /= 100;
+          } else if (coercion === 'percentage' && !hasPercentageSymbol) {
+            value *= 100;
+          }
+        }
+      }
+
+      if (typeof value === 'number') {
+        valid = !isNaN(value) && Number.isFinite(value);
+
+        let proc;
+        let range = validation?.range;
+        if (!isNullOrUndefined(range)) {
+          range = resolveRangeOpts(type, validation?.range);
+          if (range.hasRange) {
+            proc = true;
+            value = clampNumber(value, range.values.min, range.values.max);
+          }
+        }
+
+        if (!proc) {
+          const props = validation?.properties;
+          if (isObjectType(props)) {
+            if (isSafeNumber(props?.min) || isSafeNumber(props?.max)) {
+              value = clampNumber(value, props.min, props.max);
+            } else {
+              range = resolveRangeOpts(type, validation?.properties?.range);
+              if (range.hasRange) {
+                value = clampNumber(value, range.values.min, range.values.max);
+              }
+            }
+          }
+        }
+      } else {
+        valid = false;
+      }
+    } break;
+
+    case 'percentage_range': {
+      if (isObjectType(value)) {
+        let { min, max } = value;
+        if (typeof min === 'number' && typeof max === 'number') {
+          min = Math.min(min, max);
+          max = Math.max(min, max);
+
+          const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+          if (valid && range.hasRange) {
+            min = clampNumber(min, range.values.min, range.values.max);
+            max = clampNumber(max, range.values.min, range.values.max);
+          }
+
+          value = { min, max };
+          break;
+        }
+      } else {
+        const output = [];
+        if (typeof value === 'string') {
+          value = value.trim().split(',');
+        } else if (typeof value === 'number') {
+          value = [value];
+        }
+
+        if (!Array.isArray(value)) {
+          break;
+        }
+
+        for (let i = 0; i < value.length; ++i) {
+          let item = value[i];
+          if (typeof item === 'string') {
+            const matches = item.trim().match(/(\+|-)?(((\d{1,3}([,?\d{3}])*(\.\d+)?)|(\d{1,}))|(\.\d{0,}))(%)?/m);
+            if (!isNullOrUndefined(matches)) {
+              item = parseFloat(matches.shift().trim());
+    
+              let coercion = (isObjectType(modifier) && !isNullOrUndefined(modifier?.coercion))
+                ? modifier.coercion
+                : null;
+
+              if (isNullOrUndefined(coercion)) {
+                coercion = validation?.coercion;
+              }
+
+              const hasPercentageSymbol = !isNullOrUndefined(matches) ? (matches[matches.length - 1] === '%') : false;
+              if (coercion === 'normalised' && hasPercentageSymbol) {
+                item /= 100;
+              } else if (coercion === 'percentage' && !hasPercentageSymbol) {
+                item *= 100;
+              }
+            }
+          }
+
+          if (typeof item !== 'number') {
+            continue;
+          }
+
+          valid = !isNaN(item) && Number.isFinite(item);
+          if (!valid) {
+            break;
+          }
+
+          output.push(item);
+        }
+
+        if (!valid) {
+          break;
+        }
+        value = output;
+
+        const range = resolveRangeOpts(type, validation?.range || validation?.properties?.range);
+        if (valid && range.hasRange) {
+          value[0] = clampNumber(value[0], range.values.min, range.values.max);
+          value[1] = clampNumber(value[1], range.values.min, range.values.max);
+        }
+      }
+    } break;
+
+    case 'ci_interval': {
+      if (!isObjectType(value)) {
+        valid = false;
+        break;
+      }
+
+      const output = { };
+      for (const key in value) {
+        let item = value[key];
+        if (key === 'probability') {
+          item = parseAsFieldType({ validation: { type: 'percentage', range: [0, 100] }}, item);
+          if (!item || !item?.success) {
+            valid = false;
+            break;
+          }
+
+          item = item.value;
+        } else {
+          let attemptCoercion;
+          if (typeof item === 'string') {
+            attemptCoercion = item.match(/^(\+|-)?(((\d{1,3}([,?\d{3}])*(\.?\d+)?)|(\d{1,}))|(\.\d+)?)(%)?$/m);
+            attemptCoercion = !isNullOrUndefined(attemptCoercion);
+          } else if (typeof item === 'number') {
+            attemptCoercion = true;
+          }
+
+          let failure = false;
+          if (attemptCoercion) {
+            const res = parseAsFieldType({ validation: { type: 'float' } }, item);
+            if (res && res?.success) {
+              item = res.value;
+            } else {
+              failure = true;
+            }
+          }
+
+          if (!failure && typeof item !== 'number' && typeof item !== 'string') {
+            valid = false;
+            break;
+          }
+
+          if (typeof item === 'number' && (isNaN(item) || !Number.isFinite(item))) {
+            valid = false;
+            break;
+          }
+
+          if (failure && typeof item === 'number') {
+            item = item.toString();
+          }
+
+          if (typeof item === 'string' && !stringHasChars(item)) {
+            valid = false;
+            break;
+          }
+        }
+
+        output[key] = item;
+      }
+
+      if (!valid) {
+        break;
+      }
+
+      value = output;
+    } break;
+
+    case 'string': {
+      value = !isNullOrUndefined(value) ? String(value) : null;
+
+      const pattern = validation?.regex;
+      if (!isNullOrUndefined(pattern) && typeof value === 'string') {
+        try {
+          if (typeof pattern === 'string') {
+            valid = new RegExp(pattern).test(value);
+          } else if (Array.isArray(pattern)) {
+            let test = undefined, i = 0;
+            while (i < pattern.length) {
+              test = pattern[i];
+              if (typeof test !== 'string') {
+                continue;
+              }
+  
+              valid = new RegExp(test).test(value);
+              if (valid) {
+                break;
+              }
+            }
+          }
+        }
+        catch (e) {
+          console.error(`Failed to test String<value: ${value}> with err: ${e}`);
+          valid = false;
+        }
+
+        if (!valid) {
+          break;
+        }
+      }
+
+      const { clippable, validateLen } = isObjectType(validation.properties) ? validation.properties : {};
+      if (clippable || validateLen) {
+        let len = validation?.['length'] || validation?.properties?.['length'];
+        if (Array.isArray(len)) {
+          len = len.length >= 2 ? len.slice(0, 2) : len?.[0];
+        }
+  
+        if (Array.isArray(len)) {
+          len = len.map(x => Math.floor(x));
+  
+          let min = Math.min(...len);
+          let max = Math.max(...len);
+          if (min === max) {
+            len = min;
+          } else {
+            if (clippable) {
+              value = value.substring(0, Math.min(value.length, max));
+            } else if (validateLen && (value.length < min || value.length > max)) {
+              value = { len: value.length };
+              valid = false;
+            }
+          }
+  
+          if (!valid) {
+            break;
+          }
+        }
+  
+        if (typeof len === 'number') {
+          len = Math.floor(len);
+  
+          if (clippable) {
+            value = value.substring(0, Math.min(value.length, len));
+          } else if (validateLen && value.length > len) {
+            value = { len: value.length };
+            valid = false;
+          }
+  
+          if (!valid) {
+            break;
+          }
+        }
+      }
     } break;
 
     case 'string_array': {
@@ -1061,20 +2192,117 @@ export const parseAsFieldType = (packet, value) => {
       value = value.map(item => String(item));
     } break;
 
-    case 'int_array': {
+    case 'publication': {
       if (!Array.isArray(value)) {
+        valid = false;
+      }
+    } break;
+
+    case 'organisation': {
+      if (!isNullOrUndefined(value) && typeof value !== 'string' && typeof value !== 'number') {
         valid = false;
         break;
       }
 
-      const output = [ ];
-      for (let i = 0; i < value.length; ++i) {
-        const item = parseInt(value[i]);
-        if (isNaN(item)) {
+      if (typeof value === 'string') {
+        value = parseInt(value.trim());
+      }
+
+      if (typeof value === 'number') {
+        value = Math.trunc(value);
+        valid = !isNaN(value) && Number.isFinite(value) && Number.isSafeInteger(value);
+      } else if (!isNullOrUndefined(value)) {
+        valid = false;
+      }
+    } break;
+
+    case 'var_data': {
+      if (!isObjectType(value)) {
+        valid = false;
+        break;
+      }
+
+      const options = isObjectType(validation.options) ? validation.options : null;
+      const properties = isObjectType(validation.properties) ? validation.properties : null;
+
+      const allowUnknown = !!properties ? properties.allow_unknown : false;
+      const allowDescription = !!properties ? properties.allow_description : false;
+
+      const output = {};
+      for (const key in value) {
+        let item = value[key];
+        if (!isObjectType(item)) {
           valid = false;
           break;
         }
-        output.push(item);
+
+        let description = null;
+        if (allowDescription) {
+          if (!isNullOrUndefined(item?.description) && typeof item?.description !== 'string') {
+            item.description = String(item?.description);
+          }
+
+          if (typeof item.description === 'string') {
+            description = item.description;
+          }
+
+          if (!stringHasChars(description)) {
+            delete item.description;
+          }
+        }
+
+        let success = false;
+        if (options) {
+          const props = options[key];
+          if (!isNullOrUndefined(props)) {
+            const res = parseAsFieldType(packet, item.value, props);
+            if (!res || !res?.success) {
+              valid = false;
+              break
+            }
+
+            item = {
+              name: typeof props.name === 'string' ? props.name : key,
+              type: props.type,
+              value: res.value,
+              description: description,
+            };
+            success = true;
+          }
+        }
+
+        if (!success && !allowUnknown) {
+          valid = false;
+          break;
+        }
+
+        if (!success) {
+          const vtype = typeof item.type === 'string' && stringHasChars(item.type) ? item.type : null;
+          const vlabel = typeof item.name === 'string' && stringHasChars(item.name) ? item.name : null;
+          if (!vtype || !vlabel) {
+            valid = false;
+            break
+          }
+
+          const res = parseAsFieldType({ validation: { type: vtype }}, item.value);
+          if (!res || !res?.success) {
+            valid = false;
+            break
+          }
+
+          item = {
+            name: vlabel,
+            type: vtype,
+            value: res.value,
+            description: description,
+          };
+        }
+
+        if (item.hasOwnProperty('description') && (!allowDescription || item.description === null)) {
+          delete item.description;
+        }
+
+        output[key] = item;
       }
 
       if (!valid) {
@@ -1083,12 +2311,60 @@ export const parseAsFieldType = (packet, value) => {
       value = output;
     } break;
 
-    case 'publication': {
+    case 'contacts':
+    case 'publication':
+    case 'related_entities': {
       if (!Array.isArray(value)) {
         valid = false;
       }
+    } break;
+
+    case 'age_group': {
+      if (!isObjectType(value)) {
+        valid = false;
+        break
+      }
+
+      const range = resolveRangeOpts(
+        'int',
+        isObjectType(validation) && isObjectType(validation?.properties)
+          ? validation?.properties
+          : { }
+      );
+
+      let { value: val, comparator } = value;
+      if (comparator === 'between') {
+        if (!Array.isArray(val)) {
+          valid = false;
+          break;
+        }
+
+        val = parseAsFieldType({ validation: { type: 'int_range', properties: { min: range.values.min, max: range.values.max } } }, val);
+        if (!val || !val?.success) {
+          valid = false;
+          break;
+        }
+
+        value.value = val.value;
+      } else {
+        if (!isSafeNumber(val)) {
+          valid = false;
+          break;
+        }
+
+        val = parseAsFieldType({ validation: { type: 'int', properties: { min: range.values.min, max: range.values.max } } }, val);
+        if (!val || !val?.success) {
+          valid = false;
+          break;
+        }
+
+        value.value = val.value;
+      }
+    } break;
+
+    default:
+      valid = true;
       break;
-    }
   }
 
   return {
@@ -1109,7 +2385,7 @@ export const parseAsFieldType = (packet, value) => {
  * @return {string} the title of this field
  */
 export const tryGetFieldTitle = (field, packet) => {
-  const group = tryGetRootElement(packet.element, 'detailed-input-group');
+  const group = tryGetRootElement(packet.element, '.detailed-input-group');
   const title = !isNullOrUndefined(group) ? group.querySelector('.detailed-input-group__title') : null;
   if (!isNullOrUndefined(title)) {
     return title.innerText.trim();

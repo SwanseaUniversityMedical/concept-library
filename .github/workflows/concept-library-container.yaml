@@ -5,9 +5,8 @@ on:
     # Only consider PRs that change files for this asset, including ci scripts
     paths:
       - '.github/workflows/concept-library-container.yaml'
-      - './CodeListLibrary_project/**'
-      - './engagelens/**'
-      - './docker/**'
+      - 'CodeListLibrary_project/**'
+      - 'docker/**'
   push:
     # Only release off of release and maintenance branches for this asset
     branches:
@@ -15,9 +14,8 @@ on:
     # Only consider pushes that change files for this asset, including ci scripts
     paths:
       - '.github/workflows/concept-library-container.yaml'
-      - './CodeListLibrary_project/**'
-      - './engagelens/**'
-      - './docker/**'
+      - 'CodeListLibrary_project/**'
+      - 'docker/**'
 
 permissions:
   contents: write
@@ -31,7 +29,7 @@ concurrency:
 
 jobs:
   concept-library-container:
-    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-container.yaml@v3.0.1-containers
+    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-container.yaml@v3.4.5-containers
     with:
       job-name: concept-library-container
       comment-pr: true
@@ -41,7 +39,10 @@ jobs:
       registry-repo: ${{ vars.HARBOR_PROJECT }}/concept-library
       release-tag-format: 'Concept-Library-${version}'
       cosign-public-key: ${{ vars.COSIGN_PUBLIC_KEY }}
-      build-file: docker/app/app.Dockerfile
+      build-file: docker/app/Dockerfile
+      build-args: |
+        server_name=conceptlibrary.saildatabank.com
+        dependency_target=production.txt
     secrets:
       cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
       cosign-password: ${{ secrets.COSIGN_PASSWORD }}

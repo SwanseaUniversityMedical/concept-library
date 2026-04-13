@@ -18,25 +18,6 @@
           <div class="col-sm-4" aria-label="{{ entity.owner.username }}">
             <span>{{ entity.owner.username }}</span>
           </div>
-
-          <div class="col-sm-2" aria-label="Owner access">Owner access</div>
-          {% if entity.owner_access == 1 %}
-            <div class="col-sm-4" aria-label="None">
-              <span class="card-noweight">None</span>
-            </div>
-          {% elif entity.owner_access == 2 %}
-            <div class="col-sm-4" aria-label="View only">
-              <span class="card-noweight">View only</span>
-            </div>
-          {% elif entity.owner_access == 3 %}
-            <div class="col-sm-4" aria-label="View and edit">
-              <span class="card-noweight">View and edit</span>
-            </div>
-          {% else %}
-            <div class="col-sm-4" aria-label="Unknown">
-              <span class="card-noweight">Unknown</span>
-            </div>
-          {% endif %}
         </div>
       </div>
 
@@ -44,57 +25,15 @@
 
       <div class="box-container">
         <div class="row">
-          <div class="col-sm-2" aria-label="Group">Group</div>
-          {% if entity.group %}
-            <div class="col-sm-4" aria-label="{{ entity.group }}">
-              <span>{{ entity.group }}</span>
+          <div class="col-sm-2" aria-label="Organisation">Organisation</div>
+          {% if entity.organisation %}
+            <div class="col-sm-4" aria-label="{{ entity.organisation }}">
+              <a href="{% url 'view_organisation' slug=entity.organisation.slug %}">{{ entity.organisation.name }}</a>
             </div>
           {% else %}
             <div class="col-sm-4" aria-label="No associated group">
-              <span class="card-no-data">No associated group</span>
+              <span class="card-no-data">No associated organisation</span>
             </div>
-          {% endif %}
-
-          <div class="col-sm-2" aria-label="Group access">Group access</div>
-          {% if entity.group_access == 1 %}
-            <div class="col-sm-4" aria-label="No Access">
-              <span class="card-noweight text-right">No Access</span>
-            </div>
-          {% elif entity.group_access == 2 %}
-            <div class="col-sm-4" aria-label="View only">
-              <span class="card-noweight text-right">View only</span>
-            </div>
-          {% elif entity.group_access == 3 %}
-            <div class="col-sm-4" aria-label="View and edit">
-              <span class="card-noweight text-right">View and edit</span>
-            </div>
-          {% else %}
-            <div class="col-sm-4" aria-label="Unknown">
-              <span class="card-noweight text-right">Unknown</span>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-
-      <hr class="small-divider" />
-
-      <div class="box-container">
-        <div class="row">
-          <div class="col-sm-2" aria-label="All other users">All other users</div>
-          {% if entity.world_access == 1 %}
-            <div class="col-sm-10" aria-label="No access">
-              <span>No access</span>
-            </div>
-          {% elif entity.world_access == 2 %}
-            <div class="col-sm-10" aria-label="View only">
-              <span>View only</span>
-            </div>
-          {% elif entity.world_access == 3 %}
-            <div class="col-sm-10" aria-label="View and edit">
-              <span>View and edit</span>
-            </div>
-          {% else %}
-            <div class="col-sm-10" aria-hidden="true"></div>
           {% endif %}
         </div>
       </div>

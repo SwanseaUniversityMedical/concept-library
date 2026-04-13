@@ -1,20 +1,48 @@
+from rest_framework import status
+from django.db.models import Q
+from rest_framework.response import Response
 from rest_framework.decorators import (api_view, permission_classes)
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
-from rest_framework import status
+from django.contrib.postgres.search import TrigramWordSimilarity
 
 from ...models import Template
-from ...entity_utils import api_utils
-from ...entity_utils import template_utils
+from ...entity_utils import template_utils, gen_utils, api_utils
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def get_templates(request):
   """
-    Get all templates
-  """    
-  templates = Template.objects.all()
+    Get all Collections
+
+    Available parameters:
+
+    | Param         | Type            | Default | Desc                                                                       |
+    |---------------|-----------------|---------|----------------------------------------------------------------------------|
+    | search        | `str`           | `NULL`  | Full-text search across _name_ and _description_ field                     |
+    | id            | `int/list[int]` | `NULL`  | Match by a single `int` _id_ field, or match by array overlap              |
+    | name          | `str`           | `NULL`  | Case insensitive direct match of _name_ field                              |
+  """
   
+  templates = Template.get_brand_records_by_request(request)
+  if templates is None:
+    return Response(
+      data=[],
+      status=status.HTTP_200_OK
+    )
+
+  search = request.query_params.get('search')
+  if not gen_utils.is_empty_string(search) and len(search.strip()) > 3:
+    templates = templates.annotate(
+        similarity=(
+          TrigramWordSimilarity(search, 'name') + \
+          TrigramWordSimilarity(search, 'description')
+        )
+      ) \
+        .filter(Q(similarity__gte=0.7)) \
+        .order_by('-similarity')
+  else:
+      templates = templates.order_by('id')
+
   result = []
   for template in templates:
     result.append({
@@ -83,7 +111,7 @@ def get_template(request, template_id, version_id=None):
             status=status.HTTP_404_NOT_FOUND
         )
     template = template.latest()
-    
+
   merged_definition = template_utils.get_merged_definition(template, default={})
   template_fields = template_utils.try_get_content(merged_definition, 'fields')
   

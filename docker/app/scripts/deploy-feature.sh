@@ -33,7 +33,7 @@ export cll_log_path;
 redis_port=6379
 export redis_image;
 
-redis_image='redis:7.0-bullseye';
+redis_image='redis:7.4-bookworm';
 export redis_image;
 
 
@@ -193,7 +193,7 @@ export cll_app_image;
   cd "$repo_fpath";
 
   # Build cll/app
-  docker build -f "docker/app/app.Dockerfile" -t "$ImageName" \
+  docker build -f "docker/app/Dockerfile" -t "$ImageName" \
     --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" \
     --build-arg server_name="$SERVER_NAME" \
     '.';
