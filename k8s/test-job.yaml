@@ -1,0 +1,71 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: concept-library-dns-test
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: tester
+          image: curlimages/curl:8.5.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              HOST="${HOSTNAME}"
+
+              echo "Checking DNS..."
+
+              for i in $(seq 1 60); do
+                RESULT=$(getent hosts $HOST || true)
+
+                if [ -n "$RESULT" ]; then
+                  echo "DNS resolved:"
+                  echo "$RESULT"
+                  break
+                fi
+
+                echo "Waiting for DNS..."
+                sleep 5
+              done
+
+              if [ -z "$RESULT" ]; then
+                echo "DNS failed"
+                exit 1
+              fi
+
+              echo "testing HTTP..."
+
+              curl -v --fail http://$HOST
+
+              echo "Testing sticky sessions..."
+
+              RESPONSE=$(curl -i http://$HOST)
+              COOKIE=$(echo "$RESPONSE" | grep -i "set-cookie" | head -1 | awk '{print $2}' | tr -d '\r')
+
+              echo "Cookie: $COOKIE"
+
+              if [ -z "$COOKIE" ]; then
+                echo "No cookie set"
+                exit 1
+              fi
+
+              RESP1=$(curl -s -H "Cookie: $COOKIE" http://$HOST)
+              RESP2=$(curl -s -H "Cookie: $COOKIE" http://$HOST)
+
+              echo "Response1: $RESP1"
+              echo "Response2: $RESP2"
+
+              if [ "$RESP1" != "$RESP2" ]; then
+                echo "Sticky session failed"
+                exit 1
+              fi
+
+              echo "All tests passed"
+          env:
+            - name: HOSTNAME
+              value: concept-library.example.com

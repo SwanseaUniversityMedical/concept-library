@@ -9,48 +9,39 @@ on:
     # branch protection rule have the same paths: and branches-ignore:
     # filters. Otherwise, you can end up in a deadlock waiting on a
     # required check that will never be executed.
-  push:
-    # Only release off of release and maintenance branches for this asset
-    paths:
-      - '.github/workflows/concept-library-chart.yaml'
-      - 'chart/concept-library/**'
+#  push:
+#    # Only release off of release and maintenance branches for this asset
+#    paths:
+#      - '.github/workflows/concept-library-chart.yaml'
+#      - 'chart/concept-library/**'
 
 jobs:
-  test-dns:
+  test:
     runs-on: ubuntu-latest
-    env:
-      HOSTNAME: concept-library.example.com
 
     steps:
-      - name: Install tools
+      - uses: actions/checkout@v4
+
+      - name: Deploy chart
         run: |
-          sudo apt-get update
-          sudo apt-get install -y dnsutils curl
+          helm upgrade --install concept-library \
+            ./chart \
+            --namespace pr-${{ github.event.number }} \
+            --create-namespace \
+            --set dns.hostname=concept-library-pr-${{ github.event.number }}.example.com
 
-
-      - name: Wait for DNS record
+      - name: Run test
         run: |
-          echo "Waiting for DNS to resolve..."
-      
-          for i in $(seq 1 30); do
-            RESULT=$(dig +short $HOSTNAME)
-      
-            echo "DNS result: $RESULT"
-      
-            if [ -n "$RESULT" ]; then
-              echo "DNS resolved!"
-              exit 0
-            fi
-      
-            echo "Not ready yet... retrying"
-            sleep 10
-          done
-      
-          echo "DNS did not resolve in time"
-          exit 1
+          kubectl apply -n pr-${{ github.event.number }} -f k8s/test-job.yaml
+          kubectl set env job/concept-library-dns-test \
+            HOSTNAME=concept-library-pr-${{ github.event.number }}.example.com \
+            -n pr-${{ github.event.number }}
 
+          kubectl wait --for=condition=complete job/concept-library-dns-test -n pr-${{ github.event.number }} --timeout=600s
+          kubectl logs job/concept-library-dns-test -n pr-${{ github.event.number }}
 
-      - name: Check DNS resolution
+      - name: Cleanup
+        if: always()
         run: |
-          dig $HOSTNAME
-          nslookup $HOSTNAME
+          helm uninstall concept-library -n pr-${{ github.event.number }}
+          kubectl delete namespace pr-${{ github.event.number }}
