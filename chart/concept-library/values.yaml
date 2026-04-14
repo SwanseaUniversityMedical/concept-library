@@ -67,3 +67,7 @@ metrics:
   serviceMonitor:
     enabled: false
     prometheusNamespace: ""
+
+dns:
+  enabled: true
+  hostname: concept-library.example.com
