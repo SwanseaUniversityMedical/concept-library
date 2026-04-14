@@ -1,0 +1,49 @@
+name: test dns
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/concept-library-dns.yaml'
+      - 'chart/concept-library/**'
+    # Make sure all workflows that are "required checks" for a given
+    # branch protection rule have the same paths: and branches-ignore:
+    # filters. Otherwise, you can end up in a deadlock waiting on a
+    # required check that will never be executed.
+  push:
+    # Only release off of release and maintenance branches for this asset
+    paths:
+      - '.github/workflows/concept-library-chart.yaml'
+      - 'chart/concept-library/**'
+
+jobs:
+  test-dns:
+    runs-on: ubuntu-latest
+    env:
+      HOSTNAME: concept-library.example.com
+
+    steps:
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dnsutils curl
+
+
+      - name: Wait for DNS record
+        run: |
+          echo "Waiting for DNS to resolve..."
+          for i in {1..30}; do
+            if dig +short $HOSTNAME | grep -E '^[0-9.]+'; then
+              echo "DNS resolved!"
+              exit 0
+            fi
+            echo "Not ready yet... retrying"
+            sleep 10
+          done
+          echo "DNS did not resolve in time"
+          exit 1
+
+
+      - name: Check DNS resolution
+        run: |
+          dig $HOSTNAME
+          nslookup $HOSTNAME
