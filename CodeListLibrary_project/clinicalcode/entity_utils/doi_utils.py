@@ -321,7 +321,6 @@ def find_registered_doi(entity, timeout=REQ_TIMEOUT, use_proxy=True, force_debug
     # Successful cases
     if response.ok and isinstance(status, HTTPStatus) and is_success(status):
       result = response.json()
-      print(result)
       result = result.get('data', None) if isinstance(result, dict) else None
 
       if not isinstance(result, list):

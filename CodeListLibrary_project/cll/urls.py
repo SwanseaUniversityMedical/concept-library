@@ -44,6 +44,7 @@ URL_VARIANTS = [
 	# GenericEntity/Phenotype variants
 	## Search
 	{ 'route': r'%(base)s{phenotypes}/$', 'view': GenericEntity.EntitySearchView.as_view(), 'name': 'search_entities' },
+	{ 'route': r'%(base)sontology/(?P<term>[:_\-\w]+)/$', 'view': GenericEntity.EntitySearchByOntologyView.as_view(), 'name': 'search_entities_by_ontology' },
 
 	## Support legacy Concept redirects
 	{ 'route': r'%(base)s{concepts}/C(?P<pk>\d+)/detail/$', 'view': GenericEntity.RedirectConceptView.as_view(), 'name': 'redirect_concept_detail' },

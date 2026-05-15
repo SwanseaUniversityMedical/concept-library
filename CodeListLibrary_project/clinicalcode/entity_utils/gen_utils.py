@@ -322,8 +322,7 @@ def parse_int(value, default=None):
     """
     if isinstance(value, int):
         return value
-
-    if value is None:
+    elif value is None:
         return default
 
     try:
@@ -714,22 +713,19 @@ def parse_prefixed_references(values, acceptable=None, pattern=None, transform=N
             prefix = matched[0].lower()
             target = matched[1]
             if acceptable is not None:
-                if not prefix in acceptable:
-                    target = None
-                else:
-                    expected = acceptable.get(prefix).get('type')
-                    if not is_empty_string(expected):
-                        target = try_value_as_type(target, expected, default=None)
+                expected = acceptable.get('type')
+                if not is_empty_string(expected):
+                    target = try_value_as_type(target, expected, default=None)
 
             if target is not None:
-                if not prefix in prefixed:
-                    prefixed.update({ prefix: [] })
-                prefixed.get(prefix).append(target)
+                if not 'prefixed' in prefixed:
+                    prefixed.update({ 'prefixed': [] })
+                prefixed.get('prefixed').append(f'{prefix}:{target}')
 
                 if isinstance(target, str) and transform:
                     alt_target = transform.sub('', target)
                     if not is_empty_string(alt_target) and target != alt_target:
-                        prefixed.get(prefix).append(alt_target)
+                        prefixed.get('prefixed').append(f'{prefix}:{alt_target}')
                 continue
 
         value = parse_int(value, default=None)
@@ -800,6 +796,9 @@ def try_value_as_type(
     elif field_type == 'int_array':
         if isinstance(field_value, int):
             return [field_value]
+
+        if isinstance(field_value, str):
+            field_value = [field_value]
 
         if loose_coercion:
             if strict_elements and isinstance(field_value, str):

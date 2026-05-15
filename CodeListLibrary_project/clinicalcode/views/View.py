@@ -31,7 +31,7 @@ from ..entity_utils import (
     model_utils, sanitise_utils, create_utils
 )
 
-from ..entity_utils.constants import ONTOLOGY_TYPES
+from ..entity_utils.constants import ONTOLOGY_ACTIVE
 from ..entity_utils.permission_utils import redirect_readonly
 
 logger = logging.getLogger(__name__)
@@ -454,7 +454,7 @@ class ReferenceData(TemplateView):
             )
 
         return context | {
-            'ontology_groups': [x.value for x in ONTOLOGY_TYPES],
+            'ontology_groups': [x.value for x in ONTOLOGY_ACTIVE],
             'templates': templates,
             'default_data': data
         }

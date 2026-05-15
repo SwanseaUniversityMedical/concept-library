@@ -26,37 +26,42 @@ class PublishedGenericEntity(models.Model):
     history = HistoricalRecords()
 
     def save(self, *args, **kwargs):
-        '''
-            update publish_status in historicalgenericentity
-        '''
+        """
+            Update publish_status in historicalgenericentity
+        """
         if isinstance(self.approval_status, enum.Enum):
             self.approval_status = self.approval_status.value
         
         with transaction.atomic():
             with connection.cursor() as cursor:
-                sql_publish_status = """
-                                        UPDATE public.clinicalcode_historicalgenericentity 
-                                        SET publish_status = %(approval)s
-                                        WHERE id = %(entityid)s and history_id = %(entityhxid)s;
-                                    """
-                
-                cursor.execute(sql_publish_status, params={
+                sql = '''
+                do $tx$
+                declare
+                    v_latest bigint;
+                begin
+                    update public.clinicalcode_historicalgenericentity
+                       set publish_status = %(approval)s
+                     where id = %(entityid)s
+                       and history_id = %(entityhxid)s;
+
+                    select max(history_id)
+                      into v_latest
+                      from public.clinicalcode_historicalgenericentity
+                     where id = %(entityid)s;
+
+                    if (v_latest = %(entityhxid)s) then
+                        update public.clinicalcode_genericentity
+                           set publish_status = %(approval)s
+                         where id = %(entityid)s;
+                    end if;
+                end;
+                $tx$ language plpgsql;
+                '''
+                cursor.execute(sql, params={
                     'approval': self.approval_status,
                     'entityid': str(self.entity.id),
                     'entityhxid': self.entity_history_id,
                 })
-
-                ''' if latest version, then update live record '''
-                if self.entity_history_id == self.entity.history.latest().history_id:
-                    sql_publish_status_2 = """
-                                        UPDATE public.clinicalcode_genericentity 
-                                        SET publish_status = %(approval)s
-                                        WHERE id = %(entityid)s;
-                                    """
-                    cursor.execute(sql_publish_status_2, params={
-                        'approval': self.approval_status,
-                        'entityid': str(self.entity.id),
-                    })
 
         super(PublishedGenericEntity, self).save(*args, **kwargs)
         

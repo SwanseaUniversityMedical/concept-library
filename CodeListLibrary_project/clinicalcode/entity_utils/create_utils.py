@@ -148,7 +148,7 @@ def try_add_computed_fields(field, form_data, form_template, data, field_data=No
             output.add(coding_system)
         data['coding_system'] = list(output)
 
-def get_mapped_query(data, mapping, model_source, default=None):
+def get_mapped_query(data, type_ids, mapping, model_source, default=None):
     """
         Generates a single query to validate mapped reference data, e.g. ontological terms, such that:
             1. Raw pk queries assigned to `__root__` are validated using the `id` field (see `parse_prefixed_references` in gen_utils.py)
@@ -157,6 +157,7 @@ def get_mapped_query(data, mapping, model_source, default=None):
 
         Args:
             data           (dict): a dict containing the parsed query data
+            type_ids       (list): a list describing allowable type_ids
             mapping        (dict): a dict describing the mappings as defined by the field's template data
             model_source (string): the name of the table within the DB
             default           (*): the default value to return if this method fails
@@ -170,86 +171,56 @@ def get_mapped_query(data, mapping, model_source, default=None):
         return default
 
     query = ''
-    inputs = {}
+    inputs = { 'mq_types_value': type_ids }
 
     try:
         cursor = connection.cursor().cursor
         model_target = psycopg2.sql.Identifier(model_source)
+        match_t = mapping.get('match_data')
+        match_in = mapping.get('match_in')
+        match_src = mapping.get('match_src')
         for prefix, targets in data.items():
             if not isinstance(targets, list) or len(targets) < 1:
                 continue
 
-            map_target = mapping.get(prefix, None)
-            if not isinstance(map_target, dict):
+            if prefix == '__root__':
                 sql = '''
                 select node.id
                   from public.{model_source} as node
                  where node.id = %s
+                   and node.type_id = any(%%(mq_types_value)s)
                 ''' % (f'any(%({prefix}_value)s)')
 
                 sql = psycopg2.sql.SQL(sql) \
                     .format(model_source=model_target) \
                     .as_string(cursor)
+
             else:
-                match_in = map_target.get('match_in')
-                match_out = map_target.get('match_out')
-                match_src = map_target.get('match_src')
-                match_type = map_target.get('match_type').lower()
-
-                match match_type:
-                    case 'in':
-                        match_op = psycopg2.sql.SQL('item.{}').format(psycopg2.sql.Identifier(match_in)).as_string(cursor)
-                        match_op += f' = any(%({prefix}_value)s)'
-                    case 'overlap':
-                        match_op = psycopg2.sql.SQL('item.{}').format(psycopg2.sql.Identifier(match_in)).as_string(cursor)
-                        match_op += f' && %({prefix}_value)s'
-                    case _:
-                        match_op = None
-
-                if not match_op:
-                    continue
-
-                link_target = map_target.get('link_target').split('__')
-                link_length = len(link_target)
-                if link_length > 1:
-                    link_op = ''
-                    for i, v in enumerate(link_target):
-                        if i == 0:
-                            link_op += psycopg2.sql.Identifier(v).as_string(cursor)
-                        elif i != link_length - 1:
-                            link_op += '->\'%s\'' % (v)
-                        else:
-                            link_op += '->>\'%s\'' % (v)
-
-                    link_op = 'node.%s = link.link_target' % (link_op)
-                else:
-                    link_op = psycopg2.sql.SQL('node.{link} = link.link_target') \
-                                        .format(psycopg2.sql.Identifier(link_target[0])) \
-                                        .as_string(cursor)
-
-                sql = '''
+                sql = f'''
+                select node.id
+                  from public.{model_source} as node
+                 where node.type_id = any(%(mq_types_value)s)
+                   and lower(node.reference_id) = any(%({prefix}_value)s::{match_t}[])
+                 union
                 select node.id
                   from public.{model_source} as node
                   join (
-                    select item.{match_out} as link_target
-                      from public.{match_src} as item
-                     where %(match_op)s
+                    select item.id
+                      from public.{model_source} as item,
+                           jsonb_array_elements_text(item.{match_src}->'{match_in}') as t(x)
+                     where item.type_id = any(%(mq_types_value)s)
+                       and lower(t.x::{match_t}) = any(%({prefix}_value)s::{match_t}[])
                   ) as link
-                    on %(link_op)s
-                ''' % { 'link_op': link_op, 'match_op': match_op }
+                    on link.id = node.id
+                '''
 
                 sql = psycopg2.sql.SQL(sql) \
-                    .format(
-                        match_out=psycopg2.sql.Identifier(match_out),
-                        match_src=psycopg2.sql.Identifier(match_src.lower()),
-                        model_source=model_target
-                    ) \
                     .as_string(cursor)
 
-            if len(inputs) < 1:
+            if len(query) < 1:
                 query = sql
             else:
-                query += 'union' + sql
+                query += ' union' + sql
 
             inputs.update({ f'{prefix}_value': targets })
     except Exception as e:
@@ -281,7 +252,7 @@ def try_validate_sourced_value(field, template, data, default=None, request=None
 
                     if isinstance(data, dict):
                         model_source = str(model.objects.model._meta.db_table)
-                        mapped_query = get_mapped_query(data, mapping, model_source, default=None)
+                        mapped_query = get_mapped_query(data, tree_models, mapping, model_source, default=None)
                         if mapped_query is not None:
                             query = mapped_query.get('query')
                             if isinstance(query, str) and len(query) > 0:

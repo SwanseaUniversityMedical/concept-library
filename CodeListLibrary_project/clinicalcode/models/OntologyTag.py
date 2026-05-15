@@ -1,10 +1,8 @@
-from django.apps import apps
-from django.db import models, transaction, connection
+from django.db import models, connection
 from django.db.models import F, Count, Case, When, Exists, OuterRef
 from django.db.models.functions import JSONObject
+from django.contrib.postgres import indexes as Indexes
 from django.contrib.postgres.search import SearchVectorField
-from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.aggregates.general import ArrayAgg
 from django_postgresql_dag.models import node_factory, edge_factory
 
 import logging
@@ -12,8 +10,6 @@ import psycopg2
 
 from ..entity_utils import gen_utils
 from ..entity_utils import constants
-
-from .CodingSystem import CodingSystem
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +41,15 @@ class OntologyTagEdge(edge_factory('OntologyTag', concrete=False)):
 	class Meta:
 		unique_together = ('child_id', 'parent_id',)
 		indexes = [
-			models.Index(fields=['child_id']),
-			models.Index(fields=['parent_id']),
-			models.Index(fields=['child_id', 'parent_id']),
+			# Hash indices
+			Indexes.HashIndex(fields=['id'], name='oe_hh_id_idx'),
+			Indexes.HashIndex(fields=['child_id'], name='oe_hh_chid_idx'),
+			Indexes.HashIndex(fields=['parent_id'], name='oe_hh_prid_idx'),
+			# Composite indices
+			Indexes.BTreeIndex(fields=['child_id', 'parent_id'], name='oe_cpbt_chpr_idx'),
+			# Covering indices
+			models.Index(fields=['child_id'], include=['id', 'parent_id'], name='oe_cv_ch_idx'),
+			models.Index(fields=['parent_id'], include=['id', 'child_id'], name='oe_cv_pr_idx'),
 		]
 
 
@@ -80,10 +82,8 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 	## Top-level fields
 	name = models.CharField(max_length=256, unique=False)
 	type_id = models.IntegerField(choices=[(e.name, e.value) for e in constants.ONTOLOGY_TYPES])
+	reference_id = models.CharField(max_length=64, unique=False, default='')
 	properties = models.JSONField(blank=True, null=True)
-
-	## Reference to external data source(s)
-	reference_id = models.IntegerField(blank=True, null=True, unique=False)
 
 	## FTS
 	search_vector = SearchVectorField(null=True)   # Weighted name / description / synonyms / relations
@@ -93,144 +93,63 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 	# Metadata
 	class Meta:
-		ordering = ('type_id', 'id', )
+		ordering = ('type_id', 'id',)
+		unique_together = ('type_id', 'reference_id',)
 		indexes = [
-			models.Index(fields=['id']),
-			models.Index(fields=['type_id']),
-			models.Index(fields=['reference_id']),
-			models.Index(fields=['id', 'type_id']),
-			models.Index(fields=['id', 'reference_id']),
-			models.Index(fields=['id', 'type_id', 'reference_id']),
-			GinIndex(name='ot_name_gin_idx', fields=['name'], opclasses=['gin_trgm_ops']),
-			GinIndex(fields=['search_vector']),
-			GinIndex(fields=['synonyms_vector']),
-			GinIndex(fields=['relation_vector']),
-			GinIndex(fields=['properties'])
+			# Hash & BTree indices
+			Indexes.HashIndex(fields=['id'], name='ot_hh_id_idx'),
+			Indexes.HashIndex(fields=['type_id'], name='ot_bt_tp_idx'),
+			Indexes.BTreeIndex(fields=['reference_id'], name='ot_bt_ref_idx'),
+			# jsonb indices
+			Indexes.GinIndex(
+				Indexes.OpClass(F('properties__xrefs'), name='jsonb_path_ops'),
+				name='ot_gin_jref_idx'
+			),
+			Indexes.GinIndex(
+				Indexes.OpClass(F('properties__synonyms'), name='jsonb_path_ops'),
+				name='ot_gin_jsyn_idx'
+			),
+			Indexes.GinIndex(
+				Indexes.OpClass(F('properties__categories'), name='jsonb_path_ops'),
+				name='ot_gin_jcat_idx'
+			),
+			Indexes.GinIndex(
+				Indexes.OpClass(F('properties__definition'), name='jsonb_path_ops'),
+				name='ot_gin_jdef_idx'
+			),
+			# tsvector indices
+			Indexes.GinIndex(fields=['search_vector'], name='ot_gin_srch_idx'),
+			Indexes.GinIndex(fields=['synonyms_vector'], name='ot_gin_syns_idx'),
+			Indexes.GinIndex(fields=['relation_vector'], name='ot_gin_rels_idx'),
+			# Composite indices
+			Indexes.BTreeIndex(fields=['type_id', 'reference_id'], name='ot_cpbt_tr_idx'),
+			# Covering indices
+			models.Index(
+				fields=['id'],
+				include=['name', 'type_id', 'reference_id'],
+				name='ot_cv_id_idx'
+			),
+			models.Index(
+				fields=['type_id'],
+				include=['id', 'name', 'reference_id'],
+				name='ot_cv_tid_idx'
+			),
+			models.Index(
+				fields=['reference_id'],
+				include=['id', 'name', 'type_id'],
+				name='ot_cv_ref_idx'
+			),
+			models.Index(
+				fields=['type_id', 'reference_id'],
+				include=['id', 'name'],
+				name='ot_cv_tr_idx'
+			),
 		]
 
 
 	# Dunder methods
 	def __str__(self):
 		return self.name
-
-
-	# Private methods
-	def __validate_disease_code_id(self, properties, default=None):
-		"""
-			Attempts to validate the associated code id, should only
-			be called for ontology instances that have a type_id
-			which associates an instance with a specific code,
-			e.g. ICD-10 category codes
-
-			IMPORTANT:
-			  - This interpolates values without considering sanitsation;
-				  as such, this method should not be used for unsanitised
-					client input
-
-			Args:
-				self (<OntologyTag<models.Model>>): this instance
-
-				properties (dict): the properties field associated
-								   with this instance
-
-				default (any|None): the default return value
-
-			Returns:
-				Either (a) the default value if none are found,
-					or (b) the pk of the associated code
-		"""
-		if not isinstance(properties, dict):
-			return default
-
-		code = None
-		try:
-			desired_code = properties.get('code')
-			desired_system_id = gen_utils.parse_int(properties.get('coding_system_id'), None)
-
-			if not isinstance(desired_code, str) or not isinstance(desired_system_id, int):
-				return default
-
-			desired_system = CodingSystem.objects.filter(pk__eq=desired_system_id)
-			desired_system = desired_system.first() if desired_system.exists() else None
-
-			if desired_system is None:
-				return default
-
-			comparators = [ desired_code.lower(), desired_code.replace('.', '').lower() ]
-			table_name = desired_system.table_name
-			model_name = desired_system.table_name.replace('clinicalcode_', '')
-			codes_name = desired_system.code_column_name.lower()
-
-			query = """
-				select *
-				  from public.%(table_name)s
-				 where lower(%(column_name)s);
-			""" % { 'table_name': table_name, 'column_name': codes_name }
-
-			codes = apps.get_model(app_label='clinicalcode', model_name=model_name)
-			code = codes.objects.raw(query + ' = ANY(%(values)s::text[])', { 'values': comparators })
-		except:
-			code = None
-		finally:
-			if code is None or not code.exists():
-				return default
-			return code.first().pk
-
-
-	# Instance methods
-	def get_term(self):
-		"""
-			Derives the label to be presented to user(s) dependent
-			on the instance type and its content _e.g._
-
-				1. `CLINICAL_DISEASE` -> `format('%s (%s)', inst.name, inst.code)` (defaults to `name` if not present)
-				2. `CLINICAL_DOMAIN` / `CLINICAL_FUNCTIONAL_ANATOMY` -> `name`
-
-		"""
-		name = self.name
-		internal_type = self.type_id
-		if internal_type == constants.ONTOLOGY_TYPES.CLINICAL_DISEASE:
-			properties = self.properties
-			reference = self.properties.get('code') if isinstance(properties, dict) else None
-			if reference is not None:
-				return '%(name)s (%(code)s)' % { 'name': name, 'code': reference }
-
-		return name
-
-
-	def get_reference(self):
-		"""
-			Derives the reference associated with this
-			instance type _e.g._
-
-				1. `CLINICAL_DISEASE` -> `code` (defaults to `reference_id` if not present)
-				2. `CLINICAL_DOMAIN` / `CLINICAL_FUNCTIONAL_ANATOMY` -> `reference_id`
-
-		"""
-		internal_type = self.type_id
-		if internal_type == constants.ONTOLOGY_TYPES.CLINICAL_DISEASE:
-			properties = self.properties
-			reference = self.properties.get('code') if isinstance(properties, dict) else None
-			if reference is not None:
-				return reference
-
-		return self.reference_id
-
-
-	@transaction.atomic
-	def save(self, *args, **kwargs):
-		"""
-			Save override to apply validation or
-			modification methods dependent on the
-			associated `type_id`
-		"""
-		internal_type = self.type_id
-		if internal_type == constants.ONTOLOGY_TYPES.CLINICAL_DISEASE:
-			code_id = self.__validate_disease_code_id(self.properties)
-			if isinstance(code_id, int):
-				self.properties.update({ 'code_id': code_id })
-
-		super().save(*args, **kwargs)
 
 
 	# Class methods
@@ -258,7 +177,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 		label_field = []
 
 		if not isinstance(ontology_ids, list):
-			for ont_type in constants.ONTOLOGY_TYPES:
+			for ont_type in constants.ONTOLOGY_ACTIVE:
 				model_label = constants.ONTOLOGY_LABELS.get(ont_type)
 				if gen_utils.is_empty_string(model_label):
 					model_label = ont_type.name
@@ -274,6 +193,9 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					model_source = constants.ONTOLOGY_TYPES(ont_type)
 
 				if model_source is None or not isinstance(model_source.value, int):
+					continue
+
+				if model_source.value not in constants.ONTOLOGY_ACTIVE:
 					continue
 
 				model_label = constants.ONTOLOGY_LABELS.get(model_source)
@@ -318,11 +240,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					    json_build_object(
                 'id', node.id,
 								'label', node.name,
+								'type_id', node.type_id,
+								'reference_id', node.reference_id,
 								'properties', node.properties,
 								'isLeaf', false,
 								'isRoot', true,
-								'type_id', node.type_id,
-								'reference_id', node.reference_id,
 								'child_count', coalesce(children.child_count, 0)
 					    )
 				    ) as nodes
@@ -349,38 +271,43 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 
 	@classmethod
-	def get_group_data(cls, model_source, model_label=None, default=None):
+	def get_group_data(cls, ont_type, model_label=None, default=None):
 		"""
 			Derives the tree model data given the model source name
 
 			Args:
-				model_source (int|enum): the ontology id
+				ont_type    (int|enum): the ontology id
 
 				model_label (str|None): the associated model label
 
-				default (any|None): the default return value
+				default     (any|None): the default return value
 
 			Returns:
 				Either (a) the default value if none are found,
 					or (b) a dict containing the associated tree model data
 		"""
-		if isinstance(model_source, constants.ONTOLOGY_TYPES):
-			model_source = model_source.value
-		elif not isinstance(model_source, int) or model_source not in constants.ONTOLOGY_TYPES:
+		model_source = None
+		if isinstance(ont_type, constants.ONTOLOGY_TYPES):
+			model_source = ont_type
+		elif isinstance(ont_type, int) and ont_type in constants.ONTOLOGY_TYPES:
+			model_source = constants.ONTOLOGY_TYPES(ont_type)
+
+		if model_source is None or not isinstance(model_source.value, int) or model_source.value not in constants.ONTOLOGY_ACTIVE:
 			return default
 
 		model_label = model_label if isinstance(model_label, str) and not gen_utils.is_empty_string(model_label) else None
+		model_source = model_source.value
 
 		label_field = []
-		for ont_type in constants.ONTOLOGY_TYPES:
-			if ont_type.value == model_source and model_label is not None:
+		for ont in constants.ONTOLOGY_TYPES:
+			if ont.value == model_source and model_label is not None:
 				label = model_label
 			else:
-				label = constants.ONTOLOGY_LABELS.get(ont_type, None)
+				label = constants.ONTOLOGY_LABELS.get(ont, None)
 				if gen_utils.is_empty_string(label):
-					label = ont_type.name
+					label = ont.name
 
-			label_field.append('''when node.type_id = %s then \'%s\'''' % (ont_type.value, label))
+			label_field.append('''when node.type_id = %s then \'%s\'''' % (ont.value, label))
 
 		label_field = '\n'.join(label_field)
 		try:
@@ -414,11 +341,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 					    json_build_object(
                 'id', node.id,
 								'label', node.name,
+								'type_id', node.type_id,
+								'reference_id', node.reference_id,
 								'properties', node.properties,
 								'isLeaf', false,
 								'isRoot', true,
-								'type_id', node.type_id,
-								'reference_id', node.reference_id,
 								'child_count', coalesce(children.child_count, 0)
 					    )
 				    ) as nodes
@@ -461,18 +388,19 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 		if not isinstance(node_id, int):
 			return default
 
-		model_source = None
 		if isinstance(ontology_id, constants.ONTOLOGY_TYPES):
-			model_source = ontology_id.value
-		elif isinstance(ontology_id, int) and ontology_id in constants.ONTOLOGY_TYPES:
 			model_source = ontology_id
+		elif isinstance(ontology_id, int) and ontology_id in constants.ONTOLOGY_TYPES:
+			model_source = constants.ONTOLOGY_TYPES(ontology_id)
+		else:
+			model_source = None
 
 		with connection.cursor() as cursor:
 			try:
 				label_cases = None
-				if not isinstance(model_source, int) or model_source < 0:
+				if not isinstance(model_source, constants.ONTOLOGY_TYPES):
+					model_id = -1
 					model_label = 'Unknown'
-					model_source = -1
 
 					label_cases = psycopg2.sql.SQL('case')
 					for x in constants.ONTOLOGY_LABELS:
@@ -484,8 +412,12 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 
 					label_cases += psycopg2.sql.SQL('''\nelse 'Unknown'\n end\n''')
 				else:
+					model_id = model_source.value
+
 					if not isinstance(model_label, str) or gen_utils.is_empty_string(model_label):
-						model_label = constants.ONTOLOGY_LABELS[constants.ONTOLOGY_TYPES(model_source)]
+						model_label = constants.ONTOLOGY_LABELS.get(model_source, None)
+						if model_label is None:
+							model_label = model_source.name
 
 					label_cases = psycopg2.sql.Literal(model_label)
 
@@ -559,11 +491,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 											jsonb_build_object(
 												'id', n0.id,
 												'label', n0.name,
+												'type_id', n0.type_id,
+												'reference_id', n0.reference_id,
 												'properties', n0.properties,
 												'isRoot', false,
 												'isLeaf', case when count(t1.child_id) < 1 then true else false end,
-												'type_id', n0.type_id,
-												'reference_id', n0.reference_id,
 												'child_count', count(t1.child_id),
 												'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
 											) as tree
@@ -591,11 +523,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 										jsonb_build_object(
 											'id', n0.id,
 											'label', n0.name,
+											'type_id', n0.type_id,
+											'reference_id', n0.reference_id,
 											'properties', n0.properties,
 											'isRoot', case when count(t0.parent_id) < 1 then true else false end,
 											'isLeaf', case when count(t1.child_id) < 1 then true else false end,
-											'type_id', n0.type_id,
-											'reference_id', n0.reference_id,
 											'child_count', count(t1.child_id),
 											'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
 										) as tree
@@ -630,11 +562,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 											)
 									end
 								),
+								'type_id', sel.type_id,
+								'reference_id', sel.reference_id,
 								'properties', sel.properties,
 								'isLeaf', case when coalesce(children.cnt, 0) < 1 then True else False end,
 								'isRoot', case when parents.id is NULL then True else False end,
-								'type_id', sel.type_id,
-								'reference_id', sel.reference_id,
 								'child_count', coalesce(children.cnt, 0),
 								'parents', coalesce(parents.tree, '[]'::json),
 								'children', coalesce(children.tree, '[]'::json),
@@ -650,7 +582,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 				''') \
 					.format(
 						model_label=psycopg2.sql.Literal(model_label),
-						model_source=psycopg2.sql.Literal(model_source),
+						model_source=psycopg2.sql.Literal(model_id),
 						label_cases=label_cases
 					)
 
@@ -762,11 +694,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 											jsonb_build_object(
 												'id', n0.id,
 												'label', n0.name,
+												'type_id', n0.type_id,
+												'reference_id', n0.reference_id,
 												'properties', n0.properties,
 												'isRoot', false,
 												'isLeaf', case when count(t1.child_id) < 1 then true else false end,
-												'type_id', n0.type_id,
-												'reference_id', n0.reference_id,
 												'child_count', count(t1.child_id),
 												'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
 											) as tree
@@ -794,11 +726,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 										jsonb_build_object(
 											'id', n0.id,
 											'label', n0.name,
+											'type_id', n0.type_id,
+											'reference_id', n0.reference_id,
 											'properties', n0.properties,
 											'isRoot', case when count(t0.parent_id) < 1 then true else false end,
 											'isLeaf', case when count(t1.child_id) < 1 then true else false end,
-											'type_id', n0.type_id,
-											'reference_id', n0.reference_id,
 											'child_count', count(t1.child_id),
 											'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
 										) as tree
@@ -823,11 +755,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 									'label', ({label_cases}),
 									'source', sel.type_id
 								),
+								'type_id', sel.type_id,
+								'reference_id', sel.reference_id,
 								'properties', sel.properties,
 								'isLeaf', case when coalesce(children.cnt, 0) < 1 then True else False end,
 								'isRoot', case when parents.id is NULL then True else False end,
-								'type_id', sel.type_id,
-								'reference_id', sel.reference_id,
 								'child_count', coalesce(children.cnt, 0),
 								'parents', coalesce(parents.tree, '[]'::json),
 								'children', coalesce(children.tree, '[]'::json),
@@ -934,11 +866,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 										'id', nodes.id,
 										'idx', selected.idx,
 										'label', nodes.name,
+										'type_id', nodes.type_id,
+										'reference_id', nodes.reference_id,
 										'properties', nodes.properties,
 										'isLeaf', case when count(edges1.child_id) < 1 then True else False end,
 										'isRoot', case when max(edges0.parent_id) is NULL then True else False end,
-										'type_id', nodes.type_id,
-										'reference_id', nodes.reference_id,
 										'child_count', count(edges1.child_id)
 									) as tree
 						  from (
@@ -975,11 +907,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 													jsonb_build_object(
 														'id', n0.id,
 														'label', n0.name,
+														'type_id', n0.type_id,
+														'reference_id', n0.reference_id,
 														'properties', n0.properties,
 														'isRoot', false,
 														'isLeaf', case when count(t1.child_id) < 1 then true else false end,
-														'type_id', n0.type_id,
-														'reference_id', n0.reference_id,
 														'child_count', count(t1.child_id),
 														'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
 													) as tree
@@ -1005,11 +937,11 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 													jsonb_build_object(
 														'id', n0.id,
 														'label', n0.name,
+														'type_id', n0.type_id,
+														'reference_id', n0.reference_id,
 														'properties', n0.properties,
 														'isRoot', case when count(t0.parent_id) < 1 then true else false end,
 														'isLeaf', case when count(t1.child_id) < 1 then true else false end,
-														'type_id', n0.type_id,
-														'reference_id', n0.reference_id,
 														'child_count', count(t1.child_id),
 														'parents', coalesce(array_agg(distinct t0.parent_id) filter (where t0.parent_id is not null), array[]::bigint[])
 													) as tree
@@ -1105,6 +1037,9 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 				tree_dataset=JSONObject(
 					id=F('id'),
 					label=F('name'),
+					type_id=F('type_id'),
+					reference_id=F('reference_id'),
+					properties=F('properties'),
 					isRoot=Case(
 						When(
 							Exists(OntologyTag.parents.through.objects.filter(
@@ -1118,7 +1053,6 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 						When(child_count__lt=1, then=True),
 						default=False
 					),
-					type_id=F('type_id')
 				)
 			) \
 			.values_list('tree_dataset', flat=True)
@@ -1205,7 +1139,7 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 		if nodes.count() < 1:
 			return default
 
-		return list(nodes.annotate(value=F('id')).values('name', 'value'))
+		return list(nodes.annotate(value=F('id')).values('name', 'value', 'reference_id'))
 
 
 	@classmethod
@@ -1239,16 +1173,17 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 								node.id,
 								node.name,
 								node.type_id,
+								node.reference_id,
 								node.properties,
-								ts_rank_cd(node.search_vector, to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))) as score
+								ts_rank_cd(node.search_vector, plainto_tsquery('public.ontology_en', trim(%(searchterm)s)) as score
 						from public.clinicalcode_ontologytag as node
 					 where ((
 								search_vector
-								@@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
+								@@ plainto_tsquery('public.ontology_en', trim(%(searchterm)s))
 						  )
 							 or (
-								(relation_vector @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
-								or (synonyms_vector @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
+								(relation_vector @@ plainto_tsquery('public.ontology_en', trim(%(searchterm)s)))
+								or (synonyms_vector @@ plainto_tsquery('public.ontology_en', trim(%(searchterm)s)))
 						  )
 					   )
 			''')
@@ -1264,8 +1199,9 @@ class OntologyTag(node_factory(OntologyTagEdge)):
 							jsonb_build_object(
 								'id', node.id,
 								'label', node.name,
-								'properties', coalesce(node.properties, jsonb_build_object()),
-								'type_id', node.type_id
+								'type_id', node.type_id,
+								'reference_id', node.reference_id,
+								'properties', coalesce(node.properties, jsonb_build_object())
 							)
 							order by node.score desc
 						) as agg

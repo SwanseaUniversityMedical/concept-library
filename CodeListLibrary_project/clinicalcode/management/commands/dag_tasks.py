@@ -89,7 +89,7 @@ class GraphBuilders:
                 # Create child node and process descendants
                 properties = { 'code': code, 'coding_system_id': icd_10_id }
 
-                node = OntologyTag(name=name, type_id=constants.ONTOLOGY_TYPES.CLINICAL_DISEASE, properties=properties)
+                node = OntologyTag(name=name, type_id=constants.ONTOLOGY_TYPES.SNOMED, properties=properties)
                 index = len(nodes)
                 nodes.append(node)
                 linkage.append([parent_index, index])
@@ -112,7 +112,7 @@ class GraphBuilders:
             # process node and its branches
             properties = { 'code': derived_code, 'coding_system_id': icd_10_id }
 
-            root = OntologyTag(name=root_name, type_id=constants.ONTOLOGY_TYPES.CLINICAL_DISEASE, properties=properties)
+            root = OntologyTag(name=root_name, type_id=constants.ONTOLOGY_TYPES.SNOMED, properties=properties)
             index = len(nodes)
             nodes.append(root)
 
@@ -161,7 +161,7 @@ class GraphBuilders:
                and trg.type_id = %(type_id)s
                and trg.properties is not null;
             """
-            cursor.execute(sql, { 'type_id': constants.ONTOLOGY_TYPES.CLINICAL_DISEASE.value })
+            cursor.execute(sql, { 'type_id': constants.ONTOLOGY_TYPES.SNOMED.value })
 
         # create result string for log
         elapsed = (time.time() - started)
@@ -200,7 +200,7 @@ class GraphBuilders:
                     % (type(node_id), type(node_name))
                 return False, err
 
-            node = OntologyTag(name=node_name.strip(), reference_id=node_id, type_id=constants.ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY)
+            node = OntologyTag(name=node_name.strip(), reference_id=node_id, type_id=constants.ONTOLOGY_TYPES.CATEGORY)
             nodes.append(node)
             result.append(f'\tAnatomicalRootNode<name: {node_name}, id: {node_id}>')
 
@@ -242,7 +242,7 @@ class GraphBuilders:
 
         for root_key, children in data.items():
             root_name = root_key.strip()
-            root_node = OntologyTag(name=root_name, type_id=constants.ONTOLOGY_TYPES.CLINICAL_DOMAIN)
+            root_node = OntologyTag(name=root_name, type_id=constants.ONTOLOGY_TYPES.DOMAIN)
 
             root_index = len(nodes)
             nodes.append(root_node)
@@ -255,7 +255,7 @@ class GraphBuilders:
                     related_index = next((i for i, e in enumerate(nodes) if e.name == child_name), None)
                     if related_index is None:
                         related_index = len(nodes)
-                        child = OntologyTag(name=child_name, type_id=constants.ONTOLOGY_TYPES.CLINICAL_DOMAIN)
+                        child = OntologyTag(name=child_name, type_id=constants.ONTOLOGY_TYPES.DOMAIN)
                         nodes.append(child)
 
                     linkage.append([root_index, related_index])
@@ -445,7 +445,7 @@ class Command(BaseCommand):
         nodes = [
             OntologyTag(
                 name=node.get('name'),
-                type_id=constants.ONTOLOGY_TYPES.CLINICAL_DISEASE,
+                type_id=constants.ONTOLOGY_TYPES.SNOMED,
                 properties={'code': str(node.get('id')), 'coding_system_id': 4}
             )
             for node in graph.nodes
