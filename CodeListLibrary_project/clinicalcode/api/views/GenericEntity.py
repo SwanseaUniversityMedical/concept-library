@@ -526,19 +526,31 @@ def get_generic_entities(request):
     else:
         query_clauses = ''
 
-    query = '''
-    select *
-      from entities t
-    '''
-
-    if isinstance(search, str) and len(search) > 0:
-        query = query + '''
-         where t.search_vector @@ to_tsquery(
-            'pg_catalog.english',
-            replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')
-         )
+    if isinstance(search, str) and not gen_utils.is_empty_string(search):
+        query = '''
+        select t1.*
+          from (
+            select
+                ts_rank_cd(
+                    t.search_vector,
+                    plainto_tsquery('public.ontology_en', trim(%(search)s))
+                ) as score,
+                t.*
+              from entities t
+          ) t0
+          join entities t1
+            on t1.id = t0.id
+           and t1.history_id = t1.history_id
+         where t0.score > 1e-10
+         order by t0.score desc;
         '''
         query_params.update({ 'search': search })
+    else:
+        query = '''
+        select *
+          from entities
+         order by cast(regexp_replace(id::text, '[a-zA-Z]+', '') as integer) asc;
+        '''
 
     try:
         if not user:
@@ -549,7 +561,7 @@ def get_generic_entities(request):
                       entity.id,
                       entity.history_id,
                       row_number() over (
-                      partition by entity.id
+                        partition by entity.id
                         order by entity.history_id desc
                       ) as rn_ref_n
                   from public.clinicalcode_historicalgenericentity as entity
@@ -572,7 +584,7 @@ def get_generic_entities(request):
         else:
             accessible = f'''
             select t1.*
-            from (
+              from (
                 select
                     entity.id,
                     entity.history_id,
@@ -595,7 +607,7 @@ def get_generic_entities(request):
              join public.clinicalcode_historicalgenericentity as t1
                on t0.id = t1.id
               and t0.history_id = t1.history_id
-            where t0.rn_ref_n = 1
+             where t0.rn_ref_n = 1
             '''
 
         entities = GenericEntity.history.raw(
@@ -606,13 +618,10 @@ def get_generic_entities(request):
                 ),
                 entities as (
                     select *
-                    from accessible as entity
+                      from accessible as entity
                     %(clauses)s
                 )
-
             %(query)s
-             order by cast(regexp_replace(id::text, '[a-zA-Z]+', '') as integer) asc;
-
             ''' % {
                 'query': query,
                 'clauses': query_clauses,

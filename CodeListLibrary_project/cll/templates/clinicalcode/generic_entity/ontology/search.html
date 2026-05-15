@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load compress %}
+{% load cl_extras %}
+{% load breadcrumbs %}
+{% load entity_renderer %}
+
+{% block title %}| Search {% get_brand_mapped_string target="phenotype" default="Phenotype" %}s{% endblock title %}
+
+{% block embedding_wrapper %}
+  {% get_brand_mapped_string target="phenotype" default="Phenotype" as ph_entity_name %}
+  {% with header_trg='Search '|add:ph_entity_name|add:'s' %}
+    {% render_og_tags header=header_trg %}
+  {% endwith %}
+{% endblock embedding_wrapper %}
+
+{% block container %}
+
+<!-- Search banner -->
+{% get_brand_map_rules as brand_mapping %}
+{% get_brand_base_title request.BRAND_OBJECT as base_page_title %}
+<header class="main-header banner">
+  <div class="banner--ontology-background main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+    <div class="banner__container banner__container--lg-container">
+      <div class="banner__flex-title-container">
+
+        <h2 class="banner__title">
+          <a class="banner__flex-title-container__back-button" href="{% url 'search_entities' %}" aria-label="Go to Search"></a>
+          {{ ontology.name|title }} ({{ontology.reference_id}})
+        </h2>
+
+        <div class="button-group">
+          {% str_replace ontology.reference_id ":" "_" as fmt_ref %}
+          <a
+            id="ols-trait-btn"
+            class="button-group__button"
+            href="https://purl.obolibrary.org/obo/{{ fmt_ref }}"
+            target=_blank
+            aria-label="Open Trait in OLS"
+            data-variant="btn"
+            data-next
+          >
+            <span class="as-icon margin-right-md" data-icon="&#xf35d;" aria-hidden="true"></span>
+            Open Trait in OLS
+          </a>
+          <label
+            class="button-group__button"
+            for="dd_2"
+            role="button"
+            tabindex="0"
+            aria-label="Export Phenotype"
+            data-variant="icon"
+            data-prev
+          >
+            <span class="as-icon phenotype-creation--icn" data-icon="&#xf141;" aria-hidden="true"></span>
+          </label>
+          <input type="checkbox" class="button-group__input" id="dd_2" name="dd_2">
+          <ul class="button-group__menu dropdown-group__menu--fall-right">
+            <li>
+              <a href="{% url 'api:ontology_node_by_term' term=ontology.reference_id %}"
+                target=_blank 
+                aria-label="Open in Library API"
+              >
+                Library API
+              </a>
+            </li>
+            <li>
+              <a href="https://www.ebi.ac.uk/gwas/efotraits/{{ fmt_ref }}"
+                target=_blank 
+                aria-label="Open in GWAS"
+              >
+                GWAS Catalog
+              </a>
+            </li>
+            <li>
+              <a href="https://www.pgscatalog.org/trait/{{ fmt_ref }}"
+                target=_blank 
+                aria-label="Open in PGS Catalog"
+              >
+                PGS Catalog
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://platform.opentargets.org/disease/{{ fmt_ref }}"
+                target=_blank 
+                aria-label="Open in Open Targets"
+              >
+                Open Targets
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="banner__description banner__description--pad-btm">
+        {{ ontology.properties.definition }}
+      </p>
+
+      <div class="tabgroup">
+        <details class="tabgroup__tab" open name="tab">
+          <summary class="tabgroup__title">
+            Overview
+          </summary>
+          <div class="tabgroup__content">
+            <div class="box-container-lg box-container-lg--unconstrained">
+              <div class="detailed-input-group fill">
+                <div class="row width-100 max-width-100">
+                  <div class="col-sm-2 row-padding detail-field-title" aria-label="Category">
+                    Category
+                  </div>
+                  <div class="col-sm-10 display-flex flex-direction-row flex-wrap-wrap gap-md">
+                    {% if ontology.properties.categories %}
+                      {% for value in ontology.properties.categories %}
+                        <span class="wrapped_tspan" aria-label="{{ value.name }}">
+                          <div class="ref-chip ref-chip-fit-content ref-chip-danger-accent">
+                            <a class="ref-chip__name ref-chip__name-text-accent-darkest ref-chip__name-bold"
+                              href="{% url 'search_entities_by_ontology' term=value.ref %}">
+                              {{ value.name|safe }}
+                            </a>
+                          </div>
+                        </span>
+                      {% endfor %}
+                    {% else %}
+                      <div class="col-sm-10">
+                        <span class="wrapped_tspan" aria-label="Unknown">
+                          Unknown
+                        </span>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <div class="detailed-input-group fill">
+                <div class="row width-100 max-width-100">
+                  <div class="col-sm-2 row-padding detail-field-title" aria-label="Ontology ID">
+                    Ontology ID
+                  </div>
+                  <div class="col-sm-10 display-flex flex-direction-row flex-wrap-wrap gap-md">
+                    <span class="wrapped_tspan" aria-label="{{ ontology.reference_id }}">
+                      <div class="meta-chip meta-chip-fit-content meta-chip-ontology-accent">
+                        <a class="meta-chip__name meta-chip__name-text-accent-darkest meta-chip__name-bold"
+                          href="{% url 'search_entities_by_ontology' term=ontology.reference_id %}">
+                          {{ ontology.reference_id }}
+                        </a>
+                      </div>
+                    </span>
+                    <span class="wrapped_tspan" aria-label="Intennal:{{ ontology.id }}">
+                      <div class="meta-chip meta-chip-fit-content meta-chip-primary-accent">
+                        <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">
+                          Internal:{{ ontology.id }}
+                        </span>
+                      </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="detailed-input-group fill">
+                <div class="row width-100 max-width-100">
+                  <div class="col-sm-2 row-padding detail-field-title" aria-label="Synonyms">
+                    Synonyms
+                  </div>
+                  <div class="col-sm-10 display-flex flex-direction-row flex-wrap-wrap gap-md">
+                    {% if ontology.properties.synonyms %}
+                      {% for value in ontology.properties.synonyms %}
+                        <span class="wrapped_tspan" aria-label="{{ value.name }}">
+                          <div class="meta-chip meta-chip-fit-content meta-chip-transparent meta-chip-outlined">
+                            <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">
+                              {{ value|safe }}
+                            </span>
+                          </div>
+                        </span>
+                      {% endfor %}
+                    {% else %}
+                      <div class="col-sm-10">
+                        <span class="wrapped_tspan" aria-label="Unknown">
+                          Unknown
+                        </span>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="tabgroup__tab" name="tab">
+          <summary class="tabgroup__title">
+            Mapped terms
+          </summary>
+          <div class="tabgroup__content">
+            <div class="col-sm-12 display-flex flex-direction-row flex-wrap-wrap gap-md">
+              {% if ontology.properties.xrefs %}
+                {% for value in ontology.properties.xrefs %}
+                  <span class="wrapped_tspan" aria-label="{{ value }}">
+                    <div class="meta-chip meta-chip-fit-content meta-chip-primary-accent">
+                      <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">
+                        {{ value|safe }}
+                      </span>
+                    </div>
+                  </span>
+                {% endfor %}
+              {% else %}
+                <span class="wrapped_tspan">
+                  Unknown mapped terms.
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </details>
+
+        <details class="tabgroup__tab" name="tab">
+          <summary class="tabgroup__title">
+            Child terms
+          </summary>
+          <div class="tabgroup__content">
+            <div class="col-sm-12 display-flex flex-direction-row flex-wrap-wrap gap-md">
+              {% if ontology_children %}
+                {% for value in ontology_children %}
+                  <span class="wrapped_tspan" aria-label="{{ value.reference_id }}">
+                    <div class="meta-chip meta-chip-fit-content meta-chip-ontology-accent">
+                      <a class="meta-chip__name meta-chip__name-text-accent-darkest meta-chip__name-bold"
+                        href="{% url 'search_entities_by_ontology' term=value.reference_id %}">
+                        {{ value.reference_id|safe }}
+                      </a>
+                    </div>
+                  </span>
+                {% endfor %}
+              {% else %}
+                <span class="wrapped_tspan">
+                  Unknown children.
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Include required components -->
+<script src="{% static 'js/lib/moment.min.js' %}"></script>
+{% compress js %}
+  <script type="text/javascript" src="{% static 'js/lib/lightpick.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/clinicalcode/components/dropdown.js' %}"></script>
+{% endcompress %}
+
+<!-- Main search page -->
+<main class="main-content main-content--inner-padding">
+  <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+    <div class="search-page">
+      <aside class="side-search-filters">
+        {% compress js %}
+          <script type="module" src="{% static 'js/clinicalcode/services/filterService.js' %}"></script>
+        {% endcompress %}
+        <div class="side-search-filters__header">
+          <h3>Filter By</h3>
+        </div>
+        <fieldset class="search-container search-container--as-filter" data-controller="filter" data-class="searchbar" data-field="search">
+          <input type="text" placeholder="Filter by keywords..." value="{{ search_query }}" id="searchbar" class="search-container__field washed-outline"
+            data-class="searchbar" data-field="search"
+            aria-label="Search {{ brand_mapping.phenotype }}s..."/>
+          <button class="search-container__icon" aria-label="Search {{ brand_mapping.phenotype }}s" id="searchbar-icon-btn" tabindex="0">
+          </button>
+        </fieldset>
+        <div class="side-search-filters__container">
+          {% render_entity_filters %}
+          {% endrender_entity_filters %}
+        </div>
+      </aside>
+
+      <section class="entity-search-results" id="search-results-area">
+        {% include "components/search/results.html" %}
+      </section>
+    </div>
+
+    <aside class="pagination-box" id="search-pagination-area">
+      {% include "components/search/pagination_container.html" %}
+    </aside>
+  </div>
+</main>
+
+{% endblock container %}

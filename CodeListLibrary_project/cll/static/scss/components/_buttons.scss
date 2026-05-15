@@ -3,6 +3,206 @@
 @import '../_media';
 @import '../_utils';
 
+.button-group {
+  display: flex;
+	position: relative;
+	flex-flow: row nowrap;
+  width: fit-content;
+  align-items: stretch;
+  pointer-events: none;  
+  font-family: inherit;
+  
+  &__input {
+    display: none;
+  }
+
+  a.button-group__button {
+    @include clear-anchor();
+    @include app-font-style();
+  }
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 0.375rem; 
+    margin: 0;
+    outline: none;
+    border: 1px solid var(--color-accent-dark); 
+    transition: filter 0.2s ease;
+    height: 2.5rem; 
+    padding-block: 0;
+    padding-inline: 0;
+    padding-left: 1rem; 
+    padding-right: 1rem; 
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    max-width: 20rem;
+    position: relative;
+    box-sizing: border-box;
+    background-origin:border-box;
+		font-family: inherit;
+    pointer-events: auto;
+
+    &[data-next] {
+      border-right: 0;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    &[data-prev] {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    &:hover {
+      cursor: pointer;
+      filter: brightness(0.9);
+      transition: filter 0.2s ease;
+      outline: 1px solid col(accent-washed);
+    }
+
+    &:focus,
+    &:focus-within,
+    &:focus-visible,
+    &__highlighted,
+    &[aria-selected="true"] {
+      outline: 1px solid col(accent-dark);
+    }
+
+    &:disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    &:disabled:focus-visible {
+      outline: none;
+    }
+
+    &[data-variant='btn'] {
+      background-color: var(--color-bg); 
+      color: var(--color-text-darkest);
+      transition: filter 0.2s ease, color 0.2s ease;
+    }
+
+    &[data-variant='btn']:hover {
+      cursor: pointer;
+      filter: brightness(0.9);
+      color: var(--color-text-darker);
+    }
+
+    &[data-variant='icon'] {
+      background-color: var(--color-bg); 
+      color: var(--color-text-darkest);
+      align-items: center;
+      justify-content: center;
+      height: 2.5rem;
+      width: 2.5rem; 
+    }
+
+    &[data-variant='icon']:hover {
+      filter: brightness(0.9);
+      color: var(--color-text-darker);
+    }
+
+    &[data-size='sm'] {
+      height: 2.25rem; 
+      border-radius: 0.375rem; 
+      padding-left: 0.75rem; 
+      padding-right: 0.75rem; 
+    }
+
+    &[data-size='lg'] {
+      height: 2.75rem; 
+      border-radius: 0.375rem; 
+      padding-left: 2rem; 
+      padding-right: 2rem; 
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    top: 100%;
+    border: 1px solid col(accent-washed);
+    border-radius: 4px;
+    padding: 0;
+    margin: 2px 0 0 0;
+    box-shadow: 0 0 6px 0 col(accent-semi-transparent);
+    background-color: col(bg);
+    list-style-type: none;
+    z-index: 2000;
+
+    &--fall-right {
+      right: 0;
+    }
+
+    a:hover {
+      color: col(text-dark);
+    }
+
+    & > li {
+      padding: 10px 20px;
+      white-space: nowrap;
+
+      & > a {
+        cursor: pointer;
+        display: block;
+        margin: -10px -20px;
+        padding: 10px 20px;
+        text-decoration: none;
+        color: col(text-dark);
+        pointer-events: auto;
+
+        &:hover {
+          background-color: col(accent-washed);
+        }
+
+        &:focus-visible {
+          outline: 1px solid col(accent-dark);
+        }
+      }
+
+      &.divider {
+        padding: 0;
+        border-bottom: 1px solid col(accent-washed);
+      }
+    }
+  }
+
+  &__input + &__menu {
+    display: none;
+  }
+
+  &__input:checked + &__menu {
+    display: block;
+  } 
+
+  &--no-pad {
+    padding: 0;
+  }
+
+  @include media('<phone', 'screen') {
+    &__button[data-variant="btn"] {
+      height: fit-content;
+      white-space: wrap;
+      word-break: break-word;
+
+      & .as-icon {
+        display: none;
+      }
+    }
+
+    &__button[data-variant="btn"] + &__button[data-variant="icon"] {
+      height: auto;
+    }
+  }
+}
+
+  // white-space: nowrap;
+  // user-select: none;
+  // -webkit-user-select: none;
+
 /// Copy text button
 ///   @desc used for copying links / text to clipboard, see @ ./detail page
 .copy-area {

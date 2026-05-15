@@ -57,19 +57,48 @@ window.interpolateString = (str, params, noSanitise) => {
  * 
  * @param {string}           str              the string to be formatted
  * @param {Record<any, any>} params           the parameter lookup
- * @param {boolean}          [sanitise=false] optionally specify whether to sanitise the output; defaults to `false`  
+ * @param {boolean}          [sanitise=false] optionally specify whether to sanitise the output; defaults to `false`
+ * @param {string}           [fmtType="{}"]   optionally specify whether to use brace `{}` formatting or `%(<term>)s` by providing either `{}` or `%` respectively
  * 
  * @returns {string} the resulting format string
  */
-window.pyFormat = (str, params, sanitise = false) => {
-  return str.replace(/{([^{}]+)}/g, (_, param) => {
-    let value = param.split('.').reduce((res, x) => res[x], params);
-    if (sanitise && typeof value === 'string') {
-      value = DOMPurify.sanitize(x);
-    }
+window.pyFormat = (str, params, sanitise = false, fmtType = '{}') => {
+  switch (fmtType) {
+    case '%':
+      return str.replace(
+        /%\(([^)]+)\)([sdifx])/g,
+        (_, key, type) => {
+          let value = key.split('.').reduce((res, x) => res[x], params);
+          switch (type) {
+            case 'd':
+            case 'i':
+              return parseInt(value, 10);
+            case 'f':
+              return parseFloat(value).toFixed(2);
+            case 'x':
+              return value.toString(16);
+            case 's': 
+            default:
+              return sanitise
+                ? DOMPurify.sanitize(String(value))
+                : String(value);
+          }
+        }
+      );
 
-    return value;
-  });
+    default:
+      return str.replace(
+        /{([^{}]+)}/g,
+        (_, param) => {
+          let value = param.split('.').reduce((res, x) => res[x], params);
+          if (sanitise && typeof value === 'string') {
+            value = DOMPurify.sanitize(value);
+          }
+
+          return value;
+        }
+      );
+  }
 }
 
 /**

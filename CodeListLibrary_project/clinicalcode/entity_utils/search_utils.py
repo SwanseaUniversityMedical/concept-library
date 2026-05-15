@@ -1,21 +1,25 @@
+"""Search utilities for Model Views"""
 from operator import and_
 from functools import reduce
 from django.apps import apps
 from django.db import connection
 from django.db.models import Q
+from django.core.cache import cache
+from django.core.paginator import EmptyPage, Paginator
+from django.utils.regex_helper import _lazy_re_compile
+from django.db.models.query import QuerySet
 from django.db.models.functions import Lower
 from django.db.models.expressions import Subquery
-from django.db.models.query import QuerySet
-from django.core.paginator import EmptyPage, Paginator
 from django.contrib.postgres.search import TrigramSimilarity, SearchQuery, SearchRank, SearchVector
 
 import re
+import psycopg2
 
-from ..models.EntityClass import EntityClass
 from ..models.Template import Template
-from ..models.GenericEntity import GenericEntity
 from ..models.Statistics import Statistics
+from ..models.EntityClass import EntityClass
 from ..models.CodingSystem import CodingSystem
+from ..models.GenericEntity import GenericEntity
 from . import model_utils, template_utils, constants, gen_utils, permission_utils, concept_utils
 
 def get_template_filters(request, template, default=None):
@@ -518,20 +522,21 @@ def try_search_child_concepts(entities, search=None, order_clause=None):
         if not gen_utils.is_empty_string(search):
             sql = '''
             with
-                entities as (
+                ents as (
                     select *,
                         cast(regexp_replace(id, '[a-zA-Z]+', '') as integer) as true_id,
                         ts_rank_cd(
                             hge.search_vector,
-                            to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
+                            plainto_tsquery('public.ontology_en', trim(%(searchterm)s))
                         ) as score
                       from public.clinicalcode_historicalgenericentity as hge
                      where id = ANY(%(entity_ids)s)
                        and history_id = ANY(%(history_ids)s)
-                       and hge.search_vector @@ to_tsquery(
-                            'pg_catalog.english',
-                            replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(searchterm)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')
-                       )
+                ),
+                entities as (
+                    select *
+                      from ents as hge
+                     where hge.score > 1e-10 
                      {0}
                 ),
             '''
@@ -569,7 +574,6 @@ def try_search_child_concepts(entities, search=None, order_clause=None):
                   join public.clinicalcode_codingsystem as codingsystem
                     on codingsystem.id = concept.coding_system_id
             )
-
         select
             json_agg(
                 json_build_object(
@@ -805,6 +809,467 @@ def reorder_search_results(search_results, order=None, searchterm=''):
         ) \
         .extra(select={'true_id': """cast(regexp_replace(id, '[a-zA-Z]+', '') as integer)"""}, order_by=['true_id']) \
 
+@gen_utils.measure_perf
+def get_renderable(request, entity_types=None, ontology_term=None, method='GET'):
+    """
+        Retrieves searchable, published entities and applies filters retrieved from the request param(s)
+
+        Args:
+            request (RequestContext): the HTTP request context
+            
+            entity_types (list[int|EntityClass]|None): optionally specify the entities that you wish to exclusively include.
+
+            ontology_term (str): optionally specify an ontological term to filter entities.
+
+            method ('GET'|'POST'): optionally specify the HTTP request method
+
+        Returns:
+            1. The paginated entities and their data
+            2. The template associated with each of the entities
+    """
+    values = {
+        'user_id': None,
+        'is_superuser': False,
+        'is_moderator': False,
+        'brand_id': None,
+        'allowed_brands': [],
+        'allow_brandless': True,
+        'org_user_managed': False,
+        'entity_types': [],
+    }
+
+    # Handle request mods
+    user = request.user \
+        if request.user is not None and not request.user.is_anonymous \
+        else None
+
+    if user is not None:
+        values.update({
+            'user_id': user.id,
+            'is_superuser': user.is_superuser,
+            'is_moderator': permission_utils.is_member(user, 'Moderators'),
+        })
+
+    brand = model_utils.try_get_brand(request)
+    if brand is not None:
+        values.update({
+            'brand_id': brand.id,
+            'org_user_managed': brand.org_user_managed,
+        })
+
+        vis_rules = brand.get_vis_rules()
+        if isinstance(vis_rules, dict):
+            allowed_brands = vis_rules.get('ids')
+            allow_brandless = vis_rules.get('allow_null')
+
+            values.update({
+                'allowed_brands': allowed_brands if isinstance(allowed_brands, list) else [],
+                'allow_brandless': allow_brandless if isinstance(allow_brandless, bool) else False,
+            })
+
+    entity_types = entity_types if isinstance(entity_types, list) else []
+    entity_types = [
+        x if isinstance(x, int) else getattr(x, 'id')
+        for x in entity_types
+        if isinstance(x, int) or isinstance(x, EntityClass)
+    ]
+    values.update({ 'entity_types': entity_types })
+
+    # Handle base pagination params
+    page = gen_utils.try_get_param(request, 'page', 1, method)
+    page = max(page, 1)
+
+    page_size = gen_utils.try_get_param(request, 'page_size', '1', method)
+    page_size = constants.PAGE_RESULTS_SIZE.get(page_size) \
+        if page_size not in constants.PAGE_RESULTS_SIZE \
+        else constants.PAGE_RESULTS_SIZE.get('1')
+
+    values.update({
+        'page': page,
+        'page_size': page_size,
+        'offset_end': page*page_size,
+        'offset_start': (page - 1)*page_size,
+    })
+
+    # Handle base search params
+    search = gen_utils.try_get_param(request, 'search', None, method)
+
+    search_order = gen_utils.try_get_param(request, 'order_by', '1', method)
+    search_order = constants.ORDER_BY.get(search_order) \
+        if search_order not in constants.ORDER_BY \
+        else constants.ORDER_BY.get('1')
+
+    if not gen_utils.is_empty_string(search):
+        row_clause = psycopg2.sql.SQL('''\n                      order by score desc''')
+    elif search_order == constants.ORDER_BY.get('1'):
+        row_clause = psycopg2.sql.SQL('''\n                      order by cast(regexp_replace(entity.id, '[a-zA-Z]+', '') as integer) asc''')
+    else:
+        row_clause = psycopg2.sql.SQL('''\n                      order by %(property)s %(order)s''' % search_order)
+
+    # Handle filters
+    filters = cache.get('ge_search_filters__int')
+    if not isinstance(filters, dict):
+        filters = {
+            key: value.get('validation')
+            for key, value in constants.metadata.items()
+            if (isinstance(value, dict) and value.get('active', False)) \
+                and (isinstance(value.get('search'), dict) and value.get('search').get('filterable', False)) \
+                and (isinstance(value.get('validation'), dict) and isinstance(value.get('validation').get('type'), str))
+        }
+        cache.set('ge_search_filters__int', filters, 3600)
+
+    clauses = []
+    for param, data in getattr(request, method).items():
+        validation = filters.get(param)
+        if validation is None:
+            continue
+
+        match validation.get('type'):
+            case 'string':
+                value = str(data)
+                if gen_utils.is_empty_string(value):
+                    continue
+
+                values.update({ f'filter_{param}': value })
+                clauses.append(
+                    psycopg2.sql.SQL(
+                        '''entity.{field} = %s''' % (f'%(filter_{param})s::text')
+                    ) \
+                    .format(
+                        field=psycopg2.sql.Identifier(param),
+                    )
+                )
+            case 'datetime':
+                value = [gen_utils.parse_date(x) for x in data.split(',') if gen_utils.parse_date(x)]
+                if len(value) < 2:
+                    continue
+
+                value = gen_utils.get_start_and_end_dates(value[:2])
+                values.update({ 
+                    f'filter_min_{param}': value[0],
+                    f'filter_max_{param}': value[1],
+                })
+                clauses.append(
+                    psycopg2.sql.SQL(
+                        '''(entity.{field} >= %s and entity.{field} <= %s)''' % (
+                            f'%(filter_min_{param})s::timestamptz',
+                            f'%(filter_max_{param})s::timestamptz'
+                        )
+                    ) \
+                    .format(
+                        field=psycopg2.sql.Identifier(param),
+                    )
+                )
+            case 'int_array':
+                value = gen_utils.parse_as_int_list(data)
+                if len(value) < 1:
+                    continue
+
+                values.update({ f'filter_{param}': value })
+                clauses.append(
+                    psycopg2.sql.SQL(
+                        '''(entity.{field} is not null and entity.{field} && %s)''' % (f'%(filter_{param})s::int[]')
+                    ) \
+                    .format(
+                        field=psycopg2.sql.Identifier(param),
+                    )
+                )
+            case 'int' | 'enum':
+                value = gen_utils.parse_as_int_list(data)
+                if len(value) < 1:
+                    continue
+
+                model_query = validation.get('source').get('query') \
+                    if isinstance(validation.get('source'), dict) and isinstance(validation.get('source').get('query'), str) \
+                    else None
+
+                if model_query:
+                    field = psycopg2.sql.Identifier(f'{param}_{model_query}')
+                else:
+                    field = psycopg2.sql.Identifier(param)
+
+                values.update({ f'filter_{param}': value })
+                clauses.append(
+                    psycopg2.sql.SQL(
+                        '''entity.{field} = any(%s)''' % (f'%(filter_{param})s::int[]')
+                    ) \
+                    .format(field=field)
+                )
+            case _:
+                continue
+
+    # Handle ontology terms
+    ontology_ref = psycopg2.sql.SQL('')
+
+    pattern = _lazy_re_compile(r'^([\w_\-]+):([\w_\-]+)$', flags=re.MULTILINE)
+    if isinstance(ontology_term, str) and not gen_utils.is_empty_string(ontology_term) and pattern.match(ontology_term):
+        ontology_ref = psycopg2.sql.SQL('''
+            ontology as (
+              select jsonb_build_object('ont', jsonb_agg(distinct ont.id))
+              from public.clinicalcode_ontologytag as ont
+              where lower(ont.reference_id) = lower(%(ontology_term)s)
+            ),
+        ''')
+
+        values.update({ 'ontology_term': ontology_term })
+        clauses.append(
+            psycopg2.sql.SQL(
+                '''(
+                    entity.template_data is not null 
+                    and jsonb_typeof(entity.template_data->'ontology') = 'array' 
+                    and jsonb_path_exists(entity.template_data, '$.ontology[*] ? (@ == $ont[*])', (table ontology)::jsonb)
+                )'''
+            )
+        )
+
+    # Handle search
+    if not gen_utils.is_empty_string(search):
+        search = search.strip()
+        pattern = _lazy_re_compile(
+            # Match examples:
+            #  - MONDO_0005068
+            #  - MONDO:0005068
+            #  - purl.obolibrary.org/obo/MONDO_0005068
+            #  - http://purl.obolibrary.org/obo/MONDO_0005068
+            #  - https://purl.obolibrary.org/obo/MONDO_0005068
+            #
+            r'(https?:\/\/)?(purl\.obolibrary\.org\/obo\/)?([\w\-]+)([:_])([\w\-]+)',
+            flags=re.IGNORECASE | re.MULTILINE
+        )
+
+        if pattern.search(search):
+            search = pattern.sub(lambda m: f'{m.group(3).lower()}{m.group(5).lower()}', search)
+
+        values.update({ 'search': search })
+
+        # const_query = psycopg2.sql.SQL('''
+        #       const_query as (
+        #         select to_tsquery('public.ontology_en', arr)
+        #           from (
+        #             select array_to_string(array_agg(lexeme || ':*'), ' & ') as arr
+        #               from unnest(regexp_split_to_array(trim(%(search)s), '\s+')) as lexeme
+        #           ) as lex
+        #       ),''')
+
+        const_query = psycopg2.sql.SQL('''
+              const_query as (
+                select plainto_tsquery('public.ontology_en', trim(%(search)s))
+              ),''')
+
+        search_rank = psycopg2.sql.SQL('''
+                    ts_rank(entity.search_vector, (table const_query)::tsquery) as score,
+                    ''')
+
+        search_clause = psycopg2.sql.SQL('''\n                 where score >= 1e-10''')
+    else:
+        const_query = psycopg2.sql.SQL('')
+        search_rank = psycopg2.sql.SQL('')
+        search_clause = psycopg2.sql.SQL('')
+
+    if len(clauses) > 0:
+        clauses = psycopg2.sql.SQL('''\n                   and ''') \
+                + psycopg2.sql.SQL('''\n                   and ''').join(clauses)
+    else:
+        clauses = psycopg2.sql.SQL('')
+
+    selected = psycopg2.sql.SQL('''
+              selected as (
+                select ''') \
+            + search_rank \
+            + psycopg2.sql.SQL('''entity.*
+                  from accessible as entity
+                 where entity.rn_hx = 1''') \
+            + clauses \
+            + psycopg2.sql.SQL('''\n              ),''')
+
+    ents = psycopg2.sql.SQL('''
+              ents as (
+                select
+                    row_number() over (''') \
+            + row_clause \
+            + psycopg2.sql.SQL('''
+                    ) as rn_ord,
+                    entity.*
+                  from selected as entity''') \
+            + search_clause \
+            + psycopg2.sql.SQL('''\n              ),''')
+
+    with connection.cursor() as cursor:
+        sql = psycopg2.sql.Composed([
+            psycopg2.sql.SQL('''
+            with
+              accessible as (
+                select
+                  row_number() over (
+                    partition by hge.id
+                        order by hge.history_date desc
+                  ) as rn_hx,
+                  hge.*
+                from public.clinicalcode_historicalgenericentity as hge
+                join public.clinicalcode_genericentity as ge
+                  on ge.id = hge.id
+                join public.clinicalcode_template as tpl
+                  on tpl.id = hge.template_id
+                 and tpl.template_version = hge.template_version
+                left join public.clinicalcode_publishedgenericentity as pub
+                  on pub.entity_id = hge.id and pub.entity_history_id = hge.history_id
+                left join public.clinicalcode_organisation as org
+                  on org.id = ge.organisation_id
+                left join public.clinicalcode_organisationmembership as mem
+                  on mem.organisation_id = org.id
+               where (hge.history_type != '-')
+                  and (array_length(%(entity_types)s::int[], 1) is null or tpl.entity_class_id = any(%(entity_types)s::int[]))
+                  and (ge.is_deleted is not true and hge.is_deleted is not true)
+                  and (
+                    %(is_superuser)s
+                    or (
+                      (case
+                        when %(brand_id)s is not null then (
+                          case
+                            when array_length(%(allowed_brands)s::int[], 1) is not null and not %(allow_brandless)s then (
+                              ge.brands is not null
+                              and array_length(ge.brands, 1) is not null
+                              and %(allowed_brands)s && ge.brands
+                            )
+                            when array_length(%(allowed_brands)s::int[], 1) is not null and     %(allow_brandless)s then (
+                              (ge.brands is null or array_length(ge.brands, 1) is null)
+                              or %(allowed_brands)s && ge.brands
+                            )
+                            when array_length(%(allowed_brands)s::int[], 1) is null and     %(allow_brandless)s then (
+                              ge.brands is null
+                              or array_length(ge.brands, 1) is null
+                            )
+                            else (ge.brands is not null and %(brand_id)s::int = any(ge.brands))
+                          end
+                        )
+                        else true
+                      end)
+                      and (
+                        (case
+                          when %(user_id)s is null then (pub.id is not null and pub.approval_status = 2)
+                          else (
+                            ge.owner_id = %(user_id)s
+                            or org.owner_id = %(user_id)s
+                            or (mem.user_id = %(user_id)s and mem.role >= 0)
+                            or (%(org_user_managed)s and ge.world_access = 2)
+                          )
+                        end)
+                        or (case
+                          when (pub.approval_status is null or hge.publish_status is null) then (%(is_superuser)s)
+                          when (not %(is_superuser)s and not %(is_moderator)s) then (
+                            hge.publish_status = 2
+                            or pub.approval_status = 2
+                          )
+                          when (%(is_moderator)s and not %(is_superuser)s) then (
+                            hge.publish_status in (0, 1, 2, 3)
+                            or pub.approval_status in (0, 1, 2, 3)
+                          )
+                          else true
+                        end)
+                      )
+                    )
+                  )
+              ),''')
+            + const_query
+            + ontology_ref
+            + selected
+            + ents
+            + psycopg2.sql.SQL('''
+              counts as (
+                select
+                    coalesce(t.total_count, 0) as total_count,
+                    coalesce(ceil(t.total_count::float / %(page_size)s::float)::int, 0) as total_pages
+                  from (
+                    select max(rn_ord) as total_count
+                      from ents
+                  ) as t
+              ),''')
+            + psycopg2.sql.SQL('''
+              tmpl as (
+                select
+                    json_object_agg(
+                      concat(tpl.id, '/', tpl.template_version),
+                      json_build_object(
+                        'id', tpl.id,
+                        'history_id', tpl.history_id,
+                        'name', tpl.name,
+                        'version', tpl.template_version,
+                        'definition', tpl.definition
+                      )
+                    ) as templates
+                  from (
+                    select
+                        row_number() over (
+                          partition by t2.id
+                          order by t2.history_date desc
+                        ) as rn_hx,
+                        t2.*
+                      from public.clinicalcode_template as t0
+                      join ents as t1
+                        on t0.id = t1.template_id
+                       and t0.template_version = t1.template_version
+                      join public.clinicalcode_historicaltemplate as t2
+                        on t2.id = t0.id
+                  ) as tpl
+                 where tpl.rn_hx = 1
+              ),
+              included as (
+                select
+              	    t.data,
+              	    json_array_length(t.data) as len
+              	  from (
+              	    select json_agg(json_build_object(
+                             'id', x.id,
+                             'history_id', x.history_id,
+                             'name', x.name,
+                             'status', x.status,
+                             'publish_status', x.publish_status,
+                             'author', x.author,
+                             'tags', x.tags,
+                             'collections', x.collections,
+                             'template_id', x.template_id,
+                             'template_data', x.template_data,
+                             'template_version', x.template_version,
+                             'created', x.created,
+                             'updated', x.updated,
+                             'is_deleted', x.is_deleted
+                           ) order by rn_ord asc) as data
+                        from ents as x
+                       where x.rn_ord > %(offset_start)s and x.rn_ord <= %(offset_end)s
+              	  ) as t
+              )'''),
+            psycopg2.sql.SQL('''
+            select
+                json_build_object(
+                  'page', %(page)s,
+                  'end_index', least((select x.len from included as x) + %(offset_start)s, cnt.total_count),
+                  'start_index', least(cnt.total_count, %(offset_start)s + 1),
+                  'total_pages', cnt.total_pages,
+                  'total_count', cnt.total_count,
+                  'data', coalesce(
+                    (select x.data from included as x),
+                    '[]'::json
+                  )
+                ) as entities,
+                (
+                  select tpl.templates
+                    from tmpl as tpl
+                ) as templates
+              from counts as cnt
+            ''')
+        ])
+        cursor.execute(sql, params=values)
+
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        if len(results) > 0:
+            results = results[0]
+            entities = results.get('entities')
+            templates = results.get('templates')
+            return entities, templates
+
+        return None, {}
+
 def get_renderable_entities(request, entity_types=None, method='GET', force_term=True):
     """
         Method gets searchable, published entities and applies filters retrieved from the request param(s)
@@ -892,12 +1357,12 @@ def get_renderable_entities(request, entity_types=None, method='GET', force_term
         history_ids = list(entities.values_list('history_id', flat=True))
 
         entities = GenericEntity.history.extra(
-            select={ 'score': '''ts_rank_cd("clinicalcode_historicalgenericentity"."search_vector", to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))'''},
+            select={ 'score': '''ts_rank_cd("clinicalcode_historicalgenericentity"."search_vector", to_tsquery('public.ontology_en', replace(to_tsquery('public.ontology_en', concat(regexp_replace(trim(%s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))'''},
             select_params=[search],
             where=[
                 '''"clinicalcode_historicalgenericentity"."id" = ANY(%s)''',
                 '''"clinicalcode_historicalgenericentity"."history_id" = ANY(%s)''',
-                '''"clinicalcode_historicalgenericentity"."search_vector" @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))'''
+                '''"clinicalcode_historicalgenericentity"."search_vector" @@ to_tsquery('public.ontology_en', replace(to_tsquery('public.ontology_en', concat(regexp_replace(trim(%s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))'''
             ],
             params=[entity_ids, history_ids, search]
         )

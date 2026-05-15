@@ -173,8 +173,11 @@ urlpatterns += [
         Ontology.get_ontology_nodes,
         name='ontology_nodes'),
     url(r'^ontology/node/(?P<node_id>\d+)/$',
-        Ontology.get_ontology_node,
+        Ontology.get_ontology_node_by_id,
         name='ontology_node_by_id'),
+    url(r'^ontology/node/(?P<term>[\w\-]+[:|_][\w\-]+)/$',
+        Ontology.get_ontology_node_by_term,
+        name='ontology_node_by_term'),
 ]
 
 """ Healthcheck urls """

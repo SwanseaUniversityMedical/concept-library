@@ -1,12 +1,14 @@
 from copy import deepcopy
 from django import template
 from datetime import datetime
+from dateutil import parser as dateparser
 from django.apps import apps
 from django.conf import settings
 from django.urls import reverse
 from django.db.models import Model
 from django.utils.html import _json_script_escapes as json_script_escapes
 from jinja2.exceptions import TemplateSyntaxError, FilterArgumentError
+from django.core.paginator import Page
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -27,6 +29,11 @@ from ..entity_utils import (
 register = template.Library()
 logger = logging.getLogger(__name__)
 
+@register.simple_tag
+def str_replace(input, pattern, replacement):
+    if not isinstance(input, str):
+        return ''
+    return input.replace(pattern, replacement)
 
 @register.simple_tag
 def sort_by_alpha(arr, column="name", order="desc"):
@@ -364,23 +371,47 @@ def render_pagination(context):
         .. _TemplateContext: https://docs.djangoproject.com/en/5.1/ref/templates/api/#django.template.Context
     """
     page_obj = context.get('page_obj', None)
-    if page_obj is None:
-        return {
-            'page': 1,
-            'page_range': [1],
-            'has_previous': False,
-            'has_next': False,
-        }
-
-    page = page_obj.number
-    num_pages = page_obj.paginator.num_pages
 
     packet = {
-        'page': page,
-        'page_range': [1, num_pages],
-        'has_previous': page_obj.has_previous(),
-        'has_next': page_obj.has_next(),
+        'page': 1,
+        'page_range': [1],
+        'has_previous': False,
+        'has_next': False,
+        'pages': [1],
     }
+
+    page_type = 'InvalidPage'
+    if page_obj is not None:
+        if isinstance(page_obj, Page) or (inspect.isclass(page_obj) and issubclass(page_obj, Page)):
+            page_type = 'Page'
+        elif isinstance(page_obj, dict):
+            page_type = 'Object'
+
+    match page_type:
+        case 'Page':
+            page = page_obj.number
+            num_pages = page_obj.paginator.num_pages
+
+            packet.update({
+                'page': page,
+                'page_range': [1, num_pages],
+                'has_previous': page_obj.has_previous(),
+                'has_next': page_obj.has_next(),
+            })
+        case 'Object':
+            page = gen_utils.parse_int(page_obj.get('page'))
+            num_pages = gen_utils.parse_int(page_obj.get('total_pages'))
+            if page is None or num_pages is None:
+                return packet
+
+            packet.update({
+                'page': page,
+                'page_range': [1, num_pages],
+                'has_previous': page > 1,
+                'has_next': page < num_pages,
+            })
+        case _:
+            return packet
 
     if num_pages <= 9:
         packet['pages'] = set(range(1, num_pages + 1))
@@ -503,7 +534,16 @@ def stylise_date(value):
         Returns:
             The stylised (str) value if applicable; otherwise returns an empty `str`
     """
-    return value.strftime('%Y-%m-%d') if isinstance(value, datetime) else ''
+    if isinstance(value, datetime):
+        return value.strftime('%Y-%m-%d')
+    elif isinstance(value, str) and not gen_utils.is_empty_string(value):
+        try:
+            dt = dateparser.parse(value)
+        except:
+            return ''
+        else:
+            return dt.strftime('%Y-%m-%d')
+    return ''
 
 
 @register.simple_tag(name='truncate')
@@ -780,12 +820,29 @@ class EntityCardsNode(template.Node):
         request = self.reqvar.resolve(context)
         request.user = user
 
-        entities = context['page_obj'].object_list
-        layouts = context['layouts']
+        entities = None
+        page_obj = context.get('page_obj')
+        if page_obj is None:
+            entities = None
+        elif isinstance(page_obj, Page) or (inspect.isclass(page_obj) and issubclass(page_obj, Page)):
+            entities = getattr(page_obj, 'object_list', None) if hasattr(page_obj, 'object_list') else None
+        elif isinstance(page_obj, dict):
+            entities = page_obj.get('data')
+
+        if entities is None:
+            entities = []
+
+        layouts = context.get('layouts')
+        if not isinstance(layouts, dict):
+            layouts = {}
 
         output = ''
         for entity in entities:
-            layout = template_utils.try_get_content(layouts, f'{entity.template.id}/{entity.template_version}')
+            if isinstance(entity, dict):
+                layout = template_utils.try_get_content(layouts, f'{entity.get("template_id")}/{entity.get("template_version")}')
+            else:
+                layout = template_utils.try_get_content(layouts, f'{entity.template.id}/{entity.template_version}')
+
             if not template_utils.is_layout_safe(layout):
                 continue
 

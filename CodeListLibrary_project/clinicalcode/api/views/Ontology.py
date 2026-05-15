@@ -1,15 +1,15 @@
+from django.db import connection
+from rest_framework import status
+from rest_framework.response import Response
+from django.utils.regex_helper import _lazy_re_compile
 from rest_framework.decorators import (api_view, permission_classes)
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
-from rest_framework import status
-from django.db import connection
 from django.views.decorators.cache import cache_page
 
 import re
 import math
 
-from ...entity_utils import gen_utils
-from ...entity_utils import constants
+from ...entity_utils import constants, gen_utils
 from ...models.OntologyTag import OntologyTag
 
 @api_view(['GET'])
@@ -19,7 +19,7 @@ def get_ontologies(request):
     """
         Get all ontology groups and their root nodes, _incl._ associated data such as the rood nodes, children _etc_
     """
-    result = OntologyTag.get_groups([x.value for x in constants.ONTOLOGY_TYPES], default=[])
+    result = OntologyTag.get_groups([x for x in constants.ONTOLOGY_ACTIVE], default=[])
     return Response(
         data=list(result),
         status=status.HTTP_200_OK
@@ -57,9 +57,9 @@ def get_ontology_detail(request, ontology_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
-def get_ontology_node(request, node_id):
+def get_ontology_node_by_id(request, node_id):
     """
-        Gets an Ontology node by the given request by a given `node_id`
+        Gets an Ontology node by the specified `node_id`
     """
     node_id = gen_utils.parse_int(node_id, default=None)
     if not isinstance(node_id, int):
@@ -79,6 +79,57 @@ def get_ontology_node(request, node_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
+def get_ontology_node_by_term(request, term):
+    """
+        Gets an Ontology node by the specified `term`, _i.e._ its `reference_id`.
+
+        The `reference_id` field of terms found within MONDO, MeSH and Clinical Specialty vocabularies are defined
+        such that they are prefixed with the ontological name, thus, one can query by `term` in the following manner:
+
+        | Ontology           | Concept                     | Term              | Request                         |
+        |:-------------------|:----------------------------|:------------------|:--------------------------------|
+        | MONDO              | "_Cardiovascular disorder_" | `MONDO:0004995`   | `ontology/node/MONDO:0004995`   |
+        | MeSH               | "_Cardiology_"              | `MESH:D002309`    | `ontology/node/MESH:D002309`    |
+        | Clinical Specialty | "_Cardiology_"              | `SCTID:394579002` | `ontology/node/SCTID:394579002` |
+    """
+    if gen_utils.is_empty_string(term):
+        return Response(
+            data={
+                'message': 'Invalid node term, expected non-empty string'
+            },
+            content_type='json',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    pattern = _lazy_re_compile(r'([\w\-]+)[:|_]([\w\-]+)', flags=re.MULTILINE)
+    if not pattern.match(term):
+        return Response(
+            data={
+                'message': 'Invalid node term, expected term to describe two alphanumeric strings delimited by colon'
+            },
+            content_type='json',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    node = OntologyTag.objects.filter(reference_id=term.upper()).order_by('type_id')
+    node = node.first() if node.exists() else None
+    if node is None:
+        return Response(
+            data={
+                'message': 'Ontology node with the given term does not exist'
+            },
+            content_type='json',
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    result = OntologyTag.get_node_data(node_id=node.id, ontology_id=node.type_id, default=None)
+    return Response(
+        data=result,
+        status=status.HTTP_200_OK
+    )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def get_ontology_nodes(request):
     """
         Queries Ontology nodes by the given request parameters, returning a `QuerySet` of all matched node(s).
@@ -88,12 +139,12 @@ def get_ontology_nodes(request):
         Endpoint query parameters:
 
         | Param         | Type     | Default            | Desc                                                                    |
-        |---------------|----------|--------------------|-------------------------------------------------------------------------|
+        |:--------------|:---------|:-------------------|:------------------------------------------------------------------------|
         | search        | `string` | `NULL`             | Full-text search                                                        |
-        | codes         | `list`   | `NULL`             | Either (a) SNOMED code; or (b) Code ID                                  |
+        | codes         | `list`   | `NULL`             | e.g. `MONDO:0004995`, `MESH:D002309`, or xrefs like `ICD10CM:I21`       |
         | exact_codes   | `empty`  | `NULL`             | Apply this parameter if you would like to search for exact codes instead of fuzzy matching the given `codes` across all related mappings (ICD-9/10, MeSH, OPSC4, ReadCodes etc) |
         | type_ids      | `list`   | `NULL`             | Filter ontology type by ID                                              |
-        | reference_ids | `list`   | `NULL`             | Filter ontology by Atlas reference                                      |
+        | reference_ids | `list`   | `NULL`             | Filter ontology by its vocabulary reference ID, e.g. `MONDO:0005068,MONDO:0004781`    |
         | page          | `number` | `1`                | Page cursor                                                             |
         | page_size     | `enum`   | `1` (_20_ results) | Page size enum, where: `1` = 20, `2` = 50 & `3` = 100 rows              |
     """
@@ -131,7 +182,7 @@ def get_ontology_nodes(request):
 
     reference_ids = params.pop('reference_ids', None)
     reference_ids = reference_ids.split(',') if reference_ids is not None else None
-    reference_ids = gen_utils.try_value_as_type(reference_ids, 'int_array')
+    reference_ids = gen_utils.try_value_as_type(reference_ids, 'string_array')
     if isinstance(reference_ids, list):
         clauses.append('''node.reference_id = any(%(reference_ids)s)''')
 
@@ -144,20 +195,17 @@ def get_ontology_nodes(request):
         codes = [ code.lower() for code in codes ]
         alt_codes = [ re.sub('[^0-9a-zA-Z]', '', code) for code in codes ]
 
-        # Future Opt?
-        #  -> Direct search for other coding systems?
-
         if 'exact_codes' not in request.query_params.keys():
             # Fuzzy across every code mapping
             clauses.append('''(
-                (relation_vector @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(array_to_string(%(codes)s, '|')), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
-                or (relation_vector @@ to_tsquery('pg_catalog.english',replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(array_to_string(%(alt_codes)s, '|')), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))
+                (relation_vector @@ plainto_tsquery('public.ontology_en', trim(array_to_string(%(codes)s, '|')))
+                or (relation_vector @@ plainto_tsquery('public.ontology_en', trim(array_to_string(%(alt_codes)s, '|')))
             )''')
         else:
-            # Direct search for snomed
-            clauses.append('''node.properties::json->>'code' is not null and (
-                lower(node.properties::json->>'code'::text) = any(%(codes)s)
-                or regexp_replace(lower(node.properties::json->>'code'::text), '[^aA-zZ0-9\-]', '', 'g') = any(%(alt_codes)s)
+            # Direct search
+            clauses.append('''node.reference_id is not null and (
+                lower(node.reference_id) = any(%(codes)s)
+                or regexp_replace(lower(node.reference_id), '[^aA-zZ0-9\-]', '', 'g') = any(%(alt_codes)s)
             )''')
 
     search = params.pop('search', None)
@@ -169,10 +217,10 @@ def get_ontology_nodes(request):
         # Fuzzy across code / desc / synonyms / relation
         clauses.append('''(
             node.search_vector
-            @@ to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|'))
+            @@ plainto_tsquery('public.ontology_en', trim(%(search)s))
         )''')
 
-        search_rank = '''ts_rank_cd(node.search_vector, to_tsquery('pg_catalog.english', replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%(search)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')))'''
+        search_rank = '''ts_rank_cd(node.search_vector, plainto_tsquery('public.ontology_en', trim(%(search)s)))'''
         row_clause = '''row_number() over (order by %s) as rn,''' % search_rank
 
         search_rank = search_rank + ' as score,'

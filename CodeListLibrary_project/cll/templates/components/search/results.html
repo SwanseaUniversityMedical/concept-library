@@ -1,9 +1,14 @@
+{% load cl_extras %}
 {% load entity_renderer %}
 
 <div class="entity-search-results__header">
   <div class="entity-search-results__header-results" id="entity-search-response-header">
     <h4>Results</h4>
-    <p>{{ page_obj.start_index|stylise_number }}-{{ page_obj.end_index|stylise_number }} of over {{ page_obj.paginator.count|stylise_number }}</p>
+    {% if page_obj|get_type == "dict" %}
+      <p>{{ page_obj.start_index|stylise_number }}-{{ page_obj.end_index|stylise_number }} of over {{ page_obj.total_count|stylise_number }}</p>
+    {% else %}
+      <p>{{ page_obj.start_index|stylise_number }}-{{ page_obj.end_index|stylise_number }} of over {{ page_obj.paginator.count|stylise_number }}</p>
+    {% endif %}
   </div>
   <div class="entity-search-results__header-modifiers">
     <div class="selection-group">

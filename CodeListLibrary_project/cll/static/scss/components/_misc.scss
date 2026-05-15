@@ -110,6 +110,10 @@
     color: inherit;
   }
 
+  &--sm:before {
+    font-size: calc(var(--font-size) * 0.2);
+  }
+
   &--black {
     color: $mostly_black;
   }

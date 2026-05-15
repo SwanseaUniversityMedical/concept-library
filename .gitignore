@@ -55,6 +55,7 @@ CodeListLibrary_project/staticroot/*
 **/.DS_Store
 
 # Misc. files
+TODO.md
 docs/~$plication Guide.docx
 CodeListLibrary_project/debug.log
 

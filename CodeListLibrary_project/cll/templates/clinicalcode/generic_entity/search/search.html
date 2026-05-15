@@ -32,6 +32,8 @@
   <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
     <div class="search-page">
       <aside class="side-search-filters">
+        {% to_json_script redir_urls data-owner="filter-service" data-name="redir" data-type="text/json" %}
+
         {% compress js %}
           <script type="module" src="{% static 'js/clinicalcode/services/filterService.js' %}"></script>
         {% endcompress %}

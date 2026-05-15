@@ -89,12 +89,9 @@ export default class OntologySelectionService {
       return '';
     }
 
-    let { label = '', properties = undefined } = node;
-    if (!isNullOrUndefined(properties)) {
-      let code = properties?.code;
-      if (typeof(code) === 'string') {
-        label = `${label} (${code})`;
-      }
+    let { label = '', reference_id = undefined } = node;
+    if (stringHasChars(reference_id)) {
+      return `${label} (${reference_id})`;
     }
 
     return label;

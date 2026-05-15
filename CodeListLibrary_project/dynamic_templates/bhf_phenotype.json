@@ -1,4 +1,89 @@
 {
+  "template_details": {
+    "name": "BHF Data Science Centre Phenotype",
+    "version": 1,
+    "card_type": "bhf",
+    "description": "BHF Data Science Centre Phenotype definitions that describe a list of clinical codes, algorithms using clinical codes, or set of clinical trials. Visit the BHF Data Science Centre website to learn more: https://bhfdatasciencecentre.org"
+  },
+
+  "text_indexable": [
+    "project_name",
+    "phenotype_uuid"
+  ],
+
+  "sections": [
+    {
+      "title": "Name & Author",
+      "fields": [
+        "name",
+        "author",
+        "corresp_author",
+        "corresp_email"
+      ],
+      "description": "",
+      "hide_on_detail": true
+    },
+    {
+      "title": "Overview",
+      "fields": [
+        "project_name",
+        "type",
+        "phenotype_uuid",
+        "sex",
+        "event_date_range",
+        "coding_system",
+        "data_sources",
+        "ontology",
+        "collections",
+        "tags"
+      ],
+      "description": "An overview of the Phenotype with metadata, or descriptors, that identifies this Phenotype."
+    },
+    {
+      "title": "Definition",
+      "fields": [
+        "definition",
+        "trials",
+        "endorsements"
+      ],
+      "description": ""
+    },
+    {
+      "title": "Implementation",
+      "fields": [
+        "phenoflowid",
+        "implementation"
+      ],
+      "description": "How this Phenotype definition might be used in practice, and its relation to other practical applications.",
+      "hide_if_empty": true
+    },
+    {
+      "title": "Validation",
+      "fields": [
+        "validation"
+      ],
+      "description": "A description of the methods used to validate this Phenotype and any assessment of its quality.",
+      "hide_if_empty": true,
+      "do_not_show_in_production": true
+    },
+    {
+      "title": "Clinical Codelist",
+      "fields": [
+        "concept_information"
+      ],
+      "documentation": "clinical-coded-phenotype-docs",
+      "description": "Clinical codes that defines this Phenotype."
+    },
+    {
+      "title": "Publication",
+      "fields": [
+        "publications",
+        "citation_requirements"
+      ],
+      "description": "Publications that reference this Phenotype and how this Phenotype might be cited in further research."
+    }
+  ],
+
   "fields": {
     "corresp_author": {
       "title": "Corresponding Author",
@@ -22,68 +107,16 @@
         "mandatory": false,
         "source": {
           "model": "OntologyTag",
-          "trees": [ 0, 1, 2 ],
+          "trees": [ 0, 3, 4 ],
           "references": {
             "trim": true,
             "pattern": "^(\\w+):([\\w\\.\\-\\_ ]+)$",
             "transform": "([^a-zA-Z0-9]+)",
             "mapping": {
-              "mesh": {
-                "type": "string",
-                "match_in": "mesh_codes",
-                "match_out": "code",
-                "match_src": "clinicalcode_SNOMED_CODES",
-                "match_type": "overlap",
-                "link_target": "properties__code"
-              },
-              "icd9": {
-                "type": "string",
-                "match_in": "icd9_codes",
-                "match_out": "code",
-                "match_src": "clinicalcode_SNOMED_CODES",
-                "match_type": "overlap",
-                "link_target": "properties__code"
-              },
-              "icd10": {
-                "type": "string",
-                "match_in": "icd10_codes",
-                "match_out": "code",
-                "match_src": "clinicalcode_SNOMED_CODES",
-                "match_type": "overlap",
-                "link_target": "properties__code"
-              },
-              "opsc4": {
-                "type": "string",
-                "match_in": "opcs4_codes",
-                "match_out": "code",
-                "match_src": "clinicalcode_SNOMED_CODES",
-                "match_type": "overlap",
-                "link_target": "properties__code"
-              },
-              "readv2": {
-                "type": "string",
-                "match_in": "readcv2_codes",
-                "match_out": "code",
-                "match_src": "clinicalcode_SNOMED_CODES",
-                "match_type": "overlap",
-                "link_target": "properties__code"
-              },
-              "readv3": {
-                "type": "string",
-                "match_in": "readcv3_codes",
-                "match_out": "code",
-                "match_src": "clinicalcode_SNOMED_CODES",
-                "match_type": "overlap",
-                "link_target": "properties__code"
-              },
-              "snomed": {
-                "type": "string",
-                "match_in": "code",
-                "match_out": "code",
-                "match_src": "clinicalcode_SNOMED_CODES",
-                "match_type": "in",
-                "link_target": "properties__code"
-              }
+              "type": "string",
+              "match_in": "xrefs",
+              "match_src": "properties",
+              "match_data": "text"
             }
           },
           "subquery": {
@@ -101,22 +134,22 @@
               "type": "int_array",
               "field": "type_id",
               "coerce": [
-                { "compare": "SNOMED", "out": 0 },
-                { "compare": "Clinical Disease Category (SNOMED)", "out": 0 },
-                { "compare": "Clinical Domain", "out": 1 },
-                { "compare": "Functional Anatomy", "out": 2 }
+                { "compare": "MONDO", "out": 0 },
+                { "compare": "MeSH", "out": 1 },
+                { "compare": "Clinical Specialty", "out": 3 },
+                { "compare": "Clinical Category", "out": 4 }
               ]
             },
             "reference": {
-              "type": "int_array",
+              "type": "string_array",
               "field": "reference_id",
               "modifiers": [ "descendants" ]
             },
             "code": {
-              "key": "code",
+              "key": "xrefs",
               "type": "string_array",
               "field": "properties",
-              "field_type": "jsonb",
+              "field_type": "jsonb_array",
               "modifiers": [ "descendants" ]
             }
           }
@@ -324,85 +357,5 @@
       },
       "description": "A set of concepts, each of which defines a list of clinical codes, contained within this Phenotype."
     }
-  },
-
-  "sections": [
-    {
-      "title": "Name & Author",
-      "fields": [
-        "name",
-        "author",
-        "corresp_author",
-        "corresp_email"
-      ],
-      "description": "",
-      "hide_on_detail": true
-    },
-    {
-      "title": "Overview",
-      "fields": [
-        "project_name",
-        "type",
-        "phenotype_uuid",
-        "sex",
-        "event_date_range",
-        "coding_system",
-        "data_sources",
-        "ontology",
-        "collections",
-        "tags"
-      ],
-      "description": "An overview of the Phenotype with metadata, or descriptors, that identifies this Phenotype."
-    },
-    {
-      "title": "Definition",
-      "fields": [
-        "definition",
-        "trials",
-        "endorsements"
-      ],
-      "description": ""
-    },
-    {
-      "title": "Implementation",
-      "fields": [
-        "phenoflowid",
-        "implementation"
-      ],
-      "description": "How this Phenotype definition might be used in practice, and its relation to other practical applications.",
-      "hide_if_empty": true
-    },
-    {
-      "title": "Validation",
-      "fields": [
-        "validation"
-      ],
-      "description": "A description of the methods used to validate this Phenotype and any assessment of its quality.",
-      "hide_if_empty": true,
-      "do_not_show_in_production": true
-    },
-    {
-      "title": "Clinical Codelist",
-      "fields": [
-        "concept_information"
-      ],
-      "documentation": "clinical-coded-phenotype-docs",
-      "description": "Clinical codes that defines this Phenotype."
-    },
-    {
-      "title": "Publication",
-      "fields": [
-        "publications",
-        "citation_requirements"
-      ],
-      "description": "Publications that reference this Phenotype and how this Phenotype might be cited in further research."
-    }
-  ],
-
-  "template_details": {
-    "name": "BHF Data Science Centre Phenotype",
-    "version": 1,
-    "card_type": "bhf",
-    "description": "BHF Data Science Centre Phenotype definitions that describe a list of clinical codes, algorithms using clinical codes, or set of clinical trials. Visit the BHF Data Science Centre website to learn more: https://bhfdatasciencecentre.org"
   }
 }
