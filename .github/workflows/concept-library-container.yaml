@@ -29,19 +29,18 @@ concurrency:
 
 jobs:
   concept-library-container:
-    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-container.yaml@v3.4.5-containers
+    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-container.yaml@v4.0.0-containers
     with:
       job-name: concept-library-container
       registry: ${{ vars.HARBOR_REGISTRY }}
       registry-user: ${{ vars.HARBOR_USER }}
       registry-repo: ${{ vars.HARBOR_PROJECT }}/concept-library
       release-tag-format: 'Concept-Library-${version}'
-      cosign-public-key: ${{ vars.COSIGN_PUBLIC_KEY }}
+      notation-cert: ${{ vars.NOTATION_CERT }}
       build-file: docker/app/Dockerfile
       build-args: |
         server_name=conceptlibrary.saildatabank.com
         dependency_target=production.txt
     secrets:
-      cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
-      cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+      notation-key: ${{ secrets.NOTATION_KEY }}
       registry-token: ${{ secrets.HARBOR_TOKEN }}
