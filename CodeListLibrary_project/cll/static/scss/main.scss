@@ -109,7 +109,8 @@ data {
   &--centre-content {
     width: 100%;
     max-width: 2160px;
-    justify-content: center;
+    align-self: center;
+    align-items: center;
   }
 
   &__inner-container {

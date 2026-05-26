@@ -12,7 +12,7 @@
         </h3>
       {% endcomment %}
 
-      <div class="box-container">
+      <div class="box-container box-container--unconstrained">
         <div class="row">
           <div class="col-sm-2" aria-label="Owner">Owner</div>
           <div class="col-sm-4" aria-label="{{ entity.owner.username }}">
@@ -23,7 +23,7 @@
 
       <hr class="small-divider" />
 
-      <div class="box-container">
+      <div class="box-container box-container--unconstrained">
         <div class="row">
           <div class="col-sm-2" aria-label="Organisation">Organisation</div>
           {% if entity.organisation %}
