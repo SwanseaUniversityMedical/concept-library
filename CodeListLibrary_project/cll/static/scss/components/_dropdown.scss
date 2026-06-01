@@ -644,6 +644,14 @@
   word-break: break-word;
   box-sizing: border-box;
 
+  &__text-collapse {
+    display: none;
+
+    @include media(">tablet", "screen") {
+      display: contents;
+    }
+  }
+
   &__input {
     display: none;
   }

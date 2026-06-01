@@ -3,7 +3,7 @@
     GENERIC-ENTITY VIEW
     ---------------------------------------------------------------------------
 """
-from django.urls import reverse
+from django.urls import reverse, get_urlconf, get_resolver
 from django.http import HttpResponseBadRequest
 from collections import OrderedDict
 from collections.abc import Iterable
@@ -15,9 +15,11 @@ from django.http.response import HttpResponse, JsonResponse, Http404
 from django.core.exceptions import BadRequest, PermissionDenied
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
+from django.utils.regex_helper import _lazy_re_compile
 from rest_framework.decorators import schema
 from django.contrib.auth.decorators import login_required
 
+import re
 import csv
 import json
 import time
@@ -50,6 +52,10 @@ class EntitySearchView(TemplateView):
             - SSR of entities at initial GET request based on request params
             - AJAX-driven update of template based on request params (through JsonResponse)
     """
+    # Search redirect URL pattern name(s)
+    ENTITY_ONTO_VIEW = 'search_entities_by_ontology'
+
+    # Template refs
     template_name = 'clinicalcode/generic_entity/search/search.html'
     result_template = 'components/search/results.html'
     pagination_template = 'components/search/pagination_container.html'
@@ -60,28 +66,39 @@ class EntitySearchView(TemplateView):
         request = self.request
 
         # Get the renderable, published entities that match our request params & the selected entity_type (optional)
-        entity_type_param = kwargs.get('entity_type')
-        entity_type = search_utils.try_derive_entity_type(entity_type_param)
-        
-        # Raise 404 when trying to access an entity class that does not exist
-        if entity_type_param is not None and entity_type is None:
-            raise Http404
+        entity_type = kwargs.get('entity_type', None)
+        entity_type = entity_type \
+            if isinstance(entity_type, str) and gen_utils.is_empty_string(entity_type) \
+            else None
 
-        entities, layouts = search_utils.get_renderable_entities(
-            request,
-            entity_types=entity_type
-        )
+        if entity_type is not None:
+            entity_type = search_utils.try_derive_entity_type(entity_type)
+            # Raise 404 when trying to access an entity class that does not exist
+            if entity_type is None:
+                raise Http404
 
-        # Paginate reponse
-        page_obj = search_utils.try_get_paginated_results(request, entities)
+        page, layouts = search_utils.get_renderable(request, entity_types=entity_type)
 
         # For detail referral highlighting
         request.session['searchterm'] = gen_utils.try_get_param(request, 'search', None)
 
+        # Resolve ontology URL
+        url_resolver = get_resolver(get_urlconf())
+
+        redir_urls = {}
+        onto_resolver = url_resolver.reverse_dict.getlist(self.ENTITY_ONTO_VIEW)
+
+        if onto_resolver and len(onto_resolver) > 0:
+            onto_resolver, *_ = onto_resolver[0]
+            redir_urls.update({
+                'ontology': dict(zip(('target', 'params'), onto_resolver[0]))
+            })
+
         return context | {
             'entity_type': entity_type,
-            'page_obj': page_obj,
-            'layouts': layouts
+            'page_obj': page,
+            'layouts': layouts,
+            'redir_urls': redir_urls,
         }
     
     def get(self, request, *args, **kwargs):
@@ -96,6 +113,88 @@ class EntitySearchView(TemplateView):
 
                 In reality, we should change this to a `JSON` Response at some point
                 and make the client render it rather than wasting server resources.
+        """
+        search = gen_utils.try_get_param(request, 'search', None, 'GET')
+        filtered = gen_utils.try_get_param(request, 'search_filtered', None, 'GET')
+
+        if not filtered and search is not None and not gen_utils.is_empty_string(search):
+            pattern = _lazy_re_compile(
+                # Match examples:
+                #  - MONDO_0005068
+                #  - MONDO:0005068
+                #  - purl.obolibrary.org/obo/MONDO_0005068
+                #  - http://purl.obolibrary.org/obo/MONDO_0005068
+                #  - https://purl.obolibrary.org/obo/MONDO_0005068
+                #
+                r'^(?:https?:\/\/)?(?:purl\.obolibrary\.org\/obo\/)?([\w\-]+[:_][\w\-]+)$',
+                flags=re.IGNORECASE
+            )
+
+            ontology_term = pattern.match(search.strip())
+            if ontology_term:
+                ontology_term = ontology_term.group(1)
+                return redirect(
+                    to=reverse(self.ENTITY_ONTO_VIEW, kwargs={ 'term': ontology_term }),
+                    permanent=False,
+                    preserve_request=False
+                )
+
+        context = self.get_context_data(*args, **kwargs)
+        if filtered is not None and request.headers.get('X-Requested-With'):
+            context['request'] = request
+
+            results = render_to_string(self.result_template, context)
+            pagination = render_to_string(self.pagination_template, context)
+            return HttpResponse(results + pagination, content_type='text/plain')
+            
+        return render(request, self.template_name, context)
+
+
+class EntitySearchByOntologyView(TemplateView):
+    """
+        Entity search by ontology view
+    """
+    template_name = 'clinicalcode/generic_entity/ontology/search.html'
+    result_template = 'components/search/results.html'
+    pagination_template = 'components/search/pagination_container.html'
+
+    def get_context_data(self, *args, **kwargs):
+        """Provides contextful data to template based on request parameters"""
+        context = super(EntitySearchByOntologyView, self).get_context_data(*args, **kwargs)
+        request = self.request
+
+        # Get ontology
+        ontology_term = kwargs.get('term')
+        ontology = OntologyTag.objects.filter(reference_id=ontology_term)
+        if not ontology.exists():
+            raise Http404
+        ontology = ontology.first()
+
+        # Get entities and paginate reponse
+        entity_type = kwargs.get('entity_type', None)
+        entity_type = entity_type \
+            if isinstance(entity_type, str) and gen_utils.is_empty_string(entity_type) \
+            else None
+
+        if entity_type is not None:
+            entity_type = search_utils.try_derive_entity_type(entity_type)
+            # Raise 404 when trying to access an entity class that does not exist
+            if entity_type is None:
+                raise Http404
+
+        page, layouts = search_utils.get_renderable(request, entity_types=entity_type, ontology_term=ontology_term)
+
+        return context | {
+            'entity_type': None,
+            'ontology': ontology,
+            'ontology_children': ontology.children.all(),
+            'page_obj': page,
+            'layouts': layouts
+        }
+
+    def get(self, request, *args, **kwargs):
+        """
+            Manages get requests to this view
         """
         context = self.get_context_data(*args, **kwargs)
         filtered = gen_utils.try_get_param(request, 'search_filtered', None)

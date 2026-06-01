@@ -800,7 +800,7 @@ export class ConceptSelectionService {
         }
 
         if (!isNullOrUndefined(query)) {
-          if (typeof query === 'array' && !query.includes(child[filter])) {
+          if (Array.isArray(query) && !query.includes(child[filter])) {
             passed = false;
             continue;
           } else if (typeof child[filter] === typeof query && child[filter] != query) {

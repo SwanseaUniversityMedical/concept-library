@@ -60,6 +60,15 @@
   }
 }
 
+.box-container,
+.box-container-sm,
+.box-container-md,
+.box-container-lg {
+  &--unconstrained {
+    max-width: 100%;
+  }
+}
+
 /// Grid-based row-column layout
 ///   @desc Responsive grid-based 12 column layout
 ///   @requires .box-container wrapper

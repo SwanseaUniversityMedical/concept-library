@@ -1,4 +1,19 @@
 /**
+ * FILTER_ONTO_TERM_RE
+ * @desc
+ * Match examples:
+ * - MONDO_0005068
+ * - MONDO:0005068
+ * - purl.obolibrary.org/obo/MONDO_0005068
+ * - http://purl.obolibrary.org/obo/MONDO_0005068
+ * - https://purl.obolibrary.org/obo/MONDO_0005068
+ */
+const FILTER_ONTO_TERM_RE = new RegExp(
+  /^(?:https?:\/\/)?(?:purl\.obolibrary\.org\/obo\/)?([\w\-]+)[:_]([\w\-]+)$/,
+  'gi'
+);
+
+/**
  * FILTER_SCROLL_TOP_ON_PAGE_CHANGE
  * @desc Flag to determine whether we scroll to the top of the page when pagination
  *       buttons are interacted with
@@ -138,6 +153,7 @@ const FILTER_APPLICATORS = {
   */
 class FilterService {
   constructor() {
+    this.data = { };
     this.query = { };
     this.filters = { };
 
@@ -165,6 +181,34 @@ class FilterService {
    */
   getCurrentParameters() {
     return this.query;
+  }
+
+  /**
+   * 
+   */
+  filter(field, value) {
+    if (!this.query.hasOwnProperty(field)) {
+      this.query[field] = [];
+    }
+
+    const index = this.query[field].indexOf(value);
+    const checkbox = document.querySelector(`input[data-class="checkbox"][data-field="${field}"][data-value="${value}"]`);
+    if (index >= 0) {
+      this.query[field].splice(index, 1);
+
+      if (checkbox) {
+        checkbox.checked = false;
+      }
+    } else {
+      this.query[field].push(value);
+
+      if (checkbox) {
+        checkbox.checked = true;
+      }
+    }
+
+    this.#resetPage();
+    this.#postQuery();
   }
 
   /*************************************
@@ -264,6 +308,25 @@ class FilterService {
    */
   #postQuery() {
     let query = this.#cleanQuery();
+    let redir = isObjectType(this.data.redir) && isObjectType(this.data.redir.ontology)
+      ? this.data.redir.ontology
+      : null;
+
+    // Redirect to Ontology if match single ontological term
+    if (!isNullOrUndefined(redir)) {
+      let terms = stringHasChars(query.search)
+        ? FILTER_ONTO_TERM_RE.exec(query.search.trim())
+        : null;
+
+      if (Array.isArray(terms) && terms.length == 3) {
+        terms = `${terms[1]}:${terms[2]}`;
+
+        const trg = pyFormat(redir.target, { 'term': terms }, false, '%');
+        window.location.href = `${getBrandedHost()}/${trg}`;
+        return;
+      }
+    }
+
     query = mergeObjects(query, { 'search_filtered': true });
 
     const parameters = new URLSearchParams(query);
@@ -313,6 +376,45 @@ class FilterService {
         filter: filter,
         filterClass: filterClass,
       };
+    }
+
+    const datasets = document.querySelectorAll('[data-owner="filter-service"]');
+    loop: for (let i = 0; i < datasets.length; ++i) {
+      const item = datasets[i];
+      const name = item.getAttribute('data-name');
+      if (!stringHasChars(name)) {
+        console.error(`Skipping owned item '${item}' as no '[data-name]' provided.`);
+        continue loop;
+      }
+
+      const type = item.getAttribute('data-type');
+      switch (type) {
+        case 'text/json':
+        case 'application/json': {
+          try {
+            this.data[name] = JSON.parse(item.innerText);
+            continue loop;
+          } catch (err) {
+            if (err instanceof SyntaxError) {
+              console.error(`Failed to parse JSON of owned item '${item}' w/ err:\n${err.name}`);
+              continue loop;
+            }
+
+            console.error(`Encountered error when processing owned item '${item}' w/ err:\n${err.message}`);
+            break;
+          }
+        }
+
+        default: {
+          if (stringHasChars(type)) {
+            console.error(`Unknown '[data-type="${type}"]' for owned item '${item}'`)
+            continue loop;
+          }
+
+          console.error(`Skipping owned item '${item}' as no '[data-type]' provided`);
+          break;
+        }
+      }
     }
   }
 

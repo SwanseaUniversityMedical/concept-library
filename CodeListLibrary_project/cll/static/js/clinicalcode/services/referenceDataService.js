@@ -181,9 +181,13 @@ const renderTreeViewComponent = async (key, container, _groups) => {
         loading: '.eleTree-animate-rotate.eletree_icon-loading1',
       },
       customText: (data) => {
+        const lbl = stringHasChars(data.reference_id)
+          ? `[<strong>${data.reference_id}</strong>] ${data.label}`
+          : data.label;
+
         return `<span class="ref-ontology-node">
           <span>
-            ${data.label}
+            ${lbl}
           </span>
           <span class="ref-ontology-node__source">
             <b>NodeID:</b>

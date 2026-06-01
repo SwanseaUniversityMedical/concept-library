@@ -1945,8 +1945,21 @@
   width: 100%;
   height: fit-content;
 
-  &__field {
+  &--as-filter {
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+  }
+
+  &:not(.search-container--as-filter) &__field {
     @include box-shadow(0px, 8px, 15px, var(--search-shadow-inactive-color));
+
+    &:focus,
+    &:focus-visible {
+      @include box-shadow(0px, 10px, 20px, var(--search-shadow-active-color));
+    }
+  }
+
+  &__field {
     box-sizing: border-box;
     position: relative;
     border: 0;
@@ -1957,13 +1970,11 @@
     transition: all 250ms ease;
 
     &:focus {
-      @include box-shadow(0px, 10px, 20px, var(--search-shadow-active-color));
       outline: none;
       border-radius: 0.2rem;
     }
 
     &:focus-visible {
-      @include box-shadow(0px, 10px, 20px, var(--search-shadow-active-color));
       outline: none;
       border-radius: 0.2rem;
     }

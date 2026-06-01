@@ -273,7 +273,6 @@
 .entity-card {
   @include prefix(transition, all 250ms ease, webkit moz o);
   @include flex-col();
-  cursor: pointer;
 	font: inherit;
 	background: none;
 	color: inherit;
@@ -283,21 +282,22 @@
   padding: 0 0 1.5rem 0;
   margin: 0 0 1rem 0;
 
-  &:not(.inactive) {
-    &:active {
-      /* Should we animate it? */
-      @include prefix(transform, scale(0.99), webkit moz o);
-    }
-  
-    &:focus-visible {
-      outline: 1px solid col(accent-dark);
-      border-radius: 2pt;
-    }
-  }
-
   &__click {
     @include clear-anchor();
     display: block;
+  }
+
+  &:not(.inactive):has(.entity-card__click:active) {
+    @include prefix(transform, scale(0.99), webkit moz o);
+  }
+  
+  &:not(.inactive):has(.entity-card__click:focus-visible) {
+    outline: 1px solid col(accent-dark);
+    border-radius: 2pt;
+  }
+
+  &__click:focus-visible {
+    outline: none;
   }
 
   &__header {
@@ -309,6 +309,18 @@
     &__item {
       @include flex-col();
       margin: 0;
+
+      &--border-left {
+        padding: 0.2rem 0 0.2rem 1rem;
+        border-left: 0.15rem solid var(--entity-card-anchor-color);
+        flex-grow: 1;
+        height: fit-content;
+      }
+    }
+
+    &--wrap {
+      width: 100%;
+      flex-wrap: wrap;
     }
   }
 
@@ -317,7 +329,7 @@
     padding: 0;
     margin: 0;
     flex-wrap: nowrap;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     line-height: 1;
     color: var(--entity-card-anchor-color);
@@ -331,7 +343,39 @@
     margin: 0.5rem 0 0 0;
     word-break: break-all;
     white-space: normal;
-    font-size: 16px;
+    font-size: 14px;
+  }
+
+  &__subheader {
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+    word-break: break-all;
+    white-space: normal;
+    font-size: 12px;
+
+    &--centred {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    &--margin-sm {
+      margin: 0.25rem 0 0 0;
+    }
+
+    &--accent-anchored {
+      color: var(--entity-card-anchor-color);
+    }
+
+    &--draft-icon::before {
+      content: '\f249';
+      pointer-events: auto;
+      aspect-ratio: 1 / 1;
+      font-family: var(--icons-name);
+      font-style: var(--icons-style);
+      font-size: var(--icons-size);
+      text-align: center;
+    }
   }
 
   &__snippet {
@@ -377,6 +421,148 @@
       max-width: calc(100% - 8px);
       gap: 0.25rem;
       margin-left: 2px;
+    }
+
+    &__body {
+      @include flex-row();
+      flex-wrap: wrap;
+      width: 100%;
+      margin: 0.75rem 0 0 0;
+      
+      &-metadata {
+        flex-grow: 1;
+      }
+
+      &-ontology {
+        @include flex-col();
+        gap: 0.25rem 0;
+      }
+    }
+
+    &__row {
+      @include flex-row();
+      gap: 0 1rem;
+      margin-top: 0.25rem;
+    }
+
+    &__col {
+      @include flex-col();
+
+      &-field {
+        flex-grow: 0.5;
+      }
+
+      &-value {
+        flex-grow: 3;
+      }
+    }
+  }
+}
+
+.grid-card {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto;
+  grid-gap: 0.5rem;
+
+  @include media('<tablet', 'screen') {
+    @include flex-col();
+  }
+
+  &__title {
+    grid-column: 1 / span 2;
+    grid-row: 1;
+    padding: 0.2rem 0 0.2rem 1rem;
+    border-left: 0.15rem solid var(--entity-card-anchor-color);
+
+    &-header {
+      padding: 0;
+      margin: 0;
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 1;
+      color: var(--entity-card-anchor-color);
+      width: 100%;
+      word-break: break-all;
+      white-space: normal;
+    }
+
+    &-subheader {
+      padding: 0;
+      word-break: break-all;
+      white-space: normal;
+      font-size: 12px;
+      margin: 0.3rem 0 0 0;
+
+      & > p {
+        margin: 0;
+      }
+
+      &--data-types {
+        display: flex;
+        gap: 0 0.5rem;
+        align-items: center;
+        color: var(--entity-card-anchor-color);
+      }
+
+      &--draft-icon::before {
+        content: '\f249';
+        pointer-events: auto;
+        aspect-ratio: 1 / 1;
+        font-family: var(--icons-name);
+        font-style: var(--icons-style);
+        font-size: var(--icons-size);
+        text-align: center;
+      }
+    }
+  }
+
+  &__metadata {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+
+    &-row {
+      @include flex-row();
+      gap: 0 1rem;
+      margin-top: 0.25rem;
+    }
+  }
+
+  &__ontology {
+    grid-column: 3;
+    grid-row: 1 / span 3;
+
+    &-title {
+      padding: 0;
+      word-break: break-all;
+      white-space: normal;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    &-col {
+      @include flex-col();
+      margin-left: auto;
+      gap: 0.2rem;
+      width: fit-content;
+
+      @include media('<tablet', 'screen') {
+        margin-left: 0;
+      }
+    }
+  }
+
+  &__snippet {
+    grid-column: 1 / span 2;
+    grid-row: 3;
+    margin-top: 0.25rem;
+
+    &-col {
+      @include flex-row();
+    }
+
+    &-divider {
+      margin: 0 0.5rem;
     }
   }
 }

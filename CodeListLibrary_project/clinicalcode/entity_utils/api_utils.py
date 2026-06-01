@@ -367,7 +367,6 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
         #   i.e. we need to match on a key-value pair within each
         #        of the ontological tags
         #
-
         key_field = sub_validation.get('key')
         if not isinstance(key_field, str):
             return False, None
@@ -393,10 +392,9 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
             matched_records = []
             with connection.cursor() as cursor:
                 sql = f'''
-                select
-                        t.id
-                from public.clinicalcode_{model.lower()} as t
-                where {processor}(t.{sub_field}::jsonb->>'{key_field}'::text{datatype}) = any(%(data)s{ltype}[])
+                select t.id
+                  from public.clinicalcode_{model.lower()} as t
+                 where {processor}(t.{sub_field}::jsonb->>'{key_field}'::text{datatype}) = any(%(data)s{ltype}[])
                 '''
                 cursor.execute(sql, params={
                     'data': data,
@@ -455,12 +453,115 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
         dataset.update({ f'{prefix}{param}_data': data })
 
         return True, [ query, dataset ]
+    elif sub_field_type == 'jsonb_array':
+        # Handle json subquqery
+        #   i.e. we need to match on a key-value pair within each
+        #        of the ontological tags
+        #
+        key_field = sub_validation.get('key')
+        if not isinstance(key_field, str):
+            return False, None
+
+        ltype = None
+        datatype = None
+        processor = ''
+        if sub_type == 'int_array':
+            data = [ int(x) for x in data.split(',') if isinstance(gen_utils.parse_int(x, default=None), int) ]
+            ltype = '::bigint'
+            datatype = '::bigint'
+        elif sub_type == 'string_array':
+            data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
+            ltype = '::text'
+            datatype = ''
+            processor = 'lower'
+
+        if not isinstance(datatype, str):
+            return False, None
+
+        if 'descendants' in opts and (isinstance(modifiers, list) and 'descendants' in modifiers):
+            # Match first, then perform query
+            matched_records = []
+            with connection.cursor() as cursor:
+                sql = f'''
+                select ont.id
+                  from (
+                    select *
+                      from public.clinicalcode_{model.lower()} t
+                     where jsonb_typeof(t.{sub_field}->'{key_field}') = 'array'
+                       and jsonb_array_length(t.{sub_field}->'{key_field}') > 0
+                  ) as ont,
+                       jsonb_array_elements_text(ont.{sub_field}->'{key_field}') as t(x)
+                 where {processor}(t.x{datatype}) = any(%(data)s{ltype}[])
+                '''
+                cursor.execute(sql, params={
+                    'data': data,
+                })
+
+                matched_records = [ row[0] for row in cursor.fetchall() ]
+
+            query = f'''
+            exists(
+                select 1
+                    from (
+                    select mid::bigint as val
+                        from jsonb_array_elements(
+                        case jsonb_typeof(entity.template_data->'{top_ref}')
+                        when 'array'
+                            then entity.template_data->'{top_ref}'
+                            else '[]'
+                        end
+                        ) as mid
+                    ) as t0
+                    join public.clinicalcode_{model.lower()} as t1
+                      on t0.val = t1.id
+                    {tree_clause}
+                    {next_clause} (
+                        t1.id::bigint = any(%({prefix}{param}_data)s::bigint[])
+                        or is_ontological_descendant(%({prefix}{param}_data)s::bigint[], array[t1.id]::bigint[])
+                    )
+                limit 1
+            )
+            '''
+            dataset.update({ f'{prefix}{param}_data': matched_records })
+            return True, [ query, dataset ]
+
+        query = f'''
+        exists(
+            select 1
+                from (
+                select mid::bigint as val
+                    from jsonb_array_elements(
+                    case jsonb_typeof(entity.template_data->'{top_ref}')
+                    when 'array'
+                        then entity.template_data->'{top_ref}'
+                        else '[]'
+                    end
+                    ) as mid
+                ) as t0
+                join (
+                  select ont.id, ont.type_id
+                    from (
+                      select *
+                        from public.clinicalcode_{model.lower()} t
+                       where jsonb_typeof(t.{sub_field}->'{key_field}') = 'array'
+                         and jsonb_array_length(t.{sub_field}->'{key_field}') > 0
+                    ) as ont,
+                         jsonb_array_elements_text(ont.{sub_field}->'{key_field}') as t(x)
+                   where {processor}(t.x{datatype}) = any(%({prefix}{param}_data)s{ltype}[])
+                ) as t1
+                  on t0.val = t1.id
+                {tree_clause}
+                limit 1
+        )
+        '''
+        dataset.update({ f'{prefix}{param}_data': data })
+
+        return True, [ query, dataset ]
     elif sub_type == 'int_array' and sub_field == 'id':
         # Handle top-level field
         #   i.e. we can skip cursor check since 
         #        we already have the descendant search field
         #
-
         data = [ int(x) for x in data.split(',') if isinstance(gen_utils.parse_int(x, default=None), int) ]
         dataset.update({ f'{prefix}{param}_data': data })
 
@@ -520,7 +621,6 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
     #        a query in advance of the search to ensure we have the match id(s)
     #        so that we can meet the parameter requirements of `is_ontological_descendants`
     #
-
     datatype = None
     processor = ''
     if sub_type == 'int_array':
@@ -559,8 +659,7 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
         matched_records = []
         with connection.cursor() as cursor:
             sql = f'''
-            select
-                    t.id
+            select t.id
               from public.clinicalcode_{model.lower()} as t
              where {processor}(t.{sub_field}::{datatype}) = any(%(data)s::{datatype}[]);
             '''
@@ -598,7 +697,6 @@ def build_template_subquery_from_string(param, data, top_ref, sub_ref, validatio
         # Simple query, we can advance without deriving
         # appropriate match id(s)
         #
-
         query = f'''
         exists(
             select 1
@@ -685,7 +783,7 @@ def build_query_string_from_param(request, param, data, field_data, field_type, 
             trees = source.get('trees') if source and 'trees' in validation.get('source') else None
 
             if trees:
-                data = [ str(x) for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
+                data = [ str(x).lower() for x in data.split(',') if gen_utils.try_value_as_type(x, 'string') is not None ]
                 model = source.get('model') if isinstance(source.get('model'), str) else None
 
                 if model:
@@ -715,11 +813,12 @@ def build_query_string_from_param(request, param, data, field_data, field_type, 
                          where t1.type_id = any(%({prefix}{param}_trlink)s)
                            and (
                                 t0.val = any(%({prefix}{param}_data)s)
+                                or lower(t1.reference_id) = any(%({prefix}{param}_data)s)
                                 or (
                                     t1.search_vector
-                                    @@ to_tsquery(
-                                        'pg_catalog.english',
-                                        replace(to_tsquery('pg_catalog.english', concat(regexp_replace(trim(%({prefix}{param}_trsearch)s), '\W+', ':* & ', 'gm'), ':*'))::text, '<->', '|')
+                                    @@ plainto_tsquery(
+                                        'public.ontology_en',
+                                        trim(%({prefix}{param}_trsearch)s)
                                     )
                                 )
                            )

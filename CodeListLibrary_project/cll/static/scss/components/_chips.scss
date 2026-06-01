@@ -13,6 +13,10 @@
   border-radius: 0.1rem;
   padding: 0.25rem 0.5rem;
 
+  &-fit-content {
+    width: fit-content;
+  }
+
   &-shadow {
     @include box-shadow(0, 0.1rem, 0.2rem, rgba(0, 0, 0, 0.2));
   }
@@ -30,7 +34,7 @@
     }
 
     &-text-accent-darkest {
-      color: col(text-darkest);
+      color: col(text-darkest) !important;
     }
 
     &-text-accent-darker {
@@ -61,6 +65,28 @@
     --sat-trg: 0;
   }
 
+  &:has(a.meta-chip__name.meta-chip__name--reference) {
+    --sat-trg: 1;
+
+    border-radius: 0.1rem;
+    filter: saturate(var(--sat-trg));
+  }
+
+  &:has(a.meta-chip__name.meta-chip__name--reference:hover) {
+    --sat-trg: 0.6;
+  }
+
+  &:has(a.meta-chip__name.meta-chip__name--invreference) {
+    --sat-trg: 1;
+
+    border-radius: 0.1rem;
+    filter: brightness(var(--sat-trg));
+  }
+
+  &:has(a.meta-chip__name.meta-chip__name--invreference:hover) {
+    --sat-trg: 0.9;
+  }
+
   &:has(a.meta-chip__name:active) {
     transform: scale(0.95);
     transition: transform 0.1s ease-in-out;
@@ -77,6 +103,20 @@
     }
   }
 
+  & a.meta-chip__name--reference,
+  & a.meta-chip__name--invreference {
+    @include clear-anchor();
+    color: col(text-dark);
+    font-weight: bold;
+  }
+
+  &-transparent {
+    background-color: transparent;
+  }
+  &-outlined {
+    border: 0.1rem solid var(--color-text-dark);
+    border-radius: 0.1rem;
+  }
   &-primary-accent {
     background-color: col(accent-primary);
   }
@@ -100,6 +140,12 @@
   }
   &-danger-accent {
     background-color: col(accent-danger);
+  }
+  &-warning-accent {
+    background-color: col(accent-warning);
+  }
+  &-ontology-accent {
+    background-color: $persimmon_fade;
   }
 }
 
@@ -441,5 +487,53 @@
   }
   &.icon-accent-brightest {
     --icon-color: var(--color-accent-bright);
+  }
+}
+
+/// Reference chips
+///   @desc e.g. used for reference chips/tags etc
+.ref-chip {
+  @include flex-row();
+  align-items: center;
+  gap: 0 0.2rem;
+  background-color: transparent;
+  border-radius: 0.1rem;
+  padding: 0.25rem 0.5rem;
+
+  &-fit-content {
+    width: fit-content;
+  }
+  
+  &__name {
+    text-transform: uppercase;
+    color: col(text-brightest);
+
+    &-bold {
+      font-weight: bold;
+    }
+
+    &-text-accent-darkest {
+      color: col(text-darkest);
+    }
+
+    &-text-accent-darker {
+      color: col(text-darker);
+    }
+
+    &-text-accent-dark {
+      color: col(text-dark);
+    }
+
+    &-text-accent-washed {
+      color: col(text-washed);
+    }
+  
+    &-text-accent-brightest {
+      color: col(text-brightest);
+    }
+  }
+
+  &-danger-accent {
+    border-left: solid col(accent-danger);
   }
 }

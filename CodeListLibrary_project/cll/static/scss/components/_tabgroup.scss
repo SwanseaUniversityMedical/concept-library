@@ -1,0 +1,51 @@
+@import '../_methods';
+@import '../_variables';
+@import '../_media';
+@import '../_utils';
+
+.tabgroup {
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 0.25rem;
+  width: 100%;
+
+  &__tab {
+    display: contents;
+
+    &[open] {
+      --tabgroup-title-pointer-events: none;
+      --tabgroup-title-border-colour: var(--color-accent-success);
+      --tabgroup-title-background-colour: var(--color-accent-lightest);
+
+      &::details-content {
+        display: contents;
+      }
+    }
+  }
+
+  &__title {
+    order: 0;
+    display: block;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem 0.25rem 0 0;
+    list-style: none;
+    cursor: pointer;
+    pointer-events: var(--tabgroup-title-pointer-events);
+    border-top: solid var(--tabgroup-title-border-colour, --tabgroup-title-background-colour);
+    background-color: var(--tabgroup-title-background-colour, var(--color-bg));
+
+    
+    @include media("<405px", "screen") {
+      width: 100%;
+    }
+  }
+
+  &__content {
+    order: 1;
+    width: 100%;
+    max-height: 350px;
+    padding: 1rem;
+    background-color: var(--color-accent-lightest);
+    overflow-y: auto;
+  }
+}

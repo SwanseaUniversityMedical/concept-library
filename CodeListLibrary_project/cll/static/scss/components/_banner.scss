@@ -12,7 +12,11 @@
     background-color: var(--banner-bg-color, #000);
   }
 
-  & > div:first-child:not(.banner--background) {
+  &--ontology-background {
+    background-color: $golden_peach;
+  }
+
+  & > div:first-child:not(.banner--background):not(.banner--ontology-background) {
     background-color: var(--phenotype-banner-bg-color);
   }
 
@@ -57,6 +61,23 @@
         }
       }
     }
+
+    &--lg-container {
+      @include media("<desktop", "screen") {
+        width: var(--phenotype-article-lg-size);
+        max-width: var(--phenotype-article-lg-size);
+      }
+
+      @include media(">desktop", "<desktop-lg", "screen") {
+        width: var(--phenotype-article-lg-size);
+        max-width: calc(var(--phenotype-article-lg-size) - 8rem);
+      }
+
+      @include media(">desktop-lg", "screen") {
+        width: var(--phenotype-article-lg-size);
+        max-width: var(--phenotype-article-lg-size);
+      }
+    }
    
     &__left-landing-page {
       width: 50%;
@@ -71,6 +92,74 @@
     }
   }
 
+  &__flex-title-container {
+    display: flex;
+    flex-flow: row nowrap;
+    width: 100%;
+    gap: 1rem;
+    padding: 0;
+    align-items: center;
+    margin: 2rem 0 0 0;
+
+    & > h2 {
+      display: flex;
+      flex-flow: row nowrap;
+      padding: 0;
+      margin: 0;
+      word-break: break-word;
+
+      & > a {
+        display: inline-block;
+        align-self: center;
+        justify-self: center;
+        vertical-align: middle;
+      }
+    }
+
+    & > div:last-of-type {
+      margin-left: auto;
+    }
+
+    &__back-button {
+      text-decoration: none;
+      border-radius: 100%;
+      color: var(--color-text-darkest);
+      transition: transform 0.2s ease, color 0.2s ease, filter 0.2s ease;
+
+      &:after {
+        @include fontawesome-icon();
+        content: '\f060';
+        color: inherit;
+      }
+
+      &:hover {
+        color: col(accent-highlight);
+        transform: scale(1.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      &:focus,
+      &:focus-within,
+      &:focus-visible,
+      &__highlighted,
+      &[aria-selected="true"] {
+        outline: none;
+
+        &:after {
+          outline: none;
+          color: col(accent-highlight);
+        }
+      }
+    }
+
+    @include media('<tablet', 'screen') {
+      flex-flow: column nowrap;
+    }
+  }
+
   &__title {
     padding: 0;
     margin: 2rem 0 0.5rem 0;
@@ -82,8 +171,13 @@
 
   &__description {
     margin: 1rem 0 0.5rem 0;
+    
     &__landing-page {
       color: var(--color-accent-bright);
+    }
+
+    &--pad-btm {
+      margin: 1rem 0 1rem 0;
     }
   }
 

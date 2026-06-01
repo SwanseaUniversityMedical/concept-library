@@ -167,7 +167,10 @@ def get_merged_definition(template, default=None):
     if definition is None:
         return default
 
-    fields = {field: packet for field, packet in constants.metadata.items() if not packet.get('ignore')}
+    fields = {
+        field: copy.deepcopy(constants.metadata.get(field)) for field in constants.metadata.keys()
+        if isinstance(constants.metadata.get(field), dict) and not constants.metadata.get(field).get('ignore')
+    }
     for k, v in definition.get('fields', {}).items():
         fields.update({ k: copy.deepcopy(fields.get(k, {})) | v })
 
@@ -240,7 +243,15 @@ def get_entity_field(entity, field, default=None):
     """
         Safely gets a field from an entity, either at the toplevel (e.g. its name) or from its template data (e.g. some dynamic field)
     """
-    if not is_data_safe(entity):
+    if isinstance(entity, dict):
+        data = entity.get(field)
+        if data is not None:
+            return data
+
+        tmpl = entity.get('template_data')
+        if isinstance(tmpl, dict):
+            return try_get_content(tmpl, field, default)
+
         return default
 
     try:

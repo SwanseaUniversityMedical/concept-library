@@ -173,14 +173,29 @@ class CASE_SIGNIFICANCE(int, enum.Enum, metaclass=IterableMeta):
 
 class ONTOLOGY_TYPES(int, enum.Enum, metaclass=IterableMeta):
     """
-        Defines the ontology internal type id,
-        which describes the ontology type
+        Defines the ontology internal type id, which describes
+        the ontology type.
 
+        | Type     | Value | Active | Origin                                                              | 
+        |:---------|------:|:------:|:--------------------------------------------------------------------|
+        | MONDO    |     0 | Yes    | Disease ontology extracted from `Mondo OLS`_.                       |
+        | MESH     |     1 | Yes    | Terms extracted from `Medical Subject Headings vocabulary`_ (MeSH). |
+        | SNOMED   |     2 | No     | Terms extracted from `SNOMED CT clinical vocabulary`_.              |
+        | DOMAIN   |     3 | Yes    | Derived from the `NHS' medical specialty list`_.                    |
+        | CATEGORY |     4 | Yes    | Derived from `Prof. Denaxas' work`_ on `Phecodes`_.                 |
+
+        .. _SNOMED CT clinical vocabulary: https://digital.nhs.uk/services/terminology-and-classifications/snomed-ct
+        .. _NHS' medical specialty list: https://archive.datadictionary.nhs.uk/DD%20Release%20July%202022/attributes/main_specialty_code.html
+        .. _Prof. Denaxas' work: https://denaxaslab.org/
+        .. _Phecodes: https://denaxaslab.org/publication/denaxas-2021-mapping/
+        .. _MONDO OLS: https://www.ebi.ac.uk/ols4/ontologies/mondo
+        .. _Medical Subject Headings vocabulary: https://en.wikipedia.org/wiki/Medical_Subject_Headings
     """
-    CLINICAL_DISEASE = 0
-    CLINICAL_DOMAIN = 1
-    CLINICAL_FUNCTIONAL_ANATOMY = 2
-    MESH_CODES = 3
+    MONDO    = 0
+    MESH     = 1
+    SNOMED   = 2
+    DOMAIN   = 3
+    CATEGORY = 4
 
 """
     Number of days before organisation invite expires
@@ -193,16 +208,25 @@ INVITE_TIMEOUT = 30
 NUMERIC_NAMES = ['float', 'numeric', 'decimal', 'percentage']
 
 """
-    Used to define the labels for each
-    known ontology type
-
+    Used to define the labels for each known ontology type
 """
 ONTOLOGY_LABELS = {
-    ONTOLOGY_TYPES.MESH_CODES: 'Medical Subject Headings (MeSH)',
-    ONTOLOGY_TYPES.CLINICAL_DOMAIN: 'Clinical Domain',
-    ONTOLOGY_TYPES.CLINICAL_DISEASE: 'Clinical Disease Category (SNOMED)',
-    ONTOLOGY_TYPES.CLINICAL_FUNCTIONAL_ANATOMY: 'Functional Anatomy',
+    ONTOLOGY_TYPES.MONDO    : 'Mondo Disease Ontology (MONDO)',
+    ONTOLOGY_TYPES.MESH     : 'Medical Subject Headings (MeSH)',
+    ONTOLOGY_TYPES.SNOMED   : 'Clinical Disease (SNOMED CT)',
+    ONTOLOGY_TYPES.DOMAIN   : 'Clinical Specialty',
+    ONTOLOGY_TYPES.CATEGORY : 'Clinical Category',
 }
+
+"""
+    Specifies the ontologies that are presently and can be referenced by templates & systems
+"""
+ONTOLOGY_ACTIVE = [
+    ONTOLOGY_TYPES.MONDO,
+    ONTOLOGY_TYPES.MESH,
+    ONTOLOGY_TYPES.DOMAIN,
+    ONTOLOGY_TYPES.CATEGORY,
+]
 
 """
     The excepted X-Requested-With header if a fetch request is made
@@ -487,7 +511,7 @@ metadata = {
         },
         'search': {
             'filterable': True,
-            'single_search_only': True,
+            'single_search_only': False,
         },
         'ignore': True
     },
@@ -550,7 +574,7 @@ metadata = {
         'title': 'Publications',
         'description': "Publication(s) where this Phenotype was defined or has been used (optional).",
         'field_type': 'publications',
-        'sort': {'key': lambda pub: 0 if pub.get('primary') == 1 else 1},
+        'sort': {'key': 'primary'},
         'active': True,
         'validation': {
             'type': 'publication',

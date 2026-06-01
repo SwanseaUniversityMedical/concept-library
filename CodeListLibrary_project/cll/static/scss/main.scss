@@ -31,6 +31,7 @@
 @import 'components/_scrollspy';
 @import 'components/_headline';
 @import 'components/_misc';
+@import 'components/_tabgroup';
 
 // Need to add vendor's properties to brand map
 @import 'vendor/_lightpick';
@@ -105,6 +106,12 @@ data {
     margin: var(--main-top-mobile-padding) 0 0 0;
   }
 
+  &--centre-content {
+    width: 100%;
+    max-width: 2160px;
+    justify-content: center;
+  }
+
   &__inner-container {
     @include flex-col();
     min-height: min-content;
@@ -140,6 +147,19 @@ data {
         padding-right: 0;
         width: 100%;
         max-width: 100%;
+      }
+    }
+
+    &--nav-constrained {
+      width: var(--phenotype-article-sm-size);
+      max-width: var(--phenotype-article-sm-size);
+      padding: 0 0.75rem;
+      align-self: center;
+
+      @include media("<desktop", "screen") {
+        width: var(--phenotype-article-lg-size);
+        max-width: var(--phenotype-article-lg-size);
+        margin: 0 var(--navigation-mobile-gutter);
       }
     }
 

@@ -6,54 +6,102 @@
   aria-label="View {{ entity.name }}">
   
   <a class="entity-card__click" href="{% url 'entity_history_detail' pk=entity.id history_id=entity.history_id %}">
-    <div class="entity-card__header">
-      <div class="entity-card__header-item">
-        <h3 class="entity-card__title">{{ entity.id }} - {{ entity.name }}</h3>
-        <p class="entity-card__author">{{ entity.author }}</p>
-      </div>
-      {% if entity.template_data and entity.template_data.project_name and entity.template_data.project_name|length %}
-        <div class="entity-card__header-item">
-          <div class="chip bold washed-accent text-accent-darkest">
-            <span href="#">{{ entity.template_data.project_name }}</span>
-          </div>
-        </div>
-      {% elif entity.publish_status != 2 %}
-        <div class="entity-card__header-item">
-          <span tooltip="This is yet to be moderated" direction="left">
-            <div class="chip bold washed-accent text-accent-darkest draft-icon icon-accent-highlight">
-              <span class="chip-text" href="#">UNPUBLISHED</span>
-            </div>
-          </span>
-        </div>
-      {% endif %}
-    </div>
-    <div class="entity-card__snippet">
-      <div class="entity-card__snippet-metadata">
+    <div class="grid-card">
+      <div class="grid-card__title">
         {% render_field_value entity layout "type" None as type_value %}
-        {% if not type_value %}
-          <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
-        {% else %}
-          <span class="entity-card__snippet-metadata-type">{{ type_value }}</span>
-          <span class="entity-card__snippet-metadata-divider"></span>
-          <span class="entity-card__snippet-metadata-date">Last updated {{ entity.created|stylise_date }}</span>
+        
+        <h3 class="grid-card__title-header">
+          {{ entity.id }} {{ entity.name }}
+        </h3>
+
+        <div class="grid-card__title-subheader grid-card__title-subheader--data-types">
+          <p class="">
+            {{ layout.name }}
+          </p>
+          {% if type_value %}
+            <span class="as-icon as-icon--sm" aria-hidden="true" data-icon="&#xf111;"></span>
+            <p class="">
+              {{ type_value }}
+            </p>
+          {% endif %}
+        </div>
+
+        {% if entity.template_data and entity.template_data.project_name and entity.template_data.project_name|length %}
+          <p class="grid-card__title-subheader">
+            {{ entity.template_data.project_name }}
+          </p>
+        {% endif %}
+
+        {% if entity.publish_status != 2 %}
+          <p class="grid-card__title-subheader ">
+            <span class="grid-card__title-subheader--draft-icon"></span>
+            DRAFT
+          </p>
         {% endif %}
       </div>
-      <div class="entity-card__snippet-tags">
-        <div class="entity-card__snippet-tags-group">
-          {% renderable_field_values entity layout "coding_system" as coding_systems %}
-          {% for code in coding_systems %}
-            <div class="meta-chip meta-chip-washed-accent">
-              <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ code.name }}</span>
-            </div>
-          {% endfor %}
+
+      <div class="grid-card__metadata">
+        <div class="grid-card__metadata-row">
+          <div class="col-sm-2 row-padding detail-field-title">
+            Coding Systems:
+          </div>
+          <div class="col-sm-10 display-flex flex-direction-row flex-wrap-wrap gap-sm">
+            {% renderable_field_values entity layout "coding_system" as coding_systems %}
+            {% for code in coding_systems %}
+              <div class="meta-chip meta-chip-washed-accent">
+                <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">
+                  {{ code.name }}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
         </div>
-        <div class="entity-card__snippet-tags-group">
-          {% renderable_field_values entity layout "collections" as collections %}
-          {% for collection in collections %}
-            <div class="meta-chip meta-chip-tertiary-accent">
-              <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">{{ collection.name }}</span>
-            </div>
-          {% endfor %}
+
+        <div class="grid-card__metadata-row">
+          <div class="col-sm-2 row-padding detail-field-title">
+            Collections:
+          </div>
+          <div class="col-sm-10 display-flex flex-direction-row flex-wrap-wrap gap-sm">
+            {% renderable_field_values entity layout "collections" as collections %}
+            {% for collection in collections %}
+              <div class="meta-chip meta-chip-tertiary-accent">
+                <span class="meta-chip__name meta-chip__name-text-accent-dark meta-chip__name-bold">
+                  {{ collection.name }}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {% renderable_field_values entity layout "ontology" as ontologies %}
+      {% if ontologies and ontologies|length > 0 %}
+        <div class="grid-card__ontology">
+          <div class="grid-card__ontology-col">
+            <p class="grid-card__ontology-title">
+              Ontology terms:
+            </p>
+            
+            {% for ontology in ontologies %}
+              <div class="meta-chip meta-chip-ontology-accent">
+                <span class="meta-chip__name meta-chip__name-text-accent-darkest meta-chip__name-bold">
+                  {{ ontology.name }}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="grid-card__snippet">
+        <div class="grid-card__snippet-col">
+          <span class="grid-card__snippet">
+            Last updated {{ entity.updated|stylise_date }}
+          </span>
+          <span class="grid-card__snippet-divider as-icon as-icon--sm" aria-hidden="true" data-icon="&#xf111;"></span>
+          <span class="grid-card__snippet">
+            {{ entity.author|truncatewords:6 }} 
+          </span>
         </div>
       </div>
     </div>
