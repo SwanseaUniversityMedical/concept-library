@@ -18,9 +18,18 @@ ingress:
   className: nginx
   annotations: {}
   clusterHostNameOverride: ""
-  tls: []
   host: ""
   hosts: []
+  tls:
+    enabled: false
+    secretName: ""
+
+ingressRoute:
+  enabled: false
+  # If ingress.tls.enabled, set this to 'websecure'
+  entryPoint: web
+
+
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -67,3 +76,7 @@ metrics:
   serviceMonitor:
     enabled: false
     prometheusNamespace: ""
+
+dns:
+  enabled: true
+  hostname: concept-library.example.com
