@@ -102,16 +102,18 @@ def get_ontology_node_by_term(request, term):
         )
 
     pattern = _lazy_re_compile(r'([\w\-]+)[:|_]([\w\-]+)', flags=re.MULTILINE)
-    if not pattern.match(term):
+    matched = pattern.match(term)
+    if not matched:
         return Response(
             data={
-                'message': 'Invalid node term, expected term to describe two alphanumeric strings delimited by colon'
+                'message': 'Invalid node term, expected term to describe two alphanumeric strings delimited by colon or underscore'
             },
             content_type='json',
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    node = OntologyTag.objects.filter(reference_id=term.upper()).order_by('type_id')
+    term = '%s:%s' % (matched.group(1).upper(), matched.group(2))
+    node = OntologyTag.objects.filter(reference_id=term).order_by('type_id')
     node = node.first() if node.exists() else None
     if node is None:
         return Response(

@@ -107,7 +107,7 @@
         "mandatory": false,
         "source": {
           "model": "OntologyTag",
-          "trees": [ 0, 3, 4 ],
+          "trees": [ 0 ],
           "references": {
             "trim": true,
             "pattern": "^(\\w+):([\\w\\.\\-\\_ ]+)$",
