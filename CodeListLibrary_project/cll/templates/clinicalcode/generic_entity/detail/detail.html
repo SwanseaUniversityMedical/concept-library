@@ -39,43 +39,44 @@
   {% endcompress %}
 
   <!-- Form -->
-  <header class="main-header main-header--centre-content">
-    <div class="main-header__inner-container main-header__inner-container--nav-constrained">
-      {% comment %} {% breadcrumbs useMap=False includeHome=True includeHeader=False %}
-      {% endbreadcrumbs %} {% endcomment %}
+  <header class="main-header phenotype-banner">
+    <div class="main-header__inner-container main-header__inner-container--constrained-no-pad main-header__inner-container--centred">
+      <div class="phenotype-banner__container">
+        <div class="phenotype-banner__header">
+          <div class="phenotype-banner__title">
+            <section class="phenotype-banner__title__name">
+              <a class="phenotype-banner__title__name__back-btn" href="{% url 'search_entities' %}" aria-label="Go back to Search">
+                <span aria-hidden="true">Go Back</span>
+              </a>
+              <h1 class="phenotype-banner__title__name__label">
+                {{ entity.name }}
+              </h1>
+            </section>
+          </div>
 
-      <section class="breadcrumbs">
-        <span class="breadcrumb-item">
-          <span class="marker"></span>
-          <span class="breadcrumb">
-            <a href="{% url 'search_entities' %}">Search</a>
-          </span>
-        </span>
-        <span class="breadcrumb-item">
-          <span class="marker"></span>
-          <span class="breadcrumb">{{ entity.name }}</span>
-        </span>
-      </section>
-    </div>
-  </header>
-  
-  <main class="main-content">
-    {% render_wizard_navigation detail_pg=True %}
-    {% endrender_wizard_navigation %}
-
-    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
-      <article class="phenotype-creation">
-        <section class="phenotype-creation__header">
-          <div class="phenotype-creation__header-title">
-            <h1>{{ entity.name }}</h1>
+          <div class="phenotype-banner__actions">
             {% include './detail_buttons.html' %}
           </div>
-          <div class="phenotype-creation__header-row phenotype-creation__header--fill phenotype-creation__header--jc-sb phenotype-creation__header-detail-root">
+        </div>
+
+        <div class="phenotype-banner__details">
+          <div class="phenotype-creation__header-row phenotype-creation__header--fill phenotype-creation__header-detail-root phenotype-creation__header--ai-stretch">
             <div class="phenotype-creation__header-col phenotype-creation__header--fmax-1 phenotype-creation__header-detail-item">
               <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
                 <span class="as-icon phenotype-creation--icn" data-icon="&#xf5b7;" aria-hidden="true"></span>
                 <p><strong>{{ entity.id }} / {{ entity.history_id }}</strong></p>
               </div>
+              {% if is_published %}
+                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                  <span class="as-icon phenotype-creation--icn" data-icon="&#xf7a2;" aria-hidden="true"></span>
+                  <p><strong>Published</strong></p>
+                </div>
+              {% else %}
+                <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap">
+                  <span class="as-icon phenotype-creation--icn" data-icon="&#xf7a2;" aria-hidden="true"></span>
+                  <p>Draft</p>
+                </div>
+              {% endif %}
               {% if not entity.author|is_empty_value %}
                 <div class="phenotype-creation__header-row phenotype-creation__header--no-wrap phenotype-creation__header-detail-item">
                   <span class="as-icon phenotype-creation--icn" data-icon="&#x40;" aria-hidden="true"></span>
@@ -109,7 +110,7 @@
                 </div>
               {% endif %}
             </div>
-            <div class="phenotype-creation__header-col phenotype-creation__header--ai-fe phenotype-creation__header--fmin-0 phenotype-creation__header-detail-item">
+            <div class="phenotype-creation__header-col phenotype-creation__header--fmin-0 phenotype-creation__header-detail-item phenotype-creation__header--as-fs phenotype-creation__header--ml-auto">
               <span class="tag tag--detail tag--success">
                 <strong>
                   <span class="as-icon phenotype-creation__header--mr-05" data-icon="&#xf15b;" aria-hidden="true"></span>
@@ -135,13 +136,23 @@
               {% endif %}
             </div>
           </div>
-        </section>
-
-        <ol class="phenotype-progress" id="main-wizard">
-          {% render_wizard_sections detail_pg=True %}
-          {% endrender_wizard_sections %}
-        </ol>
-      </article>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <div class="main-content__inner-container main-content__inner-container--constrained main-content__inner-container--centred">
+      <div class="phenotype-content">
+        {% render_wizard_navigation detail_pg=True %}
+        {% endrender_wizard_navigation %}
+        <article class="phenotype-creation phenotype-creation--relative">
+          <ol class="phenotype-progress" id="main-wizard">
+            {% render_wizard_sections detail_pg=True %}
+            {% endrender_wizard_sections %}
+          </ol>
+        </article>
+      </div>
     </div>
   </main>
 {% endblock container %}

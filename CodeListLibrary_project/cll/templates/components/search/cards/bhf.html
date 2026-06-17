@@ -84,9 +84,12 @@
             
             {% for ontology in ontologies %}
               <div class="meta-chip meta-chip-ontology-accent">
-                <span class="meta-chip__name meta-chip__name-text-accent-darkest meta-chip__name-bold">
+                <a
+                  href="{% url 'search_entities_by_ontology' term=ontology.reference_id %}"
+                  class="meta-chip__name meta-chip__name-text-accent-darkest meta-chip__name-bold meta-chip__name--reference"
+                >
                   {{ ontology.name }}
-                </span>
+                </a>
               </div>
             {% endfor %}
           </div>
