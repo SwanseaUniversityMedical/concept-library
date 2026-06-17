@@ -33,12 +33,11 @@
           Error!
         {% endif %}
       </h2>
+      <p>We're sorry but we couldn't process this request!</p>
       {% if messages and messages|length %}
         {% for message in messages %}
           <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
         {% endfor %}
-      {% else %}
-        <p>We're sorry but we couldn't process this request</p>
       {% endif %}
       <p>Follow this link to get back to the <a href="{% url 'concept_library_home' %}">homepage</a>.</p>
       <p>Or, click <a href="javascript:history.back()">here</a> to go back.</p>

@@ -4,7 +4,6 @@
     ---------------------------------------------------------------------------
 """
 from django.urls import reverse, get_urlconf, get_resolver
-from django.http import HttpResponseBadRequest
 from collections import OrderedDict
 from collections.abc import Iterable
 from django.contrib import messages
@@ -165,6 +164,15 @@ class EntitySearchByOntologyView(TemplateView):
 
         # Get ontology
         ontology_term = kwargs.get('term')
+        if gen_utils.is_empty_string(ontology_term):
+            raise Http404
+
+        pattern = _lazy_re_compile(r'([\w\-]+)[:|_]([\w\-]+)', flags=re.MULTILINE)
+        matched = pattern.match(ontology_term)
+        if not matched:
+            raise Http404
+
+        ontology_term = '%s:%s' % (matched.group(1).upper(), matched.group(2))
         ontology = OntologyTag.objects.filter(reference_id=ontology_term)
         if not ontology.exists():
             raise Http404
@@ -402,7 +410,7 @@ class CreateEntityView(TemplateView):
             return self.update_form(request, context, template, entity)
         
         # Raise 400 if no param matches views
-        raise HttpResponseBadRequest('Invalid request.')
+        raise BadRequest('Invalid request.')
     
     ''' Forms '''
     def select_form(self, request, context):

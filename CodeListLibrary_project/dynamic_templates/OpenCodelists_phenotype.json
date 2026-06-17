@@ -18,7 +18,7 @@
       "description": "An overview of the Phenotype with basic metadata.",
       "fields": [
         "open_codelist_id", "open_codelist_version_id", "open_codelist_version_tag", 
-        "coding_system", "coding_system_release", "collections", "tags"
+        "coding_system", "coding_system_release", "collections", "tags", "ontology"
       ]
     },
     {
@@ -198,6 +198,70 @@
         "sanitise": "strict"
       },
       "hide_if_empty": true
+    },
+    "ontology": {
+      "title": "Ontology",
+      "description": "A set of taggable categories and concepts that best describe this Phenotype (optional).",
+      "field_type": "ontology",
+      "active": true,
+      "hydrated": true,
+      "validation": {
+        "type": "int_array",
+        "mandatory": false,
+        "source": {
+          "model": "OntologyTag",
+          "trees": [ 0 ],
+          "references": {
+            "trim": true,
+            "pattern": "^(\\w+):([\\w\\.\\-\\_ ]+)$",
+            "transform": "([^a-zA-Z0-9]+)",
+            "mapping": {
+              "type": "string",
+              "match_in": "xrefs",
+              "match_src": "properties",
+              "match_data": "text"
+            }
+          },
+          "subquery": {
+            "id": {
+              "type": "int_array",
+              "field": "id",
+              "modifiers": [ "descendants" ]
+            },
+            "name": {
+              "type": "string_array",
+              "field": "name",
+              "modifiers": [ "descendants" ]
+            },
+            "type": {
+              "type": "int_array",
+              "field": "type_id",
+              "coerce": [
+                { "compare": "MONDO", "out": 0 },
+                { "compare": "MeSH", "out": 1 },
+                { "compare": "Clinical Specialty", "out": 3 },
+                { "compare": "Clinical Category", "out": 4 }
+              ]
+            },
+            "reference": {
+              "type": "string_array",
+              "field": "reference_id",
+              "modifiers": [ "descendants" ]
+            },
+            "code": {
+              "key": "xrefs",
+              "type": "string_array",
+              "field": "properties",
+              "field_type": "jsonb_array",
+              "modifiers": [ "descendants" ]
+            }
+          }
+        }
+      },
+      "search": {
+        "filterable": true,
+        "api": true
+      }
     }
   }
 }
