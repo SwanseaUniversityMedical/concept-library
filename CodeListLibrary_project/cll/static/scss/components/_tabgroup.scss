@@ -34,7 +34,10 @@
     border-top: solid var(--tabgroup-title-border-colour, --tabgroup-title-background-colour);
     background-color: var(--tabgroup-title-background-colour, var(--color-bg));
 
-    
+    &.washed {
+      background-color: var(--tabgroup-title-background-colour, var(--color-accent-washed))
+    }
+
     @include media("<405px", "screen") {
       width: 100%;
     }

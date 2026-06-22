@@ -25,7 +25,7 @@ from ..models.PublishedGenericEntity import PublishedGenericEntity
 from ..models.ConceptCodeAttribute import ConceptCodeAttribute
 
 from . import (
-    gen_utils, model_utils, permission_utils,
+    gen_utils, model_utils, permission_utils, doi_utils,
     template_utils, concept_utils, constants
 )
 
@@ -1588,4 +1588,7 @@ def create_or_update_entity_from_form(
         logger.warning(f'Integrity error when attempting to submit GenericEntity<method: {form_method}> with err: {e}')
         return
     else:
-        return entity.history.latest()
+        historical_entity = entity.history.latest()
+        if publish_immediately:
+            doi_utils.publish_doi_task(historical_entity, timeout=0.5)
+        return historical_entity
