@@ -5,6 +5,7 @@ from django.db import transaction, IntegrityError, connection
 from django.apps import apps
 from django.db.models import Q
 from django.utils.timezone import make_aware
+from copy import deepcopy
 
 import logging
 import inspect
@@ -936,9 +937,9 @@ def validate_entity_form(request, content, errors=[], method=None):
 
     form_data = content.get('data')
     form_data = validate_form_data_type(form_data, errors)
-    
-    form_entity = content.get('entity')
-    form_entity = validate_form_entity(form_entity, form_method, errors)
+
+    trg_entity = content.get('entity')
+    form_entity = validate_form_entity(trg_entity, form_method, errors)
 
     if len(errors) > 0:
         return
@@ -987,6 +988,7 @@ def validate_entity_form(request, content, errors=[], method=None):
     return {
         'method': constants.FORM_METHODS(form_method),
         'entity': form_entity,
+        'target': trg_entity,
         'template': form_template,
         'data': {
             'metadata': top_level_data,
@@ -1410,6 +1412,59 @@ def compute_brand_context(request, form_data, form_entity=None):
 
     return related_brands
 
+def get_field_difference(lhs, rhs):
+    result = {}
+
+    keys = set(lhs.keys()).union(set(rhs.keys()))
+    for key in keys:
+        if key not in lhs or key not in rhs:
+            result[key] = True
+            continue
+
+        lhs_value = lhs[key]
+        rhs_value = rhs[key]
+
+        if isinstance(lhs_value, dict) and isinstance(rhs_value, dict):
+            difference_result = get_field_difference(lhs_value, rhs_value)
+            if difference_result:
+                result[key] = difference_result
+        else:
+            if lhs_value != rhs_value:
+                result[key] = True
+    return result
+
+def check_field_mutability(fields_changed, template_data):
+    for field, changed in fields_changed.items():
+        info = template_utils.get_template_field_info(template_data, field)
+
+        field_data = info.get('field')
+        if not isinstance(field_data, dict):
+            if isinstance(changed, dict):
+                if not check_field_mutability(changed, template_data):
+                    return False 
+
+        if not field_data.get('update_in_place'):
+            return False
+
+    return True
+
+def should_update_in_place(prev_entity, new_entity, template_data, fields_to_ignore=['updated']):
+    prev_fields = model_utils.jsonify_object(
+        prev_entity, 
+        remove_userdata=False, 
+        strippable_fields=fields_to_ignore, 
+        dump=False
+    )
+    new_fields = model_utils.jsonify_object(
+        new_entity, 
+        remove_userdata=False, 
+        strippable_fields=fields_to_ignore, 
+        dump=False
+    )
+    fields_changed = get_field_difference(prev_fields, new_fields)
+
+    return check_field_mutability(fields_changed, template_data)
+
 @transaction.atomic
 def create_or_update_entity_from_form(
     request, 
@@ -1463,6 +1518,7 @@ def create_or_update_entity_from_form(
     
     # If we're attempting to update we should confirm we have the perms to do so
     form_entity = form.get('entity')
+    historical_entity = form_entity
     if form_entity is not None:
         entity = GenericEntity.objects.get(id=form_entity.id)
         if entity is None or not permission_utils.can_user_edit_entity(request, entity_id=form_entity.id, entity_history_id=form_entity.history_id):
@@ -1471,6 +1527,7 @@ def create_or_update_entity_from_form(
         form_entity = entity
     else:
         form_entity = None
+        historical_entity = None
 
     # Build related brand instances
     related_brands = compute_brand_context(request, form_data, form_entity)
@@ -1527,7 +1584,7 @@ def create_or_update_entity_from_form(
                     owner=user
                 )
             elif form_method == constants.FORM_METHODS.UPDATE:
-                entity = form_entity
+                entity = deepcopy(form_entity)
 
                 org = metadata.get('organisation')
                 if not org and permission_utils.has_derived_edit_access(request, entity.id):
@@ -1557,7 +1614,33 @@ def create_or_update_entity_from_form(
                 entity.publish_status = constants.APPROVAL_STATUS.ANY.value if not publish_immediately else constants.APPROVAL_STATUS.APPROVED.value
                 entity.updated_by = user
                 entity.brands = related_brands
-                entity.save()
+
+                inplace_update = should_update_in_place(form_entity, entity, template_instance)
+                if inplace_update and not historical_entity.next_record:
+                    historical_entity.name = metadata.get('name')
+                    historical_entity.status = constants.ENTITY_STATUS.DRAFT
+                    historical_entity.author = metadata.get('author')
+                    historical_entity.definition = metadata.get('definition')
+                    historical_entity.validation = metadata.get('validation')
+                    historical_entity.implementation = metadata.get('implementation')
+                    historical_entity.citation_requirements = metadata.get('citation_requirements')
+                    historical_entity.tags = metadata.get('tags')
+                    historical_entity.collections = metadata.get('collections')
+                    historical_entity.publications = metadata.get('publications')
+                    historical_entity.organisation = org
+                    historical_entity.owner_access = metadata.get('owner_access', historical_entity.owner_access)
+                    historical_entity.world_access = metadata.get('world_access', historical_entity.world_access)
+                    historical_entity.group_access = metadata.get('group_access', historical_entity.group_access)
+                    historical_entity.template = template_instance
+                    historical_entity.template_version = form_template.template_version
+                    historical_entity.template_data = template_data
+                    historical_entity.updated = make_aware(datetime.now())
+                    historical_entity.publish_status = constants.APPROVAL_STATUS.ANY.value if not publish_immediately else constants.APPROVAL_STATUS.APPROVED.value
+                    historical_entity.brands = related_brands
+                    historical_entity.save()
+                    entity.save_without_historical_record()
+                else:
+                    entity.save()
 
             # Update child related entities with entity object
             for group in new_entities:
