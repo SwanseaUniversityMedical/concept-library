@@ -580,7 +580,8 @@ metadata = {
             'type': 'publication',
             'mandatory': False
         },
-        'is_base_field': True
+        'is_base_field': True,
+        'update_in_place': True
     },
     'validation': {
         'title': 'Validation',
