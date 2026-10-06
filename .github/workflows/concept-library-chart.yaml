@@ -33,7 +33,7 @@ jobs:
   # Job name must be unique across repo to target
   # branch protection rules "required checks" properly!
   concept-library-chart:
-    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-chart.yaml@v4.0.0-charts
+    uses: SwanseaUniversityMedical/workflows/.github/workflows/pr-and-release-chart.yaml@v5.1.0-charts
     with:
       job-name: concept-library-chart
       comment-pr: true
